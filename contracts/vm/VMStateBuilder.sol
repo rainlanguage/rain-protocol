@@ -33,7 +33,7 @@ struct StateConfig {
 /// fnPtrs, which has undefined and therefore possibly catastrophic behaviour
 /// for the implementing contract, up to and including total funds loss.
 struct Bounds {
-    uint256 entrypointsLength;
+    uint256 entrypoint;
     uint256 minFinalStackIndex;
     uint256 stackIndex;
     uint256 stackLength;
@@ -73,25 +73,35 @@ contract VMStateBuilder {
     function buildState(
         address vm_,
         StateConfig memory config_,
-        Bounds memory bounds_
+        Bounds[] memory boundss_
     ) external returns (bytes memory) {
         unchecked {
             bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
-            bounds_.storageLength = RainVM(vm_).storageOpcodesRange().length;
-            // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the length
-            // to get the valid opcodes length.
-            bounds_.opcodesLength = packedFnPtrs_.length / 2;
+            uint256 storageLength_ = RainVM(vm_).storageOpcodesRange().length;
+            uint256 argumentsLength_ = 0;
+            uint256 stackLength_ = 0;
 
-            // We need the max stack and arguments length across all possible
-            // entrypoints, which means looping over all the entrypoints.
-            for (uint256 i_ = 0; i_ < bounds_.entrypointsLength; i_++) {
-                bounds_.stackIndex = 0;
-                ensureIntegrity(config_, bounds_, i_);
+            for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
+                boundss_[b_].storageLength = storageLength_;
+
+                // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the
+                // length to get the valid opcodes length.
+                boundss_[b_].opcodesLength = packedFnPtrs_.length / 2;
+                ensureIntegrity(config_, boundss_[b_]);
+                argumentsLength_ = argumentsLength_.max(
+                    boundss_[b_].argumentsLength
+                );
+                stackLength_ = stackLength_.max(boundss_[b_].stackLength);
+                // Stack needs to be high enough to read from after eval.
+                require(
+                    boundss_[b_].stackIndex >= boundss_[b_].minFinalStackIndex,
+                    "FINAL_STACK_INDEX"
+                );
             }
 
             // build a new constants array with space for the arguments.
             uint256[] memory constants_ = new uint256[](
-                config_.constants.length + bounds_.argumentsLength
+                config_.constants.length + argumentsLength_
             );
             for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
                 constants_[i_] = config_.constants[i_];
@@ -102,17 +112,11 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            // Stack needs to be high enough to read from after eval.
-            require(
-                bounds_.stackIndex >= bounds_.minFinalStackIndex,
-                "FINAL_STACK_INDEX"
-            );
-
             return
                 LibState.toBytesPacked(
                     State(
                         0,
-                        new uint256[](bounds_.stackLength),
+                        new uint256[](stackLength_),
                         ptrSources_,
                         constants_,
                         config_.constants.length
@@ -214,18 +218,22 @@ contract VMStateBuilder {
             bounds_.stackLength = bounds_.stackLength.max(bounds_.stackIndex);
             bounds_.argumentsLength = bounds_.argumentsLength.max(valLength_);
             uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
+            uint256 outerEntrypoint_ = bounds_.entrypoint;
+            uint256 innerEntrypoint_ = operand_ & 0x07;
+            bounds_.entrypoint = innerEntrypoint_;
             for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                ensureIntegrity(stateConfig_, bounds_, operand_ & 0x07);
+                ensureIntegrity(stateConfig_, bounds_);
             }
+            bounds_.entrypoint = outerEntrypoint_;
         }
     }
 
     function ensureIntegrity(
         StateConfig memory stateConfig_,
-        Bounds memory bounds_,
-        uint256 entrypoint_
+        Bounds memory bounds_
     ) public view {
         unchecked {
+            uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
             bytes memory stackPopsFns_ = SSTORE2.read(_stackPopsFnPtrs);
             bytes memory stackPushesFns_ = SSTORE2.read(_stackPushesFnPtrs);

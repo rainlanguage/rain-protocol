@@ -23,7 +23,7 @@ import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { SaleReentrant } from "../../typechain/SaleReentrant";
 import { concat, hexlify } from "ethers/lib/utils";
 import {
-  afterBlockNumberSource,
+  betweenBlockNumbersSource,
   saleDeploy,
   Opcode,
   Status,
@@ -116,7 +116,7 @@ describe("Sale", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
 
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -131,14 +131,15 @@ describe("Sale", async function () {
     const constants = [
       basePrice,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
       maxUnits,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const vMaxUnits = op(Opcode.CONSTANT, 3);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       // prettier-ignore
       concat([
         // maxUnits
@@ -178,8 +179,6 @@ describe("Sale", async function () {
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
-
-    await sale.start();
 
     const desiredUnits0 = totalTokenSupply.div(10);
 
@@ -240,9 +239,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const minimumTier = Tier.FOUR;
@@ -325,6 +325,7 @@ describe("Sale", async function () {
       "forwarding address should bypass tier restrictions"
     );
   });
+
   it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -357,9 +358,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -436,6 +438,7 @@ describe("Sale", async function () {
     );
     await sale.claimFees(feeRecipient.address);
   });
+
   it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -461,9 +464,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
@@ -508,6 +512,7 @@ describe("Sale", async function () {
       "wrong notice in event0"
     );
   });
+
   it("should set correct phases for token", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -534,9 +539,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -604,6 +610,7 @@ describe("Sale", async function () {
     assert(saleStatus2 === Status.SUCCESS);
     assert(tokenPhase2.eq(Phase.FROZEN));
   });
+
   it("should prevent configuring zero minimumRaise, including case when distributionEndForwardingAddress is set", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -628,9 +635,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
@@ -663,6 +671,7 @@ describe("Sale", async function () {
       "wrongly initialized sale with minimumRaise set to 0"
     );
   });
+
   it("should fail to initialize when deployer attempts to set a distributor", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -671,7 +680,7 @@ describe("Sale", async function () {
     const distributor = signers[2];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -684,12 +693,13 @@ describe("Sale", async function () {
     const constants = [
       staticPrice,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
@@ -721,6 +731,7 @@ describe("Sale", async function () {
       "did not alert deployer about setting custom distributor, since Sale will override this to automatically set the distributor to itself"
     );
   });
+
   it("should prevent reentrant buys", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -746,9 +757,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const cooldownDuration = 5;
@@ -855,6 +867,7 @@ describe("Sale", async function () {
       "Cooldown (with non-zero configured cooldown duration) did not revert reentrant buy call"
     );
   });
+
   it("should correctly generate receipts", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -880,9 +893,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
@@ -984,6 +998,7 @@ describe("Sale", async function () {
     assert(receipt2.units.eq(desiredUnits.div(10)), "wrong receipt2 units");
     assert(receipt2.price.eq(staticPrice), "wrong receipt2 price");
   });
+
   it("should prevent refunding with modified receipt", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1009,9 +1024,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -1099,6 +1115,7 @@ describe("Sale", async function () {
       "wrongly allowed accepted receipt with modified price for refund request"
     );
   });
+
   it("should prevent refunding with someone else's receipt", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1125,9 +1142,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -1220,6 +1238,7 @@ describe("Sale", async function () {
       "wrongly allowed signer2 to use signer1's receipt for refund"
     );
   });
+
   it("should prevent refunding twice with same receipt", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1245,9 +1264,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -1320,6 +1340,7 @@ describe("Sale", async function () {
       "wrongly allowed same receipt to be used twice for refund"
     );
   });
+
   it("should respect refund cooldown when sale is active, and bypass refund cooldown when sale is fail", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1329,7 +1350,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleDuration = 30;
+    const saleDuration = 50;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -1345,9 +1366,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const cooldownDuration = 5;
@@ -1468,6 +1490,10 @@ describe("Sale", async function () {
       "Buy",
       sale
     )) as BuyEvent["args"];
+    // wait until sale can end
+    await Util.createEmptyBlock(
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
+    );
     await sale.end();
     const saleStatusFail = await sale.saleStatus();
     assert(
@@ -1480,6 +1506,7 @@ describe("Sale", async function () {
     await sale.connect(signer1).refund(receipt2);
     await sale.connect(signer1).refund(receipt3);
   });
+
   it("should respect buy cooldown when sale is active", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1505,9 +1532,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
@@ -1581,6 +1609,7 @@ describe("Sale", async function () {
       "successive buy did not trigger cooldown while Sale was Active"
     );
   });
+
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1590,7 +1619,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -1607,14 +1636,15 @@ describe("Sale", async function () {
       basePrice,
       balanceMultiplier,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
     const vFractionMultiplier = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
     // prettier-ignore
     const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -1721,6 +1751,7 @@ describe("Sale", async function () {
       got       ${receipt1.price}`
     );
   });
+
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 reserve currently held by buyer)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1730,7 +1761,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -1747,14 +1778,15 @@ describe("Sale", async function () {
       basePrice,
       balanceMultiplier,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
     const vFractionMultiplier = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
     // prettier-ignore
     const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -1860,6 +1892,7 @@ describe("Sale", async function () {
       got       ${receipt1.price}`
     );
   });
+
   it("should prevent out of bounds opcode call", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1867,7 +1900,7 @@ describe("Sale", async function () {
     const recipient = signers[1];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const dustSize = totalTokenSupply.div(10 ** 7); // arbitrary value
@@ -1877,12 +1910,10 @@ describe("Sale", async function () {
       distributor: Util.zeroAddress,
       initialSupply: totalTokenSupply,
     };
-    const constants = [startBlock - 1, startBlock + saleTimeout - 1];
-    const sources = [
-      afterBlockNumberSource(0),
-      afterBlockNumberSource(1),
-      concat([op(99)]),
-    ]; // bad source
+    const constants = [startBlock - 1, startBlock + saleDuration - 1];
+    const vStart = op(Opcode.CONSTANT, 0);
+    const vEnd = op(Opcode.CONSTANT, 1);
+    const sources = [betweenBlockNumbersSource(vStart, vEnd), concat([op(99)])]; // bad source
     await Util.assertError(
       async () =>
         await saleDeploy(
@@ -1912,6 +1943,7 @@ describe("Sale", async function () {
       "did not prevent out of bounds opcode deploy"
     );
   });
+
   it("should prevent a buy which leaves remaining units less than configured `dustSize`", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -1921,7 +1953,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const dustSize = totalTokenSupply.div(10 ** 7); // arbitrary value
@@ -1935,12 +1967,13 @@ describe("Sale", async function () {
     const constants = [
       staticPrice,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
@@ -1992,6 +2025,7 @@ describe("Sale", async function () {
       "wrongly purchased number of units which leaves less than `dustSize` units remaining"
     );
   });
+
   it("should dynamically calculate price (based on number of units being bought)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2001,7 +2035,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2016,13 +2050,14 @@ describe("Sale", async function () {
       basePrice,
       supplyDivisor,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
     const vSupplyDivisor = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
     const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -2119,6 +2154,7 @@ describe("Sale", async function () {
       got       ${receipt1.price}`
     );
   });
+
   it("should support multiple successive buys (same logic as the following total reserve in test)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2128,7 +2164,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2143,13 +2179,14 @@ describe("Sale", async function () {
       basePrice,
       reserveDivisor,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
     const vReserveDivisor = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
     const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -2366,6 +2403,7 @@ describe("Sale", async function () {
       got       ${receipt5.price}`
     );
   });
+
   it("should dynamically calculate price (based on total reserve in)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2375,7 +2413,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2390,13 +2428,14 @@ describe("Sale", async function () {
       basePrice,
       reserveDivisor,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
     const vReserveDivisor = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
     const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -2494,6 +2533,7 @@ describe("Sale", async function () {
       got       ${receipt1.price}`
     );
   });
+
   it("should dynamically calculate price (based on remaining supply)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2503,7 +2543,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2518,13 +2558,14 @@ describe("Sale", async function () {
       basePrice,
       supplyDivisor,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
     const vSupplyDivisor = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
     const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -2595,6 +2636,7 @@ describe("Sale", async function () {
       got       ${receipt.price}`
     );
   });
+
   it("should dynamically calculate price (based on the current block number)", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2604,7 +2646,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2614,11 +2656,16 @@ describe("Sale", async function () {
       initialSupply: totalTokenSupply,
     };
     const basePrice = ethers.BigNumber.from("75").mul(Util.RESERVE_ONE);
-    const constants = [basePrice, startBlock - 1, startBlock + saleTimeout - 1];
+    const constants = [
+      basePrice,
+      startBlock - 1,
+      startBlock + saleDuration - 1,
+    ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
         op(Opcode.CONTEXT),
@@ -2716,6 +2763,7 @@ describe("Sale", async function () {
       got       ${receipt1.price}`
     );
   });
+
   it("should prevent recipient claiming fees on failed raise, allowing buyers to refund their tokens", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2725,7 +2773,7 @@ describe("Sale", async function () {
     const signer1 = signers[3];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2738,12 +2786,13 @@ describe("Sale", async function () {
     const constants = [
       staticPrice,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -2798,7 +2847,7 @@ describe("Sale", async function () {
     )) as BuyEvent["args"];
     // wait until sale can end
     await Util.createEmptyBlock(
-      saleTimeout + startBlock - (await ethers.provider.getBlockNumber())
+      saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
     // recipient cannot claim before sale ended with status of success
     await Util.assertError(
@@ -2852,6 +2901,7 @@ describe("Sale", async function () {
       "sender1 refunded same receipt twice"
     );
   });
+
   it("should allow only token admin (Sale) to set senders/receivers", async () => {
     // At the time of writing this test, Sale does not currently implement any logic which grants sender or receiver roles.
     // However, it is still important that only the token admin can grant these roles.
@@ -2862,7 +2912,7 @@ describe("Sale", async function () {
     const signer1 = signers[2];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2875,12 +2925,13 @@ describe("Sale", async function () {
     const constants = [
       staticPrice,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [, token] = await saleDeploy(
@@ -2931,6 +2982,7 @@ describe("Sale", async function () {
       "anon added sender, despite not being token admin"
     );
   });
+
   it("should transfer correct value to all stakeholders after successful sale (with forward address)", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -2941,7 +2993,7 @@ describe("Sale", async function () {
     const forwardingAddress = signers[4];
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(Util.RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {
@@ -2954,12 +3006,13 @@ describe("Sale", async function () {
     const constants = [
       staticPrice,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -3071,6 +3124,7 @@ describe("Sale", async function () {
       "fee recipient should have received fees after claiming"
     );
   });
+
   it("should transfer correct value to all stakeholders after successful sale (no forward address)", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3096,9 +3150,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -3210,6 +3265,7 @@ describe("Sale", async function () {
       "fee recipient should have received fees after claiming"
     );
   });
+
   it("should transfer correct value to all stakeholders after failed sale (with forward address)", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3236,9 +3292,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -3377,6 +3434,7 @@ describe("Sale", async function () {
       "signer1 should receive full refund on failed raise"
     );
   });
+
   it("should transfer correct value to all stakeholders after failed sale (no forward address)", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3402,9 +3460,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
@@ -3526,6 +3585,7 @@ describe("Sale", async function () {
       "signer1 should receive full refund on failed raise"
     );
   });
+
   it("should be able to end failed sale if creator does not end it", async () => {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3550,9 +3610,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
@@ -3585,14 +3646,14 @@ describe("Sale", async function () {
     await sale.start();
     await Util.assertError(
       async () => await sale.connect(signer1).end(),
-      "CANT_END",
+      "LIVE",
       "wrongly ended before configured block number"
     );
     // wait until sale can end
     await Util.createEmptyBlock(
       saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
-    const canEnd = await sale.canEnd();
+    const canEnd = !(await sale.canLive());
     assert(canEnd);
     const endTx = await sale.connect(signer1).end();
     const { sender: senderEnd, saleStatus: saleStatusEnd } =
@@ -3612,6 +3673,7 @@ describe("Sale", async function () {
       got       ${saleStatusFail}`
     );
   });
+
   it("should allow fees recipient to claim fees on successful raise, and prevent buyers from refunding their tokens", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3637,9 +3699,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
@@ -3714,6 +3777,7 @@ describe("Sale", async function () {
     assert(feeRecipientBalance1.eq(fee));
     assert(feeRecipientBalance2.eq(feeRecipientBalance1));
   });
+
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3739,9 +3803,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const saleTimeout = 100;
@@ -3916,12 +3981,12 @@ describe("Sale", async function () {
     // Cannot start, end or buy from sale
     await Util.assertError(
       async () => await sale.start(),
-      "CANT_START",
+      "NOT_PENDING",
       "wrongly started in Success state"
     );
     await Util.assertError(
       async () => await sale.end(),
-      "CANT_END",
+      "NOT_ACTIVE",
       "wrongly ended in Success state"
     );
     await Util.assertError(
@@ -3938,6 +4003,7 @@ describe("Sale", async function () {
       "wrongly bought units when sale is in Success state"
     );
   });
+
   it("should have status of Fail if minimum raise not met", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -3963,9 +4029,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const saleTimeout = 100;
@@ -4011,22 +4078,24 @@ describe("Sale", async function () {
     assert(await redeemableERC20Factory.isChild(saleToken));
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
-    const cantStart = await sale.canStart();
+    const cantStart = await sale.canLive();
     assert(!cantStart);
     await Util.assertError(
       async () => await sale.start(),
-      "CANT_START",
+      "NOT_LIVE",
       "wrongly started before configured block number"
     );
     // wait until sale start
     await Util.createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
-    const canStart = await sale.canStart();
-    assert(canStart);
+
+    const canLive = await sale.canLive();
+    assert(canLive);
+
     await Util.assertError(
       async () => await sale.end(),
-      "CANT_END",
+      "NOT_ACTIVE",
       "wrongly ended before started"
     );
     // anon can start sale
@@ -4041,22 +4110,26 @@ describe("Sale", async function () {
     assert(saleStatusActive === Status.ACTIVE);
     await Util.assertError(
       async () => await sale.start(),
-      "CANT_START",
+      "NOT_PENDING",
       "wrongly re-started while with Status of ACTIVE"
     );
-    const cantEnd = await sale.canEnd();
-    assert(!cantEnd);
+
+    const cantEnd = await sale.canLive();
+    assert(cantEnd); // cannot end if Sale can live
+
     await Util.assertError(
       async () => await sale.end(),
-      "CANT_END",
+      "LIVE",
       "wrongly ended before configured block number"
     );
     // wait until sale can end
     await Util.createEmptyBlock(
       saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
-    const canEnd = await sale.canEnd();
-    assert(canEnd);
+
+    const canEnd = !(await sale.canLive());
+    assert(canEnd); // can end if Sale should no longer live
+
     // anon can end sale
     const endTx = await sale.connect(signer1).end();
     const { sender: senderEnd, saleStatus: saleStatusEnd } =
@@ -4078,12 +4151,12 @@ describe("Sale", async function () {
     // Cannot start, end or buy from sale
     await Util.assertError(
       async () => await sale.start(),
-      "CANT_START",
+      "NOT_PENDING",
       "wrongly started in Fail state"
     );
     await Util.assertError(
       async () => await sale.end(),
-      "CANT_END",
+      "NOT_ACTIVE",
       "wrongly ended in Fail state"
     );
     const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);
@@ -4112,6 +4185,7 @@ describe("Sale", async function () {
       "wrongly timed out sale with sale status of Fail"
     );
   });
+
   it("should correctly timeout sale if it does not end naturally", async function () {
     this.timeout(0);
     const signers = await ethers.getSigners();
@@ -4136,9 +4210,10 @@ describe("Sale", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
     const sources = [
-      afterBlockNumberSource(1),
-      afterBlockNumberSource(2),
+      betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     await Util.assertError(
@@ -4240,12 +4315,12 @@ describe("Sale", async function () {
     // Cannot start, end or buy from sale
     await Util.assertError(
       async () => await sale.start(),
-      "CANT_START",
+      "NOT_PENDING",
       "wrongly started in Fail state"
     );
     await Util.assertError(
       async () => await sale.end(),
-      "CANT_END",
+      "NOT_ACTIVE",
       "wrongly ended in Fail state"
     );
     const fee = ethers.BigNumber.from("1").mul(Util.RESERVE_ONE);

@@ -13,7 +13,12 @@ import {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
-import { afterBlockNumberSource, saleDeploy, Opcode, Tier } from "./SaleUtil";
+import {
+  saleDeploy,
+  Opcode,
+  Tier,
+  betweenBlockNumbersSource,
+} from "./SaleUtil";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -109,7 +114,7 @@ describe("SaleUnchecked", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -124,11 +129,13 @@ describe("SaleUnchecked", async function () {
       Util.max_uint256.div(2),
       2,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vTwo = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -138,11 +145,7 @@ describe("SaleUnchecked", async function () {
       op(Opcode.EXP, 2)
     ]);
 
-    const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
-      source0,
-    ];
+    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
 
     const [sale] = await saleDeploy(
       signers,
@@ -192,7 +195,7 @@ describe("SaleUnchecked", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -207,11 +210,13 @@ describe("SaleUnchecked", async function () {
       Util.max_uint256.div(2),
       3,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vThree = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -221,11 +226,7 @@ describe("SaleUnchecked", async function () {
       op(Opcode.MUL, 2)
     ]);
 
-    const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
-      source0,
-    ];
+    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
 
     const [sale] = await saleDeploy(
       signers,
@@ -275,7 +276,7 @@ describe("SaleUnchecked", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -286,10 +287,12 @@ describe("SaleUnchecked", async function () {
       initialSupply: totalTokenSupply,
     };
 
-    const constants = [0, 1, startBlock - 1, startBlock + saleTimeout - 1];
+    const constants = [0, 1, startBlock - 1, startBlock + saleDuration - 1];
 
     const vZero = op(Opcode.CONSTANT, 0);
     const vOne = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -299,11 +302,7 @@ describe("SaleUnchecked", async function () {
       op(Opcode.SUB, 2)
     ]);
 
-    const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
-      source0,
-    ];
+    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
 
     const [sale] = await saleDeploy(
       signers,
@@ -353,7 +352,7 @@ describe("SaleUnchecked", async function () {
 
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
-    const saleTimeout = 30;
+    const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
@@ -368,11 +367,13 @@ describe("SaleUnchecked", async function () {
       Util.max_uint256,
       1,
       startBlock - 1,
-      startBlock + saleTimeout - 1,
+      startBlock + saleDuration - 1,
     ];
 
     const vMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vOne = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.CONSTANT, 2);
+    const vEnd = op(Opcode.CONSTANT, 3);
 
     // prettier-ignore
     const source0 = concat([
@@ -382,11 +383,7 @@ describe("SaleUnchecked", async function () {
       op(Opcode.ADD, 2)
     ]);
 
-    const sources = [
-      afterBlockNumberSource(2),
-      afterBlockNumberSource(3),
-      source0,
-    ];
+    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
 
     const [sale] = await saleDeploy(
       signers,
