@@ -1,7 +1,7 @@
 import * as Util from "../Util";
 import chai from "chai";
 import { ethers } from "hardhat";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify } from "ethers/lib/utils";
 import { op, paddedUInt32, paddedUInt256 } from "../Util";
 import type { Contract } from "ethers";
 
@@ -24,19 +24,159 @@ enum Tier {
 export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
-  it("should correctly combine Always and Never tier contracts with any and left selector", async () => {
+  it("should correctly combine reports with every and first selector where initial report is filtered out by block number", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    const alwaysTier = await Util.combineTierDeploy(signers[0], {
-      sources: [concat([op(Opcode.CONSTANT, 0)])],
-      constants: [0],
-    });
-    const neverTier = await Util.combineTierDeploy(signers[0], {
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       sources: [concat([op(Opcode.CONSTANT, 0)])],
       constants: [Util.ALWAYS],
-    });
+    })) as CombineTier & Contract;
+
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.NEVER],
+    })) as CombineTier & Contract;
+
+    const block0 = (await ethers.provider.getBlockNumber()) + 100; // block in the future
+
+    const futureTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [
+        Util.blockNumbersToReport(
+          Array.from(Array(8).keys()).map(() => block0)
+        ),
+      ],
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(futureTier.address),
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+    ];
+
+    const vFuture = op(Opcode.CONSTANT, 0);
+    const vAlways = op(Opcode.CONSTANT, 1);
+    const vNever = op(Opcode.CONSTANT, 2);
+
+    // prettier-ignore
+    const source = concat([
+          vFuture,
+          op(Opcode.CONTEXT),
+        op(Opcode.REPORT),
+          vAlways,
+          op(Opcode.CONTEXT),
+        op(Opcode.REPORT),
+          vNever,
+          op(Opcode.CONTEXT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 3)
+      ),
+    ]);
+
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [source],
+      constants,
+    })) as CombineTier & Contract;
+
+    const result = await combineTier.report(signers[0].address);
+
+    const expected = Util.max_uint256; // 'false'
+    assert(
+      result.eq(expected),
+      `did not correctly combine reports with every and first selector where initial report is filtered out by block number
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should correctly combine reports with any and first selector where initial report is filtered out by block number", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.ALWAYS],
+    })) as CombineTier & Contract;
+
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.NEVER],
+    })) as CombineTier & Contract;
+
+    const block0 = (await ethers.provider.getBlockNumber()) + 100; // block in the future
+
+    const futureTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [
+        Util.blockNumbersToReport(
+          Array.from(Array(8).keys()).map(() => block0)
+        ),
+      ],
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(futureTier.address),
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+    ];
+
+    const vFuture = op(Opcode.CONSTANT, 0);
+    const vAlways = op(Opcode.CONSTANT, 1);
+    const vNever = op(Opcode.CONSTANT, 2);
+
+    // prettier-ignore
+    const source = concat([
+          vFuture,
+          op(Opcode.CONTEXT),
+        op(Opcode.REPORT),
+          vAlways,
+          op(Opcode.CONTEXT),
+        op(Opcode.REPORT),
+          vNever,
+          op(Opcode.CONTEXT),
+        op(Opcode.REPORT),
+        op(Opcode.BLOCK_NUMBER),
+      op(
+        Opcode.SELECT_LTE,
+        Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 3)
+      ),
+    ]);
+
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [source],
+      constants,
+    })) as CombineTier & Contract;
+
+    const result = await combineTier.report(signers[0].address);
+
+    const expected = 0x00;
+    assert(
+      result.eq(expected),
+      `did not correctly combine reports with any and first selector where initial report is filtered out by block number
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should correctly combine Always and Never tier contracts with any and first selector", async () => {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.ALWAYS],
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      sources: [concat([op(Opcode.CONSTANT, 0)])],
+      constants: [Util.NEVER],
+    })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address), // right report
@@ -71,7 +211,7 @@ describe("CombineTier", async function () {
     const expected = 0x00; // success, left report's block number for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and left selector
+      `wrong block number preserved with tierwise any and first selector
       expected  ${expected}
       got       ${result}`
     );
