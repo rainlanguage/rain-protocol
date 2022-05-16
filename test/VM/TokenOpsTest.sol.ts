@@ -256,7 +256,7 @@ describe("TokenOps", async function () {
     const sources = [
       concat([
           vTokenAddr,
-        op(Opcode.IERC20_TOTAL_SUPPLY)
+        op(Opcode.ERC20_TOTAL_SUPPLY)
       ]),
     ];
 
@@ -283,7 +283,7 @@ describe("TokenOps", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.IERC20_BALANCE_OF)
+        op(Opcode.ERC20_BALANCE_OF)
       ]),
     ];
 
