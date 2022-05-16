@@ -46,6 +46,10 @@ const stakeDeploy = async (
   return stake;
 };
 
+const LEVELS = Array.from(Array(8).keys()).map((value) =>
+  ethers.BigNumber.from(++value + Util.eighteenZeros)
+);
+
 describe("Stake", async function () {
   beforeEach(async () => {
     token = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
@@ -104,19 +108,23 @@ describe("Stake", async function () {
       await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
 
+    const thresholds = LEVELS;
+
     const reportAlice = await stake.report(
       alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
     const reportBob = await stake.report(
       bob.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
 
     console.log({ reportHexAlice, reportHexBob });
+
+    throw new Error("incomplete test");
   });
 
   it("should process 25 successive deposits and withdraws", async function () {
@@ -164,19 +172,23 @@ describe("Stake", async function () {
       await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
 
+    const thresholds = LEVELS;
+
     const reportAlice = await stake.report(
       alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
     const reportBob = await stake.report(
       bob.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
 
     console.log({ reportHexAlice, reportHexBob });
+
+    throw new Error("incomplete test");
   });
 
   it("should process 10 successive deposits and withdraws", async function () {
@@ -224,19 +236,23 @@ describe("Stake", async function () {
       await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
 
+    const thresholds = LEVELS;
+
     const reportAlice = await stake.report(
       alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
     const reportBob = await stake.report(
       bob.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
 
     console.log({ reportHexAlice, reportHexBob });
+
+    throw new Error("incomplete test");
   });
 
   it("should return a correct report", async function () {
@@ -255,9 +271,11 @@ describe("Stake", async function () {
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
 
+    const thresholds = LEVELS;
+
     const report = await stake.report(
       alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
     );
 
     const reportHex = hexlify(report);
