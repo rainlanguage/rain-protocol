@@ -119,19 +119,24 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
         returns (uint256)
     {
         uint256[] memory thresholds_ = abi.decode(data_, (uint256[]));
+        require(thresholds_.length <= TierConstants.MAX_TIER, "MAX_TIER");
         uint256 report_ = type(uint256).max;
         if (thresholds_.length > 0) {
             uint256 t_ = 0;
             Deposit memory deposit_;
-            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
+            for (
+                uint256 i_ = 0;
+                i_ < deposits[account_].length;
+                i_++
+            ) {
                 deposit_ = deposits[account_][i_];
                 while (
                     t_ < thresholds_.length &&
                     deposit_.amount >= thresholds_[t_]
                 ) {
-                    TierReport.updateBlockAtTier(
+                    report_ = TierReport.updateBlockAtTier(
                         report_,
-                        t_,
+                        t_ + 1,
                         deposit_.blockNumber
                     );
                     t_++;
