@@ -80,7 +80,7 @@ export const saleDeploy = async (
   return [sale, token];
 };
 
-export const afterBlockNumberSource = (constant) => {
+export const afterBlockNumberSource = (constant: number): Uint8Array => {
   // prettier-ignore
   return concat([
     // (BLOCK_NUMBER blockNumberSub1 gt)
@@ -90,18 +90,21 @@ export const afterBlockNumberSource = (constant) => {
   ]);
 };
 
-export const betweenBlockNumbersSource = (vStart, vEnd) => {
+export const betweenBlockNumbersSource = (
+  vStart: Uint8Array,
+  vEnd: Uint8Array
+): Uint8Array => {
   // prettier-ignore
   return concat([
-    op(Opcode.BLOCK_NUMBER),
-    vStart,
-    op(Opcode.GREATER_THAN),
-    op(Opcode.BLOCK_NUMBER),
-    vEnd,
-    op(Opcode.LESS_THAN),
+        op(Opcode.BLOCK_NUMBER),
+        vStart,
+      op(Opcode.GREATER_THAN),
+        op(Opcode.BLOCK_NUMBER),
+        vEnd,
+      op(Opcode.LESS_THAN),
     op(Opcode.EVERY, 2),
   ])
-}
+};
 
 export enum SaleStorage {
   RemainingUnits,

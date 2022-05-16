@@ -451,7 +451,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// optional for anon to call outside of a purchase.
     /// `canStart` MUST return true.
     function start() external {
-        require(_saleStatus == SaleStatus.Pending);
+        require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
         require(_canLive(_loadState()), "NOT_LIVE");
         _start();
     }
@@ -461,7 +461,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// optional for anon to call outside of a purchase.
     /// `canEnd` MUST return true.
     function end() external {
-        require(_saleStatus == SaleStatus.Active);
+        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
         require(!_canLive(_loadState()), "LIVE");
         _end();
     }
