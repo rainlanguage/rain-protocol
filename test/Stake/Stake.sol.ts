@@ -10,6 +10,7 @@ import type {
 } from "../../typechain/Stake";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { hexlify } from "ethers/lib/utils";
 
 const { assert } = chai;
 
@@ -102,6 +103,20 @@ describe("Stake", async function () {
       // Bob redeems half of his stTokens
       await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
+
+    const reportAlice = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    );
+    const reportBob = await stake.report(
+      bob.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    );
+
+    const reportHexAlice = hexlify(reportAlice);
+    const reportHexBob = hexlify(reportBob);
+
+    console.log({ reportHexAlice, reportHexBob });
   });
 
   it("should process 25 successive deposits and withdraws", async function () {
@@ -148,6 +163,20 @@ describe("Stake", async function () {
       // Bob redeems half of his stTokens
       await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
+
+    const reportAlice = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    );
+    const reportBob = await stake.report(
+      bob.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    );
+
+    const reportHexAlice = hexlify(reportAlice);
+    const reportHexBob = hexlify(reportBob);
+
+    console.log({ reportHexAlice, reportHexBob });
   });
 
   it("should process 10 successive deposits and withdraws", async function () {
@@ -194,6 +223,20 @@ describe("Stake", async function () {
       // Bob redeems half of his stTokens
       await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
+
+    const reportAlice = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    );
+    const reportBob = await stake.report(
+      bob.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    );
+
+    const reportHexAlice = hexlify(reportAlice);
+    const reportHexBob = hexlify(reportBob);
+
+    console.log({ reportHexAlice, reportHexBob });
   });
 
   it("should return a correct report", async function () {
@@ -212,10 +255,16 @@ describe("Stake", async function () {
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
 
-    await stake.report(
+    const report = await stake.report(
       alice.address,
       ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
     );
+
+    const reportHex = hexlify(report);
+
+    console.log({ reportHex });
+
+    throw new Error("incomplete test");
   });
 
   it("should not process a withdraw of 0 amount", async function () {
