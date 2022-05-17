@@ -136,7 +136,7 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
                 ) {
                     report_ = TierReport.updateBlockAtTier(
                         report_,
-                        t_ + 1,
+                        t_,
                         deposit_.blockNumber
                     );
                     t_++;
