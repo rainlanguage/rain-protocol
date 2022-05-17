@@ -249,6 +249,79 @@ describe("Stake", async function () {
     console.log({ reportHexAlice, reportHexBob });
   });
 
+  it("should return one-to-many reports i.e. when different lists of thresholds are checked against", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = LEVELS[3].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const depositBlock0 = await ethers.provider.getBlockNumber();
+
+    const thresholds0 = LEVELS;
+    const thresholds1 = [1500, 2500, 3500, 4500, 5500, 6500, 7500, 8500].map(
+      (value) => ethers.BigNumber.from(value + Util.sixZeros)
+    );
+
+    const report0 = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds0])
+    );
+    const report1 = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds1])
+    );
+
+    const expected0 = Util.blockNumbersToReport([
+      depositBlock0,
+      depositBlock0,
+      depositBlock0,
+      depositBlock0,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+    const expected1 = Util.blockNumbersToReport([
+      depositBlock0,
+      depositBlock0,
+      depositBlock0,
+      0xffffffff, // not enough to reach tier 4 according to `thresholds1`
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report0.eq(expected0),
+      `did not return correct stake report0
+      expected  ${hexlify(expected0)}
+      got       ${hexlify(report0)}`
+    );
+    assert(
+      report1.eq(expected1),
+      `did not return correct stake report1
+      expected  ${hexlify(expected1)}
+      got       ${hexlify(report1)}`
+    );
+  });
+
   it("should return a correct report when enough tokens have been staked to exceed all thresholds", async function () {
     this.timeout(0);
 
