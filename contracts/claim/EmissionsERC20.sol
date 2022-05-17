@@ -4,7 +4,8 @@ pragma solidity =0.8.10;
 import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
-import "../tier/ReadOnlyTier.sol";
+import "../tier/ITierV2.sol";
+import "../tier/libraries/TierReport.sol";
 import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
 import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
@@ -43,11 +44,11 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
+    ITierV2,
     Initializable,
     RainVM,
     ERC20Upgradeable,
-    IClaim,
-    ReadOnlyTier
+    IClaim
 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -177,14 +178,6 @@ contract EmissionsERC20 is
             TierConstants.TIER_ZERO,
             TierConstants.TIER_EIGHT,
             block.number
-        );
-        emit TierChange(
-            msg.sender,
-            claimant_,
-            TierConstants.TIER_ZERO,
-            TierConstants.TIER_EIGHT,
-            // `data_` is emitted under `Claim`.
-            ""
         );
         emit Claim(msg.sender, claimant_, data_);
     }

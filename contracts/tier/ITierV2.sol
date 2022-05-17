@@ -52,129 +52,56 @@ pragma solidity ^0.8.0;
 /// - Tier is NOT held: `0xFF..` is in the report
 /// - Tier is unknown: `0xFF..` is in the report
 interface ITierV2 {
-    /// Every time a tier changes we log start and end tier against the
-    /// account.
-    /// This MAY NOT be emitted if reports are being read from the state of an
-    /// external contract.
-    /// The start tier MAY be lower than the current tier as at the block this
-    /// event is emitted in.
-    /// @param sender The `msg.sender` that authorized the tier change.
-    /// @param account The account changing tier.
-    /// @param startTier The previous tier the account held.
-    /// @param endTier The newly acquired tier the account now holds.
-    /// @param data The associated data for the tier change.
-    event TierChange(
-        address sender,
-        address account,
-        uint256 startTier,
-        uint256 endTier,
-        bytes data
-    );
+    /// Return `0` for blocks and `1` for unix timestamps in seconds.
+    /// Given that both can comfortably fit in uint32 until at least the year
+    /// 2100 (assuming block times longer than 1 second), we should be safe to
+    /// calculate reports in terms of either.
+    /// What is NEVER safe however, is mixing blocks and timestamps. There is
+    /// no direct conversion between the two as each block takes a different
+    /// amount of time to produce.
+    /// All standard caveats re: timestamps on the blockchain apply such as:
+    /// - Times are monotonic and unique but can be manipulated by miners. The
+    ///   degree to which all three of these statements are true is up to the
+    ///   network.
+    /// - Popular languages such as JavaScript often work with timestamps in
+    ///   milliseconds and teams have vested/locked tokens for 1000 years by
+    ///   miscalculating this; a tiny mistake can be enough to kill a project.
+    /// Offchain tooling such as that which builds scripts to combine the
+    /// output of several reports is STRONGLY RECOMMENDED to ensure different
+    /// units are NEVER mixed.
+    /// `ITierV2` contracts MUST consistently return the same `units` value for
+    /// every call over their lifetime.
+    function units() external view returns (uint256);
 
-    /// @notice Users can set their own tier by calling `setTier`.
-    ///
-    /// The contract that implements `ITierV2` is responsible for checking
-    /// eligibility and/or taking actions required to set the tier.
-    ///
-    /// For example, the contract must take/refund any tokens relevant to
-    /// changing the tier.
-    ///
-    /// Obviously the user is responsible for any approvals for this action
-    /// prior to calling `setTier`.
-    ///
-    /// When the tier is changed a `TierChange` event will be emmited as:
-    /// ```
-    /// event TierChange(address account, uint startTier, uint endTier);
-    /// ```
-    ///
-    /// The `setTier` function includes arbitrary data as the third
-    /// parameter. This can be used to disambiguate in the case that
-    /// there may be many possible options for a user to achieve some tier.
-    ///
-    /// For example, consider the case where tier 3 can be achieved
-    /// by EITHER locking 1x rare NFT or 3x uncommon NFTs. A user with both
-    /// could use `data` to explicitly state their intent.
-    ///
-    /// NOTE however that _any_ address can call `setTier` for any other
-    /// address.
-    ///
-    /// If you implement `data` or anything that changes state then be very
-    /// careful to avoid griefing attacks.
-    ///
-    /// The `data` parameter can also be ignored by the contract implementing
-    /// `ITierV2`. For example, ERC20 tokens are fungible so only the balance
-    /// approved by the user is relevant to a tier change.
-    ///
-    /// The `setTier` function SHOULD prevent users from reassigning
-    /// tier 0 to themselves.
-    ///
-    /// The tier 0 status represents never having any status.
-    /// @dev Updates the tier of an account.
-    ///
-    /// The implementing contract is responsible for all checks and state
-    /// changes required to set the tier. For example, taking/refunding
-    /// funds/NFTs etc.
-    ///
-    /// Contracts may disallow directly setting tiers, preferring to derive
-    /// reports from other onchain data.
-    /// In this case they should `revert("SET_TIER");`.
-    ///
-    /// @param account Account to change the tier for.
-    /// @param endTier Tier after the change.
-    /// @param data Arbitrary input to disambiguate ownership
-    /// (e.g. NFTs to lock).
-    function setTier(
+    /// Same as report but for a single tier.
+    /// Often the implementing contract can calculate a single tier much more
+    /// efficiently than all 8 tiers. If the consumer only needs one or a few
+    /// tiers it MAY be much cheaper to request only those tiers individually.
+    /// This DOES NOT apply to all contracts, an obvious example is token
+    /// balance based tiers which always return `ALWAYS` or `NEVER` for all
+    /// tiers so no efficiency is gained.
+    /// The return value is a `uint256` for gas efficiency but the values will
+    /// be bounded by `type(uint32).max` as no single tier can report a value
+    /// higher than this.
+    function reportForTier(
+        uint256 tier,
         address account,
-        uint256 endTier,
         bytes calldata data
-    ) external;
+    ) external view returns (uint256);
 
-    /// @notice A tier report is a `uint256` that contains each of the block
-    /// numbers each tier has been held continously since as a `uint32`.
-    /// There are 9 possible tier, starting with tier 0 for `0` offset or
-    /// "never held any tier" then working up through 8x 4 byte offsets to the
-    /// full 256 bits.
+    /// Same as `ITier` but with arbitrary bytes for `data` which allows a
+    /// single underlying state to present many different reports dynamically.
     ///
-    /// Low bits = Lower tier.
+    /// For example:
+    /// - Staking ledgers can calculate different tier thresholds
+    /// - NFTs can give different tiers based on different IDs
+    /// - Snapshot ERC20s can give different reports based on snapshot ID
     ///
-    /// In hexadecimal every 8 characters = one tier, starting at tier 8
-    /// from high bits and working down to tier 1.
-    ///
-    /// `uint32` should be plenty for any blockchain that measures block times
-    /// in seconds, but reconsider if deploying to an environment with
-    /// significantly sub-second block times.
-    ///
-    /// ~135 years of 1 second blocks fit into `uint32`.
-    ///
-    /// `2^8 / (365 * 24 * 60 * 60)`
-    ///
-    /// When a user INCREASES their tier they keep all the block numbers they
-    /// already had, and get new block times for each increased tiers they have
-    /// earned.
-    ///
-    /// When a user DECREASES their tier they return to `0xFFFFFFFF` (never)
-    /// for every tier level they remove, but keep their block numbers for the
-    /// remaining tiers.
-    ///
-    /// GUIs are encouraged to make this dynamic very clear for users as
-    /// round-tripping to a lower status and back is a DESTRUCTIVE operation
-    /// for block times.
-    ///
-    /// The intent is that downstream code can provide additional benefits for
-    /// members who have maintained a certain tier for/since a long time.
-    /// These benefits can be provided by inspecting the report, and by
-    /// on-chain contracts directly,
-    /// rather than needing to work with snapshots etc.
-    /// @dev Returns the earliest block the account has held each tier for
-    /// continuously.
-    /// This is encoded as a uint256 with blocks represented as 8x
-    /// concatenated uint32.
-    /// I.e. Each 4 bytes of the uint256 represents a u32 tier start time.
-    /// The low bits represent low tiers and high bits the high tiers.
-    /// Implementing contracts should return 0xFFFFFFFF for lost and
-    /// never-held tiers.
-    ///
-    /// @param account Account to get the report for.
-    /// @return The report blocks encoded as a uint256.
-    function report(address account) external view returns (uint256);
+    /// `data` supercedes `setTier` function and `TierChange` event from
+    /// `ITier` at the interface level. Implementing contracts are free to
+    /// inherit both `ITier` and `ITierV2` if the old behaviour is desired.
+    function report(address account, bytes calldata data)
+        external
+        view
+        returns (uint256);
 }

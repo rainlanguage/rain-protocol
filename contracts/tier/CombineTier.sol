@@ -7,7 +7,7 @@ import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
-import {ReadOnlyTier, ITierV2} from "./ReadOnlyTier.sol";
+import {ITierV2} from "./ITierV2.sol";
 import "../vm/VMStateBuilder.sol";
 
 uint256 constant ENTRYPOINT = 0;
@@ -19,7 +19,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// at construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
-contract CombineTier is ReadOnlyTier, RainVM, Initializable {
+contract CombineTier is ITierV2, RainVM, Initializable {
     // This allows cloned contracts to forward the template contract to the VM
     // state builder during initialization.
     address private immutable self;
