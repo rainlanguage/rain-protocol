@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {ITier} from "./ITier.sol";
+import {ITierV2} from "./ITierV2.sol";
 import {TierReport} from "./libraries/TierReport.sol";
 
 /// @title ReadOnlyTier
@@ -16,9 +16,9 @@ import {TierReport} from "./libraries/TierReport.sol";
 /// `ReadOnlyTier` is abstract because it does not implement `report`.
 /// The expectation is that `report` will derive tiers from some
 /// external data source.
-abstract contract ReadOnlyTier is ITier {
+abstract contract ReadOnlyTier is ITierV2 {
     /// Always reverts because it is not possible to set a read only tier.
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function setTier(
         address,
         uint256,

@@ -11,7 +11,8 @@ library TierConstants {
     uint32 internal constant NEVER_TIER = type(uint32).max;
 
     /// Always is 0 as it is the genesis block.
-    /// Tiers can't predate the chain but they can predate an `ITier` contract.
+    /// Tiers can't predate the chain but they can predate an `ITierV2`
+    /// contract.
     uint256 internal constant ALWAYS = 0;
 
     /// Account has never held a tier.

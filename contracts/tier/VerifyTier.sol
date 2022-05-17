@@ -31,7 +31,7 @@ contract VerifyTier is ReadOnlyTier, Initializable {
 
     /// Every tier will be the `State.since` block if `account_` is approved
     /// otherwise every tier will be uninitialized.
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function report(address account_) public view override returns (uint256) {
         State memory state_ = verify.state(account_);
         if (

@@ -178,7 +178,7 @@ uint256 constant DEBUG_STACK_INDEX = 3;
 ///
 /// The only thing required to run a rain script is a `State` struct to pass
 /// to `eval`, and the index of the source to run. Additional context can
-/// optionally be provided to be used by opcodes. For example, an `ITier`
+/// optionally be provided to be used by opcodes. For example, an `ITierV2`
 /// contract can take the input of `report`, abi encode it as context, then
 /// expose a local opcode that copies this account to the stack. The state will
 /// be mutated by reference rather than returned by `eval`, this is to make it

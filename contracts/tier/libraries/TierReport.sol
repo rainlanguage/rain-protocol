@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {ITier} from "../ITier.sol";
+import {ITierV2} from "../ITierV2.sol";
 import "./TierConstants.sol";
 
 /// @title TierReport
@@ -38,7 +38,7 @@ library TierReport {
     /// _through_ to the report block.
     /// I.e. NOT a snapshot.
     ///
-    /// @param report_ A report as per `ITier`.
+    /// @param report_ A report as per `ITierV2`.
     /// @param blockNumber_ The block number to check the tiers against.
     /// @return The highest tier held since `blockNumber` as per `report`.
     function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)

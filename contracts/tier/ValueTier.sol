@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {ITier} from "./ITier.sol";
+import {ITierV2} from "./ITierV2.sol";
 import "./libraries/TierConstants.sol";
 
 import "../sstore2/SSTORE2.sol";
@@ -13,7 +13,7 @@ import "../sstore2/SSTORE2.sol";
 /// reach a given tier.
 /// Anything with predefined values that map to tiers can be a `ValueTier`.
 ///
-/// Note that `ValueTier` does NOT implement `ITier`.
+/// Note that `ValueTier` does NOT implement `ITierV2`.
 /// `ValueTier` does include state however, to track the `tierValues` so is not
 /// a library.
 contract ValueTier {

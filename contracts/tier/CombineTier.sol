@@ -7,7 +7,7 @@ import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
-import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+import {ReadOnlyTier, ITierV2} from "./ReadOnlyTier.sol";
 import "../vm/VMStateBuilder.sol";
 
 uint256 constant ENTRYPOINT = 0;
@@ -15,8 +15,8 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// @title CombineTier
 /// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
-/// from any other `ITier` contracts referenced in the `ImmutableSource` set at
-/// construction.
+/// from any other `ITierV2` contracts referenced in the `ImmutableSource` set
+/// at construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
 contract CombineTier is ReadOnlyTier, RainVM, Initializable {
@@ -52,7 +52,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         return AllStandardOps.fnPtrs();
     }
 
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function report(address account_)
         external
         view

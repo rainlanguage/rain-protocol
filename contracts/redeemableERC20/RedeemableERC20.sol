@@ -7,7 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {ITier} from "../tier/ITier.sol";
+import {ITierV2} from "../tier/ITierV2.sol";
 import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
@@ -47,7 +47,7 @@ struct RedeemableERC20Config {
 /// events as a proof of participation in the original distribution by token
 /// holders.
 ///
-/// The token can optionally be restricted by the `ITier` contract to only
+/// The token can optionally be restricted by the `ITierV2` contract to only
 /// allow receipients with a specified membership status.
 ///
 /// @dev `RedeemableERC20` is an ERC20 with 2 phases.
@@ -140,7 +140,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// Tier contract that produces the report that `minimumTier` is checked
     /// against.
     /// Public so external contracts can interface with the required tier.
-    ITier public tier;
+    ITierV2 public tier;
 
     /// The minimum status that a user must hold to receive transfers during
     /// `Phase.ZERO`.
@@ -163,7 +163,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     {
         initializePhased();
 
-        tier = ITier(config_.tier);
+        tier = ITierV2(config_.tier);
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
 
         require(
@@ -199,14 +199,14 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         emit Initialize(msg.sender, config_);
 
         // Smoke test on whatever is on the other side of `config_.tier`.
-        // It is a common mistake to pass in a contract without the `ITier`
+        // It is a common mistake to pass in a contract without the `ITierV2`
         // interface and brick transfers. We want to discover that ASAP.
         // E.g. `Verify` instead of `VerifyTier`.
         // Slither does not like this unused return, but we're not looking for
         // any specific return value, just trying to avoid something that
         // blatantly errors out.
         // slither-disable-next-line unused-return
-        ITier(config_.tier).report(msg.sender);
+        ITierV2(config_.tier).report(msg.sender);
 
         schedulePhase(PHASE_DISTRIBUTING, block.number);
     }

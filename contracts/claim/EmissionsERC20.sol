@@ -33,7 +33,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
 /// Intended behaviour is to avoid sybils infinitely minting by putting the
-/// claim functionality behind a `ITier` contract. The emissions contract
+/// claim functionality behind a `ITierV2` contract. The emissions contract
 /// itself implements `ReadOnlyTier` and every time a claim is processed it
 /// logs the block number of the claim against every tier claimed. So the block
 /// numbers in the tier report for `EmissionsERC20` are the last time that tier
@@ -111,7 +111,7 @@ contract EmissionsERC20 is
         emit Initialize(msg.sender, config_.allowDelegatedClaims);
     }
 
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function report(address account_)
         public
         view

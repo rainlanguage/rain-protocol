@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {ITier} from "./ITier.sol";
+import {ITierV2} from "./ITierV2.sol";
 import "./libraries/TierConstants.sol";
 import "./libraries/TierReport.sol";
 
@@ -19,12 +19,12 @@ import "./libraries/TierReport.sol";
 /// When `setTier` is called it automatically sets the current blocks in the
 /// report for the new tiers. Lost tiers are scrubbed from the report as tiered
 /// addresses move down the tiers.
-contract ReadWriteTier is ITier {
+contract ReadWriteTier is ITierV2 {
     /// account => reports
     mapping(address => uint256) private reports;
 
     /// Either fetch the report from storage or return UNINITIALIZED.
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function report(address account_)
         public
         view
@@ -44,7 +44,7 @@ contract ReadWriteTier is ITier {
     /// Calls `_afterSetTier` that inheriting contracts SHOULD
     /// override to enforce status requirements.
     /// Emits `TierChange` event.
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function setTier(
         address account_,
         uint256 endTier_,
@@ -69,7 +69,7 @@ contract ReadWriteTier is ITier {
             block.number
         );
 
-        // Emit this event for ITier.
+        // Emit this event for ITierV2.
         emit TierChange(msg.sender, account_, startTier_, endTier_, data_);
 
         // Call the `_afterSetTier` hook to allow inheriting contracts to

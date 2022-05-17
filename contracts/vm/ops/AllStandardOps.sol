@@ -9,7 +9,10 @@ import "./token/ERC721Ops.sol";
 import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
-import "./tier/TierOps.sol";
+import "./tier/OpITierV2Report.sol";
+import "./tier/OpSaturatingDiff.sol";
+import "./tier/OpSelectLte.sol";
+import "./tier/OpUpdateBlocksForTierRange.sol";
 
 uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
 
@@ -121,10 +124,10 @@ library AllStandardOps {
                     two,
                     // tier saturating diff
                     two,
+                    // select lte
+                    OpSelectLte.stackPopsSelectLte,
                     // update blocks for tier range
                     two,
-                    // select lte
-                    TierOps.stackPopsSelectLte,
                     // erc20 balance of
                     two,
                     // erc20 total supply
@@ -231,9 +234,9 @@ library AllStandardOps {
                     one,
                     // tier saturating diff
                     one,
-                    // update blocks for tier range
-                    one,
                     // select lte
+                    one,
+                    // update blocks for tier range
                     one,
                     // ierc20 balance of
                     one,
@@ -313,10 +316,10 @@ library AllStandardOps {
                     LogicOps.greaterThan,
                     LogicOps.every,
                     LogicOps.any,
-                    TierOps.report,
-                    TierOps.saturatingDiff,
-                    TierOps.updateBlocksForTierRange,
-                    TierOps.selectLte,
+                    OpITierV2Report.report,
+                    OpSaturatingDiff.saturatingDiff,
+                    OpSelectLte.selectLte,
+                    OpUpdateBlocksForTierRange.updateBlocksForTierRange,
                     ERC20Ops.balanceOf,
                     ERC20Ops.totalSupply,
                     ERC721Ops.balanceOf,

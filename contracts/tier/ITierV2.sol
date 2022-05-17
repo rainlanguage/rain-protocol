@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
-/// @title ITier
-/// @notice `ITier` is a simple interface that contracts can
+/// @title ITierV2
+/// @notice `ITierV2` is a simple interface that contracts can
 /// implement to provide membership lists for other contracts.
 ///
 /// There are many use-cases for a time-preserving conditional membership list.
@@ -23,7 +23,7 @@ pragma solidity ^0.8.0;
 /// - Combination of sub-memberships.
 /// - Etc.
 ///
-/// The high level requirements for a contract implementing `ITier`:
+/// The high level requirements for a contract implementing `ITierV2`:
 /// - MUST represent held tiers as a `uint`.
 /// - MUST implement `report`.
 ///   - The report is a `uint256` that SHOULD represent the block each tier has
@@ -51,7 +51,7 @@ pragma solidity ^0.8.0;
 /// - Tier is held but block is NOT known: `0` is in the report
 /// - Tier is NOT held: `0xFF..` is in the report
 /// - Tier is unknown: `0xFF..` is in the report
-interface ITier {
+interface ITierV2 {
     /// Every time a tier changes we log start and end tier against the
     /// account.
     /// This MAY NOT be emitted if reports are being read from the state of an
@@ -73,7 +73,7 @@ interface ITier {
 
     /// @notice Users can set their own tier by calling `setTier`.
     ///
-    /// The contract that implements `ITier` is responsible for checking
+    /// The contract that implements `ITierV2` is responsible for checking
     /// eligibility and/or taking actions required to set the tier.
     ///
     /// For example, the contract must take/refund any tokens relevant to
@@ -102,7 +102,7 @@ interface ITier {
     /// careful to avoid griefing attacks.
     ///
     /// The `data` parameter can also be ignored by the contract implementing
-    /// `ITier`. For example, ERC20 tokens are fungible so only the balance
+    /// `ITierV2`. For example, ERC20 tokens are fungible so only the balance
     /// approved by the user is relevant to a tier change.
     ///
     /// The `setTier` function SHOULD prevent users from reassigning

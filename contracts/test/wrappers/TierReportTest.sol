@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {ITier} from "../../tier/ITier.sol";
+import {ITierV2} from "../../tier/ITierV2.sol";
 import {TierReport} from "../../tier/libraries/TierReport.sol";
 
 /// @title TierReportTest

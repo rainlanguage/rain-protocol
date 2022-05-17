@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {TierConstants} from "./libraries/TierConstants.sol";
 import {ValueTier} from "./ValueTier.sol";
-import {ITier} from "./ITier.sol";
+import {ITierV2} from "./ITierV2.sol";
 import "./ReadOnlyTier.sol";
 
 /// Constructor config for ERC20BalanceTier.
@@ -74,7 +74,7 @@ contract ERC20BalanceTier is ReadOnlyTier, ValueTier, Initializable {
     }
 
     /// Report simply truncates all tiers above the highest value held.
-    /// @inheritdoc ITier
+    /// @inheritdoc ITierV2
     function report(address account_) public view override returns (uint256) {
         return
             TierReport.truncateTiersAbove(
