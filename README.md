@@ -3,6 +3,16 @@
 Rain Protocol supports permissionless and fair value capture for intangible or
 physical assets in on any EVM compatible chain with sufficiently low fees.
 
+## Latest audit
+
+Audits from omniscia can be found:
+
+- https://omniscia.io/beehive-rain-protocol-round-2/
+- https://omniscia.io/beehive-rain-protocol/
+
+It is STRONGLY RECOMMENDED that downstream consumers lock their dependencies to
+a specific commit rather than rely on branch/tag names.
+
 ## Installation
 
 ```console
