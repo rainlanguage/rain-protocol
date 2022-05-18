@@ -71,7 +71,7 @@ describe("TokenOps", async function () {
   it("should return ERC20 total supply snapshot", async () => {
     this.timeout(0);
 
-    const constants = [tokenERC20.address];
+    const constants = [tokenERC20Snapshot.address];
     const vTokenAddr = op(Opcode.CONSTANT, 0);
 
     // prettier-ignore
@@ -104,7 +104,7 @@ describe("TokenOps", async function () {
   it("should return ERC20 balance snapshot", async () => {
     this.timeout(0);
 
-    const constants = [signer1.address, tokenERC20.address];
+    const constants = [signer1.address, tokenERC20Snapshot.address];
     const vSigner1 = op(Opcode.CONSTANT, 0);
     const vTokenAddr = op(Opcode.CONSTANT, 1);
 
