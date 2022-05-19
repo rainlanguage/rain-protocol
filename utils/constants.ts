@@ -3,23 +3,23 @@ import { ethers } from "hardhat";
 export const CREATOR_FUNDS_RELEASE_TIMEOUT_TESTING = 100;
 export const MAX_RAISE_DURATION_TESTING = 100;
 
-const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
+export const smartPoolManagerAddress = process.env.BALANCER_SMART_POOL_MANAGER;
 if (smartPoolManagerAddress) {
   console.log(`using existing SmartPoolManager: ${smartPoolManagerAddress}`);
 }
-const balancerSafeMathAddress = process.env.BALANCER_SAFE_MATH;
+export const balancerSafeMathAddress = process.env.BALANCER_SAFE_MATH;
 if (balancerSafeMathAddress) {
   console.log(`using existing BalancerSafeMath: ${balancerSafeMathAddress}`);
 }
-const rightsManagerAddress = process.env.BALANCER_RIGHTS_MANAGER;
+export const rightsManagerAddress = process.env.BALANCER_RIGHTS_MANAGER;
 if (rightsManagerAddress) {
   console.log(`using existing RightsManager: ${rightsManagerAddress}`);
 }
-const bFactoryAddress = process.env.BALANCER_BFACTORY;
+export const bFactoryAddress = process.env.BALANCER_BFACTORY;
 if (bFactoryAddress) {
   console.log(`using existing BFactory: ${bFactoryAddress}`);
 }
-const crpFactoryAddress = process.env.BALANCER_CRP_FACTORY;
+export const crpFactoryAddress = process.env.BALANCER_CRP_FACTORY;
 if (crpFactoryAddress) {
   console.log(`using existing CRPFactory: ${crpFactoryAddress}`);
 }
