@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
-import "../sstore2/SSTORE2.sol";
-
 import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
