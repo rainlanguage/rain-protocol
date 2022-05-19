@@ -1,16 +1,3 @@
-import { BigNumberish } from "ethers";
-
-export enum selectLteLogic {
-  every,
-  any,
-}
-
-export enum selectLteMode {
-  min,
-  max,
-  first,
-}
-
 export enum AllStandardOps {
   CONSTANT,
   STACK,
@@ -57,30 +44,3 @@ export enum AllStandardOps {
   IERC1155_BALANCE_OF_BATCH,
   length,
 }
-
-export enum Debug {
-  StateAbi,
-  StatePacked,
-  Stack,
-  StackIndex,
-}
-
-export type Source = [BigNumberish, BigNumberish, BigNumberish, BigNumberish];
-export type Constants = [
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish,
-  BigNumberish
-];

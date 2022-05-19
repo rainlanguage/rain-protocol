@@ -572,7 +572,7 @@ describe("EmissionsERC20", async function () {
       concat([
             TIERWISE_DIFF(),
             valBaseRewardPerTier,
-          op(Opcode.ZIPMAP, Util.callSize(1, 3, 1)),
+          op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
         op(Opcode.ADD, 8),
         // base reward is 6 decimals so we scale back down to 18.
         // we do this outside the zipmap loop to save gas.
@@ -857,7 +857,7 @@ describe("EmissionsERC20", async function () {
       concat([
             TIERWISE_DIFF(),
             valBaseRewardPerTier,
-          op(Opcode.ZIPMAP, Util.callSize(1, 3, 1)),
+          op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
         op(Opcode.ADD, 8),
       ]);
 
