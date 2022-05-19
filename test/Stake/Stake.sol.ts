@@ -1,4 +1,4 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { artifacts, ethers } from "hardhat";
 import { Contract, ContractFactory, Overrides } from "ethers";

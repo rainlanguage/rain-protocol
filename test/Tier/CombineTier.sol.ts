@@ -1,8 +1,8 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { op, paddedUInt32, paddedUInt256 } from "../Util";
+import { op, paddedUInt32, paddedUInt256 } from "../../utils";
 import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";

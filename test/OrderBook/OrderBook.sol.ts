@@ -1,4 +1,4 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { Contract, ContractFactory } from "ethers";
@@ -19,7 +19,7 @@ import type {
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { Opcode } from "./OrderBookUtil";
 import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op } from "../../utils";
 import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
 
 const { assert } = chai;

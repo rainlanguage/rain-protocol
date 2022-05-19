@@ -6,11 +6,11 @@ import type {
   SaleRedeemableERC20ConfigStruct,
 } from "../../typechain/SaleFactory";
 import type { Sale } from "../../typechain/Sale";
-import { getEventArgs, op } from "../Util";
+import { getEventArgs, op } from "../../utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import * as Util from "../Util";
+import * as Util from "../../utils";
 
 export enum Tier {
   ZERO,

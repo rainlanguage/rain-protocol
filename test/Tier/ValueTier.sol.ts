@@ -2,7 +2,7 @@ import chai from "chai";
 import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ValueTierTest } from "../../typechain/ValueTierTest";
-import { eighteenZeros } from "../Util";
+import { eighteenZeros } from "../../utils";
 
 const { assert } = chai;
 

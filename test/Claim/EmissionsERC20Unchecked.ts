@@ -1,9 +1,9 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { ethers } from "hardhat";
 import * as claimUtil from "./ClaimUtil";
 import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op } from "../../utils";
 import { Opcode } from "./EmissionsERC20.sol";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

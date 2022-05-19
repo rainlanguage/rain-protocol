@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { Contract } from "ethers";
@@ -11,7 +11,7 @@ import type {
 } from "../../typechain/EmissionsERC20Factory";
 import type { EmissionsERC20 } from "../../typechain/EmissionsERC20";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { getEventArgs } from "../Util";
+import { getEventArgs } from "../../utils";
 
 const { assert } = chai;
 

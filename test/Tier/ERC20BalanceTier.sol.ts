@@ -14,7 +14,7 @@ import {
   eighteenZeros,
   getEventArgs,
   zeroAddress,
-} from "../Util";
+} from "../../utils";
 
 const { assert } = chai;
 

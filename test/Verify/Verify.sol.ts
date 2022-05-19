@@ -1,4 +1,4 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { ethers } from "hardhat";
 import type {
@@ -11,7 +11,7 @@ import type {
   Verify,
 } from "../../typechain/Verify";
 import type { VerifyCallbackTest } from "../../typechain/VerifyCallbackTest";
-import { max_uint32 } from "../Util";
+import { max_uint32 } from "../../utils";
 import { hexlify } from "ethers/lib/utils";
 
 const { assert } = chai;

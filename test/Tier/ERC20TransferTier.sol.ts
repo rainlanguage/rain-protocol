@@ -18,7 +18,7 @@ import {
   getEventArgs,
   max_uint256,
   zeroAddress,
-} from "../Util";
+} from "../../utils";
 
 const { assert } = chai;
 

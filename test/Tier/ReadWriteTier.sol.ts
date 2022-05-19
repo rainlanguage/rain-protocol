@@ -10,7 +10,7 @@ import {
   blockNumbersToReport,
   assertError,
   getEventArgs,
-} from "../Util";
+} from "../../utils";
 import type { Contract } from "ethers";
 
 const { assert } = chai;

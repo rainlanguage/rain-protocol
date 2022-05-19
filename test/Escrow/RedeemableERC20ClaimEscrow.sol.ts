@@ -1,4 +1,4 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { deployGlobals } from "./EscrowUtil";
@@ -13,7 +13,7 @@ import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { Contract } from "ethers";
-import { getEventArgs } from "../Util";
+import { getEventArgs } from "../../utils";
 import { getAddress } from "ethers/lib/utils";
 import {} from "../../typechain/SaleFactory";
 import { Status } from "../Sale/SaleUtil";

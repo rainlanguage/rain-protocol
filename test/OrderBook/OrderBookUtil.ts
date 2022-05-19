@@ -1,4 +1,4 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 
 export const OrderBookOps = {
   ORDER_FUNDS_CLEARED: 0 + Util.AllStandardOps.length,

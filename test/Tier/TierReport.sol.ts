@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierReportTest } from "../../typechain/TierReportTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../Util";
+import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../../utils";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 

@@ -1,8 +1,8 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, Debug, op } from "../Util";
+import { bytify, callSize, Debug, op } from "../../utils";
 import type { Contract } from "ethers";
 
 import type {

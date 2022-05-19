@@ -1,8 +1,8 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import chai from "chai";
 import { artifacts, ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op } from "../../utils";
 import type { Contract, ContractFactory } from "ethers";
 
 import type { ConstructEvent, Sale } from "../../typechain/Sale";
