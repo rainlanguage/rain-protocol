@@ -21,6 +21,7 @@
     "lint-and-fix": "eslint . --ext .ts --fix"
   },
   "devDependencies": {
+    "@0xsequence/sstore2": "github:0xsequence/sstore2",
     "@nomiclabs/hardhat-ethers": "^2.0.3",
     "@typechain/ethers-v5": "^8.0.5",
     "@typechain/hardhat": "^3.0.0",

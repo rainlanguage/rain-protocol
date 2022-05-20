@@ -3,8 +3,7 @@ pragma solidity =0.8.10;
 
 import {ITier} from "./ITier.sol";
 import "./libraries/TierConstants.sol";
-
-import "../sstore2/SSTORE2.sol";
+import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 
 /// @title ValueTier
 ///
