@@ -1,12 +1,15 @@
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
-import { op, AllStandardOps } from "../Util";
+import { op, AllStandardOps } from "../../utils";
 import { concat, hexlify } from "ethers/lib/utils";
-import { callSize, max_uint256, paddedUInt256, paddedUInt32 } from "../Util";
+import {
+  zipmapSize,
+  max_uint256,
+  paddedUInt256,
+  paddedUInt32,
+} from "../../utils";
 import type { BigNumber, Contract } from "ethers";
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
-
-const { assert } = chai;
 
 const Opcode = AllStandardOps;
 
@@ -75,7 +78,7 @@ describe("LogicOps Test", async function () {
       concat([
           vReport,
           vReportMax,
-        op(Opcode.ZIPMAP, callSize(1, 3, 1)),
+        op(Opcode.ZIPMAP, zipmapSize(1, 3, 1)),
       ]);
 
     await logic.initialize({ sources: [SOURCE(), ZIPMAP_FN()], constants });

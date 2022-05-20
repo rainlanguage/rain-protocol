@@ -1,5 +1,5 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { Contract, ContractFactory } from "ethers";
 import type {
@@ -16,25 +16,21 @@ import type {
   StartEvent,
   TimeoutEvent,
 } from "../../typechain/Sale";
-import { op } from "../Util";
+import { AllStandardOps, op } from "../../utils";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import { SaleReentrant } from "../../typechain/SaleReentrant";
 import { concat, hexlify } from "ethers/lib/utils";
-import {
-  betweenBlockNumbersSource,
-  saleDeploy,
-  Opcode,
-  Status,
-  SaleStorage,
-  Tier,
-} from "./SaleUtil";
-import { Phase } from "../RedeemableERC20/RedeemableERC20Util";
 import { NoticeBoard } from "../../typechain/NoticeBoard";
 import { PhaseScheduledEvent } from "../../typechain/RedeemableERC20";
+import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
+import { saleDeploy } from "../../utils/deploy/sale";
+import { Tier } from "../../utils/types/tier";
+import { SaleStorage, Status } from "../../utils/types/sale";
+import { Phase } from "../../utils/types/redeemableERC20";
 
-const { assert } = chai;
+const Opcode = AllStandardOps;
 
 let reserve: ReserveToken & Contract,
   redeemableERC20FactoryFactory: ContractFactory,

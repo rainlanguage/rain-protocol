@@ -1,4 +1,4 @@
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
   ReadWriteTier,
@@ -10,10 +10,8 @@ import {
   blockNumbersToReport,
   assertError,
   getEventArgs,
-} from "../Util";
+} from "../../utils";
 import type { Contract } from "ethers";
-
-const { assert } = chai;
 
 const uninitializedReport =
   "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";

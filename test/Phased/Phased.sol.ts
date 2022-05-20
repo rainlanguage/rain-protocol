@@ -1,5 +1,5 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
   PhasedTest,
@@ -8,8 +8,6 @@ import type {
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { Contract } from "ethers";
-
-const { assert } = chai;
 
 enum Phase {
   ZERO,
