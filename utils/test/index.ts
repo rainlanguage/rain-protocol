@@ -1,7 +1,6 @@
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-import chai from "chai";
-const { assert } = chai;
+import { assert } from "chai";
 
 export const assertError = async (f, s: string, e: string) => {
   let didError = false;

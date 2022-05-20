@@ -7,8 +7,7 @@ import { artifacts, ethers } from "hardhat";
 import { getEventArgs } from "../events";
 import { zeroAddress } from "../constants";
 import { Contract } from "ethers";
-import chai from "chai";
-const { assert } = chai;
+import { assert } from "chai";
 
 export const combineTierDeploy = async (deployer, config) => {
   const stateBuilderFactory = await ethers.getContractFactory(

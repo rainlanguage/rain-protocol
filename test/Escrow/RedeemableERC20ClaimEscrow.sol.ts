@@ -1,7 +1,6 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
-import { deployGlobals } from "./EscrowUtil";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type {
   DepositEvent,
@@ -16,11 +15,10 @@ import type { Contract } from "ethers";
 import { getEventArgs } from "../../utils";
 import { getAddress } from "ethers/lib/utils";
 import {} from "../../typechain/SaleFactory";
-import { Status } from "../Sale/SaleUtil";
 import { MockISale } from "../../typechain/MockISale";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
-
-const { assert } = chai;
+import { deployGlobals } from "../../utils/deploy/escrow";
+import { Status } from "../../utils/types/sale";
 
 let claim: RedeemableERC20ClaimEscrow & Contract,
   claimWrapper: RedeemableERC20ClaimEscrowWrapper & Contract,

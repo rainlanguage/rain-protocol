@@ -1,7 +1,6 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
-import { Status } from "../Sale/SaleUtil";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { Contract, ContractFactory } from "ethers";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
@@ -13,8 +12,7 @@ import { SaleFactory } from "../../typechain/SaleFactory";
 import { MockISale } from "../../typechain/MockISale";
 import { IERC20 } from "../../typechain/IERC20";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-
-const { assert } = chai;
+import { Status } from "../../utils/types/sale";
 
 enum EscrowStatus {
   /// The underlying `Sale` has not reached a definitive pass/fail state.

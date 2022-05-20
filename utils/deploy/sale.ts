@@ -1,37 +1,14 @@
-import { artifacts, ethers } from "hardhat";
-import type { Contract, Overrides } from "ethers";
-import type {
-  SaleConfigStruct,
-  SaleFactory,
-  SaleRedeemableERC20ConfigStruct,
-} from "../../typechain/SaleFactory";
-import type { Sale } from "../../typechain/Sale";
-import { getEventArgs, op } from "../../utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { concat } from "ethers/lib/utils";
-import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import * as Util from "../../utils";
-
-export enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
-
-export enum Status {
-  PENDING,
-  ACTIVE,
-  SUCCESS,
-  FAIL,
-}
-
-export const Opcode = Util.AllStandardOps;
+import { Contract, Overrides } from "ethers";
+import { artifacts, ethers } from "hardhat";
+import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import {
+  Sale,
+  SaleConfigStruct,
+  SaleRedeemableERC20ConfigStruct,
+} from "../../typechain/Sale";
+import { SaleFactory } from "../../typechain/SaleFactory";
+import { getEventArgs } from "../events";
 
 export const saleDeploy = async (
   signers: SignerWithAddress[],
@@ -79,36 +56,3 @@ export const saleDeploy = async (
 
   return [sale, token];
 };
-
-export const afterBlockNumberSource = (constant: number): Uint8Array => {
-  // prettier-ignore
-  return concat([
-    // (BLOCK_NUMBER blockNumberSub1 gt)
-      op(Opcode.BLOCK_NUMBER),
-      op(Opcode.CONSTANT, constant),
-    op(Opcode.GREATER_THAN),
-  ]);
-};
-
-export const betweenBlockNumbersSource = (
-  vStart: Uint8Array,
-  vEnd: Uint8Array
-): Uint8Array => {
-  // prettier-ignore
-  return concat([
-        op(Opcode.BLOCK_NUMBER),
-        vStart,
-      op(Opcode.GREATER_THAN),
-        op(Opcode.BLOCK_NUMBER),
-        vEnd,
-      op(Opcode.LESS_THAN),
-    op(Opcode.EVERY, 2),
-  ])
-};
-
-export enum SaleStorage {
-  RemainingUnits,
-  TotalReserveIn,
-  Token,
-  Reserve,
-}

@@ -86,3 +86,16 @@ export function selectLte(logic: number, mode: number, length: number): number {
   lte += length;
   return lte;
 }
+
+export function valOperand(index: number, forwardedVals?: boolean): number {
+  //   op_.val & 0x7F, //     01111111
+  //   op_.val & 0x80, //     10000000
+
+  if (index < 0 || index > 15) {
+    throw new Error(`Invalid index ${index}`);
+  }
+  let operand = forwardedVals ? 1 : 0;
+  operand <<= 7;
+  operand += index;
+  return operand;
+}

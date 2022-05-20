@@ -10,9 +10,8 @@ import { artifacts, ethers } from "hardhat";
 import { getEventArgs } from "../events";
 import { zeroAddress } from "../constants";
 import { Contract } from "ethers";
-import chai from "chai";
+import { assert } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-const { assert } = chai;
 
 export const redeemableERC20Deploy = async (
   deployer: SignerWithAddress,

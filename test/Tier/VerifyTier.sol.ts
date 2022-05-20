@@ -1,12 +1,10 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-
-const { assert } = chai;
 
 describe("VerifyTier", async function () {
   it("should correctly verify tier", async function () {

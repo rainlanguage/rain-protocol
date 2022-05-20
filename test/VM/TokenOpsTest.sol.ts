@@ -1,5 +1,5 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../../utils";
@@ -10,8 +10,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReserveTokenERC721 } from "../../typechain/ReserveTokenERC721";
 import { ReserveTokenERC1155 } from "../../typechain/ReserveTokenERC1155";
-
-const { assert } = chai;
 
 const Opcode = Util.AllStandardOps;
 

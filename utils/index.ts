@@ -7,3 +7,4 @@ export * from "./math";
 export * from "./rainvm";
 export * from "./test";
 export * from "./tier";
+export * from "./types";

@@ -1,10 +1,8 @@
-import chai from "chai";
+import { assert } from "chai";
 import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ValueTierTest } from "../../typechain/ValueTierTest";
 import { eighteenZeros } from "../../utils";
-
-const { assert } = chai;
 
 enum Tier {
   ZERO,

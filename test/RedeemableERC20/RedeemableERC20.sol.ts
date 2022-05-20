@@ -1,5 +1,5 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -11,9 +11,7 @@ import type {
   TreasuryAssetEvent,
 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
-import { Phase } from "./RedeemableERC20Util";
-
-const { assert } = chai;
+import { Phase } from "../../utils/types/redeemableERC20";
 
 enum Tier {
   ZERO,

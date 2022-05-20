@@ -1,13 +1,10 @@
 import * as Util from "../../utils";
-import chai from "chai";
 import { ethers } from "hardhat";
-import * as claimUtil from "./ClaimUtil";
 import { concat } from "ethers/lib/utils";
 import { op } from "../../utils";
 import { Opcode } from "./EmissionsERC20.sol";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { assert } = chai;
+import { claimFactoriesDeploy } from "../../utils/deploy/claim";
+import { emissionsDeploy } from "../../utils/deploy/emissions";
 
 describe("EmissionsERC20Unchecked", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
@@ -29,9 +26,9 @@ describe("EmissionsERC20Unchecked", async function () {
     const creator = signers[0];
     const claimer = signers[1];
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -75,9 +72,9 @@ describe("EmissionsERC20Unchecked", async function () {
     const creator = signers[0];
     const claimer = signers[1];
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -121,9 +118,9 @@ describe("EmissionsERC20Unchecked", async function () {
     const creator = signers[0];
     const claimer = signers[1];
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -167,9 +164,9 @@ describe("EmissionsERC20Unchecked", async function () {
     const creator = signers[0];
     const claimer = signers[1];
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {

@@ -1,7 +1,7 @@
 import { BigNumber, BytesLike } from "ethers";
 import { Hexable, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { max_uint256, max_uint32 } from "./constants";
+import { max_uint256, max_uint32 } from "../constants";
 
 /**
  * Pads leading zeroes of hex number to hex string length of 32 bytes

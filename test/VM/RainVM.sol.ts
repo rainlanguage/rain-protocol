@@ -1,5 +1,5 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { bytify, zipmapSize, Debug, op } from "../../utils";
@@ -12,8 +12,6 @@ import type {
 import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 import { FnPtrsTest } from "../../typechain/FnPtrsTest";
 import { StackHeightTest } from "../../typechain/StackHeightTest";
-
-const { assert } = chai;
 
 const Opcode = Util.AllStandardOps;
 

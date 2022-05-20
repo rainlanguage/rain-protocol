@@ -1,7 +1,6 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
-import * as claimUtil from "./ClaimUtil";
 import { concat, hexlify } from "ethers/lib/utils";
 import {
   eighteenZeros,
@@ -9,11 +8,12 @@ import {
   paddedUInt32,
   paddedUInt256,
   sixZeros,
+  tierRange,
 } from "../../utils";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { BigNumber, Contract } from "ethers";
-
-const { assert } = chai;
+import { claimFactoriesDeploy } from "../../utils/deploy/claim";
+import { emissionsDeploy } from "../../utils/deploy/emissions";
 
 export const Opcode = Util.AllStandardOps;
 
@@ -42,7 +42,7 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const vReadWriteTier = op(Opcode.CONSTANT, 0);
     const vConstructionBlock = op(Opcode.CONSTANT, 1);
@@ -61,7 +61,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+          tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
 
@@ -96,7 +96,7 @@ describe("EmissionsERC20", async function () {
 
     const constructionBlock = await ethers.provider.getBlockNumber();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -182,7 +182,7 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const vAlways = op(Opcode.CONSTANT, 1);
 
@@ -193,7 +193,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+          tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
 
@@ -224,7 +224,7 @@ describe("EmissionsERC20", async function () {
         op(Opcode.SATURATING_DIFF),
       ]);
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -309,7 +309,7 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const vAlways = op(Opcode.CONSTANT, 1);
 
@@ -320,7 +320,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+          tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
 
@@ -351,7 +351,7 @@ describe("EmissionsERC20", async function () {
         op(Opcode.SATURATING_DIFF),
       ]);
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -436,7 +436,7 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     // We're using uints, so we need to scale reward per block up to get out of the decimal places, but a precision of 18 zeros is too much to fit within a uint32 (since we store block rewards per tier in a report-like format). Six zeros should be enough.
     const BN_ONE_REWARD = BigNumber.from("1" + sixZeros);
@@ -536,7 +536,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+          tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
 
@@ -594,7 +594,7 @@ describe("EmissionsERC20", async function () {
     console.log("constants", constants);
     console.log("source length", SOURCE().length);
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -712,7 +712,7 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const BN_ONE = BigNumber.from("1" + eighteenZeros);
 
@@ -821,7 +821,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+          tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
 
@@ -876,7 +876,7 @@ describe("EmissionsERC20", async function () {
     console.log("constants", constants);
     console.log("source length", SOURCE().length);
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -994,9 +994,9 @@ describe("EmissionsERC20", async function () {
     const creator = signers[0];
     const claimant = signers[1];
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1047,7 +1047,7 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const valAlways = op(Opcode.CONSTANT, 1);
 
@@ -1058,7 +1058,7 @@ describe("EmissionsERC20", async function () {
           op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-          claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+          tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
 
@@ -1089,7 +1089,7 @@ describe("EmissionsERC20", async function () {
         op(Opcode.SATURATING_DIFF),
       ]);
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1156,11 +1156,11 @@ describe("EmissionsERC20", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
     await readWriteTier.deployed();
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const valNever = op(Opcode.CONSTANT, 1);
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1178,7 +1178,7 @@ describe("EmissionsERC20", async function () {
               op(Opcode.BLOCK_NUMBER),
               op(
                 Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-                claimUtil.tierRange(Tier.ZERO, Tier.EIGHT)
+                tierRange(Tier.ZERO, Tier.EIGHT)
               ),
               op(Opcode.CONSTANT, 0),
               op(Opcode.CONTEXT),
@@ -1222,9 +1222,9 @@ describe("EmissionsERC20", async function () {
 
     const claimAmount = 123;
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1277,9 +1277,9 @@ describe("EmissionsERC20", async function () {
 
     const claimAmount = 123;
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1315,9 +1315,9 @@ describe("EmissionsERC20", async function () {
 
     const claimAmount = 123;
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1359,9 +1359,9 @@ describe("EmissionsERC20", async function () {
 
     const claimAmount = 123;
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1396,9 +1396,9 @@ describe("EmissionsERC20", async function () {
 
     const claimAmount = 123;
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {
@@ -1434,9 +1434,9 @@ describe("EmissionsERC20", async function () {
     const signers = await ethers.getSigners();
     const creator = signers[0];
 
-    const { emissionsERC20Factory } = await claimUtil.claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const emissionsERC20 = await claimUtil.emissionsDeploy(
+    const emissionsERC20 = await emissionsDeploy(
       creator,
       emissionsERC20Factory,
       {

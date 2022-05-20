@@ -1,13 +1,11 @@
 import * as Util from "../../utils";
-import chai from "chai";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
 import { op, AllStandardOps } from "../../utils";
 import { Contract } from "ethers";
 
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
-
-const { assert } = chai;
 
 const Opcode = AllStandardOps;
 

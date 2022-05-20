@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { ONE } from "./constants";
+import { ONE } from "../constants";
 
 export const fixedPointMul = (a: BigNumber, b: BigNumber): BigNumber =>
   a.mul(b).div(ONE);
