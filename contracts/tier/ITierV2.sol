@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
+uint256 constant ITIER_UNIT_BLOCKS = 0;
+uint256 constant ITIER_UNIT_TIMESTAMP = 1;
+
 /// @title ITierV2
 /// @notice `ITierV2` is a simple interface that contracts can
 /// implement to provide membership lists for other contracts.
@@ -69,9 +72,9 @@ interface ITierV2 {
     /// Offchain tooling such as that which builds scripts to combine the
     /// output of several reports is STRONGLY RECOMMENDED to ensure different
     /// units are NEVER mixed.
-    /// `ITierV2` contracts MUST consistently return the same `units` value for
+    /// `ITierV2` contracts MUST consistently return the same units for
     /// every call over their lifetime.
-    function units() external view returns (uint256);
+    function reportUnit() external view returns (uint256);
 
     /// Same as report but for a single tier.
     /// Often the implementing contract can calculate a single tier much more
@@ -84,8 +87,8 @@ interface ITierV2 {
     /// be bounded by `type(uint32).max` as no single tier can report a value
     /// higher than this.
     function reportForTier(
-        uint256 tier,
         address account,
+        uint256 tier,
         bytes calldata data
     ) external view returns (uint256);
 

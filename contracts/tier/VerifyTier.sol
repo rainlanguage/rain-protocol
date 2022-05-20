@@ -32,7 +32,7 @@ contract VerifyTier is ITierV2, Initializable {
     /// Every tier will be the `State.since` block if `account_` is approved
     /// otherwise every tier will be uninitialized.
     /// @inheritdoc ITierV2
-    function report(address account_) public view override returns (uint256) {
+    function report(address account_, bytes memory) public view override returns (uint256) {
         State memory state_ = verify.state(account_);
         if (
             // This is comparing an enum variant so it must be equal.
@@ -50,5 +50,31 @@ contract VerifyTier is ITierV2, Initializable {
         } else {
             return TierConstants.NEVER_REPORT;
         }
+    }
+
+    /// @inheritdoc ITierV2
+    function reportForTier(
+        address account_,
+        uint256,
+        bytes calldata
+    ) external view returns (uint256) {
+        State memory state_ = verify.state(account_);
+        if (
+            // This is comparing an enum variant so it must be equal.
+            // slither-disable-next-line incorrect-equality
+            verify.statusAtBlock(state_, block.number) ==
+            VerifyConstants.STATUS_APPROVED
+        ) {
+            return state_.approvedSince;
+        }
+        else {
+            return TierConstants.NEVER_REPORT;
+        }
+    }
+
+    /// Only blocks are supported for verify.
+    /// @inheritdoc ITierV2
+    function reportUnit() external view returns (uint256) {
+        return ITIER_UNIT_BLOCKS;
     }
 }

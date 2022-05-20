@@ -21,6 +21,7 @@ import "../sstore2/SSTORE2.sol";
 /// @param Constructor config for the `ImmutableSource` that defines the
 /// emissions schedule for claiming.
 struct EmissionsERC20Config {
+    uint256 reportUnit;
     bool allowDelegatedClaims;
     ERC20Config erc20Config;
     StateConfig vmStateConfig;
@@ -52,12 +53,14 @@ contract EmissionsERC20 is
 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
-    /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
-    /// of another account.
-    event Initialize(address sender, bool allowDelegatedClaims);
+    /// @param config All initialized config.
+    event Initialize(address sender, EmissionsERC20Config config);
 
     address private immutable self;
     address private immutable vmStateBuilder;
+
+    /// @inheritdoc ITierV2
+    uint256 public reportUnit;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -109,11 +112,13 @@ contract EmissionsERC20 is
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
-        emit Initialize(msg.sender, config_.allowDelegatedClaims);
+        reportUnit = config_.reportUnit;
+
+        emit Initialize(msg.sender, config_);
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_)
+    function report(address account_, bytes memory data_)
         public
         view
         virtual
@@ -121,6 +126,15 @@ contract EmissionsERC20 is
         returns (uint256)
     {
         return reports[account_];
+    }
+
+    /// @inheritdoc ITierV2
+    function reportForTier(
+        address account_,
+        uint256 tier_,
+        bytes calldata
+    ) external view returns (uint256) {
+        return TierReport.reportForTier(reports[account_], tier_);
     }
 
     function fnPtrs() public pure override returns (bytes memory) {

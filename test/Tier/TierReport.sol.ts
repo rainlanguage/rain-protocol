@@ -60,7 +60,7 @@ describe("TierReport", async function () {
 
     // tierBlock()
     await assertError(
-      async () => await tierReport.tierBlock(report, 9),
+      async () => await tierReport.reportForTier(report, 9),
       "MAX_TIER",
       "wrongly attempted to read tier '9' in the report, which is greater than maxTier constant"
     );
@@ -143,10 +143,10 @@ describe("TierReport", async function () {
     // get latest report
     const report = await readWriteTier.report(signer1.address);
 
-    const tierBlock0 = await tierReport.tierBlock(report, Tier.ZERO);
-    const tierBlock1 = await tierReport.tierBlock(report, Tier.ONE);
-    const tierBlock2 = await tierReport.tierBlock(report, Tier.TWO);
-    const tierBlock3 = await tierReport.tierBlock(report, Tier.THREE);
+    const tierBlock0 = await tierReport.reportForTier(report, Tier.ZERO);
+    const tierBlock1 = await tierReport.reportForTier(report, Tier.ONE);
+    const tierBlock2 = await tierReport.reportForTier(report, Tier.TWO);
+    const tierBlock3 = await tierReport.reportForTier(report, Tier.THREE);
 
     assert(tierBlock0.isZero(), "did not return block 0");
 

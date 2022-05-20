@@ -20,7 +20,7 @@ contract TierReportTest {
         }
     }
 
-    /// Wraps `TierReport.tierBlock`.
+    /// Wraps `TierReport.reportForTier`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
     function tierBlock(uint256 report_, uint256 tier_)
@@ -29,7 +29,7 @@ contract TierReportTest {
         returns (uint256)
     {
         unchecked {
-            return TierReport.tierBlock(report_, tier_);
+            return TierReport.reportForTier(report_, tier_);
         }
     }
 

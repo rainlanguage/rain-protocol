@@ -56,15 +56,16 @@ library TierReport {
         }
     }
 
-    /// Returns the block that a given tier has been held since from a report.
+    /// Returns the block/time that a given tier has been held since from a
+    /// report.
     ///
     /// The report MUST encode "never" as 0xFFFFFFFF. This ensures
     /// compatibility with `tierAtBlockFromReport`.
     ///
     /// @param report_ The report to read a block number from.
     /// @param tier_ The Tier to read the block number for.
-    /// @return The block number this has been held since.
-    function tierBlock(uint256 report_, uint256 tier_)
+    /// @return The block/time the tier has been held since.
+    function reportForTier(uint256 report_, uint256 tier_)
         internal
         pure
         maxTier(tier_)
