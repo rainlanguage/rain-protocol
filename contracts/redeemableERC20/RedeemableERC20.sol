@@ -12,6 +12,8 @@ import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
 
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+
 /// Everything required by the `RedeemableERC20` constructor.
 /// @param reserve Reserve token that the associated `Trust` or equivalent
 /// raise contract will be forwarding to the `RedeemableERC20` contract.
@@ -206,7 +208,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         // any specific return value, just trying to avoid something that
         // blatantly errors out.
         // slither-disable-next-line unused-return
-        ITierV2(config_.tier).report(msg.sender);
+        require(ERC165Checker.supportsInterface(config_.tier, type(ITierV2).interfaceId), "ERC165_ITIERV2_MISSING");
 
         schedulePhase(PHASE_DISTRIBUTING, block.number);
     }

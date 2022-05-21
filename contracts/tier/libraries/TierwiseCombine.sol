@@ -36,8 +36,14 @@ library TierwiseCombine {
         unchecked {
             uint256 ret_;
             for (uint256 tier_ = 1; tier_ <= 8; tier_++) {
-                uint256 newerBlock_ = TierReport.reportForTier(newerReport_, tier_);
-                uint256 olderBlock_ = TierReport.reportForTier(olderReport_, tier_);
+                uint256 newerBlock_ = TierReport.reportForTier(
+                    newerReport_,
+                    tier_
+                );
+                uint256 olderBlock_ = TierReport.reportForTier(
+                    olderReport_,
+                    tier_
+                );
                 uint256 diff_ = newerBlock_.saturatingSub(olderBlock_);
                 ret_ = TierReport.updateBlockAtTier(ret_, tier_ - 1, diff_);
             }

@@ -32,7 +32,12 @@ contract VerifyTier is ITierV2, Initializable {
     /// Every tier will be the `State.since` block if `account_` is approved
     /// otherwise every tier will be uninitialized.
     /// @inheritdoc ITierV2
-    function report(address account_, bytes memory) public view override returns (uint256) {
+    function report(address account_, bytes memory)
+        public
+        view
+        override
+        returns (uint256)
+    {
         State memory state_ = verify.state(account_);
         if (
             // This is comparing an enum variant so it must be equal.
@@ -66,8 +71,7 @@ contract VerifyTier is ITierV2, Initializable {
             VerifyConstants.STATUS_APPROVED
         ) {
             return state_.approvedSince;
-        }
-        else {
+        } else {
             return TierConstants.NEVER_REPORT;
         }
     }
