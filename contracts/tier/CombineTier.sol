@@ -10,6 +10,8 @@ import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import "../vm/VMStateBuilder.sol";
 
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+
 uint256 constant REPORT_ENTRYPOINT = 0;
 uint256 constant REPORT_FOR_TIER_ENTRYPOINT = 1;
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
@@ -24,7 +26,6 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// sources 0 and 1 respectively.
 struct CombineTierConfig {
     uint256 combinedTiersLength;
-    uint256 reportUnit;
     StateConfig sourceConfig;
 }
 
@@ -42,9 +43,6 @@ contract CombineTier is ITierV2, RainVM, Initializable {
     address private immutable self;
     address private immutable vmStateBuilder;
     address private vmStatePointer;
-
-    /// @inheritdoc ITierV2
-    uint256 public reportUnit;
 
     constructor(address vmStateBuilder_) {
         self = address(this);
@@ -74,9 +72,11 @@ contract CombineTier is ITierV2, RainVM, Initializable {
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
             require(
-                ITierV2(config_.sourceConfig.constants[i_]).reportUnit() ==
-                    config_.reportUnit,
-                "BAD_REPORT_UNIT"
+                ERC165Checker.supportsInterface(
+                    address(uint160(config_.sourceConfig.constants[i_])),
+                    type(ITierV2).interfaceId
+                ),
+                "ERC165_TIERV2"
             );
         }
 
@@ -98,7 +98,10 @@ contract CombineTier is ITierV2, RainVM, Initializable {
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
         );
-        bytes memory context_ = bytes.concat(uint256(uint160(account_)), data_);
+        bytes memory context_ = bytes.concat(
+            bytes32(uint256(uint160(account_))),
+            data_
+        );
         eval(context_, state_, REPORT_ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
@@ -113,8 +116,8 @@ contract CombineTier is ITierV2, RainVM, Initializable {
             SSTORE2.read(vmStatePointer)
         );
         bytes memory context_ = bytes.concat(
-            uint256(uint160(account_)),
-            tier_,
+            bytes32(uint256(uint160(account_))),
+            bytes32(tier_),
             data_
         );
         eval(context_, state_, REPORT_FOR_TIER_ENTRYPOINT);

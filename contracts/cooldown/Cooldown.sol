@@ -22,9 +22,9 @@ pragma solidity =0.8.10;
 /// sybils can be created, each as a new `msg.sender`.
 ///
 /// @dev Base for anything that enforces a cooldown delay on functions.
-/// `Cooldown` requires a minimum time in blocks to elapse between actions that
-/// cooldown. The modifier `onlyAfterCooldown` both enforces and triggers the
-/// cooldown. There is a single cooldown across all functions per-contract
+/// `Cooldown` requires a minimum time in seconds to elapse between actions
+/// that cooldown. The modifier `onlyAfterCooldown` both enforces and triggers
+/// the cooldown. There is a single cooldown across all functions per-contract
 /// so any function call that requires a cooldown will also trigger it for
 /// all other functions.
 ///

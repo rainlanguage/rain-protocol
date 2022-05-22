@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "./ITierV2.sol";
+import "./TierV2.sol";
 import "../verify/libraries/VerifyConstants.sol";
 import {State, Verify} from "../verify/Verify.sol";
 import "./libraries/TierReport.sol";
@@ -13,7 +13,7 @@ import "./libraries/TierReport.sol";
 /// @dev A contract that is `VerifyTier` expects to derive tiers from the time
 /// the account was approved by the underlying `Verify` contract. The approval
 /// block numbers defer to `State.since` returned from `Verify.state`.
-contract VerifyTier is ITierV2, Initializable {
+contract VerifyTier is TierV2, Initializable {
     /// Result of initializing.
     /// @param sender `msg.sender` that initialized the contract.
     /// @param verify The `Verify` contract checked for reports.ww
@@ -74,11 +74,5 @@ contract VerifyTier is ITierV2, Initializable {
         } else {
             return TierConstants.NEVER_REPORT;
         }
-    }
-
-    /// Only blocks are supported for verify.
-    /// @inheritdoc ITierV2
-    function reportUnit() external view returns (uint256) {
-        return ITIER_UNIT_BLOCKS;
     }
 }

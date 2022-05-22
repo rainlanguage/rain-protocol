@@ -166,6 +166,15 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         initializePhased();
 
         tier = ITierV2(config_.tier);
+
+        require(
+            ERC165Checker.supportsInterface(
+                config_.tier,
+                type(ITierV2).interfaceId
+            ),
+            "ERC165_TIERV2"
+        );
+
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
 
         require(
@@ -199,16 +208,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         newTreasuryAsset(config_.reserve);
 
         emit Initialize(msg.sender, config_);
-
-        // Smoke test on whatever is on the other side of `config_.tier`.
-        // It is a common mistake to pass in a contract without the `ITierV2`
-        // interface and brick transfers. We want to discover that ASAP.
-        // E.g. `Verify` instead of `VerifyTier`.
-        // Slither does not like this unused return, but we're not looking for
-        // any specific return value, just trying to avoid something that
-        // blatantly errors out.
-        // slither-disable-next-line unused-return
-        require(ERC165Checker.supportsInterface(config_.tier, type(ITierV2).interfaceId), "ERC165_ITIERV2_MISSING");
 
         schedulePhase(PHASE_DISTRIBUTING, block.number);
     }
@@ -336,8 +335,8 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
             require(isReceiver(sender_), "2SPOKE");
             require(
                 TierReport.tierAtBlockFromReport(
-                    tier.report(receiver_),
-                    block.number
+                    tier.report(receiver_, ""),
+                    block.timestamp
                 ) >= minimumTier,
                 "MIN_TIER"
             );
