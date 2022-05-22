@@ -182,7 +182,7 @@ contract EmissionsERC20 is
         // Record the current block as the latest claim.
         // This can be diffed/combined with external reports in future claim
         // calculations.
-        reports[claimant_] = TierReport.updateBlocksForTierRange(
+        reports[claimant_] = TierReport.updateTimesForTierRange(
             TierConstants.NEVER_REPORT,
             TierConstants.TIER_ZERO,
             TierConstants.TIER_EIGHT,

@@ -45,7 +45,7 @@ library TierwiseCombine {
                     tier_
                 );
                 uint256 diff_ = newerBlock_.saturatingSub(olderBlock_);
-                ret_ = TierReport.updateBlockAtTier(ret_, tier_ - 1, diff_);
+                ret_ = TierReport.updateTimeAtTier(ret_, tier_ - 1, diff_);
             }
             return ret_;
         }
@@ -115,7 +115,7 @@ library TierwiseCombine {
                 if (!anyLte_) {
                     accumulator_ = TierConstants.NEVER_REPORT;
                 }
-                ret_ = TierReport.updateBlockAtTier(
+                ret_ = TierReport.updateTimeAtTier(
                     ret_,
                     tier_ - 1,
                     accumulator_

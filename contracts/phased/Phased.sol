@@ -10,13 +10,18 @@ pragma solidity =0.8.10;
 /// since block zero.
 ///
 /// Each subsequent phase `1` through `8` must be scheduled sequentially and
-/// explicitly at a block number.
+/// explicitly at a block timestamp.
 ///
 /// Only the immediate next phase can be scheduled with `scheduleNextPhase`,
 /// it is not possible to schedule multiple phases ahead.
 ///
-/// Multiple phases can be scheduled in a single block if each scheduled phase
-/// is scheduled for the current block.
+/// Multiple phases can be scheduled in a single second if each scheduled phase
+/// is scheduled for the current block OR the contract is operating on a chain
+/// with sub-second block times. I.e. if uniqueness of block timestamps is NOT
+/// enforced by a chain then phases scheduling can share a timstamp across
+/// multiple transactions. To enforce uniqueness of timestamps across
+/// transactions on subsecond blockchains, simply schedule the final phase
+/// shift of a transaction in the future.
 ///
 /// Several utility functions and modifiers are provided.
 ///
@@ -33,9 +38,9 @@ pragma solidity =0.8.10;
 /// each achieved phase linearly.
 /// This is enforced by only allowing `scheduleNextPhase` to be called once per
 /// phase.
-/// It is possible to call `scheduleNextPhase` several times in a single block
-/// but the `block.number` for each phase must be reached each time to schedule
-/// the next phase.
+/// It is possible to call `scheduleNextPhase` several times in a single second
+/// but the `block.timestamp` for each phase must be reached each time to
+/// schedule the next phase.
 /// Importantly there are events and several modifiers and checks available to
 /// ensure that functionality is limited to the current phase.
 /// The full history of each phase shift block is recorded as a fixed size
@@ -50,25 +55,25 @@ contract Phased {
     /// `PhaseScheduled` is emitted when the next phase is scheduled.
     /// @param sender `msg.sender` that scheduled the next phase.
     /// @param newPhase The next phase being scheduled.
-    /// @param scheduledBlock The block the phase will be achieved.
+    /// @param scheduledTime The timestamp the phase will be achieved.
     event PhaseScheduled(
         address sender,
         uint256 newPhase,
-        uint256 scheduledBlock
+        uint256 scheduledTime
     );
 
     /// 8 phases each as 32 bits to fit a single 32 byte word.
-    uint32[MAX_PHASE] public phaseBlocks;
+    uint32[MAX_PHASE] public phaseTimes;
 
     /// Initialize the blocks at "never".
     /// All phase blocks are initialized to `UNINITIALIZED`.
     /// i.e. not fallback solidity value of `0`.
     function initializePhased() internal {
         // Reinitialization is a bug.
-        // Only need to check the first block as all blocks are about to be set
+        // Only need to check the first block as all times are about to be set
         // to `UNINITIALIZED`.
-        assert(phaseBlocks[0] < 1);
-        uint32[MAX_PHASE] memory phaseBlocks_ = [
+        assert(phaseTimes[0] < 1);
+        uint32[MAX_PHASE] memory phaseTimes_ = [
             UNINITIALIZED,
             UNINITIALIZED,
             UNINITIALIZED,
@@ -78,56 +83,55 @@ contract Phased {
             UNINITIALIZED,
             UNINITIALIZED
         ];
-        phaseBlocks = phaseBlocks_;
-        // 0 is always the block for implied phase 0.
+        phaseTimes = phaseTimes_;
+        // 0 is always the timestamp for implied phase 0.
         emit PhaseScheduled(msg.sender, 0, 0);
     }
 
-    /// Pure function to reduce an array of phase blocks and block number to a
-    /// specific `Phase`.
+    /// Pure function to reduce an array of phase times and block timestamp to
+    /// a specific `Phase`.
     /// The phase will be the highest attained even if several phases have the
-    /// same block number.
-    /// If every phase block is after the block number then `0` is
+    /// same timestamp.
+    /// If every phase block is after the timestamp then `0` is returned.
+    /// If every phase block is before the timestamp then `MAX_PHASE` is
     /// returned.
-    /// If every phase block is before the block number then `MAX_PHASE` is
-    /// returned.
-    /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
-    /// @param blockNumber_ Determine the relevant phase relative to this block
-    /// number.
-    /// @return The "current" phase relative to the block number and phase
-    /// blocks list.
-    function phaseAtBlockNumber(
-        uint32[MAX_PHASE] memory phaseBlocks_,
-        uint256 blockNumber_
-    ) public pure returns (uint256) {
-        for (uint256 i_ = 0; i_ < MAX_PHASE; i_++) {
-            if (blockNumber_ < phaseBlocks_[i_]) {
-                return i_;
+    /// @param phaseTimes_ Fixed array of phase times to compare against.
+    /// @param timestamp_ Determine the relevant phase relative to this time.
+    /// @return phase_ The "current" phase relative to the timestamp and phase
+    /// times list.
+    function phaseAtTime(
+        uint32[MAX_PHASE] memory phaseTimes_,
+        uint256 timestamp_
+    ) public pure returns (uint256 phase_) {
+        for (phase_ = 0; phase_ < MAX_PHASE; phase_++) {
+            if (timestamp_ < phaseTimes_[phase_]) {
+                break;
             }
         }
-        return MAX_PHASE;
     }
 
-    /// Pure function to reduce an array of phase blocks and phase to a
-    /// specific block number.
+    /// Pure function to reduce an array of phase times and phase to a
+    /// specific timestamp.
     /// `Phase.ZERO` will always return block `0`.
-    /// Every other phase will map to a block number in `phaseBlocks_`.
-    /// @param phaseBlocks_ Fixed array of phase blocks to compare against.
+    /// Every other phase will map to a time in `phaseTimes_`.
+    /// @param phaseTimes_ Fixed array of phase blocks to compare against.
     /// @param phase_ Determine the relevant block number for this phase.
-    /// @return The block number for the phase according to `phaseBlocks_`.
-    function blockNumberForPhase(
-        uint32[MAX_PHASE] memory phaseBlocks_,
-        uint256 phase_
-    ) public pure returns (uint256) {
-        return phase_ > 0 ? phaseBlocks_[phase_ - 1] : 0;
+    /// @return timestamp_ The timestamp for the phase according to
+    /// `phaseTimes_`.
+    function timeForPhase(uint32[MAX_PHASE] memory phaseTimes_, uint256 phase_)
+        public
+        pure
+        returns (uint256 timestamp_)
+    {
+        timestamp_ = phase_ > 0 ? phaseTimes_[phase_ - 1] : 0;
     }
 
     /// Impure read-only function to return the "current" phase from internal
     /// contract state.
-    /// Simply wraps `phaseAtBlockNumber` for current values of `phaseBlocks`
-    /// and `block.number`.
-    function currentPhase() public view returns (uint256) {
-        return phaseAtBlockNumber(phaseBlocks, block.number);
+    /// Simply wraps `phaseAtTime` for current values of `phaseTimes`
+    /// and `block.timestamp`.
+    function currentPhase() public view returns (uint256 phase_) {
+        phase_ = phaseAtTime(phaseTimes, block.timestamp);
     }
 
     /// Modifies functions to only be callable in a specific phase.
@@ -146,17 +150,17 @@ contract Phased {
         _;
     }
 
-    /// Writes the block for the next phase.
-    /// Only uninitialized blocks can be written to.
+    /// Writes the timestamp for the next phase.
+    /// Only uninitialized times can be written to.
     /// Only the immediate next phase relative to `currentPhase` can be written
     /// to. It is still required to specify the `phase_` so that it is explicit
     /// and clear in the calling code which phase is being moved to.
-    /// Emits `PhaseShiftScheduled` with the phase block.
+    /// Emits `PhaseShiftScheduled` with the phase timestamp.
     /// @param phase_ The phase being scheduled.
-    /// @param block_ The block for the phase.
-    function schedulePhase(uint256 phase_, uint256 block_) internal {
-        require(block.number <= block_, "NEXT_BLOCK_PAST");
-        require(block_ < UNINITIALIZED, "NEXT_BLOCK_UNINITIALIZED");
+    /// @param timestamp_ The timestamp for the phase.
+    function schedulePhase(uint256 phase_, uint256 timestamp_) internal {
+        require(block.timestamp <= timestamp_, "NEXT_TIME_PAST");
+        require(timestamp_ < UNINITIALIZED, "NEXT_TIME_UNINITIALIZED");
         // Don't need to check for underflow as the index will be used as a
         // fixed array index below. Implies that scheduling phase `0` is NOT
         // supported.
@@ -168,14 +172,14 @@ contract Phased {
         // save calculating the subtraction twice.
         require(currentPhase() == index_, "NEXT_PHASE");
 
-        require(UNINITIALIZED == phaseBlocks[index_], "NEXT_BLOCK_SET");
+        require(UNINITIALIZED == phaseTimes[index_], "NEXT_BLOCK_SET");
 
         // Cannot exceed UNINITIALIZED (see above) so don't need to check
         // overflow on downcast.
         unchecked {
-            phaseBlocks[index_] = uint32(block_);
+            phaseTimes[index_] = uint32(timestamp_);
         }
 
-        emit PhaseScheduled(msg.sender, phase_, block_);
+        emit PhaseScheduled(msg.sender, phase_, timestamp_);
     }
 }

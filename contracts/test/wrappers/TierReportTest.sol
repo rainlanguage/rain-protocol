@@ -7,23 +7,23 @@ import {TierReport} from "../../tier/libraries/TierReport.sol";
 /// @title TierReportTest
 /// Thin wrapper around the `TierReport` library for hardhat unit testing.
 contract TierReportTest {
-    /// Wraps `TierReport.tierAtBlockFromReport`.
+    /// Wraps `TierReport.tierAtTimeFromReport`.
     /// @param report_ Forwarded to TierReport.
-    /// @param blockNumber_ Forwarded to TierReport.
-    function tierAtBlockFromReport(uint256 report_, uint256 blockNumber_)
+    /// @param timestamp_ Forwarded to TierReport.
+    function tierAtTimeFromReport(uint256 report_, uint256 timestamp_)
         external
         pure
         returns (uint256)
     {
         unchecked {
-            return TierReport.tierAtBlockFromReport(report_, blockNumber_);
+            return TierReport.tierAtTimeFromReport(report_, timestamp_);
         }
     }
 
     /// Wraps `TierReport.reportForTier`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function tierBlock(uint256 report_, uint256 tier_)
+    function tierTime(uint256 report_, uint256 tier_)
         external
         pure
         returns (uint256)
@@ -46,62 +46,62 @@ contract TierReportTest {
         }
     }
 
-    /// Wraps `TierReport.updateBlocksForTierRange`.
+    /// Wraps `TierReport.updateTimesForTierRange`.
     /// @param report_ Forwarded to TestUtil.
     /// @param startTier_ Forwarded to TestUtil.
     /// @param endTier_ Forwarded to TestUtil.
-    /// @param blockNumber_ Forwarded to TestUtil.
-    function updateBlocksForTierRange(
+    /// @param timestamp_ Forwarded to TestUtil.
+    function updateTimesForTierRange(
         uint256 report_,
         uint256 startTier_,
         uint256 endTier_,
-        uint256 blockNumber_
+        uint256 timestamp_
     ) external pure returns (uint256) {
         unchecked {
             return
-                TierReport.updateBlocksForTierRange(
+                TierReport.updateTimesForTierRange(
                     report_,
                     startTier_,
                     endTier_,
-                    blockNumber_
+                    timestamp_
                 );
         }
     }
 
-    /// Wraps `TierReport.updateReportWithTierAtBlock`.
+    /// Wraps `TierReport.updateReportWithTierAtTime`.
     /// @param report_ Forwarded to TestUtil.
     /// @param startTier_ Forwarded to TestUtil.
     /// @param endTier_ Forwarded to TestUtil.
-    /// @param blockNumber_ Forwarded to TestUtil.
-    function updateReportWithTierAtBlock(
+    /// @param timestamp_ Forwarded to TestUtil.
+    function updateReportWithTierAtTime(
         uint256 report_,
         uint256 startTier_,
         uint256 endTier_,
-        uint256 blockNumber_
+        uint256 timestamp_
     ) external pure returns (uint256) {
         unchecked {
             return
-                TierReport.updateReportWithTierAtBlock(
+                TierReport.updateReportWithTierAtTime(
                     report_,
                     startTier_,
                     endTier_,
-                    blockNumber_
+                    timestamp_
                 );
         }
     }
 
-    /// Updates a report with a block number for a given tier.
-    /// More gas efficient than `updateBlocksForTierRange` if only a single
+    /// Updates a report with a timestamp for a given tier.
+    /// More gas efficient than `updateTimesForTierRange` if only a single
     /// tier is being modified.
     /// The tier at/above the given tier is updated. E.g. tier `0` will update
     /// the block for tier `1`.
-    function updateBlockAtTier(
+    function updateTimeAtTier(
         uint256 report_,
         uint256 tier_,
-        uint256 blockNumber_
+        uint256 timestamp_
     ) external pure returns (uint256) {
         unchecked {
-            return TierReport.updateBlockAtTier(report_, tier_, blockNumber_);
+            return TierReport.updateTimeAtTier(report_, tier_, timestamp_);
         }
     }
 }

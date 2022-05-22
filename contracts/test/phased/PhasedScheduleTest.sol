@@ -15,7 +15,7 @@ contract PhasedScheduleTest is Phased {
         uint256 initialPhase_ = currentPhase();
 
         succeedsOnlyPhase(initialPhase_);
-        schedulePhase(initialPhase_ + 1, block.number);
+        schedulePhase(initialPhase_ + 1, block.timestamp);
         succeedsOnlyPhase(initialPhase_ + 1);
     }
 

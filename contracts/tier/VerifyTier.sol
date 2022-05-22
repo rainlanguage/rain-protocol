@@ -12,11 +12,11 @@ import "./libraries/TierReport.sol";
 ///
 /// @dev A contract that is `VerifyTier` expects to derive tiers from the time
 /// the account was approved by the underlying `Verify` contract. The approval
-/// block numbers defer to `State.since` returned from `Verify.state`.
+/// timestamps defer to `State.since` returned from `Verify.state`.
 contract VerifyTier is TierV2, Initializable {
     /// Result of initializing.
     /// @param sender `msg.sender` that initialized the contract.
-    /// @param verify The `Verify` contract checked for reports.ww
+    /// @param verify The `Verify` contract checked for reports.
     event Initialize(address sender, address verify);
     /// The contract to check to produce reports.
     Verify private verify;
@@ -29,8 +29,8 @@ contract VerifyTier is TierV2, Initializable {
         emit Initialize(msg.sender, verify_);
     }
 
-    /// Every tier will be the `State.since` block if `account_` is approved
-    /// otherwise every tier will be uninitialized.
+    /// Every tier will be the `State.since` timestamp if `account_` is
+    /// approved otherwise every tier will be uninitialized.
     /// @inheritdoc ITierV2
     function report(address account_, bytes memory)
         public
@@ -42,11 +42,11 @@ contract VerifyTier is TierV2, Initializable {
         if (
             // This is comparing an enum variant so it must be equal.
             // slither-disable-next-line incorrect-equality
-            verify.statusAtBlock(state_, block.number) ==
+            verify.statusAtTime(state_, block.timestamp) ==
             VerifyConstants.STATUS_APPROVED
         ) {
             return
-                TierReport.updateBlocksForTierRange(
+                TierReport.updateTimesForTierRange(
                     TierConstants.NEVER_REPORT,
                     TierConstants.TIER_ZERO,
                     TierConstants.TIER_EIGHT,
@@ -67,7 +67,7 @@ contract VerifyTier is TierV2, Initializable {
         if (
             // This is comparing an enum variant so it must be equal.
             // slither-disable-next-line incorrect-equality
-            verify.statusAtBlock(state_, block.number) ==
+            verify.statusAtTime(state_, block.timestamp) ==
             VerifyConstants.STATUS_APPROVED
         ) {
             return state_.approvedSince;

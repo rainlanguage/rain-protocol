@@ -6,7 +6,7 @@ pragma solidity =0.8.10;
 /// the implementing contract per `msg.sender`.
 ///
 /// Each time a function with the `onlyAfterCooldown` modifier is called the
-/// `msg.sender` must wait N blocks before calling any modified function.
+/// `msg.sender` must wait N seconds before calling any modified function.
 ///
 /// This does nothing to prevent sybils who can generate an arbitrary number of
 /// `msg.sender` values in parallel to spam a contract.
@@ -56,6 +56,7 @@ contract Cooldown {
     /// @param cooldownDuration_ The global cooldown duration.
     function initializeCooldown(uint256 cooldownDuration_) internal {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
+        require(cooldownDuration <= type(uint32).max, "COOLDOWN_MAX");
         // Reinitialization is a bug.
         assert(cooldownDuration == 0);
         cooldownDuration = cooldownDuration_;
@@ -67,9 +68,9 @@ contract Cooldown {
     /// reentrant code.
     modifier onlyAfterCooldown() {
         address caller_ = caller == address(0) ? caller = msg.sender : caller;
-        require(cooldowns[caller_] <= block.number, "COOLDOWN");
+        require(cooldowns[caller_] <= block.timestamp, "COOLDOWN");
         // Every action that requires a cooldown also triggers a cooldown.
-        uint256 cooldown_ = block.number + cooldownDuration;
+        uint256 cooldown_ = block.timestamp + cooldownDuration;
         cooldowns[caller_] = cooldown_;
         emit CooldownTriggered(caller_, cooldown_);
         _;

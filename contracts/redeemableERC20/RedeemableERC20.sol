@@ -209,7 +209,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
         emit Initialize(msg.sender, config_);
 
-        schedulePhase(PHASE_DISTRIBUTING, block.number);
+        schedulePhase(PHASE_DISTRIBUTING, block.timestamp);
     }
 
     /// Require a function is only admin callable.
@@ -271,7 +271,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         onlyPhase(PHASE_DISTRIBUTING)
         onlyAdmin
     {
-        schedulePhase(PHASE_FROZEN, block.number);
+        schedulePhase(PHASE_FROZEN, block.timestamp);
         address forwardTo_ = distributionEndForwardingAddress;
         uint256 distributorBalance_ = balanceOf(distributor_);
         if (distributorBalance_ > 0) {
@@ -334,7 +334,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
             // the same receiver they received from).
             require(isReceiver(sender_), "2SPOKE");
             require(
-                TierReport.tierAtBlockFromReport(
+                TierReport.tierAtTimeFromReport(
                     tier.report(receiver_, ""),
                     block.timestamp
                 ) >= minimumTier,

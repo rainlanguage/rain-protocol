@@ -12,7 +12,7 @@ import "./math/MathOps.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
-import "./tier/OpUpdateBlocksForTierRange.sol";
+import "./tier/OpUpdateTimesForTierRange.sol";
 
 uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
 
@@ -319,7 +319,7 @@ library AllStandardOps {
                     OpITierV2Report.report,
                     OpSaturatingDiff.saturatingDiff,
                     OpSelectLte.selectLte,
-                    OpUpdateBlocksForTierRange.updateBlocksForTierRange,
+                    OpUpdateTimesForTierRange.updateTimesForTierRange,
                     ERC20Ops.balanceOf,
                     ERC20Ops.totalSupply,
                     ERC721Ops.balanceOf,

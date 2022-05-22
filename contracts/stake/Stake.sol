@@ -21,7 +21,7 @@ struct StakeConfig {
 /// @param amount Largest value we can squeeze into a uint256 alongside a
 /// uint32.
 struct Deposit {
-    uint32 blockNumber;
+    uint32 timestamp;
     uint224 amount;
 }
 
@@ -69,7 +69,7 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
             ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
             : 0;
         deposits[msg.sender].push(
-            Deposit(uint32(block.number), highwater_ + amount_.toUint224())
+            Deposit(uint32(block.timestamp), highwater_ + amount_.toUint224())
         );
     }
 
@@ -100,7 +100,7 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
             : 0;
         if (newHighwater_ > cmpHighwater_) {
             deposits[msg.sender].push(
-                Deposit(uint32(block.number), newHighwater_.toUint224())
+                Deposit(uint32(block.timestamp), newHighwater_.toUint224())
             );
         }
 
@@ -129,10 +129,10 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
                     t_ < thresholds_.length &&
                     deposit_.amount >= thresholds_[t_]
                 ) {
-                    TierReport.updateBlockAtTier(
+                    TierReport.updateTimeAtTier(
                         report_,
                         t_,
-                        deposit_.blockNumber
+                        deposit_.timestamp
                     );
                     t_++;
                 }
