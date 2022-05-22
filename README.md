@@ -169,3 +169,51 @@ All functionality is unit tested. The tests are in the `test` folder.
 
 If some functionality or potential exploit is missing a test this is a bug and
 so an issue and/or PR should be raised.
+
+## Timestamps
+
+Rain makes extensive use of block timestamps rather than block numbers.
+
+Historically it was the inverse and everything was based on block numbers.
+
+If you read common advice, run security scanners, linting tools, etc. then it
+will state that block timestamps cannot be fully trusted because they can be
+manipulated by miners. This is true to some extent, but that extent is limited.
+
+Some mitigating factors that limit how much timestamps will drift in practise:
+
+- Hard limit on timestamp jumps between blocks, e.g. 900 seconds max
+- Future timestamps cannot be built on by other miners so won't be included in
+  the longest chain
+- Past timestamps increase the difficulty faster which gives miners less money
+  over time
+- Timestamps must always increase every block
+- Honest miners will always use the most accurate time in their opinion
+
+However, it is entirely true that if a timestamp is to be used to directly
+influence the outcome of a specific transaction, such as a casino game, then a
+miner can modify a _single_ or perhaps several (if the miner is very powerful)
+stamps over a short period. In this way a miner can guarantee themselves a win
+in the casino game, etc. if they manage to mine the block.
+
+The use cases in Rain are ALL intended for timestamps to be referenced over a
+long period of time, such as a vesting schedule or the timeout for a sale to
+complete. Over a long period, timestamps are MORE accurate than block numbers
+because in practise blockchains shift their average block times subtly but
+measurably over days/weeks/months.
+
+If the uniqueness of a timestamp ever matters to the security of the Rain
+protocol then Rain MUST ensure uniqueness at the contract level. Solidity
+promises uniqueness but some chains have subsecond block times with second
+granularity timestamps, so it's unclear how uniqueness is possible in this
+situation.
+
+Timestamps are also ambiguous in their scale across contexts. For example
+the evm offers timestamps as UNIX seconds, but javascript uses milliseconds.
+Naively generating a timestamp in javascript then passing it to a contract will
+result in a time 1000x larger than intended. For example `1640984400` in
+seconds is 2022-01-01 but `1640984400000` is millis for the same time, and is
+53970-09-23 in the evm! The Rain SDK helps mitigate this by correctly scaling
+times generated in JavaScript but Rain contracts also enforce a `uint32` max
+limit on all times used, which will revert most issues with millis, micros,
+nanos, etc.
