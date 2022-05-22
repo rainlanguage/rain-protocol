@@ -17,21 +17,20 @@ library OpITierV2Report {
         uint256 location_;
         uint256 tier_;
         uint256 account_;
-        bytes memory data_;
+        uint[] memory context_;
         assembly {
-            let dataLen_ := mul(operand_, 0x20)
-            stackTopLocation_ := sub(stackTopLocation_, add(0x20, dataLen_))
+            stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
             location_ := sub(stackTopLocation_, 0x20)
             tier_ := mload(location_)
             account_ := mload(stackTopLocation_)
             // we can reuse the account_ as the length for data_ and achieve a
             // near zero-cost bytes array to send to `report`.
-            mstore(stackTopLocation_, dataLen_)
-            data_ := stackTopLocation_
+            mstore(stackTopLocation_, operand_)
+            context_ := stackTopLocation_
         }
         uint256 report_ = ITierV2(address(uint160(tier_))).report(
             address(uint160(account_)),
-            data_
+            context_
         );
         assembly {
             mstore(location_, report_)

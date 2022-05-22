@@ -29,7 +29,7 @@ contract TierReportTest {
         returns (uint256)
     {
         unchecked {
-            return TierReport.reportForTier(report_, tier_);
+            return TierReport.reportTimeForTier(report_, tier_);
         }
     }
 

@@ -36,11 +36,11 @@ library TierwiseCombine {
         unchecked {
             uint256 ret_;
             for (uint256 tier_ = 1; tier_ <= 8; tier_++) {
-                uint256 newerBlock_ = TierReport.reportForTier(
+                uint256 newerBlock_ = TierReport.reportTimeForTier(
                     newerReport_,
                     tier_
                 );
-                uint256 olderBlock_ = TierReport.reportForTier(
+                uint256 olderBlock_ = TierReport.reportTimeForTier(
                     olderReport_,
                     tier_
                 );
@@ -93,7 +93,7 @@ library TierwiseCombine {
                 // Filter all the blocks at the current tier from all the
                 // reports against the reference tier and each other.
                 for (uint256 i_ = 0; i_ < length_; i_++) {
-                    block_ = TierReport.reportForTier(reports_[i_], tier_);
+                    block_ = TierReport.reportTimeForTier(reports_[i_], tier_);
 
                     if (block_ <= blockNumber_) {
                         // Min and max need to compare current value against

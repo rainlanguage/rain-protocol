@@ -32,7 +32,7 @@ contract VerifyTier is TierV2, Initializable {
     /// Every tier will be the `State.since` timestamp if `account_` is
     /// approved otherwise every tier will be uninitialized.
     /// @inheritdoc ITierV2
-    function report(address account_, bytes memory)
+    function report(address account_, uint[] memory)
         public
         view
         override
@@ -58,10 +58,10 @@ contract VerifyTier is TierV2, Initializable {
     }
 
     /// @inheritdoc ITierV2
-    function reportForTier(
+    function reportTimeForTier(
         address account_,
         uint256,
-        bytes calldata
+        uint[] calldata
     ) external view returns (uint256) {
         State memory state_ = verify.state(account_);
         if (

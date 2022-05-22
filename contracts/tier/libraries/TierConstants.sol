@@ -7,8 +7,8 @@ library TierConstants {
     /// NEVER is 0xFF.. as it is infinitely in the future.
     /// NEVER for an entire report.
     uint256 internal constant NEVER_REPORT = type(uint256).max;
-    /// NEVER for a single tier.
-    uint32 internal constant NEVER_TIER = type(uint32).max;
+    /// NEVER for a single tier time.
+    uint32 internal constant NEVER_TIME = type(uint32).max;
 
     /// Always is 0 as it is the genesis block.
     /// Tiers can't predate the chain but they can predate an `ITierV2`

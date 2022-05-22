@@ -64,7 +64,7 @@ library TierReport {
     /// @param report_ The report to read a timestamp from.
     /// @param tier_ The Tier to read the timestamp for.
     /// @return timestamp_ The timestamp the tier has been held since.
-    function reportForTier(uint256 report_, uint256 tier_)
+    function reportTimeForTier(uint256 report_, uint256 tier_)
         internal
         pure
         maxTier(tier_)
@@ -118,7 +118,7 @@ library TierReport {
             uint256 offset_ = tier_ * 32;
             updatedReport_ =
                 (report_ &
-                    ~uint256(uint256(TierConstants.NEVER_TIER) << offset_)) |
+                    ~uint256(uint256(TierConstants.NEVER_TIME) << offset_)) |
                 uint256(timestamp_ << offset_);
         }
     }

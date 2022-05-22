@@ -8,6 +8,7 @@ import "../vm/RainVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
+import {TierV2} from "./TierV2.sol";
 import "../vm/VMStateBuilder.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
@@ -35,7 +36,7 @@ struct CombineTierConfig {
 /// at construction.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of `report`.
-contract CombineTier is ITierV2, RainVM, Initializable {
+contract CombineTier is TierV2, RainVM, Initializable {
     event Initialize(address sender, CombineTierConfig config);
 
     // This allows cloned contracts to forward the template contract to the VM
@@ -88,39 +89,39 @@ contract CombineTier is ITierV2, RainVM, Initializable {
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_, bytes memory data_)
+    function report(address account_, uint[] memory context_)
         external
         view
         virtual
         override
-        returns (uint256)
+        returns (uint256 report_)
     {
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
         );
-        bytes memory context_ = bytes.concat(
+        bytes memory evalContext_ = bytes.concat(
             bytes32(uint256(uint160(account_))),
-            data_
+            abi.encodePacked(context_)
         );
-        eval(context_, state_, REPORT_ENTRYPOINT);
-        return state_.stack[state_.stackIndex - 1];
+        eval(evalContext_, state_, REPORT_ENTRYPOINT);
+        report_ = state_.stack[state_.stackIndex - 1];
     }
 
     /// @inheritdoc ITierV2
-    function reportForTier(
+    function reportTimeForTier(
         address account_,
         uint256 tier_,
-        bytes calldata data_
-    ) external view returns (uint256) {
+        uint[] calldata context_
+    ) external view returns (uint256 time_) {
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
         );
-        bytes memory context_ = bytes.concat(
+        bytes memory evalContext_ = bytes.concat(
             bytes32(uint256(uint160(account_))),
             bytes32(tier_),
-            data_
+            abi.encodePacked(context_)
         );
-        eval(context_, state_, REPORT_FOR_TIER_ENTRYPOINT);
-        return state_.stack[state_.stackIndex - 1];
+        eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
+        time_ = state_.stack[state_.stackIndex - 1];
     }
 }

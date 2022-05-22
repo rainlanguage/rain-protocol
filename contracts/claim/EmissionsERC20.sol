@@ -112,7 +112,7 @@ contract EmissionsERC20 is
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_, bytes memory)
+    function report(address account_, uint[] memory)
         public
         view
         virtual
@@ -123,12 +123,12 @@ contract EmissionsERC20 is
     }
 
     /// @inheritdoc ITierV2
-    function reportForTier(
+    function reportTimeForTier(
         address account_,
         uint256 tier_,
-        bytes calldata
+        uint[] calldata
     ) external view returns (uint256) {
-        return TierReport.reportForTier(reports[account_], tier_);
+        return TierReport.reportTimeForTier(reports[account_], tier_);
     }
 
     /// @inheritdoc RainVM

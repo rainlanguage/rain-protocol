@@ -52,8 +52,8 @@ pragma solidity ^0.8.0;
 /// - Tier is NOT held: `0xFF..` is in the report
 /// - Tier is unknown: `0xFF..` is in the report
 interface ITierV2 {
-    /// Same as report but for a single tier.
-    /// Often the implementing contract can calculate a single tier much more
+    /// Same as report but only returns the time for a single tier.
+    /// Often the implementing contract can calculate a single tier more
     /// efficiently than all 8 tiers. If the consumer only needs one or a few
     /// tiers it MAY be much cheaper to request only those tiers individually.
     /// This DOES NOT apply to all contracts, an obvious example is token
@@ -62,11 +62,11 @@ interface ITierV2 {
     /// The return value is a `uint256` for gas efficiency but the values will
     /// be bounded by `type(uint32).max` as no single tier can report a value
     /// higher than this.
-    function reportForTier(
+    function reportTimeForTier(
         address account,
         uint256 tier,
-        bytes calldata data
-    ) external view returns (uint256);
+        uint[] calldata context
+    ) external view returns (uint256 time);
 
     /// Same as `ITier` but with arbitrary bytes for `data` which allows a
     /// single underlying state to present many different reports dynamically.
@@ -79,8 +79,8 @@ interface ITierV2 {
     /// `data` supercedes `setTier` function and `TierChange` event from
     /// `ITier` at the interface level. Implementing contracts are free to
     /// inherit both `ITier` and `ITierV2` if the old behaviour is desired.
-    function report(address account, bytes calldata data)
+    function report(address account, uint[] calldata context)
         external
         view
-        returns (uint256);
+        returns (uint256 report);
 }
