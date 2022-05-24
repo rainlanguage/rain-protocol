@@ -1,10 +1,9 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { AllStandardOps, op } from "../../utils";
 import type { Contract, ContractFactory } from "ethers";
-
 import type { ConstructEvent, Sale } from "../../typechain/Sale";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
@@ -13,16 +12,12 @@ import {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
-import {
-  saleDeploy,
-  Opcode,
-  Tier,
-  betweenBlockNumbersSource,
-} from "./SaleUtil";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
+import { saleDeploy } from "../../utils/deploy/sale";
+import { Tier } from "../../utils/types/tier";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { assert } = chai;
+const Opcode = AllStandardOps;
 
 let reserve: ReserveToken & Contract,
   redeemableERC20FactoryFactory: ContractFactory,

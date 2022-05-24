@@ -20,7 +20,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 // solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "../sstore2/SSTORE2.sol";
+import "@0xsequence/sstore2/contracts/SSTORE2.sol";
 import "../vm/VMStateBuilder.sol";
 
 /// Everything required to construct a Sale (not initialize).
