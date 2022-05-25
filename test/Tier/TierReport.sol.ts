@@ -3,7 +3,13 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierReportTest } from "../../typechain/TierReportTest";
 import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
-import { assertError, basicDeploy, zeroPad32, zeroPad4 } from "../../utils";
+import {
+  assertError,
+  basicDeploy,
+  timestamp,
+  zeroPad32,
+  zeroPad4,
+} from "../../utils";
 import type { Contract } from "ethers";
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -240,10 +246,10 @@ describe("TierReport", async function () {
   });
 
   it("should correctly set new blocks based on whether the new tier is higher or lower than the current one", async () => {
-    const initialBlock = await ethers.provider.getBlockNumber();
-    const initialBlockHex = zeroPad4(ethers.BigNumber.from(initialBlock)).slice(
-      2
-    );
+    const initialTimestamp = timestamp();
+    const initialTimestampHex = zeroPad4(
+      ethers.BigNumber.from(initialTimestamp)
+    ).slice(2);
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
@@ -267,13 +273,13 @@ describe("TierReport", async function () {
     const reportUnpadded = await readWriteTier.report(signer1.address, []);
     const report = zeroPad32(reportUnpadded);
 
-    const block1 = await ethers.provider.getBlockNumber();
+    const timestamp1 = Date.now();
 
-    const updatedReportTruncated = await tierReport.updateReportWithTierAtBlock(
+    const updatedReportTruncated = await tierReport.updateReportWithTierAtTime(
       report,
       Tier.EIGHT,
       Tier.FOUR,
-      block1
+      timestamp1
     );
 
     const updatedReportTruncatedLeftHalf = updatedReportTruncated
@@ -287,43 +293,49 @@ describe("TierReport", async function () {
       );
     }
 
-    // set tier FIVE block to initialBlock
-    const updatedReportSetBlock = await tierReport.updateReportWithTierAtBlock(
-      report,
-      Tier.FOUR,
-      Tier.FIVE,
-      initialBlock
-    );
+    // set tier FIVE timestamp to initialTimestamp
+    const updatedReportSetTimestamp =
+      await tierReport.updateReportWithTierAtTime(
+        report,
+        Tier.FOUR,
+        Tier.FIVE,
+        initialTimestamp
+      );
 
-    const actualFirstSection = zeroPad32(updatedReportSetBlock).slice(2, 26);
+    const actualFirstSection = zeroPad32(updatedReportSetTimestamp).slice(
+      2,
+      26
+    );
     const expectedFirstSection = report.slice(2, 26);
 
     assert(
       actualFirstSection === expectedFirstSection,
-      `first section of updated report (set block) is wrong
+      `first section of updated report (set timestamp) is wrong
       expected  ${expectedFirstSection}
       got       ${actualFirstSection}`
     );
 
-    const actualSetBlock = updatedReportSetBlock
+    const actualSetTimestamp = updatedReportSetTimestamp
       .toHexString()
       .slice(-40)
       .slice(0, 8);
-    const expectedSetBlock =
-      "0".repeat(8 - initialBlockHex.length) + initialBlockHex;
+    const expectedSetTimestamp =
+      "0".repeat(8 - initialTimestampHex.length) + initialTimestampHex;
     assert(
-      actualSetBlock === expectedSetBlock,
-      `set block was wrong
-      expected  ${expectedSetBlock}
-      got       ${actualSetBlock}`
+      actualSetTimestamp === expectedSetTimestamp,
+      `set timestamp was wrong
+      expected  ${expectedSetTimestamp}
+      got       ${actualSetTimestamp}`
     );
 
-    const actualLastSection = zeroPad32(updatedReportSetBlock).slice(26 + 8);
+    const actualLastSection = zeroPad32(updatedReportSetTimestamp).slice(
+      26 + 8
+    );
     const expectedLastSection = report.slice(26 + 8);
 
     assert(
       actualLastSection === expectedLastSection,
-      `last section of updated report (set block) is wrong
+      `last section of updated report (set timestamp) is wrong
       expected  ${expectedLastSection}
       got       ${actualLastSection}`
     );
