@@ -54,7 +54,7 @@ describe("TierReport", async function () {
       reserve.transfer(signer1.address, 0); // create empty block
     }
 
-    const report = await readWriteTier.report(signer1.address);
+    const report = await readWriteTier.report(signer1.address, []);
 
     // tierBlock()
     await assertError(
@@ -101,7 +101,7 @@ describe("TierReport", async function () {
       reserve.transfer(signer1.address, 0); // create empty block
     }
 
-    const report = await readWriteTier.report(signer1.address);
+    const report = await readWriteTier.report(signer1.address, []);
 
     const tierBlockReport1 = await tierReport.tierAtBlockFromReport(
       report,
@@ -139,7 +139,7 @@ describe("TierReport", async function () {
     }
 
     // get latest report
-    const report = await readWriteTier.report(signer1.address);
+    const report = await readWriteTier.report(signer1.address, []);
 
     const tierBlock0 = await tierReport.reportForTier(report, Tier.ZERO);
     const tierBlock1 = await tierReport.reportForTier(report, Tier.ONE);
@@ -175,7 +175,7 @@ describe("TierReport", async function () {
       .connect(signer1)
       .setTier(signer1.address, Tier.THREE, []);
 
-    const report = await readWriteTier.report(signer1.address);
+    const report = await readWriteTier.report(signer1.address, []);
 
     const truncatedReport = await tierReport.truncateTiersAbove(
       report,
@@ -198,7 +198,7 @@ describe("TierReport", async function () {
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
 
-    const report = await readWriteTier.report(signer1.address);
+    const report = await readWriteTier.report(signer1.address, []);
 
     const targetBlock = initialBlock + 1000;
 
@@ -264,7 +264,7 @@ describe("TierReport", async function () {
       .connect(signer1)
       .setTier(signer1.address, Tier.EIGHT, []);
 
-    const reportUnpadded = await readWriteTier.report(signer1.address);
+    const reportUnpadded = await readWriteTier.report(signer1.address, []);
     const report = zeroPad32(reportUnpadded);
 
     const block1 = await ethers.provider.getBlockNumber();

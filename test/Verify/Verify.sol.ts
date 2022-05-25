@@ -1248,7 +1248,7 @@ describe("Verify", async function () {
       .grantRole(await verify.BANNER(), banner.address);
   });
 
-  it("statusAtBlock should return correct status for any given state & block number", async function () {
+  it("statusAtTime should return correct status for any given state & block number", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1277,7 +1277,7 @@ describe("Verify", async function () {
     const state0 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state0,
           await ethers.provider.getBlockNumber()
         )
@@ -1322,7 +1322,7 @@ describe("Verify", async function () {
     const state1 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state1,
           await ethers.provider.getBlockNumber()
         )
@@ -1340,7 +1340,7 @@ describe("Verify", async function () {
     const state2 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state2,
           await ethers.provider.getBlockNumber()
         )
@@ -1358,7 +1358,7 @@ describe("Verify", async function () {
     const state3 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state3,
           await ethers.provider.getBlockNumber()
         )
@@ -1368,15 +1368,15 @@ describe("Verify", async function () {
 
     // interrogate history using latest state, before being cleared with `.remove()`
     assert(
-      (await verify.statusAtBlock(state3, blockBeforeAdd)).eq(Status.Nil),
+      (await verify.statusAtTime(state3, blockBeforeAdd)).eq(Status.Nil),
       "status should be Nil before add"
     );
     assert(
-      (await verify.statusAtBlock(state3, blockBeforeApprove)).eq(Status.Added),
+      (await verify.statusAtTime(state3, blockBeforeApprove)).eq(Status.Added),
       "status should be Added before approve"
     );
     assert(
-      (await verify.statusAtBlock(state3, blockBeforeBan)).eq(Status.Approved),
+      (await verify.statusAtTime(state3, blockBeforeBan)).eq(Status.Approved),
       "status should be Approved before ban"
     );
 
@@ -1388,7 +1388,7 @@ describe("Verify", async function () {
     const state4 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state4,
           await ethers.provider.getBlockNumber()
         )
@@ -1563,7 +1563,7 @@ describe("Verify", async function () {
     const state0 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state0,
           await ethers.provider.getBlockNumber()
         )
@@ -1599,7 +1599,7 @@ describe("Verify", async function () {
     const state1 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state1,
           await ethers.provider.getBlockNumber()
         )
@@ -1628,7 +1628,7 @@ describe("Verify", async function () {
     const state2 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state2,
           await ethers.provider.getBlockNumber()
         )
@@ -1657,7 +1657,7 @@ describe("Verify", async function () {
     const state3 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state3,
           await ethers.provider.getBlockNumber()
         )
@@ -1685,7 +1685,7 @@ describe("Verify", async function () {
     const state4 = await verify.state(signer1.address);
     assert(
       (
-        await verify.statusAtBlock(
+        await verify.statusAtTime(
           state4,
           await ethers.provider.getBlockNumber()
         )
