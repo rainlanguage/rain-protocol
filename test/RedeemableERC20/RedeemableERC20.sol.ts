@@ -907,7 +907,7 @@ describe("RedeemableERC20", async function () {
     // Send alice some tokens.
     await erc20Pullee.transfer(redeemableERC20.address, alice.address, 10);
 
-    const now = await ethers.provider.getBlockNumber();
+    const now = Date.now();
 
     const event0 = (await Util.getEventArgs(
       await erc20Pullee.endDistribution(
@@ -920,7 +920,7 @@ describe("RedeemableERC20", async function () {
 
     assert(event0.sender === erc20Pullee.address, "wrong sender in event0");
     assert(event0.newPhase.eq(Phase.FROZEN), "wrong newPhase in event0");
-    assert(event0.scheduledBlock.eq(now + 1), "wrong scheduledBlock in event0");
+    assert(event0.scheduledTime.eq(now + 1), "wrong scheduledTime in event0");
 
     // Funds need to be frozen once redemption phase begins.
     await Util.assertError(

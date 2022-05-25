@@ -272,9 +272,9 @@ describe("Phased", async function () {
 
     // should schedule next phase
 
-    const block1 = (await ethers.provider.getBlockNumber()) + 1;
+    const timestamp1 = Date.now();
 
-    const schedule1Promise = phased.testScheduleNextPhase(block1);
+    const schedule1Promise = phased.testScheduleNextPhase(timestamp1);
 
     const event0 = (await Util.getEventArgs(
       await schedule1Promise,
@@ -284,7 +284,10 @@ describe("Phased", async function () {
 
     assert(event0.sender === signers[0].address, "wrong sender in event0");
     assert(event0.newPhase.eq(Phase.ONE), "wrong newPhase in event0");
-    assert(event0.scheduledBlock.eq(block1), "wrong scheduledBlock in event0");
+    assert(
+      event0.scheduledTime.eq(timestamp1),
+      "wrong scheduledTime in event0"
+    );
 
     // empty block
     await reserve.transfer(signers[0].address, 0);
@@ -301,9 +304,9 @@ describe("Phased", async function () {
         );
       } else {
         assert(
-          block1 === phaseBlocks1[i],
+          timestamp1 === phaseBlocks1[i],
           `did not return correct phase block for phase ${i + 1}
-          expected ${block1} got ${phaseBlocks1[i]}`
+          expected ${timestamp1} got ${phaseBlocks1[i]}`
         );
       }
     }

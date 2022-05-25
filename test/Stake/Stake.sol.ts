@@ -72,10 +72,7 @@ describe("Stake", async function () {
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
 
-    await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
-    );
+    await stake.report(alice.address, []);
   });
 
   it("should not process a withdraw of 0 amount", async function () {

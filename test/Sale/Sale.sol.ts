@@ -4292,7 +4292,7 @@ describe("Sale", async function () {
     const {
       sender: sender1,
       newPhase,
-      scheduledBlock,
+      scheduledTime,
     } = (await Util.getEventArgs(
       txTimeout,
       "PhaseScheduled",
@@ -4304,7 +4304,7 @@ describe("Sale", async function () {
     );
     assert(newPhase.eq(Phase.FROZEN), "wrong token phase after timeout");
     assert(
-      scheduledBlock.eq(await ethers.provider.getBlockNumber()),
+      scheduledTime.eq(await ethers.provider.getBlockNumber()),
       "expected scheduled block"
     );
     // Sale is now functionally in a Fail state
