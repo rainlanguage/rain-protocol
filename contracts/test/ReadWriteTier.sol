@@ -58,8 +58,6 @@ contract ReadWriteTier is TierV2 {
 
     /// Errors if the user attempts to return to the ZERO tier.
     /// Updates the report from `report` using default `TierReport` logic.
-    /// Calls `_afterSetTier` that inheriting contracts SHOULD
-    /// override to enforce status requirements.
     /// Emits `TierChange` event.
     function setTier(
         address account_,
@@ -87,5 +85,67 @@ contract ReadWriteTier is TierV2 {
         );
 
         emit TierChange(msg.sender, account_, startTier_, endTier_, data_);
+    }
+
+    /// Re-export TierReport utilities
+
+    function tierAtTimeFromReport(uint256 report_, uint256 timestamp_)
+        external
+        pure
+        returns (uint256 tier_)
+    {
+        return TierReport.tierAtTimeFromReport(report_, timestamp_);
+    }
+
+    function reportTimeForTier(uint256 report_, uint256 tier_)
+        external
+        pure
+        returns (uint256 timestamp_)
+    {
+        return TierReport.reportTimeForTier(report_, tier_);
+    }
+
+    function truncateTiersAbove(uint256 report_, uint256 tier_)
+        external
+        pure
+        returns (uint256)
+    {
+        return TierReport.truncateTiersAbove(report_, tier_);
+    }
+
+    function updateTimeAtTier(
+        uint256 report_,
+        uint256 tier_,
+        uint256 timestamp_
+    ) external pure returns (uint256 updatedReport_) {
+        return TierReport.updateTimeAtTier(report_, tier_, timestamp_);
+    }
+
+    function updateTimesForTierRange(
+        uint256 report_,
+        uint256 startTier_,
+        uint256 endTier_,
+        uint256 timestamp_
+    ) external pure returns (uint256 updatedReport_) {
+        return TierReport.updateTimesForTierRange(
+            report_,
+            startTier_,
+            endTier_,
+            timestamp_
+        );
+    }
+
+    function updateReportWithTierAtTime(
+        uint256 report_,
+        uint256 startTier_,
+        uint256 endTier_,
+        uint256 timestamp_
+    ) external pure returns (uint256 updatedReport_) {
+        return TierReport.updateReportWithTierAtTime(
+            report_,
+            startTier_,
+            endTier_,
+            timestamp_
+        );
     }
 }
