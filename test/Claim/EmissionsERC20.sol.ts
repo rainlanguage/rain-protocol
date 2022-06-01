@@ -9,6 +9,9 @@ import {
   paddedUInt256,
   sixZeros,
   tierRange,
+  compareTierReports,
+  timewarp,
+  blockTimestamp,
 } from "../../utils";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { BigNumber, Contract } from "ethers";
@@ -1158,6 +1161,8 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
+    const constants = [readWriteTier.address, Util.NEVER];
+    const valTier = op(Opcode.CONSTANT, 0);
     const valNever = op(Opcode.CONSTANT, 1);
 
     const emissionsERC20 = await emissionsDeploy(
@@ -1173,38 +1178,40 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [
+            // prettier-ignore
             concat([
-              valNever,
-              op(Opcode.BLOCK_NUMBER),
-              op(
-                Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-                tierRange(Tier.ZERO, Tier.EIGHT)
-              ),
-              op(Opcode.CONSTANT, 0),
-              op(Opcode.CONTEXT),
-              op(Opcode.REPORT),
+                  valNever,
+                  op(Opcode.BLOCK_TIMESTAMP),
+                op(
+                  Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+                  tierRange(Tier.ZERO, Tier.EIGHT)
+                ),
+                  valTier,
+                  op(Opcode.CONTEXT),
+                op(Opcode.REPORT),
               op(Opcode.SATURATING_DIFF),
             ]),
           ],
-          constants: [readWriteTier.address, Util.NEVER],
+          constants,
         },
       }
     );
 
-    const setTierBlock = (await ethers.provider.getBlockNumber()) + 1;
     await readWriteTier.setTier(claimant.address, Tier.EIGHT, []);
+    const setTierTimestamp = await blockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const calculationBlock = await ethers.provider.getBlockNumber();
     const diffResult = await emissionsERC20.calculateClaim(claimant.address);
+    const calculationTimestamp = await blockTimestamp();
 
     const expectedDiff = paddedUInt256(
       ethers.BigNumber.from(
-        "0x" + paddedUInt32(calculationBlock - setTierBlock).repeat(8)
+        "0x" + paddedUInt32(calculationTimestamp - setTierTimestamp).repeat(8)
       )
     );
 
+    assert(!diffResult.isZero(), "diff result was zero");
     assert(
       diffResult.eq(expectedDiff),
       `wrong diff result
@@ -1213,7 +1220,7 @@ describe("EmissionsERC20", async function () {
     );
   });
 
-  it("should record the latest claim block as a tier report", async function () {
+  it("should record the latest claim timestamp for each slot in a tier report", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1242,29 +1249,23 @@ describe("EmissionsERC20", async function () {
       }
     );
 
-    const claimBlockNumber = (await ethers.provider.getBlockNumber()) + 1;
-
     await emissionsERC20
       .connect(claimant)
       .claim(
         claimant.address,
         hexlify([...Buffer.from("Custom claim message")])
       );
+    const claimTimestamp = await blockTimestamp();
 
     const expectedReport = paddedUInt256(
-      ethers.BigNumber.from("0x" + paddedUInt32(claimBlockNumber).repeat(8))
+      ethers.BigNumber.from("0x" + paddedUInt32(claimTimestamp).repeat(8))
     );
 
     const actualReport = paddedUInt256(
       await emissionsERC20.report(claimant.address, [])
     );
 
-    assert(
-      actualReport === expectedReport,
-      `wrong emissions claim report
-      expected  ${expectedReport}
-      actual    ${actualReport}`
-    );
+    compareTierReports(expectedReport, actualReport, 0);
   });
 
   it("should allow delegated claims when flag set to true", async function () {

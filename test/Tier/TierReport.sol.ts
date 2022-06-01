@@ -6,8 +6,8 @@ import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import {
   assertError,
   basicDeploy,
-  sleep,
-  timestamp,
+  blockTimestamp,
+  timewarp,
   zeroPad32,
   zeroPad4,
 } from "../../utils";
@@ -248,163 +248,61 @@ describe("TierReport", async function () {
   });
 
   it("should correctly set new blocks based on whether the new tier is higher or lower than the current one", async () => {
-    const initialTimestamp = timestamp();
+    const initialTimestamp = await blockTimestamp();
     const initialTimestampHex = zeroPad4(
       ethers.BigNumber.from(initialTimestamp)
     ).slice(2);
 
-    const timestamp0 = timestamp();
-    const report0 = await readWriteTier.report(signer1.address, []);
-    const startTier0 = await readWriteTier.tierAtTimeFromReport(
-      report0,
-      timestamp0
-    );
-    console.log({
-      report0: hexlify(report0),
-      timestamp0: hexlify(timestamp0),
-      startTier0,
-    });
-
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
 
-    await sleep(1000);
-    const timestamp1 = timestamp();
-    const report1 = await readWriteTier.report(signer1.address, []);
-    const startTier1 = await readWriteTier.tierAtTimeFromReport(
-      report1,
-      timestamp1
-    );
-    console.log({
-      report1: hexlify(report1),
-      timestamp1: hexlify(timestamp1),
-      startTier1,
-    });
+    await timewarp(1);
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
 
-    await sleep(1000);
-    const timestamp2 = timestamp();
-    const report2 = await readWriteTier.report(signer1.address, []);
-    const startTier2 = await readWriteTier.tierAtTimeFromReport(
-      report2,
-      timestamp2
-    );
-    console.log({
-      report2: hexlify(report2),
-      timestamp2: hexlify(timestamp2),
-      startTier2,
-    });
+    await timewarp(1);
 
     await readWriteTier
       .connect(signer1)
       .setTier(signer1.address, Tier.THREE, []);
 
-    await sleep(1000);
-    const timestamp3 = timestamp();
-    const report3 = await readWriteTier.report(signer1.address, []);
-    const startTier3 = await readWriteTier.tierAtTimeFromReport(
-      report3,
-      timestamp3
-    );
-    console.log({
-      report3: hexlify(report3),
-      timestamp3: hexlify(timestamp3),
-      startTier3,
-    });
+    await timewarp(1);
 
     await readWriteTier
       .connect(signer1)
       .setTier(signer1.address, Tier.FOUR, []);
 
-    await sleep(1000);
-    const timestamp4 = timestamp();
-    const report4 = await readWriteTier.report(signer1.address, []);
-    const startTier4 = await readWriteTier.tierAtTimeFromReport(
-      report4,
-      timestamp4
-    );
-    console.log({
-      report4: hexlify(report4),
-      timestamp4: hexlify(timestamp4),
-      startTier4,
-    });
+    await timewarp(1);
 
     await readWriteTier
       .connect(signer1)
       .setTier(signer1.address, Tier.FIVE, []);
 
-    await sleep(1000);
-    const timestamp5 = timestamp();
-    const report5 = await readWriteTier.report(signer1.address, []);
-    const startTier5 = await readWriteTier.tierAtTimeFromReport(
-      report5,
-      timestamp5
-    );
-    console.log({
-      report5: hexlify(report5),
-      timestamp5: hexlify(timestamp5),
-      startTier5,
-    });
+    await timewarp(1);
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SIX, []);
 
-    await sleep(1000);
-    const timestamp6 = timestamp();
-    const report6 = await readWriteTier.report(signer1.address, []);
-    const startTier6 = await readWriteTier.tierAtTimeFromReport(
-      report6,
-      timestamp6
-    );
-    console.log({
-      report6: hexlify(report6),
-      timestamp6: hexlify(timestamp6),
-      startTier6,
-    });
+    await timewarp(1);
 
     await readWriteTier
       .connect(signer1)
       .setTier(signer1.address, Tier.SEVEN, []);
 
-    await sleep(1000);
-    const timestamp7 = timestamp();
-    const report7 = await readWriteTier.report(signer1.address, []);
-    const startTier7 = await readWriteTier.tierAtTimeFromReport(
-      report7,
-      timestamp7
-    );
-    console.log({
-      report7: hexlify(report7),
-      timestamp7: hexlify(timestamp7),
-      startTier7,
-    });
+    await timewarp(1);
 
     await readWriteTier
       .connect(signer1)
       .setTier(signer1.address, Tier.EIGHT, []);
 
-    await sleep(1000);
-    const timestamp8 = timestamp();
-    const report8 = await readWriteTier.report(signer1.address, []);
-    const startTier8 = await readWriteTier.tierAtTimeFromReport(
-      report8,
-      timestamp8
-    );
-    console.log({
-      report8: hexlify(report8),
-      timestamp8: hexlify(timestamp8),
-      startTier8,
-    });
+    await timewarp(1);
 
     const reportUnpadded = await readWriteTier.report(signer1.address, []);
     const report = zeroPad32(reportUnpadded);
-
-    const timestampTruncated = Date.now();
 
     const updatedReportTruncated = await tierReport.updateReportWithTierAtTime(
       report,
       Tier.EIGHT,
       Tier.FOUR,
-      timestampTruncated
+      await blockTimestamp()
     );
 
     const updatedReportTruncatedLeftHalf = updatedReportTruncated

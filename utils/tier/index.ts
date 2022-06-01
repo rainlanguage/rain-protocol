@@ -2,16 +2,17 @@ import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { assert } from "chai";
 import { max_uint256 } from "../constants";
+import { roughTimestampEquals } from "../time";
 
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
-export function blockNumbersToReport(blockNos: number[]): BigNumber {
-  assert(blockNos.length === 8);
+export function numArrayToReport(numArray: number[]): BigNumber {
+  assert(numArray.length === 8);
 
   return ethers.BigNumber.from(
     "0x" +
-      [...blockNos]
+      [...numArray]
         .reverse()
         .map((i) => BigInt(i).toString(16).padStart(8, "0"))
         .join("")
@@ -19,9 +20,9 @@ export function blockNumbersToReport(blockNos: number[]): BigNumber {
 }
 
 /**
- * Utility function that transforms a hexadecimal number from the output of the ITier contract report
- * @param report String with Hexadecimal containing the array data
- * @returns number[] Block array of the reports
+ * Utility function that transforms a hexadecimal number from the output of the ITier contract report to an array of numbers
+ * @param report hexadecimal string representation of the report
+ * @returns array of slot numbers corresponding to each tier
  */
 export function tierReport(report: string): number[] {
   const parsedReport: number[] = [];
@@ -33,7 +34,6 @@ export function tierReport(report: string): number[] {
         .slice(i * 8, i * 8 + 8)
     )
     .reverse();
-  //arrStatus = arrStatus.reverse();
 
   for (const i in arrStatus) {
     parsedReport.push(parseInt("0x" + arrStatus[i]));
@@ -55,4 +55,27 @@ export function tierRange(startTier: number, endTier: number): number {
   range <<= 4;
   range += startTier;
   return range;
+}
+
+/**
+ *
+ * @param expectedReport - hexadecimal string containing the array data
+ * @param actualReport - hexadecimal string containing the array data
+ * @param precision - maximum number of seconds between timestamps
+ */
+export function compareTierReports(
+  expectedReport: string,
+  actualReport: string,
+  precision: number
+): void {
+  tierReport(expectedReport).forEach((expectedTimestamp, index) => {
+    const actualTimestamp = tierReport(actualReport)[index];
+
+    assert(
+      roughTimestampEquals(expectedTimestamp, actualTimestamp, precision),
+      `wrong timestamp in report slot ${index}
+      expected  ${expectedTimestamp}
+      got       ${actualTimestamp}`
+    );
+  });
 }

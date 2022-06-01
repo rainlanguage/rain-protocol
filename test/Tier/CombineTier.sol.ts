@@ -36,7 +36,7 @@ describe("CombineTier", async function () {
     const block1 = (await ethers.provider.getBlockNumber()) + 100;
 
     const constants = [
-      Util.blockNumbersToReport([
+      Util.numArrayToReport([
         block0,
         block0,
         block1,
@@ -95,7 +95,7 @@ describe("CombineTier", async function () {
     const block1 = (await ethers.provider.getBlockNumber()) + 100;
 
     const constants = [
-      Util.blockNumbersToReport([
+      Util.numArrayToReport([
         block0,
         block0,
         block1,
@@ -132,7 +132,7 @@ describe("CombineTier", async function () {
 
     const result = await combineTier.report(signers[0].address, []);
 
-    const expected = Util.blockNumbersToReport([
+    const expected = Util.numArrayToReport([
       block0,
       block0,
       0,

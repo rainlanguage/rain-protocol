@@ -7,7 +7,7 @@ import type {
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   tierReport,
-  blockNumbersToReport,
+  numArrayToReport,
   assertError,
   getEventArgs,
 } from "../../utils";
@@ -108,13 +108,13 @@ describe("Account tier", async function () {
   it("will return tier if set", async function () {
     const [signers, readWriteTier] = await setup();
     const expected = tierReport(uninitializedReport);
-    let expectedReport = blockNumbersToReport(expected);
+    let expectedReport = numArrayToReport(expected);
     let i = 0;
     for (const tier of tiers) {
       if (tier) {
         await readWriteTier.setTier(signers[0].address, tier, []);
         expected[i] = await ethers.provider.getBlockNumber();
-        expectedReport = blockNumbersToReport(expected);
+        expectedReport = numArrayToReport(expected);
         i++;
       }
       const actualReport =
@@ -136,7 +136,7 @@ describe("Account tier", async function () {
   it("will fill multiple tiers at a time", async function () {
     const [signers, readWriteTier] = await setup();
     let expected = tierReport(uninitializedReport);
-    let expectedReport = blockNumbersToReport(expected);
+    let expectedReport = numArrayToReport(expected);
     let o = 0;
     let n = 0;
     while (o < tiers.length) {
@@ -150,10 +150,10 @@ describe("Account tier", async function () {
       expected = expected.map((item: number, index: number) =>
         n - 1 >= index && index > o - 1 && n != o ? block : item
       );
-      expectedReport = blockNumbersToReport(expected);
+      expectedReport = numArrayToReport(expected);
       if (expectedReport.eq(uninitializedReport)) {
         expected[0] = block;
-        expectedReport = blockNumbersToReport(expected);
+        expectedReport = numArrayToReport(expected);
       }
       const actualReport =
         "0x" +

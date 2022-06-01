@@ -86,9 +86,9 @@ describe("TierOps", async function () {
 
     const constants0 = [
       //         0x01000000020000000300000004000000050000000600000007
-      Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
+      Util.numArrayToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
       // 0x0200000000000000040000000000000006000000000000000800000000
-      Util.blockNumbersToReport([2, 0, 4, 0, 6, 0, 8, 0].reverse()),
+      Util.numArrayToReport([2, 0, 4, 0, 6, 0, 8, 0].reverse()),
     ];
 
     const vReport0 = op(Opcode.CONSTANT, 0);
@@ -123,9 +123,9 @@ describe("TierOps", async function () {
 
     const constants0 = [
       // 0x01000000020000000300000004000000050000000600000007
-      Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
+      Util.numArrayToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
       // 0x0200000003000000040000000500000006000000070000000800000009
-      Util.blockNumbersToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
+      Util.numArrayToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
     ];
 
     const vReport0 = op(Opcode.CONSTANT, 0);
@@ -157,9 +157,9 @@ describe("TierOps", async function () {
 
     const constants0 = [
       // 0x0200000003000000040000000500000006000000070000000800000009
-      Util.blockNumbersToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
+      Util.numArrayToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
       // 0x01000000020000000300000004000000050000000600000007
-      Util.blockNumbersToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
+      Util.numArrayToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
     ];
 
     const vReport0 = op(Opcode.CONSTANT, 0);
