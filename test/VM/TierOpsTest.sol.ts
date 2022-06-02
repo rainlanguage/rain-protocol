@@ -64,7 +64,7 @@ describe("TierOps", async function () {
         op(Opcode.CONSTANT, 1),
         vBlock,
       op(
-        Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+        Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
         tierRangeUnrestricted(Tier.ZERO, 9) // beyond max tier of Tier.EIGHT
       ),
     ]);

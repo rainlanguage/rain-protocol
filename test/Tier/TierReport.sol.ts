@@ -66,7 +66,7 @@ describe("TierReport", async function () {
 
     // tierBlock()
     await assertError(
-      async () => await tierReport.reportForTier(report, 9),
+      async () => await tierReport.tierTime(report, 9),
       "MAX_TIER",
       "wrongly attempted to read tier '9' in the report, which is greater than maxTier constant"
     );
@@ -78,51 +78,59 @@ describe("TierReport", async function () {
       "wrongly attempted to truncate tiers above '9' in the report, which is greater than maxTier constant"
     );
 
-    // updateBlockAtTier()
+    // updateTimeAtTier()
     await assertError(
-      async () => await tierReport.updateBlockAtTier(report, 9, initialBlock),
+      async () => await tierReport.updateTimeAtTier(report, 9, initialBlock),
       "MAX_TIER",
       "wrongly attempted to update block at tier '9' in the report, which is greater than maxTier constant"
     );
 
-    // updateBlocksForTierRange()
+    // updateTimesForTierRange()
     await assertError(
       async () =>
-        await tierReport.updateBlocksForTierRange(report, 0, 9, initialBlock),
+        await tierReport.updateTimesForTierRange(report, 0, 9, initialBlock),
       "MAX_TIER",
       "wrongly attempted to update blocks from tier 0 to '9' in the report, which is greater than maxTier constant"
     );
   });
 
   it("should correctly return the highest achieved tier relative to a given report and block number", async () => {
-    const initialBlock = await ethers.provider.getBlockNumber();
+    const initialTimestamp = await blockTimestamp();
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
 
-    while ((await ethers.provider.getBlockNumber()) < initialBlock + 10) {
-      reserve.transfer(signer1.address, 0); // create empty block
-    }
+    timewarp(10);
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
 
-    while ((await ethers.provider.getBlockNumber()) < initialBlock + 20) {
-      reserve.transfer(signer1.address, 0); // create empty block
-    }
+    timewarp(10);
 
     const report = await readWriteTier.report(signer1.address, []);
 
-    const tierBlockReport1 = await tierReport.tierAtBlockFromReport(
+    const tierBlockReport1 = await tierReport.tierAtTimeFromReport(
       report,
-      initialBlock + 5
+      initialTimestamp + 5
     );
 
-    const tierBlockReport2 = await tierReport.tierAtBlockFromReport(
+    const tierBlockReport2 = await tierReport.tierAtTimeFromReport(
       report,
-      initialBlock + 15
+      initialTimestamp + 15
     );
 
-    assert(tierBlockReport1.eq(Tier.ONE));
-    assert(tierBlockReport2.eq(Tier.TWO));
+    assert(
+      tierBlockReport1.eq(Tier.ONE),
+      `wrong tier from report
+      expected  ${Tier.ONE}
+      got       ${tierBlockReport1}
+      report    ${hexlify(report)}`
+    );
+    assert(
+      tierBlockReport2.eq(Tier.TWO),
+      `wrong tier from report
+      expected  ${Tier.TWO}
+      got       ${tierBlockReport2}
+      report    ${hexlify(report)}`
+    );
   });
 
   it("should return the block for a specified status according to a given report", async () => {
@@ -149,10 +157,10 @@ describe("TierReport", async function () {
     // get latest report
     const report = await readWriteTier.report(signer1.address, []);
 
-    const tierBlock0 = await tierReport.reportForTier(report, Tier.ZERO);
-    const tierBlock1 = await tierReport.reportForTier(report, Tier.ONE);
-    const tierBlock2 = await tierReport.reportForTier(report, Tier.TWO);
-    const tierBlock3 = await tierReport.reportForTier(report, Tier.THREE);
+    const tierBlock0 = await tierReport.tierTime(report, Tier.ZERO);
+    const tierBlock1 = await tierReport.tierTime(report, Tier.ONE);
+    const tierBlock2 = await tierReport.tierTime(report, Tier.TWO);
+    const tierBlock3 = await tierReport.tierTime(report, Tier.THREE);
 
     assert(tierBlock0.isZero(), "did not return block 0");
 
@@ -210,7 +218,7 @@ describe("TierReport", async function () {
 
     const targetBlock = initialBlock + 1000;
 
-    const updatedReportBadRange = await tierReport.updateBlocksForTierRange(
+    const updatedReportBadRange = await tierReport.updateTimesForTierRange(
       report,
       Tier.SEVEN,
       Tier.SIX,
@@ -220,7 +228,7 @@ describe("TierReport", async function () {
     // bad range should return original report
     assert(updatedReportBadRange.eq(report), "changed report with bad range");
 
-    const updatedReport = await tierReport.updateBlocksForTierRange(
+    const updatedReport = await tierReport.updateTimesForTierRange(
       report,
       Tier.SIX, // smaller number first
       Tier.SEVEN,
