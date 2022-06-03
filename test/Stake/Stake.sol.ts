@@ -10,6 +10,7 @@ import type {
 } from "../../typechain/Stake";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { hexlify } from "ethers/lib/utils";
 
 let stakeFactoryFactory: ContractFactory,
   stakeFactory: StakeFactory & Contract,
@@ -43,6 +44,10 @@ const stakeDeploy = async (
   return stake;
 };
 
+const LEVELS = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000].map((value) =>
+  ethers.BigNumber.from(value + Util.sixZeros)
+);
+
 describe("Stake", async function () {
   beforeEach(async () => {
     token = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
@@ -56,7 +61,193 @@ describe("Stake", async function () {
     await stakeFactory.deployed();
   });
 
-  it("should return a correct report", async function () {
+  it("should process 50 successive deposits and withdraws", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    for (let i_ = 0; i_ < 50; i_++) {
+      // Give Alice some reserve tokens and deposit them
+      await token.transfer(
+        alice.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceAlice = await token.balanceOf(alice.address);
+      await token.connect(alice).approve(stake.address, tokenBalanceAlice);
+      await stake.connect(alice).deposit(tokenBalanceAlice);
+
+      // Give Bob some reserve tokens and deposit them
+      await token.transfer(
+        bob.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceBob = await token.balanceOf(bob.address);
+      await token.connect(bob).approve(stake.address, tokenBalanceBob);
+      await stake.connect(bob).deposit(tokenBalanceBob);
+
+      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+
+      // Alice redeems half of her stTokens
+      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // Bob redeems half of his stTokens
+      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+    }
+
+    const thresholds = LEVELS;
+
+    const reportAlice = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+    const reportBob = await stake.report(
+      bob.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const reportHexAlice = hexlify(reportAlice);
+    const reportHexBob = hexlify(reportBob);
+
+    console.log({ reportHexAlice, reportHexBob });
+  });
+
+  it("should process 25 successive deposits and withdraws", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    for (let i_ = 0; i_ < 25; i_++) {
+      // Give Alice some reserve tokens and deposit them
+      await token.transfer(
+        alice.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceAlice = await token.balanceOf(alice.address);
+      await token.connect(alice).approve(stake.address, tokenBalanceAlice);
+      await stake.connect(alice).deposit(tokenBalanceAlice);
+
+      // Give Bob some reserve tokens and deposit them
+      await token.transfer(
+        bob.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceBob = await token.balanceOf(bob.address);
+      await token.connect(bob).approve(stake.address, tokenBalanceBob);
+      await stake.connect(bob).deposit(tokenBalanceBob);
+
+      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+
+      // Alice redeems half of her stTokens
+      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // Bob redeems half of his stTokens
+      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+    }
+
+    const thresholds = LEVELS;
+
+    const reportAlice = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+    const reportBob = await stake.report(
+      bob.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const reportHexAlice = hexlify(reportAlice);
+    const reportHexBob = hexlify(reportBob);
+
+    console.log({ reportHexAlice, reportHexBob });
+  });
+
+  it("should process 10 successive deposits and withdraws", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    for (let i_ = 0; i_ < 10; i_++) {
+      // Give Alice some reserve tokens and deposit them
+      await token.transfer(
+        alice.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceAlice = await token.balanceOf(alice.address);
+      await token.connect(alice).approve(stake.address, tokenBalanceAlice);
+      await stake.connect(alice).deposit(tokenBalanceAlice);
+
+      // Give Bob some reserve tokens and deposit them
+      await token.transfer(
+        bob.address,
+        ethers.BigNumber.from("1000" + Util.sixZeros)
+      );
+      const tokenBalanceBob = await token.balanceOf(bob.address);
+      await token.connect(bob).approve(stake.address, tokenBalanceBob);
+      await stake.connect(bob).deposit(tokenBalanceBob);
+
+      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+
+      // Alice redeems half of her stTokens
+      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // Bob redeems half of his stTokens
+      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+    }
+
+    const thresholds = LEVELS;
+
+    const reportAlice = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+    const reportBob = await stake.report(
+      bob.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const reportHexAlice = hexlify(reportAlice);
+    const reportHexBob = hexlify(reportBob);
+
+    console.log({ reportHexAlice, reportHexBob });
+  });
+
+  it("should return one-to-many reports i.e. when different lists of thresholds are checked against", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -72,10 +263,308 @@ describe("Stake", async function () {
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
 
-    await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [[]])
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = LEVELS[3].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const depositBlock0 = await ethers.provider.getBlockNumber();
+
+    const thresholds0 = LEVELS;
+    const thresholds1 = [1500, 2500, 3500, 4500, 5500, 6500, 7500, 8500].map(
+      (value) => ethers.BigNumber.from(value + Util.sixZeros)
     );
+
+    const report0 = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds0])
+    );
+    const report1 = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds1])
+    );
+
+    const expected0 = Util.blockNumbersToReport([
+      depositBlock0,
+      depositBlock0,
+      depositBlock0,
+      depositBlock0,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+    const expected1 = Util.blockNumbersToReport([
+      depositBlock0,
+      depositBlock0,
+      depositBlock0,
+      0xffffffff, // not enough to reach tier 4 according to `thresholds1`
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report0.eq(expected0),
+      `did not return correct stake report0
+      expected  ${hexlify(expected0)}
+      got       ${hexlify(report0)}`
+    );
+    assert(
+      report1.eq(expected1),
+      `did not return correct stake report1
+      expected  ${hexlify(expected1)}
+      got       ${hexlify(report1)}`
+    );
+  });
+
+  it("should return a correct report when enough tokens have been staked to exceed all thresholds", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = LEVELS[7].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const depositBlock = await ethers.provider.getBlockNumber();
+
+    const thresholds = LEVELS;
+
+    const report = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const expected = Util.blockNumbersToReport([
+      depositBlock,
+      depositBlock,
+      depositBlock,
+      depositBlock,
+      depositBlock,
+      depositBlock,
+      depositBlock,
+      depositBlock,
+    ]);
+
+    assert(
+      report.eq(expected),
+      `did not return correct stake report
+      expected  ${hexlify(expected)}
+      got       ${hexlify(report)}`
+    );
+  });
+
+  it("should return a correct report when enough tokens have been staked to exceed the 2nd threshold then the 4th threshold", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = LEVELS[1].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const depositBlock0 = await ethers.provider.getBlockNumber();
+
+    const thresholds = LEVELS;
+
+    const report0 = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const expected0 = Util.blockNumbersToReport([
+      depositBlock0,
+      depositBlock0,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report0.eq(expected0),
+      `did not return correct stake report0
+      expected  ${hexlify(expected0)}
+      got       ${hexlify(report0)}`
+    );
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount1 = LEVELS[3].sub(depositAmount0);
+    await token.transfer(alice.address, depositAmount1);
+    await token.connect(alice).approve(stake.address, depositAmount1);
+    await stake.connect(alice).deposit(depositAmount1);
+
+    const depositBlock1 = await ethers.provider.getBlockNumber();
+
+    const report1 = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const expected1 = Util.blockNumbersToReport([
+      depositBlock0,
+      depositBlock0,
+      depositBlock1,
+      depositBlock1,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report1.eq(expected1),
+      `did not return correct stake report1
+      expected  ${hexlify(expected1)}
+      got       ${hexlify(report1)}`
+    );
+  });
+
+  it("should return a correct report when enough tokens have been staked to exceed the 1st threshold", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = LEVELS[0].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const depositBlock = await ethers.provider.getBlockNumber();
+
+    const thresholds = LEVELS;
+
+    const report = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    const expected = Util.blockNumbersToReport([
+      depositBlock,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report.eq(expected),
+      `did not return correct stake report
+      expected  ${hexlify(expected)}
+      got       ${hexlify(report)}`
+    );
+  });
+
+  it("should return a correct report when some tokens have been staked but do not exceed the first threshold", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = LEVELS[0].div(2);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const thresholds = LEVELS;
+
+    const report = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    // const expected = Util.blockNumbersToReport([0, 0, 0, 0, 0, 0, 0, 0]);
+    const expected = Util.max_uint256;
+
+    assert(
+      report.eq(expected),
+      `did not return correct stake report
+      expected  ${hexlify(expected)}
+      got       ${hexlify(report)}`
+    );
+  });
+
+  it("should return a correct report when no token has been staked", async function () {
+    this.timeout(0);
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: Util.ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeConfigStruct);
+
+    const thresholds = LEVELS;
+
+    const report = await stake.report(
+      alice.address,
+      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
+    );
+
+    assert(report.eq(Util.max_uint256), "did not return a NEVER report");
   });
 
   it("should not process a withdraw of 0 amount", async function () {

@@ -35,7 +35,7 @@ export const ONE = ethers.BigNumber.from("1" + eighteenZeros);
 export const RESERVE_ONE = ethers.BigNumber.from("1" + sixZeros);
 
 export const max_uint256 = ethers.BigNumber.from(
-  "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
 export const max_uint16 = ethers.BigNumber.from("0xffff");
