@@ -48,7 +48,7 @@ describe("EmissionsERC20", async function () {
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const vReadWriteTier = op(Opcode.CONSTANT, 0);
-    const vConstructionBlock = op(Opcode.CONSTANT, 1);
+    const vConstructionTime = op(Opcode.CONSTANT, 1);
     const vAlways = op(Opcode.CONSTANT, 2);
 
     await readWriteTier.setTier(claimant.address, Tier.TWO, []);
@@ -89,7 +89,7 @@ describe("EmissionsERC20", async function () {
       concat([
           CURRENT_TIMESTAMP_AS_REPORT(),
               TIER_REPORT(),
-              vConstructionBlock,
+              vConstructionTime,
             op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 1)),
             LAST_CLAIM_REPORT(),
             op(Opcode.BLOCK_TIMESTAMP),
@@ -97,7 +97,7 @@ describe("EmissionsERC20", async function () {
         op(Opcode.SATURATING_DIFF),
       ]);
 
-    const constructionBlock = await ethers.provider.getBlockNumber();
+    const constructionTime = await blockTimestamp();
 
     const emissionsERC20 = await emissionsDeploy(
       creator,
@@ -112,7 +112,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address, constructionBlock, Util.ALWAYS],
+          constants: [readWriteTier.address, constructionTime, Util.ALWAYS],
         },
       }
     );
@@ -317,10 +317,10 @@ describe("EmissionsERC20", async function () {
     const vAlways = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
-    const CURRENT_BLOCK_AS_REPORT = () =>
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
       concat([
           vAlways,
-          op(Opcode.BLOCK_NUMBER),
+          op(Opcode.BLOCK_TIMESTAMP),
         op(
           Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
@@ -346,10 +346,10 @@ describe("EmissionsERC20", async function () {
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-          CURRENT_BLOCK_AS_REPORT(),
+          CURRENT_TIMESTAMP_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.BLOCK_NUMBER),
+            op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
