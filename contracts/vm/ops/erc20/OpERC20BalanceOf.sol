@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {State} from "../../RainVM.sol";
-
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-/// @title ERC20Ops
-/// @notice RainVM opcode pack to read the ERC20 interface.
-library ERC20Ops {
-    // Stack the return of `balanceOf`.
+/// @title OpERC20BalanceOf
+/// @notice Opcode for ERC20 `balanceOf`.
+library OpERC20BalanceOf {
+    /// Stack `balanceOf`.
     function balanceOf(uint256, uint256 stackTopLocation_)
         internal
         view
@@ -28,25 +26,6 @@ library ERC20Ops {
         );
         assembly {
             mstore(location_, balance_)
-        }
-        return stackTopLocation_;
-    }
-
-    // Stack the return of `totalSupply`.
-    function totalSupply(uint256, uint256 stackTopLocation_)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 location_;
-        uint256 token_;
-        assembly {
-            location_ := sub(stackTopLocation_, 0x20)
-            token_ := mload(location_)
-        }
-        uint256 supply_ = IERC20(address(uint160(token_))).totalSupply();
-        assembly {
-            mstore(location_, supply_)
         }
         return stackTopLocation_;
     }
