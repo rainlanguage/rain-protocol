@@ -2,7 +2,13 @@ import * as Util from "../../utils";
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { op, paddedUInt32, paddedUInt256 } from "../../utils";
+import {
+  op,
+  paddedUInt32,
+  paddedUInt256,
+  getBlockTimestamp,
+  timewarp,
+} from "../../utils";
 import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -23,28 +29,39 @@ enum Tier {
 export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
-  it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block number", async () => {
+  // report for tier context
+  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxTier = op(Opcode.CONTEXT, 1);
+
+  // prettier-ignore
+  const sourceReportForTier = concat([
+      op(Opcode.THIS_ADDRESS),
+      ctxAccount,
+    op(Opcode.REPORT),
+  ]);
+
+  it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    // block in the past
-    const block0 = (await ethers.provider.getBlockNumber()) - 1;
-    // block in the future
-    const block1 = (await ethers.provider.getBlockNumber()) + 100;
+    // timestamp in the past
+    const timestamp0 = (await getBlockTimestamp()) - 1;
+    // timestamp in the future
+    const timestamp1 = (await getBlockTimestamp()) + 100;
 
     const constants = [
       Util.numArrayToReport([
-        block0,
-        block0,
-        block1,
-        block1,
-        block0,
-        block0,
-        block1,
-        block1,
+        timestamp0,
+        timestamp0,
+        timestamp1,
+        timestamp1,
+        timestamp0,
+        timestamp0,
+        timestamp1,
+        timestamp1,
       ]),
       Util.ALWAYS,
       Util.NEVER,
@@ -55,11 +72,11 @@ describe("CombineTier", async function () {
     const vNever = op(Opcode.CONSTANT, 2);
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           vFuture,
           vAlways,
           vNever,
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 3)
@@ -67,8 +84,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -76,34 +96,34 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `did not correctly combine reports with every and first selector where first report contains tier values which are greater than block number
+      `did not correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
   });
 
-  it("should correctly combine reports with any and first selector where first report contains tier values which are greater than block number", async () => {
+  it("should correctly combine reports with any and first selector where first report contains tier values which are greater than block timestamp", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    // block in the past
-    const block0 = (await ethers.provider.getBlockNumber()) - 1;
-    // block in the future
-    const block1 = (await ethers.provider.getBlockNumber()) + 100;
+    // timestamp in the past
+    const timestamp0 = (await getBlockTimestamp()) - 1;
+    // timestamp in the future
+    const timestamp1 = (await getBlockTimestamp()) + 100;
 
     const constants = [
       Util.numArrayToReport([
-        block0,
-        block0,
-        block1,
-        block1,
-        block0,
-        block0,
-        block1,
-        block1,
+        timestamp0,
+        timestamp0,
+        timestamp1,
+        timestamp1,
+        timestamp0,
+        timestamp0,
+        timestamp1,
+        timestamp1,
       ]),
       Util.ALWAYS,
       Util.NEVER,
@@ -114,11 +134,11 @@ describe("CombineTier", async function () {
     const vNever = op(Opcode.CONSTANT, 2);
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           vFuture,
           vAlways,
           vNever,
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 3)
@@ -126,25 +146,28 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
 
     const expected = Util.numArrayToReport([
-      block0,
-      block0,
+      timestamp0,
+      timestamp0,
       0,
       0,
-      block0,
-      block0,
+      timestamp0,
+      timestamp0,
       0,
       0,
     ]);
     assert(
       result.eq(expected),
-      `did not correctly combine reports with any and first selector where first report contains tier values which are greater than block number
+      `did not correctly combine reports with any and first selector where first report contains tier values which are greater than block timestamp
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -158,10 +181,10 @@ describe("CombineTier", async function () {
     const constants = [Util.ALWAYS, Util.NEVER];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
@@ -169,8 +192,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -178,10 +204,10 @@ describe("CombineTier", async function () {
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_LEFT succeeds
 
-    const expected = 0x00; // success, left report's block number for each tier
+    const expected = 0x00; // success, left report's block timestamp for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and first selector
+      `wrong block timestamp preserved with tierwise any and first selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -195,10 +221,10 @@ describe("CombineTier", async function () {
     const constants = [Util.ALWAYS, Util.NEVER];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
@@ -206,8 +232,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -215,10 +244,10 @@ describe("CombineTier", async function () {
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_NEW succeeds
 
-    const expected = 0x00; // success, newest block number before current block for each tier
+    const expected = 0x00; // success, newest block timestamp before current block for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and max selector
+      `wrong block timestamp preserved with tierwise any and max selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -232,10 +261,10 @@ describe("CombineTier", async function () {
     const constants = [Util.ALWAYS, Util.NEVER];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
@@ -243,8 +272,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -252,10 +284,10 @@ describe("CombineTier", async function () {
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_OLD succeeds
 
-    const expected = 0x00; // success, oldest block number for each tier
+    const expected = 0x00; // success, oldest block timestamp for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and min selector
+      `wrong block timestamp preserved with tierwise any and min selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -269,10 +301,10 @@ describe("CombineTier", async function () {
     const constants = [Util.ALWAYS, Util.NEVER];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
@@ -280,8 +312,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -292,7 +327,7 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise every and first selector
+      `wrong block timestamp preserved with tierwise every and first selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -306,10 +341,10 @@ describe("CombineTier", async function () {
     const constants = [Util.ALWAYS, Util.NEVER];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
@@ -317,8 +352,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -329,7 +367,7 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise every and min selector
+      `wrong block timestamp preserved with tierwise every and min selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -343,10 +381,10 @@ describe("CombineTier", async function () {
     const constants = [Util.ALWAYS, Util.NEVER];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
@@ -354,8 +392,11 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -366,7 +407,7 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise every and max selector
+      `wrong block timestamp preserved with tierwise every and max selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -378,12 +419,18 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [op(Opcode.CONSTANT, 0)],
-      constants: [Util.ALWAYS],
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0)],
+        constants: [Util.ALWAYS],
+      },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [op(Opcode.CONSTANT, 0)],
-      constants: [Util.NEVER],
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0)],
+        constants: [Util.NEVER],
+      },
     })) as CombineTier & Contract;
 
     const constants = [
@@ -406,8 +453,8 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlwaysReport],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: { sources: [sourceAlwaysReport], constants },
     })) as CombineTier & Contract;
 
     const resultAlwaysReport = await combineTierAlways.report(
@@ -424,8 +471,8 @@ describe("CombineTier", async function () {
     );
 
     const combineTierNever = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNeverReport],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: { sources: [sourceNeverReport], constants },
     })) as CombineTier & Contract;
 
     const resultNeverReport = await combineTierNever.report(
@@ -447,11 +494,14 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([op(Opcode.CONTEXT, 0)]);
+    const sourceReport = concat([op(Opcode.CONTEXT, 0)]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants: [],
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants: [],
+      },
     })) as CombineTier & Contract;
 
     const result = await combineTier.report(signers[1].address, []);
@@ -483,14 +533,14 @@ describe("CombineTier", async function () {
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
@@ -498,11 +548,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -532,14 +585,14 @@ describe("CombineTier", async function () {
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -556,12 +609,12 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -578,17 +631,17 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
       resultAndOld === expectedAndOld,
-      `wrong block number preserved with tierwise every and min selector
+      `wrong block timestamp preserved with tierwise every and min selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndOld}
@@ -615,14 +668,14 @@ describe("CombineTier", async function () {
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
@@ -630,11 +683,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -664,14 +720,14 @@ describe("CombineTier", async function () {
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
 
@@ -689,12 +745,12 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
 
@@ -712,17 +768,17 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
       resultAndNew === expectedAndNew,
-      `wrong block number preserved with tierwise every and max selector
+      `wrong block timestamp preserved with tierwise every and max selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndNew}
@@ -749,14 +805,14 @@ describe("CombineTier", async function () {
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
@@ -764,11 +820,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -798,14 +857,14 @@ describe("CombineTier", async function () {
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -822,12 +881,12 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -843,7 +902,7 @@ describe("CombineTier", async function () {
     const expectedAndLeft = leftReport;
     assert(
       resultAndLeft === expectedAndLeft,
-      `wrong block number preserved with tierwise every and first selector
+      `wrong block timestamp preserved with tierwise every and first selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndLeft}
@@ -870,14 +929,14 @@ describe("CombineTier", async function () {
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
@@ -885,11 +944,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -919,14 +981,14 @@ describe("CombineTier", async function () {
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -943,12 +1005,12 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -964,19 +1026,19 @@ describe("CombineTier", async function () {
     const expectedOrOld = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
       resultOrOld === expectedOrOld,
-      `wrong block number preserved with tierwise any and min selector
+      `wrong block timestamp preserved with tierwise any and min selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedOrOld}
@@ -1003,14 +1065,14 @@ describe("CombineTier", async function () {
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
@@ -1018,11 +1080,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -1052,14 +1117,14 @@ describe("CombineTier", async function () {
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -1076,12 +1141,12 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -1097,19 +1162,19 @@ describe("CombineTier", async function () {
     const expectedOrNew = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
       resultOrNew === expectedOrNew,
-      `wrong block number preserved with tierwise any and max selector
+      `wrong block timestamp preserved with tierwise any and max selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedOrNew}
@@ -1136,14 +1201,14 @@ describe("CombineTier", async function () {
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
@@ -1151,11 +1216,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 8,
+      sourceConfig: {
+        sources: [sourceReport, sourceReportForTier],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
@@ -1185,14 +1253,14 @@ describe("CombineTier", async function () {
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -1209,12 +1277,12 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -1230,19 +1298,19 @@ describe("CombineTier", async function () {
     const expectedOrLeft = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
       resultOrLeft === expectedOrLeft,
-      `wrong block number preserved with tierwise any and first selector
+      `wrong block timestamp preserved with tierwise any and first selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedOrLeft}

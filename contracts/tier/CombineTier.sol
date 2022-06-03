@@ -89,7 +89,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_, uint[] memory context_)
+    function report(address account_, uint256[] memory context_)
         external
         view
         virtual
@@ -111,7 +111,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint[] calldata context_
+        uint256[] calldata context_
     ) external view returns (uint256 time_) {
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
