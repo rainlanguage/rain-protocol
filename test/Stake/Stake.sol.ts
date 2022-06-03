@@ -1,5 +1,5 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import { Contract, ContractFactory, Overrides } from "ethers";
 import type { StakeFactory } from "../../typechain/StakeFactory";
@@ -11,8 +11,6 @@ import type {
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { hexlify } from "ethers/lib/utils";
-
-const { assert } = chai;
 
 let stakeFactoryFactory: ContractFactory,
   stakeFactory: StakeFactory & Contract,

@@ -1,5 +1,5 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import type {
   ApproveEvent,
@@ -11,10 +11,8 @@ import type {
   Verify,
 } from "../../typechain/Verify";
 import type { VerifyCallbackTest } from "../../typechain/VerifyCallbackTest";
-import { max_uint32 } from "../Util";
+import { max_uint32 } from "../../utils";
 import { hexlify } from "ethers/lib/utils";
-
-const { assert } = chai;
 
 enum Status {
   Nil,

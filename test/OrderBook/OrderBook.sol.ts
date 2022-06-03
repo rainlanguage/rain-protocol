@@ -1,5 +1,5 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import { Contract, ContractFactory } from "ethers";
 import type {
@@ -17,15 +17,14 @@ import type {
   WithdrawEvent,
 } from "../../typechain/OrderBook";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { Opcode } from "./OrderBookUtil";
 import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op, OrderBookOpcode } from "../../utils";
 import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
-
-const { assert } = chai;
 
 const TRACK_CLEARED_ORDER = 0x1;
 const TRACK_CLEARED_COUNTERPARTY = 0x2;
+
+const Opcode = OrderBookOpcode;
 
 let orderBookFactory: ContractFactory,
   tokenA: ReserveToken18 & Contract,
