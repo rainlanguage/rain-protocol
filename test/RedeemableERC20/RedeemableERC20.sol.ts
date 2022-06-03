@@ -12,6 +12,7 @@ import type {
 } from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
 import { Phase } from "../../utils/types/redeemableERC20";
+import { getBlockTimestamp } from "../../utils";
 
 enum Tier {
   ZERO,
@@ -907,7 +908,7 @@ describe("RedeemableERC20", async function () {
     // Send alice some tokens.
     await erc20Pullee.transfer(redeemableERC20.address, alice.address, 10);
 
-    const now = Date.now();
+    const now = await getBlockTimestamp();
 
     const event0 = (await Util.getEventArgs(
       await erc20Pullee.endDistribution(
