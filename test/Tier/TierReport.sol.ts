@@ -6,7 +6,7 @@ import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import {
   assertError,
   basicDeploy,
-  blockTimestamp,
+  getBlockTimestamp,
   timewarp,
   zeroPad32,
   zeroPad4,
@@ -95,7 +95,7 @@ describe("TierReport", async function () {
   });
 
   it("should correctly return the highest achieved tier relative to a given report and block number", async () => {
-    const initialTimestamp = await blockTimestamp();
+    const initialTimestamp = await getBlockTimestamp();
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
 
@@ -256,7 +256,7 @@ describe("TierReport", async function () {
   });
 
   it("should correctly set new blocks based on whether the new tier is higher or lower than the current one", async () => {
-    const initialTimestamp = await blockTimestamp();
+    const initialTimestamp = await getBlockTimestamp();
     const initialTimestampHex = zeroPad4(
       ethers.BigNumber.from(initialTimestamp)
     ).slice(2);
@@ -310,7 +310,7 @@ describe("TierReport", async function () {
       report,
       Tier.EIGHT,
       Tier.FOUR,
-      await blockTimestamp()
+      await getBlockTimestamp()
     );
 
     const updatedReportTruncatedLeftHalf = updatedReportTruncated

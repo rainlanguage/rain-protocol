@@ -7,7 +7,7 @@ import type {
 } from "../../typechain/PhasedTest";
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { Contract } from "ethers";
-import { blockTimestamp, timewarp } from "../../utils";
+import { getBlockTimestamp, timewarp } from "../../utils";
 
 enum Phase {
   ZERO,
@@ -107,7 +107,7 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const pastTimestamp = await blockTimestamp();
+      const pastTimestamp = await getBlockTimestamp();
 
       await timewarp(1);
 
@@ -124,7 +124,7 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const timestamp0 = await blockTimestamp();
+      const timestamp0 = await getBlockTimestamp();
 
       await phased.testScheduleNextPhase(timestamp0 + 10);
 
@@ -141,7 +141,7 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const timestamp0 = await blockTimestamp();
+      const timestamp0 = await getBlockTimestamp();
 
       await phased.testScheduleNextPhase(timestamp0 + 10);
 
@@ -161,7 +161,7 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const timestamp0 = await blockTimestamp();
+      const timestamp0 = await getBlockTimestamp();
 
       await phased.testScheduleNextPhase(timestamp0 + 10);
 
@@ -178,7 +178,7 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const timestamp0 = await blockTimestamp();
+      const timestamp0 = await getBlockTimestamp();
 
       await phased.testScheduleNextPhase(timestamp0 + 1);
 
@@ -259,7 +259,7 @@ describe("Phased", async function () {
 
     // should schedule next phase
 
-    const timestamp1 = (await blockTimestamp()) + 1;
+    const timestamp1 = (await getBlockTimestamp()) + 1;
 
     const schedule1Promise = phased.testScheduleNextPhase(timestamp1);
 
@@ -327,7 +327,7 @@ describe("Phased", async function () {
     );
 
     // schedule next phase
-    const timestamp1 = (await blockTimestamp()) + 1;
+    const timestamp1 = (await getBlockTimestamp()) + 1;
     await phased.testScheduleNextPhase(timestamp1);
 
     await timewarp(1);

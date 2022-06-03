@@ -25,7 +25,7 @@ export const timewarp = async (duration: number): Promise<void> => {
  * Retrieve current timestamp from hardhat network.
  * @returns Current block timestamp, according to hardhat network (i.e. `block.timestamp`)
  */
-export const blockTimestamp = async (): Promise<number> => {
+export const getBlockTimestamp = async (): Promise<number> => {
   const blockNum = await ethers.provider.getBlockNumber();
   const block = await ethers.provider.getBlock(blockNum);
   return block.timestamp;
