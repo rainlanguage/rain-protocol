@@ -1,4 +1,4 @@
-import * as Util from "../Util";
+import * as Util from "../../utils";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";

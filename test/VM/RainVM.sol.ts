@@ -1,8 +1,8 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { bytify, callSize, Debug, op } from "../Util";
+import { bytify, zipmapSize, Debug, op } from "../../utils";
 import type { Contract } from "ethers";
 
 import type {
@@ -12,8 +12,6 @@ import type {
 import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 import { FnPtrsTest } from "../../typechain/FnPtrsTest";
 import { StackHeightTest } from "../../typechain/StackHeightTest";
-
-const { assert } = chai;
 
 const Opcode = Util.AllStandardOps;
 
@@ -473,7 +471,7 @@ describe("RainVM", async function () {
           v1,
           v2,
           v3,
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 add)
@@ -1024,7 +1022,7 @@ describe("RainVM", async function () {
       concat([ // sourceIndex === 0 (main source)
           op(Opcode.CONSTANT, val0),
           op(Opcode.CONSTANT, val1),
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([ // sourceIndex === 1 (inner ZIPMAP function)
         // (arg0 arg1 mul) (arg0 arg1 add)
@@ -1104,7 +1102,7 @@ describe("RainVM", async function () {
           op(Opcode.CONSTANT, 2),
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONSTANT, 0),
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 mul) (arg0 arg1 arg2 add)
@@ -1191,7 +1189,7 @@ describe("RainVM", async function () {
           op(Opcode.CONSTANT, 5),
           op(Opcode.CONSTANT, 6),
           op(Opcode.CONSTANT, 7),
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 ... add) (arg0 arg1 arg2 ... add)
@@ -1318,7 +1316,7 @@ describe("RainVM", async function () {
           v0,
           v1,
           v2,
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 mul) (arg1 arg2 arg0 arg1 arg2 ... add)
@@ -1400,7 +1398,7 @@ describe("RainVM", async function () {
           v3,
           v4,
           v5,
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // inner zipmap function source
@@ -1472,7 +1470,7 @@ describe("RainVM", async function () {
           v1,
           v2,
           v3,
-        op(Opcode.ZIPMAP, callSize(sourceIndex, loopSize, valSize)),
+        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
       ]),
       concat([
         // (arg0 arg1 arg2 add)

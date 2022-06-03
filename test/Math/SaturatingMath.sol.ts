@@ -1,11 +1,9 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { Contract, ContractFactory } from "ethers";
 
 import type { SaturatingMathTest } from "../../typechain/SaturatingMathTest";
-
-const { assert } = chai;
 
 let saturatingMathTestFactory: ContractFactory;
 

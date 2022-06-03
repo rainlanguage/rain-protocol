@@ -37,7 +37,7 @@ import type { Trust } from "@beehiveinnovation/rain-protocol/typechain/Trust";
 
 ## Documentation
 
-Documentation can be found [here](https://beehive-innovation.github.io/rain-protocol).
+Documentation can be found [here](https://docs.rainprotocol.xyz/).
 
 ## Development setup (for contributors)
 
@@ -69,20 +69,6 @@ Inside the nix-shell you can just run `hardhat test` as normal.
 ### Run security check
 
 Inside the nix-shell run `security-check`.
-
-### Build and serve documentation site
-
-Inside the nix-shell run `docs-dev`. If you want to see search functionality,
-you'll need to manually build and serve with `docs-build` and then `docs-serve`
-since search indexing only runs for production builds.
-
-Navigate to http://localhost:3000/ to view the docs site generated with
-Docusaurus.
-
-Documentation files are written in Markdown and can be found under the `docs/`
-directory in this repo. The main config file can be found at
-`docusaurus/docusaurus.config.js`, and sidebar config at
-`docusaurus/siderbars.js`
 
 ### Publish npm Package
 

@@ -16,7 +16,6 @@
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
-    "docgen": "solidity-docgen -o ./docs/api/ --solc-module solc-0.8 --exclude ./contracts/test/ -t ./.templates/",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix"
   },
@@ -40,7 +39,6 @@
     "pretty-quick": "^3.1.1",
     "solc-0.8": "npm:solc@^0.8.10",
     "solhint": "^3.3.4",
-    "solidity-docgen": "^0.5.13",
     "ts-generator": "^0.1.1",
     "ts-node": "^9.1.1",
     "tslib": "^2.0.0",

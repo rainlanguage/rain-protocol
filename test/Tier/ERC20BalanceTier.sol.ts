@@ -1,5 +1,5 @@
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import chai from "chai";
+import { assert } from "chai";
 import type { Contract } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import type { ERC20BalanceTier } from "../../typechain/ERC20BalanceTier";
@@ -14,9 +14,7 @@ import {
   eighteenZeros,
   getEventArgs,
   zeroAddress,
-} from "../Util";
-
-const { assert } = chai;
+} from "../../utils";
 
 enum Tier {
   ZERO,

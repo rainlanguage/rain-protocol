@@ -1,8 +1,8 @@
-import * as Util from "../Util";
-import chai from "chai";
+import * as Util from "../../utils";
+import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { op } from "../Util";
+import { op } from "../../utils";
 import type { Contract } from "ethers";
 
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
@@ -14,8 +14,6 @@ import {
   ReserveTokenERC20Snapshot,
   SnapshotEvent,
 } from "../../typechain/ReserveTokenERC20Snapshot";
-
-const { assert } = chai;
 
 const Opcode = Util.AllStandardOps;
 
