@@ -29,16 +29,55 @@ enum Tier {
 export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
-  // report for tier context
+  // report time for tier context
   const ctxAccount = op(Opcode.CONTEXT, 0);
   const ctxTier = op(Opcode.CONTEXT, 1);
 
   // prettier-ignore
-  const sourceReportForTier = concat([
+  // return default report
+  const sourceReportTimeForTierDefault = concat([
       op(Opcode.THIS_ADDRESS),
       ctxAccount,
     op(Opcode.REPORT),
   ]);
+
+  it("should support returning report time only for a specified tier", async () => {
+    throw new Error("unimplemented");
+
+    /*
+    const signers = await ethers.getSigners();
+
+    // prettier-ignore
+    const sourceReportTimeForTier = concat([
+          op(Opcode.THIS_ADDRESS),
+          ctxAccount,
+        op(Opcode.REPORT),
+        ctxTier,
+      op(Opcode.TIME_FOR_TIER), // some opcode like this
+    ]);
+
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTier],
+        constants: [Util.numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80])],
+      },
+    })) as CombineTier & Contract;
+
+    const timeForTierFive = await combineTier.reportTimeForTier(
+      signers[1].address,
+      Tier.FIVE,
+      []
+    );
+
+    assert(
+      timeForTierFive.eq(50),
+      `wrong timestamp for Tier.FIVE
+      expected  ${50}
+      got       ${timeForTierFive}`
+    );
+    */
+  });
 
   it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp", async () => {
     this.timeout(0);
@@ -55,7 +94,7 @@ describe("CombineTier", async function () {
     const futureTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [
           Util.numArrayToReport([
             timestamp0,
@@ -73,14 +112,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -125,7 +164,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -156,7 +195,7 @@ describe("CombineTier", async function () {
     const futureTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [
           Util.numArrayToReport([
             timestamp0,
@@ -174,14 +213,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -226,7 +265,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -259,14 +298,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -294,7 +333,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -321,14 +360,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -356,7 +395,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -383,14 +422,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -418,7 +457,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -445,14 +484,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -480,7 +519,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -507,14 +546,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -542,7 +581,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -569,14 +608,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -604,7 +643,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -631,14 +670,14 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.ALWAYS],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportForTier],
+        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [Util.NEVER],
       },
     })) as CombineTier & Contract;
@@ -665,7 +704,7 @@ describe("CombineTier", async function () {
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
       sourceConfig: {
-        sources: [sourceAlwaysReport, sourceReportForTier],
+        sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -686,7 +725,7 @@ describe("CombineTier", async function () {
     const combineTierNever = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
       sourceConfig: {
-        sources: [sourceNeverReport, sourceReportForTier],
+        sources: [sourceNeverReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -715,7 +754,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants: [],
       },
     })) as CombineTier & Contract;
@@ -766,7 +805,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -901,7 +940,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1038,7 +1077,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1162,7 +1201,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1298,7 +1337,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1434,7 +1473,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportForTier],
+        sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
     })) as CombineTier & Contract;
