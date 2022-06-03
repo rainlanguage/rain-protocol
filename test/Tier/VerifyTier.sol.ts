@@ -5,6 +5,7 @@ import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
+import { getBlockTimestamp } from "../../utils";
 
 describe("VerifyTier", async function () {
   it("should correctly verify tier", async function () {
@@ -67,13 +68,13 @@ describe("VerifyTier", async function () {
     await verify
       .connect(verifier)
       .approve([{ account: signer1.address, data: evidenceApprove }]);
-    const blockApproved = await ethers.provider.getBlockNumber();
+    const timeApproved = await getBlockTimestamp();
     const tierReportApprovedActual = Util.zeroPad32(
       await verifyTier.report(signer1.address, [])
     );
     const tierReportApprovedExpected =
       "0x" +
-      Util.zeroPad4(ethers.BigNumber.from(blockApproved)).slice(2).repeat(8);
+      Util.zeroPad4(ethers.BigNumber.from(timeApproved)).slice(2).repeat(8);
     assert(
       tierReportApprovedActual === tierReportApprovedExpected,
       `Approved status did not return correct report

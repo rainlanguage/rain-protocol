@@ -2,7 +2,6 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { TierReportTest } from "../../typechain/TierReportTest";
-import type { ReserveTokenTest } from "../../typechain/ReserveTokenTest";
 import {
   assertError,
   basicDeploy,
@@ -30,7 +29,6 @@ enum Tier {
 describe("TierReport", async function () {
   let signer1: SignerWithAddress;
   let readWriteTier: ReadWriteTier & Contract;
-  let reserve: ReserveTokenTest & Contract;
   let tierReport: TierReportTest & Contract;
 
   beforeEach(async () => {
@@ -42,9 +40,6 @@ describe("TierReport", async function () {
 
     tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest &
       Contract;
-
-    reserve = (await basicDeploy("ReserveTokenTest", {})) as ReserveTokenTest &
-      Contract;
   });
 
   it("should enforce maxTier for all TierReport logic", async () => {
@@ -52,15 +47,11 @@ describe("TierReport", async function () {
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
 
-    while ((await ethers.provider.getBlockNumber()) < initialBlock + 10) {
-      reserve.transfer(signer1.address, 0); // create empty block
-    }
+    await timewarp(10);
 
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
 
-    while ((await ethers.provider.getBlockNumber()) < initialBlock + 20) {
-      reserve.transfer(signer1.address, 0); // create empty block
-    }
+    await timewarp(10);
 
     const report = await readWriteTier.report(signer1.address, []);
 
@@ -133,26 +124,18 @@ describe("TierReport", async function () {
     );
   });
 
-  it("should return the block for a specified status according to a given report", async () => {
-    const initialBlock = await ethers.provider.getBlockNumber();
-
+  it("should return the timestamp for a specified status according to a given report", async () => {
     // set status ONE
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
-    const expectedTier1Block = await ethers.provider.getBlockNumber();
+    const expectedTier1Timestamp = await getBlockTimestamp();
 
-    // make empty blocks
-    while ((await ethers.provider.getBlockNumber()) < initialBlock + 10) {
-      reserve.transfer(signer1.address, 0); // create empty block
-    }
+    await timewarp(10);
 
     // set status TWO
     await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
-    const expectedTier2Block = await ethers.provider.getBlockNumber();
+    const expectedTier2Block = await getBlockTimestamp();
 
-    // make empty blocks
-    while ((await ethers.provider.getBlockNumber()) < initialBlock + 20) {
-      reserve.transfer(signer1.address, 0); // create empty block
-    }
+    await timewarp(10);
 
     // get latest report
     const report = await readWriteTier.report(signer1.address, []);
@@ -165,19 +148,19 @@ describe("TierReport", async function () {
     assert(tierBlock0.isZero(), "did not return block 0");
 
     assert(
-      tierBlock1.eq(expectedTier1Block),
+      tierBlock1.eq(expectedTier1Timestamp),
       `wrong tier ONE status block
-    report    ${report.toHexString()}
-    expected  ${expectedTier1Block}
-    got       ${tierBlock1}`
+      report    ${report.toHexString()}
+      expected  ${expectedTier1Timestamp}
+      got       ${tierBlock1}`
     );
 
     assert(
       tierBlock2.eq(expectedTier2Block),
       `wrong tier TWO status block
-    report    ${report.toHexString()}
-    expected  ${expectedTier2Block}
-    got       ${tierBlock2}`
+      report    ${report.toHexString()}
+      expected  ${expectedTier2Block}
+      got       ${tierBlock2}`
     );
 
     assert(
@@ -204,8 +187,8 @@ describe("TierReport", async function () {
     assert(
       truncatedReport.eq(expectedTruncatedReport),
       `did not truncate report correctly
-    expected  ${expectedTruncatedReport}
-    got       ${truncatedReport.toHexString()}`
+      expected  ${expectedTruncatedReport}
+      got       ${truncatedReport.toHexString()}`
     );
   });
 
@@ -250,8 +233,8 @@ describe("TierReport", async function () {
     assert(
       updatedReport.eq(expectedUpdatedReport),
       `got wrong updated report
-    expected  ${expectedUpdatedReport}
-    got       ${updatedReport.toHexString()}`
+      expected  ${expectedUpdatedReport}
+      got       ${updatedReport.toHexString()}`
     );
   });
 
