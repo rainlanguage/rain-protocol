@@ -172,7 +172,7 @@ contract Phased {
         // save calculating the subtraction twice.
         require(currentPhase() == index_, "NEXT_PHASE");
 
-        require(UNINITIALIZED == phaseTimes[index_], "NEXT_BLOCK_SET");
+        require(UNINITIALIZED == phaseTimes[index_], "NEXT_TIME_SET");
 
         // Cannot exceed UNINITIALIZED (see above) so don't need to check
         // overflow on downcast.
