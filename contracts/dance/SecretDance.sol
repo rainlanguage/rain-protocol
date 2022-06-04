@@ -56,13 +56,6 @@ contract SecretDance {
         }
     }
 
-    /// If someone leaks a secret anybody else can burn it.
-    function _burn(address owner_, bytes32 secret_) internal {
-        bytes32 commitment_ = keccak256(abi.encodePacked(secret_));
-        require(_commitments[owner_] == commitment_, "BAD_SECRET");
-        delete (_commitments[owner_]);
-    }
-
     /// `msg.sender` reveals a valid secret, changing the shared secret.
     function _reveal(ChaosBound memory chaosBound_, bytes32 secret_) internal {
         require(
