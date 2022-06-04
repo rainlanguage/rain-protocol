@@ -11,7 +11,7 @@ struct ChaosBound {
 contract SecretDance {
     using FixedPointMath for uint256;
 
-    event Start(address sender, bytes32 secret);
+    event Start(address sender, bytes32 sharedSecret);
 
     event Commit(address sender, bytes32 commitment);
 
@@ -28,12 +28,18 @@ contract SecretDance {
         _;
     }
 
-    function _start(bytes32 secret_) internal onlyNotStarted {
+    /// Start the dance. Can only happen once.
+    /// Has no access control so the implementing contract must safeguard the
+    /// workflow and decide when to start.
+    function _start(bytes32 sharedSecret_) internal onlyNotStarted {
         _started = uint32(block.timestamp);
-        _sharedSecret = secret_;
-        emit Start(msg.sender, secret_);
+        _sharedSecret = sharedSecret_;
+        emit Start(msg.sender, sharedSecret_);
     }
 
+    /// Before the dance starts anyone can commit a secret.
+    /// Has no access control so if committers is to be a closed set it must be
+    /// enforced by the implementing contract.
     function _commit(bytes32 commitment_) internal onlyNotStarted {
         require(_commitments[msg.sender] == 0, "COMMITMENT_EXISTS");
         _commitments[msg.sender] = commitment_;
