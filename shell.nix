@@ -45,10 +45,6 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
-    rm -rf docusaurus/.docusaurus
-    rm -rf docusaurus/build
-    rm -rf docusaurus/node_modules
-    rm -rf docs/api
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -88,28 +84,6 @@ let
     npm install
     hardhat compile --force
     hardhat test
-  '';
-
-  docgen = pkgs.writeShellScriptBin "docgen" ''
-    rm -rf docs/api && npm run docgen
-  '';
-
-  docs-dev = pkgs.writeShellScriptBin "docs-dev" ''
-    docgen && npm run start --prefix docusaurus
-  '';
-
-  docs-build = pkgs.writeShellScriptBin "docs-build" ''
-    docgen && npm run build --prefix docusaurus
-  '';
-
-  docs-serve = pkgs.writeShellScriptBin "docs-serve" ''
-    npm run serve --prefix docusaurus
-  '';
-
-  docs-version = pkgs.writeShellScriptBin "docs-version" ''
-    docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
-    # build again so docusaurus-search-local can index newly added version
-    npm run build --prefix docusaurus
   '';
 
   prepack = pkgs.writeShellScriptBin "prepack" ''
@@ -176,11 +150,6 @@ pkgs.stdenv.mkDerivation {
     ci-test
     ci-lint
     cut-dist
-    docgen
-    docs-dev
-    docs-build
-    docs-serve
-    docs-version
     prepack
     prepublish
     solt-the-earth
@@ -191,6 +160,5 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    npm install --prefix docusaurus --legacy-peer-deps
   '';
 }

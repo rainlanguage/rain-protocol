@@ -10,6 +10,10 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReserveTokenERC721 } from "../../typechain/ReserveTokenERC721";
 import { ReserveTokenERC1155 } from "../../typechain/ReserveTokenERC1155";
+import {
+  ReserveTokenERC20Snapshot,
+  SnapshotEvent,
+} from "../../typechain/ReserveTokenERC20Snapshot";
 
 const Opcode = Util.AllStandardOps;
 
@@ -21,6 +25,7 @@ let signer2: SignerWithAddress;
 let tokenERC20: ReserveToken;
 let tokenERC721: ReserveTokenERC721;
 let tokenERC1155: ReserveTokenERC1155;
+let tokenERC20Snapshot: ReserveTokenERC20Snapshot;
 
 describe("TokenOps", async function () {
   let stateBuilder;
@@ -55,6 +60,76 @@ describe("TokenOps", async function () {
       "ReserveTokenERC1155",
       {}
     )) as ReserveTokenERC1155 & Contract;
+    tokenERC20Snapshot = (await Util.basicDeploy(
+      "ReserveTokenERC20Snapshot",
+      {}
+    )) as ReserveTokenERC20Snapshot & Contract;
+  });
+
+  it("should return ERC20 total supply snapshot", async () => {
+    this.timeout(0);
+
+    const constants = [tokenERC20Snapshot.address];
+    const vTokenAddr = op(Opcode.CONSTANT, 0);
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          vTokenAddr,
+          op(Opcode.CONTEXT),
+        op(Opcode.ERC20_SNAPSHOT_TOTAL_SUPPLY_AT)
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants });
+
+    const txSnapshot = await tokenERC20Snapshot.snapshot();
+    const { id } = (await Util.getEventArgs(
+      txSnapshot,
+      "Snapshot",
+      tokenERC20Snapshot
+    )) as SnapshotEvent["args"];
+
+    await logic.runContext([id]);
+    const result0 = await logic.stackTop();
+    const totalTokenSupply = await tokenERC20Snapshot.totalSupply();
+    assert(
+      result0.eq(totalTokenSupply),
+      `expected ${totalTokenSupply}, got ${result0}`
+    );
+  });
+
+  it("should return ERC20 balance snapshot", async () => {
+    this.timeout(0);
+
+    const constants = [signer1.address, tokenERC20Snapshot.address];
+    const vSigner1 = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.CONSTANT, 1);
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          vTokenAddr,
+          vSigner1,
+          op(Opcode.CONTEXT),
+        op(Opcode.ERC20_SNAPSHOT_BALANCE_OF_AT)
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants });
+
+    await tokenERC20Snapshot.transfer(signer1.address, 100);
+
+    const txSnapshot = await tokenERC20Snapshot.snapshot();
+    const { id } = (await Util.getEventArgs(
+      txSnapshot,
+      "Snapshot",
+      tokenERC20Snapshot
+    )) as SnapshotEvent["args"];
+
+    await logic.runContext([id]);
+    const result1 = await logic.stackTop();
+    assert(result1.eq(100), `expected 100, got ${result1}`);
   });
 
   it("should return ERC1155 batch balance result for multiple signers", async () => {
@@ -254,7 +329,7 @@ describe("TokenOps", async function () {
     const sources = [
       concat([
           vTokenAddr,
-        op(Opcode.IERC20_TOTAL_SUPPLY)
+        op(Opcode.ERC20_TOTAL_SUPPLY)
       ]),
     ];
 
@@ -281,7 +356,7 @@ describe("TokenOps", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-        op(Opcode.IERC20_BALANCE_OF)
+        op(Opcode.ERC20_BALANCE_OF)
       ]),
     ];
 

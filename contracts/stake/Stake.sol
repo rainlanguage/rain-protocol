@@ -126,7 +126,11 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         if (context_.length > 0) {
             uint256 t_ = 0;
             Deposit memory deposit_;
-            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
+            for (
+                uint256 i_ = 0;
+                i_ < deposits[account_].length;
+                i_++
+            ) {
                 deposit_ = deposits[account_][i_];
                 while (
                     t_ < context_.length &&

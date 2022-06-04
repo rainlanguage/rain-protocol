@@ -47,7 +47,7 @@ describe("Phased", async function () {
         3
       );
 
-      assert(highestPhase.eq(Phase.FIVE));
+      assert(highestPhase.eq(Phase.SEVEN));
     });
 
     it("if every phase time is after the timestamp then phase zero is returned", async function () {

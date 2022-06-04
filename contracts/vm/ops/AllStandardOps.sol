@@ -4,7 +4,10 @@ pragma solidity =0.8.10;
 import "../RainVM.sol";
 import "./evm/EVMConstantOps.sol";
 import "./math/FixedPointMathOps.sol";
-import "./token/ERC20Ops.sol";
+import "./erc20/OpERC20BalanceOf.sol";
+import "./erc20/OpERC20TotalSupply.sol";
+import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
+import "./erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
 import "./token/ERC721Ops.sol";
 import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
@@ -14,7 +17,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 37;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 39;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -66,6 +69,14 @@ library AllStandardOps {
                     zeroFn_,
                     // debug placeholder
                     zeroFn_,
+                    // erc20 balance of
+                    two,
+                    // erc20 total supply
+                    one,
+                    // erc20 snapshot balance of at
+                    three,
+                    // erc20 snapshot total supply at
+                    two,
                     // block number
                     zero,
                     // timestamp
@@ -126,12 +137,8 @@ library AllStandardOps {
                     two,
                     // select lte
                     OpSelectLte.stackPopsSelectLte,
-                    // update blocks for tier range
+                    // update times for tier range
                     two,
-                    // erc20 balance of
-                    two,
-                    // erc20 total supply
-                    one,
                     // erc721 balance of
                     two,
                     // erc721 owner of
@@ -176,6 +183,14 @@ library AllStandardOps {
                     zeroFn_,
                     // debug placeholder
                     zeroFn_,
+                    // erc20 balance of
+                    one,
+                    // erc20 total supply
+                    one,
+                    // erc20 snapshot balance of at
+                    one,
+                    // erc20 snapshot total supply at
+                    one,
                     // block number
                     one,
                     // timestamp
@@ -236,19 +251,15 @@ library AllStandardOps {
                     one,
                     // select lte
                     one,
-                    // update blocks for tier range
+                    // update times for tier range
                     one,
-                    // ierc20 balance of
+                    // erc721 balance of
                     one,
-                    // ierc20 total supply
+                    // erc721 owner of
                     one,
-                    // ierc721 balance of
+                    // erc1155 balance of
                     one,
-                    // ierc721 owner of
-                    one,
-                    // ierc1155 balance of
-                    one,
-                    // ierc1155 balance of batch
+                    // erc1155 balance of batch
                     nonzeroOperandN
                 ];
             bytes memory ret_;
@@ -289,6 +300,10 @@ library AllStandardOps {
                     // debug
                     zeroFn_,
                     // dispatchable ops
+                    OpERC20BalanceOf.balanceOf,
+                    OpERC20TotalSupply.totalSupply,
+                    OpERC20SnapshotBalanceOfAt.balanceOfAt,
+                    OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
                     EVMConstantOps.number,
                     EVMConstantOps.timestamp,
                     EVMConstantOps.caller,
@@ -320,8 +335,6 @@ library AllStandardOps {
                     OpSaturatingDiff.saturatingDiff,
                     OpSelectLte.selectLte,
                     OpUpdateTimesForTierRange.updateTimesForTierRange,
-                    ERC20Ops.balanceOf,
-                    ERC20Ops.totalSupply,
                     ERC721Ops.balanceOf,
                     ERC721Ops.ownerOf,
                     ERC1155Ops.balanceOf,

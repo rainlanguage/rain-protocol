@@ -122,7 +122,7 @@ give clues.
 
 ## Documentation
 
-Documentation can be found [here](https://beehive-innovation.github.io/rain-protocol).
+Documentation can be found [here](https://docs.rainprotocol.xyz/).
 
 ### Run tests
 

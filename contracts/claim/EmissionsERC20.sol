@@ -11,7 +11,7 @@ import "../vm/RainVM.sol";
 // solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@0xsequence/sstore2/contracts/SSTORE2.sol";
+import "../sstore2/SSTORE2.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
