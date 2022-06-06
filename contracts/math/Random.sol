@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "hardhat/console.sol";
-
 library Random {
+    /// Implements a modified fisher yates algorithm to report a single result
+    /// of a shuffle at position `n_` out of `max_`.
     function microLottery(uint256 seed_, uint256 max_, uint n_)
         internal
         pure
         returns(uint item_)
     {
-        require(n_ < max_, "MAX_N");
         unchecked {
+            require(n_ < max_, "MAX_N");
             bytes memory array_ = new bytes(max_);
             assembly {
                 // put the seed in scratch to initialize randomIndex
@@ -29,14 +29,15 @@ library Random {
                     mstore(0, roll_)
                     v_ := mod(roll_, j_)
                 }
-                function readItem(arr_, j_) -> v_ {
-                    v_ := and(mload(add(arr_, j_)), 0xFF)
+                function readItem(ptr_, j_) -> v_ {
+                    v_ := and(mload(add(ptr_, j_)), 0xFF)
                     if iszero(v_) {
                         v_ := j_
                     }
                 }
                 // Write randomly to the array for all values above the target.
-                for { let i_ := max_ } gt(i_, n_) { i_ := sub(i_, 1) }
+                // This won't run if n_ == max - 1
+                for { let i_ := sub(max_, 1) } gt(i_, n_) { i_ := sub(i_, 1) }
                 {
                     mstore8(
                         add(arrayWriteStart_, randomOffset(i_)),
