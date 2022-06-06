@@ -11,6 +11,7 @@ import type {
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { hexlify } from "ethers/lib/utils";
+import { getBlockTimestamp } from "../../utils";
 
 let stakeFactoryFactory: ContractFactory,
   stakeFactory: StakeFactory & Contract,
@@ -251,7 +252,7 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock0 = await ethers.provider.getBlockNumber();
+    const depositTimestamp0 = await getBlockTimestamp();
 
     const thresholds0 = LEVELS;
     const thresholds1 = [1500, 2500, 3500, 4500, 5500, 6500, 7500, 8500].map(
@@ -262,19 +263,19 @@ describe("Stake", async function () {
     const report1 = await stake.report(alice.address, thresholds1);
 
     const expected0 = Util.numArrayToReport([
-      depositBlock0,
-      depositBlock0,
-      depositBlock0,
-      depositBlock0,
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp0,
       0xffffffff,
       0xffffffff,
       0xffffffff,
       0xffffffff,
     ]);
     const expected1 = Util.numArrayToReport([
-      depositBlock0,
-      depositBlock0,
-      depositBlock0,
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp0,
       0xffffffff, // not enough to reach tier 4 according to `thresholds1`
       0xffffffff,
       0xffffffff,
@@ -318,21 +319,21 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock = await ethers.provider.getBlockNumber();
+    const depositTimestamp = await getBlockTimestamp();
 
     const thresholds = LEVELS;
 
     const report = await stake.report(alice.address, thresholds);
 
     const expected = Util.numArrayToReport([
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
     ]);
 
     assert(
@@ -366,15 +367,15 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock0 = await ethers.provider.getBlockNumber();
+    const depositTimestamp0 = await getBlockTimestamp();
 
     const thresholds = LEVELS;
 
     const report0 = await stake.report(alice.address, thresholds);
 
     const expected0 = Util.numArrayToReport([
-      depositBlock0,
-      depositBlock0,
+      depositTimestamp0,
+      depositTimestamp0,
       0xffffffff,
       0xffffffff,
       0xffffffff,
@@ -396,15 +397,15 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount1);
 
-    const depositBlock1 = await ethers.provider.getBlockNumber();
+    const depositTimestamp1 = await getBlockTimestamp();
 
     const report1 = await stake.report(alice.address, thresholds);
 
     const expected1 = Util.numArrayToReport([
-      depositBlock0,
-      depositBlock0,
-      depositBlock1,
-      depositBlock1,
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp1,
+      depositTimestamp1,
       0xffffffff,
       0xffffffff,
       0xffffffff,
@@ -441,14 +442,14 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock = await ethers.provider.getBlockNumber();
+    const depositTimestamp = await getBlockTimestamp();
 
     const thresholds = LEVELS;
 
     const report = await stake.report(alice.address, thresholds);
 
     const expected = Util.numArrayToReport([
-      depositBlock,
+      depositTimestamp,
       0xffffffff,
       0xffffffff,
       0xffffffff,
