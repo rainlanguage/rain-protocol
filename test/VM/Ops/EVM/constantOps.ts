@@ -2,11 +2,11 @@ import { assert } from "chai";
 import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import { getBlockTimestamp } from "../../../utils/hardhat";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { getBlockTimestamp } from "../../../../utils/hardhat";
+import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import { op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 

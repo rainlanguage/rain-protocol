@@ -1,4 +1,4 @@
-import assert from "chai";
+import { assert } from "chai";
 import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
