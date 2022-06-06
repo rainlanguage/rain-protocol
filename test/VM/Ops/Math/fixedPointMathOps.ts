@@ -1,23 +1,27 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
-import { op } from "../../utils";
-import type { Contract } from "ethers";
+import { ethers } from "hardhat";
+import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { eighteenZeros, ONE, sixZeros } from "../../../../utils/constants";
+import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import { op } from "../../../../utils/rainvm/vm";
 
-import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
+const Opcode = AllStandardOps;
 
-const Opcode = Util.AllStandardOps;
+describe("RainVM fixed point math ops", async function () {
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let logic: AllStandardOpsTest & Contract;
 
-describe("FixedPointMathOps Test", async function () {
-  let stateBuilder;
-  let logic;
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
@@ -29,7 +33,7 @@ describe("FixedPointMathOps Test", async function () {
   it("should scale an arbitrary fixed point number DOWN by scale N", async () => {
     this.timeout(0);
 
-    const value1 = ethers.BigNumber.from(1 + Util.sixZeros);
+    const value1 = ethers.BigNumber.from(1 + sixZeros);
     const n = 0xfc; // -4
 
     const constants = [value1];
@@ -60,7 +64,7 @@ describe("FixedPointMathOps Test", async function () {
   it("should scale an arbitrary fixed point number UP by scale N", async () => {
     this.timeout(0);
 
-    const value1 = ethers.BigNumber.from(1 + Util.sixZeros);
+    const value1 = ethers.BigNumber.from(1 + sixZeros);
     const n = 0x04; // 4
 
     const constants = [value1];
@@ -78,7 +82,7 @@ describe("FixedPointMathOps Test", async function () {
 
     await logic.run();
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(1 + Util.sixZeros + "0000");
+    const expected0 = ethers.BigNumber.from(1 + sixZeros + "0000");
 
     assert(
       result0.eq(expected0),
@@ -91,7 +95,7 @@ describe("FixedPointMathOps Test", async function () {
   it("should scale an 18 OOMs number UP to scale N", async () => {
     this.timeout(0);
 
-    const value1 = ethers.BigNumber.from(1 + Util.eighteenZeros);
+    const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 20;
 
     const constants = [value1];
@@ -108,7 +112,7 @@ describe("FixedPointMathOps Test", async function () {
 
     await logic.run();
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(1 + Util.eighteenZeros + "00");
+    const expected0 = ethers.BigNumber.from(1 + eighteenZeros + "00");
 
     assert(
       result0.eq(expected0),
@@ -121,7 +125,7 @@ describe("FixedPointMathOps Test", async function () {
   it("should scale an 18 OOMs number DOWN to scale N", async () => {
     this.timeout(0);
 
-    const value1 = ethers.BigNumber.from(1 + Util.eighteenZeros);
+    const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 6;
 
     const constants = [value1];
@@ -139,7 +143,7 @@ describe("FixedPointMathOps Test", async function () {
 
     await logic.run();
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(1 + Util.sixZeros);
+    const expected0 = ethers.BigNumber.from(1 + sixZeros);
 
     assert(
       result0.eq(expected0),
@@ -153,7 +157,7 @@ describe("FixedPointMathOps Test", async function () {
     this.timeout(0);
 
     const value1 = 50;
-    const value2 = ethers.BigNumber.from("3" + Util.eighteenZeros);
+    const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
     const constants = [value1, value2];
     const v1 = op(Opcode.CONSTANT, 0);
@@ -172,8 +176,8 @@ describe("FixedPointMathOps Test", async function () {
 
     await logic.run();
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
-      .mul(Util.ONE)
+    const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
+      .mul(ONE)
       .div(value2);
     assert(
       result0.eq(expected0),
@@ -187,7 +191,7 @@ describe("FixedPointMathOps Test", async function () {
     this.timeout(0);
 
     const value1 = 1;
-    const value2 = Util.ONE.mul(2);
+    const value2 = ONE.mul(2);
 
     const constants = [value1, value2];
     const v1 = op(Opcode.CONSTANT, 0);
@@ -206,9 +210,9 @@ describe("FixedPointMathOps Test", async function () {
 
     await logic.run();
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(value1 + Util.eighteenZeros)
+    const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(value2)
-      .div(Util.ONE);
+      .div(ONE);
     assert(
       result0.eq(expected0),
       `wrong result
@@ -237,7 +241,7 @@ describe("FixedPointMathOps Test", async function () {
 
     await logic.run();
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(value + Util.eighteenZeros);
+    const expected0 = ethers.BigNumber.from(value + eighteenZeros);
     assert(
       result0.eq(expected0),
       `wrong result

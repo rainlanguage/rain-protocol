@@ -14,6 +14,7 @@ import {
   ReserveTokenERC20Snapshot,
   SnapshotEvent,
 } from "../../typechain/ReserveTokenERC20Snapshot";
+import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 
 const Opcode = Util.AllStandardOps;
 
@@ -28,14 +29,17 @@ let tokenERC1155: ReserveTokenERC1155;
 let tokenERC20Snapshot: ReserveTokenERC20Snapshot;
 
 describe("TokenOps", async function () {
-  let stateBuilder;
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
   let logic: AllStandardOpsTest & Contract;
+
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

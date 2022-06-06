@@ -6,6 +6,7 @@ import { op, AllStandardOps } from "../../utils";
 import { Contract } from "ethers";
 
 import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
+import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 
 const Opcode = AllStandardOps;
 
@@ -31,15 +32,17 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
 }
 
 describe("TierOps", async function () {
-  let stateBuilder;
-  let logic;
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let logic: AllStandardOpsTest & Contract;
 
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

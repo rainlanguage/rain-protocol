@@ -1,25 +1,26 @@
-import * as Util from "../../utils";
-import { assert } from "chai";
-import { ethers } from "hardhat";
+import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
-import { op } from "../../utils";
-import type { Contract } from "ethers";
+import { ethers } from "hardhat";
+import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { max_uint256 } from "../../../../utils/constants";
+import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import { op } from "../../../../utils/rainvm/vm";
+import { assertError } from "../../../../utils/test/assertError";
 
-import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
+const Opcode = AllStandardOps;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+describe("RainVM unchecked math", async () => {
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let logic: AllStandardOpsTest & Contract;
 
-const Opcode = Util.AllStandardOps;
-
-describe("CalculatorTestUnchecked", async function () {
-  let stateBuilder;
-  let logic;
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
@@ -29,9 +30,7 @@ describe("CalculatorTestUnchecked", async function () {
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
-    this.timeout(0);
-
-    const constants = [Util.max_uint256.div(2), 2];
+    const constants = [max_uint256.div(2), 2];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vTwo = op(Opcode.CONSTANT, 1);
@@ -48,7 +47,7 @@ describe("CalculatorTestUnchecked", async function () {
       constants,
     });
 
-    await Util.assertError(
+    await assertError(
       async () => await logic.run(),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
@@ -56,9 +55,7 @@ describe("CalculatorTestUnchecked", async function () {
   });
 
   it("should panic when accumulator overflows with multiplication op", async () => {
-    this.timeout(0);
-
-    const constants = [Util.max_uint256.div(2), 3];
+    const constants = [max_uint256.div(2), 3];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vThree = op(Opcode.CONSTANT, 1);
@@ -75,7 +72,7 @@ describe("CalculatorTestUnchecked", async function () {
       constants,
     });
 
-    await Util.assertError(
+    await assertError(
       async () => await logic.run(),
       "Transaction reverted",
       "accumulator overflow did not panic"
@@ -83,8 +80,6 @@ describe("CalculatorTestUnchecked", async function () {
   });
 
   it("should panic when accumulator underflows with subtraction op", async () => {
-    this.timeout(0);
-
     const constants = [0, 1];
 
     const vZero = op(Opcode.CONSTANT, 0);
@@ -102,7 +97,7 @@ describe("CalculatorTestUnchecked", async function () {
       constants,
     });
 
-    await Util.assertError(
+    await assertError(
       async () => await logic.run(),
       "Transaction reverted",
       "accumulator underflow did not panic"
@@ -110,9 +105,7 @@ describe("CalculatorTestUnchecked", async function () {
   });
 
   it("should panic when accumulator overflows with addition op", async () => {
-    this.timeout(0);
-
-    const constants = [Util.max_uint256, 1];
+    const constants = [max_uint256, 1];
 
     const vMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vOne = op(Opcode.CONSTANT, 1);
@@ -129,7 +122,7 @@ describe("CalculatorTestUnchecked", async function () {
       constants,
     });
 
-    await Util.assertError(
+    await assertError(
       async () => await logic.run(),
       "Transaction reverted",
       "accumulator overflow did not panic"

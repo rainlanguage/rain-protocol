@@ -1,29 +1,33 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { op, AllStandardOps } from "../../utils";
+import { op, AllStandardOps } from "../../../../utils";
 import { concat, hexlify } from "ethers/lib/utils";
 import {
   zipmapSize,
   max_uint256,
   paddedUInt256,
   paddedUInt32,
-} from "../../utils";
+} from "../../../../utils";
 import type { BigNumber, Contract } from "ethers";
-import type { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
+import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
 
 const Opcode = AllStandardOps;
 
 const isTruthy = (vmValue: BigNumber) => !vmValue.isZero();
 
-describe("LogicOps Test", async function () {
-  let stateBuilder;
-  let logic;
+describe("RainVM logic ops", async function () {
+  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let logic: AllStandardOpsTest & Contract;
+
   before(async () => {
     this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
-    stateBuilder = await stateBuilderFactory.deploy();
+    stateBuilder =
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
+        Contract;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
