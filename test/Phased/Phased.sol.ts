@@ -43,8 +43,8 @@ describe("Phased", async function () {
         Contract;
 
       const highestPhase = await phased.phaseAtTime(
-        [0, 1, 2, 3, 3, 4, 5, 5],
-        3
+        [1, 2, 2, 2, 2, 2, 2, 3],
+        2
       );
 
       assert(highestPhase.eq(Phase.SEVEN));
@@ -57,8 +57,8 @@ describe("Phased", async function () {
         Contract;
 
       const highestPhase = await phased.phaseAtTime(
-        [100, 110, 120, 130, 140, 150, 160, 170],
-        10
+        [2, 3, 4, 5, 6, 7, 8, 9],
+        1
       );
 
       assert(highestPhase.eq(Phase.ZERO));
@@ -71,8 +71,8 @@ describe("Phased", async function () {
         Contract;
 
       const highestPhase = await phased.phaseAtTime(
-        [100, 110, 120, 130, 140, 150, 160, 170],
-        200
+        [1, 2, 3, 4, 5, 6, 7, 8],
+        9
       );
 
       assert(highestPhase.eq(Phase.EIGHT));
