@@ -28,5 +28,9 @@ export const emissionsDeploy = async (
     creator
   ) as EmissionsERC20 & Contract;
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  emissionsERC20.deployTransaction = tx;
+
   return emissionsERC20;
 };

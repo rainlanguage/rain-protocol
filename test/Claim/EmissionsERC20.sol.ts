@@ -1437,33 +1437,4 @@ describe("EmissionsERC20", async function () {
       got       ${claimAmountResult}`
     );
   });
-
-  it("should hold important correct values on construction", async function () {
-    this.timeout(0);
-
-    const signers = await ethers.getSigners();
-    const creator = signers[0];
-
-    const { emissionsERC20Factory } = await claimFactoriesDeploy();
-
-    const emissionsERC20 = await emissionsDeploy(
-      creator,
-      emissionsERC20Factory,
-      {
-        allowDelegatedClaims: true,
-        erc20Config: {
-          name: "Emissions",
-          symbol: "EMS",
-          distributor: signers[0].address,
-          initialSupply: 0,
-        },
-        vmStateConfig: {
-          sources: [concat([op(Opcode.CONSTANT)])],
-          constants: [0],
-        },
-      }
-    );
-
-    assert(await emissionsERC20.allowDelegatedClaims());
-  });
 });
