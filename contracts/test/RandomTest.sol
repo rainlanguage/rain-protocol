@@ -6,13 +6,17 @@ import "../math/Random.sol";
 import "hardhat/console.sol";
 
 contract RandomTest {
-    uint public item;
+    uint256 public item;
 
-    function microLottery(uint seed_, uint max_, uint n_) public {
-        uint item_;
-        uint a_ = gasleft();
+    function microLottery(
+        uint256 seed_,
+        uint256 max_,
+        uint256 n_
+    ) public {
+        uint256 item_;
+        uint256 a_ = gasleft();
         item_ = Random.microLottery(seed_, max_, n_);
-        uint b_ = gasleft();
+        uint256 b_ = gasleft();
         console.log("microLottery gas used: %s", a_ - b_);
         item = item_;
     }
