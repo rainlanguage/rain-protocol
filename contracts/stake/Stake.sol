@@ -117,7 +117,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_, uint[] calldata context_)
+    function report(address account_, uint256[] calldata context_)
         external
         view
         returns (uint256 report_)
@@ -126,17 +126,12 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         if (context_.length > 0) {
             uint256 t_ = 0;
             Deposit memory deposit_;
-            for (
-                uint256 i_ = 0;
-                i_ < deposits[account_].length;
-                i_++
-            ) {
+            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
                 deposit_ = deposits[account_][i_];
                 while (
-                    t_ < context_.length &&
-                    deposit_.amount >= context_[t_]
+                    t_ < context_.length && deposit_.amount >= context_[t_]
                 ) {
-                    TierReport.updateTimeAtTier(
+                    report_ = TierReport.updateTimeAtTier(
                         report_,
                         t_,
                         deposit_.timestamp
@@ -154,13 +149,13 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint[] calldata context_
+        uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        time_ = uint(TierConstants.NEVER_TIME);
+        time_ = uint256(TierConstants.NEVER_TIME);
         if (tier_ < context_.length) {
-            uint threshold_ = context_[tier_];
+            uint256 threshold_ = context_[tier_];
             Deposit memory deposit_;
-            for (uint i_ = 0; i_ < deposits[account_].length; i_++) {
+            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
                 deposit_ = deposits[account_][i_];
                 if (deposit_.amount >= threshold_) {
                     time_ = deposit_.timestamp;
