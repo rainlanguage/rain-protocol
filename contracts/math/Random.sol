@@ -72,7 +72,9 @@ library Random {
                 function readItem(ptr_, j_) -> v_ {
                     v_ := byte(31, mload(add(ptr_, j_)))
                     // we never call this function in a context where v_ being
-                    // zero implies that zero was written to j_.
+                    // zero implies that zero was previously written at j_.
+                    // j_ MAY also be zero in which case setting v_ will be a
+                    // noop.
                     if iszero(v_) {
                         v_ := j_
                     }
