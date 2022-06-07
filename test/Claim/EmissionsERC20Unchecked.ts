@@ -2,7 +2,7 @@ import * as Util from "../../utils";
 import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
 import { op } from "../../utils";
-import { Opcode } from "./EmissionsERC20.sol";
+import { Opcode } from "./EmissionsERC20/tier";
 import { claimFactoriesDeploy } from "../../utils/deploy/claim";
 import { emissionsDeploy } from "../../utils/deploy/emissions";
 
@@ -190,4 +190,5 @@ describe("EmissionsERC20Unchecked", async function () {
       "accumulator overflow did not panic"
     );
   });
+  
 });
