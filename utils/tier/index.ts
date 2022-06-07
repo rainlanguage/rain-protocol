@@ -42,6 +42,12 @@ export function tierReport(report: string): number[] {
   return parsedReport;
 }
 
+/**
+ * Generates operand for UPDATE_TIMES_FOR_TIER_RANGE by specifying the range of tiers to be updated.
+ * @param startTier
+ * @param endTier
+ * @returns Tier range, for use as operand
+ */
 export function tierRange(startTier: number, endTier: number): number {
   //   op_.val & 0x0f, //     00001111
   //   op_.val & 0xf0, //     11110000
