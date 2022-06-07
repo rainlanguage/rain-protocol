@@ -335,7 +335,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
             require(isReceiver(sender_), "2SPOKE");
             require(
                 TierReport.tierAtTimeFromReport(
-                    tier.report(receiver_, new uint[](0)),
+                    tier.report(receiver_, new uint256[](0)),
                     block.timestamp
                 ) >= minimumTier,
                 "MIN_TIER"

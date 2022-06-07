@@ -13,11 +13,12 @@ import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/OpITierV2Report.sol";
+import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 39;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 40;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -132,11 +133,13 @@ library AllStandardOps {
                     // any
                     nonzeroOperandN,
                     // tier report
-                    two,
+                    OpITierV2Report.stackPops,
+                    // tier report time for tier
+                    OpITierV2ReportTimeForTier.stackPops,
                     // tier saturating diff
                     two,
                     // select lte
-                    OpSelectLte.stackPopsSelectLte,
+                    OpSelectLte.stackPops,
                     // update times for tier range
                     two,
                     // erc721 balance of
@@ -247,6 +250,8 @@ library AllStandardOps {
                     one,
                     // tier report
                     one,
+                    // tier report time for tier
+                    one,
                     // tier saturating diff
                     one,
                     // select lte
@@ -332,6 +337,7 @@ library AllStandardOps {
                     LogicOps.every,
                     LogicOps.any,
                     OpITierV2Report.report,
+                    OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,
                     OpSelectLte.selectLte,
                     OpUpdateTimesForTierRange.updateTimesForTierRange,

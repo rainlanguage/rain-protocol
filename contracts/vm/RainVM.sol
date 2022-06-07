@@ -88,7 +88,7 @@ library LibState {
                 let sourcesStart_ := add(
                     stateBytes_,
                     add(
-                        // 0x40 for constants and sources array length
+                        // 0x40 for constants and state array length
                         0x40,
                         // skip over length of constants
                         mul(0x20, mload(add(stateBytes_, 0x20)))

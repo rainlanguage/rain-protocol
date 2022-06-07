@@ -6,7 +6,7 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
-    function stackPopsSelectLte(uint256 operand_)
+    function stackPops(uint256 operand_)
         internal
         pure
         returns (uint256)
