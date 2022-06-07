@@ -6,8 +6,19 @@ import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import { getBlockTimestamp } from "../../utils";
+import { VerifyFactory } from "../../typechain/VerifyFactory";
 
 describe("VerifyTier", async function () {
+  let verifyFactory: VerifyFactory;
+
+  before(async () => {
+    const verifyFactoryFactory = await ethers.getContractFactory(
+      "VerifyFactory"
+    );
+    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
+    await verifyFactory.deployed();
+  });
+
   it("should correctly verify tier", async function () {
     this.timeout(0);
 
@@ -17,7 +28,7 @@ describe("VerifyTier", async function () {
     const signer1 = signers[2];
     const newAdmin = signers[3];
 
-    const verify = (await Util.verifyDeploy(signers[0], {
+    const verify = (await Util.verifyDeploy(signers[0], verifyFactory, {
       admin: admin.address,
       callback: ethers.constants.AddressZero,
     })) as Verify & Contract;
