@@ -26,7 +26,7 @@ let claim: RedeemableERC20ClaimEscrow & Contract,
   redeemableERC20Factory: RedeemableERC20Factory & Contract,
   readWriteTier: ReadWriteTier & Contract;
 
-describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
+describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
   before(async () => {
     ({ claim, claimWrapper, readWriteTier } = await deployGlobals());
   });
