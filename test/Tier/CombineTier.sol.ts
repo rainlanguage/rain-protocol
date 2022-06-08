@@ -29,9 +29,8 @@ enum Tier {
 export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
-  // report time for tier context
+  // report time for tier default context
   const ctxAccount = op(Opcode.CONTEXT, 0);
-  const ctxTier = op(Opcode.CONTEXT, 1);
 
   // prettier-ignore
   // return default report
@@ -41,19 +40,19 @@ describe("CombineTier", async function () {
     op(Opcode.REPORT),
   ]);
 
-  it("should support returning report time only for a specified tier", async () => {
-    throw new Error("unimplemented");
-
-    /*
+  it("should support returning report time for a specified tier", async () => {
     const signers = await ethers.getSigners();
+
+    // report time for tier context
+    const ctxAccount = op(Opcode.CONTEXT, 0);
+    const ctxTier = op(Opcode.CONTEXT, 1);
 
     // prettier-ignore
     const sourceReportTimeForTier = concat([
-          op(Opcode.THIS_ADDRESS),
-          ctxAccount,
-        op(Opcode.REPORT),
+        op(Opcode.THIS_ADDRESS),
+        ctxAccount,
         ctxTier,
-      op(Opcode.TIME_FOR_TIER), // some opcode like this
+      op(Opcode.REPORT_TIME_FOR_TIER),
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
@@ -64,19 +63,18 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const timeForTierFive = await combineTier.reportTimeForTier(
+    const timeForTier = await combineTier.reportTimeForTier(
       signers[1].address,
       Tier.FIVE,
       []
     );
 
     assert(
-      timeForTierFive.eq(50),
+      timeForTier.eq(50),
       `wrong timestamp for Tier.FIVE
       expected  ${50}
-      got       ${timeForTierFive}`
+      got       ${timeForTier}`
     );
-    */
   });
 
   it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp", async () => {
@@ -169,7 +167,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     const expected = Util.max_uint256; // 'false'
     assert(
@@ -270,7 +268,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     const expected = Util.numArrayToReport([
       timestamp0,
@@ -338,7 +336,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_LEFT succeeds
@@ -400,7 +398,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_NEW succeeds
@@ -462,7 +460,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_OLD succeeds
@@ -524,7 +522,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, only Always has blocks which are lte current block
     // therefore, AND_LEFT fails
@@ -586,7 +584,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, only Always has blocks which are lte current block
     // therefore, AND_OLD fails
@@ -648,7 +646,7 @@ describe("CombineTier", async function () {
       },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address, []);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, only Always has blocks which are lte current block
     // therefore, AND_NEW fails
@@ -814,28 +812,28 @@ describe("CombineTier", async function () {
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address, [])
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -858,7 +856,7 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address, [])
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -880,7 +878,7 @@ describe("CombineTier", async function () {
     );
 
     const resultAndOld = paddedUInt256(
-      await combineTier.report(signers[0].address, [])
+      await combineTier.report(signers[1].address, [])
     );
     const expectedAndOld = paddedUInt256(
       ethers.BigNumber.from(
@@ -949,28 +947,28 @@ describe("CombineTier", async function () {
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address, [])
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -994,7 +992,7 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address, [])
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1017,7 +1015,7 @@ describe("CombineTier", async function () {
     );
 
     const resultAndNew = paddedUInt256(
-      await combineTier.report(signers[0].address, [])
+      await combineTier.report(signers[1].address, [])
     );
     const expectedAndNew = paddedUInt256(
       ethers.BigNumber.from(
@@ -1086,28 +1084,28 @@ describe("CombineTier", async function () {
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address, [])
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1130,7 +1128,7 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address, [])
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1152,7 +1150,7 @@ describe("CombineTier", async function () {
     );
 
     const resultAndLeft = paddedUInt256(
-      await combineTier.report(signers[0].address, [])
+      await combineTier.report(signers[1].address, [])
     );
     const expectedAndLeft = leftReport;
     assert(
@@ -1210,28 +1208,28 @@ describe("CombineTier", async function () {
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address, [])
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1254,7 +1252,7 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address, [])
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1276,7 +1274,7 @@ describe("CombineTier", async function () {
     );
 
     const resultOrOld = paddedUInt256(
-      await combineTier.report(signers[0].address, [])
+      await combineTier.report(signers[1].address, [])
     );
     const expectedOrOld = paddedUInt256(
       ethers.BigNumber.from(
@@ -1346,28 +1344,28 @@ describe("CombineTier", async function () {
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address, [])
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1390,7 +1388,7 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address, [])
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1412,7 +1410,7 @@ describe("CombineTier", async function () {
     );
 
     const resultOrNew = paddedUInt256(
-      await combineTier.report(signers[0].address, [])
+      await combineTier.report(signers[1].address, [])
     );
     const expectedOrNew = paddedUInt256(
       ethers.BigNumber.from(
@@ -1482,28 +1480,28 @@ describe("CombineTier", async function () {
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address, [])
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1526,7 +1524,7 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address, [])
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
@@ -1548,7 +1546,7 @@ describe("CombineTier", async function () {
     );
 
     const resultOrLeft = paddedUInt256(
-      await combineTier.report(signers[0].address, [])
+      await combineTier.report(signers[1].address, [])
     );
     const expectedOrLeft = paddedUInt256(
       ethers.BigNumber.from(

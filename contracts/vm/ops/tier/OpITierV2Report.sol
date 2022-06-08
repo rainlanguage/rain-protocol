@@ -32,7 +32,7 @@ library OpITierV2Report {
             tierContract_ := mload(location_)
             account_ := mload(stackTopLocation_)
             // we can reuse the account_ as the length for context_
-            //  and achieve a near zero-cost bytes array to send to `report`.
+            // and achieve a near zero-cost bytes array to send to `report`.
             mstore(stackTopLocation_, operand_)
             context_ := stackTopLocation_
         }

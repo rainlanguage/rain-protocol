@@ -34,7 +34,7 @@ library OpITierV2ReportTimeForTier {
             account_ := mload(add(location_, 0x20))
             tier_ := mload(stackTopLocation_)
             // we can reuse the tier_ as the length for context_ and achieve a
-            // near zero-cost bytes array to send to `report`.
+            // near zero-cost bytes array to send to `reportTimeForTier`.
             mstore(stackTopLocation_, operand_)
             context_ := stackTopLocation_
         }
