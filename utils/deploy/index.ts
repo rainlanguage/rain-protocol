@@ -3,6 +3,7 @@ export * from "./claim";
 export * from "./combineTier";
 export * from "./emissions";
 export * from "./escrow";
+export * from "./readWriteTier";
 export * from "./redeemableERC20";
 export * from "./sale";
 export * from "./verify";

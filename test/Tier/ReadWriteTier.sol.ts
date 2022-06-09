@@ -1,21 +1,15 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type {
-  ReadWriteTier,
-  TierChangeEvent,
-} from "../../typechain/ReadWriteTier";
-import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import {
-  tierReport,
-  numArrayToReport,
-  assertError,
-  getEventArgs,
-  getBlockTimestamp,
-} from "../../utils";
-import type { Contract } from "ethers";
+import type { TierChangeEvent } from "../../typechain/ReadWriteTier";
+import { getBlockTimestamp } from "../../utils/hardhat";
+import { setup } from "../../utils/deploy/readWriteTier";
+import { assertError } from "../../utils/test/assertError";
+import { numArrayToReport, tierReport } from "../../utils/tier";
+import { getEventArgs } from "../../utils/events";
+import { Tier } from "../../utils/types/tier";
+import { max_uint256 } from "../../utils/constants";
+import { hexlify } from "ethers/lib/utils";
 
-const uninitializedReport =
-  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 const uninitializedStatusAsNum = 4294967295;
 const zero = 0;
 const one = 1;
@@ -28,36 +22,12 @@ const seven = 7;
 const eight = 8;
 const tiers = [zero, one, two, three, four, five, six, seven, eight];
 
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
-
-const setup = async (): Promise<
-  [SignerWithAddress[], ReadWriteTier & Contract]
-> => {
-  const signers = await ethers.getSigners();
-  const readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-  const readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
-    Contract;
-  await readWriteTier.deployed();
-  return [signers, readWriteTier];
-};
-
 describe("ReadWriteTier", async function () {
   it("should support setting tier directly", async () => {
     const [signers, readWriteTier] = await setup();
 
     const report0 = await readWriteTier.report(signers[1].address, []);
-    const expectedReport0 =
-      "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+    const expectedReport0 = max_uint256;
     assert(
       report0.eq(expectedReport0),
       `signer 1 was not tier ZERO
@@ -77,8 +47,7 @@ describe("ReadWriteTier", async function () {
       .slice(2);
     const history1 =
       "0".repeat(8 - currentTimestampHex1.length) + currentTimestampHex1;
-    const expectedReport1 =
-      "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff" + history1;
+    const expectedReport1 = "0x" + "ffffffff".repeat(7) + history1;
 
     assert(
       report1.eq(expectedReport1),
@@ -92,7 +61,7 @@ describe("ReadWriteTier", async function () {
     const [signers, readWriteTier] = await setup();
     for (const signer of signers) {
       const status = await readWriteTier.report(signer.address, []);
-      assert(ethers.BigNumber.from(uninitializedReport).eq(status));
+      assert(ethers.BigNumber.from(max_uint256).eq(status));
     }
   });
 
@@ -109,7 +78,7 @@ describe("ReadWriteTier", async function () {
 
   it("will return tier if set", async function () {
     const [signers, readWriteTier] = await setup();
-    const expected = tierReport(uninitializedReport);
+    const expected = tierReport(hexlify(max_uint256));
     let expectedReport = numArrayToReport(expected);
     let i = 0;
     for (const tier of tiers) {
@@ -137,7 +106,7 @@ describe("ReadWriteTier", async function () {
 
   it("will fill multiple tiers at a time", async function () {
     const [signers, readWriteTier] = await setup();
-    let expected = tierReport(uninitializedReport);
+    let expected = tierReport(hexlify(max_uint256));
     let expectedReport = numArrayToReport(expected);
     let o = 0;
     let n = 0;
@@ -153,7 +122,7 @@ describe("ReadWriteTier", async function () {
         n - 1 >= index && index > o - 1 && n != o ? block : item
       );
       expectedReport = numArrayToReport(expected);
-      if (expectedReport.eq(uninitializedReport)) {
+      if (expectedReport.eq(max_uint256)) {
         expected[0] = block;
         expectedReport = numArrayToReport(expected);
       }

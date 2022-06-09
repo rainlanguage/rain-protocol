@@ -1,16 +1,19 @@
-import * as Util from "../../utils";
-import { ethers } from "hardhat";
 import { concat } from "ethers/lib/utils";
-import { op } from "../../utils";
-import { Opcode } from "./EmissionsERC20/tier";
-import { claimFactoriesDeploy } from "../../utils/deploy/claim";
-import { emissionsDeploy } from "../../utils/deploy/emissions";
+import { ethers } from "hardhat";
+import { max_uint256 } from "../../../utils/constants";
+import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
+import { emissionsDeploy } from "../../../utils/deploy/emissions";
+import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
+import { op } from "../../../utils/rainvm/vm";
+import { assertError } from "../../../utils/test/assertError";
 
-describe("EmissionsERC20Unchecked", async function () {
+export const Opcode = AllStandardOps;
+
+describe("EmissionsERC20 calculateClaim unchecked math", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
     this.timeout(0);
 
-    const constants = [Util.max_uint256.div(2), 2];
+    const constants = [max_uint256.div(2), 2];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vTwo = op(Opcode.CONSTANT, 1);
@@ -46,7 +49,7 @@ describe("EmissionsERC20Unchecked", async function () {
       }
     );
 
-    await Util.assertError(
+    await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
       "Arithmetic operation underflowed or overflowed outside of an unchecked block",
       "accumulator overflow did not panic"
@@ -56,7 +59,7 @@ describe("EmissionsERC20Unchecked", async function () {
   it("should panic when accumulator overflows with multiplication op", async () => {
     this.timeout(0);
 
-    const constants = [Util.max_uint256.div(2), 3];
+    const constants = [max_uint256.div(2), 3];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vThree = op(Opcode.CONSTANT, 1);
@@ -92,7 +95,7 @@ describe("EmissionsERC20Unchecked", async function () {
       }
     );
 
-    await Util.assertError(
+    await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
       "Transaction reverted",
       "accumulator overflow did not panic"
@@ -138,7 +141,7 @@ describe("EmissionsERC20Unchecked", async function () {
       }
     );
 
-    await Util.assertError(
+    await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
       "Transaction reverted",
       "accumulator underflow did not panic"
@@ -148,7 +151,7 @@ describe("EmissionsERC20Unchecked", async function () {
   it("should panic when accumulator overflows with addition op", async () => {
     this.timeout(0);
 
-    const constants = [Util.max_uint256, 1];
+    const constants = [max_uint256, 1];
 
     const vMaxUInt256 = op(Opcode.CONSTANT, 0);
     const vOne = op(Opcode.CONSTANT, 1);
@@ -184,11 +187,10 @@ describe("EmissionsERC20Unchecked", async function () {
       }
     );
 
-    await Util.assertError(
+    await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
       "Transaction reverted",
       "accumulator overflow did not panic"
     );
   });
-  
 });

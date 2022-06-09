@@ -14,7 +14,7 @@ import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import type { Contract } from "ethers";
 import { getEventArgs } from "../../../utils";
 import { getAddress } from "ethers/lib/utils";
-import { } from "../../../typechain/SaleFactory";
+import {} from "../../../typechain/SaleFactory";
 import { MockISale } from "../../../typechain/MockISale";
 import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
 import { deployGlobals } from "../../../utils/deploy/escrow";
@@ -26,7 +26,7 @@ let claim: RedeemableERC20ClaimEscrow & Contract,
   redeemableERC20Factory: RedeemableERC20Factory & Contract,
   readWriteTier: ReadWriteTier & Contract;
 
-describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
+describe("RedeemableERC20ClaimEscrow Undeposit test", async function () {
   before(async () => {
     ({ claim, claimWrapper, readWriteTier } = await deployGlobals());
   });
@@ -41,7 +41,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
     );
     redeemableERC20Factory =
       (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-      Contract;
+        Contract;
     await redeemableERC20Factory.deployed();
   });
 
