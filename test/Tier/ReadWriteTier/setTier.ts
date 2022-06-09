@@ -1,30 +1,22 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type { TierChangeEvent } from "../../typechain/ReadWriteTier";
-import { getBlockTimestamp } from "../../utils/hardhat";
-import { setup } from "../../utils/deploy/readWriteTier";
-import { assertError } from "../../utils/test/assertError";
-import { numArrayToReport, tierReport } from "../../utils/tier";
-import { getEventArgs } from "../../utils/events";
-import { Tier } from "../../utils/types/tier";
-import { max_uint256 } from "../../utils/constants";
 import { hexlify } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import { TierChangeEvent } from "../../../typechain/ReadWriteTier";
+import { max_uint256 } from "../../../utils/constants";
+import {
+  TIERS,
+  uninitializedStatusAsNum,
+} from "../../../utils/constants/readWriteTier";
+import { deployReadWriteTier } from "../../../utils/deploy/readWriteTier";
+import { getEventArgs } from "../../../utils/events";
+import { getBlockTimestamp } from "../../../utils/hardhat";
+import { assertError } from "../../../utils/test/assertError";
+import { numArrayToReport, tierReport } from "../../../utils/tier";
+import { Tier } from "../../../utils/types/tier";
 
-const uninitializedStatusAsNum = 4294967295;
-const zero = 0;
-const one = 1;
-const two = 2;
-const three = 3;
-const four = 4;
-const five = 5;
-const six = 6;
-const seven = 7;
-const eight = 8;
-const tiers = [zero, one, two, three, four, five, six, seven, eight];
-
-describe("ReadWriteTier", async function () {
+describe("ReadWriteTier setTier", async function () {
   it("should support setting tier directly", async () => {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
 
     const report0 = await readWriteTier.report(signers[1].address, []);
     const expectedReport0 = max_uint256;
@@ -57,63 +49,27 @@ describe("ReadWriteTier", async function () {
     );
   });
 
-  it("will return uninitialized report if nothing set", async function () {
-    const [signers, readWriteTier] = await setup();
-    for (const signer of signers) {
-      const status = await readWriteTier.report(signer.address, []);
-      assert(ethers.BigNumber.from(max_uint256).eq(status));
-    }
-  });
-
   it("will error if attempting to set tier to ZERO", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     await assertError(
       async () => {
-        await readWriteTier.setTier(signers[0].address, zero, []);
+        await readWriteTier.setTier(signers[0].address, 0, []);
       },
       "SET_ZERO_TIER",
       "failed to error due to setting ZERO tier"
     );
   });
 
-  it("will return tier if set", async function () {
-    const [signers, readWriteTier] = await setup();
-    const expected = tierReport(hexlify(max_uint256));
-    let expectedReport = numArrayToReport(expected);
-    let i = 0;
-    for (const tier of tiers) {
-      if (tier) {
-        await readWriteTier.setTier(signers[0].address, tier, []);
-        expected[i] = await getBlockTimestamp();
-        expectedReport = numArrayToReport(expected);
-        i++;
-      }
-      const actualReport =
-        "0x" +
-        (await readWriteTier.report(signers[0].address, []))
-          .toHexString()
-          .substring(2)
-          .padStart(64, "0");
-
-      assert(
-        expectedReport.eq(actualReport),
-        `wrong report
-        expected  ${expectedReport}
-        got       ${actualReport}`
-      );
-    }
-  });
-
   it("will fill multiple tiers at a time", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     let expected = tierReport(hexlify(max_uint256));
     let expectedReport = numArrayToReport(expected);
     let o = 0;
     let n = 0;
-    while (o < tiers.length) {
+    while (o < TIERS.length) {
       n = Math.max(
         1,
-        Math.min(o + Math.floor(Math.random() * tiers.length), tiers.length - 1)
+        Math.min(o + Math.floor(Math.random() * TIERS.length), TIERS.length - 1)
       );
 
       await readWriteTier.setTier(signers[0].address, n, []);
@@ -141,12 +97,12 @@ describe("ReadWriteTier", async function () {
       );
       o = n;
 
-      if (o === tiers.length - 1) break;
+      if (o === TIERS.length - 1) break;
     }
   });
 
   it("will emit the tier to which it was upgraded if it is upgraded for the first time", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
 
     // change the status to two and check if event emitted
     const event0 = (await getEventArgs(
@@ -162,7 +118,7 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will return the current block number from level 0 to the new account tier if updated for the first time", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the status to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     // check with the contract
@@ -175,7 +131,7 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will output the previous tier and the new updated tier", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the status to one
     await readWriteTier.setTier(signers[0].address, 1, []);
     // change the status to three
@@ -192,7 +148,7 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will return the previous block number at the lower tier if it is updated to a higher tier", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the status to one
     await readWriteTier.setTier(signers[0].address, 1, []);
     const previousTimestamp = await getBlockTimestamp();
@@ -205,7 +161,7 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will change the tier from higher to lower", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     // change the tier to one
@@ -222,25 +178,12 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will return the previous block number at the current level if updating from a higher to a lower tier", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     const previousTimestamp = await getBlockTimestamp();
     // change the tier to one
     await readWriteTier.setTier(signers[0].address, 1, []);
-    // check with the contract
-    const status = await readWriteTier.report(signers[0].address, []);
-    const report = tierReport(status.toString());
-    assert(report[0] === previousTimestamp);
-  });
-
-  it("will be possible to know the previous tier from the current tier", async function () {
-    const [signers, readWriteTier] = await setup();
-    // change the tier to one
-    await readWriteTier.setTier(signers[0].address, 1, []);
-    const previousTimestamp = await getBlockTimestamp();
-    // change the tier to three
-    await readWriteTier.setTier(signers[0].address, 3, []);
     // check with the contract
     const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
@@ -248,11 +191,11 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will return the original block number if tier 1 is called again", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the tier to anything above 1
     await readWriteTier.setTier(
       signers[0].address,
-      Math.max(1, Math.floor(Math.random() * tiers.length)),
+      Math.max(1, Math.floor(Math.random() * TIERS.length)),
       []
     );
     const originalBlock = await getBlockTimestamp();
@@ -265,7 +208,7 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will return original block number at current tier and the rest at uninitializedStatusAsNum after two continuous decrements", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     const originalBlock = await getBlockTimestamp();
@@ -284,7 +227,7 @@ describe("ReadWriteTier", async function () {
   });
 
   it("will return two different block numbers if two consecutive increments occur, the high bits will be uninitializedStatusAsNum", async function () {
-    const [signers, readWriteTier] = await setup();
+    const [signers, readWriteTier] = await deployReadWriteTier();
     // change the tier to two
     await readWriteTier.setTier(signers[0].address, 2, []);
 

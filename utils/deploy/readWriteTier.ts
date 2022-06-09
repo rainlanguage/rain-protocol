@@ -3,7 +3,7 @@ import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 
-export const setup = async (): Promise<
+export const deployReadWriteTier = async (): Promise<
   [SignerWithAddress[], ReadWriteTier & Contract]
 > => {
   const signers = await ethers.getSigners();

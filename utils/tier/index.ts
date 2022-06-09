@@ -7,6 +7,11 @@ import { roughTimestampEquals } from "../time";
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
 
+/**
+ * Converts an array of numbers to a tier report
+ * @param numArray - array of report timestamps from Tier.ONE to Tier.EIGHT
+ * @returns tier report
+ */
 export function numArrayToReport(numArray: number[]): BigNumber {
   assert(numArray.length === 8);
 

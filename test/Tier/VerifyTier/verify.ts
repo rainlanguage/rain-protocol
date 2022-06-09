@@ -1,14 +1,14 @@
-import * as Util from "../../utils";
+import * as Util from "../../../utils";
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { VerifyTier } from "../../typechain/VerifyTier";
-import type { Verify } from "../../typechain/Verify";
+import type { VerifyTier } from "../../../typechain/VerifyTier";
+import type { Verify } from "../../../typechain/Verify";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-import { getBlockTimestamp } from "../../utils";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+import { getBlockTimestamp } from "../../../utils";
+import { VerifyFactory } from "../../../typechain/VerifyFactory";
 
-describe("VerifyTier", async function () {
+describe("VerifyTier verify", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
