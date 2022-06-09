@@ -29,50 +29,32 @@ enum Tier {
 export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
-  // report time for tier default context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const CONST_REPORT_TIME_FOR_TIER = 123;
 
-  // prettier-ignore
-  // return default report
-  const sourceReportTimeForTierDefault = concat([
-      op(Opcode.THIS_ADDRESS),
-      ctxAccount,
-    op(Opcode.REPORT),
-  ]);
-
-  it("should support returning report time for a specified tier", async () => {
+  it("should support returning report time for tier using VM script (e.g. constant timestamp value)", async () => {
     const signers = await ethers.getSigners();
-
-    // report time for tier context
-    const ctxAccount = op(Opcode.CONTEXT, 0);
-    const ctxTier = op(Opcode.CONTEXT, 1);
-
-    // prettier-ignore
-    const sourceReportTimeForTier = concat([
-        op(Opcode.THIS_ADDRESS),
-        ctxAccount,
-        ctxTier,
-      op(Opcode.REPORT_TIME_FOR_TIER),
-    ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTier],
-        constants: [Util.numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80])],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [
+          Util.numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80]),
+          CONST_REPORT_TIME_FOR_TIER, // just return a constant value
+        ],
       },
     })) as CombineTier & Contract;
 
     const timeForTier = await combineTier.reportTimeForTier(
       signers[1].address,
-      Tier.FIVE,
+      Tier.FIVE, // doesn't matter what tier as we return a constant
       []
     );
 
     assert(
-      timeForTier.eq(50),
-      `wrong timestamp for Tier.FIVE
-      expected  ${50}
+      timeForTier.eq(CONST_REPORT_TIME_FOR_TIER),
+      `wrong timestamp
+      expected  ${CONST_REPORT_TIME_FOR_TIER}
       got       ${timeForTier}`
     );
   });
@@ -92,7 +74,7 @@ describe("CombineTier", async function () {
     const futureTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
         constants: [
           Util.numArrayToReport([
             timestamp0,
@@ -104,21 +86,22 @@ describe("CombineTier", async function () {
             timestamp1,
             timestamp1,
           ]),
+          CONST_REPORT_TIME_FOR_TIER,
         ],
       },
     })) as CombineTier & Contract;
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
@@ -126,25 +109,26 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(futureTier.address),
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const vFuture = concat([
         op(Opcode.CONSTANT, 0),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vAlways = concat([
         op(Opcode.CONSTANT, 1),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vNever = concat([
         op(Opcode.CONSTANT, 2),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
@@ -162,7 +146,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 3)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -193,7 +177,7 @@ describe("CombineTier", async function () {
     const futureTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
         constants: [
           Util.numArrayToReport([
             timestamp0,
@@ -205,21 +189,22 @@ describe("CombineTier", async function () {
             timestamp1,
             timestamp1,
           ]),
+          CONST_REPORT_TIME_FOR_TIER,
         ],
       },
     })) as CombineTier & Contract;
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
@@ -227,25 +212,26 @@ describe("CombineTier", async function () {
       ethers.BigNumber.from(futureTier.address),
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const vFuture = concat([
         op(Opcode.CONSTANT, 0),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vAlways = concat([
         op(Opcode.CONSTANT, 1),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vNever = concat([
         op(Opcode.CONSTANT, 2),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
@@ -263,7 +249,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 3)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -296,31 +282,32 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -331,7 +318,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -358,31 +345,32 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -393,7 +381,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -420,31 +408,32 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -455,7 +444,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -482,31 +471,32 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -517,7 +507,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -544,31 +534,32 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -579,7 +570,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -606,31 +597,32 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -641,7 +633,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -668,41 +660,42 @@ describe("CombineTier", async function () {
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.ALWAYS],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
-        constants: [Util.NEVER],
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceAlwaysReport = concat([
         op(Opcode.CONSTANT, 0),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceNeverReport = concat([
         op(Opcode.CONSTANT, 1),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
       sourceConfig: {
-        sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
+        sources: [sourceAlwaysReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -723,7 +716,7 @@ describe("CombineTier", async function () {
     const combineTierNever = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
       sourceConfig: {
-        sources: [sourceNeverReport, sourceReportTimeForTierDefault],
+        sources: [sourceNeverReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -752,8 +745,8 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants: [],
+        sources: [sourceReport, op(Opcode.CONSTANT, 0)],
+        constants: [CONST_REPORT_TIME_FOR_TIER],
       },
     })) as CombineTier & Contract;
 
@@ -783,16 +776,17 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -803,7 +797,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -918,16 +912,17 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -938,7 +933,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1055,16 +1050,17 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -1075,7 +1071,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1179,16 +1175,17 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -1199,7 +1196,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1315,16 +1312,17 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -1335,7 +1333,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
@@ -1451,16 +1449,17 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -1471,7 +1470,7 @@ describe("CombineTier", async function () {
     const combineTier = (await Util.combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
       sourceConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
         constants,
       },
     })) as CombineTier & Contract;
