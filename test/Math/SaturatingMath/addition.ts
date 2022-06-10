@@ -7,7 +7,7 @@ import type { SaturatingMathTest } from "../../../typechain/SaturatingMathTest";
 
 let saturatingMathTestFactory: ContractFactory;
 
-describe("SaturatingMathTest", async function () {
+describe("SaturatingMathTest addition test", async function () {
   before(async () => {
     saturatingMathTestFactory = await ethers.getContractFactory(
       "SaturatingMathTest"
