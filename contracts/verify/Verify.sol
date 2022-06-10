@@ -42,6 +42,42 @@ struct VerifyConfig {
     address callback;
 }
 
+library LibEvidence {
+    function _updateEvidenceRef(
+        uint256[] memory refs_,
+        Evidence memory evidence_,
+        uint256 refsIndex_
+    ) internal pure {
+        uint256 ptr_;
+        assembly {
+            ptr_ := evidence_
+        }
+        refs_[refsIndex_] = ptr_;
+    }
+
+    function _resizeRefs(uint256[] memory refs_, uint256 newLength_)
+        internal
+        pure
+    {
+        require(newLength_ <= refs_.length, "BAD_RESIZE");
+        assembly {
+            mstore(refs_, newLength_)
+        }
+    }
+
+    function _refsAsEvidences(uint256[] memory refs_)
+        internal
+        pure
+        returns (Evidence[] memory)
+    {
+        Evidence[] memory evidences_;
+        assembly {
+            evidences_ := refs_
+        }
+        return evidences_;
+    }
+}
+
 /// @title Verify
 /// Trust-minimised contract to record the state of some verification process.
 /// When some off-chain identity is to be reified on chain there is inherently
@@ -287,40 +323,6 @@ contract Verify is AccessControl, Initializable {
         emit Initialize(msg.sender, config_);
     }
 
-    function _updateEvidenceRef(
-        uint256[] memory refs_,
-        Evidence memory evidence_,
-        uint256 refsIndex_
-    ) private pure {
-        uint256 ptr_;
-        assembly {
-            ptr_ := evidence_
-        }
-        refs_[refsIndex_] = ptr_;
-    }
-
-    function _resizeRefs(uint256[] memory refs_, uint256 newLength_)
-        private
-        pure
-    {
-        require(newLength_ <= refs_.length, "BAD_RESIZE");
-        assembly {
-            mstore(refs_, newLength_)
-        }
-    }
-
-    function _refsAsEvidences(uint256[] memory refs_)
-        private
-        pure
-        returns (Evidence[] memory)
-    {
-        Evidence[] memory evidences_;
-        assembly {
-            evidences_ := refs_
-        }
-        return evidences_;
-    }
-
     /// Typed accessor into states.
     /// @param account_ The account to return the current `State` for.
     function state(address account_) external view returns (State memory) {
@@ -443,7 +445,11 @@ contract Verify is AccessControl, Initializable {
                 if (state_.addedSince < 1) {
                     state_ = newState();
 
-                    _updateEvidenceRef(addedRefs_, evidence_, additions_);
+                    LibEvidence._updateEvidenceRef(
+                        addedRefs_,
+                        evidence_,
+                        additions_
+                    );
                     additions_++;
                 }
                 // If the account hasn't been approved we approve it. As there
@@ -459,7 +465,11 @@ contract Verify is AccessControl, Initializable {
                     state_.approvedSince = uint32(block.number);
                     states[evidence_.account] = state_;
 
-                    _updateEvidenceRef(approvedRefs_, evidence_, approvals_);
+                    LibEvidence._updateEvidenceRef(
+                        approvedRefs_,
+                        evidence_,
+                        approvals_
+                    );
                     approvals_++;
                 }
 
@@ -471,17 +481,17 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
-                    _resizeRefs(addedRefs_, additions_);
+                    LibEvidence._resizeRefs(addedRefs_, additions_);
                     callback_.afterAdd(
                         msg.sender,
-                        _refsAsEvidences(addedRefs_)
+                        LibEvidence._refsAsEvidences(addedRefs_)
                     );
                 }
                 if (approvals_ > 0) {
-                    _resizeRefs(approvedRefs_, approvals_);
+                    LibEvidence._resizeRefs(approvedRefs_, approvals_);
                     callback_.afterApprove(
                         msg.sender,
-                        _refsAsEvidences(approvedRefs_)
+                        LibEvidence._refsAsEvidences(approvedRefs_)
                     );
                 }
             }
@@ -523,7 +533,11 @@ contract Verify is AccessControl, Initializable {
                 if (state_.addedSince < 1) {
                     state_ = newState();
 
-                    _updateEvidenceRef(addedRefs_, evidence_, additions_);
+                    LibEvidence._updateEvidenceRef(
+                        addedRefs_,
+                        evidence_,
+                        additions_
+                    );
                     additions_++;
                 }
                 // Respect prior bans by leaving onchain storage as-is.
@@ -531,7 +545,11 @@ contract Verify is AccessControl, Initializable {
                     state_.bannedSince = uint32(block.number);
                     states[evidence_.account] = state_;
 
-                    _updateEvidenceRef(bannedRefs_, evidence_, bans_);
+                    LibEvidence._updateEvidenceRef(
+                        bannedRefs_,
+                        evidence_,
+                        bans_
+                    );
                     bans_++;
                 }
 
@@ -543,17 +561,17 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
-                    _resizeRefs(addedRefs_, additions_);
+                    LibEvidence._resizeRefs(addedRefs_, additions_);
                     callback_.afterAdd(
                         msg.sender,
-                        _refsAsEvidences(addedRefs_)
+                        LibEvidence._refsAsEvidences(addedRefs_)
                     );
                 }
                 if (bans_ > 0) {
-                    _resizeRefs(bannedRefs_, bans_);
+                    LibEvidence._resizeRefs(bannedRefs_, bans_);
                     callback_.afterBan(
                         msg.sender,
-                        _refsAsEvidences(bannedRefs_)
+                        LibEvidence._refsAsEvidences(bannedRefs_)
                     );
                 }
             }
@@ -585,7 +603,11 @@ contract Verify is AccessControl, Initializable {
                 state_ = states[evidences_[i_].account];
                 if (state_.addedSince > 0) {
                     delete (states[evidence_.account]);
-                    _updateEvidenceRef(removedRefs_, evidence_, removals_);
+                    LibEvidence._updateEvidenceRef(
+                        removedRefs_,
+                        evidence_,
+                        removals_
+                    );
                     removals_++;
                 }
                 emit Remove(msg.sender, evidence_);
@@ -593,10 +615,10 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (removals_ > 0) {
-                    _resizeRefs(removedRefs_, removals_);
+                    LibEvidence._resizeRefs(removedRefs_, removals_);
                     callback_.afterRemove(
                         msg.sender,
-                        _refsAsEvidences(removedRefs_)
+                        LibEvidence._refsAsEvidences(removedRefs_)
                     );
                 }
             }

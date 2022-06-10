@@ -4,7 +4,6 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "../vm/RainVM.sol";
-// solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
@@ -48,7 +47,7 @@ contract CombineTier is ReadOnlyTier, RainVM, Initializable {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
-    function fnPtrs() public pure override returns (bytes memory) {
+    function fnPtrs() public pure virtual override returns (bytes memory) {
         return AllStandardOps.fnPtrs();
     }
 
