@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import {LibFnPtrs} from "../VMStateBuilder.sol";
 import "../RainVM.sol";
 import "./evm/EVMConstantOps.sol";
 import "./math/FixedPointMathOps.sol";
@@ -14,11 +15,15 @@ import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/TierOps.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 39;
+uint256 constant ALL_STANDARD_OPS_COUNT = 39;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
+    ALL_STANDARD_OPS_COUNT;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
+    using LibFnPtrs for bytes;
+
     function zero(uint256) internal pure returns (uint256) {
         return 0;
     }
@@ -40,32 +45,11 @@ library AllStandardOps {
         return operand_;
     }
 
-    function stackPopsFnPtrs() internal pure returns (bytes memory) {
+    function stackPopsFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(uint256) pure returns (uint256) zeroFn_;
-            assembly {
-                // using zero bytes in the fnPtrs array may save gas in certain
-                // contexts.
-                zeroFn_ := 0
-            }
-            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH +
-                1]
+            fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
+            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_COUNT]
                 memory fns_ = [
-                    // will be overriden with length
-                    zeroFn_,
-                    // constant placeholder
-                    zeroFn_,
-                    // stack placeholder
-                    zeroFn_,
-                    // context placeholder
-                    zeroFn_,
-                    // storage placeholder
-                    zeroFn_,
-                    // zipmap placeholder
-                    zeroFn_,
-                    // debug placeholder
-                    zeroFn_,
                     // erc20 balance of
                     two,
                     // erc20 total supply
@@ -145,41 +129,17 @@ library AllStandardOps {
                     // erc1155 balance of batch
                     ERC1155Ops.stackPopsBalanceOfBatch
                 ];
-            bytes memory ret_;
-            assembly {
-                mstore(fns_, lenBytes_)
-                ret_ := fns_
+            for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
+                fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
             }
-            return ret_;
         }
     }
 
-    function stackPushesFnPtrs() internal pure returns (bytes memory) {
+    function stackPushesFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(uint256) pure returns (uint256) zeroFn_;
-            assembly {
-                // using zero bytes in the fnPtrs array may save gas in certain
-                // contexts.
-                zeroFn_ := 0
-            }
-            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH +
-                1]
+            fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
+            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_COUNT]
                 memory fns_ = [
-                    // will be overriden with length
-                    zeroFn_,
-                    // constant placeholder
-                    zeroFn_,
-                    // stack placeholder
-                    zeroFn_,
-                    // context placeholder
-                    zeroFn_,
-                    // storage placeholder
-                    zeroFn_,
-                    // zipmap placeholder
-                    zeroFn_,
-                    // debug placeholder
-                    zeroFn_,
                     // erc20 balance of
                     one,
                     // erc20 total supply
@@ -259,44 +219,19 @@ library AllStandardOps {
                     // erc1155 balance of batch
                     nonzeroOperandN
                 ];
-            bytes memory ret_;
-            assembly {
-                mstore(fns_, lenBytes_)
-                ret_ := fns_
+            for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
+                fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
             }
-            return ret_;
         }
     }
 
-    function fnPtrs() internal pure returns (bytes memory) {
+    function fnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            uint256 lenBytes_ = ALL_STANDARD_OPS_LENGTH * 0x20;
-            function(uint256, uint256) view returns (uint256) zeroFn_;
-            assembly {
-                // using zero bytes in the fnPtrs array may save gas in certain
-                // contexts.
-                zeroFn_ := 0
-            }
+            fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
             function(uint256, uint256)
                 view
-                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (uint256)[ALL_STANDARD_OPS_COUNT]
                 memory fns_ = [
-                    // will be overridden with length
-                    zeroFn_,
-                    // placeholders for core ops
-                    // constant
-                    zeroFn_,
-                    // stack
-                    zeroFn_,
-                    // context
-                    zeroFn_,
-                    // storage
-                    zeroFn_,
-                    // zipmap
-                    zeroFn_,
-                    // debug
-                    zeroFn_,
-                    // dispatchable ops
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
@@ -337,12 +272,9 @@ library AllStandardOps {
                     ERC1155Ops.balanceOf,
                     ERC1155Ops.balanceOfBatch
                 ];
-            bytes memory ret_;
-            assembly {
-                mstore(fns_, lenBytes_)
-                ret_ := fns_
+            for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
+                fnPtrs_.insertOpPtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
             }
-            return ret_;
         }
     }
 }

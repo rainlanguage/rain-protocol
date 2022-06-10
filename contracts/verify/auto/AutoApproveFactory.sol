@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title AutoApproveFactory
 /// @notice Factory for creating and deploying `AutoApprove` contracts.
-contract SaleFactory is Factory {
+contract AutoApproveFactory is Factory {
     /// Template contract to clone.
     /// Deployed by the constructor.
     address private immutable implementation;
@@ -27,9 +27,7 @@ contract SaleFactory is Factory {
         override
         returns (address)
     {
-        (
-            StateConfig memory config_
-        ) = abi.decode(data_, (StateConfig));
+        StateConfig memory config_ = abi.decode(data_, (StateConfig));
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
         return clone_;
@@ -41,14 +39,10 @@ contract SaleFactory is Factory {
     ///
     /// @param config_ initialize configuration.
     /// @return New `AutoApprove` child contract.
-    function createChildTyped(
-        StateConfig calldata config_
-    ) external returns (AutoApprove) {
-        return
-            AutoApprove(
-                this.createChild(
-                    abi.encode(config_)
-                )
-            );
+    function createChildTyped(StateConfig calldata config_)
+        external
+        returns (AutoApprove)
+    {
+        return AutoApprove(this.createChild(abi.encode(config_)));
     }
 }

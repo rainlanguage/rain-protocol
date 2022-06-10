@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.0;
+pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -11,10 +11,12 @@ import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 uint256 constant ENTRYPOINT = 0;
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
+uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     using LibState for State;
+    using LibFnPtrs for bytes;
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
@@ -95,27 +97,15 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         pure
         virtual
         override
-        returns (bytes memory)
+        returns (bytes memory localFnPtrs_)
     {
-        unchecked {
-            uint256 lenBytes_ = LOCAL_OPS_LENGTH * 0x20;
-            function(uint256, uint256) pure returns (uint256) zeroFn_;
-            assembly {
-                zeroFn_ := 0
-            }
-            function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH +
-                1]
-                memory fns_ = [
-                    // will be overridden with length
-                    zeroFn_,
-                    opEvidenceDataApproved
-                ];
-            bytes memory ret_;
-            assembly {
-                mstore(fns_, lenBytes_)
-                ret_ := fns_
-            }
-            return ret_;
-        }
+        localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
+        localFnPtrs_.insertOpPtr(
+            OP_EVIDENCE_DATA_APPROVED,
+            opEvidenceDataApproved
+        );
+        // Sanity check here to try to stop ourselves writing outside the fn
+        // ptrs array.
+        assert(OP_EVIDENCE_DATA_APPROVED < LOCAL_OPS_LENGTH);
     }
 }
