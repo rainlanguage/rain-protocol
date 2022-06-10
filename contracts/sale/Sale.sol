@@ -330,11 +330,11 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         override
         returns (StorageOpcodesRange memory)
     {
-        uint256 pointer_;
+        uint256 slot_;
         assembly {
-            pointer_ := _remainingUnits.slot
+            slot_ := _remainingUnits.slot
         }
-        return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
+        return StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
     }
 
     /// @inheritdoc ISale

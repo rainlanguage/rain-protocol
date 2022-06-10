@@ -99,13 +99,12 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         override
         returns (bytes memory localFnPtrs_)
     {
-        localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-        localFnPtrs_.insertOpPtr(
-            OP_EVIDENCE_DATA_APPROVED,
-            opEvidenceDataApproved
-        );
-        // Sanity check here to try to stop ourselves writing outside the fn
-        // ptrs array.
-        assert(OP_EVIDENCE_DATA_APPROVED < LOCAL_OPS_LENGTH);
+        unchecked {
+            localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
+            localFnPtrs_.insertOpPtr(
+                OP_EVIDENCE_DATA_APPROVED,
+                opEvidenceDataApproved
+            );
+        }
     }
 }
