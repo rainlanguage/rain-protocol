@@ -51,7 +51,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
                 if (evidences_[i_].data.length == 0x20) {
                     context_ = evidences_[i_].data;
                     eval(context_, state_, ENTRYPOINT);
-                    if (state_.stack[state_.stackIndex - 1] > 1) {
+                    if (state_.stack[state_.stackIndex - 1] > 0) {
                         _approvedEvidenceData[
                             uint256(bytes32(context_))
                         ] = block.timestamp;
