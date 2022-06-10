@@ -39,7 +39,7 @@ describe("TierReport maxTier", async function () {
 
     // tierBlock()
     await assertError(
-      async () => await tierReport.tierTime(report, 9),
+      async () => await tierReport.reportTimeForTier(report, 9),
       "MAX_TIER",
       "wrongly attempted to read tier '9' in the report, which is greater than maxTier constant"
     );
