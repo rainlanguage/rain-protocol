@@ -21,6 +21,5 @@ contract PhasedScheduleTest is Phased {
 
     /// Exposes `onlyPhase` for testing.
     /// @param phase_ As per `onlyPhase`.
-    // solhint-disable-next-line no-empty-blocks
     function succeedsOnlyPhase(uint256 phase_) internal onlyPhase(phase_) {}
 }

@@ -7,7 +7,6 @@ import "./IClaim.sol";
 import "../tier/ReadOnlyTier.sol";
 import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
 import "../vm/RainVM.sol";
-// solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";

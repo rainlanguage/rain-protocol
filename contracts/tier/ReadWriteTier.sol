@@ -94,5 +94,5 @@ contract ReadWriteTier is ITier {
         uint256 startTier_,
         uint256 endTier_,
         bytes calldata data_
-    ) internal virtual {} // solhint-disable-line no-empty-blocks
+    ) internal virtual {}
 }

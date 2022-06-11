@@ -5,7 +5,6 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
-// solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -599,13 +598,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     }
 
     /// @dev This is here so we can use a modifier like a function call.
-    function refundCooldown()
-        private
-        onlyAfterCooldown
-    // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    function refundCooldown() private onlyAfterCooldown {}
 
     /// Rollback a buy given its receipt.
     /// Ignoring gas (which cannot be refunded) the refund process rolls back

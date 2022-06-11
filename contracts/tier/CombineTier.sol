@@ -4,7 +4,6 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "../vm/RainVM.sol";
-// solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
-// solhint-disable-next-line max-line-length
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 
 /// @title ReserveTokenERC20Snapshot
