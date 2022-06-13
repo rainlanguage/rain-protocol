@@ -9,6 +9,9 @@ import {
   paddedUInt256,
   sixZeros,
   tierRange,
+  compareTierReports,
+  timewarp,
+  getBlockTimestamp,
 } from "../../utils";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { BigNumber, Contract } from "ethers";
@@ -45,22 +48,22 @@ describe("EmissionsERC20", async function () {
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const vReadWriteTier = op(Opcode.CONSTANT, 0);
-    const vConstructionBlock = op(Opcode.CONSTANT, 1);
+    const vConstructionTime = op(Opcode.CONSTANT, 1);
     const vAlways = op(Opcode.CONSTANT, 2);
 
     await readWriteTier.setTier(claimant.address, Tier.TWO, []);
 
-    const tierBlock = await ethers.provider.getBlockNumber();
+    const tierTimestamp = await getBlockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
     // prettier-ignore
-    const CURRENT_BLOCK_AS_REPORT = () =>
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
       concat([
           vAlways,
-          op(Opcode.BLOCK_NUMBER),
+          op(Opcode.BLOCK_TIMESTAMP),
         op(
-          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -70,7 +73,7 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -78,23 +81,23 @@ describe("EmissionsERC20", async function () {
       concat([
         vReadWriteTier,
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-          CURRENT_BLOCK_AS_REPORT(),
+          CURRENT_TIMESTAMP_AS_REPORT(),
               TIER_REPORT(),
-              vConstructionBlock,
+              vConstructionTime,
             op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 1)),
             LAST_CLAIM_REPORT(),
-            op(Opcode.BLOCK_NUMBER),
+            op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
 
-    const constructionBlock = await ethers.provider.getBlockNumber();
+    const constructionTime = await getBlockTimestamp();
 
     const emissionsERC20 = await emissionsDeploy(
       creator,
@@ -109,7 +112,7 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [TIERWISE_DIFF()],
-          constants: [readWriteTier.address, constructionBlock, Util.ALWAYS],
+          constants: [readWriteTier.address, constructionTime, Util.ALWAYS],
         },
       }
     );
@@ -117,9 +120,9 @@ describe("EmissionsERC20", async function () {
     // should do nothing
     await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block0 = await ethers.provider.getBlockNumber();
+    const timestamp0 = await getBlockTimestamp();
 
     const claimReport0 = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -129,7 +132,7 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(6) +
-          paddedUInt32(block0 - tierBlock).repeat(2)
+          paddedUInt32(timestamp0 - tierTimestamp).repeat(2)
       )
     );
 
@@ -141,14 +144,14 @@ describe("EmissionsERC20", async function () {
     );
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
-    const claimBlock0 = await ethers.provider.getBlockNumber();
+    const claimTimestamp0 = await getBlockTimestamp();
 
     // should do nothing
     await readWriteTier.setTier(claimant.address, Tier.SIX, []);
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block1 = await ethers.provider.getBlockNumber();
+    const timestamp1 = await getBlockTimestamp();
 
     const claimReport1 = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -158,7 +161,7 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(6) +
-          paddedUInt32(block1 - claimBlock0).repeat(2)
+          paddedUInt32(timestamp1 - claimTimestamp0).repeat(2)
       )
     );
 
@@ -187,12 +190,12 @@ describe("EmissionsERC20", async function () {
     const vAlways = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
-    const CURRENT_BLOCK_AS_REPORT = () =>
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
       concat([
           vAlways,
-          op(Opcode.BLOCK_NUMBER),
+          op(Opcode.BLOCK_TIMESTAMP),
         op(
-          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -202,7 +205,7 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -210,16 +213,16 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-          CURRENT_BLOCK_AS_REPORT(),
+          CURRENT_TIMESTAMP_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.BLOCK_NUMBER),
+            op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
@@ -243,11 +246,11 @@ describe("EmissionsERC20", async function () {
     );
 
     await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
-    const tierBlockFour = await ethers.provider.getBlockNumber();
+    const tierTimestampFour = await getBlockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block0 = await ethers.provider.getBlockNumber();
+    const timestamp0 = await getBlockTimestamp();
 
     const claimReport0 = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -256,7 +259,7 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(4) +
-          paddedUInt32(block0 - tierBlockFour).repeat(4)
+          paddedUInt32(timestamp0 - tierTimestampFour).repeat(4)
       )
     );
 
@@ -268,14 +271,14 @@ describe("EmissionsERC20", async function () {
     );
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
-    const claimBlock0 = await ethers.provider.getBlockNumber();
+    const claimTimestamp0 = await getBlockTimestamp();
 
     await readWriteTier.setTier(claimant.address, Tier.FIVE, []);
-    const tierBlockFive = await ethers.provider.getBlockNumber();
+    const tierTimestampFive = await getBlockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block1 = await ethers.provider.getBlockNumber();
+    const timestamp1 = await getBlockTimestamp();
 
     const claimReport1 = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -284,8 +287,8 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(3) +
-          paddedUInt32(block1 - tierBlockFive) +
-          paddedUInt32(block1 - claimBlock0).repeat(4)
+          paddedUInt32(timestamp1 - tierTimestampFive) +
+          paddedUInt32(timestamp1 - claimTimestamp0).repeat(4)
       )
     );
 
@@ -314,12 +317,12 @@ describe("EmissionsERC20", async function () {
     const vAlways = op(Opcode.CONSTANT, 1);
 
     // prettier-ignore
-    const CURRENT_BLOCK_AS_REPORT = () =>
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
       concat([
           vAlways,
-          op(Opcode.BLOCK_NUMBER),
+          op(Opcode.BLOCK_TIMESTAMP),
         op(
-          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -329,7 +332,7 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -337,16 +340,16 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-          CURRENT_BLOCK_AS_REPORT(),
+          CURRENT_TIMESTAMP_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.BLOCK_NUMBER),
+            op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
@@ -370,11 +373,11 @@ describe("EmissionsERC20", async function () {
     );
 
     await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
-    const tierBlockFour = await ethers.provider.getBlockNumber();
+    const tierTimestampFour = await getBlockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block0 = await ethers.provider.getBlockNumber();
+    const timestamp0 = await getBlockTimestamp();
 
     const claimReport0 = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -383,7 +386,7 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(4) +
-          paddedUInt32(block0 - tierBlockFour).repeat(4)
+          paddedUInt32(timestamp0 - tierTimestampFour).repeat(4)
       )
     );
 
@@ -395,13 +398,13 @@ describe("EmissionsERC20", async function () {
     );
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
-    const claimBlock0 = await ethers.provider.getBlockNumber();
+    const claimTimestamp0 = await getBlockTimestamp();
 
     await readWriteTier.setTier(claimant.address, Tier.THREE, []);
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block1 = await ethers.provider.getBlockNumber();
+    const timestamp1 = await getBlockTimestamp();
 
     const claimReport1 = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -410,7 +413,7 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(5) +
-          paddedUInt32(block1 - claimBlock0).repeat(3)
+          paddedUInt32(timestamp1 - claimTimestamp0).repeat(3)
       )
     );
 
@@ -485,7 +488,7 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.CONSTANT, 0);
+    const valTierAddrAddress = op(Opcode.CONSTANT, 0);
     const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
     const valBlocksPerYear = op(Opcode.CONSTANT, 2);
     const valAlways = op(Opcode.CONSTANT, 3);
@@ -535,7 +538,7 @@ describe("EmissionsERC20", async function () {
           valAlways,
           op(Opcode.BLOCK_NUMBER),
         op(
-          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -545,15 +548,15 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          valTierAddress,
+          valTierAddrAddress,
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -617,15 +620,16 @@ describe("EmissionsERC20", async function () {
     // Has Platinum Tier
     await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
 
-    const tierBlock = await ethers.provider.getBlockNumber();
+    const tierTimestamp = await getBlockTimestamp();
 
     const expectedClaimDuration = 123;
 
-    await Util.createEmptyBlock(expectedClaimDuration); // ~0.001%
-    const claimBlock = await ethers.provider.getBlockNumber();
+    await timewarp(expectedClaimDuration);
+
+    const claimTimestamp = await getBlockTimestamp();
 
     // 123
-    const claimDuration = claimBlock - tierBlock;
+    const claimDuration = claimTimestamp - tierTimestamp;
 
     // 123000000000000000000
     const claimDurationBN = BigNumber.from(claimDuration + eighteenZeros);
@@ -758,7 +762,7 @@ describe("EmissionsERC20", async function () {
 
     // BEGIN global constants
 
-    const valTierAddress = op(Opcode.CONSTANT, 0);
+    const valTierAddrAddress = op(Opcode.CONSTANT, 0);
     const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
     const valBlocksPerYear = op(Opcode.CONSTANT, 2);
     const valBNOne = op(Opcode.CONSTANT, 3);
@@ -815,12 +819,12 @@ describe("EmissionsERC20", async function () {
       ]);
 
     // prettier-ignore
-    const CURRENT_BLOCK_AS_REPORT = () =>
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
       concat([
           valAlways,
-          op(Opcode.BLOCK_NUMBER),
+          op(Opcode.BLOCK_TIMESTAMP),
         op(
-          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -830,24 +834,24 @@ describe("EmissionsERC20", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          valTierAddress,
+          valTierAddrAddress,
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-          CURRENT_BLOCK_AS_REPORT(),
+          CURRENT_TIMESTAMP_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.BLOCK_NUMBER),
+            op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
@@ -897,15 +901,16 @@ describe("EmissionsERC20", async function () {
     // Has Platinum Tier
     await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
 
-    const tierBlock = await ethers.provider.getBlockNumber();
+    const tierTimestamp = await getBlockTimestamp();
 
     const expectedClaimDuration = 123;
 
-    await Util.createEmptyBlock(expectedClaimDuration); // ~0.001%
-    const claimBlock = await ethers.provider.getBlockNumber();
+    await timewarp(expectedClaimDuration);
+
+    const claimTimestamp = await getBlockTimestamp();
 
     // 123
-    const claimDuration = claimBlock - tierBlock;
+    const claimDuration = claimTimestamp - tierTimestamp;
 
     // 123000000000000000000
     const claimDurationBN = BigNumber.from(claimDuration + eighteenZeros);
@@ -1013,7 +1018,7 @@ describe("EmissionsERC20", async function () {
               // lastClaimReport
               op(Opcode.THIS_ADDRESS),
               op(Opcode.CONTEXT),
-              op(Opcode.REPORT),
+              op(Opcode.ITIERV2_REPORT),
             ]),
           ],
           constants: [],
@@ -1033,7 +1038,7 @@ describe("EmissionsERC20", async function () {
     );
   });
 
-  it("should calculate claim report as difference between current block number and everyLteMax([tierReport, lastClaimReport]) for each tier", async function () {
+  it("should calculate claim report as difference between current block timestamp and everyLteMax([tierReport, lastClaimReport]) for each tier", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1049,15 +1054,18 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
+    const valTierAddr = op(Opcode.CONSTANT, 0);
     const valAlways = op(Opcode.CONSTANT, 1);
 
+    const ctxClaimant = op(Opcode.CONTEXT, 0);
+
     // prettier-ignore
-    const CURRENT_BLOCK_AS_REPORT = () =>
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
       concat([
           valAlways,
-          op(Opcode.BLOCK_NUMBER),
+          op(Opcode.BLOCK_TIMESTAMP),
         op(
-          Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
         ),
       ]);
@@ -1066,26 +1074,30 @@ describe("EmissionsERC20", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+          ctxClaimant,
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.CONSTANT, 0),
-          op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+          valTierAddr,
+          ctxClaimant,
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-          CURRENT_BLOCK_AS_REPORT(),
+          CURRENT_TIMESTAMP_AS_REPORT(),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
-            op(Opcode.BLOCK_NUMBER),
-          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
+            op(Opcode.BLOCK_TIMESTAMP),
+          op(Opcode.SELECT_LTE, Util.selectLte(
+            Util.selectLteLogic.every,
+            Util.selectLteMode.max,
+            2
+          )),
         op(Opcode.SATURATING_DIFF),
       ]);
 
@@ -1108,17 +1120,17 @@ describe("EmissionsERC20", async function () {
     );
 
     await readWriteTier.setTier(claimant.address, Tier.ONE, []);
-    const tierBlockOne = await ethers.provider.getBlockNumber();
+    const tierTimestampOne = await getBlockTimestamp();
     await readWriteTier.setTier(claimant.address, Tier.TWO, []);
-    const tierBlockTwo = await ethers.provider.getBlockNumber();
+    const tierTimestampTwo = await getBlockTimestamp();
     await readWriteTier.setTier(claimant.address, Tier.THREE, []);
-    const tierBlockThree = await ethers.provider.getBlockNumber();
+    const tierTimestampThree = await getBlockTimestamp();
     await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
-    const tierBlockFour = await ethers.provider.getBlockNumber();
+    const tierTimestampFour = await getBlockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const block0 = await ethers.provider.getBlockNumber();
+    const timestamp0 = await getBlockTimestamp();
 
     const claimReport = paddedUInt256(
       await emissionsERC20.calculateClaim(claimant.address)
@@ -1127,10 +1139,10 @@ describe("EmissionsERC20", async function () {
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(0).repeat(4) +
-          paddedUInt32(block0 - tierBlockFour) +
-          paddedUInt32(block0 - tierBlockThree) +
-          paddedUInt32(block0 - tierBlockTwo) +
-          paddedUInt32(block0 - tierBlockOne)
+          paddedUInt32(timestamp0 - tierTimestampFour) +
+          paddedUInt32(timestamp0 - tierTimestampThree) +
+          paddedUInt32(timestamp0 - tierTimestampTwo) +
+          paddedUInt32(timestamp0 - tierTimestampOne)
       )
     );
 
@@ -1158,6 +1170,8 @@ describe("EmissionsERC20", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
+    const constants = [readWriteTier.address, Util.NEVER];
+    const valTierAddr = op(Opcode.CONSTANT, 0);
     const valNever = op(Opcode.CONSTANT, 1);
 
     const emissionsERC20 = await emissionsDeploy(
@@ -1173,38 +1187,40 @@ describe("EmissionsERC20", async function () {
         },
         vmStateConfig: {
           sources: [
+            // prettier-ignore
             concat([
-              valNever,
-              op(Opcode.BLOCK_NUMBER),
-              op(
-                Opcode.UPDATE_BLOCKS_FOR_TIER_RANGE,
-                tierRange(Tier.ZERO, Tier.EIGHT)
-              ),
-              op(Opcode.CONSTANT, 0),
-              op(Opcode.CONTEXT),
-              op(Opcode.REPORT),
+                  valNever,
+                  op(Opcode.BLOCK_TIMESTAMP),
+                op(
+                  Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
+                  tierRange(Tier.ZERO, Tier.EIGHT)
+                ),
+                  valTierAddr,
+                  op(Opcode.CONTEXT),
+                op(Opcode.ITIERV2_REPORT),
               op(Opcode.SATURATING_DIFF),
             ]),
           ],
-          constants: [readWriteTier.address, Util.NEVER],
+          constants,
         },
       }
     );
 
-    const setTierBlock = (await ethers.provider.getBlockNumber()) + 1;
     await readWriteTier.setTier(claimant.address, Tier.EIGHT, []);
+    const setTierTimestamp = await getBlockTimestamp();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    const calculationBlock = await ethers.provider.getBlockNumber();
     const diffResult = await emissionsERC20.calculateClaim(claimant.address);
+    const calculationTimestamp = await getBlockTimestamp();
 
     const expectedDiff = paddedUInt256(
       ethers.BigNumber.from(
-        "0x" + paddedUInt32(calculationBlock - setTierBlock).repeat(8)
+        "0x" + paddedUInt32(calculationTimestamp - setTierTimestamp).repeat(8)
       )
     );
 
+    assert(!diffResult.isZero(), "diff result was zero");
     assert(
       diffResult.eq(expectedDiff),
       `wrong diff result
@@ -1213,7 +1229,7 @@ describe("EmissionsERC20", async function () {
     );
   });
 
-  it("should record the latest claim block as a tier report", async function () {
+  it("should record the latest claim timestamp for each slot in a tier report", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
@@ -1242,29 +1258,23 @@ describe("EmissionsERC20", async function () {
       }
     );
 
-    const claimBlockNumber = (await ethers.provider.getBlockNumber()) + 1;
-
     await emissionsERC20
       .connect(claimant)
       .claim(
         claimant.address,
         hexlify([...Buffer.from("Custom claim message")])
       );
+    const claimTimestamp = await getBlockTimestamp();
 
     const expectedReport = paddedUInt256(
-      ethers.BigNumber.from("0x" + paddedUInt32(claimBlockNumber).repeat(8))
+      ethers.BigNumber.from("0x" + paddedUInt32(claimTimestamp).repeat(8))
     );
 
     const actualReport = paddedUInt256(
-      await emissionsERC20.report(claimant.address)
+      await emissionsERC20.report(claimant.address, [])
     );
 
-    assert(
-      actualReport === expectedReport,
-      `wrong emissions claim report
-      expected  ${expectedReport}
-      actual    ${actualReport}`
-    );
+    compareTierReports(expectedReport, actualReport, 0);
   });
 
   it("should allow delegated claims when flag set to true", async function () {

@@ -26,8 +26,13 @@ export const paddedUInt256 = (report: BigNumber): string => {
   return "0x" + report.toHexString().substring(2).padStart(64, "0");
 };
 
-export const paddedUInt32 = (number: number | BytesLike | Hexable): string => {
-  if (ethers.BigNumber.from(number).gt(max_uint32)) {
+export const paddedUInt32 = (
+  number: number | BytesLike | Hexable | BigNumber
+): string => {
+  const value = ethers.BigNumber.isBigNumber(number)
+    ? number
+    : ethers.BigNumber.from(number);
+  if (value.gt(max_uint32)) {
     throw new Error(`${number} exceeds max uint32`);
   }
   return hexlify(number).substring(2).padStart(8, "0");

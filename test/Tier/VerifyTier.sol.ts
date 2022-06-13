@@ -5,6 +5,7 @@ import type { VerifyTier } from "../../typechain/VerifyTier";
 import type { Verify } from "../../typechain/Verify";
 import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
+import { getBlockTimestamp } from "../../utils";
 
 describe("VerifyTier", async function () {
   it("should correctly verify tier", async function () {
@@ -44,7 +45,7 @@ describe("VerifyTier", async function () {
       verifier.address
     );
 
-    const tierReportNil = await verifyTier.report(signer1.address);
+    const tierReportNil = await verifyTier.report(signer1.address, []);
     assert(
       tierReportNil.eq(Util.max_uint256),
       "Nil status did not return max uint256"
@@ -57,7 +58,7 @@ describe("VerifyTier", async function () {
 
     // Add
     await verify.connect(signer1).add(evidenceAdd);
-    const tierReportAdded = await verifyTier.report(signer1.address);
+    const tierReportAdded = await verifyTier.report(signer1.address, []);
     assert(
       tierReportAdded.eq(Util.max_uint256),
       "Added status did not return max uint256"
@@ -67,13 +68,13 @@ describe("VerifyTier", async function () {
     await verify
       .connect(verifier)
       .approve([{ account: signer1.address, data: evidenceApprove }]);
-    const blockApproved = await ethers.provider.getBlockNumber();
+    const timeApproved = await getBlockTimestamp();
     const tierReportApprovedActual = Util.zeroPad32(
-      await verifyTier.report(signer1.address)
+      await verifyTier.report(signer1.address, [])
     );
     const tierReportApprovedExpected =
       "0x" +
-      Util.zeroPad4(ethers.BigNumber.from(blockApproved)).slice(2).repeat(8);
+      Util.zeroPad4(ethers.BigNumber.from(timeApproved)).slice(2).repeat(8);
     assert(
       tierReportApprovedActual === tierReportApprovedExpected,
       `Approved status did not return correct report
@@ -85,7 +86,7 @@ describe("VerifyTier", async function () {
     await verify
       .connect(verifier)
       .ban([{ account: signer1.address, data: evidenceBan }]);
-    const tierReportBanned = await verifyTier.report(signer1.address);
+    const tierReportBanned = await verifyTier.report(signer1.address, []);
     assert(
       tierReportBanned.eq(Util.max_uint256),
       "Banned status did not return max uint256"
@@ -95,7 +96,7 @@ describe("VerifyTier", async function () {
     await verify
       .connect(verifier)
       .remove([{ account: signer1.address, data: evidenceRemove }]);
-    const tierReportRemoved = await verifyTier.report(signer1.address);
+    const tierReportRemoved = await verifyTier.report(signer1.address, []);
     assert(
       tierReportRemoved.eq(Util.max_uint256),
       "Nil status (removed) did not return max uint256"

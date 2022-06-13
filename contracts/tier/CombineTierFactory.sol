@@ -3,8 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Factory} from "../factory/Factory.sol";
-import {CombineTier} from "./CombineTier.sol";
-import {StateConfig} from "../vm/VMStateBuilder.sol";
+import {CombineTier, CombineTierConfig} from "./CombineTier.sol";
 
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.
@@ -27,9 +26,12 @@ contract CombineTierFactory is Factory {
         override
         returns (address)
     {
-        StateConfig memory stateConfig_ = abi.decode(data_, (StateConfig));
+        CombineTierConfig memory config_ = abi.decode(
+            data_,
+            (CombineTierConfig)
+        );
         address clone_ = Clones.clone(implementation);
-        CombineTier(clone_).initialize(stateConfig_);
+        CombineTier(clone_).initialize(config_);
         return clone_;
     }
 
@@ -38,10 +40,10 @@ contract CombineTierFactory is Factory {
     /// parameters are already encoded.
     ///
     /// @return New `CombineTier` child contract address.
-    function createChildTyped(StateConfig calldata stateConfig_)
+    function createChildTyped(CombineTierConfig calldata config_)
         external
         returns (CombineTier)
     {
-        return CombineTier(this.createChild(abi.encode(stateConfig_)));
+        return CombineTier(this.createChild(abi.encode(config_)));
     }
 }

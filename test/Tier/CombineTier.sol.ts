@@ -2,7 +2,13 @@ import * as Util from "../../utils";
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import { op, paddedUInt32, paddedUInt256 } from "../../utils";
+import {
+  op,
+  paddedUInt32,
+  paddedUInt256,
+  getBlockTimestamp,
+  timewarp,
+} from "../../utils";
 import type { Contract } from "ethers";
 
 import type { CombineTier } from "../../typechain/CombineTier";
@@ -23,43 +29,114 @@ enum Tier {
 export const Opcode = Util.AllStandardOps;
 
 describe("CombineTier", async function () {
-  it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block number", async () => {
+  const CONST_REPORT_TIME_FOR_TIER = 123;
+
+  it("should support returning report time for tier using VM script (e.g. constant timestamp value)", async () => {
+    const signers = await ethers.getSigners();
+
+    const combineTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [
+          Util.numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80]),
+          CONST_REPORT_TIME_FOR_TIER, // just return a constant value
+        ],
+      },
+    })) as CombineTier & Contract;
+
+    const timeForTier = await combineTier.reportTimeForTier(
+      signers[1].address,
+      Tier.FIVE, // doesn't matter what tier as we return a constant
+      []
+    );
+
+    assert(
+      timeForTier.eq(CONST_REPORT_TIME_FOR_TIER),
+      `wrong timestamp
+      expected  ${CONST_REPORT_TIME_FOR_TIER}
+      got       ${timeForTier}`
+    );
+  });
+
+  it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    // block in the past
-    const block0 = (await ethers.provider.getBlockNumber()) - 1;
-    // block in the future
-    const block1 = (await ethers.provider.getBlockNumber()) + 100;
+    // timestamp in the past
+    const timestamp0 = (await getBlockTimestamp()) - 1;
+    // timestamp in the future
+    const timestamp1 = (await getBlockTimestamp()) + 100;
+
+    const futureTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [
+          Util.numArrayToReport([
+            timestamp0,
+            timestamp0,
+            timestamp1,
+            timestamp1,
+            timestamp0,
+            timestamp0,
+            timestamp1,
+            timestamp1,
+          ]),
+          CONST_REPORT_TIME_FOR_TIER,
+        ],
+      },
+    })) as CombineTier & Contract;
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
 
     const constants = [
-      Util.blockNumbersToReport([
-        block0,
-        block0,
-        block1,
-        block1,
-        block0,
-        block0,
-        block1,
-        block1,
-      ]),
-      Util.ALWAYS,
-      Util.NEVER,
+      ethers.BigNumber.from(futureTier.address),
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
-    const vFuture = op(Opcode.CONSTANT, 0);
-    const vAlways = op(Opcode.CONSTANT, 1);
-    const vNever = op(Opcode.CONSTANT, 2);
+    // prettier-ignore
+    const vFuture = concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONTEXT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
+    ]);
+    // prettier-ignore
+    const vAlways = concat([
+        op(Opcode.CONSTANT, 1),
+        op(Opcode.CONTEXT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
+    ]);
+    // prettier-ignore
+    const vNever = concat([
+        op(Opcode.CONSTANT, 2),
+        op(Opcode.CONTEXT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
+    ]);
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           vFuture,
           vAlways,
           vNever,
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 3)
@@ -67,58 +144,102 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 3,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 3)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `did not correctly combine reports with every and first selector where first report contains tier values which are greater than block number
+      `did not correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
   });
 
-  it("should correctly combine reports with any and first selector where first report contains tier values which are greater than block number", async () => {
+  it("should correctly combine reports with any and first selector where first report contains tier values which are greater than block timestamp", async () => {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
 
-    await Util.createEmptyBlock(5);
+    await timewarp(5);
 
-    // block in the past
-    const block0 = (await ethers.provider.getBlockNumber()) - 1;
-    // block in the future
-    const block1 = (await ethers.provider.getBlockNumber()) + 100;
+    // timestamp in the past
+    const timestamp0 = (await getBlockTimestamp()) - 1;
+    // timestamp in the future
+    const timestamp1 = (await getBlockTimestamp()) + 100;
+
+    const futureTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [
+          Util.numArrayToReport([
+            timestamp0,
+            timestamp0,
+            timestamp1,
+            timestamp1,
+            timestamp0,
+            timestamp0,
+            timestamp1,
+            timestamp1,
+          ]),
+          CONST_REPORT_TIME_FOR_TIER,
+        ],
+      },
+    })) as CombineTier & Contract;
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
 
     const constants = [
-      Util.blockNumbersToReport([
-        block0,
-        block0,
-        block1,
-        block1,
-        block0,
-        block0,
-        block1,
-        block1,
-      ]),
-      Util.ALWAYS,
-      Util.NEVER,
+      ethers.BigNumber.from(futureTier.address),
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
-    const vFuture = op(Opcode.CONSTANT, 0);
-    const vAlways = op(Opcode.CONSTANT, 1);
-    const vNever = op(Opcode.CONSTANT, 2);
+    // prettier-ignore
+    const vFuture = concat([
+        op(Opcode.CONSTANT, 0),
+        op(Opcode.CONTEXT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
+    ]);
+    // prettier-ignore
+    const vAlways = concat([
+        op(Opcode.CONSTANT, 1),
+        op(Opcode.CONTEXT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
+    ]);
+    // prettier-ignore
+    const vNever = concat([
+        op(Opcode.CONSTANT, 2),
+        op(Opcode.CONTEXT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
+    ]);
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           vFuture,
           vAlways,
           vNever,
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 3)
@@ -126,25 +247,28 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 3,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 3)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
-    const expected = Util.blockNumbersToReport([
-      block0,
-      block0,
+    const expected = Util.numArrayToReport([
+      timestamp0,
+      timestamp0,
       0,
       0,
-      block0,
-      block0,
+      timestamp0,
+      timestamp0,
       0,
       0,
     ]);
     assert(
       result.eq(expected),
-      `did not correctly combine reports with any and first selector where first report contains tier values which are greater than block number
+      `did not correctly combine reports with any and first selector where first report contains tier values which are greater than block timestamp
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -155,13 +279,36 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const constants = [Util.ALWAYS, Util.NEVER];
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
+    ];
 
     // prettier-ignore
-    const source = concat([
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+    const sourceReport = concat([
+            op(Opcode.CONSTANT, 0),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+            op(Opcode.CONSTANT, 1),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
@@ -169,19 +316,22 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_LEFT succeeds
 
-    const expected = 0x00; // success, left report's block number for each tier
+    const expected = 0x00; // success, left report's block timestamp for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and first selector
+      `wrong block timestamp preserved with tierwise any and first selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -192,13 +342,36 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const constants = [Util.ALWAYS, Util.NEVER];
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
+    ];
 
     // prettier-ignore
-    const source = concat([
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+    const sourceReport = concat([
+            op(Opcode.CONSTANT, 0),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+            op(Opcode.CONSTANT, 1),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
@@ -206,19 +379,22 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_NEW succeeds
 
-    const expected = 0x00; // success, newest block number before current block for each tier
+    const expected = 0x00; // success, newest block timestamp before current block for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and max selector
+      `wrong block timestamp preserved with tierwise any and max selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -229,13 +405,36 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const constants = [Util.ALWAYS, Util.NEVER];
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
+    ];
 
     // prettier-ignore
-    const source = concat([
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+    const sourceReport = concat([
+            op(Opcode.CONSTANT, 0),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+            op(Opcode.CONSTANT, 1),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
@@ -243,19 +442,22 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, Always has blocks which are lte current block
     // therefore, OR_OLD succeeds
 
-    const expected = 0x00; // success, oldest block number for each tier
+    const expected = 0x00; // success, oldest block timestamp for each tier
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise any and min selector
+      `wrong block timestamp preserved with tierwise any and min selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -266,13 +468,36 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const constants = [Util.ALWAYS, Util.NEVER];
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
+    ];
 
     // prettier-ignore
-    const source = concat([
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+    const sourceReport = concat([
+            op(Opcode.CONSTANT, 0),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+            op(Opcode.CONSTANT, 1),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
@@ -280,11 +505,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, only Always has blocks which are lte current block
     // therefore, AND_LEFT fails
@@ -292,7 +520,7 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise every and first selector
+      `wrong block timestamp preserved with tierwise every and first selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -303,13 +531,36 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const constants = [Util.ALWAYS, Util.NEVER];
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
+    ];
 
     // prettier-ignore
-    const source = concat([
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+    const sourceReport = concat([
+            op(Opcode.CONSTANT, 0),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+            op(Opcode.CONSTANT, 1),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
@@ -317,11 +568,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, only Always has blocks which are lte current block
     // therefore, AND_OLD fails
@@ -329,7 +583,7 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise every and min selector
+      `wrong block timestamp preserved with tierwise every and min selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -340,13 +594,36 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const constants = [Util.ALWAYS, Util.NEVER];
+    const alwaysTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+    const neverTier = (await Util.combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
+    })) as CombineTier & Contract;
+
+    const constants = [
+      ethers.BigNumber.from(alwaysTier.address),
+      ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
+    ];
 
     // prettier-ignore
-    const source = concat([
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.BLOCK_NUMBER),
+    const sourceReport = concat([
+            op(Opcode.CONSTANT, 0),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+            op(Opcode.CONSTANT, 1),
+            op(Opcode.CONTEXT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
@@ -354,11 +631,14 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[0].address);
+    const result = await combineTier.report(signers[1].address, []);
 
     // for each tier, only Always has blocks which are lte current block
     // therefore, AND_NEW fails
@@ -366,7 +646,7 @@ describe("CombineTier", async function () {
     const expected = Util.max_uint256; // 'false'
     assert(
       result.eq(expected),
-      `wrong block number preserved with tierwise every and max selector
+      `wrong block timestamp preserved with tierwise every and max selector
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
@@ -378,40 +658,51 @@ describe("CombineTier", async function () {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [op(Opcode.CONSTANT, 0)],
-      constants: [Util.ALWAYS],
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.ALWAYS, CONST_REPORT_TIME_FOR_TIER],
+      },
     })) as CombineTier & Contract;
     const neverTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [op(Opcode.CONSTANT, 0)],
-      constants: [Util.NEVER],
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        constants: [Util.NEVER, CONST_REPORT_TIME_FOR_TIER],
+      },
     })) as CombineTier & Contract;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
       ethers.BigNumber.from(neverTier.address),
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
     const sourceAlwaysReport = concat([
         op(Opcode.CONSTANT, 0),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceNeverReport = concat([
         op(Opcode.CONSTANT, 1),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     const combineTierAlways = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceAlwaysReport],
-      constants,
+      combinedTiersLength: 1,
+      sourceConfig: {
+        sources: [sourceAlwaysReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
     const resultAlwaysReport = await combineTierAlways.report(
-      signers[1].address
+      signers[1].address,
+      []
     );
 
     const expectedAlwaysReport = 0;
@@ -423,11 +714,17 @@ describe("CombineTier", async function () {
     );
 
     const combineTierNever = (await Util.combineTierDeploy(signers[0], {
-      sources: [sourceNeverReport],
-      constants,
+      combinedTiersLength: 1,
+      sourceConfig: {
+        sources: [sourceNeverReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const resultNeverReport = await combineTierNever.report(signers[1].address);
+    const resultNeverReport = await combineTierNever.report(
+      signers[1].address,
+      []
+    );
 
     const expectedNeverReport = ethers.constants.MaxUint256;
     assert(
@@ -443,14 +740,17 @@ describe("CombineTier", async function () {
 
     const signers = await ethers.getSigners();
 
-    const source = concat([op(Opcode.CONTEXT, 0)]);
+    const sourceReport = concat([op(Opcode.CONTEXT, 0)]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants: [],
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 0)],
+        constants: [CONST_REPORT_TIME_FOR_TIER],
+      },
     })) as CombineTier & Contract;
 
-    const result = await combineTier.report(signers[1].address);
+    const result = await combineTier.report(signers[1].address, []);
     const expected = signers[1].address;
     assert(
       result.eq(expected),
@@ -476,17 +776,18 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.min, 2)
@@ -494,48 +795,51 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address)
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -546,18 +850,18 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address)
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -568,23 +872,23 @@ describe("CombineTier", async function () {
     );
 
     const resultAndOld = paddedUInt256(
-      await combineTier.report(signers[0].address)
+      await combineTier.report(signers[1].address, [])
     );
     const expectedAndOld = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
       resultAndOld === expectedAndOld,
-      `wrong block number preserved with tierwise every and min selector
+      `wrong block timestamp preserved with tierwise every and min selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndOld}
@@ -608,17 +912,18 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)
@@ -626,48 +931,51 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address)
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
 
@@ -679,18 +987,18 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address)
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
 
@@ -702,23 +1010,23 @@ describe("CombineTier", async function () {
     );
 
     const resultAndNew = paddedUInt256(
-      await combineTier.report(signers[0].address)
+      await combineTier.report(signers[1].address, [])
     );
     const expectedAndNew = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
       resultAndNew === expectedAndNew,
-      `wrong block number preserved with tierwise every and max selector
+      `wrong block timestamp preserved with tierwise every and max selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndNew}
@@ -742,17 +1050,18 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.first, 2)
@@ -760,48 +1069,51 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address)
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -812,18 +1124,18 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address)
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -834,12 +1146,12 @@ describe("CombineTier", async function () {
     );
 
     const resultAndLeft = paddedUInt256(
-      await combineTier.report(signers[0].address)
+      await combineTier.report(signers[1].address, [])
     );
     const expectedAndLeft = leftReport;
     assert(
       resultAndLeft === expectedAndLeft,
-      `wrong block number preserved with tierwise every and first selector
+      `wrong block timestamp preserved with tierwise every and first selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedAndLeft}
@@ -863,17 +1175,18 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.min, 2)
@@ -881,48 +1194,51 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address)
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -933,18 +1249,18 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address)
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -955,24 +1271,24 @@ describe("CombineTier", async function () {
     );
 
     const resultOrOld = paddedUInt256(
-      await combineTier.report(signers[0].address)
+      await combineTier.report(signers[1].address, [])
     );
     const expectedOrOld = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
       resultOrOld === expectedOrOld,
-      `wrong block number preserved with tierwise any and min selector
+      `wrong block timestamp preserved with tierwise any and min selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedOrOld}
@@ -996,17 +1312,18 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)
@@ -1014,48 +1331,51 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address)
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -1066,18 +1386,18 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address)
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -1088,24 +1408,24 @@ describe("CombineTier", async function () {
     );
 
     const resultOrNew = paddedUInt256(
-      await combineTier.report(signers[0].address)
+      await combineTier.report(signers[1].address, [])
     );
     const expectedOrNew = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
       resultOrNew === expectedOrNew,
-      `wrong block number preserved with tierwise any and max selector
+      `wrong block timestamp preserved with tierwise any and max selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedOrNew}
@@ -1129,17 +1449,18 @@ describe("CombineTier", async function () {
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
       ethers.BigNumber.from(readWriteTierLeft.address), // left report
+      CONST_REPORT_TIME_FOR_TIER,
     ];
 
     // prettier-ignore
-    const source = concat([
+    const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.ITIERV2_REPORT),
+        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.first, 2)
@@ -1147,48 +1468,51 @@ describe("CombineTier", async function () {
     ]);
 
     const combineTier = (await Util.combineTierDeploy(signers[0], {
-      sources: [source],
-      constants,
+      combinedTiersLength: 2,
+      sourceConfig: {
+        sources: [sourceReport, op(Opcode.CONSTANT, 2)],
+        constants,
+      },
     })) as CombineTier & Contract;
 
-    const startBlock = await ethers.provider.getBlockNumber();
+    const startTimestamp = await getBlockTimestamp();
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.ONE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.TWO, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.THREE, []);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierLeft.setTier(signers[1].address, Tier.SIX, []);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FOUR, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.FIVE, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.SIX, []);
+    await readWriteTierRight.setTier(signers[1].address, Tier.EIGHT, []);
 
     const rightReport = paddedUInt256(
-      await readWriteTierRight.report(signers[0].address)
+      await readWriteTierRight.report(signers[1].address, [])
     );
     const expectedRightReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 12) +
-          paddedUInt32(startBlock + 11) +
-          paddedUInt32(startBlock + 10) +
-          paddedUInt32(startBlock + 3) +
-          paddedUInt32(startBlock + 2) +
-          paddedUInt32(startBlock + 1)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 12) +
+          paddedUInt32(startTimestamp + 11) +
+          paddedUInt32(startTimestamp + 10) +
+          paddedUInt32(startTimestamp + 3) +
+          paddedUInt32(startTimestamp + 2) +
+          paddedUInt32(startTimestamp + 1)
       )
     );
     assert(
@@ -1199,18 +1523,18 @@ describe("CombineTier", async function () {
     );
 
     const leftReport = paddedUInt256(
-      await readWriteTierLeft.report(signers[0].address)
+      await readWriteTierLeft.report(signers[1].address, [])
     );
     const expectedLeftReport = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
@@ -1221,24 +1545,24 @@ describe("CombineTier", async function () {
     );
 
     const resultOrLeft = paddedUInt256(
-      await combineTier.report(signers[0].address)
+      await combineTier.report(signers[1].address, [])
     );
     const expectedOrLeft = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 13) +
-          paddedUInt32(startBlock + 9) +
-          paddedUInt32(startBlock + 8) +
-          paddedUInt32(startBlock + 7) +
-          paddedUInt32(startBlock + 6) +
-          paddedUInt32(startBlock + 5) +
-          paddedUInt32(startBlock + 4)
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 13) +
+          paddedUInt32(startTimestamp + 9) +
+          paddedUInt32(startTimestamp + 8) +
+          paddedUInt32(startTimestamp + 7) +
+          paddedUInt32(startTimestamp + 6) +
+          paddedUInt32(startTimestamp + 5) +
+          paddedUInt32(startTimestamp + 4)
       )
     );
     assert(
       resultOrLeft === expectedOrLeft,
-      `wrong block number preserved with tierwise any and first selector
+      `wrong block timestamp preserved with tierwise any and first selector
       left      ${leftReport}
       right     ${rightReport}
       expected  ${expectedOrLeft}

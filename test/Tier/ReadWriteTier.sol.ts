@@ -7,9 +7,10 @@ import type {
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   tierReport,
-  blockNumbersToReport,
+  numArrayToReport,
   assertError,
   getEventArgs,
+  getBlockTimestamp,
 } from "../../utils";
 import type { Contract } from "ethers";
 
@@ -50,11 +51,11 @@ const setup = async (): Promise<
   return [signers, readWriteTier];
 };
 
-describe("Account tier", async function () {
+describe("ReadWriteTier", async function () {
   it("should support setting tier directly", async () => {
     const [signers, readWriteTier] = await setup();
 
-    const report0 = await readWriteTier.report(signers[1].address);
+    const report0 = await readWriteTier.report(signers[1].address, []);
     const expectedReport0 =
       "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
     assert(
@@ -68,13 +69,14 @@ describe("Account tier", async function () {
       .connect(signers[1])
       .setTier(signers[1].address, Tier.ONE, []);
 
-    const report1 = await readWriteTier.report(signers[1].address);
-    const currentBlockHex1 = ethers.BigNumber.from(
-      await ethers.provider.getBlockNumber()
+    const report1 = await readWriteTier.report(signers[1].address, []);
+    const currentTimestampHex1 = ethers.BigNumber.from(
+      await getBlockTimestamp()
     )
       .toHexString()
       .slice(2);
-    const history1 = "0".repeat(8 - currentBlockHex1.length) + currentBlockHex1;
+    const history1 =
+      "0".repeat(8 - currentTimestampHex1.length) + currentTimestampHex1;
     const expectedReport1 =
       "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff" + history1;
 
@@ -89,7 +91,7 @@ describe("Account tier", async function () {
   it("will return uninitialized report if nothing set", async function () {
     const [signers, readWriteTier] = await setup();
     for (const signer of signers) {
-      const status = await readWriteTier.report(signer.address);
+      const status = await readWriteTier.report(signer.address, []);
       assert(ethers.BigNumber.from(uninitializedReport).eq(status));
     }
   });
@@ -108,18 +110,18 @@ describe("Account tier", async function () {
   it("will return tier if set", async function () {
     const [signers, readWriteTier] = await setup();
     const expected = tierReport(uninitializedReport);
-    let expectedReport = blockNumbersToReport(expected);
+    let expectedReport = numArrayToReport(expected);
     let i = 0;
     for (const tier of tiers) {
       if (tier) {
         await readWriteTier.setTier(signers[0].address, tier, []);
-        expected[i] = await ethers.provider.getBlockNumber();
-        expectedReport = blockNumbersToReport(expected);
+        expected[i] = await getBlockTimestamp();
+        expectedReport = numArrayToReport(expected);
         i++;
       }
       const actualReport =
         "0x" +
-        (await readWriteTier.report(signers[0].address))
+        (await readWriteTier.report(signers[0].address, []))
           .toHexString()
           .substring(2)
           .padStart(64, "0");
@@ -136,7 +138,7 @@ describe("Account tier", async function () {
   it("will fill multiple tiers at a time", async function () {
     const [signers, readWriteTier] = await setup();
     let expected = tierReport(uninitializedReport);
-    let expectedReport = blockNumbersToReport(expected);
+    let expectedReport = numArrayToReport(expected);
     let o = 0;
     let n = 0;
     while (o < tiers.length) {
@@ -146,18 +148,18 @@ describe("Account tier", async function () {
       );
 
       await readWriteTier.setTier(signers[0].address, n, []);
-      const block = await ethers.provider.getBlockNumber();
+      const block = await getBlockTimestamp();
       expected = expected.map((item: number, index: number) =>
         n - 1 >= index && index > o - 1 && n != o ? block : item
       );
-      expectedReport = blockNumbersToReport(expected);
+      expectedReport = numArrayToReport(expected);
       if (expectedReport.eq(uninitializedReport)) {
         expected[0] = block;
-        expectedReport = blockNumbersToReport(expected);
+        expectedReport = numArrayToReport(expected);
       }
       const actualReport =
         "0x" +
-        (await readWriteTier.report(signers[0].address))
+        (await readWriteTier.report(signers[0].address, []))
           .toHexString()
           .substring(2)
           .padStart(64, "0");
@@ -195,12 +197,12 @@ describe("Account tier", async function () {
     // change the status to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
-    const currentBlock = await readWriteTier.provider.getBlockNumber();
-    assert(report[0] === currentBlock);
-    assert(report[1] === currentBlock);
-    assert(report[2] === currentBlock);
+    const currentTimestamp = await getBlockTimestamp();
+    assert(report[0] === currentTimestamp);
+    assert(report[1] === currentTimestamp);
+    assert(report[2] === currentTimestamp);
   });
 
   it("will output the previous tier and the new updated tier", async function () {
@@ -223,14 +225,14 @@ describe("Account tier", async function () {
   it("will return the previous block number at the lower tier if it is updated to a higher tier", async function () {
     const [signers, readWriteTier] = await setup();
     // change the status to one
-    const tx = await readWriteTier.setTier(signers[0].address, 1, []);
-    const previousBlock = tx.blockNumber;
+    await readWriteTier.setTier(signers[0].address, 1, []);
+    const previousTimestamp = await getBlockTimestamp();
     // change the status to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
-    assert(report[0] === previousBlock);
+    assert(report[0] === previousTimestamp);
   });
 
   it("will change the tier from higher to lower", async function () {
@@ -253,27 +255,27 @@ describe("Account tier", async function () {
   it("will return the previous block number at the current level if updating from a higher to a lower tier", async function () {
     const [signers, readWriteTier] = await setup();
     // change the tier to three
-    const tx = await readWriteTier.setTier(signers[0].address, 3, []);
-    const previousBlock = tx.blockNumber;
+    await readWriteTier.setTier(signers[0].address, 3, []);
+    const previousTimestamp = await getBlockTimestamp();
     // change the tier to one
     await readWriteTier.setTier(signers[0].address, 1, []);
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
-    assert(report[0] === previousBlock);
+    assert(report[0] === previousTimestamp);
   });
 
   it("will be possible to know the previous tier from the current tier", async function () {
     const [signers, readWriteTier] = await setup();
     // change the tier to one
     await readWriteTier.setTier(signers[0].address, 1, []);
-    const previousBlock = await readWriteTier.provider.getBlockNumber();
+    const previousTimestamp = await getBlockTimestamp();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3, []);
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
-    assert(report[0] === previousBlock);
+    assert(report[0] === previousTimestamp);
   });
 
   it("will return the original block number if tier 1 is called again", async function () {
@@ -284,11 +286,11 @@ describe("Account tier", async function () {
       Math.max(1, Math.floor(Math.random() * tiers.length)),
       []
     );
-    const originalBlock = await readWriteTier.provider.getBlockNumber();
+    const originalBlock = await getBlockTimestamp();
     // change the tier to one
     await readWriteTier.setTier(signers[0].address, 1, []);
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
     assert(report[0] === originalBlock);
   });
@@ -297,7 +299,7 @@ describe("Account tier", async function () {
     const [signers, readWriteTier] = await setup();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3, []);
-    const originalBlock = await readWriteTier.provider.getBlockNumber();
+    const originalBlock = await getBlockTimestamp();
 
     // change the tier to two
     await readWriteTier.setTier(signers[0].address, 2, []);
@@ -305,7 +307,7 @@ describe("Account tier", async function () {
     await readWriteTier.setTier(signers[0].address, 1, []);
 
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
     assert(report[2] === uninitializedStatusAsNum);
     assert(report[1] === uninitializedStatusAsNum);
@@ -321,7 +323,7 @@ describe("Account tier", async function () {
     await readWriteTier.setTier(signers[0].address, 4, []);
 
     // check with the contract
-    const status = await readWriteTier.report(signers[0].address);
+    const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());
     assert(report[0] === report[1]);
     assert(report[1] < report[2]);

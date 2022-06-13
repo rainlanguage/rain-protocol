@@ -30,5 +30,12 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  mocha: {
+    // explicit test configuration, just in case
+    asyncOnly: true,
+    bail: false,
+    parallel: false,
+    timeout: 0,
+  },
 };
 export default config;

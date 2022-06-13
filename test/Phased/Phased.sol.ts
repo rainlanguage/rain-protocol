@@ -6,8 +6,8 @@ import type {
   PhaseScheduledEvent,
 } from "../../typechain/PhasedTest";
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
-import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { Contract } from "ethers";
+import { getBlockTimestamp, timewarp } from "../../utils";
 
 enum Phase {
   ZERO,
@@ -23,7 +23,7 @@ enum Phase {
 
 const max_uint32 = ethers.BigNumber.from("0xffffffff");
 
-type PhaseBlocks = [
+type PhaseTimes = [
   number,
   number,
   number,
@@ -35,14 +35,14 @@ type PhaseBlocks = [
 ];
 
 describe("Phased", async function () {
-  describe("Phase at block number calculates the correct phase for several block numbers", async function () {
-    it("should return highest attained phase even if several phases have the same block number", async function () {
+  describe("Phase at timestamp calculates the correct phase for several timestamps", async function () {
+    it("should return highest attained phase even if several phases have the same timestamp", async function () {
       this.timeout(0);
 
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const highestPhase = await phased.phaseAtBlockNumber(
+      const highestPhase = await phased.phaseAtTime(
         [1, 2, 2, 2, 2, 2, 2, 3],
         2
       );
@@ -50,13 +50,13 @@ describe("Phased", async function () {
       assert(highestPhase.eq(Phase.SEVEN));
     });
 
-    it("if every phase block is after the block number then phase zero is returned", async function () {
+    it("if every phase time is after the timestamp then phase zero is returned", async function () {
       this.timeout(0);
 
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const highestPhase = await phased.phaseAtBlockNumber(
+      const highestPhase = await phased.phaseAtTime(
         [2, 3, 4, 5, 6, 7, 8, 9],
         1
       );
@@ -64,13 +64,13 @@ describe("Phased", async function () {
       assert(highestPhase.eq(Phase.ZERO));
     });
 
-    it("if every phase block is before the block number then phase EIGHT is returned", async function () {
+    it("if every phase time is before the timestamp then phase EIGHT is returned", async function () {
       this.timeout(0);
 
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const highestPhase = await phased.phaseAtBlockNumber(
+      const highestPhase = await phased.phaseAtTime(
         [1, 2, 3, 4, 5, 6, 7, 8],
         9
       );
@@ -80,7 +80,7 @@ describe("Phased", async function () {
   });
 
   describe("Schedule next phase", async function () {
-    it("should have correct phase state (Phase X) in schedule phase hook, even if the next phase (Phase X + 1) has been set to the current block", async function () {
+    it("should have correct phase state (Phase X) in schedule phase hook, even if the next phase (Phase X + 1) has been set to the current timestamp", async function () {
       this.timeout(0);
 
       const phasedScheduleTest = (await Util.basicDeploy(
@@ -97,31 +97,23 @@ describe("Phased", async function () {
 
       assert(
         (await phasedScheduleTest.currentPhase()).eq(Phase.ONE),
-        "wrong phase, should have scheduled change to Phase.ONE at this block"
+        "wrong phase, should have scheduled change to Phase.ONE at this timestamp"
       );
     });
 
     it("cannot schedule the next phase in the past", async function () {
       this.timeout(0);
 
-      const signers = await ethers.getSigners();
-
-      const reserve = (await Util.basicDeploy(
-        "ReserveToken",
-        {}
-      )) as ReserveToken & Contract;
-
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const pastBlock = await ethers.provider.getBlockNumber();
+      const pastTimestamp = await getBlockTimestamp();
 
-      // empty block
-      await reserve.transfer(signers[0].address, 0);
+      await timewarp(1);
 
       await Util.assertError(
-        async () => await phased.testScheduleNextPhase(pastBlock),
-        "NEXT_BLOCK_PAST",
+        async () => await phased.testScheduleNextPhase(pastTimestamp),
+        "NEXT_TIME_PAST",
         "wrongly scheduled next phase in the past"
       );
     });
@@ -132,34 +124,34 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const firstBlock = await ethers.provider.getBlockNumber();
+      const timestamp0 = await getBlockTimestamp();
 
-      await phased.testScheduleNextPhase(firstBlock + 10);
+      await phased.testScheduleNextPhase(timestamp0 + 10);
 
       await Util.assertError(
-        async () => await phased.testScheduleNextPhase(firstBlock + 15),
-        "NEXT_BLOCK_SET",
+        async () => await phased.testScheduleNextPhase(timestamp0 + 15),
+        "NEXT_TIME_SET",
         "wrongly scheduled next phase which was already scheduled"
       );
     });
 
-    it("the next phase block must not be uninitialized", async function () {
+    it("the next phase time must not be uninitialized", async function () {
       this.timeout(0);
 
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const firstBlock = await ethers.provider.getBlockNumber();
+      const timestamp0 = await getBlockTimestamp();
 
-      await phased.testScheduleNextPhase(firstBlock + 10);
+      await phased.testScheduleNextPhase(timestamp0 + 10);
 
       assert(
-        !max_uint32.eq(await phased.phaseBlocks(0)),
-        "next phase block was uninitialized"
+        !max_uint32.eq(await phased.phaseTimes(0)),
+        "next phase time was uninitialized"
       );
       assert(
-        firstBlock + 10 === (await phased.phaseBlocks(0)),
-        "next phase block was wrong"
+        timestamp0 + 10 === (await phased.phaseTimes(0)),
+        "next phase time was wrong"
       );
     });
 
@@ -169,14 +161,14 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const firstBlock = await ethers.provider.getBlockNumber();
+      const timestamp0 = await getBlockTimestamp();
 
-      await phased.testScheduleNextPhase(firstBlock + 10);
+      await phased.testScheduleNextPhase(timestamp0 + 10);
 
       await Util.assertError(
-        async () => await phased.testScheduleNextPhase(firstBlock + 15),
-        "NEXT_BLOCK_SET",
-        "set a block which was already initialized; skipped a phase"
+        async () => await phased.testScheduleNextPhase(timestamp0 + 15),
+        "NEXT_TIME_SET",
+        "set a phase which was already initialized; skipped a phase"
       );
     });
 
@@ -186,14 +178,14 @@ describe("Phased", async function () {
       const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
         Contract;
 
-      const firstBlock = await ethers.provider.getBlockNumber();
+      const timestamp0 = await getBlockTimestamp();
 
-      await phased.testScheduleNextPhase(firstBlock + 1);
+      await phased.testScheduleNextPhase(timestamp0 + 1);
 
       await phased.toggleCondition(); // test method to turn on/off custom hook require
 
       await Util.assertError(
-        async () => await phased.testScheduleNextPhase(firstBlock + 3),
+        async () => await phased.testScheduleNextPhase(timestamp0 + 3),
         "CONDITION",
         "hook override could not be used to impose condition"
       );
@@ -205,60 +197,55 @@ describe("Phased", async function () {
 
     const signers = await ethers.getSigners();
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
       Contract;
 
     // check constants
 
-    const phaseBlocks0: PhaseBlocks = [0, 0, 0, 0, 0, 0, 0, 0];
+    const phaseTimes0: PhaseTimes = [0, 0, 0, 0, 0, 0, 0, 0];
 
     for (let i = 0; i < 8; i++) {
-      phaseBlocks0[i] = await phased.phaseBlocks(i);
+      phaseTimes0[i] = await phased.phaseTimes(i);
 
       assert(
-        max_uint32.eq(phaseBlocks0[i]),
-        `did not return max uint32 for phaseBlocks(${i})`
+        max_uint32.eq(phaseTimes0[i]),
+        `did not return max uint32 for phaseTimes(${i})`
       );
     }
 
     // pure functions behave correctly before any state changes occur
 
-    const pABN0 = await phased.phaseAtBlockNumber(
-      phaseBlocks0,
+    const pABN0 = await phased.phaseAtTime(
+      phaseTimes0,
       await ethers.provider.getBlockNumber()
     );
 
     assert(pABN0.eq(Phase.ZERO), "wrong initial phase");
 
     const bNFP0 = [
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.ZERO),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.ONE),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.TWO),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.THREE),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.FOUR),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.FIVE),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.SIX),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.SEVEN),
-      await phased.blockNumberForPhase(phaseBlocks0, Phase.EIGHT),
+      await phased.timeForPhase(phaseTimes0, Phase.ZERO),
+      await phased.timeForPhase(phaseTimes0, Phase.ONE),
+      await phased.timeForPhase(phaseTimes0, Phase.TWO),
+      await phased.timeForPhase(phaseTimes0, Phase.THREE),
+      await phased.timeForPhase(phaseTimes0, Phase.FOUR),
+      await phased.timeForPhase(phaseTimes0, Phase.FIVE),
+      await phased.timeForPhase(phaseTimes0, Phase.SIX),
+      await phased.timeForPhase(phaseTimes0, Phase.SEVEN),
+      await phased.timeForPhase(phaseTimes0, Phase.EIGHT),
     ];
 
-    bNFP0.forEach((blockNumber, index) => {
+    bNFP0.forEach((timestamp, index) => {
       if (index) {
         assert(
-          max_uint32.eq(blockNumber),
-          `phase block ${index - 1} should be uninitialised
-          expected ${max_uint32} got ${blockNumber}`
+          max_uint32.eq(timestamp),
+          `phase time ${index - 1} should be uninitialised
+          expected ${max_uint32} got ${timestamp}`
         );
       } else {
         assert(
-          blockNumber.eq(0),
-          `should always return zero block number for zero phase
-          expected ${0} got ${blockNumber}`
+          timestamp.eq(0),
+          `should always return zero timestamp for zero phase
+          expected ${0} got ${timestamp}`
         );
       }
     });
@@ -272,9 +259,9 @@ describe("Phased", async function () {
 
     // should schedule next phase
 
-    const block1 = (await ethers.provider.getBlockNumber()) + 1;
+    const timestamp1 = (await getBlockTimestamp()) + 1;
 
-    const schedule1Promise = phased.testScheduleNextPhase(block1);
+    const schedule1Promise = phased.testScheduleNextPhase(timestamp1);
 
     const event0 = (await Util.getEventArgs(
       await schedule1Promise,
@@ -284,26 +271,28 @@ describe("Phased", async function () {
 
     assert(event0.sender === signers[0].address, "wrong sender in event0");
     assert(event0.newPhase.eq(Phase.ONE), "wrong newPhase in event0");
-    assert(event0.scheduledBlock.eq(block1), "wrong scheduledBlock in event0");
+    assert(
+      event0.scheduledTime.eq(timestamp1),
+      "wrong scheduledTime in event0"
+    );
 
-    // empty block
-    await reserve.transfer(signers[0].address, 0);
+    await timewarp(1);
 
-    const phaseBlocks1: PhaseBlocks = [0, 0, 0, 0, 0, 0, 0, 0];
+    const phaseTimes1: PhaseTimes = [0, 0, 0, 0, 0, 0, 0, 0];
 
     for (let i = 0; i < 8; i++) {
-      phaseBlocks1[i] = await phased.phaseBlocks(i);
+      phaseTimes1[i] = await phased.phaseTimes(i);
 
       if (i) {
         assert(
-          max_uint32.eq(phaseBlocks1[i]),
-          `did not return max uint32 for phaseBlocks(${i})`
+          max_uint32.eq(phaseTimes1[i]),
+          `did not return max uint32 for phaseTimes(${i})`
         );
       } else {
         assert(
-          block1 === phaseBlocks1[i],
-          `did not return correct phase block for phase ${i + 1}
-          expected ${block1} got ${phaseBlocks1[i]}`
+          timestamp1 === phaseTimes1[i],
+          `did not return correct phase time for phase ${i + 1}
+          expected ${timestamp1} got ${phaseTimes1[i]}`
         );
       }
     }
@@ -317,11 +306,6 @@ describe("Phased", async function () {
     this.timeout(0);
 
     const signers = await ethers.getSigners();
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken & Contract;
 
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
       Contract;
@@ -343,11 +327,10 @@ describe("Phased", async function () {
     );
 
     // schedule next phase
-    const block1 = (await ethers.provider.getBlockNumber()) + 1;
-    await phased.testScheduleNextPhase(block1);
+    const timestamp1 = (await getBlockTimestamp()) + 1;
+    await phased.testScheduleNextPhase(timestamp1);
 
-    // empty block
-    await reserve.transfer(signers[0].address, 0);
+    await timewarp(1);
 
     // onlyPhase
     assert(await phased.runsOnlyPhase(Phase.ONE));

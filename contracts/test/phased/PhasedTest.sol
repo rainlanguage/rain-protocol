@@ -13,10 +13,10 @@ contract PhasedTest is Phased {
     }
 
     /// Exposes `schedulePhase` for testing.
-    /// @param phaseBlock_ As per `schedulePhase`.
-    function testScheduleNextPhase(uint256 phaseBlock_) external {
+    /// @param timestamp_ As per `schedulePhase`.
+    function testScheduleNextPhase(uint256 timestamp_) external {
         require(condition, "CONDITION");
-        schedulePhase(currentPhase() + 1, phaseBlock_);
+        schedulePhase(currentPhase() + 1, timestamp_);
     }
 
     /// This function wraps `onlyPhase` modifier, passing phase directly into

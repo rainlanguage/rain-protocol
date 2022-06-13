@@ -16,7 +16,7 @@ import type {
   StartEvent,
   TimeoutEvent,
 } from "../../typechain/Sale";
-import { AllStandardOps, op } from "../../utils";
+import { AllStandardOps, getBlockTimestamp, op } from "../../utils";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
@@ -4292,7 +4292,7 @@ describe("Sale", async function () {
     const {
       sender: sender1,
       newPhase,
-      scheduledBlock,
+      scheduledTime,
     } = (await Util.getEventArgs(
       txTimeout,
       "PhaseScheduled",
@@ -4304,8 +4304,8 @@ describe("Sale", async function () {
     );
     assert(newPhase.eq(Phase.FROZEN), "wrong token phase after timeout");
     assert(
-      scheduledBlock.eq(await ethers.provider.getBlockNumber()),
-      "expected scheduled block"
+      scheduledTime.eq(await getBlockTimestamp()),
+      "expected scheduled time"
     );
     // Sale is now functionally in a Fail state
     // Cannot start, end or buy from sale

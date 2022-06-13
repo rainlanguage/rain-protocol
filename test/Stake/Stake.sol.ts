@@ -11,6 +11,7 @@ import type {
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { hexlify } from "ethers/lib/utils";
+import { getBlockTimestamp } from "../../utils";
 
 let stakeFactoryFactory: ContractFactory,
   stakeFactory: StakeFactory & Contract,
@@ -108,14 +109,8 @@ describe("Stake", async function () {
 
     const thresholds = LEVELS;
 
-    const reportAlice = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
-    const reportBob = await stake.report(
-      bob.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const reportAlice = await stake.report(alice.address, thresholds);
+    const reportBob = await stake.report(bob.address, thresholds);
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
@@ -170,14 +165,8 @@ describe("Stake", async function () {
 
     const thresholds = LEVELS;
 
-    const reportAlice = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
-    const reportBob = await stake.report(
-      bob.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const reportAlice = await stake.report(alice.address, thresholds);
+    const reportBob = await stake.report(bob.address, thresholds);
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
@@ -232,14 +221,8 @@ describe("Stake", async function () {
 
     const thresholds = LEVELS;
 
-    const reportAlice = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
-    const reportBob = await stake.report(
-      bob.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const reportAlice = await stake.report(alice.address, thresholds);
+    const reportBob = await stake.report(bob.address, thresholds);
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
@@ -269,36 +252,30 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock0 = await ethers.provider.getBlockNumber();
+    const depositTimestamp0 = await getBlockTimestamp();
 
     const thresholds0 = LEVELS;
     const thresholds1 = [1500, 2500, 3500, 4500, 5500, 6500, 7500, 8500].map(
       (value) => ethers.BigNumber.from(value + Util.sixZeros)
     );
 
-    const report0 = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds0])
-    );
-    const report1 = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds1])
-    );
+    const report0 = await stake.report(alice.address, thresholds0);
+    const report1 = await stake.report(alice.address, thresholds1);
 
-    const expected0 = Util.blockNumbersToReport([
-      depositBlock0,
-      depositBlock0,
-      depositBlock0,
-      depositBlock0,
+    const expected0 = Util.numArrayToReport([
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp0,
       0xffffffff,
       0xffffffff,
       0xffffffff,
       0xffffffff,
     ]);
-    const expected1 = Util.blockNumbersToReport([
-      depositBlock0,
-      depositBlock0,
-      depositBlock0,
+    const expected1 = Util.numArrayToReport([
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp0,
       0xffffffff, // not enough to reach tier 4 according to `thresholds1`
       0xffffffff,
       0xffffffff,
@@ -342,24 +319,21 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock = await ethers.provider.getBlockNumber();
+    const depositTimestamp = await getBlockTimestamp();
 
     const thresholds = LEVELS;
 
-    const report = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const report = await stake.report(alice.address, thresholds);
 
-    const expected = Util.blockNumbersToReport([
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
-      depositBlock,
+    const expected = Util.numArrayToReport([
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
+      depositTimestamp,
     ]);
 
     assert(
@@ -386,24 +360,22 @@ describe("Stake", async function () {
 
     const stake = await stakeDeploy(deployer, stakeConfigStruct);
 
+    await stake.report(alice.address, []);
     // Give Alice reserve tokens and desposit them
     const depositAmount0 = LEVELS[1].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock0 = await ethers.provider.getBlockNumber();
+    const depositTimestamp0 = await getBlockTimestamp();
 
     const thresholds = LEVELS;
 
-    const report0 = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const report0 = await stake.report(alice.address, thresholds);
 
-    const expected0 = Util.blockNumbersToReport([
-      depositBlock0,
-      depositBlock0,
+    const expected0 = Util.numArrayToReport([
+      depositTimestamp0,
+      depositTimestamp0,
       0xffffffff,
       0xffffffff,
       0xffffffff,
@@ -425,18 +397,15 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount1);
 
-    const depositBlock1 = await ethers.provider.getBlockNumber();
+    const depositTimestamp1 = await getBlockTimestamp();
 
-    const report1 = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const report1 = await stake.report(alice.address, thresholds);
 
-    const expected1 = Util.blockNumbersToReport([
-      depositBlock0,
-      depositBlock0,
-      depositBlock1,
-      depositBlock1,
+    const expected1 = Util.numArrayToReport([
+      depositTimestamp0,
+      depositTimestamp0,
+      depositTimestamp1,
+      depositTimestamp1,
       0xffffffff,
       0xffffffff,
       0xffffffff,
@@ -473,17 +442,14 @@ describe("Stake", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
-    const depositBlock = await ethers.provider.getBlockNumber();
+    const depositTimestamp = await getBlockTimestamp();
 
     const thresholds = LEVELS;
 
-    const report = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const report = await stake.report(alice.address, thresholds);
 
-    const expected = Util.blockNumbersToReport([
-      depositBlock,
+    const expected = Util.numArrayToReport([
+      depositTimestamp,
       0xffffffff,
       0xffffffff,
       0xffffffff,
@@ -525,12 +491,9 @@ describe("Stake", async function () {
 
     const thresholds = LEVELS;
 
-    const report = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const report = await stake.report(alice.address, thresholds);
 
-    // const expected = Util.blockNumbersToReport([0, 0, 0, 0, 0, 0, 0, 0]);
+    // const expected = Util.numArrayToReport([0, 0, 0, 0, 0, 0, 0, 0]);
     const expected = Util.max_uint256;
 
     assert(
@@ -559,10 +522,7 @@ describe("Stake", async function () {
 
     const thresholds = LEVELS;
 
-    const report = await stake.report(
-      alice.address,
-      ethers.utils.defaultAbiCoder.encode(["uint256[]"], [thresholds])
-    );
+    const report = await stake.report(alice.address, thresholds);
 
     assert(report.eq(Util.max_uint256), "did not return a NEVER report");
   });

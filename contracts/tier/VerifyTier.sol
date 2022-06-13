@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "./ReadOnlyTier.sol";
+import "./TierV2.sol";
 import "../verify/libraries/VerifyConstants.sol";
 import {State, Verify} from "../verify/Verify.sol";
 import "./libraries/TierReport.sol";
@@ -12,11 +12,11 @@ import "./libraries/TierReport.sol";
 ///
 /// @dev A contract that is `VerifyTier` expects to derive tiers from the time
 /// the account was approved by the underlying `Verify` contract. The approval
-/// block numbers defer to `State.since` returned from `Verify.state`.
-contract VerifyTier is ReadOnlyTier, Initializable {
+/// timestamps defer to `State.since` returned from `Verify.state`.
+contract VerifyTier is TierV2, Initializable {
     /// Result of initializing.
     /// @param sender `msg.sender` that initialized the contract.
-    /// @param verify The `Verify` contract checked for reports.ww
+    /// @param verify The `Verify` contract checked for reports.
     event Initialize(address sender, address verify);
     /// The contract to check to produce reports.
     Verify private verify;
@@ -29,24 +29,48 @@ contract VerifyTier is ReadOnlyTier, Initializable {
         emit Initialize(msg.sender, verify_);
     }
 
-    /// Every tier will be the `State.since` block if `account_` is approved
-    /// otherwise every tier will be uninitialized.
-    /// @inheritdoc ITier
-    function report(address account_) public view override returns (uint256) {
+    /// Every tier will be the `State.since` timestamp if `account_` is
+    /// approved otherwise every tier will be uninitialized.
+    /// @inheritdoc ITierV2
+    function report(address account_, uint256[] memory)
+        public
+        view
+        override
+        returns (uint256)
+    {
         State memory state_ = verify.state(account_);
         if (
             // This is comparing an enum variant so it must be equal.
             // slither-disable-next-line incorrect-equality
-            verify.statusAtBlock(state_, block.number) ==
+            verify.statusAtTime(state_, block.timestamp) ==
             VerifyConstants.STATUS_APPROVED
         ) {
             return
-                TierReport.updateBlocksForTierRange(
+                TierReport.updateTimesForTierRange(
                     TierConstants.NEVER_REPORT,
                     TierConstants.TIER_ZERO,
                     TierConstants.TIER_EIGHT,
                     state_.approvedSince
                 );
+        } else {
+            return TierConstants.NEVER_REPORT;
+        }
+    }
+
+    /// @inheritdoc ITierV2
+    function reportTimeForTier(
+        address account_,
+        uint256,
+        uint256[] calldata
+    ) external view returns (uint256) {
+        State memory state_ = verify.state(account_);
+        if (
+            // This is comparing an enum variant so it must be equal.
+            // slither-disable-next-line incorrect-equality
+            verify.statusAtTime(state_, block.timestamp) ==
+            VerifyConstants.STATUS_APPROVED
+        ) {
+            return state_.approvedSince;
         } else {
             return TierConstants.NEVER_REPORT;
         }

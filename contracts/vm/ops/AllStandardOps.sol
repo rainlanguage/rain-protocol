@@ -12,9 +12,13 @@ import "./token/ERC721Ops.sol";
 import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
-import "./tier/TierOps.sol";
+import "./tier/OpITierV2Report.sol";
+import "./tier/OpITierV2ReportTimeForTier.sol";
+import "./tier/OpSaturatingDiff.sol";
+import "./tier/OpSelectLte.sol";
+import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 39;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 40;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -129,13 +133,15 @@ library AllStandardOps {
                     // any
                     nonzeroOperandN,
                     // tier report
-                    two,
+                    OpITierV2Report.stackPops,
+                    // tier report time for tier
+                    OpITierV2ReportTimeForTier.stackPops,
                     // tier saturating diff
                     two,
-                    // update blocks for tier range
-                    two,
                     // select lte
-                    TierOps.stackPopsSelectLte,
+                    OpSelectLte.stackPops,
+                    // update times for tier range
+                    two,
                     // erc721 balance of
                     two,
                     // erc721 owner of
@@ -244,11 +250,13 @@ library AllStandardOps {
                     one,
                     // tier report
                     one,
+                    // tier report time for tier
+                    one,
                     // tier saturating diff
                     one,
-                    // update blocks for tier range
-                    one,
                     // select lte
+                    one,
+                    // update times for tier range
                     one,
                     // erc721 balance of
                     one,
@@ -328,10 +336,11 @@ library AllStandardOps {
                     LogicOps.greaterThan,
                     LogicOps.every,
                     LogicOps.any,
-                    TierOps.report,
-                    TierOps.saturatingDiff,
-                    TierOps.updateBlocksForTierRange,
-                    TierOps.selectLte,
+                    OpITierV2Report.report,
+                    OpITierV2ReportTimeForTier.reportTimeForTier,
+                    OpSaturatingDiff.saturatingDiff,
+                    OpSelectLte.selectLte,
+                    OpUpdateTimesForTierRange.updateTimesForTierRange,
                     ERC721Ops.balanceOf,
                     ERC721Ops.ownerOf,
                     ERC1155Ops.balanceOf,
