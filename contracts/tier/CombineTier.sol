@@ -4,7 +4,6 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "../vm/RainVM.sol";
-// solhint-disable-next-line max-line-length
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
@@ -31,11 +30,9 @@ struct CombineTierConfig {
 }
 
 /// @title CombineTier
-/// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
-/// from any other `ITierV2` contracts referenced in the `ImmutableSource` set
-/// at construction.
+/// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the rain script will be
-/// used as the return of `report`.
+/// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2, RainVM, Initializable {
     event Initialize(address sender, CombineTierConfig config);
 
@@ -84,6 +81,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
         emit Initialize(msg.sender, config_);
     }
 
+    /// @inheritdoc RainVM
     function fnPtrs() public pure override returns (bytes memory) {
         return AllStandardOps.fnPtrs();
     }
