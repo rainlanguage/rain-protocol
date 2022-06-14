@@ -1,104 +1,40 @@
-import * as Util from "../../utils";
-import { assert } from "chai";
-import { artifacts, ethers } from "hardhat";
-import { concat } from "ethers/lib/utils";
-import { AllStandardOps, op } from "../../utils";
-import type { Contract, ContractFactory } from "ethers";
-import type { ConstructEvent, Sale } from "../../typechain/Sale";
-import { ReserveToken } from "../../typechain/ReserveToken";
-import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
-import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import {
-  SaleConstructorConfigStruct,
-  SaleFactory,
-} from "../../typechain/SaleFactory";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { saleDeploy } from "../../utils/deploy/sale";
-import { Tier } from "../../utils/types/tier";
+import { concat } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { ReserveToken } from "../../../typechain/ReserveToken";
+import { SaleFactory } from "../../../typechain/SaleFactory";
+import { zeroAddress } from "../../../utils/constants/address";
+import {
+  max_uint256,
+  ONE,
+  RESERVE_ONE,
+} from "../../../utils/constants/bigNumber";
+import { basicDeploy } from "../../../utils/deploy/basic";
+import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
+import { createEmptyBlock } from "../../../utils/hardhat";
+import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
+import { op } from "../../../utils/rainvm/vm";
+import { assertError } from "../../../utils/test/assertError";
+import { Tier } from "../../../utils/types/tier";
 
 const Opcode = AllStandardOps;
 
-let reserve: ReserveToken & Contract,
-  redeemableERC20FactoryFactory: ContractFactory,
-  redeemableERC20Factory: RedeemableERC20Factory & Contract,
-  readWriteTierFactory: ContractFactory,
-  readWriteTier: ReadWriteTier & Contract,
-  saleConstructorConfig: SaleConstructorConfigStruct,
-  saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory & Contract,
-  saleProxy: Sale & Contract,
-  signers: SignerWithAddress[];
+describe("Sale test", async function () {
+  let reserve: ReserveToken,
+    readWriteTier: ReadWriteTier,
+    saleFactory: SaleFactory,
+    signers: SignerWithAddress[];
 
-describe("SaleUnchecked", async function () {
-  let stateBuilder;
+  before(async () => {
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+  });
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
 
-    reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken &
-      Contract;
-  });
-
-  before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
-    );
-    stateBuilder = await stateBuilderFactory.deploy();
-    await stateBuilder.deployed();
-
-    redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-        Contract;
-    await redeemableERC20Factory.deployed();
-
-    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
-      Contract;
-    await readWriteTier.deployed();
-
-    saleConstructorConfig = {
-      vmStateBuilder: stateBuilder.address,
-      maximumSaleTimeout: 1000,
-      maximumCooldownDuration: 1000,
-      redeemableERC20Factory: redeemableERC20Factory.address,
-    };
-
-    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleFactory = (await saleFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleFactory & Contract;
-    await saleFactory.deployed();
-
-    const { implementation, sender } = await Util.getEventArgs(
-      saleFactory.deployTransaction,
-      "Implementation",
-      saleFactory
-    );
-
-    assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
-
-    saleProxy = new ethers.Contract(
-      implementation,
-      (await artifacts.readArtifact("Sale")).abi
-    ) as Sale & Contract;
-
-    const { sender: senderProxy, config } = (await Util.getEventArgs(
-      saleFactory.deployTransaction,
-      "Construct",
-      saleProxy
-    )) as ConstructEvent["args"];
-
-    assert(senderProxy === saleFactory.address, "wrong proxy sender");
-
-    assert(
-      config.redeemableERC20Factory === redeemableERC20Factory.address,
-      "wrong redeemableERC20Factory in SaleConstructorConfig"
-    );
+    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
@@ -110,18 +46,18 @@ describe("SaleUnchecked", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
-      distributor: Util.zeroAddress,
+      distributor: zeroAddress,
       initialSupply: totalTokenSupply,
     };
 
     const constants = [
-      Util.max_uint256.div(2),
+      max_uint256.div(2),
       2,
       startBlock - 1,
       startBlock + saleDuration - 1,
@@ -162,12 +98,12 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: Util.zeroAddress,
+        distributionEndForwardingAddress: zeroAddress,
       }
     );
 
     // wait until sale start
-    await Util.createEmptyBlock(
+    await createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
@@ -175,7 +111,7 @@ describe("SaleUnchecked", async function () {
 
     const desiredUnits = totalTokenSupply;
 
-    await Util.assertError(
+    await assertError(
       async () => await sale.calculateBuy(desiredUnits),
       "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
       "accumulator overflow did not panic"
@@ -191,18 +127,18 @@ describe("SaleUnchecked", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
-      distributor: Util.zeroAddress,
+      distributor: zeroAddress,
       initialSupply: totalTokenSupply,
     };
 
     const constants = [
-      Util.max_uint256.div(2),
+      max_uint256.div(2),
       3,
       startBlock - 1,
       startBlock + saleDuration - 1,
@@ -243,12 +179,12 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: Util.zeroAddress,
+        distributionEndForwardingAddress: zeroAddress,
       }
     );
 
     // wait until sale start
-    await Util.createEmptyBlock(
+    await createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
@@ -256,7 +192,7 @@ describe("SaleUnchecked", async function () {
 
     const desiredUnits = totalTokenSupply;
 
-    await Util.assertError(
+    await assertError(
       async () => await sale.calculateBuy(desiredUnits),
       "Transaction reverted",
       "accumulator overflow did not panic"
@@ -272,13 +208,13 @@ describe("SaleUnchecked", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
-      distributor: Util.zeroAddress,
+      distributor: zeroAddress,
       initialSupply: totalTokenSupply,
     };
 
@@ -319,12 +255,12 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: Util.zeroAddress,
+        distributionEndForwardingAddress: zeroAddress,
       }
     );
 
     // wait until sale start
-    await Util.createEmptyBlock(
+    await createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
@@ -332,7 +268,7 @@ describe("SaleUnchecked", async function () {
 
     const desiredUnits = totalTokenSupply;
 
-    await Util.assertError(
+    await assertError(
       async () => await sale.calculateBuy(desiredUnits),
       "Transaction reverted",
       "accumulator underflow did not panic"
@@ -348,18 +284,18 @@ describe("SaleUnchecked", async function () {
     // 5 blocks from now
     const startBlock = (await ethers.provider.getBlockNumber()) + 5;
     const saleDuration = 30;
-    const minimumRaise = ethers.BigNumber.from("100000").mul(Util.RESERVE_ONE);
+    const minimumRaise = ethers.BigNumber.from("100000").mul(RESERVE_ONE);
 
-    const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
     const redeemableERC20Config = {
       name: "Token",
       symbol: "TKN",
-      distributor: Util.zeroAddress,
+      distributor: zeroAddress,
       initialSupply: totalTokenSupply,
     };
 
     const constants = [
-      Util.max_uint256,
+      max_uint256,
       1,
       startBlock - 1,
       startBlock + saleDuration - 1,
@@ -400,12 +336,12 @@ describe("SaleUnchecked", async function () {
         erc20Config: redeemableERC20Config,
         tier: readWriteTier.address,
         minimumTier: Tier.ZERO,
-        distributionEndForwardingAddress: Util.zeroAddress,
+        distributionEndForwardingAddress: zeroAddress,
       }
     );
 
     // wait until sale start
-    await Util.createEmptyBlock(
+    await createEmptyBlock(
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
@@ -413,7 +349,7 @@ describe("SaleUnchecked", async function () {
 
     const desiredUnits = totalTokenSupply;
 
-    await Util.assertError(
+    await assertError(
       async () => await sale.calculateBuy(desiredUnits),
       "Transaction reverted",
       "accumulator overflow did not panic"

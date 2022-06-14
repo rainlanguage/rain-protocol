@@ -1,0 +1,113 @@
+import { assert } from "chai";
+import { Contract } from "ethers";
+import { concat, hexlify } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
+import { NoticeBoard } from "../../../typechain/NoticeBoard";
+import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
+import { ReserveToken } from "../../../typechain/ReserveToken";
+import { SaleFactory } from "../../../typechain/SaleFactory";
+import { zeroAddress } from "../../../utils/constants/address";
+import { ONE, RESERVE_ONE } from "../../../utils/constants/bigNumber";
+import { basicDeploy } from "../../../utils/deploy/basic";
+import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
+import { getEventArgs } from "../../../utils/events";
+import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
+import { op } from "../../../utils/rainvm/vm";
+import { assertError } from "../../../utils/test/assertError";
+import { Tier } from "../../../utils/types/tier";
+
+const Opcode = AllStandardOps;
+
+describe("Sale noticeboard", async function () {
+  let reserve: ReserveToken,
+    redeemableERC20Factory: RedeemableERC20Factory,
+    readWriteTier: ReadWriteTier,
+    saleFactory: SaleFactory,
+    stateBuilder: AllStandardOpsStateBuilder;
+
+  before(async () => {
+    ({ redeemableERC20Factory, readWriteTier, saleFactory, stateBuilder } =
+      await saleDependenciesDeploy());
+  });
+
+  beforeEach(async () => {
+    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+  });
+
+  it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
+    this.timeout(0);
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const recipient = signers[1];
+    const signer1 = signers[2];
+    const forwardingAddress = signers[4];
+    // 5 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    const saleDuration = 30;
+    const minimumRaise = ethers.BigNumber.from("150000").mul(RESERVE_ONE);
+    const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
+    const redeemableERC20Config = {
+      name: "Token",
+      symbol: "TKN",
+      distributor: zeroAddress,
+      initialSupply: totalTokenSupply,
+    };
+    const staticPrice = ethers.BigNumber.from("75").mul(RESERVE_ONE);
+    const constants = [
+      staticPrice,
+      startBlock - 1,
+      startBlock + saleDuration - 1,
+    ];
+    const vBasePrice = op(Opcode.CONSTANT, 0);
+    const vStart = op(Opcode.CONSTANT, 1);
+    const vEnd = op(Opcode.CONSTANT, 2);
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
+    ];
+    const [sale] = await saleDeploy(
+      signers,
+      deployer,
+      saleFactory,
+      {
+        vmStateConfig: {
+          sources,
+          constants,
+        },
+        recipient: recipient.address,
+        reserve: reserve.address,
+        cooldownDuration: 1,
+        minimumRaise,
+        dustSize: 0,
+        saleTimeout: 100,
+      },
+      {
+        erc20Config: redeemableERC20Config,
+        tier: readWriteTier.address,
+        minimumTier: Tier.ZERO,
+        distributionEndForwardingAddress: forwardingAddress.address,
+      }
+    );
+    const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");
+    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard &
+      Contract;
+    const message = "foo";
+    const notice = {
+      subject: sale.address,
+      data: hexlify([...Buffer.from(message)]),
+    };
+    const event0 = await getEventArgs(
+      await noticeboard.connect(signer1).createNotices([notice]),
+      "NewNotice",
+      noticeboard
+    );
+    assert(event0.sender === signer1.address, "wrong sender in event0");
+    assert(
+      JSON.stringify(event0.notice) === JSON.stringify(Object.values(notice)),
+      "wrong notice in event0"
+    );
+  });
+});

@@ -1,9 +1,11 @@
 import { Contract } from "ethers";
+import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
 import { ONE, sixZeros } from "../../utils/constants/bigNumber";
+import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 
