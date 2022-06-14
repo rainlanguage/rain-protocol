@@ -8,12 +8,13 @@ import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
 import "./erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
 import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
+import "./erc1155/OpERC1155BalanceOf.sol";
+import "./erc1155/OpERC1155BalanceOfBatch.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
 import "./evm/OpTimestamp.sol";
 import "./math/FixedPointMathOps.sol";
-import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/OpITierV2Report.sol";
@@ -86,6 +87,10 @@ library AllStandardOps {
                     two,
                     // erc721 owner of
                     two,
+                    // erc1155 balance of
+                    three,
+                    // erc1155 balance of batch
+                    OpERC1155BalanceOfBatch.stackPops,
                     // block number
                     zero,
                     // caller
@@ -149,11 +154,7 @@ library AllStandardOps {
                     // select lte
                     OpSelectLte.stackPops,
                     // update times for tier range
-                    two,
-                    // erc1155 balance of
-                    three,
-                    // erc1155 balance of batch
-                    ERC1155Ops.stackPopsBalanceOfBatch
+                    two
                 ];
             bytes memory ret_;
             assembly {
@@ -202,6 +203,10 @@ library AllStandardOps {
                     one,
                     // erc721 owner of
                     one,
+                    // erc1155 balance of
+                    one,
+                    // erc1155 balance of batch
+                    nonzeroOperandN,
                     // block number
                     one,
                     // caller
@@ -265,11 +270,7 @@ library AllStandardOps {
                     // select lte
                     one,
                     // update times for tier range
-                    one,
-                    // erc1155 balance of
-                    one,
-                    // erc1155 balance of batch
-                    nonzeroOperandN
+                    one
                 ];
             bytes memory ret_;
             assembly {
@@ -315,6 +316,8 @@ library AllStandardOps {
                     OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
                     OpERC721BalanceOf.balanceOf,
                     OpERC721OwnerOf.ownerOf,
+                    OpERC1155BalanceOf.balanceOf,
+                    OpERC1155BalanceOfBatch.balanceOfBatch,
                     OpBlockNumber.blockNumber,
                     OpCaller.caller,
                     OpThisAddress.thisAddress,
@@ -346,9 +349,7 @@ library AllStandardOps {
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,
                     OpSelectLte.selectLte,
-                    OpUpdateTimesForTierRange.updateTimesForTierRange,
-                    ERC1155Ops.balanceOf,
-                    ERC1155Ops.balanceOfBatch
+                    OpUpdateTimesForTierRange.updateTimesForTierRange
                 ];
             bytes memory ret_;
             assembly {
