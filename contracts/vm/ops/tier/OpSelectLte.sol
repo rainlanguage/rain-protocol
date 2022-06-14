@@ -32,7 +32,7 @@ library OpSelectLte {
 
         uint256 location_;
         uint256[] memory reports_ = new uint256[](reportsLength_);
-        uint256 blockNumber_;
+        uint256 time_;
         assembly {
             location_ := sub(
                 stackTopLocation_,
@@ -48,12 +48,12 @@ library OpSelectLte {
             } {
                 mstore(add(reports_, add(0x20, i_)), mload(cursor_))
             }
-            blockNumber_ := mload(maxCursor_)
+            time_ := mload(maxCursor_)
         }
 
         uint256 result_ = TierwiseCombine.selectLte(
             reports_,
-            blockNumber_,
+            time_,
             logic_,
             mode_
         );

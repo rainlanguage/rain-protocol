@@ -2,16 +2,17 @@
 pragma solidity =0.8.10;
 
 import "../RainVM.sol";
+import "./erc20/OpERC20BalanceOf.sol";
+import "./erc20/OpERC20TotalSupply.sol";
+import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
+import "./erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
+import "./erc721/OpERC721BalanceOf.sol";
+import "./erc721/OpERC721OwnerOf.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
 import "./evm/OpTimestamp.sol";
 import "./math/FixedPointMathOps.sol";
-import "./erc20/OpERC20BalanceOf.sol";
-import "./erc20/OpERC20TotalSupply.sol";
-import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
-import "./erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
-import "./token/ERC721Ops.sol";
 import "./token/ERC1155Ops.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
@@ -81,6 +82,10 @@ library AllStandardOps {
                     three,
                     // erc20 snapshot total supply at
                     two,
+                    // erc721 balance of
+                    two,
+                    // erc721 owner of
+                    two,
                     // block number
                     zero,
                     // caller
@@ -145,10 +150,6 @@ library AllStandardOps {
                     OpSelectLte.stackPops,
                     // update times for tier range
                     two,
-                    // erc721 balance of
-                    two,
-                    // erc721 owner of
-                    two,
                     // erc1155 balance of
                     three,
                     // erc1155 balance of batch
@@ -196,6 +197,10 @@ library AllStandardOps {
                     // erc20 snapshot balance of at
                     one,
                     // erc20 snapshot total supply at
+                    one,
+                    // erc721 balance of
+                    one,
+                    // erc721 owner of
                     one,
                     // block number
                     one,
@@ -261,10 +266,6 @@ library AllStandardOps {
                     one,
                     // update times for tier range
                     one,
-                    // erc721 balance of
-                    one,
-                    // erc721 owner of
-                    one,
                     // erc1155 balance of
                     one,
                     // erc1155 balance of batch
@@ -312,6 +313,8 @@ library AllStandardOps {
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
                     OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
+                    OpERC721BalanceOf.balanceOf,
+                    OpERC721OwnerOf.ownerOf,
                     OpBlockNumber.blockNumber,
                     OpCaller.caller,
                     OpThisAddress.thisAddress,
@@ -344,8 +347,6 @@ library AllStandardOps {
                     OpSaturatingDiff.saturatingDiff,
                     OpSelectLte.selectLte,
                     OpUpdateTimesForTierRange.updateTimesForTierRange,
-                    ERC721Ops.balanceOf,
-                    ERC721Ops.ownerOf,
                     ERC1155Ops.balanceOf,
                     ERC1155Ops.balanceOfBatch
                 ];
