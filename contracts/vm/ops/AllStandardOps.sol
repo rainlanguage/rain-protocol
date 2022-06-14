@@ -2,7 +2,10 @@
 pragma solidity =0.8.10;
 
 import "../RainVM.sol";
-import "./evm/EVMConstantOps.sol";
+import "./evm/OpBlockNumber.sol";
+import "./evm/OpCaller.sol";
+import "./evm/OpThisAddress.sol";
+import "./evm/OpTimestamp.sol";
 import "./math/FixedPointMathOps.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
@@ -80,11 +83,11 @@ library AllStandardOps {
                     two,
                     // block number
                     zero,
-                    // timestamp
-                    zero,
                     // caller
                     zero,
                     // this address
+                    zero,
+                    // timestamp
                     zero,
                     // scale18 mul
                     two,
@@ -196,11 +199,11 @@ library AllStandardOps {
                     one,
                     // block number
                     one,
-                    // timestamp
-                    one,
                     // caller
                     one,
                     // this address
+                    one,
+                    // timestamp
                     one,
                     // scale18 mul
                     one,
@@ -309,10 +312,10 @@ library AllStandardOps {
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
                     OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
-                    EVMConstantOps.number,
-                    EVMConstantOps.timestamp,
-                    EVMConstantOps.caller,
-                    EVMConstantOps.thisAddress,
+                    OpBlockNumber.blockNumber,
+                    OpCaller.caller,
+                    OpThisAddress.thisAddress,
+                    OpTimestamp.timestamp,
                     FixedPointMathOps.scale18Mul,
                     FixedPointMathOps.scale18Div,
                     FixedPointMathOps.scale18,
