@@ -26,7 +26,17 @@ import "./math/logic/OpEvery.sol";
 import "./math/logic/OpGreaterThan.sol";
 import "./math/logic/OpIsZero.sol";
 import "./math/logic/OpLessThan.sol";
-import "./math/MathOps.sol";
+import "./math/saturating/OpSaturatingAdd.sol";
+import "./math/saturating/OpSaturatingMul.sol";
+import "./math/saturating/OpSaturatingSub.sol";
+import "./math/OpAdd.sol";
+import "./math/OpDiv.sol";
+import "./math/OpExp.sol";
+import "./math/OpMax.sol";
+import "./math/OpMin.sol";
+import "./math/OpMod.sol";
+import "./math/OpMul.sol";
+import "./math/OpSub.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
@@ -133,27 +143,27 @@ library AllStandardOps {
                     one,
                     // less than
                     two,
-                    // add
-                    nonzeroOperandN,
                     // saturating add
-                    nonzeroOperandN,
-                    // sub
-                    nonzeroOperandN,
-                    // saturating sub
-                    nonzeroOperandN,
-                    // mul
                     nonzeroOperandN,
                     // saturating mul
                     nonzeroOperandN,
-                    // div
+                    // saturating sub
                     nonzeroOperandN,
-                    // mod
+                    // add
+                    nonzeroOperandN,
+                    // div
                     nonzeroOperandN,
                     // exp
                     nonzeroOperandN,
+                    // max
+                    nonzeroOperandN,
                     // min
                     nonzeroOperandN,
-                    // max
+                    // mod
+                    nonzeroOperandN,
+                    // mul
+                    nonzeroOperandN,
+                    // sub
                     nonzeroOperandN,
                     // tier report
                     OpITierV2Report.stackPops,
@@ -249,27 +259,27 @@ library AllStandardOps {
                     one,
                     // less than
                     one,
-                    // add
-                    one,
                     // saturating add
-                    one,
-                    // sub
-                    one,
-                    // saturating sub
-                    one,
-                    // mul
                     one,
                     // saturating mul
                     one,
-                    // div
+                    // saturating sub
                     one,
-                    // mod
+                    // add
+                    one,
+                    // div
                     one,
                     // exp
                     one,
+                    // max
+                    one,
                     // min
                     one,
-                    // max
+                    // mod
+                    one,
+                    // mul
+                    one,
+                    // sub
                     one,
                     // tier report
                     one,
@@ -344,17 +354,17 @@ library AllStandardOps {
                     OpGreaterThan.greaterThan,
                     OpIsZero.isZero,
                     OpLessThan.lessThan,
-                    MathOps.add,
-                    MathOps.saturatingAdd,
-                    MathOps.sub,
-                    MathOps.saturatingSub,
-                    MathOps.mul,
-                    MathOps.saturatingMul,
-                    MathOps.div,
-                    MathOps.mod,
-                    MathOps.exp,
-                    MathOps.min,
-                    MathOps.max,
+                    OpSaturatingAdd.saturatingAdd,
+                    OpSaturatingMul.saturatingMul,
+                    OpSaturatingSub.saturatingSub,
+                    OpAdd.add,
+                    OpDiv.div,
+                    OpExp.exp,
+                    OpMax.max,
+                    OpMin.min,
+                    OpMod.mod,
+                    OpMul.mul,
+                    OpSub.sub,
                     OpITierV2Report.report,
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,
