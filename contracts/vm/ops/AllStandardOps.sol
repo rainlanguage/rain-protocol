@@ -14,7 +14,11 @@ import "./evm/OpBlockNumber.sol";
 import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
 import "./evm/OpTimestamp.sol";
-import "./math/FixedPointMathOps.sol";
+import "./math/fixedPoint/OpFixedPointScale18.sol";
+import "./math/fixedPoint/OpFixedPointScale18Div.sol";
+import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
+import "./math/fixedPoint/OpFixedPointScaleBy.sol";
+import "./math/fixedPoint/OpFixedPointScaleN.sol";
 import "./math/LogicOps.sol";
 import "./math/MathOps.sol";
 import "./tier/OpITierV2Report.sol";
@@ -99,15 +103,15 @@ library AllStandardOps {
                     zero,
                     // timestamp
                     zero,
-                    // scale18 mul
-                    two,
-                    // scale18 div
-                    two,
                     // scale18
                     one,
-                    // scaleN
-                    one,
+                    // scale18 div
+                    two,
+                    // scale18 mul
+                    two,
                     // scaleBy
+                    one,
+                    // scaleN
                     one,
                     // add
                     nonzeroOperandN,
@@ -215,15 +219,15 @@ library AllStandardOps {
                     one,
                     // timestamp
                     one,
-                    // scale18 mul
+                    // scale18
                     one,
                     // scale18 div
                     one,
-                    // scale18
-                    one,
-                    // scaleN
+                    // scale18 mul
                     one,
                     // scaleBy
+                    one,
+                    // scaleN
                     one,
                     // add
                     one,
@@ -322,11 +326,11 @@ library AllStandardOps {
                     OpCaller.caller,
                     OpThisAddress.thisAddress,
                     OpTimestamp.timestamp,
-                    FixedPointMathOps.scale18Mul,
-                    FixedPointMathOps.scale18Div,
-                    FixedPointMathOps.scale18,
-                    FixedPointMathOps.scaleN,
-                    FixedPointMathOps.scaleBy,
+                    OpFixedPointScale18.scale18,
+                    OpFixedPointScale18Div.scale18Div,
+                    OpFixedPointScale18Mul.scale18Mul,
+                    OpFixedPointScaleBy.scaleBy,
+                    OpFixedPointScaleN.scaleN,
                     MathOps.add,
                     MathOps.saturatingAdd,
                     MathOps.sub,
