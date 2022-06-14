@@ -7,6 +7,7 @@ import "../../../../math/SaturatingMath.sol";
 /// @notice Opcode for subtracting N numbers with saturating subtraction.
 library OpSaturatingSub {
     using SaturatingMath for uint256;
+
     function saturatingSub(uint256 operand_, uint256 stackTopLocation_)
         internal
         pure

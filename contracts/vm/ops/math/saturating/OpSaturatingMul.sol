@@ -7,6 +7,7 @@ import "../../../../math/SaturatingMath.sol";
 /// @notice Opcode for multiplying N numbers with saturating multiplication.
 library OpSaturatingMul {
     using SaturatingMath for uint256;
+
     function saturatingMul(uint256 operand_, uint256 stackTopLocation_)
         internal
         pure

@@ -7,6 +7,7 @@ import "../../../../math/SaturatingMath.sol";
 /// @notice Opcode for adding N numbers with saturating addition.
 library OpSaturatingAdd {
     using SaturatingMath for uint256;
+
     function saturatingAdd(uint256 operand_, uint256 stackTopLocation_)
         internal
         pure
