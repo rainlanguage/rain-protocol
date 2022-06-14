@@ -19,7 +19,13 @@ import "./math/fixedPoint/OpFixedPointScale18Div.sol";
 import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
 import "./math/fixedPoint/OpFixedPointScaleBy.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
-import "./math/LogicOps.sol";
+import "./math/logic/OpAny.sol";
+import "./math/logic/OpEagerIf.sol";
+import "./math/logic/OpEqualTo.sol";
+import "./math/logic/OpEvery.sol";
+import "./math/logic/OpGreaterThan.sol";
+import "./math/logic/OpIsZero.sol";
+import "./math/logic/OpLessThan.sol";
 import "./math/MathOps.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
@@ -113,6 +119,20 @@ library AllStandardOps {
                     one,
                     // scaleN
                     one,
+                    // any
+                    nonzeroOperandN,
+                    // eager if
+                    three,
+                    // equal to
+                    two,
+                    // every
+                    nonzeroOperandN,
+                    // greater than
+                    two,
+                    // iszero
+                    one,
+                    // less than
+                    two,
                     // add
                     nonzeroOperandN,
                     // saturating add
@@ -134,20 +154,6 @@ library AllStandardOps {
                     // min
                     nonzeroOperandN,
                     // max
-                    nonzeroOperandN,
-                    // iszero
-                    one,
-                    // eager if
-                    three,
-                    // equal to
-                    two,
-                    // less than
-                    two,
-                    // greater than
-                    two,
-                    // every
-                    nonzeroOperandN,
-                    // any
                     nonzeroOperandN,
                     // tier report
                     OpITierV2Report.stackPops,
@@ -229,6 +235,20 @@ library AllStandardOps {
                     one,
                     // scaleN
                     one,
+                    // any
+                    one,
+                    // eager if
+                    one,
+                    // equal to
+                    one,
+                    // every
+                    one,
+                    // greater than
+                    one,
+                    // iszero
+                    one,
+                    // less than
+                    one,
                     // add
                     one,
                     // saturating add
@@ -250,20 +270,6 @@ library AllStandardOps {
                     // min
                     one,
                     // max
-                    one,
-                    // iszero
-                    one,
-                    // eager if
-                    one,
-                    // equal to
-                    one,
-                    // less than
-                    one,
-                    // greater than
-                    one,
-                    // every
-                    one,
-                    // any
                     one,
                     // tier report
                     one,
@@ -331,6 +337,13 @@ library AllStandardOps {
                     OpFixedPointScale18Mul.scale18Mul,
                     OpFixedPointScaleBy.scaleBy,
                     OpFixedPointScaleN.scaleN,
+                    OpAny.any,
+                    OpEagerIf.eagerIf,
+                    OpEqualTo.equalTo,
+                    OpEvery.every,
+                    OpGreaterThan.greaterThan,
+                    OpIsZero.isZero,
+                    OpLessThan.lessThan,
                     MathOps.add,
                     MathOps.saturatingAdd,
                     MathOps.sub,
@@ -342,13 +355,6 @@ library AllStandardOps {
                     MathOps.exp,
                     MathOps.min,
                     MathOps.max,
-                    LogicOps.isZero,
-                    LogicOps.eagerIf,
-                    LogicOps.equalTo,
-                    LogicOps.lessThan,
-                    LogicOps.greaterThan,
-                    LogicOps.every,
-                    LogicOps.any,
                     OpITierV2Report.report,
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,
