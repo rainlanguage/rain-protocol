@@ -2,16 +2,41 @@
 pragma solidity =0.8.10;
 
 import "../RainVM.sol";
-import "./evm/EVMConstantOps.sol";
-import "./math/FixedPointMathOps.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
 import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
 import "./erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
-import "./token/ERC721Ops.sol";
-import "./token/ERC1155Ops.sol";
-import "./math/LogicOps.sol";
-import "./math/MathOps.sol";
+import "./erc721/OpERC721BalanceOf.sol";
+import "./erc721/OpERC721OwnerOf.sol";
+import "./erc1155/OpERC1155BalanceOf.sol";
+import "./erc1155/OpERC1155BalanceOfBatch.sol";
+import "./evm/OpBlockNumber.sol";
+import "./evm/OpCaller.sol";
+import "./evm/OpThisAddress.sol";
+import "./evm/OpTimestamp.sol";
+import "./math/fixedPoint/OpFixedPointScale18.sol";
+import "./math/fixedPoint/OpFixedPointScale18Div.sol";
+import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
+import "./math/fixedPoint/OpFixedPointScaleBy.sol";
+import "./math/fixedPoint/OpFixedPointScaleN.sol";
+import "./math/logic/OpAny.sol";
+import "./math/logic/OpEagerIf.sol";
+import "./math/logic/OpEqualTo.sol";
+import "./math/logic/OpEvery.sol";
+import "./math/logic/OpGreaterThan.sol";
+import "./math/logic/OpIsZero.sol";
+import "./math/logic/OpLessThan.sol";
+import "./math/saturating/OpSaturatingAdd.sol";
+import "./math/saturating/OpSaturatingMul.sol";
+import "./math/saturating/OpSaturatingSub.sol";
+import "./math/OpAdd.sol";
+import "./math/OpDiv.sol";
+import "./math/OpExp.sol";
+import "./math/OpMax.sol";
+import "./math/OpMin.sol";
+import "./math/OpMod.sol";
+import "./math/OpMul.sol";
+import "./math/OpSub.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
@@ -78,59 +103,67 @@ library AllStandardOps {
                     three,
                     // erc20 snapshot total supply at
                     two,
+                    // erc721 balance of
+                    two,
+                    // erc721 owner of
+                    two,
+                    // erc1155 balance of
+                    three,
+                    // erc1155 balance of batch
+                    OpERC1155BalanceOfBatch.stackPops,
                     // block number
-                    zero,
-                    // timestamp
                     zero,
                     // caller
                     zero,
                     // this address
                     zero,
-                    // scale18 mul
-                    two,
+                    // timestamp
+                    zero,
+                    // scale18
+                    one,
                     // scale18 div
                     two,
-                    // scale18
+                    // scale18 mul
+                    two,
+                    // scaleBy
                     one,
                     // scaleN
                     one,
-                    // scaleBy
-                    one,
-                    // add
+                    // any
                     nonzeroOperandN,
-                    // saturating add
-                    nonzeroOperandN,
-                    // sub
-                    nonzeroOperandN,
-                    // saturating sub
-                    nonzeroOperandN,
-                    // mul
-                    nonzeroOperandN,
-                    // saturating mul
-                    nonzeroOperandN,
-                    // div
-                    nonzeroOperandN,
-                    // mod
-                    nonzeroOperandN,
-                    // exp
-                    nonzeroOperandN,
-                    // min
-                    nonzeroOperandN,
-                    // max
-                    nonzeroOperandN,
-                    // iszero
-                    one,
                     // eager if
                     three,
                     // equal to
                     two,
-                    // less than
-                    two,
-                    // greater than
-                    two,
                     // every
                     nonzeroOperandN,
-                    // any
+                    // greater than
+                    two,
+                    // iszero
+                    one,
+                    // less than
+                    two,
+                    // saturating add
+                    nonzeroOperandN,
+                    // saturating mul
+                    nonzeroOperandN,
+                    // saturating sub
+                    nonzeroOperandN,
+                    // add
+                    nonzeroOperandN,
+                    // div
+                    nonzeroOperandN,
+                    // exp
+                    nonzeroOperandN,
+                    // max
+                    nonzeroOperandN,
+                    // min
+                    nonzeroOperandN,
+                    // mod
+                    nonzeroOperandN,
+                    // mul
+                    nonzeroOperandN,
+                    // sub
                     nonzeroOperandN,
                     // tier report
                     OpITierV2Report.stackPops,
@@ -141,15 +174,7 @@ library AllStandardOps {
                     // select lte
                     OpSelectLte.stackPops,
                     // update times for tier range
-                    two,
-                    // erc721 balance of
-                    two,
-                    // erc721 owner of
-                    two,
-                    // erc1155 balance of
-                    three,
-                    // erc1155 balance of batch
-                    ERC1155Ops.stackPopsBalanceOfBatch
+                    two
                 ];
             bytes memory ret_;
             assembly {
@@ -194,59 +219,67 @@ library AllStandardOps {
                     one,
                     // erc20 snapshot total supply at
                     one,
-                    // block number
+                    // erc721 balance of
                     one,
-                    // timestamp
+                    // erc721 owner of
+                    one,
+                    // erc1155 balance of
+                    one,
+                    // erc1155 balance of batch
+                    nonzeroOperandN,
+                    // block number
                     one,
                     // caller
                     one,
                     // this address
                     one,
-                    // scale18 mul
-                    one,
-                    // scale18 div
+                    // timestamp
                     one,
                     // scale18
                     one,
-                    // scaleN
+                    // scale18 div
+                    one,
+                    // scale18 mul
                     one,
                     // scaleBy
                     one,
-                    // add
+                    // scaleN
                     one,
-                    // saturating add
-                    one,
-                    // sub
-                    one,
-                    // saturating sub
-                    one,
-                    // mul
-                    one,
-                    // saturating mul
-                    one,
-                    // div
-                    one,
-                    // mod
-                    one,
-                    // exp
-                    one,
-                    // min
-                    one,
-                    // max
-                    one,
-                    // iszero
+                    // any
                     one,
                     // eager if
                     one,
                     // equal to
                     one,
-                    // less than
+                    // every
                     one,
                     // greater than
                     one,
-                    // every
+                    // iszero
                     one,
-                    // any
+                    // less than
+                    one,
+                    // saturating add
+                    one,
+                    // saturating mul
+                    one,
+                    // saturating sub
+                    one,
+                    // add
+                    one,
+                    // div
+                    one,
+                    // exp
+                    one,
+                    // max
+                    one,
+                    // min
+                    one,
+                    // mod
+                    one,
+                    // mul
+                    one,
+                    // sub
                     one,
                     // tier report
                     one,
@@ -257,15 +290,7 @@ library AllStandardOps {
                     // select lte
                     one,
                     // update times for tier range
-                    one,
-                    // erc721 balance of
-                    one,
-                    // erc721 owner of
-                    one,
-                    // erc1155 balance of
-                    one,
-                    // erc1155 balance of batch
-                    nonzeroOperandN
+                    one
                 ];
             bytes memory ret_;
             assembly {
@@ -309,42 +334,42 @@ library AllStandardOps {
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
                     OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
-                    EVMConstantOps.number,
-                    EVMConstantOps.timestamp,
-                    EVMConstantOps.caller,
-                    EVMConstantOps.thisAddress,
-                    FixedPointMathOps.scale18Mul,
-                    FixedPointMathOps.scale18Div,
-                    FixedPointMathOps.scale18,
-                    FixedPointMathOps.scaleN,
-                    FixedPointMathOps.scaleBy,
-                    MathOps.add,
-                    MathOps.saturatingAdd,
-                    MathOps.sub,
-                    MathOps.saturatingSub,
-                    MathOps.mul,
-                    MathOps.saturatingMul,
-                    MathOps.div,
-                    MathOps.mod,
-                    MathOps.exp,
-                    MathOps.min,
-                    MathOps.max,
-                    LogicOps.isZero,
-                    LogicOps.eagerIf,
-                    LogicOps.equalTo,
-                    LogicOps.lessThan,
-                    LogicOps.greaterThan,
-                    LogicOps.every,
-                    LogicOps.any,
+                    OpERC721BalanceOf.balanceOf,
+                    OpERC721OwnerOf.ownerOf,
+                    OpERC1155BalanceOf.balanceOf,
+                    OpERC1155BalanceOfBatch.balanceOfBatch,
+                    OpBlockNumber.blockNumber,
+                    OpCaller.caller,
+                    OpThisAddress.thisAddress,
+                    OpTimestamp.timestamp,
+                    OpFixedPointScale18.scale18,
+                    OpFixedPointScale18Div.scale18Div,
+                    OpFixedPointScale18Mul.scale18Mul,
+                    OpFixedPointScaleBy.scaleBy,
+                    OpFixedPointScaleN.scaleN,
+                    OpAny.any,
+                    OpEagerIf.eagerIf,
+                    OpEqualTo.equalTo,
+                    OpEvery.every,
+                    OpGreaterThan.greaterThan,
+                    OpIsZero.isZero,
+                    OpLessThan.lessThan,
+                    OpSaturatingAdd.saturatingAdd,
+                    OpSaturatingMul.saturatingMul,
+                    OpSaturatingSub.saturatingSub,
+                    OpAdd.add,
+                    OpDiv.div,
+                    OpExp.exp,
+                    OpMax.max,
+                    OpMin.min,
+                    OpMod.mod,
+                    OpMul.mul,
+                    OpSub.sub,
                     OpITierV2Report.report,
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,
                     OpSelectLte.selectLte,
-                    OpUpdateTimesForTierRange.updateTimesForTierRange,
-                    ERC721Ops.balanceOf,
-                    ERC721Ops.ownerOf,
-                    ERC1155Ops.balanceOf,
-                    ERC1155Ops.balanceOfBatch
+                    OpUpdateTimesForTierRange.updateTimesForTierRange
                 ];
             bytes memory ret_;
             assembly {

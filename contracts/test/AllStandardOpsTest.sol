@@ -2,7 +2,6 @@
 pragma solidity =0.8.10;
 
 import {RainVM, State, RAIN_VM_OPS_LENGTH} from "../vm/RainVM.sol";
-import {LogicOps} from "../vm/ops/math/LogicOps.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "../vm/VMStateBuilder.sol";
 

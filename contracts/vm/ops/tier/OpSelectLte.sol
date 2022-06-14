@@ -6,11 +6,7 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
-    function stackPops(uint256 operand_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function stackPops(uint256 operand_) internal pure returns (uint256) {
         unchecked {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");
@@ -36,7 +32,7 @@ library OpSelectLte {
 
         uint256 location_;
         uint256[] memory reports_ = new uint256[](reportsLength_);
-        uint256 blockNumber_;
+        uint256 time_;
         assembly {
             location_ := sub(
                 stackTopLocation_,
@@ -52,12 +48,12 @@ library OpSelectLte {
             } {
                 mstore(add(reports_, add(0x20, i_)), mload(cursor_))
             }
-            blockNumber_ := mload(maxCursor_)
+            time_ := mload(maxCursor_)
         }
 
         uint256 result_ = TierwiseCombine.selectLte(
             reports_,
-            blockNumber_,
+            time_,
             logic_,
             mode_
         );
