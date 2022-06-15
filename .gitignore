@@ -14,3 +14,4 @@ docs/api
 solt
 !dist/**
 tenderly.yaml
+test-template.ts

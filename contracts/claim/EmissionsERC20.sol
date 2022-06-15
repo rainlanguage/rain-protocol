@@ -4,7 +4,8 @@ pragma solidity =0.8.10;
 import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
-import "../tier/ReadOnlyTier.sol";
+import "../tier/TierV2.sol";
+import "../tier/libraries/TierReport.sol";
 import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
 import "../vm/RainVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
@@ -32,7 +33,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
 /// Intended behaviour is to avoid sybils infinitely minting by putting the
-/// claim functionality behind a `ITier` contract. The emissions contract
+/// claim functionality behind a `TierV2` contract. The emissions contract
 /// itself implements `ReadOnlyTier` and every time a claim is processed it
 /// logs the block number of the claim against every tier claimed. So the block
 /// numbers in the tier report for `EmissionsERC20` are the last time that tier
@@ -42,17 +43,16 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
+    TierV2,
     Initializable,
     RainVM,
     ERC20Upgradeable,
-    IClaim,
-    ReadOnlyTier
+    IClaim
 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
-    /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
-    /// of another account.
-    event Initialize(address sender, bool allowDelegatedClaims);
+    /// @param config All initialized config.
+    event Initialize(address sender, EmissionsERC20Config config);
 
     address private immutable self;
     address private immutable vmStateBuilder;
@@ -107,11 +107,11 @@ contract EmissionsERC20 is
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
-        emit Initialize(msg.sender, config_.allowDelegatedClaims);
+        emit Initialize(msg.sender, config_);
     }
 
-    /// @inheritdoc ITier
-    function report(address account_)
+    /// @inheritdoc ITierV2
+    function report(address account_, uint256[] memory)
         public
         view
         virtual
@@ -121,6 +121,16 @@ contract EmissionsERC20 is
         return reports[account_];
     }
 
+    /// @inheritdoc ITierV2
+    function reportTimeForTier(
+        address account_,
+        uint256 tier_,
+        uint256[] calldata
+    ) external view returns (uint256) {
+        return TierReport.reportTimeForTier(reports[account_], tier_);
+    }
+
+    /// @inheritdoc RainVM
     function fnPtrs() public pure override returns (bytes memory) {
         return AllStandardOps.fnPtrs();
     }
@@ -171,19 +181,11 @@ contract EmissionsERC20 is
         // Record the current block as the latest claim.
         // This can be diffed/combined with external reports in future claim
         // calculations.
-        reports[claimant_] = TierReport.updateBlocksForTierRange(
+        reports[claimant_] = TierReport.updateTimesForTierRange(
             TierConstants.NEVER_REPORT,
             TierConstants.TIER_ZERO,
             TierConstants.TIER_EIGHT,
-            block.number
-        );
-        emit TierChange(
-            msg.sender,
-            claimant_,
-            TierConstants.TIER_ZERO,
-            TierConstants.TIER_EIGHT,
-            // `data_` is emitted under `Claim`.
-            ""
+            block.timestamp
         );
         emit Claim(msg.sender, claimant_, data_);
     }

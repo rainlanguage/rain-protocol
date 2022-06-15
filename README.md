@@ -1,123 +1,151 @@
 # Rain Protocol
 
-Rain Protocol supports permissionless and fair value capture for intangible or
-physical assets in on any EVM compatible chain with sufficiently low fees.
+Rain Protocol lets you build web3 economies at any scale.
+
+Rain includes:
+
+- Token generation with premint AND algorithmic emissions schedule
+- Definitions for time-based membership systems (up to 8 tiers)
+- Bootstrapping projects and tokens via. algorithmic sales that safely rollback
+  if preset targets are not met
+- Tokenomics and trading engines to define primary market mechanisms such as
+  distributions, buybacks, price peg maintenance, etc.
+- KYC/AML verification contracts that have compatible interfaces to be used in
+  combination with membership requirements
+- Onchain/offchain CMS style functionality to enable metadata and other content
+  about contracts to be emitted onchain and indexed offchain
+- Staking contract to allow like for like deposits and rewards paid prorata for
+  users, while simultaneously being eligible for multiple consuming memberships
+- An algorithmic membership combinator that can mix and match any combination
+  of memberships
+- Escrow contract to allow many tokens to be distributed to sale participants
+  automatically upon sale success, or returned to the depositor on failure.
+- Factory contracts for all the above to ensure efficient and safe deployments
+
+Much of the magic of Rain is due to the "Rain VM" which is a simple way to
+define and run algorithms onchain.
+
+The Rain VM is not really a separate VM, it still uses the EVM of course, which
+makes it fully compatible with all EVM chains.
+
+Rain scripts are a combination of low level functions (opcodes) like addition
+and subtraction and very high level functions like fetching an ERC20 balance at
+a given snapshot ID (Open Zeppelin), or fetching a chainlink oracle price.
+
+Rain scripts can be expressed in a spreadsheet like syntax and importantly are
+deployed as part of configuration. Rain scripts do NOT need to be compiled,
+unlike Solidity which needs to be compiled directly to EVM bytecode. Typically
+rain scripts are deployed as onchain code even though the EVM cannot execute
+them directly. The overhead of the VM is a mere ~6.6k to load a script and 170
+gas per opcode, meaning that VM contracts are only ~5-10% more expensive than
+hand-written and optimised equivalent solidity code.
+
+We believe the power of allowing your USERS to read and write their own
+contracts, without needing soliditiy developers or auditors, is well worth a
+few thousand gas overhead, even on L1.
+
+## How can Rain claim to bypass developers and auditors securely?
+
+At a high level the Rain security model is:
+
+- Lindy (value x time) is the most important measure of security
+- There are NO admin keys outside the KYC verification process which sadly
+  still requires some kind of offchain review
+- Rain scripts MUST be both readable and writeable by the "average" spreadsheet
+  user, so that ALL scriptable functionaly is _self auditable_ by end users
+- Rain scripts MUST be read only so that state changes are mediated by the
+  wrapping contract at all times, and reentrancy mistakes are impossible
+- Rain deployments are mediated by factories with known bytecode that deploy
+  known bytecode, allowing users to verify the bytecode of a factory and trust
+  it based on its Lindy score on ANY evm compatible chain without needing to
+  trust the Rain developers to manage deployments
+- Open source dashboards are developed and maintained that can be hosted
+  locally or on IPFS to mitigate MIM/phishing/DNS attacks, the dashboards show
+  the Rain scripts for ANY contract deployed by known bytecode factories AND
+  warn the user about unknown bytecode, so that any lying frontend can be
+  quickly and easily cross-referenced with the dashboard
+- An open source javascript simulator of the Rain VM is developed and
+  maintained so that the behaviour of any algorithm can be analysed offchain,
+  e.g. via monte carlo statistical models, or integrations with spreadsheeting
+  tools.
+- An open source subgraph is maintained to allow all functionality to be fully
+  indexed and queried consistently at all times
+- ALL required infrastructure and participants for Rain ecosystems are
+  incentivised by the system and fully open to participate in, e.g. indexers
+  are subgraphs, sales set aside fees for all front ends, trade clearance bots
+  earn bounties, etc. so there are NO altruistic or unsustainable tokenomic
+  requirements from the rain protocol itself.
+- Rain makes it much easier to express sustainable tokenomics than ponzis and
+  other unsustainable models, such as building in fee based revenue models
+
+In summary front ends are expected to compete on brand, trust, UX and price for
+users.
+
+Users are expected to read/write rain scripts to deploy their own contracts
+with factories and standard dashboards.
+
+Rain scripts are expected to be intelligible to the "average spreadsheet user"
+while remaining gas efficient and secure enough to be written by non-devs, and
+read by other users.
+
+If users can write their own scripts they don't need devs.
+
+If users can read other people's scripts they don't need auditors.
+
+## Consuming Rain in downstream contracts
+
+As tags and branches are both mutable in git we strongly recommend referencing
+git commits directly.
+
+In package.json this can be done by adding a line like the following to
+the dependencies:
+
+```
+"@beehiveinnovation/rain-protocol": "git+https://github.com/beehive-innovation/rain-protocol.git#<COMMIT_HASH_HERE>",
+```
+
+Generally we recommend using an audited commit WITH REMEDIATIONS but often this
+may be several months behind the latest functionality. All security sensitive
+decisions are your own.
 
 ## Installation
 
-```console
-npm install @beehiveinnovation/rain-protocol
-```
+We strongly recommend using the nix shell https://nix.dev/tutorials/install-nix
 
-## Usage
+Once you have installed nix you can simply run `nix-shell` from the root of
+this repository and it will ensure a compatible version of npm is on your path
+and run npm install automatically.
 
-### Importing contracts
-
-```solidity
-pragma solidity ^0.6.12;
-
-import "@beehiveinnovation/rain-protocol/contracts/ReadWriteTier.sol";
-
-contract MyContract is ReadWriteTier {
-  // ...
-}
-```
-
-### Importing contract [artifact](https://hardhat.org/guides/compile-contracts.html#artifacts) (e.g. abi, bytecode)
-
-```typescript
-const trustJson = require("@beehiveinnovation/rain-protocol/artifacts/Trust.json");
-```
-
-### Using with [TypeChain](https://github.com/dethcrypto/TypeChain)
-
-```typescript
-import type { Trust } from "@beehiveinnovation/rain-protocol/typechain/Trust";
-```
+If you don't use nix shell then you will need to figure out for yourself what
+versions of npm are compatible with the repo. Reading the `shell.nix` file may
+give clues.
 
 ## Documentation
 
 Documentation can be found [here](https://docs.rainprotocol.xyz/).
 
-## Development setup (for contributors)
-
-### Nix Shell
-
-Install the nix shell if you haven't already.
-
-```
-curl -L https://nixos.org/nix/install | sh
-```
-
-Drop into a nix-shell.
-
-```
-cd rain-protocol
-nix-shell
-```
-
 ### Run tests
 
-From _outside_ the nix-shell run:
-
-```
-nix-shell --run 'hardhat test'
-```
-
-Inside the nix-shell you can just run `hardhat test` as normal.
+Run `hardhat test` from inside the nix shell.
 
 ### Run security check
 
-Inside the nix-shell run `security-check`.
+Inside the nix-shell run `security-check` which will run slither as an
+automated security scanner.
 
-### Publish npm Package
+### Build and serve documentation site
 
-Inside nix-shell run `prepublish`
+Inside the nix-shell run `docs-dev`. If you want to see search functionality,
+you'll need to manually build and serve with `docs-build` and then `docs-serve`
+since search indexing only runs for production builds.
 
-This will bump package version for to a new patch version,
+Navigate to http://localhost:3000/ to view the docs site generated with
+Docusaurus.
 
-Please manually commit this change, and push up to the GitHub repo:
-
-```console
-$ git commit -am "0.0.1"
-$ git push
-```
-
-Now, you can either tag this commit locally and push it up, or directly cut a release on the GitHub repo (if you're having issues tagging the commit locally)
-
-Locally:
-```console
-git tag v0.0.1 -am "0.0.1"
-git push origin v0.0.1
-```
-
-Remotely:
-Go to Releases -> Draft a new release
-Select this branch and create a new tag for this commit e.g. `v0.0.1`
-
-### Build deployment artifacts
-
-Deployment artifacts are built and committed to `dist` periodically for commits
-alongside relevant audits.
-
-`solt` is used to build all the metadata used by etherscan etc. to verify the
-contract bytecode.
-
-`solt` must be installed manually as it currently has no nix package.
-
-`solt-the-earth` can be run inside `nix-shell` to iterate over all artifacts
-and build metadata for each. If metadata is built for the entire repo then all
-test contracts and other unrelated contracts will be included in what is
-displayed on etherscan. This isn't dangerous but it is noisy if someone wants
-to review the contract code outside the repository.
-
-IMPORTANT NOTE: `solt` does not support `import` statements that break over
-several lines. For this reason all `import` statements over 80 characters long
-are explicitly ignored by solhint for line length issues.
-
-### Audits
-
-Audits can be found in the `audits` folder.
+Documentation files are written in Markdown and can be found under the `docs/`
+directory in this repo. The main config file can be found at
+`docusaurus/docusaurus.config.js`, and sidebar config at
+`docusaurus/siderbars.js`
 
 ### Gas optimisations
 
@@ -128,13 +156,12 @@ In general clarity and reuse of existing standard functionality, such as
 Open Zeppelin RBAC access controls, is preferred over micro-optimisation of gas
 costs.
 
-For many desirable use-cases, such as small independent artists or rural
-communities, the gas costs on ethereum mainnet will ALWAYS be unaffordable no
-matter how much we optimise these contracts.
-
-The intent is to keep a reasonable balance between cost and clarity then deploy
-the contracts to L2 solutions such as Polygon where the baseline gas cost is
-several orders of magnitude cheaper.
+There ARE some hot performance paths such as the VM and bulk verification logic
+that have aggressive assembly level gas optimisations. These optimisations
+includes things like direct function pointers for VM dispatch logic and
+structural sharing for potentially large lists to avoid memory expansion. It is
+much more aggressive than simply bypassing some checked math for the oft-quoted
+~15% assembly benefit, with savings of ~60%+ in some cases.
 
 ### Unit tests
 
@@ -143,24 +170,50 @@ All functionality is unit tested. The tests are in the `test` folder.
 If some functionality or potential exploit is missing a test this is a bug and
 so an issue and/or PR should be raised.
 
-## Roadmap
+## Timestamps
 
-Our goal is to build a free and open source system that makes it as easy and
-affordable as possible for creators to deploy `Trust` contracts that are secure
-and can meet local laws and regulations, without positioning ourselves as the
-gatekeeper of every possible use-case.
+Rain makes extensive use of block timestamps rather than block numbers.
 
-The current roadmap towards this goal:
+Historically it was the inverse and everything was based on block numbers.
 
-- [x] Create the basic contracts needed to facilitate each phase
-- [x] Audit and open source everything in a combined public repository
-- [x] Create factory contracts that register deployed contracts and allow for
-      automatic verification of the authenticity of a `Trust`
-- [x] More KYC/AML tools for creators
-- [ ] Create SDKs and incentives to foster global permissionless CURATION of
-      raises across many independent GUIs, platforms and blockchains
-- [ ] Facilitate Token Lists and Kleros style layers of additional CURATION to
-      protect users and platforms from illicit activities
-- [ ] More distribution mechanisms
-- [ ] Data analytics and tools for better CURATION
-- [ ] RainVM compiler for building small smart contract DSLs
+If you read common advice, run security scanners, linting tools, etc. then it
+will state that block timestamps cannot be fully trusted because they can be
+manipulated by miners. This is true to some extent, but that extent is limited.
+
+Some mitigating factors that limit how much timestamps will drift in practise:
+
+- Hard limit on timestamp jumps between blocks, e.g. 900 seconds max
+- Future timestamps cannot be built on by other miners so won't be included in
+  the longest chain
+- Past timestamps increase the difficulty faster which gives miners less money
+  over time
+- Timestamps must always increase every block
+- Honest miners will always use the most accurate time in their opinion
+
+However, it is entirely true that if a timestamp is to be used to directly
+influence the outcome of a specific transaction, such as a casino game, then a
+miner can modify a _single_ or perhaps several (if the miner is very powerful)
+stamps over a short period. In this way a miner can guarantee themselves a win
+in the casino game, etc. if they manage to mine the block.
+
+The use cases in Rain are ALL intended for timestamps to be referenced over a
+long period of time, such as a vesting schedule or the timeout for a sale to
+complete. Over a long period, timestamps are MORE accurate than block numbers
+because in practise blockchains shift their average block times subtly but
+measurably over days/weeks/months.
+
+If the uniqueness of a timestamp ever matters to the security of the Rain
+protocol then Rain MUST ensure uniqueness at the contract level. Solidity
+promises uniqueness but some chains have subsecond block times with second
+granularity timestamps, so it's unclear how uniqueness is possible in this
+situation.
+
+Timestamps are also ambiguous in their scale across contexts. For example
+the evm offers timestamps as UNIX seconds, but javascript uses milliseconds.
+Naively generating a timestamp in javascript then passing it to a contract will
+result in a time 1000x larger than intended. For example `1640984400` in
+seconds is 2022-01-01 but `1640984400000` is millis for the same time, and is
+53970-09-23 in the evm! The Rain SDK helps mitigate this by correctly scaling
+times generated in JavaScript but Rain contracts also enforce a `uint32` max
+limit on all times used, which will revert most issues with millis, micros,
+nanos, etc.
