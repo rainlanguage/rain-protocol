@@ -44,7 +44,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_COUNT = 39;
+uint256 constant ALL_STANDARD_OPS_COUNT = 40;
 uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
     ALL_STANDARD_OPS_COUNT;
 
