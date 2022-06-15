@@ -9,7 +9,6 @@ import type {
   DepositEvent,
   RedeemableERC20ClaimEscrow,
 } from "../../../typechain/RedeemableERC20ClaimEscrow";
-import type { RedeemableERC20ClaimEscrowWrapper } from "../../../typechain/RedeemableERC20ClaimEscrowWrapper";
 import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
 import type { ReserveToken } from "../../../typechain/ReserveToken";
 import {} from "../../../typechain/SaleFactory";
@@ -18,14 +17,13 @@ import { deployGlobals } from "../../../utils/deploy/escrow";
 import { Status } from "../../../utils/types/sale";
 
 let claim: RedeemableERC20ClaimEscrow & Contract,
-  claimWrapper: RedeemableERC20ClaimEscrowWrapper & Contract,
   reserve: ReserveToken & Contract,
   redeemableERC20Factory: RedeemableERC20Factory & Contract,
   readWriteTier: ReadWriteTier & Contract;
 
 describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
   before(async () => {
-    ({ claim, claimWrapper, readWriteTier } = await deployGlobals());
+    ({ claim, readWriteTier } = await deployGlobals());
   });
 
   beforeEach(async () => {

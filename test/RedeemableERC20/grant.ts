@@ -5,18 +5,7 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../../utils";
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
+import { Tier } from "../../utils";
 
 describe("RedeemableERC20 grant test", async function () {
   it("should grant alice sender then receiver and remain as both", async function () {

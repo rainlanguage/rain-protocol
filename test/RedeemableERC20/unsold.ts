@@ -4,18 +4,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../../utils";
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
+import { Tier } from "../../utils";
 
 describe("RedeemableERC20 unsold token test", async function () {
   it("should forward unsold RedeemableERC20 (pTKN) to non-zero forwarding address", async function () {

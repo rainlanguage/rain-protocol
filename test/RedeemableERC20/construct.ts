@@ -4,18 +4,7 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../../utils";
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
+import { Tier } from "../../utils";
 
 describe("RedeemableERC20 constructor test", async function () {
   it("should have 18 decimals", async () => {

@@ -10,6 +10,7 @@ import {
   op,
   paddedUInt256,
   paddedUInt32,
+  Tier,
   tierRange,
   timewarp,
 } from "../../../utils";
@@ -17,18 +18,6 @@ import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
 export const Opcode = Util.AllStandardOps;
-
-enum Tier {
-  ZERO,
-  ONE, // bronze
-  TWO, // silver
-  THREE, // gold
-  FOUR, // platinum
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
 
 describe("EmissionsERC20 Report Test", async function () {
   it("should record the latest claim timestamp for each slot in a tier report", async function () {

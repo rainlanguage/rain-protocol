@@ -8,18 +8,6 @@ import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
 export const Opcode = Util.AllStandardOps;
 
-enum Tier {
-  ZERO,
-  ONE, // bronze
-  TWO, // silver
-  THREE, // gold
-  FOUR, // platinum
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
-
 describe("EmissionsERC20 Delegated Claims Test", async function () {
   it("should prevent delegated claims when flag set to false", async function () {
     this.timeout(0);

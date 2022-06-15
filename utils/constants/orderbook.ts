@@ -1,0 +1,2 @@
+export const TRACK_CLEARED_ORDER = 0x1;
+export const TRACK_CLEARED_COUNTERPARTY = 0x2;

@@ -19,14 +19,13 @@ import {
   max_uint256,
   ONE,
 } from "../../../utils/constants/bigNumber";
+import { TRACK_CLEARED_COUNTERPARTY } from "../../../utils/constants/orderbook";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { fixedPointDiv } from "../../../utils/math";
 import { OrderBookOpcode } from "../../../utils/rainvm/ops/orderBookOps";
 import { op } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
-
-const TRACK_CLEARED_COUNTERPARTY = 0x2;
 
 const Opcode = OrderBookOpcode;
 

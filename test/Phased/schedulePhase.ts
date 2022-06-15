@@ -1,35 +1,10 @@
 import { assert } from "chai";
 import type { Contract } from "ethers";
-import { ethers } from "hardhat";
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { PhasedTest } from "../../typechain/PhasedTest";
 import * as Util from "../../utils";
-import { getBlockTimestamp, timewarp } from "../../utils";
-
-enum Phase {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
-
-const max_uint32 = ethers.BigNumber.from("0xffffffff");
-
-type PhaseTimes = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number
-];
+import { getBlockTimestamp, max_uint32, timewarp } from "../../utils";
+import { Phase } from "../../utils/types/phased";
 
 describe("Schedule next phase", async function () {
   it("should have correct phase state (Phase X) in schedule phase hook, even if the next phase (Phase X + 1) has been set to the current timestamp", async function () {

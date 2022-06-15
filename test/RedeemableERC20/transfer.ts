@@ -5,18 +5,7 @@ import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../../utils";
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
+import { Tier } from "../../utils";
 
 describe("RedeemableERC20 transfer test", async function () {
   it("should enforce 'hub and spoke' pattern for sending and receiving tokens during distribution phase", async function () {

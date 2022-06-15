@@ -4,19 +4,8 @@ import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../../utils";
+import { Tier } from "../../utils";
 import { Phase } from "../../utils/types/redeemableERC20";
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
 
 describe("RedeemableERC20 endDistribution test", async function () {
   it("should only allow sender with DISTRIBUTOR_BURNER role to call endDistribution", async function () {

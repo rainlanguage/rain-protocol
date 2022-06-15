@@ -11,6 +11,7 @@ import {
   paddedUInt256,
   paddedUInt32,
   sixZeros,
+  Tier,
   tierRange,
   timewarp,
 } from "../../../utils";
@@ -18,18 +19,6 @@ import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
 export const Opcode = Util.AllStandardOps;
-
-enum Tier {
-  ZERO,
-  ONE, // bronze
-  TWO, // silver
-  THREE, // gold
-  FOUR, // platinum
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
 
 describe("EmissionsERC20 Claim Amount Test", async function () {
   it("should calculate claim amount from constant val", async function () {

@@ -2,10 +2,8 @@ import { assert } from "chai";
 import { Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
 import { NoticeBoard } from "../../../typechain/NoticeBoard";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
 import { ReserveToken } from "../../../typechain/ReserveToken";
 import { SaleFactory } from "../../../typechain/SaleFactory";
 import { zeroAddress } from "../../../utils/constants/address";
@@ -22,14 +20,11 @@ const Opcode = AllStandardOps;
 
 describe("Sale noticeboard", async function () {
   let reserve: ReserveToken,
-    redeemableERC20Factory: RedeemableERC20Factory,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    stateBuilder: AllStandardOpsStateBuilder;
+    saleFactory: SaleFactory;
 
   before(async () => {
-    ({ redeemableERC20Factory, readWriteTier, saleFactory, stateBuilder } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {

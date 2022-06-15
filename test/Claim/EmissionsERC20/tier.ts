@@ -9,6 +9,7 @@ import {
   op,
   paddedUInt256,
   paddedUInt32,
+  Tier,
   tierRange,
   timewarp,
 } from "../../../utils";
@@ -16,18 +17,6 @@ import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
 export const Opcode = Util.AllStandardOps;
-
-enum Tier {
-  ZERO,
-  ONE, // bronze
-  TWO, // silver
-  THREE, // gold
-  FOUR, // platinum
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
 
 describe("EmissionsERC20 Tier Test", async function () {
   it("user explicitly claims, then the user loses the tier and can no longer claim", async () => {

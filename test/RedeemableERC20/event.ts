@@ -8,18 +8,7 @@ import type {
 } from "../../typechain/RedeemableERC20";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import * as Util from "../../utils";
-
-enum Tier {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
+import { Tier } from "../../utils";
 
 describe("RedeemableERC20 event test", async function () {
   it("should emit Initialize event", async function () {

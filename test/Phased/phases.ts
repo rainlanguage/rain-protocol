@@ -6,32 +6,8 @@ import type {
   PhaseScheduledEvent,
 } from "../../typechain/PhasedTest";
 import * as Util from "../../utils";
-import { getBlockTimestamp, timewarp } from "../../utils";
-
-enum Phase {
-  ZERO,
-  ONE,
-  TWO,
-  THREE,
-  FOUR,
-  FIVE,
-  SIX,
-  SEVEN,
-  EIGHT,
-}
-
-const max_uint32 = ethers.BigNumber.from("0xffffffff");
-
-type PhaseTimes = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number
-];
+import { getBlockTimestamp, max_uint32, timewarp } from "../../utils";
+import { Phase, PhaseTimes } from "../../utils/types/phased";
 
 describe("Phased test", async function () {
   it("should handle phases on happy path", async function () {
@@ -147,8 +123,6 @@ describe("Phased test", async function () {
   // assert errors
   it("modifiers correctly error if current phase doesn't meet condition", async () => {
     this.timeout(0);
-
-    const signers = await ethers.getSigners();
 
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
       Contract;
