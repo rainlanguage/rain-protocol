@@ -19,7 +19,7 @@ describe("CombineTier default report", async function () {
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.THIS_ADDRESS),
       ctxAccount,
-    op(Opcode.REPORT),
+    op(Opcode.ITIERV2_REPORT),
   ]);
 
   it("should support a program which returns the default report", async () => {
@@ -51,14 +51,14 @@ describe("CombineTier default report", async function () {
     const sourceAlwaysReport = concat([
         op(Opcode.CONSTANT, 0),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceNeverReport = concat([
         op(Opcode.CONSTANT, 1),
         op(Opcode.CONTEXT, 0),
-      op(Opcode.REPORT, 0),
+      op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     const combineTierAlways = (await combineTierDeploy(signers[0], {

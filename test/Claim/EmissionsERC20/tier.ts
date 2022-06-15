@@ -51,7 +51,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -59,7 +59,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       concat([
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -184,7 +184,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -192,7 +192,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       concat([
         vReadWriteTier,
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -316,7 +316,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       concat([
           op(Opcode.THIS_ADDRESS),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -324,7 +324,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       concat([
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT, 0),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 /// @title ITierV2
-/// @notice `ITierV2` is a simple interface that contracts can
-/// implement to provide membership lists for other contracts.
+/// @notice `ITierV2` is a simple interface that contracts can implement to
+/// provide membership lists for other contracts.
 ///
 /// There are many use-cases for a time-preserving conditional membership list.
 ///
@@ -26,31 +26,35 @@ pragma solidity ^0.8.0;
 /// The high level requirements for a contract implementing `ITierV2`:
 /// - MUST represent held tiers as a `uint`.
 /// - MUST implement `report`.
-///   - The report is a `uint256` that SHOULD represent the block each tier has
+///   - The report is a `uint256` that SHOULD represent the time each tier has
 ///     been continuously held since encoded as `uint32`.
 ///   - The encoded tiers start at `1`; Tier `0` is implied if no tier has ever
 ///     been held.
 ///   - Tier `0` is NOT encoded in the report, it is simply the fallback value.
-///   - If a tier is lost the block data is erased for that tier and will be
-///     set if/when the tier is regained to the new block.
-///   - If a tier is held but the historical block information is not available
+///   - If a tier is lost the time data is erased for that tier and will be
+///     set if/when the tier is regained to the new time.
+///   - If a tier is held but the historical time information is not available
 ///     the report MAY return `0x00000000` for all held tiers.
 ///   - Tiers that are lost or have never been held MUST return `0xFFFFFFFF`.
-/// - SHOULD implement `setTier`.
-///   - Contracts SHOULD revert with `SET_TIER` error if they cannot
-///     meaningfully set a tier directly.
-///     For example a contract that can only derive a membership tier by
-///     reading the state of an external contract cannot set tiers.
-///   - Contracts implementing `setTier` SHOULD error with `SET_ZERO_TIER`
-///     if tier 0 is being set.
-/// - MUST emit `TierChange` when `setTier` successfully writes a new tier.
-///   - Contracts that cannot meaningfully set a tier are exempt.
+///   - Context can be a list of numbers that MAY pairwise define tiers such as
+///     minimum thresholds, or MAY simply provide global context such as a
+///     relevant NFT ID for example.
+/// - MUST implement `reportTimeForTier`
+///   - Functions exactly as `report` but only returns a single time for a
+///     single tier
+///   - MUST return the same time value `report` would for any given tier and
+///     context combination.
 ///
 /// So the four possible states and report values are:
-/// - Tier is held and block is known: Block is in the report
-/// - Tier is held but block is NOT known: `0` is in the report
+/// - Tier is held and time is known: Timestamp is in the report
+/// - Tier is held but time is NOT known: `0` is in the report
 /// - Tier is NOT held: `0xFF..` is in the report
 /// - Tier is unknown: `0xFF..` is in the report
+///
+/// The reason `context` is specified as a list of values rather than arbitrary
+/// bytes is to allow clear and efficient compatibility with VM stacks. Some N
+/// values can be taken from a VM stack and used directly as a context, which
+/// would be difficult or impossible to ensure is safe for arbitrary bytes.
 interface ITierV2 {
     /// Same as report but only returns the time for a single tier.
     /// Often the implementing contract can calculate a single tier more
@@ -68,7 +72,7 @@ interface ITierV2 {
         uint256[] calldata context
     ) external view returns (uint256 time);
 
-    /// Same as `ITier` but with arbitrary bytes for `data` which allows a
+    /// Same as `ITier` but with a list of values for `context` which allows a
     /// single underlying state to present many different reports dynamically.
     ///
     /// For example:
@@ -76,7 +80,7 @@ interface ITierV2 {
     /// - NFTs can give different tiers based on different IDs
     /// - Snapshot ERC20s can give different reports based on snapshot ID
     ///
-    /// `data` supercedes `setTier` function and `TierChange` event from
+    /// `context` supercedes `setTier` function and `TierChange` event from
     /// `ITier` at the interface level. Implementing contracts are free to
     /// inherit both `ITier` and `ITierV2` if the old behaviour is desired.
     function report(address account, uint256[] calldata context)

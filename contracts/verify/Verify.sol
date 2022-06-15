@@ -422,7 +422,7 @@ contract Verify is AccessControl, Initializable {
     /// process be infallible so that no individual approval can rollback the
     /// entire batch due to the actions of some other approver/banner. It is
     /// possible to approve an already approved or banned account. The
-    /// `Approve` event will always emit but the approved blotimeck will only be
+    /// `Approve` event will always emit but the approved time will only be
     /// set if it was previously uninitialized. A banned account will always
     /// be seen as banned when calling `statusAtTime` regardless of the
     /// approval time, even if the approval is more recent than the ban. The

@@ -222,7 +222,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       concat([
         op(Opcode.THIS_ADDRESS),
         op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -230,7 +230,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       concat([
         valTierAddrAddress,
         op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -508,7 +508,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       concat([
         op(Opcode.THIS_ADDRESS),
         op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
@@ -516,7 +516,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       concat([
         valTierAddrAddress,
         op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore

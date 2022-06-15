@@ -29,7 +29,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.THIS_ADDRESS),
       ctxAccount,
-    op(Opcode.REPORT),
+    op(Opcode.ITIERV2_REPORT),
   ]);
 
   it("should correctly combine Always and Never tier reports with every and min selector", async () => {
@@ -61,10 +61,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
     const sourceReport = concat([
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
-          op(Opcode.REPORT, 0),
+          op(Opcode.ITIERV2_REPORT, 0),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
@@ -116,10 +116,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
     const sourceReport = concat([
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
-        op(Opcode.REPORT),
+        op(Opcode.ITIERV2_REPORT),
         op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,

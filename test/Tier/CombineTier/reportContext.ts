@@ -18,7 +18,7 @@ describe("CombineTier report context", async function () {
   const sourceReportTimeForTierDefault = concat([
       op(Opcode.THIS_ADDRESS),
       ctxAccount,
-    op(Opcode.REPORT),
+    op(Opcode.ITIERV2_REPORT),
   ]);
 
   it("should support a program which simply returns the account", async () => {
