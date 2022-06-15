@@ -1,18 +1,13 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type {
   InitializeEvent,
-  PhaseScheduledEvent,
-  RedeemableERC20,
-  RedeemEvent,
   TreasuryAssetEvent,
 } from "../../typechain/RedeemableERC20";
-import type { Contract } from "ethers";
-import { Phase } from "../../utils/types/redeemableERC20";
-import { getBlockTimestamp } from "../../utils";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 
 enum Tier {
   ZERO,
@@ -27,7 +22,6 @@ enum Tier {
 }
 
 describe("RedeemableERC20 event test", async function () {
-
   it("should emit Initialize event", async function () {
     this.timeout(0);
 
@@ -77,7 +71,7 @@ describe("RedeemableERC20 event test", async function () {
     assert(config.reserve === reserve1.address, "wrong reserve");
     assert(
       JSON.stringify(config.erc20Config) ===
-      JSON.stringify(Object.values(redeemableERC20Config)),
+        JSON.stringify(Object.values(redeemableERC20Config)),
       "wrong config"
     );
     assert(config.tier === tier.address, "wrong tier");
@@ -156,5 +150,4 @@ describe("RedeemableERC20 event test", async function () {
     assert(event2.sender === signers[1].address, "wrong sender in event2");
     assert(event2.asset === reserve1.address, "wrong asset in event2");
   });
-
 });

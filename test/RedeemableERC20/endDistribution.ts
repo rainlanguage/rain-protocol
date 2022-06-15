@@ -1,18 +1,10 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  InitializeEvent,
-  PhaseScheduledEvent,
-  RedeemableERC20,
-  RedeemEvent,
-  TreasuryAssetEvent,
-} from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
+import { ethers } from "hardhat";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 import { Phase } from "../../utils/types/redeemableERC20";
-import { getBlockTimestamp } from "../../utils";
 
 enum Tier {
   ZERO,
@@ -27,7 +19,6 @@ enum Tier {
 }
 
 describe("RedeemableERC20 endDistribution test", async function () {
-
   it("should only allow sender with DISTRIBUTOR_BURNER role to call endDistribution", async function () {
     this.timeout(0);
 
@@ -83,5 +74,4 @@ describe("RedeemableERC20 endDistribution test", async function () {
 
     await erc20Pullee.endDistribution(redeemableERC20.address, Util.oneAddress);
   });
-
 });

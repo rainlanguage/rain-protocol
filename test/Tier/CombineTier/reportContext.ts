@@ -1,11 +1,11 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import { concat, hexlify } from "ethers/lib/utils";
 import type { Contract } from "ethers";
+import { concat, hexlify } from "ethers/lib/utils";
+import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain/CombineTier";
+import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 
 export const Opcode = AllStandardOps;
 

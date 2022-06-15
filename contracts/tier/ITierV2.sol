@@ -65,7 +65,7 @@ interface ITierV2 {
     function reportTimeForTier(
         address account,
         uint256 tier,
-        uint[] calldata context
+        uint256[] calldata context
     ) external view returns (uint256 time);
 
     /// Same as `ITier` but with arbitrary bytes for `data` which allows a
@@ -79,7 +79,7 @@ interface ITierV2 {
     /// `data` supercedes `setTier` function and `TierChange` event from
     /// `ITier` at the interface level. Implementing contracts are free to
     /// inherit both `ITier` and `ITierV2` if the old behaviour is desired.
-    function report(address account, uint[] calldata context)
+    function report(address account, uint256[] calldata context)
         external
         view
         returns (uint256 report);

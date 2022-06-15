@@ -33,7 +33,7 @@ contract ReadWriteTier is TierV2 {
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
-    function report(address account_, uint[] memory)
+    function report(address account_, uint256[] memory)
         public
         view
         virtual
@@ -51,7 +51,7 @@ contract ReadWriteTier is TierV2 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint[] calldata
+        uint256[] calldata
     ) external view returns (uint256) {
         return TierReport.reportTimeForTier(reports[account_], tier_);
     }
@@ -69,7 +69,7 @@ contract ReadWriteTier is TierV2 {
         // interacted with the contract.
         require(endTier_ > 0, "SET_ZERO_TIER");
 
-        uint[] memory context_;
+        uint256[] memory context_;
         uint256 report_ = report(account_, context_);
 
         uint256 startTier_ = TierReport.tierAtTimeFromReport(
@@ -127,12 +127,13 @@ contract ReadWriteTier is TierV2 {
         uint256 endTier_,
         uint256 timestamp_
     ) external pure returns (uint256 updatedReport_) {
-        return TierReport.updateTimesForTierRange(
-            report_,
-            startTier_,
-            endTier_,
-            timestamp_
-        );
+        return
+            TierReport.updateTimesForTierRange(
+                report_,
+                startTier_,
+                endTier_,
+                timestamp_
+            );
     }
 
     function updateReportWithTierAtTime(
@@ -141,11 +142,12 @@ contract ReadWriteTier is TierV2 {
         uint256 endTier_,
         uint256 timestamp_
     ) external pure returns (uint256 updatedReport_) {
-        return TierReport.updateReportWithTierAtTime(
-            report_,
-            startTier_,
-            endTier_,
-            timestamp_
-        );
+        return
+            TierReport.updateReportWithTierAtTime(
+                report_,
+                startTier_,
+                endTier_,
+                timestamp_
+            );
     }
 }

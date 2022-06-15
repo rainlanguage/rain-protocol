@@ -1,12 +1,9 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  RedeemableERC20,
-} from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
+import { ethers } from "hardhat";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 
 enum Tier {
   ZERO,
@@ -21,7 +18,6 @@ enum Tier {
 }
 
 describe("RedeemableERC20 unsold token test", async function () {
-
   it("should forward unsold RedeemableERC20 (pTKN) to non-zero forwarding address", async function () {
     this.timeout(0);
 

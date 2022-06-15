@@ -1,18 +1,15 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type {
-  InitializeEvent,
   PhaseScheduledEvent,
-  RedeemableERC20,
   RedeemEvent,
-  TreasuryAssetEvent,
 } from "../../typechain/RedeemableERC20";
-import type { Contract } from "ethers";
-import { Phase } from "../../utils/types/redeemableERC20";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 import { getBlockTimestamp } from "../../utils";
+import { Phase } from "../../utils/types/redeemableERC20";
 
 enum Tier {
   ZERO,
@@ -27,7 +24,6 @@ enum Tier {
 }
 
 describe("RedeemableERC20 redeem test", async function () {
-  
   it("should lock tokens until redeemed", async function () {
     this.timeout(0);
 
@@ -140,7 +136,8 @@ describe("RedeemableERC20 redeem test", async function () {
 
     assert(
       (await redeemableERC20.currentPhase()).eq(Phase.FROZEN),
-      `wrong phase, expected ${Phase.FROZEN
+      `wrong phase, expected ${
+        Phase.FROZEN
       } got ${await redeemableERC20.currentPhase()}`
     );
 
@@ -468,7 +465,7 @@ describe("RedeemableERC20 redeem test", async function () {
       `reserve 2 didn't transfer tokens to signer 1 upon redemption. Reserve 2: ${reserve2.address}, Signer: ${signer1.address}, Balance: ${reserve2Balance}`
     );
   });
-  
+
   it("should allow transfer only if redeemer meets minimum tier level", async function () {
     this.timeout(0);
 
@@ -779,7 +776,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "wrong amount of reserve 2 at contract address"
     );
   });
-  
+
   it("should guard against null treasury assets redemptions", async function () {
     this.timeout(0);
 

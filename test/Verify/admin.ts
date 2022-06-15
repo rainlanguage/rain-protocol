@@ -2,9 +2,9 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { Verify } from "../../typechain/Verify";
 import { VerifyFactory } from "../../typechain/VerifyFactory";
+import { zeroAddress } from "../../utils/constants";
 import { verifyDeploy } from "../../utils/deploy/verify";
 import { assertError } from "../../utils/test/assertError";
-import { zeroAddress } from "../../utils/constants";
 
 describe("Verify admin", async function () {
   let verifyFactory: VerifyFactory;

@@ -1,20 +1,19 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { BigNumber, Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import * as Util from "../../../utils";
 import {
   eighteenZeros,
+  getBlockTimestamp,
   op,
-  paddedUInt32,
   paddedUInt256,
+  paddedUInt32,
   sixZeros,
   tierRange,
-  compareTierReports,
   timewarp,
-  getBlockTimestamp,
 } from "../../../utils";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { BigNumber, Contract } from "ethers";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
@@ -33,7 +32,6 @@ enum Tier {
 }
 
 describe("EmissionsERC20 Claim Amount Test", async function () {
-
   it("should calculate claim amount from constant val", async function () {
     this.timeout(0);
 
@@ -160,11 +158,11 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     const BASE_REWARD_PER_TIER = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-        paddedUInt32(0).repeat(4) +
-        paddedUInt32(REWARD_PER_BLOCK_PLAT) +
-        paddedUInt32(REWARD_PER_BLOCK_GOLD) +
-        paddedUInt32(REWARD_PER_BLOCK_SILV) +
-        paddedUInt32(REWARD_PER_BLOCK_BRNZ)
+          paddedUInt32(0).repeat(4) +
+          paddedUInt32(REWARD_PER_BLOCK_PLAT) +
+          paddedUInt32(REWARD_PER_BLOCK_GOLD) +
+          paddedUInt32(REWARD_PER_BLOCK_SILV) +
+          paddedUInt32(REWARD_PER_BLOCK_BRNZ)
       )
     );
 
@@ -439,11 +437,11 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     const BASE_REWARD_PER_TIER = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
-        paddedUInt32(0).repeat(4) +
-        paddedUInt32(REWARD_PER_BLOCK_PLAT) +
-        paddedUInt32(REWARD_PER_BLOCK_GOLD) +
-        paddedUInt32(REWARD_PER_BLOCK_SILV) +
-        paddedUInt32(REWARD_PER_BLOCK_BRNZ)
+          paddedUInt32(0).repeat(4) +
+          paddedUInt32(REWARD_PER_BLOCK_PLAT) +
+          paddedUInt32(REWARD_PER_BLOCK_GOLD) +
+          paddedUInt32(REWARD_PER_BLOCK_SILV) +
+          paddedUInt32(REWARD_PER_BLOCK_BRNZ)
       )
     );
 

@@ -1,11 +1,11 @@
 import { assert } from "chai";
+import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { RemoveEvent, Verify } from "../../typechain/Verify";
-import { hexlify } from "ethers/lib/utils";
 import { VerifyFactory } from "../../typechain/VerifyFactory";
+import { verifyDeploy } from "../../utils/deploy/verify";
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
-import { verifyDeploy } from "../../utils/deploy/verify";
 
 describe("Verify remove", async function () {
   let verifyFactory: VerifyFactory;

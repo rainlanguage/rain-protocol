@@ -1,18 +1,9 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  InitializeEvent,
-  PhaseScheduledEvent,
-  RedeemableERC20,
-  RedeemEvent,
-  TreasuryAssetEvent,
-} from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
-import { Phase } from "../../utils/types/redeemableERC20";
-import { getBlockTimestamp } from "../../utils";
+import { ethers } from "hardhat";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 
 enum Tier {
   ZERO,
@@ -27,7 +18,6 @@ enum Tier {
 }
 
 describe("RedeemableERC20 constructor test", async function () {
-
   it("should have 18 decimals", async () => {
     this.timeout(0);
 
@@ -68,7 +58,7 @@ describe("RedeemableERC20 constructor test", async function () {
     const decimals = await token.decimals();
     assert(decimals === 18, `expected 18 decimals, got ${decimals}`);
   });
-  
+
   it("should fail to construct redeemable token if too few minted tokens", async function () {
     this.timeout(0);
 
@@ -247,5 +237,4 @@ describe("RedeemableERC20 constructor test", async function () {
 
     await reserve.transfer(redeemableERC20.address, 1);
   });
-
 });

@@ -1,3 +1,4 @@
+import { assert } from "chai";
 import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
@@ -6,7 +7,6 @@ import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
-import { assert } from "chai";
 
 const Opcode = AllStandardOps;
 

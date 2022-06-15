@@ -1,18 +1,10 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  InitializeEvent,
-  PhaseScheduledEvent,
-  RedeemableERC20,
-  RedeemEvent,
-  TreasuryAssetEvent,
-} from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
-import { Phase } from "../../utils/types/redeemableERC20";
-import { getBlockTimestamp } from "../../utils";
+import { ethers } from "hardhat";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 
 enum Tier {
   ZERO,
@@ -27,7 +19,6 @@ enum Tier {
 }
 
 describe("RedeemableERC20 transfer test", async function () {
-
   it("should enforce 'hub and spoke' pattern for sending and receiving tokens during distribution phase", async function () {
     // Copied from `RedeemableERC20.sol`
     //
@@ -135,7 +126,7 @@ describe("RedeemableERC20 transfer test", async function () {
     const bobReceiverBalance1 = await token.balanceOf(bobReceiver.address);
     assert(bobReceiverBalance1.eq(bobReceiverBalance0.add(1)));
   });
-  
+
   it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
     this.timeout(0);
 

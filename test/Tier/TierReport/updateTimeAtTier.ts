@@ -6,7 +6,6 @@ import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { TierReportTest } from "../../../typechain/TierReportTest";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getBlockTimestamp } from "../../../utils/hardhat";
-import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierReport updateTimeAtTier", async function () {

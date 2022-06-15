@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { Contract, ContractFactory } from "ethers";
+import { ethers } from "hardhat";
 
 import type { FixedPointMathTest } from "../../../typechain/FixedPointMathTest";
 import { eighteenZeros, sixZeros, tenZeros } from "../../../utils";
@@ -20,13 +20,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + sixZeros);
     const aDecimals_ = 8; // 0.01
 
     const result = await fixedPointMathTest.scale18(a_, aDecimals_);
-    const expectedResult = ethers.BigNumber.from(1 + sixZeros + tenZeros)
+    const expectedResult = ethers.BigNumber.from(1 + sixZeros + tenZeros);
     assert(result.eq(expectedResult));
   });
 
@@ -35,13 +35,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
     const aDecimals_ = 24; // 1.0
 
     const result = await fixedPointMathTest.scale18(a_, aDecimals_);
-    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros)
+    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros);
     assert(result.eq(expectedResult));
   });
 
@@ -50,13 +50,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1);
     const aDecimals_ = 0; // 1.0
 
     const result = await fixedPointMathTest.scale18(a_, aDecimals_);
-    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros)
+    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros);
     assert(result.eq(expectedResult));
   });
 
@@ -66,13 +66,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const targetDecimals_ = 20;
 
     const result = await fixedPointMathTest.scaleN(a_, targetDecimals_);
-    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros + "00")
+    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros + "00");
     assert(result.eq(expectedResult));
   });
 
@@ -81,13 +81,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const targetDecimals_ = 8;
 
     const result = await fixedPointMathTest.scaleN(a_, targetDecimals_);
-    const expectedResult = ethers.BigNumber.from(1 + sixZeros + "00")
+    const expectedResult = ethers.BigNumber.from(1 + sixZeros + "00");
     assert(result.eq(expectedResult));
   });
 
@@ -96,13 +96,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1);
     const targetDecimals_ = 18;
 
     const result = await fixedPointMathTest.scaleN(a_, targetDecimals_);
-    const expectedResult = ethers.BigNumber.from(1)
+    const expectedResult = ethers.BigNumber.from(1);
     assert(result.eq(expectedResult));
   });
 
@@ -112,13 +112,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const scaleBy_ = 2;
 
     const result = await fixedPointMathTest.scaleBy(a_, scaleBy_);
-    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros + "00")
+    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros + "00");
     assert(result.eq(expectedResult));
   });
 
@@ -127,13 +127,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + sixZeros + "00");
     const scaleBy_ = -2;
 
     const result = await fixedPointMathTest.scaleBy(a_, scaleBy_);
-    const expectedResult = ethers.BigNumber.from(1 + sixZeros)
+    const expectedResult = ethers.BigNumber.from(1 + sixZeros);
     assert(result.eq(expectedResult));
   });
 
@@ -142,14 +142,13 @@ describe("FixedPointMathTest scaling a number", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const scaleBy_ = 0;
 
     const result = await fixedPointMathTest.scaleBy(a_, scaleBy_);
-    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros)
+    const expectedResult = ethers.BigNumber.from(1 + eighteenZeros);
     assert(result.eq(expectedResult));
   });
-
 });

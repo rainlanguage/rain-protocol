@@ -1,7 +1,7 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { Contract, ContractFactory } from "ethers";
+import { ethers } from "hardhat";
+import * as Util from "../../../utils";
 
 import type { SaturatingMathTest } from "../../../typechain/SaturatingMathTest";
 

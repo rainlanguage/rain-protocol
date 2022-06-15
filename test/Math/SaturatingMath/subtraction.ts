@@ -1,7 +1,6 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { Contract, ContractFactory } from "ethers";
+import { ethers } from "hardhat";
 
 import type { SaturatingMathTest } from "../../../typechain/SaturatingMathTest";
 
@@ -28,7 +27,7 @@ describe("SaturatingMathTest subtraction test", async function () {
 
     assert(result.eq(a_ - b_));
   });
-  
+
   it("should return saturated subtraction when operation would underflow", async () => {
     this.timeout(0);
 
@@ -43,5 +42,4 @@ describe("SaturatingMathTest subtraction test", async function () {
 
     assert(result.eq(0));
   });
-
 });

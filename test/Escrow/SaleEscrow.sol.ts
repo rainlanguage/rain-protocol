@@ -1,17 +1,17 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import { ReserveToken } from "../../typechain/ReserveToken";
 import { Contract, ContractFactory } from "ethers";
-import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
+import { ethers } from "hardhat";
+import { IERC20 } from "../../typechain/IERC20";
+import { MockISale } from "../../typechain/MockISale";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
+import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
+import { ReserveToken } from "../../typechain/ReserveToken";
 import { SaleConstructorConfigStruct } from "../../typechain/Sale";
 import { SaleEscrowWrapper } from "../../typechain/SaleEscrowWrapper";
-import { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
 import { SaleFactory } from "../../typechain/SaleFactory";
-import { MockISale } from "../../typechain/MockISale";
-import { IERC20 } from "../../typechain/IERC20";
-import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import * as Util from "../../utils";
 import { Status } from "../../utils/types/sale";
 
 enum EscrowStatus {
@@ -144,7 +144,7 @@ describe("SaleEscrow", async function () {
       "wrong sale escrow status: not Pending"
     );
   });
-  
+
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
     this.timeout(0);
 
@@ -410,5 +410,4 @@ describe("SaleEscrow", async function () {
       `escrow has incorrect reserve.`
     );
   });
-
 });

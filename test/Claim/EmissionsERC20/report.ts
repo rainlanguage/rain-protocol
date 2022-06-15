@@ -1,20 +1,18 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
+import { Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
-import {
-  eighteenZeros,
-  op,
-  paddedUInt32,
-  paddedUInt256,
-  sixZeros,
-  tierRange,
-  compareTierReports,
-  timewarp,
-  getBlockTimestamp,
-} from "../../../utils";
+import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { BigNumber, Contract } from "ethers";
+import * as Util from "../../../utils";
+import {
+  compareTierReports,
+  getBlockTimestamp,
+  op,
+  paddedUInt256,
+  paddedUInt32,
+  tierRange,
+  timewarp,
+} from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
@@ -33,7 +31,6 @@ enum Tier {
 }
 
 describe("EmissionsERC20 Report Test", async function () {
-
   it("should record the latest claim timestamp for each slot in a tier report", async function () {
     this.timeout(0);
 
@@ -318,6 +315,4 @@ describe("EmissionsERC20 Report Test", async function () {
       got       ${claimReport}`
     );
   });
-
-  
 });

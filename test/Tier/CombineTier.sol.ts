@@ -1,22 +1,6 @@
-import { assert } from "chai";
-import { ethers } from "hardhat";
-import { concat, hexlify } from "ethers/lib/utils";
-import type { Contract } from "ethers";
-import type { CombineTier } from "../../typechain/CombineTier";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import { concat } from "ethers/lib/utils";
 import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import {
-  op,
-  selectLte,
-  selectLteLogic,
-  selectLteMode,
-} from "../../utils/rainvm/vm";
-import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
-import { combineTierDeploy } from "../../utils/deploy/combineTier";
-import { ALWAYS, NEVER, numArrayToReport } from "../../utils/tier";
-import { max_uint256 } from "../../utils/constants";
-import { Tier } from "../../utils/types/tier";
-import { paddedUInt256, paddedUInt32 } from "../../utils/bytes";
+import { op } from "../../utils/rainvm/vm";
 
 export const Opcode = AllStandardOps;
 

@@ -57,7 +57,7 @@ contract FixedPointMathTest {
     {
         return FixedPointMath.fixedPointMul(a_, b_);
     }
-    
+
     /// Wraps `FixedPointMath.fixedPointDiv`.
     /// Fixed point division in native scale decimals.
     /// Both `a_` and `b_` MUST be `DECIMALS` fixed point decimals.

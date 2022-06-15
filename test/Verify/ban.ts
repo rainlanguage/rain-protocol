@@ -1,14 +1,14 @@
 import { assert } from "chai";
+import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { BanEvent, Verify } from "../../typechain/Verify";
+import { VerifyFactory } from "../../typechain/VerifyFactory";
 import {
   assertError,
   getBlockTimestamp,
   getEventArgs,
   verifyDeploy,
 } from "../../utils";
-import { hexlify } from "ethers/lib/utils";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
 
 describe("Verify ban", async function () {
   let verifyFactory: VerifyFactory;

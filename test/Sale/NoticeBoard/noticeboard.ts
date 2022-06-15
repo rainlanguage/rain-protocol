@@ -16,7 +16,6 @@ import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
 import { op } from "../../../utils/rainvm/vm";
-import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
 const Opcode = AllStandardOps;

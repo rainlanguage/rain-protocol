@@ -1,12 +1,10 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type { ReserveToken } from "../../typechain/ReserveToken";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  RedeemableERC20,
-} from "../../typechain/RedeemableERC20";
 import type { Contract } from "ethers";
+import { ethers } from "hardhat";
+import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import type { ReserveToken } from "../../typechain/ReserveToken";
+import * as Util from "../../utils";
 
 enum Tier {
   ZERO,
@@ -124,7 +122,7 @@ describe("RedeemableERC20 grant test", async function () {
     assert(await token.isReceiver(alice.address));
     assert(await token.isSender(alice.address));
   });
-  
+
   it("should allow admin to grant sender/receiver roles, and burn undistributed tokens, bypassing BlockBlockable restrictions", async function () {
     this.timeout(0);
 

@@ -1,11 +1,11 @@
 import { assert } from "chai";
+import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { Verify } from "../../typechain/Verify";
-import { hexlify } from "ethers/lib/utils";
-import { Status } from "../../utils/types/verify";
 import { VerifyFactory } from "../../typechain/VerifyFactory";
 import { verifyDeploy } from "../../utils/deploy/verify";
 import { getBlockTimestamp } from "../../utils/hardhat";
+import { Status } from "../../utils/types/verify";
 
 describe("Verify status", async function () {
   let verifyFactory: VerifyFactory;

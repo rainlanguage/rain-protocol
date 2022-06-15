@@ -17,7 +17,7 @@ library OpITierV2Report {
         uint256 location_;
         uint256 tier_;
         uint256 account_;
-        uint[] memory context_;
+        uint256[] memory context_;
         assembly {
             stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
             location_ := sub(stackTopLocation_, 0x20)

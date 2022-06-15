@@ -1,20 +1,8 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import { concat, hexlify } from "ethers/lib/utils";
-import {
-  eighteenZeros,
-  op,
-  paddedUInt32,
-  paddedUInt256,
-  sixZeros,
-  tierRange,
-  compareTierReports,
-  timewarp,
-  getBlockTimestamp,
-} from "../../../utils";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { BigNumber, Contract } from "ethers";
+import { ethers } from "hardhat";
+import * as Util from "../../../utils";
+import { op } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
@@ -33,7 +21,6 @@ enum Tier {
 }
 
 describe("EmissionsERC20 Delegated Claims Test", async function () {
-
   it("should prevent delegated claims when flag set to false", async function () {
     this.timeout(0);
 

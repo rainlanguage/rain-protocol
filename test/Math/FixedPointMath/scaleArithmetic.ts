@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { Contract, ContractFactory } from "ethers";
+import { ethers } from "hardhat";
 
 import type { FixedPointMathTest } from "../../../typechain/FixedPointMathTest";
 import { eighteenZeros, ONE } from "../../../utils";
@@ -19,13 +19,13 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = 5;
     const b_ = ONE.mul(2);
 
     const result = await fixedPointMathTest.fixedPointMul(a_, b_);
-    const expectedResult = ethers.BigNumber.from(a_).mul(b_).div(ONE)
+    const expectedResult = ethers.BigNumber.from(a_).mul(b_).div(ONE);
 
     assert(result.eq(expectedResult));
   });
@@ -35,13 +35,13 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
 
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-      Contract;
+        Contract;
 
     const a_ = 60;
-    const b_ = ethers.BigNumber.from("2"+ eighteenZeros);
+    const b_ = ethers.BigNumber.from("2" + eighteenZeros);
 
     const result = await fixedPointMathTest.fixedPointDiv(a_, b_);
-    const expectedResult = ethers.BigNumber.from(a_).mul(ONE).div(b_)
+    const expectedResult = ethers.BigNumber.from(a_).mul(ONE).div(b_);
 
     assert(result.eq(expectedResult));
   });

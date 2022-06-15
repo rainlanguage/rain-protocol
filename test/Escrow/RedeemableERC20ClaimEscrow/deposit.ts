@@ -1,22 +1,19 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
+import type { Contract } from "ethers";
+import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReserveToken } from "../../../typechain/ReserveToken";
+import { MockISale } from "../../../typechain/MockISale";
+import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import type { RedeemableERC20 } from "../../../typechain/RedeemableERC20";
 import type {
   DepositEvent,
   RedeemableERC20ClaimEscrow,
-  UndepositEvent,
-  WithdrawEvent,
 } from "../../../typechain/RedeemableERC20ClaimEscrow";
-import type { RedeemableERC20 } from "../../../typechain/RedeemableERC20";
 import type { RedeemableERC20ClaimEscrowWrapper } from "../../../typechain/RedeemableERC20ClaimEscrowWrapper";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import type { Contract } from "ethers";
-import { getEventArgs } from "../../../utils";
-import { getAddress } from "ethers/lib/utils";
-import { } from "../../../typechain/SaleFactory";
-import { MockISale } from "../../../typechain/MockISale";
 import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
+import type { ReserveToken } from "../../../typechain/ReserveToken";
+import {} from "../../../typechain/SaleFactory";
+import * as Util from "../../../utils";
 import { deployGlobals } from "../../../utils/deploy/escrow";
 import { Status } from "../../../utils/types/sale";
 
@@ -41,7 +38,7 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
     );
     redeemableERC20Factory =
       (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-      Contract;
+        Contract;
     await redeemableERC20Factory.deployed();
   });
 

@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   ApproveEvent,
@@ -7,12 +8,11 @@ import type {
   Verify,
 } from "../../typechain/Verify";
 import type { VerifyCallbackTest } from "../../typechain/VerifyCallbackTest";
-import { hexlify } from "ethers/lib/utils";
 import { VerifyFactory } from "../../typechain/VerifyFactory";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { verifyDeploy } from "../../utils/deploy/verify";
-import { assertError } from "../../utils/test/assertError";
 import { getEvents } from "../../utils/events";
+import { assertError } from "../../utils/test/assertError";
 
 describe("Verify callback", async function () {
   let verifyFactory: VerifyFactory;

@@ -1,12 +1,11 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type {
   PhasedTest,
   PhaseScheduledEvent,
 } from "../../typechain/PhasedTest";
-import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
-import type { Contract } from "ethers";
+import * as Util from "../../utils";
 import { getBlockTimestamp, timewarp } from "../../utils";
 
 enum Phase {
@@ -35,7 +34,6 @@ type PhaseTimes = [
 ];
 
 describe("Phased test", async function () {
-
   it("should handle phases on happy path", async function () {
     this.timeout(0);
 

@@ -1,12 +1,9 @@
-import * as Util from "../../utils";
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import type {
-  PhasedTest,
-  PhaseScheduledEvent,
-} from "../../typechain/PhasedTest";
-import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { Contract } from "ethers";
+import { ethers } from "hardhat";
+import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
+import type { PhasedTest } from "../../typechain/PhasedTest";
+import * as Util from "../../utils";
 import { getBlockTimestamp, timewarp } from "../../utils";
 
 enum Phase {

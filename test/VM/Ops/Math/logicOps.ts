@@ -1,16 +1,17 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
-import { op, AllStandardOps } from "../../../../utils";
+import type { BigNumber, Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import {
-  zipmapSize,
+  AllStandardOps,
   max_uint256,
+  op,
   paddedUInt256,
   paddedUInt32,
+  zipmapSize,
 } from "../../../../utils";
-import type { BigNumber, Contract } from "ethers";
-import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
 
 const Opcode = AllStandardOps;
 

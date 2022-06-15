@@ -1,8 +1,8 @@
-import * as Util from "../../utils";
+import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
-import type { Contract } from "ethers";
+import * as Util from "../../utils";
 
 enum Tier {
   NIL,

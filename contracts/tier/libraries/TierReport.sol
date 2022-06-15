@@ -138,10 +138,8 @@ library TierReport {
         uint256 timestamp_
     ) internal pure maxTier(endTier_) returns (uint256 updatedReport_) {
         unchecked {
-            uint mask_ = (type(uint256).max << (startTier_ * 32));
-            updatedReport_ |=
-                (report_ &
-                mask_);
+            uint256 mask_ = (type(uint256).max << (startTier_ * 32));
+            updatedReport_ |= (report_ & mask_);
             uint256 offset_;
             for (uint256 i_ = startTier_; i_ < endTier_; i_++) {
                 offset_ = i_ * 32;
@@ -180,14 +178,13 @@ library TierReport {
         uint256 endTier_,
         uint256 timestamp_
     ) internal pure returns (uint256 updatedReport_) {
-        updatedReport_ =
-            endTier_ < startTier_
-                ? truncateTiersAbove(report_, endTier_)
-                : updateTimesForTierRange(
-                    report_,
-                    startTier_,
-                    endTier_,
-                    timestamp_
-                );
+        updatedReport_ = endTier_ < startTier_
+            ? truncateTiersAbove(report_, endTier_)
+            : updateTimesForTierRange(
+                report_,
+                startTier_,
+                endTier_,
+                timestamp_
+            );
     }
 }

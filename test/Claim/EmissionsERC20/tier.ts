@@ -1,20 +1,17 @@
-import * as Util from "../../../utils";
 import { assert } from "chai";
+import { Contract } from "ethers";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { concat, hexlify } from "ethers/lib/utils";
-import {
-  eighteenZeros,
-  op,
-  paddedUInt32,
-  paddedUInt256,
-  sixZeros,
-  tierRange,
-  compareTierReports,
-  timewarp,
-  getBlockTimestamp,
-} from "../../../utils";
 import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { BigNumber, Contract } from "ethers";
+import * as Util from "../../../utils";
+import {
+  getBlockTimestamp,
+  op,
+  paddedUInt256,
+  paddedUInt32,
+  tierRange,
+  timewarp,
+} from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
@@ -33,7 +30,6 @@ enum Tier {
 }
 
 describe("EmissionsERC20 Tier Test", async function () {
-    
   it("user explicitly claims, then the user loses the tier and can no longer claim", async () => {
     const signers = await ethers.getSigners();
     const creator = signers[0];
@@ -158,7 +154,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       got       ${claimReport1}`
     );
   });
-  
+
   it("'tier by construction' can be ensured by doing a selectLte against the user's tier, then combining that with the claim report in a second selectLte using every", async () => {
     const signers = await ethers.getSigners();
     const creator = signers[0];
@@ -424,8 +420,5 @@ describe("EmissionsERC20 Tier Test", async function () {
       expected  ${expectedClaimReport1}
       got       ${claimReport1}`
     );
-    
   });
-
-
 });
