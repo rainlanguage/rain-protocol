@@ -54,8 +54,6 @@ describe("OrderBook tracking order funds cleared", async function () {
   });
 
   it("should expose tracked data to RainVM calculations (e.g. asker throttles output of their tokens to 5 tokens per block)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

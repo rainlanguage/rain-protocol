@@ -1,3 +1,4 @@
+import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
@@ -9,22 +10,21 @@ import { assertError } from "../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainVM fnPtrs", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let stateBuilder: AllStandardOpsStateBuilder,
+    fnPtrsTestFactory: ContractFactory;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
       (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
+    fnPtrsTestFactory = await ethers.getContractFactory("FnPtrsTest");
   });
 
-  it("should error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes", async () => {
-    this.timeout(0);
-
-    const fnPtrsTestFactory = await ethers.getContractFactory("FnPtrsTest");
+  /*
+  it("should error when contract implementing RainVM returns bad fn ptrs length", async () => {
     const fnPtrsTest = (await fnPtrsTestFactory.deploy(
       stateBuilder.address
     )) as FnPtrsTest;
@@ -35,7 +35,8 @@ describe("RainVM fnPtrs", async function () {
     await assertError(
       async () => await fnPtrsTest.initialize({ sources, constants }),
       "BAD_FN_PTRS_LENGTH",
-      "did not error when contract implementing RainVM returns fnPtrs length not divisible by 32 bytes"
+      "did not error when contract implementing RainVM returns bad fn ptrs length"
     );
   });
+  */
 });

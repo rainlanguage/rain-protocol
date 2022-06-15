@@ -39,7 +39,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -179,7 +178,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 reserve currently held by buyer)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -318,7 +316,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should prevent out of bounds opcode call", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -369,7 +366,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should dynamically calculate price (based on number of units being bought)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -498,7 +494,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should dynamically calculate price (based on total reserve in)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -628,7 +623,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should dynamically calculate price (based on remaining supply)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -731,7 +725,6 @@ describe("Sale calculate price", async function () {
   });
 
   it("should dynamically calculate price (based on the current block number)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

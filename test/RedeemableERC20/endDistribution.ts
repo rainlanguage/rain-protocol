@@ -8,8 +8,6 @@ import { Phase } from "../../utils/types/redeemableERC20";
 
 describe("RedeemableERC20 endDistribution test", async function () {
   it("should only allow sender with DISTRIBUTOR_BURNER role to call endDistribution", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(

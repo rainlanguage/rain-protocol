@@ -13,7 +13,6 @@ describe("VMStateBuilder ptrSource", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -28,8 +27,6 @@ describe("VMStateBuilder ptrSource", async function () {
   });
 
   it("should error when script length is odd", async () => {
-    this.timeout(0);
-
     const constants = [];
 
     const sources = [concat([bytify(Opcode.BLOCK_NUMBER)])];

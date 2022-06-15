@@ -58,8 +58,6 @@ describe("OrderBook counterparty in context", async function () {
   });
 
   it("should expose counterparty context to RainVM calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

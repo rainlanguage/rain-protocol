@@ -29,8 +29,6 @@ describe("Stake construction", async function () {
   });
 
   it("should not initialize if requirements not met", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -64,8 +62,6 @@ describe("Stake construction", async function () {
   });
 
   it("should initialize correctly on the good path", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 

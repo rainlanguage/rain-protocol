@@ -22,7 +22,6 @@ describe("RainVM logic ops", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -37,8 +36,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should support logic ops within a zipmap loop", async function () {
-    this.timeout(0);
-
     const report = paddedUInt256(
       ethers.BigNumber.from(
         "0x" +
@@ -126,8 +123,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should check whether any value in a list is non-zero", async () => {
-    this.timeout(0);
-
     const constants = [0, 1, 2, 3];
 
     const v0 = op(Opcode.CONSTANT, 0);
@@ -189,8 +184,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should check whether every value in a list is non-zero", async () => {
-    this.timeout(0);
-
     const constants = [0, 1, 2, 3];
 
     const v0 = op(Opcode.CONSTANT, 0);
@@ -252,8 +245,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
-    this.timeout(0);
-
     const constants = [0, 1, 2, 3];
 
     const v0 = op(Opcode.CONSTANT, 0);
@@ -320,8 +311,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should check that value is greater than another value", async () => {
-    this.timeout(0);
-
     const constants = [1, 2];
 
     // prettier-ignore
@@ -360,8 +349,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should check that value is less than another value", async () => {
-    this.timeout(0);
-
     const constants = [1, 2];
 
     // prettier-ignore
@@ -400,8 +387,6 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should check that values are equal to each other", async () => {
-    this.timeout(0);
-
     const constants = [1, 2];
 
     // prettier-ignore

@@ -31,8 +31,6 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
   ]);
 
   it("should correctly combine Always and Never tier reports with any and min selector", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
@@ -93,8 +91,6 @@ describe("CombineTier tierwise combine report with 'any' logic and 'min' mode", 
   });
 
   it("should correctly combine ReadWriteTier tier contracts with any and min selector", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const readWriteTierFactory = await ethers.getContractFactory(

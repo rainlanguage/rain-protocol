@@ -42,8 +42,6 @@ describe("OrderBook remove order", async function () {
   });
 
   it("should support removing orders", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

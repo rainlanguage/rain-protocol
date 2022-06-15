@@ -55,8 +55,6 @@ describe("OrderBook clear order", async function () {
   });
 
   it("should add ask and bid orders and clear the order", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

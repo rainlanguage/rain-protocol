@@ -39,8 +39,6 @@ describe("RedeemableERC20ClaimEscrow undeposit test", async function () {
   });
 
   it("should ensure different depositors can both undeposit independently", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[1];
     const alice = signers[3];
@@ -199,8 +197,6 @@ describe("RedeemableERC20ClaimEscrow undeposit test", async function () {
   });
 
   it("should allow undepositing redeemable tokens on failed raise", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const deployer = signers[3];

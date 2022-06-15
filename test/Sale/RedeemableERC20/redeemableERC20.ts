@@ -33,7 +33,6 @@ describe("Sale redeemableERC20 token", async function () {
   });
 
   it("should configure tier correctly", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -146,7 +145,6 @@ describe("Sale redeemableERC20 token", async function () {
   });
 
   it("should set correct phases for token", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -246,7 +244,7 @@ describe("Sale redeemableERC20 token", async function () {
   it("should allow only token admin (Sale) to set senders/receivers", async () => {
     // At the time of writing this test, Sale does not currently implement any logic which grants sender or receiver roles.
     // However, it is still important that only the token admin can grant these roles.
-    this.timeout(0);
+
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

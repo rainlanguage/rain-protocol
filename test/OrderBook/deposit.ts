@@ -36,8 +36,6 @@ describe("OrderBook vault deposit", async function () {
   });
 
   it("should allow deposits", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

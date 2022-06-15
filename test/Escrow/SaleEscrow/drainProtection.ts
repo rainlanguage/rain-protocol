@@ -54,8 +54,6 @@ describe("SaleEscrow protection from draining", async function () {
   });
 
   it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const signer1 = signers[1];

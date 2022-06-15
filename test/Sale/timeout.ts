@@ -36,7 +36,6 @@ describe("Sale timeout", async function () {
   });
 
   it("should correctly timeout sale if it does not end naturally", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

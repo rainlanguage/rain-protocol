@@ -25,7 +25,6 @@ describe("RainVM ERC20 Snapshot ops", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -50,8 +49,6 @@ describe("RainVM ERC20 Snapshot ops", async function () {
   });
 
   it("should return ERC20 total supply snapshot", async () => {
-    this.timeout(0);
-
     const constants = [tokenERC20Snapshot.address];
     const vTokenAddr = op(Opcode.CONSTANT, 0);
 
@@ -83,8 +80,6 @@ describe("RainVM ERC20 Snapshot ops", async function () {
   });
 
   it("should return ERC20 balance snapshot", async () => {
-    this.timeout(0);
-
     const constants = [signer1.address, tokenERC20Snapshot.address];
     const vSigner1 = op(Opcode.CONSTANT, 0);
     const vTokenAddr = op(Opcode.CONSTANT, 1);

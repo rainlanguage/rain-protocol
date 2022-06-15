@@ -31,7 +31,6 @@ describe("Sale noticeboard", async function () {
   });
 
   it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

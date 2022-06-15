@@ -13,8 +13,6 @@ export const Opcode = AllStandardOps;
 
 describe("EmissionsERC20 construction", async () => {
   it("should construct and initialize correctly", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
 

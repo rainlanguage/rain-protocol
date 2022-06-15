@@ -22,8 +22,6 @@ describe("CombineTier default report", async function () {
   ]);
 
   it("should support a program which returns the default report", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await combineTierDeploy(signers[0], {

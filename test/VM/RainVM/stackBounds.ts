@@ -12,7 +12,6 @@ describe("RainVM stack bounds", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -27,8 +26,6 @@ describe("RainVM stack bounds", async function () {
   });
 
   it("should error when script references out-of-bounds opcode", async () => {
-    this.timeout(0);
-
     const constants = [];
 
     const sources = [concat([op(99)])];
@@ -41,8 +38,6 @@ describe("RainVM stack bounds", async function () {
   });
 
   it("should error when trying to read an out-of-bounds argument", async () => {
-    this.timeout(0);
-
     const constants = [1, 2, 3];
     const v1 = op(Opcode.CONSTANT, 0);
     const v2 = op(Opcode.CONSTANT, 1);
@@ -82,8 +77,6 @@ describe("RainVM stack bounds", async function () {
   });
 
   it("should error when trying to read an out-of-bounds constant", async () => {
-    this.timeout(0);
-
     const constants = [1];
     const vOOB = op(Opcode.CONSTANT, 1);
 
@@ -97,8 +90,6 @@ describe("RainVM stack bounds", async function () {
   });
 
   it("should prevent bad RainVM script attempting to access stack index out of bounds (underflow)", async () => {
-    this.timeout(0);
-
     const constants = [0, 1];
     const v0 = op(Opcode.CONSTANT, 0);
     const v1 = op(Opcode.CONSTANT, 1);
@@ -120,8 +111,6 @@ describe("RainVM stack bounds", async function () {
   });
 
   it("should prevent bad RainVM script attempting to access stack index out of bounds (overflow)", async () => {
-    this.timeout(0);
-
     const constants = [3, 2, 1];
     const v3 = op(Opcode.CONSTANT, 0);
     const v2 = op(Opcode.CONSTANT, 1);

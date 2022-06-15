@@ -8,8 +8,6 @@ import { Tier } from "../../utils";
 
 describe("RedeemableERC20 grant test", async function () {
   it("should grant alice sender then receiver and remain as both", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const owner = signers[0];
@@ -60,8 +58,6 @@ describe("RedeemableERC20 grant test", async function () {
   });
 
   it("should grant alice receiver then sender and remain as both", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const owner = signers[0];
@@ -112,8 +108,6 @@ describe("RedeemableERC20 grant test", async function () {
   });
 
   it("should allow admin to grant sender/receiver roles, and burn undistributed tokens, bypassing BlockBlockable restrictions", async function () {
-    this.timeout(0);
-
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();

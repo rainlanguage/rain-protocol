@@ -31,7 +31,6 @@ describe("Sale griefer", async function () {
   });
 
   it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

@@ -29,7 +29,6 @@ describe("Sale construction", async function () {
   });
 
   it("should prevent configuring zero minimumRaise, including case when distributionEndForwardingAddress is set", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -90,7 +89,6 @@ describe("Sale construction", async function () {
   });
 
   it("should fail to initialize when deployer attempts to set a distributor", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

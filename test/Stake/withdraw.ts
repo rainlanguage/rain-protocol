@@ -26,8 +26,6 @@ describe("Stake withdraw", async function () {
   });
 
   it("should not process a withdraw of 0 amount", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -49,8 +47,6 @@ describe("Stake withdraw", async function () {
   });
 
   it("should process withdraws", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];

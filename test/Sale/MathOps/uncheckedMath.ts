@@ -38,8 +38,6 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
-    this.timeout(0);
-
     const deployer = signers[0];
     const recipient = signers[1];
 
@@ -119,8 +117,6 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with multiplication op", async () => {
-    this.timeout(0);
-
     const deployer = signers[0];
     const recipient = signers[1];
 
@@ -200,8 +196,6 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator underflows with subtraction op", async () => {
-    this.timeout(0);
-
     const deployer = signers[0];
     const recipient = signers[1];
 
@@ -276,8 +270,6 @@ describe("Sale unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with addition op", async () => {
-    this.timeout(0);
-
     const deployer = signers[0];
     const recipient = signers[1];
 

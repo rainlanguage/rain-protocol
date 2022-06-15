@@ -29,8 +29,6 @@ describe("Stake report", async function () {
   });
 
   it("should return one-to-many reports i.e. when different lists of thresholds are checked against", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -96,8 +94,6 @@ describe("Stake report", async function () {
   });
 
   it("should return a correct report when enough tokens have been staked to exceed all thresholds", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -143,8 +139,6 @@ describe("Stake report", async function () {
   });
 
   it("should return a correct report when enough tokens have been staked to exceed the 2nd threshold then the 4th threshold", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -219,8 +213,6 @@ describe("Stake report", async function () {
   });
 
   it("should return a correct report when enough tokens have been staked to exceed the 1st threshold", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -266,8 +258,6 @@ describe("Stake report", async function () {
   });
 
   it("should return a correct report when some tokens have been staked but do not exceed the first threshold", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -303,8 +293,6 @@ describe("Stake report", async function () {
   });
 
   it("should return a correct report when no token has been staked", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];

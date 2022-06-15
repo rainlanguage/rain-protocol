@@ -13,8 +13,6 @@ import { Phase } from "../../utils/types/redeemableERC20";
 
 describe("RedeemableERC20 redeem test", async function () {
   it("should guard against reentrancy if a treasury asset is malicious", async function () {
-    this.timeout(0);
-
     const ONE_TOKEN = ethers.BigNumber.from("1" + Util.eighteenZeros);
     const FIFTY_TOKENS = ethers.BigNumber.from("50" + Util.eighteenZeros);
 
@@ -102,8 +100,6 @@ describe("RedeemableERC20 redeem test", async function () {
   });
 
   it("should lock tokens until redeemed", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
 
@@ -424,8 +420,6 @@ describe("RedeemableERC20 redeem test", async function () {
   });
 
   it("should allow specific redeeming of other redeemables when a redeemable transfer fails", async function () {
-    this.timeout(0);
-
     const FIVE_TOKENS = ethers.BigNumber.from("5" + Util.eighteenZeros);
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
     const TWENTY_TOKENS = ethers.BigNumber.from("20" + Util.eighteenZeros);
@@ -544,8 +538,6 @@ describe("RedeemableERC20 redeem test", async function () {
   });
 
   it("should allow transfer only if redeemer meets minimum tier level", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(
@@ -628,8 +620,6 @@ describe("RedeemableERC20 redeem test", async function () {
   });
 
   it("should return multiple treasury assets upon redeeming", async function () {
-    this.timeout(0);
-
     const FIVE_TOKENS = ethers.BigNumber.from("5" + Util.eighteenZeros);
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
     const TWENTY_TOKENS = ethers.BigNumber.from("20" + Util.eighteenZeros);
@@ -855,8 +845,6 @@ describe("RedeemableERC20 redeem test", async function () {
   });
 
   it("should guard against null treasury assets redemptions", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
 

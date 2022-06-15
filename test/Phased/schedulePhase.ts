@@ -7,8 +7,6 @@ import { Phase } from "../../utils/types/phased";
 
 describe("Schedule next phase", async function () {
   it("should have correct phase state (Phase X) in schedule phase hook, even if the next phase (Phase X + 1) has been set to the current timestamp", async function () {
-    this.timeout(0);
-
     const phasedScheduleTest = (await Util.basicDeploy(
       "PhasedScheduleTest",
       {}
@@ -28,8 +26,6 @@ describe("Schedule next phase", async function () {
   });
 
   it("cannot schedule the next phase in the past", async function () {
-    this.timeout(0);
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const pastTimestamp = await getBlockTimestamp();
@@ -44,8 +40,6 @@ describe("Schedule next phase", async function () {
   });
 
   it("cannot schedule the next phase if it is already scheduled", async function () {
-    this.timeout(0);
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
@@ -60,8 +54,6 @@ describe("Schedule next phase", async function () {
   });
 
   it("the next phase time must not be uninitialized", async function () {
-    this.timeout(0);
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
@@ -79,8 +71,6 @@ describe("Schedule next phase", async function () {
   });
 
   it("is not possible to skip a phase", async function () {
-    this.timeout(0);
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
@@ -95,8 +85,6 @@ describe("Schedule next phase", async function () {
   });
 
   it("_beforeScheduleNextPhase hook can be used to impose conditions on phase changes", async function () {
-    this.timeout(0);
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();

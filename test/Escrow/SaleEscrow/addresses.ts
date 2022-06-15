@@ -65,8 +65,6 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -128,8 +126,6 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
-    this.timeout(0);
-
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale = (await saleFactory.deploy()) as MockISale;
 
@@ -178,8 +174,6 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying success status", async function () {
-    this.timeout(0);
-
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale = (await saleFactory.deploy()) as MockISale;
 
@@ -228,8 +222,6 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
-    this.timeout(0);
-
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale = (await saleFactory.deploy()) as MockISale;
 

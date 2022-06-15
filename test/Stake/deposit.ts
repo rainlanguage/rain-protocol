@@ -26,8 +26,6 @@ describe("Stake deposit", async function () {
   });
 
   it("should revert deposit if mint amount is calculated to be 0", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -61,8 +59,6 @@ describe("Stake deposit", async function () {
   });
 
   it("should not process a deposit of 0 amount", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -85,8 +81,6 @@ describe("Stake deposit", async function () {
   });
 
   it("should process minimum deposit of 1 token", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -109,8 +103,6 @@ describe("Stake deposit", async function () {
   });
 
   it("should process deposits", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];

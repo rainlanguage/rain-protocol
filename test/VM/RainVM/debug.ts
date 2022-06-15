@@ -13,7 +13,6 @@ describe("RainVM debug op", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -28,8 +27,6 @@ describe("RainVM debug op", async function () {
   });
 
   it("should log stack index when DEBUG operand is set to DEBUG_STACK_INDEX", async () => {
-    this.timeout(0);
-
     const constants = [10, 20];
 
     // prettier-ignore
@@ -47,8 +44,6 @@ describe("RainVM debug op", async function () {
   });
 
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
-    this.timeout(0);
-
     const constants = [10, 20];
 
     // prettier-ignore
@@ -66,8 +61,6 @@ describe("RainVM debug op", async function () {
   });
 
   it("should log packed state when DEBUG operand is set to DEBUG_STATE_PACKED", async () => {
-    this.timeout(0);
-
     const constants = [10, 20];
 
     // prettier-ignore
@@ -85,8 +78,6 @@ describe("RainVM debug op", async function () {
   });
 
   it("should log state as bytes when DEBUG operand is set to DEBUG_STATE_ABI", async () => {
-    this.timeout(0);
-
     const constants = [10, 20];
 
     // prettier-ignore

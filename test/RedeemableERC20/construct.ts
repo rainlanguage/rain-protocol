@@ -7,8 +7,6 @@ import { Tier } from "../../utils";
 
 describe("RedeemableERC20 constructor test", async function () {
   it("should have 18 decimals", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(
@@ -48,8 +46,6 @@ describe("RedeemableERC20 constructor test", async function () {
   });
 
   it("should fail to construct redeemable token if too few minted tokens", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(
@@ -132,8 +128,6 @@ describe("RedeemableERC20 constructor test", async function () {
   });
 
   it("should set owner as unfreezable on construction", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(
@@ -174,8 +168,6 @@ describe("RedeemableERC20 constructor test", async function () {
   });
 
   it("should allow token transfers in constructor regardless of owner tier level", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(

@@ -32,7 +32,6 @@ describe("RainVM update tier range op", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -47,8 +46,6 @@ describe("RainVM update tier range op", async function () {
   });
 
   it("should enforce maxTier for update tier range operation", async () => {
-    this.timeout(0);
-
     await createEmptyBlock(3);
 
     const block = await ethers.provider.getBlockNumber();

@@ -36,20 +36,7 @@ contract FnPtrsTest is RainVM {
     }
 
     function fnPtrs() public pure override returns (bytes memory) {
-        uint256 lenBytes_ = 0x10; // not divisible by 0x20 (32 bytes)
-        function(uint256, uint256) view returns (uint256) zeroFn_;
-        assembly {
-            zeroFn_ := 0
-        }
-        function(uint256, uint256) view returns (uint256)[2] memory fns_ = [
-            zeroFn_,
-            zeroFn_
-        ];
         bytes memory ret_;
-        assembly {
-            mstore(fns_, lenBytes_)
-            ret_ := fns_
-        }
         return ret_;
     }
 }

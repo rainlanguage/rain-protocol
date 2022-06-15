@@ -43,7 +43,6 @@ describe("Sale minimum raise", async function () {
   });
 
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -269,7 +268,6 @@ describe("Sale minimum raise", async function () {
   });
 
   it("should have status of Fail if minimum raise not met", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

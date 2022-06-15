@@ -15,8 +15,6 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
   });
 
   it("should scale a number by 18 order of magnitude while multiplying", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -30,8 +28,6 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
   });
 
   it("should scale a number by 18 order of magnitude while dividing", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 

@@ -46,8 +46,6 @@ describe("OrderBook add order", async function () {
   });
 
   it("should add orders", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
