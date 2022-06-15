@@ -3,7 +3,6 @@ pragma solidity =0.8.10;
 
 import {Factory} from "../factory/Factory.sol";
 import {EmissionsERC20, EmissionsERC20Config} from "./EmissionsERC20.sol";
-import {ITier} from "../tier/ITier.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title EmissionsERC20Factory

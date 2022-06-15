@@ -11,3 +11,22 @@ export const createEmptyBlock = async (count?: number): Promise<void> => {
     await signers[0].sendTransaction(tx);
   }
 };
+
+/**
+ * Forces hardhat network to time warp forward for the given duration of time
+ * @param duration - time to elapse in seconds
+ */
+export const timewarp = async (duration: number): Promise<void> => {
+  await ethers.provider.send("evm_increaseTime", [duration]);
+  await ethers.provider.send("evm_mine", []);
+};
+
+/**
+ * Retrieve current timestamp from hardhat network.
+ * @returns Current block timestamp, according to hardhat network (i.e. `block.timestamp`)
+ */
+export const getBlockTimestamp = async (): Promise<number> => {
+  const blockNum = await ethers.provider.getBlockNumber();
+  const block = await ethers.provider.getBlock(blockNum);
+  return block.timestamp;
+};

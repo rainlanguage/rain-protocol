@@ -9,9 +9,6 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 /// anything.
 /// Notably mimics 6 decimals commonly used by stables in production.
 contract ReserveTokenERC20Snapshot is ERC20Snapshot {
-    /// Accounts to freeze during testing.
-    mapping(address => bool) public freezables;
-
     // Stables such as USDT and USDC commonly have 6 decimals.
     uint256 public constant DECIMALS = 6;
     // One _billion_ dollars 👷😈.
@@ -26,25 +23,8 @@ contract ReserveTokenERC20Snapshot is ERC20Snapshot {
         return uint8(DECIMALS);
     }
 
-    /// Add an account to the freezables list.
-    /// @param account_ The account to freeze.
-    function addFreezable(address account_) external {
-        freezables[account_] = true;
-    }
-
     /// Take a snapshot of the current balances and total supply.
     function snapshot() external {
         _snapshot();
-    }
-
-    /// Block any transfers to a frozen account.
-    /// @inheritdoc ERC20
-    function _beforeTokenTransfer(
-        address sender_,
-        address receiver_,
-        uint256 amount_
-    ) internal virtual override {
-        super._beforeTokenTransfer(sender_, receiver_, amount_);
-        require(!freezables[receiver_], "FROZEN");
     }
 }

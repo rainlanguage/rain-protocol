@@ -1,8 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract, Overrides } from "ethers";
+import { assert } from "chai";
+import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
+import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
+import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import {
+  ConstructEvent,
   Sale,
   SaleConfigStruct,
   SaleRedeemableERC20ConfigStruct,
@@ -13,11 +18,11 @@ import { getEventArgs } from "../events";
 export const saleDeploy = async (
   signers: SignerWithAddress[],
   deployer: SignerWithAddress,
-  saleFactory: SaleFactory & Contract,
+  saleFactory: SaleFactory,
   config: SaleConfigStruct,
   saleRedeemableERC20Config: SaleRedeemableERC20ConfigStruct,
   ...args: Overrides[]
-): Promise<[Sale & Contract, RedeemableERC20 & Contract]> => {
+): Promise<[Sale, RedeemableERC20]> => {
   const txDeploy = await saleFactory.createChildTyped(
     config,
     saleRedeemableERC20Config,
@@ -33,7 +38,7 @@ export const saleDeploy = async (
     ),
     (await artifacts.readArtifact("Sale")).abi,
     deployer
-  ) as Sale & Contract;
+  ) as Sale;
 
   if (!ethers.utils.isAddress(sale.address)) {
     throw new Error(
@@ -50,9 +55,79 @@ export const saleDeploy = async (
   let token = new ethers.Contract(
     await sale.token(),
     (await artifacts.readArtifact("RedeemableERC20")).abi
-  ) as RedeemableERC20 & Contract;
+  ) as RedeemableERC20;
 
   token = token.connect(signers[0]); // need to do this for some reason
 
   return [sale, token];
+};
+
+export const saleDependenciesDeploy = async () => {
+  const stateBuilderFactory = await ethers.getContractFactory(
+    "AllStandardOpsStateBuilder"
+  );
+  const stateBuilder =
+    (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+  await stateBuilder.deployed();
+
+  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
+    "RedeemableERC20Factory",
+    {}
+  );
+  const redeemableERC20Factory =
+    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
+  await redeemableERC20Factory.deployed();
+
+  const readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
+  const readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
+  await readWriteTier.deployed();
+
+  const saleConstructorConfig = {
+    maximumSaleTimeout: 10000,
+    maximumCooldownDuration: 1000,
+    redeemableERC20Factory: redeemableERC20Factory.address,
+    vmStateBuilder: stateBuilder.address,
+  };
+  const saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
+  const saleFactory = (await saleFactoryFactory.deploy(
+    saleConstructorConfig
+  )) as SaleFactory;
+  await saleFactory.deployed();
+
+  const { implementation, sender } = await getEventArgs(
+    saleFactory.deployTransaction,
+    "Implementation",
+    saleFactory
+  );
+
+  assert(sender === (await ethers.getSigners())[0].address, "wrong sender");
+
+  const saleProxy = new ethers.Contract(
+    implementation,
+    (await artifacts.readArtifact("Sale")).abi
+  ) as Sale;
+
+  const { sender: senderProxy, config } = (await getEventArgs(
+    saleFactory.deployTransaction,
+    "Construct",
+    saleProxy
+  )) as ConstructEvent["args"];
+
+  assert(senderProxy === saleFactory.address, "wrong proxy sender");
+  assert(
+    config.redeemableERC20Factory === redeemableERC20Factory.address,
+    "wrong redeemableERC20Factory in SaleConstructorConfig"
+  );
+
+  return {
+    redeemableERC20FactoryFactory,
+    redeemableERC20Factory,
+    readWriteTierFactory,
+    readWriteTier,
+    saleConstructorConfig,
+    saleFactoryFactory,
+    saleFactory,
+    saleProxy,
+    stateBuilder,
+  };
 };

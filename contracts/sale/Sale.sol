@@ -51,7 +51,7 @@ struct SaleConstructorConfig {
 /// @param recipient The recipient of the proceeds of a Sale, if/when the Sale
 /// is successful.
 /// @param reserve The reserve token the Sale is deonominated in.
-/// @param saleTimeout The number of blocks before this sale can timeout.
+/// @param saleTimeout The number of seconds before this sale can timeout.
 /// SHOULD be well after the expected end time as a timeout will fail an active
 /// or pending sale regardless of any funds raised.
 /// @param cooldownDuration forwarded to `Cooldown` contract initialization.
@@ -224,9 +224,9 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     /// @dev the current sale status exposed as `ISale.saleStatus`.
     SaleStatus private _saleStatus;
-    /// @dev the current sale can always end in failure at this block even if
+    /// @dev the current sale can always end in failure at this time even if
     /// it did not start. Provided it did not already end of course.
-    uint256 private saleTimeout;
+    uint256 private saleTimeoutStamp;
 
     /// @dev Binding buyers to receipt hashes to maybe a non-zero value.
     /// A receipt will only be honoured if the mapping resolves to non-zero.
@@ -260,7 +260,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         initializeCooldown(config_.cooldownDuration);
 
         require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");
-        saleTimeout = block.number + config_.saleTimeout;
+        saleTimeoutStamp = block.timestamp + config_.saleTimeout;
 
         // 0 minimum raise is ambiguous as to how it should be handled. It
         // literally means "the raise succeeds without any trades", which
@@ -475,7 +475,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// expect that eventually they will see a pass/fail state and so are safe
     /// to lock funds while a Sale is active.
     function timeout() external {
-        require(saleTimeout < block.number, "EARLY_TIMEOUT");
+        require(saleTimeoutStamp < block.timestamp, "EARLY_TIMEOUT");
         require(
             _saleStatus == SaleStatus.Pending ||
                 _saleStatus == SaleStatus.Active,

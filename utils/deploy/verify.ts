@@ -1,40 +1,44 @@
-import type { Verify } from "../../typechain/Verify";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { assert } from "chai";
+import { artifacts, ethers } from "hardhat";
+import type { Verify, VerifyConfigStruct } from "../../typechain/Verify";
 import type {
   ImplementationEvent as ImplementationEventVerifyFactory,
   VerifyFactory,
 } from "../../typechain/VerifyFactory";
-import { artifacts, ethers } from "hardhat";
-import { getEventArgs } from "../events";
 import { zeroAddress } from "../constants";
-import { Contract } from "ethers";
-import { assert } from "chai";
+import { getEventArgs } from "../events";
 
-export const verifyDeploy = async (deployer, config) => {
-  const factoryFactory = await ethers.getContractFactory("VerifyFactory");
-  const factory = (await factoryFactory.deploy()) as VerifyFactory;
-  await factory.deployed();
-
+export const verifyDeploy = async (
+  deployer: SignerWithAddress,
+  verifyFactory: VerifyFactory,
+  config: VerifyConfigStruct
+) => {
   const { implementation } = (await getEventArgs(
-    factory.deployTransaction,
+    verifyFactory.deployTransaction,
     "Implementation",
-    factory
+    verifyFactory
   )) as ImplementationEventVerifyFactory["args"];
   assert(
     !(implementation === zeroAddress),
     "implementation verify factory zero address"
   );
 
-  const tx = await factory.createChildTyped(config);
-  const contract = new ethers.Contract(
+  const tx = await verifyFactory.createChildTyped(config);
+  const verify = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory)).child
+        (await getEventArgs(tx, "NewChild", verifyFactory)).child
       ),
       20
     ),
     (await artifacts.readArtifact("Verify")).abi,
     deployer
-  ) as Verify & Contract;
-  await contract.deployed();
-  return contract;
+  ) as Verify;
+  await verify.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  verify.deployTransaction = tx;
+  return verify;
 };
