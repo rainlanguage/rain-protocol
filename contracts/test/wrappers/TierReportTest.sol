@@ -23,7 +23,7 @@ contract TierReportTest {
     /// Wraps `TierReport.reportForTier`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function tierTime(uint256 report_, uint256 tier_)
+    function reportTimeForTier(uint256 report_, uint256 tier_)
         external
         pure
         returns (uint256)

@@ -1,15 +1,14 @@
-import * as Util from "..";
-import { ethers } from "hardhat";
 import { assert } from "chai";
-import { Contract } from "ethers";
+import { ethers } from "hardhat";
+import * as Util from "..";
+import { getEventArgs } from "..";
 import {
   EmissionsERC20Factory,
   ImplementationEvent as ImplementationEventEmissionsERC20Factory,
 } from "../../typechain/EmissionsERC20Factory";
-import { getEventArgs } from "..";
 
 export interface ClaimFactories {
-  emissionsERC20Factory: EmissionsERC20Factory & Contract;
+  emissionsERC20Factory: EmissionsERC20Factory;
 }
 
 export const claimFactoriesDeploy = async (): Promise<ClaimFactories> => {
@@ -24,7 +23,7 @@ export const claimFactoriesDeploy = async (): Promise<ClaimFactories> => {
   );
   const emissionsERC20Factory = (await emissionsERC20FactoryFactory.deploy(
     stateBuilder.address
-  )) as EmissionsERC20Factory & Contract;
+  )) as EmissionsERC20Factory;
   await emissionsERC20Factory.deployed();
 
   const { implementation } = (await getEventArgs(
