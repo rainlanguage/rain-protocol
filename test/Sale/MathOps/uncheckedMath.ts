@@ -21,7 +21,7 @@ import { Tier } from "../../../utils/types/tier";
 
 const Opcode = AllStandardOps;
 
-describe("Sale test", async function () {
+describe("Sale unchecked math", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory,
