@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain/CombineTier";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
@@ -25,7 +24,7 @@ describe("CombineTier report time for tier script", async function () {
           CONST_REPORT_TIME_FOR_TIER, // just return a constant value
         ],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const timeForTier = await combineTier.reportTimeForTier(
       signers[1].address,

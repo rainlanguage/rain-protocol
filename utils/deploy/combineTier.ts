@@ -1,3 +1,6 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { assert } from "chai";
+import { artifacts, ethers } from "hardhat";
 import type {
   CombineTier,
   CombineTierConfigStruct,
@@ -6,12 +9,8 @@ import type {
   CombineTierFactory,
   ImplementationEvent as ImplementationEventCombineTierFactory,
 } from "../../typechain/CombineTierFactory";
-import { artifacts, ethers } from "hardhat";
-import { getEventArgs } from "../events";
 import { zeroAddress } from "../constants";
-import { Contract } from "ethers";
-import { assert } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { getEventArgs } from "../events";
 
 export const combineTierDeploy = async (
   deployer: SignerWithAddress,
@@ -49,7 +48,7 @@ export const combineTierDeploy = async (
     ),
     (await artifacts.readArtifact("CombineTier")).abi,
     deployer
-  ) as CombineTier & Contract;
+  ) as CombineTier;
   await contract.deployed();
 
   return contract;

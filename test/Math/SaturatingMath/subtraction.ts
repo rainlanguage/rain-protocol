@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import type { Contract, ContractFactory } from "ethers";
+import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 
 import type { SaturatingMathTest } from "../../../typechain/SaturatingMathTest";
@@ -17,8 +17,7 @@ describe("SaturatingMathTest subtraction test", async function () {
     this.timeout(0);
 
     const saturatingMathTest =
-      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest &
-        Contract;
+      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
     const a_ = 42;
     const b_ = 9;
@@ -32,8 +31,7 @@ describe("SaturatingMathTest subtraction test", async function () {
     this.timeout(0);
 
     const saturatingMathTest =
-      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest &
-        Contract;
+      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
     const a_ = 9;
     const b_ = 42;

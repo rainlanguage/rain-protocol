@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
@@ -13,8 +12,8 @@ const Opcode = AllStandardOps;
 // Contains tests for RainVM, the constant RainVM ops as well as Math ops via AllStandardOpsTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM storage", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     this.timeout(0);
@@ -22,14 +21,13 @@ describe("RainVM storage", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   it("should error when attempting to read stored value outside STORAGE opcode range", async () => {

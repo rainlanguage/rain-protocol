@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { Verify } from "../../../typechain/Verify";
@@ -31,12 +30,12 @@ describe("VerifyTier verify", async function () {
     const verify = (await Util.verifyDeploy(signers[0], verifyFactory, {
       admin: admin.address,
       callback: ethers.constants.AddressZero,
-    })) as Verify & Contract;
+    })) as Verify;
 
     const verifyTier = (await Util.verifyTierDeploy(
       signers[0],
       verify.address
-    )) as VerifyTier & Contract;
+    )) as VerifyTier;
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), newAdmin.address);
     await verify.grantRole(await verify.BANNER_ADMIN(), newAdmin.address);

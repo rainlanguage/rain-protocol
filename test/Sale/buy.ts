@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
@@ -310,7 +309,7 @@ describe("Sale buy", async function () {
       "SaleReentrant"
     );
     const maliciousReserve =
-      (await maliciousReserveFactory.deploy()) as SaleReentrant & Contract;
+      (await maliciousReserveFactory.deploy()) as SaleReentrant;
     // If cooldown could be set to zero, reentrant buy calls would be possible.
     await assertError(
       async () =>

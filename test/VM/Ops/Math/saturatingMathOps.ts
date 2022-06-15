@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
@@ -13,22 +12,21 @@ const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM MathOps saturating math", async () => {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   it("should perform saturating multiplication", async () => {

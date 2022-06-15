@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../../typechain/CombineTier";
@@ -60,21 +59,21 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
           ]),
         ],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [ALWAYS],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [NEVER],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const constants = [
       ethers.BigNumber.from(futureTier.address),
@@ -119,7 +118,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
 
@@ -152,14 +151,14 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
         sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [ALWAYS],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [NEVER],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -187,7 +186,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
 
@@ -212,9 +211,9 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       "ReadWriteTier"
     );
     const readWriteTierRight =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+      (await readWriteTierFactory.deploy()) as ReadWriteTier;
     const readWriteTierLeft =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+      (await readWriteTierFactory.deploy()) as ReadWriteTier;
 
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
@@ -242,7 +241,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const startTimestamp = await getBlockTimestamp();
 

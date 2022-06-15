@@ -1,18 +1,17 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { assert } from "chai";
+import { artifacts, ethers } from "hardhat";
 import type { Verify, VerifyConfigStruct } from "../../typechain/Verify";
 import type {
   ImplementationEvent as ImplementationEventVerifyFactory,
   VerifyFactory,
 } from "../../typechain/VerifyFactory";
-import { artifacts, ethers } from "hardhat";
-import { getEventArgs } from "../events";
 import { zeroAddress } from "../constants";
-import { Contract } from "ethers";
-import { assert } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { getEventArgs } from "../events";
 
 export const verifyDeploy = async (
   deployer: SignerWithAddress,
-  verifyFactory: VerifyFactory & Contract,
+  verifyFactory: VerifyFactory,
   config: VerifyConfigStruct
 ) => {
   const { implementation } = (await getEventArgs(
@@ -35,7 +34,7 @@ export const verifyDeploy = async (
     ),
     (await artifacts.readArtifact("Verify")).abi,
     deployer
-  ) as Verify & Contract;
+  ) as Verify;
   await verify.deployed();
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

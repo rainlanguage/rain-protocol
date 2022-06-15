@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Contract, ContractFactory } from "ethers";
+import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import type {
   DepositConfigStruct,
@@ -17,12 +17,11 @@ import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("OrderBook withdraw from vault", async function () {
   let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18 & Contract,
-    stateBuilder: OrderBookStateBuilder & Contract;
+    tokenA: ReserveToken18,
+    stateBuilder: OrderBookStateBuilder;
 
   beforeEach(async () => {
-    tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18 &
-      Contract;
+    tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
   before(async () => {
@@ -30,7 +29,7 @@ describe("OrderBook withdraw from vault", async function () {
       "OrderBookStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder & Contract;
+      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
     await stateBuilder.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
@@ -43,7 +42,7 @@ describe("OrderBook withdraw from vault", async function () {
     const alice = signers[1];
     const orderBook = (await orderBookFactory.deploy(
       stateBuilder.address
-    )) as OrderBook & Contract;
+    )) as OrderBook;
     const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS

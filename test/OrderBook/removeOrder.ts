@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Contract, ContractFactory } from "ethers";
+import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
@@ -21,15 +21,13 @@ const Opcode = OrderBookOpcode;
 
 describe("OrderBook remove order", async function () {
   let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18 & Contract,
-    tokenB: ReserveToken18 & Contract,
-    stateBuilder: OrderBookStateBuilder & Contract;
+    tokenA: ReserveToken18,
+    tokenB: ReserveToken18,
+    stateBuilder: OrderBookStateBuilder;
 
   beforeEach(async () => {
-    tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18 &
-      Contract;
-    tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18 &
-      Contract;
+    tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
   before(async () => {
@@ -37,7 +35,7 @@ describe("OrderBook remove order", async function () {
       "OrderBookStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder & Contract;
+      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
     await stateBuilder.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
@@ -52,7 +50,7 @@ describe("OrderBook remove order", async function () {
 
     const orderBook = (await orderBookFactory.deploy(
       stateBuilder.address
-    )) as OrderBook & Contract;
+    )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);

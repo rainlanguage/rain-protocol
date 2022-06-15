@@ -1,4 +1,3 @@
-import { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
@@ -10,21 +9,20 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 
 describe("Stake many successive deposits and withdraws", async function () {
-  let stakeFactory: StakeFactory & Contract;
-  let token: ReserveToken & Contract;
+  let stakeFactory: StakeFactory;
+  let token: ReserveToken;
 
   before(async () => {
     const stakeFactoryFactory = await ethers.getContractFactory(
       "StakeFactory",
       {}
     );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory &
-      Contract;
+    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
     await stakeFactory.deployed();
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken & Contract;
+    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
   it("should process 50 successive deposits and withdraws", async function () {

@@ -1,4 +1,3 @@
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
@@ -29,8 +28,8 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
 }
 
 describe("RainVM update tier range op", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     this.timeout(0);
@@ -38,14 +37,13 @@ describe("RainVM update tier range op", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   it("should enforce maxTier for update tier range operation", async () => {

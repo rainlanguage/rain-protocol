@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
@@ -13,21 +12,20 @@ import { getBlockTimestamp } from "../../utils/hardhat";
 import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake report", async function () {
-  let stakeFactory: StakeFactory & Contract;
-  let token: ReserveToken & Contract;
+  let stakeFactory: StakeFactory;
+  let token: ReserveToken;
 
   before(async () => {
     const stakeFactoryFactory = await ethers.getContractFactory(
       "StakeFactory",
       {}
     );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory &
-      Contract;
+    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
     await stakeFactory.deployed();
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken & Contract;
+    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
   it("should return one-to-many reports i.e. when different lists of thresholds are checked against", async function () {

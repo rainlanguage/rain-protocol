@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Contract, ContractFactory } from "ethers";
+import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import { IERC20 } from "../../../typechain/IERC20";
 import { MockISale } from "../../../typechain/MockISale";
@@ -12,12 +12,12 @@ import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
 
 let redeemableERC20FactoryFactory: ContractFactory,
-  redeemableERC20Factory: RedeemableERC20Factory & Contract,
+  redeemableERC20Factory: RedeemableERC20Factory,
   readWriteTierFactory: ContractFactory,
-  readWriteTier: ReadWriteTier & Contract,
+  readWriteTier: ReadWriteTier,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory & Contract;
+  saleFactory: SaleFactory;
 
 describe("SaleEscrow protection from draining", async function () {
   before(async () => {
@@ -32,13 +32,11 @@ describe("SaleEscrow protection from draining", async function () {
       {}
     );
     redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-        Contract;
+      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
     await redeemableERC20Factory.deployed();
 
     readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
-      Contract;
+    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
@@ -51,7 +49,7 @@ describe("SaleEscrow protection from draining", async function () {
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
     saleFactory = (await saleFactoryFactory.deploy(
       saleConstructorConfig
-    )) as SaleFactory & Contract;
+    )) as SaleFactory;
     await saleFactory.deployed();
   });
 
@@ -68,22 +66,21 @@ describe("SaleEscrow protection from draining", async function () {
       "RedeemableERC20ClaimEscrow"
     );
     const rTKNClaimEscrow =
-      (await rTKNClaimEscrowFactory.deploy()) as RedeemableERC20ClaimEscrow &
-        Contract;
+      (await rTKNClaimEscrowFactory.deploy()) as RedeemableERC20ClaimEscrow;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
-    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
+    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();
     await rTKN.deployed();
 
     const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale1 = (await saleFactory.deploy()) as Contract & MockISale;
-    const sale2 = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale1 = (await saleFactory.deploy()) as MockISale;
+    const sale2 = (await saleFactory.deploy()) as MockISale;
 
     // Two identical successful sales with some tokens to distribute.
-    const sales: Array<Contract & MockISale> = [sale1, sale2];
+    const sales: Array<MockISale> = [sale1, sale2];
     for (const sale of sales) {
       await sale.deployed();
       await sale.setReserve(reserve.address);

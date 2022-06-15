@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain/CombineTier";
@@ -33,14 +32,14 @@ describe("CombineTier default report", async function () {
         sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [ALWAYS],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
         constants: [NEVER],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const constants = [
       ethers.BigNumber.from(alwaysTier.address),
@@ -67,7 +66,7 @@ describe("CombineTier default report", async function () {
         sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
         constants,
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const resultAlwaysReport = await combineTierAlways.report(
       signers[1].address,
@@ -88,7 +87,7 @@ describe("CombineTier default report", async function () {
         sources: [sourceNeverReport, sourceReportTimeForTierDefault],
         constants,
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const resultNeverReport = await combineTierNever.report(
       signers[1].address,

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import type { BigNumber, Contract } from "ethers";
+import type { BigNumber } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
@@ -18,8 +18,8 @@ const Opcode = AllStandardOps;
 const isTruthy = (vmValue: BigNumber) => !vmValue.isZero();
 
 describe("RainVM logic ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     this.timeout(0);
@@ -27,14 +27,13 @@ describe("RainVM logic ops", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   it("should support logic ops within a zipmap loop", async function () {

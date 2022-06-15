@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { StakeConfigStruct } from "../../typechain/Stake";
@@ -10,21 +9,20 @@ import { stakeDeploy } from "../../utils/deploy/stake";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Stake withdraw", async function () {
-  let stakeFactory: StakeFactory & Contract;
-  let token: ReserveToken & Contract;
+  let stakeFactory: StakeFactory;
+  let token: ReserveToken;
 
   before(async () => {
     const stakeFactoryFactory = await ethers.getContractFactory(
       "StakeFactory",
       {}
     );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory &
-      Contract;
+    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
     await stakeFactory.deployed();
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken & Contract;
+    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
   it("should not process a withdraw of 0 amount", async function () {

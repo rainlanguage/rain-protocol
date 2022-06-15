@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract, Overrides } from "ethers";
+import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import { Stake, StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
@@ -7,10 +7,10 @@ import { getEventArgs } from "../events";
 
 export const stakeDeploy = async (
   deployer: SignerWithAddress,
-  stakeFactory: StakeFactory & Contract,
+  stakeFactory: StakeFactory,
   stakeConfigStruct: StakeConfigStruct,
   ...args: Overrides[]
-): Promise<Stake & Contract> => {
+): Promise<Stake> => {
   const txDeploy = await stakeFactory.createChildTyped(
     stakeConfigStruct,
     ...args
@@ -25,7 +25,7 @@ export const stakeDeploy = async (
     ),
     (await artifacts.readArtifact("Stake")).abi,
     deployer
-  ) as Stake & Contract;
+  ) as Stake;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore

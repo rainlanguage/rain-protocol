@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
@@ -18,8 +17,8 @@ let signer1: SignerWithAddress;
 let tokenERC20: ReserveToken;
 
 describe("RainVM ERC20 ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     this.timeout(0);
@@ -27,22 +26,20 @@ describe("RainVM ERC20 ops", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
     signer1 = signers[1];
 
-    tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken &
-      Contract;
+    tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
   it("should return ERC20 total supply", async () => {

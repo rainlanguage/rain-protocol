@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Contract, ContractFactory } from "ethers";
+import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import { IERC20 } from "../../../typechain/IERC20";
 import { MockISale } from "../../../typechain/MockISale";
@@ -17,19 +17,18 @@ import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20";
 import { Status } from "../../../utils/types/sale";
 import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
 
-let reserve: ReserveToken & Contract,
+let reserve: ReserveToken,
   redeemableERC20FactoryFactory: ContractFactory,
-  redeemableERC20Factory: RedeemableERC20Factory & Contract,
+  redeemableERC20Factory: RedeemableERC20Factory,
   readWriteTierFactory: ContractFactory,
-  readWriteTier: ReadWriteTier & Contract,
+  readWriteTier: ReadWriteTier,
   saleConstructorConfig: SaleConstructorConfigStruct,
   saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory & Contract;
+  saleFactory: SaleFactory;
 
 describe("SaleEscrow unchangeable addresses", async function () {
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken &
-      Contract;
+    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
   before(async () => {
@@ -44,13 +43,11 @@ describe("SaleEscrow unchangeable addresses", async function () {
       {}
     );
     redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory &
-        Contract;
+      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
     await redeemableERC20Factory.deployed();
 
     readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier &
-      Contract;
+    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
     saleConstructorConfig = {
@@ -63,7 +60,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
     saleFactory = (await saleFactoryFactory.deploy(
       saleConstructorConfig
-    )) as SaleFactory & Contract;
+    )) as SaleFactory;
     await saleFactory.deployed();
   });
 
@@ -86,10 +83,10 @@ describe("SaleEscrow unchangeable addresses", async function () {
       tier: readWriteTier.address,
       minimumTier: 0,
       distributionEndForwardingAddress: zeroAddress,
-    })) as RedeemableERC20 & Contract;
+    })) as RedeemableERC20;
 
     const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale = (await saleFactory.deploy()) as MockISale;
 
     await sale.setReserve(reserve.address);
     await sale.setToken(redeemableERC20.address);
@@ -105,7 +102,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
       {}
-    )) as SaleEscrowWrapper & Contract;
+    )) as SaleEscrowWrapper;
 
     await saleEscrowWrapper.fetchReserve(sale.address);
     await saleEscrowWrapper.fetchToken(sale.address);
@@ -134,16 +131,16 @@ describe("SaleEscrow unchangeable addresses", async function () {
     this.timeout(0);
 
     const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale = (await saleFactory.deploy()) as MockISale;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
       {}
-    )) as SaleEscrowWrapper & Contract;
+    )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
-    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
+    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();
     await rTKN.deployed();
@@ -184,16 +181,16 @@ describe("SaleEscrow unchangeable addresses", async function () {
     this.timeout(0);
 
     const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale = (await saleFactory.deploy()) as MockISale;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
       {}
-    )) as SaleEscrowWrapper & Contract;
+    )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
-    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
+    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();
     await rTKN.deployed();
@@ -234,16 +231,16 @@ describe("SaleEscrow unchangeable addresses", async function () {
     this.timeout(0);
 
     const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as Contract & MockISale;
+    const sale = (await saleFactory.deploy()) as MockISale;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
       {}
-    )) as SaleEscrowWrapper & Contract;
+    )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as Contract & IERC20;
-    const rTKN = (await tokenFactory.deploy()) as Contract & IERC20;
+    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();
     await rTKN.deployed();

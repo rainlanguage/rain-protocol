@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
@@ -19,8 +18,8 @@ let signer1: SignerWithAddress;
 let tokenERC721: ReserveTokenERC721;
 
 describe("RainVM ERC721 ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     this.timeout(0);
@@ -28,14 +27,13 @@ describe("RainVM ERC721 ops", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   beforeEach(async () => {
@@ -46,7 +44,7 @@ describe("RainVM ERC721 ops", async function () {
     tokenERC721 = (await basicDeploy(
       "ReserveTokenERC721",
       {}
-    )) as ReserveTokenERC721 & Contract;
+    )) as ReserveTokenERC721;
   });
 
   it("should return owner of specific ERC721 token", async () => {

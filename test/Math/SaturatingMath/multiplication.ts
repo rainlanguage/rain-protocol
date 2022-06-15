@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import type { Contract, ContractFactory } from "ethers";
+import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import * as Util from "../../../utils";
 
@@ -18,8 +18,7 @@ describe("SaturatingMathTest multiplication test", async function () {
     this.timeout(0);
 
     const saturatingMathTest =
-      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest &
-        Contract;
+      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
     const a_ = 9;
     const b_ = 42;
@@ -33,8 +32,7 @@ describe("SaturatingMathTest multiplication test", async function () {
     this.timeout(0);
 
     const saturatingMathTest =
-      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest &
-        Contract;
+      (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
     const a_ = Util.max_uint256;
     const b_ = 3;

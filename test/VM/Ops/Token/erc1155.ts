@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
@@ -20,8 +19,8 @@ let signer2: SignerWithAddress;
 let tokenERC1155: ReserveTokenERC1155;
 
 describe("RainVM ERC1155 ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
-  let logic: AllStandardOpsTest & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
     this.timeout(0);
@@ -29,14 +28,13 @@ describe("RainVM ERC1155 ops", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       stateBuilder.address
-    )) as AllStandardOpsTest & Contract;
+    )) as AllStandardOpsTest;
   });
 
   beforeEach(async () => {
@@ -48,7 +46,7 @@ describe("RainVM ERC1155 ops", async function () {
     tokenERC1155 = (await basicDeploy(
       "ReserveTokenERC1155",
       {}
-    )) as ReserveTokenERC1155 & Contract;
+    )) as ReserveTokenERC1155;
   });
 
   it("should return ERC1155 batch balance result for multiple signers", async () => {

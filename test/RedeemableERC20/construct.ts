@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { ReserveToken } from "../../typechain/ReserveToken";
@@ -19,7 +18,7 @@ describe("RedeemableERC20 constructor test", async function () {
     await erc20Pullee.deployed();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -33,7 +32,7 @@ describe("RedeemableERC20 constructor test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     const token = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -60,7 +59,7 @@ describe("RedeemableERC20 constructor test", async function () {
     await erc20Pullee.deployed();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = 0;
 
     const totalTokenSupplyZero = ethers.BigNumber.from(
@@ -95,7 +94,7 @@ describe("RedeemableERC20 constructor test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     await Util.assertError(
       async () =>
@@ -144,7 +143,7 @@ describe("RedeemableERC20 constructor test", async function () {
     await erc20Pullee.deployed();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -158,7 +157,7 @@ describe("RedeemableERC20 constructor test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -188,12 +187,12 @@ describe("RedeemableERC20 constructor test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     // Set owner to COPPER status, lower than minimum status of DIAMOND
     await tier.setTier(erc20Pullee.address, Tier.ONE, []);

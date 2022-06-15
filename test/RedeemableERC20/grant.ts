@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../typechain/RedeemableERC20";
@@ -25,7 +24,7 @@ describe("RedeemableERC20 grant test", async function () {
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.ONE;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -39,7 +38,7 @@ describe("RedeemableERC20 grant test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -47,7 +46,7 @@ describe("RedeemableERC20 grant test", async function () {
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20 & Contract;
+    })) as RedeemableERC20;
 
     await erc20Pullee.grantSender(token.address, alice.address);
 
@@ -77,7 +76,7 @@ describe("RedeemableERC20 grant test", async function () {
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.ONE;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -91,7 +90,7 @@ describe("RedeemableERC20 grant test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -99,7 +98,7 @@ describe("RedeemableERC20 grant test", async function () {
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20 & Contract;
+    })) as RedeemableERC20;
 
     await erc20Pullee.grantReceiver(token.address, alice.address);
 
@@ -132,7 +131,7 @@ describe("RedeemableERC20 grant test", async function () {
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.FOUR;
 
     await tier.setTier(alice.address, Tier.ONE, []);
@@ -149,7 +148,7 @@ describe("RedeemableERC20 grant test", async function () {
     const reserve = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -157,7 +156,7 @@ describe("RedeemableERC20 grant test", async function () {
       tier: tier.address,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
-    })) as RedeemableERC20 & Contract;
+    })) as RedeemableERC20;
 
     // alice tries to transfer to bob
     await Util.assertError(

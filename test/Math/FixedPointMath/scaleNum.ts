@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import type { Contract, ContractFactory } from "ethers";
+import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 
 import type { FixedPointMathTest } from "../../../typechain/FixedPointMathTest";
@@ -19,8 +19,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + sixZeros);
     const aDecimals_ = 8; // 0.01
@@ -34,8 +33,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
     const aDecimals_ = 24; // 1.0
@@ -49,8 +47,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1);
     const aDecimals_ = 0; // 1.0
@@ -65,8 +62,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const targetDecimals_ = 20;
@@ -80,8 +76,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const targetDecimals_ = 8;
@@ -95,8 +90,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1);
     const targetDecimals_ = 18;
@@ -111,8 +105,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const scaleBy_ = 2;
@@ -126,8 +119,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + sixZeros + "00");
     const scaleBy_ = -2;
@@ -141,8 +133,7 @@ describe("FixedPointMathTest scaling a number", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const scaleBy_ = 0;

@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
@@ -79,7 +78,7 @@ describe("EmissionsERC20 Report Test", async function () {
       "ReadWriteTier"
     );
     const readWriteTier =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+      (await readWriteTierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
@@ -200,7 +199,7 @@ describe("EmissionsERC20 Report Test", async function () {
       "ReadWriteTier"
     );
     const readWriteTier =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier & Contract;
+      (await readWriteTierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();

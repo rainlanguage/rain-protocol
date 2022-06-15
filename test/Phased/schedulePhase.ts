@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import type { PhasedScheduleTest } from "../../typechain/PhasedScheduleTest";
 import type { PhasedTest } from "../../typechain/PhasedTest";
 import * as Util from "../../utils";
@@ -13,7 +12,7 @@ describe("Schedule next phase", async function () {
     const phasedScheduleTest = (await Util.basicDeploy(
       "PhasedScheduleTest",
       {}
-    )) as PhasedScheduleTest & Contract;
+    )) as PhasedScheduleTest;
 
     assert(
       (await phasedScheduleTest.currentPhase()).eq(Phase.ZERO),
@@ -31,8 +30,7 @@ describe("Schedule next phase", async function () {
   it("cannot schedule the next phase in the past", async function () {
     this.timeout(0);
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const pastTimestamp = await getBlockTimestamp();
 
@@ -48,8 +46,7 @@ describe("Schedule next phase", async function () {
   it("cannot schedule the next phase if it is already scheduled", async function () {
     this.timeout(0);
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
 
@@ -65,8 +62,7 @@ describe("Schedule next phase", async function () {
   it("the next phase time must not be uninitialized", async function () {
     this.timeout(0);
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
 
@@ -85,8 +81,7 @@ describe("Schedule next phase", async function () {
   it("is not possible to skip a phase", async function () {
     this.timeout(0);
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
 
@@ -102,8 +97,7 @@ describe("Schedule next phase", async function () {
   it("_beforeScheduleNextPhase hook can be used to impose conditions on phase changes", async function () {
     this.timeout(0);
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     const timestamp0 = await getBlockTimestamp();
 

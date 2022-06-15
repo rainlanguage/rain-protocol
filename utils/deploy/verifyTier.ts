@@ -1,13 +1,12 @@
+import { assert } from "chai";
+import { artifacts, ethers } from "hardhat";
 import type { VerifyTier } from "../../typechain/VerifyTier";
 import type {
   ImplementationEvent as ImplementationEventVerifyTierFactory,
   VerifyTierFactory,
 } from "../../typechain/VerifyTierFactory";
-import { artifacts, ethers } from "hardhat";
-import { getEventArgs } from "../events";
 import { zeroAddress } from "../constants";
-import { Contract } from "ethers";
-import { assert } from "chai";
+import { getEventArgs } from "../events";
 
 export const verifyTierDeploy = async (deployer, config) => {
   const factoryFactory = await ethers.getContractFactory("VerifyTierFactory");
@@ -23,7 +22,7 @@ export const verifyTierDeploy = async (deployer, config) => {
     ),
     (await artifacts.readArtifact("VerifyTier")).abi,
     deployer
-  ) as VerifyTier & Contract;
+  ) as VerifyTier;
   await contract.deployed();
 
   const { implementation } = (await getEventArgs(

@@ -1,4 +1,3 @@
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
@@ -10,7 +9,7 @@ import { assertError } from "../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("VMStateBuilder buildState", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
 
   before(async () => {
     this.timeout(0);
@@ -18,8 +17,7 @@ describe("VMStateBuilder buildState", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
   });
 
@@ -33,7 +31,7 @@ describe("VMStateBuilder buildState", async function () {
     // test contract expects stack height of 2
     const stackHeightTest = (await stackHeightTestFactory.deploy(
       stateBuilder.address
-    )) as StackHeightTest & Contract;
+    )) as StackHeightTest;
 
     const constants = [1];
 

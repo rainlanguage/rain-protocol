@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { NoticeBoard } from "../../../typechain/NoticeBoard";
@@ -86,8 +85,7 @@ describe("Sale noticeboard", async function () {
       }
     );
     const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");
-    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard &
-      Contract;
+    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard;
     const message = "foo";
     const notice = {
       subject: sale.address,

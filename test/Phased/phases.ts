@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type {
   PhasedTest,
@@ -15,8 +14,7 @@ describe("Phased test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     // check constants
 
@@ -124,8 +122,7 @@ describe("Phased test", async function () {
   it("modifiers correctly error if current phase doesn't meet condition", async () => {
     this.timeout(0);
 
-    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest &
-      Contract;
+    const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     // onlyPhase
     assert(await phased.runsOnlyPhase(Phase.ZERO));

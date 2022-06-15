@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import type {
@@ -25,12 +24,12 @@ describe("RedeemableERC20 event test", async function () {
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     const minimumTier = Tier.FOUR;
 
@@ -81,16 +80,16 @@ describe("RedeemableERC20 event test", async function () {
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
     const reserve2 = (await Util.basicDeploy(
       "ReserveToken",
       {}
-    )) as ReserveToken & Contract;
+    )) as ReserveToken;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     const minimumTier = Tier.FOUR;
 

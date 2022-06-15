@@ -1,5 +1,4 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { TierReportTest } from "../../../typechain/TierReportTest";
@@ -10,18 +9,17 @@ import { Tier } from "../../../utils/types/tier";
 
 describe("TierReport maxTier", async function () {
   let signer1: SignerWithAddress;
-  let readWriteTier: ReadWriteTier & Contract;
-  let tierReport: TierReportTest & Contract;
+  let readWriteTier: ReadWriteTier;
+  let tierReport: TierReportTest;
 
   beforeEach(async () => {
     [, signer1] = await ethers.getSigners();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier & Contract;
+    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
-    tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest &
-      Contract;
+    tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest;
   });
 
   it("should enforce maxTier for all TierReport logic", async () => {

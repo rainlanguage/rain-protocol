@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain/CombineTier";
@@ -34,7 +33,7 @@ describe("CombineTier report context", async function () {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants: [],
       },
-    })) as CombineTier & Contract;
+    })) as CombineTier;
 
     const result = await combineTier.report(signers[1].address, []);
     const expected = signers[1].address;

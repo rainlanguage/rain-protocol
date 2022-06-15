@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import type { Contract, ContractFactory } from "ethers";
+import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 
 import type { FixedPointMathTest } from "../../../typechain/FixedPointMathTest";
@@ -18,8 +18,7 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = 5;
     const b_ = ONE.mul(2);
@@ -34,8 +33,7 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
     this.timeout(0);
 
     const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest &
-        Contract;
+      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
     const a_ = 60;
     const b_ = ethers.BigNumber.from("2" + eighteenZeros);

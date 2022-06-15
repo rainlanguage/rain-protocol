@@ -1,4 +1,3 @@
-import { Contract } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
@@ -10,7 +9,7 @@ import { assertError } from "../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainVM fnPtrs", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder & Contract;
+  let stateBuilder: AllStandardOpsStateBuilder;
 
   before(async () => {
     this.timeout(0);
@@ -18,8 +17,7 @@ describe("RainVM fnPtrs", async function () {
       "AllStandardOpsStateBuilder"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder &
-        Contract;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
     await stateBuilder.deployed();
   });
 
@@ -29,7 +27,7 @@ describe("RainVM fnPtrs", async function () {
     const fnPtrsTestFactory = await ethers.getContractFactory("FnPtrsTest");
     const fnPtrsTest = (await fnPtrsTestFactory.deploy(
       stateBuilder.address
-    )) as FnPtrsTest & Contract;
+    )) as FnPtrsTest;
 
     const constants = [1];
     const sources = [concat([op(Opcode.CONSTANT, 0)])];
