@@ -6,7 +6,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
       - uses: cachix/install-nix-action@v13
         with:

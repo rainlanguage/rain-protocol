@@ -8,6 +8,9 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+import "../tier/TierV2.sol";
+import "../tier/libraries/TierConstants.sol";
+
 import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
 
@@ -21,11 +24,11 @@ struct StakeConfig {
 /// @param amount Largest value we can squeeze into a uint256 alongside a
 /// uint32.
 struct Deposit {
-    uint32 blockNumber;
+    uint32 timestamp;
     uint224 amount;
 }
 
-contract Stake is ERC20Upgradeable, ReentrancyGuard {
+contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -69,7 +72,7 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
             ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
             : 0;
         deposits[msg.sender].push(
-            Deposit(uint32(block.number), highwater_ + amount_.toUint224())
+            Deposit(uint32(block.timestamp), highwater_ + amount_.toUint224())
         );
     }
 
@@ -100,7 +103,7 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
             : 0;
         if (newHighwater_ > cmpHighwater_) {
             deposits[msg.sender].push(
-                Deposit(uint32(block.number), newHighwater_.toUint224())
+                Deposit(uint32(block.timestamp), newHighwater_.toUint224())
             );
         }
 
@@ -113,35 +116,52 @@ contract Stake is ERC20Upgradeable, ReentrancyGuard {
         );
     }
 
-    function report(address account_, bytes calldata data_)
+    /// @inheritdoc ITierV2
+    function report(address account_, uint256[] calldata context_)
         external
         view
-        returns (uint256)
+        returns (uint256 report_)
     {
-        uint256[] memory thresholds_ = abi.decode(data_, (uint256[]));
-        require(thresholds_.length <= TierConstants.MAX_TIER, "MAX_TIER");
-        uint256 report_ = type(uint256).max;
-        if (thresholds_.length > 0) {
+        report_ = type(uint256).max;
+        if (context_.length > 0) {
             uint256 t_ = 0;
             Deposit memory deposit_;
             for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
                 deposit_ = deposits[account_][i_];
                 while (
-                    t_ < thresholds_.length &&
-                    deposit_.amount >= thresholds_[t_]
+                    t_ < context_.length && deposit_.amount >= context_[t_]
                 ) {
-                    report_ = TierReport.updateBlockAtTier(
+                    report_ = TierReport.updateTimeAtTier(
                         report_,
                         t_,
-                        deposit_.blockNumber
+                        deposit_.timestamp
                     );
                     t_++;
                 }
-                if (t_ == thresholds_.length) {
+                if (t_ == context_.length) {
                     break;
                 }
             }
         }
-        return report_;
+    }
+
+    /// @inheritdoc ITierV2
+    function reportTimeForTier(
+        address account_,
+        uint256 tier_,
+        uint256[] calldata context_
+    ) external view returns (uint256 time_) {
+        time_ = uint256(TierConstants.NEVER_TIME);
+        if (tier_ < context_.length) {
+            uint256 threshold_ = context_[tier_];
+            Deposit memory deposit_;
+            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
+                deposit_ = deposits[account_][i_];
+                if (deposit_.amount >= threshold_) {
+                    time_ = deposit_.timestamp;
+                    break;
+                }
+            }
+        }
     }
 }
