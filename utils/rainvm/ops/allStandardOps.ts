@@ -47,3 +47,5 @@ export enum AllStandardOps {
   UPDATE_TIMES_FOR_TIER_RANGE,
   length,
 }
+
+export const Opcode = AllStandardOps;

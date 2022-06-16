@@ -15,6 +15,11 @@ uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract AutoApprove is VerifyCallback, StandardVM, Initializable {
+    /// Contract has initialized.
+    /// @param sender `msg.sender` initializing the contract (factory).
+    /// @param config All initialized config.
+    event Initialize(address sender, StateConfig config);
+
     using LibState for State;
     using LibFnPtrs for bytes;
 
@@ -32,6 +37,8 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         Bounds[] memory boundss_ = new Bounds[](1);
         boundss_[0] = bounds_;
         _initializeStandardVM(stateConfig_, boundss_);
+
+        emit Initialize(msg.sender, stateConfig_);
     }
 
     function afterAdd(address, Evidence[] calldata evidences_)

@@ -91,10 +91,11 @@ const testStructs = (
         typeof actualValue === "object" ||
         typeof expectedValue === "object"
       ) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         // recursive call for nested structs
-        testStructs(actualValue, expectedValue);
+        testStructs(
+          actualValue as Record<string, unknown>,
+          expectedValue as Record<string, unknown>
+        );
       } else {
         let condition: boolean;
         try {
@@ -124,10 +125,11 @@ const testSolStructs = (
     const expectedValue = solExpectedObj[key];
 
     if (typeof actualValue === "object" || typeof expectedValue === "object") {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       // recursive call for nested structs
-      testSolStructs(actualValue, expectedValue);
+      testSolStructs(
+        actualValue as Record<string, unknown>,
+        expectedValue as Record<string, unknown>
+      );
     } else {
       let condition: boolean;
       try {
