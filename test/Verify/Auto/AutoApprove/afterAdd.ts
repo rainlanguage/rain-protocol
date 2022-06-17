@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { hexlify, hexZeroPad } from "ethers/lib/utils";
+import { concat, hexlify, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { StateConfigStruct } from "../../../../typechain/AutoApprove";
 import { AutoApproveFactory } from "../../../../typechain/AutoApproveFactory";
@@ -38,9 +38,11 @@ describe("AutoApprove afterAdd", async function () {
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
       sources: [
-          op(Opcode.CONTEXT, 0),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.EQUAL_TO),
+        concat([
+            op(Opcode.CONTEXT, 0),
+            op(Opcode.CONSTANT, 0),
+          op(Opcode.EQUAL_TO),
+        ]),
       ],
       constants: [correctID],
     };
@@ -94,9 +96,11 @@ describe("AutoApprove afterAdd", async function () {
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
       sources: [
-          op(Opcode.CONTEXT, 0),
-          op(Opcode.CONSTANT, 0),
-        op(Opcode.EQUAL_TO),
+        concat([
+            op(Opcode.CONTEXT, 0),
+            op(Opcode.CONSTANT, 0),
+          op(Opcode.EQUAL_TO),
+        ]),
       ],
       constants: [correctID],
     };

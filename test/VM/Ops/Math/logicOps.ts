@@ -301,7 +301,7 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source2 = concat([
-      // 2 ? 2 : 3
+      // 0 ? 2 : 3
         v0,
         v2,
         v3,
