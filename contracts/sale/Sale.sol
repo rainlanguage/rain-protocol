@@ -9,10 +9,8 @@ import "../vm/RainVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
-//solhint-disable-next-line max-line-length
-import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-//solhint-disable-next-line max-line-length
-import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
+import {SaleVault, SaleVaultConfig} from "./vault/SaleVault.sol";
+import {SaleVaultFactory} from "./vault/SaleVaultFactory.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 // solhint-disable-next-line max-line-length
@@ -76,7 +74,7 @@ struct SaleRedeemableERC20Config {
     ERC20Config erc20Config;
     address tier;
     uint256 minimumTier;
-    address distributionEndForwardingAddress;
+    bool forwardUnsoldSharesAtEnd;
 }
 
 /// Defines a request to buy rTKN from an active sale.
@@ -210,8 +208,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
     /// *** STORAGE OPCODES END ***
 
-    /// Factory responsible for minting rTKN.
-    RedeemableERC20Factory private immutable redeemableERC20Factory;
+    /// Factory responsible for creating a new SaleVault.
+    SaleVaultFactory private immutable saleVaultFactory;
 
     /// @dev as per `SaleConfig`.
     address private recipient;
@@ -222,21 +220,23 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// @dev as per `SaleConfig`.
     uint256 private dustSize;
 
+    bool private forwardUnsoldSharesAtEnd;
+
     /// @dev the current sale status exposed as `ISale.saleStatus`.
     SaleStatus private _saleStatus;
     /// @dev the current sale can always end in failure at this time even if
     /// it did not start. Provided it did not already end of course.
     uint256 private saleTimeoutStamp;
 
+    /// @dev simple incremental counter to keep all receipts unique so that
+    /// receipt hashes bound to buyers never collide.
+    uint256 private nextReceiptId;
     /// @dev Binding buyers to receipt hashes to maybe a non-zero value.
     /// A receipt will only be honoured if the mapping resolves to non-zero.
     /// The receipt hashing ensures that receipts cannot be manipulated before
     /// redemption. Each mapping is deleted if/when receipt is used for refund.
     /// Buyer => keccak receipt => exists (1+ or 0).
     mapping(address => mapping(bytes32 => uint256)) private receipts;
-    /// @dev simple incremental counter to keep all receipts unique so that
-    /// receipt hashes bound to buyers never collide.
-    uint256 private nextReceiptId;
 
     /// @dev Tracks combined fees per recipient to be claimed if/when a sale
     /// is successful.
@@ -422,6 +422,19 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         RedeemableERC20(address(uint160(_token))).endDistribution(
             address(this)
         );
+
+        SaleVault vault_ = SaleVault(address(uint160(_vault)));
+
+        if (forwardUnsoldSharesAtEnd) {
+            // This can be different to _remainingUnits if somebody sent shares
+            // directly to the sale instead of using the sale functions.
+            uint unsoldShares_ = vault_.balanceOf(address(this));
+            vault_.safeTransfer(recipient, unsoldShares_);
+        }
+        else {
+            vault_.burnSaleShares();
+        }
+
 
         // Only send reserve to recipient if the raise is a success.
         // If the raise is NOT a success then everyone can refund their reserve

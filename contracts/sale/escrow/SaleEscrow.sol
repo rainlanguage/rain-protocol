@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "../sale/ISale.sol";
+import "../ISale.sol";
 
 /// Represents the 3 possible statuses an escrow could care about.
 /// Either the escrow takes no action or consistently allows a success/fail
@@ -37,7 +37,7 @@ contract SaleEscrow {
     /// again. Prevents a malicious `Sale` from changing the reserve at some
     /// point to break internal escrow accounting.
     /// @param sale_ The ISale to fetch reserve for.
-    function reserve(address sale_) internal returns (address) {
+    function _reserve(address sale_) internal returns (address) {
         address reserve_ = reserves[sale_];
         if (reserve_ == address(0)) {
             address saleReserve_ = address(ISale(sale_).reserve());
@@ -54,7 +54,7 @@ contract SaleEscrow {
     /// point to divert escrow payments after assets have already been set
     /// aside.
     /// @param sale_ The ISale to fetch token for.
-    function token(address sale_) internal returns (address) {
+    function _token(address sale_) internal returns (address) {
         address token_ = tokens[sale_];
         if (token_ == address(0)) {
             address saleToken_ = address(ISale(sale_).token());
@@ -72,7 +72,7 @@ contract SaleEscrow {
     /// direction. But if we were to change our opinion that would be worse as
     /// claims/refunds could potentially be "double spent" somehow.
     /// @param sale_ The sale to get the escrow status for.
-    function escrowStatus(address sale_) internal returns (EscrowStatus) {
+    function _escrowStatus(address sale_) internal returns (EscrowStatus) {
         EscrowStatus escrowStatus_ = escrowStatuses[sale_];
         // Short circuit and ignore the `ISale` if we previously saved a value.
         if (escrowStatus_ > EscrowStatus.Pending) {

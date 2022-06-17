@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {ERC20Config} from "../erc20/ERC20Config.sol";
-import "../erc20/ERC20Redeem.sol";
+import {ERC20Config} from "../../erc20/ERC20Config.sol";
+import "../../erc20/ERC20Redeem.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {ITierV2} from "../tier/ITierV2.sol";
-import {TierReport} from "../tier/libraries/TierReport.sol";
-
-import {Phased} from "../phased/Phased.sol";
+import {ITierV2} from "../../tier/ITierV2.sol";
+import {TierReport} from "../../tier/libraries/TierReport.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
@@ -92,7 +90,7 @@ struct RedeemableERC20Config {
 /// `redeem` will simply revert if called outside `Phase.ONE`.
 /// A `Redeem` event is emitted on every redemption (per treasury asset) as
 /// `(redeemer, asset, redeemAmount)`.
-contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
+contract SaleToken is Initializable, ERC20Redeem {
     using SafeERC20 for IERC20;
 
     /// @dev Phase constants.
@@ -107,31 +105,17 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
 
     /// @dev Bits for a receiver.
     uint256 private constant RECEIVER = 0x1;
-    /// @dev Bits for a sender.
-    uint256 private constant SENDER = 0x2;
 
-    /// @dev To be clear, this admin is NOT intended to be an EOA.
-    /// This contract is designed assuming the admin is a `Sale` or equivalent
-    /// contract that itself does NOT have an admin key.
-    address private admin;
-    /// @dev Tracks addresses that can always send/receive regardless of phase.
-    /// sender/receiver => access bits
-    mapping(address => uint256) private access;
+    /// @dev To be clear, this sale is NOT intended to be an EOA.
+    /// This contract is designed assuming the sale is a `Sale` or equivalent
+    /// contract that itself does NOT have an admin key, and can correctly
+    /// handle workflows such as `endSale()`.
+    address private sale;
 
     /// Results of initializing.
     /// @param sender `msg.sender` of initialize.
     /// @param config Initialization config.
     event Initialize(address sender, RedeemableERC20Config config);
-
-    /// A new token sender has been added.
-    /// @param sender `msg.sender` that approved the token sender.
-    /// @param grantedSender address that is now a token sender.
-    event Sender(address sender, address grantedSender);
-
-    /// A new token receiver has been added.
-    /// @param sender `msg.sender` that approved the token receiver.
-    /// @param grantedReceiver address that is now a token receiver.
-    event Receiver(address sender, address grantedReceiver);
 
     /// RedeemableERC20 uses the standard/default 18 ERC20 decimals.
     /// The minimum supply enforced by the constructor is "one" token which is
@@ -185,18 +169,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         distributionEndForwardingAddress = config_
             .distributionEndForwardingAddress;
 
-        // Minting and burning must never fail.
-        access[address(0)] = RECEIVER | SENDER;
-
-        // Admin receives full supply.
-        access[config_.erc20Config.distributor] = RECEIVER;
-
-        // Forwarding address must be able to receive tokens.
-        if (distributionEndForwardingAddress != address(0)) {
-            access[distributionEndForwardingAddress] = RECEIVER;
-        }
-
-        admin = config_.erc20Config.distributor;
+        sale = config_.erc20Config.distributor;
 
         // Need to mint after assigning access.
         _mint(
@@ -212,9 +185,9 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         schedulePhase(PHASE_DISTRIBUTING, block.timestamp);
     }
 
-    /// Require a function is only admin callable.
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "ONLY_ADMIN");
+    /// Require a function is only callable by the sale.
+    modifier onlySale() {
+        require(msg.sender == sale, "ONLY_SALE");
         _;
     }
 
@@ -226,14 +199,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         return access[maybeReceiver_] & RECEIVER > 0;
     }
 
-    /// Admin can grant an address receiver rights.
-    /// @param newReceiver_ The account to grand receiver.
-    function grantReceiver(address newReceiver_) external onlyAdmin {
-        // Using `|` preserves sender if previously granted.
-        access[newReceiver_] |= RECEIVER;
-        emit Receiver(msg.sender, newReceiver_);
-    }
-
     /// Check that an address is a sender.
     /// @param maybeSender_ account to check.
     /// @return True if account is a sender.
@@ -241,45 +206,10 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
         return access[maybeSender_] & SENDER > 0;
     }
 
-    /// Admin can grant an addres sender rights.
-    /// @param newSender_ The account to grant sender.
-    function grantSender(address newSender_) external onlyAdmin {
-        // Uinsg `|` preserves receiver if previously granted.
-        access[newSender_] |= SENDER;
-        emit Sender(msg.sender, newSender_);
-    }
-
-    /// The admin can forward or burn all tokens of a single address to end
-    /// `PHASE_DISTRIBUTING`.
-    /// The intent is that during `PHASE_DISTRIBUTING` there is some contract
-    /// responsible for distributing the tokens.
-    /// The admin specifies the distributor to end `PHASE_DISTRIBUTING` and the
-    /// forwarding address set during initialization is used. If the forwarding
-    /// address is `0` the rTKN will be burned, otherwise the entire balance of
-    /// the distributor is forwarded to the nominated address. In practical
-    /// terms the forwarding allows for escrow depositors to receive a prorata
-    /// claim on unsold rTKN if they forward it to themselves, otherwise raise
-    /// participants will receive a greater share of the final escrowed tokens
-    /// due to the burn reducing the total supply.
-    /// The distributor is NOT set during the constructor because it may not
-    /// exist at that point. For example, Balancer needs the paired erc20
-    /// tokens to exist before the trading pool can be built.
-    /// @param distributor_ The distributor according to the admin.
-    /// BURN the tokens if `address(0)`.
-    function endDistribution(address distributor_)
-        external
-        onlyPhase(PHASE_DISTRIBUTING)
-        onlyAdmin
-    {
-        schedulePhase(PHASE_FROZEN, block.timestamp);
-        address forwardTo_ = distributionEndForwardingAddress;
-        uint256 distributorBalance_ = balanceOf(distributor_);
-        if (distributorBalance_ > 0) {
-            if (forwardTo_ == address(0)) {
-                _burn(distributor_, distributorBalance_);
-            } else {
-                _transfer(distributor_, forwardTo_, distributorBalance_);
-            }
+    function burnSaleShares() external onlySale {
+        uint256 sharesBalance_ = balanceOf(msg.sender);
+        if (sharesBalance_ > 0) {
+            _burn(msg.sender, sharesBalance_);
         }
     }
 
@@ -309,9 +239,8 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     ) internal virtual override {
         super._beforeTokenTransfer(sender_, receiver_, amount_);
 
-        // Sending tokens to this contract (e.g. instead of redeeming) is
-        // always an error.
-        require(receiver_ != address(this), "TOKEN_SEND_SELF");
+        // Sending share tokens to the vault contract is always a mistake.
+        require(receiver_ != address(this), "SHARE_SEND_VAULT");
 
         // Some contracts may attempt a preflight (e.g. Balancer) of a 0 amount
         // transfer.
@@ -322,11 +251,6 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
             // The sender and receiver lists bypass all access restrictions.
             !(isSender(sender_) || isReceiver(receiver_))
         ) {
-            // During `PHASE_DISTRIBUTING` transfers are only restricted by the
-            // tier of the recipient. Every other phase only allows senders and
-            // receivers as above.
-            require(currentPhase() == PHASE_DISTRIBUTING, "FROZEN");
-
             // Receivers act as "hubs" that can send to "spokes".
             // i.e. any address of the minimum tier.
             // Spokes cannot send tokens another "hop" e.g. to each other.
