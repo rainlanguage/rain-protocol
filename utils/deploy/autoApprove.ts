@@ -14,7 +14,7 @@ import { getEventArgs } from "../events";
 
 export const autoApproveFactoryDeploy = async () => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsStateBuilder"
+    "AutoApproveStateBuilder"
   );
   const stateBuilder = await stateBuilderFactory.deploy();
   await stateBuilder.deployed();
