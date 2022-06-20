@@ -6,7 +6,7 @@ import { op } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Delegated Claims Test", async function () {
   it("should prevent delegated claims when flag set to false", async function () {

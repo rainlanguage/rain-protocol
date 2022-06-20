@@ -15,7 +15,7 @@ import {
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Tier Test", async function () {
   it("user explicitly claims, then the user loses the tier and can no longer claim", async () => {

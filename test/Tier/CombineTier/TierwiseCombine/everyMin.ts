@@ -17,7 +17,7 @@ import {
 import { ALWAYS, NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'every' logic and 'min' mode", async function () {
   // report time for tier context
