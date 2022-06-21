@@ -27,7 +27,7 @@ library Random {
     /// The shuffle algorithm needs to allocate 1 byte for each ID + 32 bytes
     /// for the length slot of the bytes array.
     ///
-    /// A possible NTF minting workflow for the microLottery:
+    /// A possible NFT minting workflow for the microLottery:
     /// - Users reserve a sequential ID for themselves
     /// - A seed is generated somehow
     /// - Users mint an NFT for themselves where the NFT ID is the output of
