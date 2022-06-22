@@ -5,10 +5,10 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { prettyPrintMatrix } from "../../utils/output/log";
 
 describe("Random Micro lottery", async function () {
-  xit("should return statistically even distribution", async function () {
+  it("should return statistically even distribution", async function () {
     // We want to test the probability that element i is placed at
     // position j after the shuffle. It should be the same for all
-    // elements i, to some degree of statistical confidence.
+    // elements i, to a 3-sigma degree of statistical confidence.
 
     const random = (await basicDeploy("RandomTest", {})) as RandomTest &
       Contract;
@@ -16,33 +16,40 @@ describe("Random Micro lottery", async function () {
     const MAX_N = 10; // size of array to shuffle
     const SEEDS = 10000; // number of times to shuffle
     const startingSeed = Math.round(Math.random() * 1000000);
-    const threshold = 0.005; // if probability for any position i,j exceeds threshold, test will fail
 
-    const arrayOfShuffled: number[][] = [];
+    const arrayOfShuffled: number[][] = Array(SEEDS).fill([]);
 
     // generation
+
     for (let seed = startingSeed; seed < SEEDS + startingSeed; seed++) {
-      const shuffled: number[] = [];
+      const shuffled: number[] = Array(MAX_N).fill(null);
       for (let n = 0; n < MAX_N; n++) {
         const item = await random.microLottery(seed, MAX_N, n);
-        shuffled.push(item.toNumber());
+        shuffled[n] = item.toNumber();
       }
       console.log(`shuffled ${seed - startingSeed + 1} of ${SEEDS}`);
-      arrayOfShuffled.push(shuffled);
+      arrayOfShuffled[seed] = shuffled;
     }
 
     // analysis
-    const pMatrix = [];
+
+    // initialize matrices
+    const pMatrix = []; // probabilities
+    const dMatrix = []; // squared deviations from mean
+    const zMatrix = []; // Z-scores
     for (let i = 0; i < MAX_N; i++) {
       pMatrix.push([]);
+      dMatrix.push([]);
+      zMatrix.push([]);
       for (let j = 0; j < MAX_N; j++) {
         pMatrix[i].push(null);
+        dMatrix[i].push(null);
+        zMatrix[i].push(null);
       }
     }
 
     const probExpected = 1 / MAX_N;
-
-    const errors = [];
+    const meanProbability = probExpected; // mean is known
 
     for (let i = 0; i < MAX_N; i++) {
       for (let j = 0; j < MAX_N; j++) {
@@ -54,31 +61,66 @@ describe("Random Micro lottery", async function () {
         );
 
         const prob_i_at_j = count_i_at_j / SEEDS;
-        if (
-          prob_i_at_j > probExpected + threshold ||
-          prob_i_at_j < probExpected - threshold
-        ) {
-          errors.push({ i, j, p: prob_i_at_j });
-        }
-        pMatrix[i][j] = prob_i_at_j.toFixed(4);
+        const sq_deviation_i_at_j = Math.pow(prob_i_at_j - probExpected, 2);
+
+        pMatrix[i][j] = prob_i_at_j;
+        dMatrix[i][j] = sq_deviation_i_at_j;
       }
     }
 
+    // unfold deviations in order to calculate variance and pop. st. dev.
+    const sqDeviations = [];
+    for (let i = 0; i < MAX_N; i++) {
+      for (let j = 0; j < MAX_N; j++) {
+        sqDeviations.push(dMatrix[i][j]);
+      }
+    }
+
+    const variance =
+      sqDeviations.reduce((prev, curr) => prev + curr) / Math.pow(MAX_N, 2);
+    const popStDev = Math.sqrt(variance);
+
+    // calculate standard scores (Z-score)
+    for (let i = 0; i < MAX_N; i++) {
+      for (let j = 0; j < MAX_N; j++) {
+        const z_score_i_at_j = (pMatrix[i][j] - meanProbability) / popStDev;
+
+        // greater than 3 st. dev.
+        if (Math.abs(z_score_i_at_j) > 3)
+          console.log(`outlier at i: ${i}, j: ${j}`);
+
+        zMatrix[i][j] = z_score_i_at_j;
+      }
+    }
+
+    const zScoresUnfolded = [];
+    for (let i = 0; i < MAX_N; i++) {
+      for (let j = 0; j < MAX_N; j++) {
+        zScoresUnfolded.push(zMatrix[i][j]);
+      }
+    }
+
+    // format matrices for log
+    for (let i = 0; i < MAX_N; i++) {
+      for (let j = 0; j < MAX_N; j++) {
+        pMatrix[i][j] = pMatrix[i][j].toFixed(3);
+        dMatrix[i][j] = dMatrix[i][j].toFixed(3);
+        zMatrix[i][j] = zMatrix[i][j].toFixed(3);
+      }
+    }
+
+    console.log("probabilities");
     prettyPrintMatrix(pMatrix);
+    console.log("squared deviations");
+    prettyPrintMatrix(dMatrix);
+    console.log("Z-scores");
+    prettyPrintMatrix(zMatrix);
     console.log("array length", MAX_N);
-    console.log("expected probability", probExpected);
-    console.log("threshold", threshold);
-    console.log("starting seed", startingSeed);
     console.log("number of seeds ('runs')", SEEDS);
-
-    errors.forEach((error) => {
-      console.log(error);
-    });
-
-    assert(
-      !errors.length,
-      `one or more probabilities exceeded threshold of ${threshold} for expected probability ${probExpected}`
-    );
+    console.log("starting seed", startingSeed);
+    console.log("expected probability (pop. mean)", probExpected);
+    console.log("variance", variance);
+    console.log("population st. dev.", popStDev);
   });
 
   it("should generate the same array with the same seed", async function () {
