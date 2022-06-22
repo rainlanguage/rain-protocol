@@ -5,7 +5,7 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { prettyPrintMatrix } from "../../utils/output/log";
 
 describe("Random Micro lottery", async function () {
-  it("should return statistically even distribution", async function () {
+  xit("should return statistically even distribution", async function () {
     // We want to test the probability that element i is placed at
     // position j after the shuffle. It should be the same for all
     // elements i, to a 3-sigma degree of statistical confidence.
