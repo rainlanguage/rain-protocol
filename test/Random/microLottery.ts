@@ -6,6 +6,10 @@ import { prettyPrintMatrix } from "../../utils/output/log";
 
 describe("Random Micro lottery", async function () {
   xit("should return statistically even distribution", async function () {
+    // We want to test the probability that element i is placed at
+    // position j after the shuffle. It should be the same for all
+    // elements i, to some degree of statistical confidence.
+
     const random = (await basicDeploy("RandomTest", {})) as RandomTest &
       Contract;
 
@@ -13,10 +17,6 @@ describe("Random Micro lottery", async function () {
     const SEEDS = 10000; // number of times to shuffle
     const startingSeed = Math.round(Math.random() * 1000000);
     const threshold = 0.005; // if probability for any position i,j exceeds threshold, test will fail
-
-    // We want to test the probability that element i is placed at
-    // position j after the shuffle. It should be the same for all elements i,
-    // to some degree of statistical confidence.
 
     const arrayOfShuffled: number[][] = [];
 
@@ -77,7 +77,7 @@ describe("Random Micro lottery", async function () {
 
     assert(
       !errors.length,
-      `1 or more probabilities exceeded threshold of ${threshold} for expected probability ${probExpected}`
+      `one or more probabilities exceeded threshold of ${threshold} for expected probability ${probExpected}`
     );
   });
 
