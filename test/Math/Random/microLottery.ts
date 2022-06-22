@@ -1,11 +1,11 @@
 import { assert } from "chai";
 import type { Contract } from "ethers";
-import type { RandomTest } from "../../typechain/RandomTest";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { prettyPrintMatrix } from "../../utils/output/log";
+import type { RandomTest } from "../../../typechain/RandomTest";
+import { basicDeploy } from "../../../utils/deploy/basic";
+import { prettyPrintMatrix } from "../../../utils/output/log";
 
 describe("Random Micro lottery", async function () {
-  xit("should return statistically even distribution", async function () {
+  xit("should shuffle an array randomly", async function () {
     // We want to test the probability that element i is placed at
     // position j after the shuffle. It should be the same for all
     // elements i, to a 3-sigma degree of statistical confidence.
