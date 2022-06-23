@@ -13,14 +13,13 @@ describe("Random Micro lottery", async function () {
     const random = (await basicDeploy("RandomTest", {})) as RandomTest &
       Contract;
 
-    const MAX_N = 10; // size of array to shuffle
+    const MAX_N = 60; // size of array to shuffle
     const SEEDS = 10000; // number of times to shuffle
     const startingSeed = Math.round(Math.random() * 1000000);
 
+    /// GENERATION
+
     const arrayOfShuffled: number[][] = Array(SEEDS).fill([]);
-
-    // generation
-
     for (let seed = startingSeed; seed < SEEDS + startingSeed; seed++) {
       const shuffled: number[] = Array(MAX_N).fill(null);
       for (let n = 0; n < MAX_N; n++) {
@@ -31,7 +30,7 @@ describe("Random Micro lottery", async function () {
       arrayOfShuffled[seed] = shuffled;
     }
 
-    // analysis
+    /// ANALYSIS
 
     // initialize matrices
     const pMatrix = []; // probabilities
@@ -50,6 +49,8 @@ describe("Random Micro lottery", async function () {
 
     const probExpected = 1 / MAX_N;
     const meanProbability = probExpected; // mean is known
+
+    console.log("creating matrices");
 
     for (let i = 0; i < MAX_N; i++) {
       for (let j = 0; j < MAX_N; j++) {
@@ -76,18 +77,25 @@ describe("Random Micro lottery", async function () {
       }
     }
 
+    console.log("calculating variance");
+
     const variance =
       sqDeviations.reduce((prev, curr) => prev + curr) / Math.pow(MAX_N, 2);
+
+    console.log("calculating st. dev.");
+
     const popStDev = Math.sqrt(variance);
 
+    console.log("calculating Z-scores");
+
     // calculate standard scores (Z-score)
+    const errors = [];
     for (let i = 0; i < MAX_N; i++) {
       for (let j = 0; j < MAX_N; j++) {
         const z_score_i_at_j = (pMatrix[i][j] - meanProbability) / popStDev;
 
         // greater than 3 st. dev.
-        if (Math.abs(z_score_i_at_j) > 3)
-          console.log(`outlier at i: ${i}, j: ${j}`);
+        if (Math.abs(z_score_i_at_j) > 3) errors.push({ i, j, z_score_i_at_j });
 
         zMatrix[i][j] = z_score_i_at_j;
       }
@@ -100,6 +108,8 @@ describe("Random Micro lottery", async function () {
       }
     }
 
+    console.log("formatting matrices");
+
     // format matrices for log
     for (let i = 0; i < MAX_N; i++) {
       for (let j = 0; j < MAX_N; j++) {
@@ -109,11 +119,11 @@ describe("Random Micro lottery", async function () {
       }
     }
 
-    console.log("probabilities");
+    console.log("Probabilities:");
     prettyPrintMatrix(pMatrix);
-    console.log("squared deviations");
+    console.log("Squared deviations:");
     prettyPrintMatrix(dMatrix);
-    console.log("Z-scores");
+    console.log("Z-scores:");
     prettyPrintMatrix(zMatrix);
     console.log("array length", MAX_N);
     console.log("number of seeds ('runs')", SEEDS);
@@ -121,6 +131,14 @@ describe("Random Micro lottery", async function () {
     console.log("expected probability (pop. mean)", probExpected);
     console.log("variance", variance);
     console.log("population st. dev.", popStDev);
+
+    if (errors.length) {
+      errors.forEach(({ i, j, z_score_i_at_j }) => {
+        console.log(`outlier at i: ${i}, j: ${j}, z-score: ${z_score_i_at_j}`);
+      });
+
+      throw new Error("one or more Z-scores outliers");
+    }
   });
 
   it("should generate the same array with the same seed", async function () {

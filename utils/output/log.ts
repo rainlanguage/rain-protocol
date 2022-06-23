@@ -23,9 +23,9 @@ export function prettyPrintMatrix(mat: number[][]): void {
       null,
       row.map((val, j) => {
         return (
-          new Array(colMaxes[j] - val.toString().length + 1).join(" ") +
+          new Array(colMaxes[j] - val.toString().length + 1).join("") +
           val.toString() +
-          "  "
+          " "
         );
       })
     );
