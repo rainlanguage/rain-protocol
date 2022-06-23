@@ -19,15 +19,15 @@ export function prettyPrintMatrix(mat: number[][]): void {
   }
 
   mat.forEach((row) => {
-    console.log.apply(
-      null,
-      row.map((val, j) => {
+    console.log.apply(null, [
+      ...row.map((val, j) => {
         return (
           new Array(colMaxes[j] - val.toString().length + 1).join("") +
           val.toString() +
-          " "
+          " " // space delimiter for values
         );
-      })
-    );
+      }),
+      ",", // comma delimiter for rows
+    ]);
   });
 }

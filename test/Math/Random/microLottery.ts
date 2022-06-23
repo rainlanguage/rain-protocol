@@ -13,8 +13,8 @@ describe("Random Micro lottery", async function () {
     const random = (await basicDeploy("RandomTest", {})) as RandomTest &
       Contract;
 
-    const MAX_N = 60; // size of array to shuffle
-    const SEEDS = 10000; // number of times to shuffle
+    const MAX_N = 50; // size of array to shuffle
+    const SEEDS = 8000; // number of times to shuffle
     const startingSeed = Math.round(Math.random() * 1000000);
 
     /// GENERATION
@@ -82,20 +82,21 @@ describe("Random Micro lottery", async function () {
     const variance =
       sqDeviations.reduce((prev, curr) => prev + curr) / Math.pow(MAX_N, 2);
 
-    console.log("calculating st. dev.");
+    console.log("calculating population standard deviation");
 
     const popStDev = Math.sqrt(variance);
 
     console.log("calculating Z-scores");
 
     // calculate standard scores (Z-score)
-    const errors = [];
+    const outliers = [];
     for (let i = 0; i < MAX_N; i++) {
       for (let j = 0; j < MAX_N; j++) {
         const z_score_i_at_j = (pMatrix[i][j] - meanProbability) / popStDev;
 
         // greater than 3 st. dev.
-        if (Math.abs(z_score_i_at_j) > 3) errors.push({ i, j, z_score_i_at_j });
+        if (Math.abs(z_score_i_at_j) > 3)
+          outliers.push({ i, j, z_score_i_at_j });
 
         zMatrix[i][j] = z_score_i_at_j;
       }
@@ -113,16 +114,13 @@ describe("Random Micro lottery", async function () {
     // format matrices for log
     for (let i = 0; i < MAX_N; i++) {
       for (let j = 0; j < MAX_N; j++) {
-        pMatrix[i][j] = pMatrix[i][j].toFixed(3);
-        dMatrix[i][j] = dMatrix[i][j].toFixed(3);
-        zMatrix[i][j] = zMatrix[i][j].toFixed(3);
+        pMatrix[i][j] = pMatrix[i][j].toString();
+        zMatrix[i][j] = zMatrix[i][j].toString();
       }
     }
 
     console.log("Probabilities:");
     prettyPrintMatrix(pMatrix);
-    console.log("Squared deviations:");
-    prettyPrintMatrix(dMatrix);
     console.log("Z-scores:");
     prettyPrintMatrix(zMatrix);
     console.log("array length", MAX_N);
@@ -132,12 +130,18 @@ describe("Random Micro lottery", async function () {
     console.log("variance", variance);
     console.log("population st. dev.", popStDev);
 
-    if (errors.length) {
-      errors.forEach(({ i, j, z_score_i_at_j }) => {
+    if (outliers.length) {
+      outliers.forEach(({ i, j, z_score_i_at_j }) => {
         console.log(`outlier at i: ${i}, j: ${j}, z-score: ${z_score_i_at_j}`);
       });
 
-      throw new Error("one or more Z-scores outliers");
+      // for a normal distribution expect up to 0.27% of results to be beyond 3
+      // standard deviations
+      if (outliers.length / Math.pow(MAX_N, 2) > 0.0027) {
+        throw new Error(
+          "too many Z-score outliers beyond 3 standard deviations"
+        );
+      }
     }
   });
 
