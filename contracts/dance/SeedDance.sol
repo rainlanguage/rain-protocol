@@ -233,7 +233,9 @@ contract SeedDance {
 
     /// Require this function to only be callable before the dance has started.
     modifier onlyNotStarted() {
-        require(block.timestamp < _startedAt, "STARTED");
+        if (_startedAt > 0) {
+            require(block.timestamp < _startedAt, "STARTED");
+        }
         _;
     }
 
