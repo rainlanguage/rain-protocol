@@ -170,6 +170,26 @@ describe("Random Micro lottery", async function () {
     );
   });
 
+  it.only("shuffle", async function () {
+    const random = (await basicDeploy("RandomTest", {})) as RandomTest &
+      Contract;
+
+    console.log("shuffle 10000");
+    await random.shuffle(5, 10000);
+    await random.shuffledId(5392);
+    await random.shuffledId(2000);
+
+    console.log("shuffle 1000");
+    await random.shuffle(60, 1000);
+    await random.shuffledId(523);
+    await random.shuffledId(192);
+    // await random.store(shuffled)
+
+    console.log("random");
+    await random.randomId(5, 20204);
+    await random.randomId(8, 1000000);
+  });
+
   it("should return a value for the micro lottery", async function () {
     const random = (await basicDeploy("RandomTest", {})) as RandomTest &
       Contract;

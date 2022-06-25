@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "../sstore2/SSTORE2.sol";
+
 library Random {
     /// Implements a modified fisher yates algorithm to report a single result
     /// of a shuffle at position `n_` out of `max_`.
@@ -56,7 +58,7 @@ library Random {
             assembly {
                 // Select a random index [0, j_] using the hash of the
                 // current value in scratch memory as source of randomness.
-                function randomOffset(j_) -> v_ {
+                function randomIndex(j_) -> v_ {
                     // roll the dice by hashing the scratch.
                     let roll_ := keccak256(0, 0x20)
                     // store the roll in scratch so it seeds the next roll.
@@ -69,7 +71,7 @@ library Random {
 
                 // Read the item relative to the array pointer `ptr` at
                 // index `j_`.
-                function readItem(ptr_, j_) -> v_ {
+                function readItemAtIndex(ptr_, j_) -> v_ {
                     v_ := byte(31, mload(add(ptr_, j_)))
                     // we never call this function in a context where v_ being
                     // zero implies that zero was previously written at j_.
@@ -84,11 +86,11 @@ library Random {
                 mstore(0, seed_)
                 // We use mstore8 to write so a write index of 0 is exactly the
                 // end of the length slot of the array.
-                let arrayWriteStart_ := add(array_, 0x20)
+                let writeStart_ := add(array_, 0x20)
                 // We have to use mload (32 bytes) to read 1 byte by & 0xFF so
                 // a read index of 0 needs to push the mload one byte to the
                 // right of the length slot of the array.
-                let arrayReadStart_ := add(array_, 1)
+                let readStart_ := add(array_, 1)
 
                 // Write randomly to the array for all values above the target.
                 // This won't run if n_ == max - 1.
@@ -98,14 +100,94 @@ library Random {
                     i_ := sub(i_, 1)
                 } {
                     mstore8(
-                        add(arrayWriteStart_, randomOffset(i_)),
-                        readItem(arrayReadStart_, i_)
+                        add(writeStart_, randomIndex(i_)),
+                        readItemAtIndex(readStart_, i_)
                     )
                 }
 
                 // Read randomly at the target.
-                item_ := readItem(arrayReadStart_, randomOffset(n_))
+                item_ := readItemAtIndex(readStart_, randomIndex(n_))
             }
+        }
+    }
+
+    function shuffle(uint256 seed_, uint256 len_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            bytes memory shuffled_ = new bytes(len_ * 2);
+            assembly {
+                function randomIndex(j_) -> v_ {
+                    let roll_ := keccak256(0, 0x20)
+                    mstore(0, roll_)
+                    v_ := mod(roll_, add(j_, 1))
+                }
+
+                function readItemAtIndex(ptr_, j_) -> v_ {
+                    v_ := and(mload(add(ptr_, mul(j_, 2))), 0xFFFF)
+                    if iszero(v_) {
+                        v_ := j_
+                    }
+                }
+
+                function writeItemAtIndex(ptr_, j_, v_) {
+                    let location_ := add(ptr_, mul(j_, 2))
+                    mstore8(location_, shr(8, v_))
+                    mstore8(add(location_, 1), v_)
+                }
+
+                mstore(0, seed_)
+
+                let writeStart_ := add(shuffled_, 0x20)
+                let readStart_ := add(shuffled_, 2)
+                let randomIndex_ := 0
+                let fromRandom_ := 0
+
+                for {
+                    let i_ := sub(len_, 1)
+                } gt(i_, 0) {
+                    // itself, which is whatever was written to it or 0. // Don't need to shuffle index 0 because it will always be
+                    i_ := sub(i_, 1)
+                } {
+                    randomIndex_ := randomIndex(i_)
+                    fromRandom_ := readItemAtIndex(readStart_, randomIndex_)
+                    writeItemAtIndex(
+                        writeStart_,
+                        randomIndex_,
+                        readItemAtIndex(readStart_, i_)
+                    )
+                    writeItemAtIndex(writeStart_, i_, fromRandom_)
+                }
+            }
+            return shuffled_;
+        }
+    }
+
+    function shuffleIdAtIndex(address ptr_, uint256 index_)
+        internal
+        view
+        returns (uint256 id_)
+    {
+        unchecked {
+            uint256 offset_ = index_ * 2;
+            bytes memory idBytes_ = SSTORE2.read(ptr_, offset_, offset_ + 2);
+            assembly {
+                id_ := and(mload(add(idBytes_, 2)), 0xFFFF)
+            }
+        }
+    }
+
+    function randomId(uint256 seed_, uint256 index_)
+        internal
+        pure
+        returns (uint256 id_)
+    {
+        assembly {
+            mstore(0, seed_)
+            mstore(0x20, index_)
+            id_ := keccak256(0, 0x40)
         }
     }
 }
