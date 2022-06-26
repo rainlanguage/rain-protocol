@@ -147,7 +147,7 @@ describe("SeedDance reveal", async function () {
 
   });
 
-  it.only("should change the seed after every reveal", async () => {
+  it("should change the seed after every reveal", async () => {
     const signers = await ethers.getSigners();
 
     const signer1 = signers[1];
