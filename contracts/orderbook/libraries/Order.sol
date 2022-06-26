@@ -66,6 +66,10 @@ library LibOrder {
                             tracking_ := or(tracking_, trackingMaskClearedCounterparty_)
                         }
                         if eq(tracking_, trackingMaskAll_) {
+                            // break the outer non-assembly loop by setting i_
+                            // to sources length.
+                            i_ := mload(sources_)
+                            // break the inner assembly loop.
                             break
                         }
                     }
