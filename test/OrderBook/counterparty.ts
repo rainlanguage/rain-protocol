@@ -111,7 +111,7 @@ describe("OrderBook counterparty in context", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -147,7 +147,7 @@ describe("OrderBook counterparty in context", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
@@ -183,7 +183,7 @@ describe("OrderBook counterparty in context", async function () {
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [bidSourceCarol],
         constants: bidConstantsCarol,

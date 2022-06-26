@@ -40,12 +40,13 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-// - order funds cleared
-// - order counterparty funds cleared
+uint constant LOCAL_OP_CLEARED_ORDER = ALL_STANDARD_OPS_LENGTH;
+uint constant LOCAL_OP_CLEARED_COUNTERPARTY = LOCAL_OP_CLEARED_ORDER + 1;
 uint256 constant LOCAL_OPS_LENGTH = 2;
 
 uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
 uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
+uint256 constant TRACKING_MASK_ALL = TRACKING_MASK_CLEARED_ORDER | TRACKING_MASK_CLEARED_COUNTERPARTY;
 
 library LibEvalContext {
     function toContextBytes(EvalContext memory evalContext_)

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "../OrderBook.sol";
 import "./Vault.sol";
 import "../../vm/RainVM.sol";
 import "../../vm/VMStateBuilder.sol";
@@ -13,7 +14,6 @@ struct OrderConfig {
     VaultId inputVaultId;
     address outputToken;
     VaultId outputVaultId;
-    uint256 tracking;
     StateConfig vmStateConfig;
 }
 
@@ -34,6 +34,46 @@ OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
 
 library LibOrder {
+    function deriveTracking(bytes[] memory sources_)
+        internal
+        pure
+        returns (uint256 tracking_)
+    {
+        unchecked {
+            uint localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
+            uint localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
+            uint trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
+            uint trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
+            uint trackingMaskAll_ = TRACKING_MASK_ALL;
+            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
+                bytes memory source_ = sources_[i_];
+                assembly {
+                    let op_ := 0
+                    for {
+                        let cursor_ := add(source_, 1)
+                        let end_ := add(cursor_, mload(source_))
+                    } lt(cursor_, end_) {
+                        cursor_ := add(cursor_, 2)
+                    } {
+                        op_ := byte(31, mload(cursor_))
+                        if lt(op_, localOpClearedOrder_) {
+                            continue
+                        }
+                        if eq(op_, localOpClearedOrder_) {
+                            tracking_ := or(tracking_, trackingMaskClearedOrder_)
+                        }
+                        if eq(op_, localOpClearedCounterparty_) {
+                            tracking_ := or(tracking_, trackingMaskClearedCounterparty_)
+                        }
+                        if eq(tracking_, trackingMaskAll_) {
+                            break
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     function fromOrderConfig(
         address vmStateBuilder_,
         address vm_,
@@ -51,7 +91,7 @@ library LibOrder {
                 config_.inputVaultId,
                 config_.outputToken,
                 config_.outputVaultId,
-                config_.tracking,
+                deriveTracking(config_.vmStateConfig.sources),
                 VMStateBuilder(vmStateBuilder_).buildState(
                     vm_,
                     config_.vmStateConfig,

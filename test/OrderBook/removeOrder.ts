@@ -67,7 +67,7 @@ describe("OrderBook remove order", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,

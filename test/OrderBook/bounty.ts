@@ -98,7 +98,7 @@ describe("OrderBook bounty", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_ORDER,
+      // tracking: TRACK_CLEARED_ORDER,
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -135,7 +135,7 @@ describe("OrderBook bounty", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,

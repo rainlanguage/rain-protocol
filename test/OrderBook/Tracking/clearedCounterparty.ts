@@ -105,7 +105,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_COUNTERPARTY,
+      // tracking: TRACK_CLEARED_COUNTERPARTY,
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -142,7 +142,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
@@ -179,7 +179,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
-      tracking: 0x0,
+      // tracking: 0x0,
       vmStateConfig: {
         sources: [carolSource],
         constants: carolConstants,
