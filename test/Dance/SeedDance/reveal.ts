@@ -147,7 +147,7 @@ describe("SeedDance reveal", async function () {
 
   });
 
-  it("should change the seed after every reveal", async () => {
+  it.only("should change the seed after every reveal", async () => {
     const signers = await ethers.getSigners();
 
     const signer1 = signers[1];
@@ -201,6 +201,7 @@ describe("SeedDance reveal", async function () {
       "Wrong signer in RevealEvent"
     );
 
+    console.log(hexlify(secret1_), "\n", hexlify(commitmentSecret1))
     assert(
       hexlify(secret1_) === hexlify(commitmentSecret1),
       "Wrong secret revealed"
@@ -224,6 +225,7 @@ describe("SeedDance reveal", async function () {
       "Wrong signer in RevealEvent"
     );
 
+    console.log(hexlify(secret2_), "\n", hexlify(commitmentSecret2))
     assert(
       hexlify(secret2_) === hexlify(commitmentSecret2),
       "Wrong secret revealed"
@@ -248,6 +250,7 @@ describe("SeedDance reveal", async function () {
       "Wrong signer in RevealEvent"
     );
 
+    console.log(hexlify(secret3_), "\n", hexlify(commitmentSecret3))
     assert(
       hexlify(secret3_) === hexlify(commitmentSecret3),
       "Wrong secret revealed"
@@ -337,7 +340,7 @@ describe("SeedDance reveal", async function () {
     const sharedSeed_ = await seedDance.sharedSeed();
     // Increasing the block time by 1 hour
     await timewarp(3600);
-   
+
     // revealing the secret
     await assertError(
       async () => {
