@@ -5,7 +5,7 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { prettyPrintMatrix } from "../../../utils/output/log";
 
 describe("Random Micro lottery", async function () {
-  xit("should shuffle an array randomly", async function () {
+  xit("should randomly shuffle an array to a high degree of statistical certainty", async function () {
     // We want to test the probability that element i is placed at
     // position j after the shuffle. It should be the same for all
     // elements i, to a 3-sigma degree of statistical confidence.
@@ -14,20 +14,31 @@ describe("Random Micro lottery", async function () {
       Contract;
 
     const MAX_N = 50; // size of array to shuffle
-    const SEEDS = 8000; // number of times to shuffle
+    const SEEDS = 100000; // number of times to shuffle
     const startingSeed = Math.round(Math.random() * 1000000);
 
     /// GENERATION
 
+    // const arrayOfShuffled: number[][] = Array(SEEDS).fill([]);
+    // for (let seed = startingSeed; seed < SEEDS + startingSeed; seed++) {
+    //   const shuffled: number[] = Array(MAX_N).fill(null);
+    //   for (let n = 0; n < MAX_N; n++) {
+    //     const item = await random.microLottery(seed, MAX_N, n);
+    //     shuffled[n] = item.toNumber();
+    //   }
+    //   console.log(`shuffled ${seed - startingSeed + 1} of ${SEEDS}`);
+    //   arrayOfShuffled[seed] = shuffled;
+    // }
+
     const arrayOfShuffled: number[][] = Array(SEEDS).fill([]);
     for (let seed = startingSeed; seed < SEEDS + startingSeed; seed++) {
-      const shuffled: number[] = Array(MAX_N).fill(null);
-      for (let n = 0; n < MAX_N; n++) {
-        const item = await random.microLottery(seed, MAX_N, n);
-        shuffled[n] = item.toNumber();
+      const shuffled_ = (await random.callStatic.shuffle(seed, MAX_N)).slice(2);
+      const shuffledArray_: number[] = [];
+      for (let i = 0; i < shuffled_.length; i += 4) {
+        shuffledArray_.push(parseInt(shuffled_.substring(i, i + 4), 16));
       }
       console.log(`shuffled ${seed - startingSeed + 1} of ${SEEDS}`);
-      arrayOfShuffled[seed] = shuffled;
+      arrayOfShuffled[seed] = shuffledArray_;
     }
 
     /// ANALYSIS
@@ -62,7 +73,7 @@ describe("Random Micro lottery", async function () {
         );
 
         const prob_i_at_j = count_i_at_j / SEEDS;
-        const sq_deviation_i_at_j = Math.pow(prob_i_at_j - probExpected, 2);
+        const sq_deviation_i_at_j = Math.pow(prob_i_at_j - meanProbability, 2);
 
         pMatrix[i][j] = prob_i_at_j;
         dMatrix[i][j] = sq_deviation_i_at_j;
@@ -168,26 +179,6 @@ describe("Random Micro lottery", async function () {
       shuffled0.every((item, index) => item === shuffled1[index]),
       "arrays generated with same seed were not the same"
     );
-  });
-
-  it.only("shuffle", async function () {
-    const random = (await basicDeploy("RandomTest", {})) as RandomTest &
-      Contract;
-
-    console.log("shuffle 10000");
-    await random.shuffle(5, 10000);
-    await random.shuffledId(5392);
-    await random.shuffledId(2000);
-
-    console.log("shuffle 1000");
-    await random.shuffle(60, 1000);
-    await random.shuffledId(523);
-    await random.shuffledId(192);
-    // await random.store(shuffled)
-
-    console.log("random");
-    await random.randomId(5, 20204);
-    await random.randomId(8, 1000000);
   });
 
   it("should return a value for the micro lottery", async function () {
