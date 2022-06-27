@@ -13,7 +13,7 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
 
-describe.only("SeedDance reveal", async function () {
+describe("SeedDance reveal", async function () {
   let seedDance: SeedDanceTest;
 
   beforeEach(async () => {
