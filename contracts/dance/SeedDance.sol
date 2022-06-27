@@ -218,7 +218,7 @@ contract SeedDance {
     /// secret with the old shared seed.
     event Reveal(address sender, Secret secret, Seed newSeed);
 
-    /// The current shared seed that embodies all current revelead secrets from
+    /// The current shared seed that embodies all current revealed secrets from
     /// the dance. Will be initialized when `_start` is called and zero before.
     Seed internal _sharedSeed;
 
