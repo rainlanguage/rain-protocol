@@ -18,7 +18,6 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { TRACK_CLEARED_ORDER } from "../../utils/constants/orderbook";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv } from "../../utils/math";
@@ -98,7 +97,6 @@ describe("OrderBook bounty", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      // tracking: TRACK_CLEARED_ORDER,
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -135,7 +133,6 @@ describe("OrderBook bounty", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      // tracking: 0x0,
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
@@ -234,6 +231,7 @@ describe("OrderBook bounty", async function () {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
+    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),

@@ -106,7 +106,7 @@ describe("Sale minimum raise", async function () {
     const fee = ethers.BigNumber.from("1").mul(RESERVE_ONE);
     const desiredUnits = totalTokenSupply;
     const cost = staticPrice.mul(desiredUnits).div(ONE);
-    const [maxUnits, price] = await sale.calculateBuy(desiredUnits);
+    const [, price] = await sale.calculateBuy(desiredUnits);
     assert(price.eq(75000000), "wrong price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, cost.add(fee));
