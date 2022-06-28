@@ -4,4 +4,10 @@ function* iterate(a, b) {
   }
 }
 
+/**
+ * Creates array of numbers from a to b, inclusive
+ * @param a - lowest number in range
+ * @param b - highest number in range
+ * @returns
+ */
 export const range = (a, b): number[] => [...iterate(a, b)];

@@ -1,35 +1,41 @@
 import { assert } from "chai";
-import type { Contract } from "ethers";
 import type { RandomTest } from "../../../typechain/RandomTest";
 import { basicDeploy } from "../../../utils/deploy/basic";
+import { range } from "../../../utils/range";
 
 describe("Random shuffle", async function () {
-  it("should randomly shuffle an array", async function () {
-    const random = (await basicDeploy("RandomTest", {})) as RandomTest &
-      Contract;
+  let random: RandomTest;
 
-    // console.log("shuffle 10000");
-    // await random.shuffle(5, 10000);
-    // await random.shuffledId(5392);
-    // await random.shuffledId(2000);
+  beforeEach(async () => {
+    random = (await basicDeploy("RandomTest", {})) as RandomTest;
+  });
 
-    // console.log("shuffle 1000");
-    // await random.shuffle(60, 1000);
-    // await random.shuffledId(523);
-    // await random.shuffledId(192);
-    // // await random.store(shuffled)
+  it("should shuffle an array", async function () {
+    const length = 50;
 
-    // console.log("random");
-    // await random.randomId(5, 20204);
-    // await random.randomId(8, 1000000);
-
-    const shuffled_ = (await random.callStatic.shuffle(5, 50)).slice(2);
+    const shuffled_ = (await random.callStatic.shuffle(5, length)).slice(2);
     const shuffledArray_ = [];
     for (let i = 0; i < shuffled_.length; i += 4) {
       shuffledArray_.push(parseInt(shuffled_.substring(i, i + 4), 16));
     }
 
-    console.log({ shuffledArray_ });
-    console.log(shuffledArray_.length);
+    assert(
+      shuffledArray_.length === length,
+      "shuffled array was not correct length"
+    );
+
+    const unshuffled = range(0, length - 1);
+    shuffledArray_.forEach((item) => {
+      const unshuffledIndex = unshuffled.indexOf(item);
+      if (unshuffledIndex === -1) {
+        throw new Error(`Could not find index of item ${item}`);
+      }
+      unshuffled.splice(unshuffledIndex, 1);
+    });
+
+    assert(
+      !unshuffled.length,
+      "shuffled array did not contain one of each number in the range"
+    );
   });
 });

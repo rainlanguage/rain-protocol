@@ -36,24 +36,27 @@ contract RandomTest {
         console.log("storage gas used: %s", a_ - b_);
     }
 
-    function shuffledId(uint256 index_) external {
+    function shuffleIdAtIndex(uint256 index_) external returns (uint256 id_) {
         // Write something so we can see gas costs.
         val = 1;
         address shuffled_ = shuffled;
 
         uint256 a_ = gasleft();
-        uint256 id_ = Random.shuffleIdAtIndex(shuffled_, index_);
+        id_ = Random.shuffleIdAtIndex(shuffled_, index_);
         uint256 b_ = gasleft();
         console.log("shuffle id: %s", id_);
         console.log("shuffle index gas: %s", a_ - b_);
     }
 
-    function randomId(uint256 seed_, uint256 index_) external {
+    function randomId(uint256 seed_, uint256 index_)
+        external
+        returns (uint256 id_)
+    {
         // write something so we can see gas costs.
         val = 2;
 
         uint256 a_ = gasleft();
-        uint256 id_ = Random.randomId(seed_, index_);
+        id_ = Random.randomId(seed_, index_);
         uint256 b_ = gasleft();
 
         console.log("random id: %s", id_);
