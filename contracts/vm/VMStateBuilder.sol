@@ -3,6 +3,9 @@ pragma solidity =0.8.10;
 import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../sstore2/SSTORE2.sol";
+import "../memory/coerce/CoerceBytes.sol";
+
+import "hardhat/console.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
@@ -51,8 +54,12 @@ contract VMStateBuilder {
     mapping(address => address) private ptrCache;
 
     constructor() {
-        _stackPopsFnPtrs = SSTORE2.write(stackPopsFnPtrs());
-        _stackPushesFnPtrs = SSTORE2.write(stackPushesFnPtrs());
+        _stackPopsFnPtrs = SSTORE2.write(
+            CoerceBytes.fromUint256Array(stackPopsFnPtrs())
+        );
+        _stackPushesFnPtrs = SSTORE2.write(
+            CoerceBytes.fromUint256Array(stackPushesFnPtrs())
+        );
     }
 
     function _packedFnPtrs(address vm_) private returns (bytes memory) {
@@ -179,31 +186,34 @@ contract VMStateBuilder {
         }
     }
 
-    function packFnPtrs(bytes memory fnPtrs_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        unchecked {
-            require(fnPtrs_.length % 0x20 == 0, "BAD_FN_PTRS_LENGTH");
-            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length / 0x10);
-            assembly {
-                for {
-                    let i_ := 0
-                    let o_ := 0x02
-                } lt(i_, mload(fnPtrs_)) {
-                    i_ := add(i_, 0x20)
-                    o_ := add(o_, 0x02)
-                } {
-                    let location_ := add(fnPtrsPacked_, o_)
-                    let old_ := mload(location_)
-                    let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
-                    mstore(location_, new_)
-                }
-            }
-            return fnPtrsPacked_;
-        }
-    }
+    // function packFnPtrs(uint[] memory fnPtrs_)
+    //     internal
+    //     view
+    //     returns (bytes memory)
+    // {
+    //     unchecked {
+    //         bytes memory fnPtrsPacked_ = new uint16[](fnPtrs_.length);
+    //         for (i_ = 0; i_ < fnPtrs_.length; i_++) {
+    //             fnPtrsPacked_[i_] = uint16(fnPtrs_[i_]);
+    //         }
+
+    //         assembly {
+    //             for {
+    //                 let i_ := 0
+    //                 let o_ := 0x02
+    //             } lt(i_, mload(fnPtrs_)) {
+    //                 i_ := add(i_, 0x20)
+    //                 o_ := add(o_, 0x02)
+    //             } {
+    //                 let location_ := add(fnPtrsPacked_, o_)
+    //                 let old_ := mload(location_)
+    //                 let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
+    //                 mstore(location_, new_)
+    //             }
+    //         }
+    //         return fnPtrsPacked_;
+    //     }
+    // }
 
     function _ensureIntegrityZipmap(
         StateConfig memory stateConfig_,
@@ -325,7 +335,12 @@ contract VMStateBuilder {
         }
     }
 
-    function stackPopsFnPtrs() public pure virtual returns (bytes memory) {}
+    function stackPopsFnPtrs() public pure virtual returns (uint256[] memory) {}
 
-    function stackPushesFnPtrs() public pure virtual returns (bytes memory) {}
+    function stackPushesFnPtrs()
+        public
+        pure
+        virtual
+        returns (uint256[] memory)
+    {}
 }

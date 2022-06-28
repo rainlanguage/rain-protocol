@@ -327,7 +327,7 @@ contract OrderBook is RainVM {
         return stackTopLocation_;
     }
 
-    function localFnPtrs() internal pure returns (bytes memory) {
+    function localFnPtrs() internal pure returns (uint256[] memory) {
         unchecked {
             uint256 lenBytes_ = LOCAL_OPS_LENGTH * 0x20;
             function(uint256, uint256) pure returns (uint256) zeroFn_;
@@ -351,7 +351,12 @@ contract OrderBook is RainVM {
         }
     }
 
-    function fnPtrs() public pure override returns (bytes memory) {
-        return bytes.concat(AllStandardOps.fnPtrs(), localFnPtrs());
+    function fnPtrs() public pure override returns (uint256[] memory) {
+        return
+        CoerceBytes.toUint256Array(
+            bytes.concat(
+                CoerceBytes.fromUint256Array(AllStandardOps.fnPtrs()),
+                CoerceBytes.fromUint256Array(localFnPtrs())
+            ));
     }
 }

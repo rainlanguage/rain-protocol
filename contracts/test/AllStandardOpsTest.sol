@@ -66,7 +66,7 @@ contract AllStandardOpsTest is RainVM {
         return _state;
     }
 
-    function fnPtrs() public pure override returns (bytes memory) {
+    function fnPtrs() public pure override returns (uint[] memory) {
         return AllStandardOps.fnPtrs();
     }
 

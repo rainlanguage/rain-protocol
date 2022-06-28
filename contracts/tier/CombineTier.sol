@@ -9,7 +9,7 @@ import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../vm/VMStateBuilder.sol";
-import "../memory/CoerceBytes.sol";
+import "../memory/coerce/CoerceBytes.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
@@ -85,7 +85,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
     }
 
     /// @inheritdoc RainVM
-    function fnPtrs() public pure override returns (bytes memory) {
+    function fnPtrs() public pure override returns (uint[] memory) {
         return AllStandardOps.fnPtrs();
     }
 

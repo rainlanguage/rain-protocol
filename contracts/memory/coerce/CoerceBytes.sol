@@ -13,4 +13,15 @@ library CoerceBytes {
             mstore(array_, div(mload(array_), 0x20))
         }
     }
+
+    function fromUint256Array(uint256[] memory array_)
+        internal
+        pure
+        returns (bytes memory bytes_)
+    {
+        assembly {
+            bytes_ := array_
+            mstore(bytes_, mul(mload(bytes_), 0x20))
+        }
+    }
 }
