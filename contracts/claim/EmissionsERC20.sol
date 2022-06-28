@@ -149,11 +149,8 @@ contract EmissionsERC20 is
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
         );
-        bytes memory context_ = new bytes(0x20);
-        uint256 claimantContext_ = uint256(uint160(claimant_));
-        assembly {
-            mstore(add(context_, 0x20), claimantContext_)
-        }
+        uint256[] memory context_ = new uint256[](1);
+        context_[0] = uint256(uint160(claimant_));
         eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }

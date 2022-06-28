@@ -273,7 +273,7 @@ abstract contract RainVM {
     /// @param state_ The execution state of the VM.
     /// @param operand_ The operand_ associated with this dispatch to zipmap.
     function zipmap(
-        bytes memory context_,
+        uint256[] memory context_,
         State memory state_,
         uint256 stackTopLocation_,
         uint256 operand_
@@ -376,7 +376,7 @@ abstract contract RainVM {
     /// are provided so the caller can provide additional data and kickoff the
     /// opcode dispatch from the correct source in `sources`.
     function eval(
-        bytes memory context_,
+        uint256[] memory context_,
         State memory state_,
         uint256 sourceIndex_
     ) internal view returns (uint256) {
@@ -451,10 +451,7 @@ abstract contract RainVM {
                         // This is the only runtime integrity check that we do
                         // as it is not possible to know how long context might
                         // be in general until runtime.
-                        require(
-                            operand_ * 0x20 < context_.length,
-                            "CONTEXT_LENGTH"
-                        );
+                        require(operand_ < context_.length, "CONTEXT_LENGTH");
                         assembly {
                             mstore(
                                 stackTopLocation_,

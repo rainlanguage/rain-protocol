@@ -79,7 +79,7 @@ contract AllStandardOpsTest is RainVM {
         State memory state_ = LibState.fromBytesPacked(stateBytes_);
         uint256 d_ = gasleft();
         uint256 e_ = gasleft();
-        eval("", state_, ENTRYPOINT);
+        eval(new uint256[](0), state_, ENTRYPOINT);
         uint256 f_ = gasleft();
         console.log("load gas:", a_ - b_);
         console.log("decode gas:", c_ - d_);
@@ -92,16 +92,11 @@ contract AllStandardOpsTest is RainVM {
 
     /// Runs `eval` and stores full state. Stores `values_` to be accessed later
     /// via CONTEXT opcode.
+    /// IF you do this in production then the script WILL error if the
+    /// equivalent of `values_` has a length shorter than the indexes opcodes
+    /// MAY be attempting to read.
     /// @param values_ - Values to add to context.
     function runContext(uint256[] memory values_) public {
-        bytes memory context_ = new bytes(0x20 * values_.length);
-        for (uint256 i_ = 0; i_ < values_.length; i_++) {
-            uint256 value_ = values_[i_];
-            uint256 offset_ = i_ * 0x20;
-            assembly {
-                mstore(add(add(context_, offset_), 0x20), value_)
-            }
-        }
         uint256 a_ = gasleft();
         bytes memory stateBytes_ = SSTORE2.read(vmStatePointer);
         uint256 b_ = gasleft();
@@ -109,7 +104,7 @@ contract AllStandardOpsTest is RainVM {
         State memory state_ = LibState.fromBytesPacked(stateBytes_);
         uint256 d_ = gasleft();
         uint256 e_ = gasleft();
-        eval(context_, state_, ENTRYPOINT);
+        eval(values_, state_, ENTRYPOINT);
         uint256 f_ = gasleft();
         console.log("load gas:", a_ - b_);
         console.log("decode gas:", c_ - d_);

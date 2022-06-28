@@ -48,15 +48,15 @@ uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
 uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
 
 library LibEvalContext {
-    function toContextBytes(EvalContext memory evalContext_)
+    function toContext(EvalContext memory evalContext_)
         internal
         pure
-        returns (bytes memory)
+        returns (uint256[] memory)
     {
-        uint256[2] memory vals_;
-        vals_[0] = OrderHash.unwrap(evalContext_.orderHash);
-        vals_[1] = uint256(uint160(evalContext_.counterparty));
-        return abi.encodePacked(vals_);
+        uint256[] memory context_ = new uint256[](2);
+        context_[0] = OrderHash.unwrap(evalContext_.orderHash);
+        context_[1] = uint256(uint160(evalContext_.counterparty));
+        return context_;
     }
 }
 
@@ -191,7 +191,7 @@ contract OrderBook is RainVM {
                 {
                     vmState_ = LibState.fromBytesPacked(a_.vmState);
                     eval(
-                        EvalContext(aHash_, b_.owner).toContextBytes(),
+                        EvalContext(aHash_, b_.owner).toContext(),
                         vmState_,
                         ENTRYPOINT
                     );
@@ -202,7 +202,7 @@ contract OrderBook is RainVM {
                 {
                     vmState_ = LibState.fromBytesPacked(b_.vmState);
                     eval(
-                        EvalContext(bHash_, a_.owner).toContextBytes(),
+                        EvalContext(bHash_, a_.owner).toContext(),
                         vmState_,
                         ENTRYPOINT
                     );

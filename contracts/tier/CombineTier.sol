@@ -9,6 +9,7 @@ import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../vm/VMStateBuilder.sol";
+import "../memory/CoerceBytes.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
@@ -34,6 +35,8 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2, RainVM, Initializable {
+    using CoerceBytes for bytes;
+
     event Initialize(address sender, CombineTierConfig config);
 
     // This allows cloned contracts to forward the template contract to the VM
@@ -97,11 +100,11 @@ contract CombineTier is TierV2, RainVM, Initializable {
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
         );
-        bytes memory evalContext_ = bytes.concat(
+        bytes memory evalContextBytes_ = bytes.concat(
             bytes32(uint256(uint160(account_))),
             abi.encodePacked(context_)
         );
-        eval(evalContext_, state_, REPORT_ENTRYPOINT);
+        eval(evalContextBytes_.toUint256Array(), state_, REPORT_ENTRYPOINT);
         report_ = state_.stack[state_.stackIndex - 1];
     }
 
@@ -114,12 +117,16 @@ contract CombineTier is TierV2, RainVM, Initializable {
         State memory state_ = LibState.fromBytesPacked(
             SSTORE2.read(vmStatePointer)
         );
-        bytes memory evalContext_ = bytes.concat(
+        bytes memory evalContextBytes_ = bytes.concat(
             bytes32(uint256(uint160(account_))),
             bytes32(tier_),
             abi.encodePacked(context_)
         );
-        eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
+        eval(
+            evalContextBytes_.toUint256Array(),
+            state_,
+            REPORT_FOR_TIER_ENTRYPOINT
+        );
         time_ = state_.stack[state_.stackIndex - 1];
     }
 }
