@@ -7,12 +7,15 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
 
 import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
+
+import "hardhat/console.sol";
 
 struct StakeConfig {
     address token;
@@ -151,17 +154,39 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        time_ = uint256(TierConstants.NEVER_TIME);
+        // time_ = uint256(TierConstants.NEVER_TIME);
         if (tier_ < context_.length) {
             uint256 threshold_ = context_[tier_];
-            Deposit memory deposit_;
-            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
-                deposit_ = deposits[account_][i_];
-                if (deposit_.amount >= threshold_) {
-                    time_ = deposit_.timestamp;
-                    break;
-                }
+            (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
+            // Deposit memory deposit_;
+            // for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
+            //     deposit_ = deposits[account_][i_];
+            //     if (deposit_.amount >= threshold_) {
+            //         time_ = deposit_.timestamp;
+            //         break;
+            //     }
+            // }
+        }
+    }
+
+    /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
+    function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
+        uint a_ = gasleft();
+        uint len_ = deposits[account_].length;
+        uint b_ = gasleft();
+        console.log("len: %s", a_ - b_);
+        high_ = len_;
+        uint mid_;
+        while (low_ < high_) {
+            mid_ = Math.average(low_, high_);
+            console.log(low_, mid_, high_);
+            if (deposits[account_][mid_].amount >= threshold_) {
+                high_ = mid_;
+            } else {
+                low_ = mid_ + 1;
             }
         }
+        console.log(low_, mid_, high_);
+        time_ = high_ == len_ ? uint256(TierConstants.NEVER_TIME) : deposits[account_][high_].timestamp;
     }
 }

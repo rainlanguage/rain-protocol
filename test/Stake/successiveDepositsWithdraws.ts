@@ -9,7 +9,7 @@ import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 
-describe("Stake many successive deposits and withdraws", async function () {
+describe.only("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
   let reportOMeter: ReportOMeter;
   let token: ReserveToken;
@@ -34,7 +34,7 @@ describe("Stake many successive deposits and withdraws", async function () {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
-  it.only("should process 50 successive deposits and withdraws", async function () {
+  it("should process 50 successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -68,13 +68,13 @@ describe("Stake many successive deposits and withdraws", async function () {
       await token.connect(bob).approve(stake.address, tokenBalanceBob);
       await stake.connect(bob).deposit(tokenBalanceBob);
 
-      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
-      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+      // const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      // const stTokenBalanceBob = await stake.balanceOf(bob.address);
 
       // Alice redeems half of her stTokens
-      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
       // Bob redeems half of his stTokens
-      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+      // await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
 
     const thresholds = THRESHOLDS;
@@ -87,7 +87,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
     console.log({ reportHexAlice, reportHexBob });
 
-    await reportOMeter.gaugeReport(stake.address, alice.address, [ethers.BigNumber.from("1000" + "000000000")])
+    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [ethers.BigNumber.from("1000" + "000000000")])
   });
 
   it("should process 25 successive deposits and withdraws", async function () {
@@ -124,13 +124,13 @@ describe("Stake many successive deposits and withdraws", async function () {
       await token.connect(bob).approve(stake.address, tokenBalanceBob);
       await stake.connect(bob).deposit(tokenBalanceBob);
 
-      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
-      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+      // const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      // const stTokenBalanceBob = await stake.balanceOf(bob.address);
 
       // Alice redeems half of her stTokens
-      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
       // Bob redeems half of his stTokens
-      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+      // await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
 
     const thresholds = THRESHOLDS;
@@ -142,6 +142,9 @@ describe("Stake many successive deposits and withdraws", async function () {
     const reportHexBob = hexlify(reportBob);
 
     console.log({ reportHexAlice, reportHexBob });
+
+    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [ethers.BigNumber.from("1000" + "000000000")])
+
   });
 
   it("should process 10 successive deposits and withdraws", async function () {
@@ -178,13 +181,13 @@ describe("Stake many successive deposits and withdraws", async function () {
       await token.connect(bob).approve(stake.address, tokenBalanceBob);
       await stake.connect(bob).deposit(tokenBalanceBob);
 
-      const stTokenBalanceAlice = await stake.balanceOf(alice.address);
-      const stTokenBalanceBob = await stake.balanceOf(bob.address);
+      // const stTokenBalanceAlice = await stake.balanceOf(alice.address);
+      // const stTokenBalanceBob = await stake.balanceOf(bob.address);
 
-      // Alice redeems half of her stTokens
-      await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
-      // Bob redeems half of his stTokens
-      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
+      // // Alice redeems half of her stTokens
+      // await stake.connect(alice).withdraw(stTokenBalanceAlice.div(2));
+      // // Bob redeems half of his stTokens
+      // await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
 
     const thresholds = THRESHOLDS;
@@ -196,5 +199,8 @@ describe("Stake many successive deposits and withdraws", async function () {
     const reportHexBob = hexlify(reportBob);
 
     console.log({ reportHexAlice, reportHexBob });
+
+    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [ethers.BigNumber.from("1000" + "000000000")])
+
   });
 });
