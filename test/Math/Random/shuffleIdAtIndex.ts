@@ -31,6 +31,10 @@ describe("Random shuffleIdAtIndex", async function () {
   it("should return shuffled id if index is within range", async () => {
     const length = 50;
 
+    // run like this to actually write to storage
+    await random.shuffle(5, length);
+
+    // run like this to get `shuffled_` result
     const shuffled_ = (await random.callStatic.shuffle(5, length)).slice(2);
     const shuffledArray_ = [];
     for (let i = 0; i < shuffled_.length; i += 4) {

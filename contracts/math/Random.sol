@@ -114,10 +114,10 @@ library Random {
     function shuffle(uint256 seed_, uint256 len_)
         internal
         pure
-        returns (bytes memory)
+        returns (bytes memory shuffled_)
     {
         unchecked {
-            bytes memory shuffled_ = new bytes(len_ * 2);
+            shuffled_ = new bytes(len_ * 2);
             assembly {
                 function randomIndex(j_) -> v_ {
                     let roll_ := keccak256(0, 0x20)
@@ -161,7 +161,6 @@ library Random {
                     writeItemAtIndex(writeStart_, i_, fromRandom_)
                 }
             }
-            return shuffled_;
         }
     }
 

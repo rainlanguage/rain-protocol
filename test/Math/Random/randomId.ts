@@ -19,9 +19,15 @@ describe("Random randomId", async function () {
     assert(id0_.eq(id1_), "same seed did not reproduce the same id");
   });
 
-  it("should support indices up to maximum uint256", async () => {
+  it("should support index up to maximum uint256", async () => {
     const maxIndex = max_uint256;
     const id0_ = await random.callStatic.randomId(5, maxIndex);
+
+    assert(hexlify(id0_).length === 2 + 64, "unexpected id length");
+  });
+
+  it("should support zero index", async () => {
+    const id0_ = await random.callStatic.randomId(5, 0);
 
     assert(hexlify(id0_).length === 2 + 64, "unexpected id length");
   });
