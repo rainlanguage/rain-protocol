@@ -4,6 +4,8 @@
     "max-line-length": ["error", 80],
     "compiler-version": ["error", "=0.8.10 || ^0.8.0"],
     "no-inline-assembly": "off",
+    "not-rely-on-time": "off",
+    "no-empty-blocks": "off",
     "func-visibility": [
       "warn",
       {
