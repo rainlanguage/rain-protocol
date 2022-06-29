@@ -30,6 +30,10 @@ contract AutoApproveFactory is Factory {
         StateConfig memory config_ = abi.decode(data_, (StateConfig));
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
+        // Caller MUST transfer ownership to the `Verify` contract that is
+        // attempting to call the autoapprover callbacks, otherwise every
+        // callback will revert.
+        AutoApprove(clone_).transferOwnership(msg.sender);
         return clone_;
     }
 

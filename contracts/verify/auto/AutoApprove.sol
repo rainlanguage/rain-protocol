@@ -56,7 +56,10 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
-                    context_ = evidences_[i_].data;
+                    context_ = bytes.concat(
+                        bytes32(uint256(uint160(evidences_[i_].account))),
+                        evidences_[i_].data
+                    );
                     eval(context_, state_, ENTRYPOINT);
                     if (state_.stack[state_.stackIndex - 1] > 0) {
                         _approvedEvidenceData[
