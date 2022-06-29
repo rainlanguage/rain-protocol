@@ -77,6 +77,23 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         deposits[msg.sender].push(
             Deposit(uint32(block.timestamp), highwater_ + amount_.toUint224())
         );
+
+        uint cumulativeAmount_ = highwater_ + amount_;
+        uint cursor_;
+        assembly {
+            mstore(0, caller())
+            mstore(0x20, 10000)
+            let cursorLocation_ := keccak256(0, 0x40)
+            cursor_ := sload(cursorLocation_)
+            sstore(cursorLocation_, add(cursor_, 1))
+            mstore(0x20, cursor_)
+            let amountLocation_ := keccak256(0, 0x40)
+            sstore(amountLocation_, cumulativeAmount_)
+            mstore(0x20, amountLocation_)
+            let timestampLocation_ := keccak256(0, 0x40)
+            sstore(timestampLocation_, timestamp())
+        }
+        // console.log("cursor", cursor_);
     }
 
     function withdraw(uint256 amount_) external nonReentrant {
@@ -171,22 +188,45 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
 
     /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
     function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
-        uint a_ = gasleft();
-        uint len_ = deposits[account_].length;
-        uint b_ = gasleft();
-        console.log("len: %s", a_ - b_);
-        high_ = len_;
+        // uint a_ = gasleft();
+        uint cursor_;
+        uint cursorLocation_;
+        assembly {
+            mstore(0, account_)
+            mstore(0x20, 10000)
+            cursorLocation_ := keccak256(0, 0x40)
+            cursor_ := sload(cursorLocation_)
+        }
+        // uint b_ = gasleft();
+        // console.log("len: %s %s %s", cursor_, cursorLocation_, a_ - b_);
+        high_ = cursor_;
         uint mid_;
+        uint amount_;
+        uint amountLocation_;
         while (low_ < high_) {
             mid_ = Math.average(low_, high_);
-            console.log(low_, mid_, high_);
-            if (deposits[account_][mid_].amount >= threshold_) {
+            // console.log(low_, mid_, high_);
+            assembly {
+                mstore(0x20, mid_)
+                amountLocation_ := keccak256(0, 0x40)
+                amount_ := sload(amountLocation_)
+            }
+
+            if (amount_ >= threshold_) {
                 high_ = mid_;
             } else {
                 low_ = mid_ + 1;
             }
         }
-        console.log(low_, mid_, high_);
-        time_ = high_ == len_ ? uint256(TierConstants.NEVER_TIME) : deposits[account_][high_].timestamp;
+        // console.log(low_, mid_, high_);
+        if (high_ == cursor_) {
+            time_ = uint256(TierConstants.NEVER_TIME);
+        } else {
+            assembly {
+                mstore(0x20, amountLocation_)
+                let timestampLocation_ := keccak256(0, 0x40)
+                time_ := sload(timestampLocation_)
+            }
+        }
     }
 }
