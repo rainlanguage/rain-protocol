@@ -23,7 +23,7 @@ describe("RainVM fnPtrs", async function () {
     fnPtrsTestFactory = await ethers.getContractFactory("FnPtrsTest");
   });
 
-  it("should error when contract implementing RainVM returns bad fn ptrs length", async () => {
+  xit("should error when contract implementing RainVM returns bad fn ptrs length", async () => {
     throw new Error("untested / invalid test");
 
     const fnPtrsTest = (await fnPtrsTestFactory.deploy(
