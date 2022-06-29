@@ -327,27 +327,18 @@ contract OrderBook is RainVM {
         return stackTopLocation_;
     }
 
-    function localFnPtrs() internal pure returns (uint256[] memory) {
+    function localFnPtrs() internal pure returns (uint256[] memory ptrs_) {
         unchecked {
-            uint256 lenBytes_ = LOCAL_OPS_LENGTH * 0x20;
-            function(uint256, uint256) pure returns (uint256) zeroFn_;
-            assembly {
-                zeroFn_ := 0
-            }
-            function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH +
+            uint[LOCAL_OPS_LENGTH +
                 1]
                 memory fns_ = [
-                    // will be overridden with length
-                    zeroFn_,
-                    opOrderFundsCleared,
-                    opOrderCounterpartyFundsCleared
+                    LOCAL_OPS_LENGTH,
+                    CoerceFnPtrs.toUint256(opOrderFundsCleared),
+                    CoerceFnPtrs.toUint256(opOrderCounterpartyFundsCleared)
                 ];
-            bytes memory ret_;
             assembly {
-                mstore(fns_, lenBytes_)
-                ret_ := fns_
+                ptrs_ := fns_
             }
-            return ret_;
         }
     }
 

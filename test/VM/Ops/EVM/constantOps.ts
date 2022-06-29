@@ -79,7 +79,7 @@ describe("RainVM EVM constant ops", async () => {
     );
   });
 
-  it("should return block.timestamp", async () => {
+  it.only("should return block.timestamp", async () => {
     const constants = [];
 
     const source = concat([

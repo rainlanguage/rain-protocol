@@ -186,6 +186,31 @@ contract VMStateBuilder {
         }
     }
 
+    function packFnPtrs(uint[] memory fnPtrs_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length * 2);
+            assembly {
+                for {
+                    let i_ := 0
+                    let o_ := 0x02
+                } lt(i_, mload(fnPtrs_)) {
+                    i_ := add(i_, 0x20)
+                    o_ := add(o_, 0x02)
+                } {
+                    let location_ := add(fnPtrsPacked_, o_)
+                    let old_ := mload(location_)
+                    let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
+                    mstore(location_, new_)
+                }
+            }
+            return fnPtrsPacked_;
+        }
+    }
+
     // function packFnPtrs(uint[] memory fnPtrs_)
     //     internal
     //     view
