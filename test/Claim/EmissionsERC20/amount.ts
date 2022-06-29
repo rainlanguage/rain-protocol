@@ -18,7 +18,7 @@ import {
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Claim Amount Test", async function () {
   it("should calculate claim amount from constant val", async function () {

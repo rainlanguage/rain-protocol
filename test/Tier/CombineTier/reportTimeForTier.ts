@@ -7,7 +7,7 @@ import { op } from "../../../utils/rainvm/vm";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("CombineTier report time for tier script", async function () {
   const CONST_REPORT_TIME_FOR_TIER = 123;

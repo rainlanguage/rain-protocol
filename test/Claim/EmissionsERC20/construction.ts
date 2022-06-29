@@ -9,7 +9,7 @@ import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("EmissionsERC20 construction", async () => {
   it("should construct and initialize correctly", async function () {

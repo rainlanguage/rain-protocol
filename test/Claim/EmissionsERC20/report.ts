@@ -16,7 +16,7 @@ import {
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Report Test", async function () {
   it("should record the latest claim timestamp for each slot in a tier report", async function () {
