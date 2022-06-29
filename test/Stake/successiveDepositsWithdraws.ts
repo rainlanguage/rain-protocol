@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
+import { ReportOMeter } from "../../typechain/ReportOMeter";
 import { ONE, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -10,6 +11,7 @@ import { stakeDeploy } from "../../utils/deploy/stake";
 
 describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
+  let reportOMeter: ReportOMeter;
   let token: ReserveToken;
 
   before(async () => {
@@ -19,13 +21,20 @@ describe("Stake many successive deposits and withdraws", async function () {
     );
     stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
     await stakeFactory.deployed();
+
+    const reportOMeterFactory = await ethers.getContractFactory(
+      "ReportOMeter",
+      {}
+    )
+    reportOMeter = (await reportOMeterFactory.deploy()) as ReportOMeter
+    await reportOMeter.deployed();
   });
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
-  it("should process 50 successive deposits and withdraws", async function () {
+  it.only("should process 50 successive deposits and withdraws", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -77,6 +86,8 @@ describe("Stake many successive deposits and withdraws", async function () {
     const reportHexBob = hexlify(reportBob);
 
     console.log({ reportHexAlice, reportHexBob });
+
+    await reportOMeter.gaugeReport(stake.address, alice.address, [ethers.BigNumber.from("1000" + "000000000")])
   });
 
   it("should process 25 successive deposits and withdraws", async function () {
