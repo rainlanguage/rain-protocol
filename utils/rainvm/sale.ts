@@ -1,8 +1,6 @@
 import { concat } from "ethers/lib/utils";
-import { AllStandardOps } from "./ops/allStandardOps";
+import { Opcode } from "./ops";
 import { op } from "./vm";
-
-export const Opcode = AllStandardOps;
 
 export const afterBlockNumberSource = (constant: number): Uint8Array => {
   // prettier-ignore

@@ -5,6 +5,7 @@ import {Factory} from "../factory/Factory.sol";
 import "./FactoryChildTest.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "hardhat/console.sol";
 
 /// @title FactoryTest
 /// @notice Test factory for creating and deploying `FactoryChildTest` contracts.
@@ -35,7 +36,7 @@ contract FactoryTest is Factory {
         return clone_;
     }
 
-    /// Allows calling `createChild` with `SeedERC20Config` struct.
+    /// Allows calling `createChild` with `uint256` type.
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
@@ -45,6 +46,6 @@ contract FactoryTest is Factory {
         external
         returns (FactoryChildTest)
     {
-        return FactoryChildTest(this.createChild(abi.encode(value_)));
+        return FactoryChildTest(this.createChild(abi.encodePacked(value_)));
     }
 }
