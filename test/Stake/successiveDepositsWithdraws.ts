@@ -25,8 +25,8 @@ describe.only("Stake many successive deposits and withdraws", async function () 
     const reportOMeterFactory = await ethers.getContractFactory(
       "ReportOMeter",
       {}
-    )
-    reportOMeter = (await reportOMeterFactory.deploy()) as ReportOMeter
+    );
+    reportOMeter = (await reportOMeterFactory.deploy()) as ReportOMeter;
     await reportOMeter.deployed();
   });
 
@@ -87,7 +87,9 @@ describe.only("Stake many successive deposits and withdraws", async function () 
 
     console.log({ reportHexAlice, reportHexBob });
 
-    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [ethers.BigNumber.from("1000" + "000000000")])
+    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
+      ethers.BigNumber.from("1000" + "000000000"),
+    ]);
   });
 
   it("should process 25 successive deposits and withdraws", async function () {
@@ -143,8 +145,9 @@ describe.only("Stake many successive deposits and withdraws", async function () 
 
     console.log({ reportHexAlice, reportHexBob });
 
-    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [ethers.BigNumber.from("1000" + "000000000")])
-
+    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
+      ethers.BigNumber.from("1000" + "000000000"),
+    ]);
   });
 
   it("should process 10 successive deposits and withdraws", async function () {
@@ -200,7 +203,8 @@ describe.only("Stake many successive deposits and withdraws", async function () 
 
     console.log({ reportHexAlice, reportHexBob });
 
-    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [ethers.BigNumber.from("1000" + "000000000")])
-
+    await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
+      ethers.BigNumber.from("1000" + "000000000"),
+    ]);
   });
 });

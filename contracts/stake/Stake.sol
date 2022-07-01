@@ -78,7 +78,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
             Deposit(uint32(block.timestamp), highwater_ + amount_.toUint224())
         );
 
-        uint cumulativeAmount_ = highwater_ + amount_;
+        uint val_ = highwater_ + amount_ | (block.timestamp << 224);
         uint cursor_;
         assembly {
             mstore(0, caller())
@@ -87,11 +87,11 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
             cursor_ := sload(cursorLocation_)
             sstore(cursorLocation_, add(cursor_, 1))
             mstore(0x20, cursor_)
-            let amountLocation_ := keccak256(0, 0x40)
-            sstore(amountLocation_, cumulativeAmount_)
-            mstore(0x20, amountLocation_)
-            let timestampLocation_ := keccak256(0, 0x40)
-            sstore(timestampLocation_, timestamp())
+            let valLocation_ := keccak256(0, 0x40)
+            sstore(valLocation_, val_)
+            // mstore(0x20, amountLocation_)
+            // let timestampLocation_ := keccak256(0, 0x40)
+            // sstore(timestampLocation_, timestamp())
         }
         // console.log("cursor", cursor_);
     }
@@ -171,6 +171,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
+        uint a_ = gasleft();
         // time_ = uint256(TierConstants.NEVER_TIME);
         if (tier_ < context_.length) {
             uint256 threshold_ = context_[tier_];
@@ -184,11 +185,13 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
             //     }
             // }
         }
+        uint b_ = gasleft();
+        console.log("x", a_ - b_);
     }
 
     /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
     function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
-        // uint a_ = gasleft();
+        unchecked {
         uint cursor_;
         uint cursorLocation_;
         assembly {
@@ -197,36 +200,23 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
             cursorLocation_ := keccak256(0, 0x40)
             cursor_ := sload(cursorLocation_)
         }
-        // uint b_ = gasleft();
-        // console.log("len: %s %s %s", cursor_, cursorLocation_, a_ - b_);
         high_ = cursor_;
         uint mid_;
-        uint amount_;
-        uint amountLocation_;
+        uint val_;
         while (low_ < high_) {
             mid_ = Math.average(low_, high_);
-            // console.log(low_, mid_, high_);
             assembly {
                 mstore(0x20, mid_)
-                amountLocation_ := keccak256(0, 0x40)
-                amount_ := sload(amountLocation_)
+                val_ := sload(keccak256(0, 0x40))
             }
 
-            if (amount_ >= threshold_) {
+            if (val_ & type(uint224).max >= threshold_) {
                 high_ = mid_;
             } else {
                 low_ = mid_ + 1;
             }
         }
-        // console.log(low_, mid_, high_);
-        if (high_ == cursor_) {
-            time_ = uint256(TierConstants.NEVER_TIME);
-        } else {
-            assembly {
-                mstore(0x20, amountLocation_)
-                let timestampLocation_ := keccak256(0, 0x40)
-                time_ := sload(timestampLocation_)
-            }
-        }
+        time_ = high_ == cursor_ ? uint(TierConstants.NEVER_TIME) : val_ >> 224;
+    }
     }
 }
