@@ -149,8 +149,14 @@ library Random {
                 mstore(0, seed_)
 
                 let ptr_ := add(shuffled_, 2)
-                let randomIndex_ := 0
-                let fromRandom_ := 0
+                // let location_ := 0
+                // let randomIndex_ := 0
+                // let randomLocation_ := 0
+                // let fromRandom_ := 0
+
+                let holeMask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
+                let vMask_ := 0xFFFF
+                // let location := 0
 
                 for {
                     let i_ := sub(len_, 1)
@@ -158,14 +164,34 @@ library Random {
                     // itself, which is whatever was written to it or 0. // Don't need to shuffle index 0 because it will always be
                     i_ := sub(i_, 1)
                 } {
-                    randomIndex_ := randomIndex(i_)
-                    fromRandom_ := readItemAtIndex(ptr_, randomIndex_)
-                    writeItemAtIndex(
-                        ptr_,
-                        randomIndex_,
-                        readItemAtIndex(ptr_, i_)
-                    )
-                    writeItemAtIndex(ptr_, i_, fromRandom_)
+                    let location_ := add(ptr_, mul(i_, 2))
+                    let base_ := mload(location_)
+                    let hole_ := and(base_, holeMask_)
+                    let v_ := and(base_, 0xFFFF)
+                    if iszero(v_) {
+                        v_ := i_
+                    }
+
+                    let randomIndex_ := randomIndex(i_)
+                    let randomLocation_ := add(ptr_, mul(randomIndex_, 2))
+                    let randomBase_ := mload(randomLocation_)
+                    let randomHole_ := and(randomBase_, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000)
+                    let randomV_ := and(randomBase_, 0xFFFF)
+                    if iszero(randomV_) {
+                        randomV_ := randomIndex_
+                    }
+
+                    mstore(location_, or(hole_, randomV_))
+                    mstore(randomLocation_, or(randomHole_, v_))
+
+                    // randomLocation_ := add(ptr_, mul(randomIndex_, 2))
+                    // fromRandom_ := readItemAtIndex(ptr_, randomIndex_)
+                    // writeItemAtIndex(
+                    //     ptr_,
+                    //     randomIndex_,
+                    //     readItemAtIndex(ptr_, i_)
+                    // )
+                    // writeItemAtIndex(ptr_, i_, fromRandom_)
                 }
             }
         }
