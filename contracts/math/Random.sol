@@ -119,44 +119,11 @@ library Random {
         unchecked {
             shuffled_ = new bytes(len_ * 2);
             assembly {
-                function randomIndex(j_) -> v_ {
-                    let roll_ := keccak256(0, 0x20)
-                    mstore(0, roll_)
-                    v_ := mod(roll_, add(j_, 1))
-                }
-
-                function readItemAtIndex(ptr_, j_) -> v_ {
-                    v_ := and(mload(add(ptr_, mul(j_, 2))), 0xFFFF)
-                    if iszero(v_) {
-                        v_ := j_
-                    }
-                }
-
-                function writeItemAtIndex(ptr_, j_, v_) {
-                    let location_ := add(ptr_, mul(j_, 2))
-                    mstore(
-                        location_,
-                        or(
-                            v_,
-                            and(
-                                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000,
-                                mload(location_)
-                            )
-                        )
-                    )
-                }
-
                 mstore(0, seed_)
 
                 let ptr_ := add(shuffled_, 2)
-                // let location_ := 0
-                // let randomIndex_ := 0
-                // let randomLocation_ := 0
-                // let fromRandom_ := 0
-
                 let holeMask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
                 let vMask_ := 0xFFFF
-                // let location := 0
 
                 for {
                     let i_ := sub(len_, 1)
@@ -167,31 +134,25 @@ library Random {
                     let location_ := add(ptr_, mul(i_, 2))
                     let base_ := mload(location_)
                     let hole_ := and(base_, holeMask_)
-                    let v_ := and(base_, 0xFFFF)
+                    let v_ := and(base_, vMask_)
                     if iszero(v_) {
                         v_ := i_
                     }
 
-                    let randomIndex_ := randomIndex(i_)
+                    let roll_ := keccak256(0, 0x20)
+                    mstore(0, roll_)
+                    let randomIndex_ := mod(roll_, add(i_, 1))
+
                     let randomLocation_ := add(ptr_, mul(randomIndex_, 2))
                     let randomBase_ := mload(randomLocation_)
-                    let randomHole_ := and(randomBase_, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000)
-                    let randomV_ := and(randomBase_, 0xFFFF)
+                    let randomHole_ := and(randomBase_, holeMask_)
+                    let randomV_ := and(randomBase_, vMask_)
                     if iszero(randomV_) {
                         randomV_ := randomIndex_
                     }
 
                     mstore(location_, or(hole_, randomV_))
                     mstore(randomLocation_, or(randomHole_, v_))
-
-                    // randomLocation_ := add(ptr_, mul(randomIndex_, 2))
-                    // fromRandom_ := readItemAtIndex(ptr_, randomIndex_)
-                    // writeItemAtIndex(
-                    //     ptr_,
-                    //     randomIndex_,
-                    //     readItemAtIndex(ptr_, i_)
-                    // )
-                    // writeItemAtIndex(ptr_, i_, fromRandom_)
                 }
             }
         }
