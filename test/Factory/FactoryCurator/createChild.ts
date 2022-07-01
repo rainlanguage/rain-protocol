@@ -16,9 +16,152 @@ import { ReserveToken } from "../../../typechain/ReserveToken";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
+import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator createChild", async function () {
+  it("should revert if user does not meet tier requirement", async () => {
+    const signers = await ethers.getSigners();
+
+    const curator = signers[1];
+    const signer1 = signers[2];
+
+    const FEE = 100 + sixZeros;
+
+    const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
+
+    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+
+    await reserve.transfer(signer1.address, FEE);
+
+    const readWriteTier = (await basicDeploy(
+      "ReadWriteTier",
+      {}
+    )) as ReadWriteTier;
+
+    const factoryCurator = (await basicDeploy(
+      "FactoryCurator",
+      {}
+    )) as FactoryCurator;
+
+    const config: CurationConfigStruct = {
+      factory: factoryTest.address,
+      curator: curator.address,
+      feeConfig: {
+        token: reserve.address,
+        amount: FEE,
+      },
+      tierConfig: {
+        tierContract: readWriteTier.address,
+        minimumTier: Tier.FOUR,
+        context: [],
+      },
+    };
+
+    const txRegisterConfig = await factoryCurator.registerConfig(config);
+
+    const { id: id_, config: config_ } = (await getEventArgs(
+      txRegisterConfig,
+      "RegisterCuration",
+      factoryCurator
+    )) as RegisterCurationEvent["args"];
+
+    const childValue = 123;
+
+    await reserve.connect(signer1).approve(factoryCurator.address, FEE);
+
+    // await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+
+    await assertError(
+      async () =>
+        await factoryCurator
+          .connect(signer1)
+          .createChild(
+            id_,
+            config_,
+            defaultAbiCoder.encode(["uint256"], [childValue])
+          ),
+      "MINIMUM_TIER",
+      "did not revert when user failed to meet tier requirement"
+    );
+  });
+
+  it("should revert if config has not been registered", async () => {
+    const signers = await ethers.getSigners();
+
+    const curator = signers[1];
+    const signer1 = signers[2];
+    const wrongCurator = signers[3];
+
+    const FEE = 100 + sixZeros;
+
+    const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
+
+    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+
+    await reserve.transfer(signer1.address, FEE);
+
+    const readWriteTier = (await basicDeploy(
+      "ReadWriteTier",
+      {}
+    )) as ReadWriteTier;
+
+    const factoryCurator = (await basicDeploy(
+      "FactoryCurator",
+      {}
+    )) as FactoryCurator;
+
+    const config: CurationConfigStruct = {
+      factory: factoryTest.address,
+      curator: curator.address,
+      feeConfig: {
+        token: reserve.address,
+        amount: FEE,
+      },
+      tierConfig: {
+        tierContract: readWriteTier.address,
+        minimumTier: Tier.FOUR,
+        context: [],
+      },
+    };
+
+    const txRegisterConfig = await factoryCurator.registerConfig(config);
+
+    const { id: id_, config: config_ } = (await getEventArgs(
+      txRegisterConfig,
+      "RegisterCuration",
+      factoryCurator
+    )) as RegisterCurationEvent["args"];
+
+    const childValue = 123;
+
+    await reserve.connect(signer1).approve(factoryCurator.address, FEE);
+
+    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+
+    await assertError(
+      async () =>
+        await factoryCurator.connect(signer1).createChild(
+          id_.add(1), // id doesn't exist
+          config_,
+          defaultAbiCoder.encode(["uint256"], [childValue])
+        ),
+      "NOT_IN_REGISTRY",
+      "did not revert when given bad id"
+    );
+
+    await assertError(
+      async () =>
+        await factoryCurator.connect(signer1).createChild(
+          id_,
+          { ...config_, curator: wrongCurator.address }, // unregistered config
+          defaultAbiCoder.encode(["uint256"], [childValue])
+        ),
+      "NOT_IN_REGISTRY",
+      "did not revert when given unregistered config"
+    );
+  });
+
   it("should create a child on the good path", async () => {
     const signers = await ethers.getSigners();
 
