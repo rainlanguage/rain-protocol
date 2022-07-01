@@ -134,14 +134,21 @@ library Random {
 
                 function writeItemAtIndex(ptr_, j_, v_) {
                     let location_ := add(ptr_, mul(j_, 2))
-                    mstore8(location_, shr(8, v_))
-                    mstore8(add(location_, 1), v_)
+                    mstore(
+                        location_,
+                        or(
+                            v_,
+                            and(
+                                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000,
+                                mload(location_)
+                            )
+                        )
+                    )
                 }
 
                 mstore(0, seed_)
 
-                let writeStart_ := add(shuffled_, 0x20)
-                let readStart_ := add(shuffled_, 2)
+                let ptr_ := add(shuffled_, 2)
                 let randomIndex_ := 0
                 let fromRandom_ := 0
 
@@ -152,13 +159,13 @@ library Random {
                     i_ := sub(i_, 1)
                 } {
                     randomIndex_ := randomIndex(i_)
-                    fromRandom_ := readItemAtIndex(readStart_, randomIndex_)
+                    fromRandom_ := readItemAtIndex(ptr_, randomIndex_)
                     writeItemAtIndex(
-                        writeStart_,
+                        ptr_,
                         randomIndex_,
-                        readItemAtIndex(readStart_, i_)
+                        readItemAtIndex(ptr_, i_)
                     )
-                    writeItemAtIndex(writeStart_, i_, fromRandom_)
+                    writeItemAtIndex(ptr_, i_, fromRandom_)
                 }
             }
         }

@@ -29,7 +29,18 @@ contract RandomTest {
         uint256 a_ = gasleft();
         shuffled_ = Random.shuffle(seed_, len_);
         uint256 b_ = gasleft();
-        console.log("shuffle gas used: %s", a_ - b_);
+        console.log(
+            "shuffle gas used: %s %s %s",
+            len_,
+            a_ - b_,
+            (a_ - b_) / len_
+        );
+        require(
+            uint256(
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
+            ) == uint256(~uint256(0xFFFF)),
+            "BADBAD"
+        );
         a_ = gasleft();
         shuffled = SSTORE2.write(shuffled_);
         b_ = gasleft();
