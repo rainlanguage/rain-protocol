@@ -122,7 +122,9 @@ library Random {
                 mstore(0, seed_)
 
                 let ptr_ := add(shuffled_, 2)
-                let holeMask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
+                let
+                    holeMask_
+                := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
                 let vMask_ := 0xFFFF
 
                 for {
@@ -133,7 +135,6 @@ library Random {
                 } {
                     let location_ := add(ptr_, mul(i_, 2))
                     let base_ := mload(location_)
-                    let hole_ := and(base_, holeMask_)
                     let v_ := and(base_, vMask_)
                     if iszero(v_) {
                         v_ := i_
@@ -145,14 +146,13 @@ library Random {
 
                     let randomLocation_ := add(ptr_, mul(randomIndex_, 2))
                     let randomBase_ := mload(randomLocation_)
-                    let randomHole_ := and(randomBase_, holeMask_)
                     let randomV_ := and(randomBase_, vMask_)
                     if iszero(randomV_) {
                         randomV_ := randomIndex_
                     }
 
-                    mstore(location_, or(hole_, randomV_))
-                    mstore(randomLocation_, or(randomHole_, v_))
+                    mstore(location_, or(and(base_, holeMask_), randomV_))
+                    mstore(randomLocation_, or(and(randomBase_, holeMask_), v_))
                 }
             }
         }
