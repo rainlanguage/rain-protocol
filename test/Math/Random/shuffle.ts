@@ -11,7 +11,7 @@ describe("Random shuffle", async function () {
   });
 
   it("should shuffle an array", async function () {
-    for (const length of [1, 10, 50, 100, 1000, 10000]) {
+    for (const length of [1, 10, 50, 100, 1000, 10000, 12000]) {
       const shuffled_ = (await random.callStatic.shuffle(5, length)).slice(2);
       const shuffledArray_ = [];
       for (let i = 0; i < shuffled_.length; i += 4) {

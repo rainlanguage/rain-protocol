@@ -50,13 +50,19 @@ contract RandomTest {
     function shuffleIdAtIndex(uint256 index_) external returns (uint256 id_) {
         // Write something so we can see gas costs.
         val = 1;
+        uint256 a_ = gasleft();
         address shuffled_ = shuffled;
 
-        uint256 a_ = gasleft();
         id_ = Random.shuffleIdAtIndex(shuffled_, index_);
         uint256 b_ = gasleft();
         console.log("shuffle id: %s", id_);
         console.log("shuffle index gas: %s", a_ - b_);
+
+        uint index2_ = index_+1;
+        a_ = gasleft();
+        Random.shuffleIdAtIndex(shuffled_, index2_);
+        b_ = gasleft();
+        console.log("shuffle index gas 2: %s", a_ - b_);
     }
 
     function randomId(uint256 seed_, uint256 index_)

@@ -29,7 +29,7 @@ library SSTORE2 {
             abi.encodePacked(hex"00", _data)
         );
         uint256 b_ = gasleft();
-        console.log("creation code gas: %s", a_ - b_);
+        console.log("creation code gas: %s %s %s", _data.length, code.length, a_ - b_);
 
         a_ = gasleft();
         // Deploy contract using create
