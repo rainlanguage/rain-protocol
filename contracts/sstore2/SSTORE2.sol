@@ -2,7 +2,6 @@
 pragma solidity =0.8.10;
 
 import "./utils/Bytecode.sol";
-import "hardhat/console.sol";
 
 /**
   @title A key-value storage with auto-generated keys for storing chunks of
@@ -21,23 +20,16 @@ library SSTORE2 {
     @return pointer Pointer to the written `_data`
   */
     function write(bytes memory _data) internal returns (address pointer) {
-        console.log(_data.length);
-        uint256 a_ = gasleft();
         // Append 00 to _data so contract can't be called
         // Build init code
         bytes memory code = Bytecode.creationCodeFor(
             abi.encodePacked(hex"00", _data)
         );
-        uint256 b_ = gasleft();
-        console.log("creation code gas: %s %s %s", _data.length, code.length, a_ - b_);
 
-        a_ = gasleft();
         // Deploy contract using create
         assembly {
             pointer := create(0, add(code, 32), mload(code))
         }
-        b_ = gasleft();
-        console.log("deploy code gas: %s", a_ - b_);
 
         // Address MUST be non-zero
         if (pointer == address(0)) revert WriteError();
