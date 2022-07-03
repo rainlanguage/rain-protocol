@@ -1,3 +1,5 @@
+import { Wallet } from "ethers";
+import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
 export const createEmptyBlock = async (count?: number): Promise<void> => {
@@ -29,4 +31,13 @@ export const getBlockTimestamp = async (): Promise<number> => {
   const blockNum = await ethers.provider.getBlockNumber();
   const block = await ethers.provider.getBlock(blockNum);
   return block.timestamp;
+};
+
+/**
+ * Generate random wallet
+ * @returns {Wallet} - a new instance of Wallet generated using a random privateKey
+ */
+export const generateRandomWallet = (): Wallet => {
+  const privateKey = hexlify(randomBytes(32)).toString();
+  return new ethers.Wallet(privateKey);
 };

@@ -12,7 +12,6 @@ describe("VMStateBuilder buildState", async function () {
   let stateBuilder: AllStandardOpsStateBuilder;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -22,8 +21,6 @@ describe("VMStateBuilder buildState", async function () {
   });
 
   it("should enforce minimum stack height after eval", async () => {
-    this.timeout(0);
-
     const stackHeightTestFactory = await ethers.getContractFactory(
       "StackHeightTest"
     );

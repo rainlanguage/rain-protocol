@@ -18,12 +18,10 @@ import {
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Claim Amount Test", async function () {
   it("should calculate claim amount from constant val", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -63,8 +61,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   });
 
   it("should perform claim using a constant val as claim amount", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -100,8 +96,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   });
 
   it("should calculate correct emissions amount (if division is performed on final result)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -377,8 +371,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   });
 
   it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];

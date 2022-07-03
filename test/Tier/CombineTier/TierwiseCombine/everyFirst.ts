@@ -17,7 +17,7 @@ import {
 import { ALWAYS, NEVER, numArrayToReport } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'every' logic and 'first' mode", async function () {
   // report time for tier context
@@ -32,8 +32,6 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
   ]);
 
   it("should correctly combine reports with every and first selector where first report contains tier values which are greater than block timestamp", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     await timewarp(5);
@@ -133,8 +131,6 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
   });
 
   it("should correctly combine Always and Never tier reports with every and first selector", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
@@ -195,8 +191,6 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
   });
 
   it("should correctly combine ReadWriteTier tier contracts with every and first selector", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const readWriteTierFactory = await ethers.getContractFactory(

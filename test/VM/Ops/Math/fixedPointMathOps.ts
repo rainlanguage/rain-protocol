@@ -14,7 +14,6 @@ describe("RainVM fixed point math ops", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -29,8 +28,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale an arbitrary fixed point number DOWN by scale N", async () => {
-    this.timeout(0);
-
     const value1 = ethers.BigNumber.from(1 + sixZeros);
     const n = 0xfc; // -4
 
@@ -60,8 +57,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale an arbitrary fixed point number UP by scale N", async () => {
-    this.timeout(0);
-
     const value1 = ethers.BigNumber.from(1 + sixZeros);
     const n = 0x04; // 4
 
@@ -91,8 +86,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale an 18 OOMs number UP to scale N", async () => {
-    this.timeout(0);
-
     const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 20;
 
@@ -121,8 +114,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale an 18 OOMs number DOWN to scale N", async () => {
-    this.timeout(0);
-
     const value1 = ethers.BigNumber.from(1 + eighteenZeros);
     const n = 6;
 
@@ -152,8 +143,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale a number by 18 OOM while dividing", async () => {
-    this.timeout(0);
-
     const value1 = 50;
     const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
@@ -186,8 +175,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale a number by 18 OOM while multiplying", async () => {
-    this.timeout(0);
-
     const value1 = 1;
     const value2 = ONE.mul(2);
 
@@ -220,8 +207,6 @@ describe("RainVM fixed point math ops", async function () {
   });
 
   it("should scale a number by 18 OOM in situ", async () => {
-    this.timeout(0);
-
     const value = 1;
 
     const constants = [value];

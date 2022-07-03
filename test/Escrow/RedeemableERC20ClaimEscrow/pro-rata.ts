@@ -39,8 +39,6 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
   });
 
   it("should allocate token withdrawals pro rata (sender's proportion of RedeemableERC20 total supply)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const bob = signers[2];
@@ -147,8 +145,6 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
   });
 
   it("if alice withdraws then burns then bob withdraws, bob does not receive more than his pro-rata share from deposit time due to the subsequent supply change", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[1];
     const alice = signers[4];

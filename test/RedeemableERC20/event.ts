@@ -11,8 +11,6 @@ import { Tier } from "../../utils";
 
 describe("RedeemableERC20 event test", async function () {
   it("should emit Initialize event", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(
@@ -67,8 +65,6 @@ describe("RedeemableERC20 event test", async function () {
   });
 
   it("should emit TreasuryAsset event", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(

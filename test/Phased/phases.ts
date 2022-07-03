@@ -10,8 +10,6 @@ import { Phase, PhaseTimes } from "../../utils/types/phased";
 
 describe("Phased test", async function () {
   it("should handle phases on happy path", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
@@ -120,8 +118,6 @@ describe("Phased test", async function () {
 
   // assert errors
   it("modifiers correctly error if current phase doesn't meet condition", async () => {
-    this.timeout(0);
-
     const phased = (await Util.basicDeploy("PhasedTest", {})) as PhasedTest;
 
     // onlyPhase

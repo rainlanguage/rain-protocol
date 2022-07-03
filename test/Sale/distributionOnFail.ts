@@ -33,7 +33,6 @@ describe("Sale distribution on failed sale", async function () {
   });
 
   it("should transfer correct value to all stakeholders after failed sale (with forward address)", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -202,7 +201,6 @@ describe("Sale distribution on failed sale", async function () {
   });
 
   it("should transfer correct value to all stakeholders after failed sale (no forward address)", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

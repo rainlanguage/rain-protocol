@@ -16,8 +16,6 @@ describe("RedeemableERC20 transfer test", async function () {
     // Spokes can only send back to a receiver (doesn't need to be
     // the same receiver they received from).
 
-    this.timeout(0);
-
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();
@@ -116,8 +114,6 @@ describe("RedeemableERC20 transfer test", async function () {
   });
 
   it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(
@@ -167,8 +163,6 @@ describe("RedeemableERC20 transfer test", async function () {
   });
 
   it("should prevent sending redeemable tokens to zero address", async function () {
-    this.timeout(0);
-
     const TEN_TOKENS = ethers.BigNumber.from("10" + Util.eighteenZeros);
 
     const signers = await ethers.getSigners();

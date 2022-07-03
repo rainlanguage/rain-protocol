@@ -38,8 +38,6 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
   });
 
   it("should allow depositing redeemable tokens on failed raise", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const deployer = signers[3];
@@ -128,8 +126,6 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
   });
 
   it("should allow depositing redeemable tokens when not failed raise (during trading or successfully closed)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const deployer = signers[3];

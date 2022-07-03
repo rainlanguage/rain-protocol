@@ -14,7 +14,6 @@ describe("RainVM tier report saturating diff op", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -29,8 +28,6 @@ describe("RainVM tier report saturating diff op", async function () {
   });
 
   it("should use saturating sub for diff where only some tiers would underflow", async () => {
-    this.timeout(0);
-
     const constants0 = [
       //         0x01000000020000000300000004000000050000000600000007
       numArrayToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
@@ -66,8 +63,6 @@ describe("RainVM tier report saturating diff op", async function () {
   });
 
   it("should use saturating sub for diff (does not panic when underflowing, but sets to zero)", async () => {
-    this.timeout(0);
-
     const constants0 = [
       // 0x01000000020000000300000004000000050000000600000007
       numArrayToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
@@ -100,8 +95,6 @@ describe("RainVM tier report saturating diff op", async function () {
   });
 
   it("should diff reports correctly", async () => {
-    this.timeout(0);
-
     const constants0 = [
       // 0x0200000003000000040000000500000006000000070000000800000009
       numArrayToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),

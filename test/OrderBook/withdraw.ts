@@ -36,8 +36,6 @@ describe("OrderBook withdraw from vault", async function () {
   });
 
   it("should allow withdrawals from vaults", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const orderBook = (await orderBookFactory.deploy(

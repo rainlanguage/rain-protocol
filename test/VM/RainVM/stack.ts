@@ -14,7 +14,6 @@ describe("RainVM stack op", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -29,8 +28,6 @@ describe("RainVM stack op", async function () {
   });
 
   it("should error when STACK operand references a stack element that hasn't yet been evaluated", async () => {
-    this.timeout(0);
-
     const constants = [10, 20, 30];
 
     // prettier-ignore
@@ -49,8 +46,6 @@ describe("RainVM stack op", async function () {
   });
 
   it("should error when STACK operand references itself", async () => {
-    this.timeout(0);
-
     const constants = [10, 20, 30];
 
     // prettier-ignore
@@ -69,8 +64,6 @@ describe("RainVM stack op", async function () {
   });
 
   it("should evaluate to correct stack element when STACK is called within a nested evaluation", async () => {
-    this.timeout(0);
-
     const constants = [10, 20, 30, 40];
 
     // STACK should have access to all evaluated stack values
@@ -99,8 +92,6 @@ describe("RainVM stack op", async function () {
   });
 
   it("should return correct stack element when there are nested evaluations (e.g. returns the addition of several stack elements, rather than a summand)", async () => {
-    this.timeout(0);
-
     const constants = [10, 20, 30];
 
     // prettier-ignore
@@ -124,8 +115,6 @@ describe("RainVM stack op", async function () {
   });
 
   it("should return correct stack element when specifying operand", async () => {
-    this.timeout(0);
-
     const constants = [10, 20, 30];
 
     // prettier-ignore

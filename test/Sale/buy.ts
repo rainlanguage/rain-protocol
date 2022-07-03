@@ -35,7 +35,6 @@ describe("Sale buy", async function () {
   });
 
   it("should correctly generate receipts", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -166,7 +165,6 @@ describe("Sale buy", async function () {
   });
 
   it("should use calculated maxUnits when processing buy if maxUnits is less than targetUnits", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -274,7 +272,6 @@ describe("Sale buy", async function () {
   });
 
   it("should prevent reentrant buys", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -410,7 +407,6 @@ describe("Sale buy", async function () {
   });
 
   it("should respect buy cooldown when sale is active", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -513,7 +509,6 @@ describe("Sale buy", async function () {
   });
 
   it("should prevent a buy which leaves remaining units less than configured `dustSize`", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -595,7 +590,6 @@ describe("Sale buy", async function () {
   });
 
   it("should support multiple successive buys (same logic as the following total reserve in test)", async function () {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

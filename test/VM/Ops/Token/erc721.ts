@@ -22,7 +22,6 @@ describe("RainVM ERC721 ops", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -48,8 +47,6 @@ describe("RainVM ERC721 ops", async function () {
   });
 
   it("should return owner of specific ERC721 token", async () => {
-    this.timeout(0);
-
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
@@ -79,8 +76,6 @@ describe("RainVM ERC721 ops", async function () {
   });
 
   it("should return ERC721 balance of signer", async () => {
-    this.timeout(0);
-
     const constants = [signer1.address, tokenERC721.address];
     const vSigner1 = op(Opcode.CONSTANT, 0);
     const vTokenAddr = op(Opcode.CONSTANT, 1);

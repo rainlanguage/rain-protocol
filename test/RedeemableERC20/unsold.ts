@@ -7,8 +7,6 @@ import { Tier } from "../../utils";
 
 describe("RedeemableERC20 unsold token test", async function () {
   it("should forward unsold RedeemableERC20 (pTKN) to non-zero forwarding address", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const forwardee = signers[2];
@@ -70,8 +68,6 @@ describe("RedeemableERC20 unsold token test", async function () {
   });
 
   it("should burn unsold RedeemableERC20 (pTKN) when forwarding address set to address(0)", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const erc20PulleeFactory = await ethers.getContractFactory(

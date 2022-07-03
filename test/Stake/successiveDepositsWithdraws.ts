@@ -26,8 +26,6 @@ describe("Stake many successive deposits and withdraws", async function () {
   });
 
   it("should process 50 successive deposits and withdraws", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -82,8 +80,6 @@ describe("Stake many successive deposits and withdraws", async function () {
   });
 
   it("should process 25 successive deposits and withdraws", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -138,8 +134,6 @@ describe("Stake many successive deposits and withdraws", async function () {
   });
 
   it("should process 10 successive deposits and withdraws", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];

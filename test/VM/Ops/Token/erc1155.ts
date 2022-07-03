@@ -23,7 +23,6 @@ describe("RainVM ERC1155 ops", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -50,8 +49,6 @@ describe("RainVM ERC1155 ops", async function () {
   });
 
   it("should return ERC1155 batch balance result for multiple signers", async () => {
-    this.timeout(0);
-
     const tokenId = 0;
     const length = 2;
 
@@ -114,8 +111,6 @@ describe("RainVM ERC1155 ops", async function () {
   });
 
   it("should return ERC1155 balance of signer", async () => {
-    this.timeout(0);
-
     const tokenId = 0;
 
     const constants = [signer1.address, tokenERC1155.address, tokenId];

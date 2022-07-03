@@ -16,12 +16,10 @@ import {
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Report Test", async function () {
   it("should record the latest claim timestamp for each slot in a tier report", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -68,8 +66,6 @@ describe("EmissionsERC20 Report Test", async function () {
   });
 
   it("should diff reports correctly", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -143,8 +139,6 @@ describe("EmissionsERC20 Report Test", async function () {
   });
 
   it("should return default claim report for an account before claiming", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -189,8 +183,6 @@ describe("EmissionsERC20 Report Test", async function () {
   });
 
   it("should calculate claim report as difference between current block timestamp and everyLteMax([tierReport, lastClaimReport]) for each tier", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];

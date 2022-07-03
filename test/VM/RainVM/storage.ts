@@ -16,7 +16,6 @@ describe("RainVM storage", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -31,8 +30,6 @@ describe("RainVM storage", async function () {
   });
 
   it("should error when attempting to read stored value outside STORAGE opcode range", async () => {
-    this.timeout(0);
-
     const constants = [];
 
     // prettier-ignore
@@ -48,8 +45,6 @@ describe("RainVM storage", async function () {
   });
 
   it("should support reading stored values via STORAGE opcode", async () => {
-    this.timeout(0);
-
     const constants = [];
 
     // prettier-ignore

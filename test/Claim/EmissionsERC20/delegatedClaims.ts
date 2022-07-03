@@ -6,12 +6,10 @@ import { op } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
-export const Opcode = Util.AllStandardOps;
+const Opcode = Util.AllStandardOps;
 
 describe("EmissionsERC20 Delegated Claims Test", async function () {
   it("should prevent delegated claims when flag set to false", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -55,8 +53,6 @@ describe("EmissionsERC20 Delegated Claims Test", async function () {
   });
 
   it("should allow delegated claims when flag set to true", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];

@@ -7,7 +7,7 @@ import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 import { ALWAYS, NEVER } from "../../../utils/tier";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("CombineTier default report", async function () {
   // report time for tier context
@@ -22,8 +22,6 @@ describe("CombineTier default report", async function () {
   ]);
 
   it("should support a program which returns the default report", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await combineTierDeploy(signers[0], {

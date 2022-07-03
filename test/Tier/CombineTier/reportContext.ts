@@ -6,7 +6,7 @@ import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("CombineTier report context", async function () {
   // report time for tier context
@@ -21,8 +21,6 @@ describe("CombineTier report context", async function () {
   ]);
 
   it("should support a program which simply returns the account", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const sourceReport = concat([op(Opcode.CONTEXT, 0)]);

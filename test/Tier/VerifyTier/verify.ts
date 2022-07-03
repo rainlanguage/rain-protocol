@@ -19,8 +19,6 @@ describe("VerifyTier verify", async function () {
   });
 
   it("should correctly verify tier", async function () {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
     const admin = signers[0];
     const verifier = signers[1];

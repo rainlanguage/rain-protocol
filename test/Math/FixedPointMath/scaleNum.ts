@@ -16,8 +16,6 @@ describe("FixedPointMathTest scaling a number", async function () {
 
   // Scale 18
   it("should scale a fixed point decimal UP to scale 18", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -30,8 +28,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a fixed point decimal DOWN to scale 18", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -44,8 +40,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a 0 order of magnitude decimal to scale 18", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -59,8 +53,6 @@ describe("FixedPointMathTest scaling a number", async function () {
 
   // Scale N
   it("should scale a fixed point decimal UP to scale N", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -73,8 +65,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a fixed point decimal DOWN to scale N", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -87,8 +77,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a number by 18 OOM in situ [scaleN]", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -102,8 +90,6 @@ describe("FixedPointMathTest scaling a number", async function () {
 
   // Scale By
   it("should scale a fixed point decimal UP by scale N", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -116,8 +102,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a fixed point decimal DOWN by scale N", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 
@@ -130,8 +114,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a 18 order of magnitude decimal by scale 0", async () => {
-    this.timeout(0);
-
     const fixedPointMathTest =
       (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
 

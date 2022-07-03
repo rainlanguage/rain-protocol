@@ -14,7 +14,6 @@ describe("RainVM context", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    this.timeout(0);
     const stateBuilderFactory = await ethers.getContractFactory(
       "AllStandardOpsStateBuilder"
     );
@@ -29,8 +28,6 @@ describe("RainVM context", async function () {
   });
 
   it("should error if accessing memory outside of context memory range", async () => {
-    this.timeout(0);
-
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 3)])];
 
@@ -46,8 +43,6 @@ describe("RainVM context", async function () {
   });
 
   it("should return correct context value when specifying context operand", async () => {
-    this.timeout(0);
-
     const constants = [];
     const sources = [
       concat([
@@ -78,8 +73,6 @@ describe("RainVM context", async function () {
   });
 
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
-    this.timeout(0);
-
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0)])];
 

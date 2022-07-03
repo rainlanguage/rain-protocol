@@ -34,7 +34,6 @@ describe("Sale canLive (start/end sale)", async function () {
   });
 
   it("should be able to end failed sale if creator does not end it", async () => {
-    this.timeout(0);
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];

@@ -7,12 +7,10 @@ import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("EmissionsERC20 calculateClaim unchecked math", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {
-    this.timeout(0);
-
     const constants = [max_uint256.div(2), 2];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
@@ -57,8 +55,6 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with multiplication op", async () => {
-    this.timeout(0);
-
     const constants = [max_uint256.div(2), 3];
 
     const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
@@ -103,8 +99,6 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
   });
 
   it("should panic when accumulator underflows with subtraction op", async () => {
-    this.timeout(0);
-
     const constants = [0, 1];
 
     const vZero = op(Opcode.CONSTANT, 0);
@@ -149,8 +143,6 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
   });
 
   it("should panic when accumulator overflows with addition op", async () => {
-    this.timeout(0);
-
     const constants = [max_uint256, 1];
 
     const vMaxUInt256 = op(Opcode.CONSTANT, 0);

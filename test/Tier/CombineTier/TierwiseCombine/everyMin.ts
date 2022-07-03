@@ -17,7 +17,7 @@ import {
 import { ALWAYS, NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'every' logic and 'min' mode", async function () {
   // report time for tier context
@@ -32,8 +32,6 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
   ]);
 
   it("should correctly combine Always and Never tier reports with every and min selector", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
@@ -94,8 +92,6 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
   });
 
   it("should correctly combine ReadWriteTier tier contracts with every and min selector", async () => {
-    this.timeout(0);
-
     const signers = await ethers.getSigners();
 
     const readWriteTierFactory = await ethers.getContractFactory(

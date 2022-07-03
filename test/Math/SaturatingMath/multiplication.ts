@@ -15,8 +15,6 @@ describe("SaturatingMathTest multiplication test", async function () {
   });
 
   it("should return expected multiplication within typical (non-overflowing) bounds", async () => {
-    this.timeout(0);
-
     const saturatingMathTest =
       (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
@@ -29,8 +27,6 @@ describe("SaturatingMathTest multiplication test", async function () {
   });
 
   it("should return saturated multiplication when operation would overflow", async () => {
-    this.timeout(0);
-
     const saturatingMathTest =
       (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 

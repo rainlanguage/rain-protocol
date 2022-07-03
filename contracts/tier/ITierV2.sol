@@ -81,8 +81,7 @@ interface ITierV2 {
     /// - Snapshot ERC20s can give different reports based on snapshot ID
     ///
     /// `context` supercedes `setTier` function and `TierChange` event from
-    /// `ITier` at the interface level. Implementing contracts are free to
-    /// inherit both `ITier` and `ITierV2` if the old behaviour is desired.
+    /// `ITier` at the interface level.
     function report(address account, uint256[] calldata context)
         external
         view

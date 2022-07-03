@@ -14,8 +14,6 @@ describe("SaturatingMathTest subtraction test", async function () {
   });
 
   it("should return expected subtraction within typical (non-underflowing) bounds", async () => {
-    this.timeout(0);
-
     const saturatingMathTest =
       (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
@@ -28,8 +26,6 @@ describe("SaturatingMathTest subtraction test", async function () {
   });
 
   it("should return saturated subtraction when operation would underflow", async () => {
-    this.timeout(0);
-
     const saturatingMathTest =
       (await saturatingMathTestFactory.deploy()) as SaturatingMathTest;
 
