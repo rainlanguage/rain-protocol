@@ -19,13 +19,13 @@ contract ReadWriteTier is TierV2 {
     /// @param account The account changing tier.
     /// @param startTier The previous tier the account held.
     /// @param endTier The newly acquired tier the account now holds.
-    /// @param data The associated data for the tier change.
+    /// @param context The associated context for the tier change.
     event TierChange(
         address sender,
         address account,
         uint256 startTier,
         uint256 endTier,
-        bytes data
+        uint[] context
     );
 
     /// account => reports
@@ -33,7 +33,7 @@ contract ReadWriteTier is TierV2 {
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
-    function report(address account_, uint256[] memory)
+    function report(address account_, uint256[] calldata)
         public
         view
         virtual
@@ -51,9 +51,9 @@ contract ReadWriteTier is TierV2 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] calldata
+        uint256[] calldata context_
     ) external view returns (uint256) {
-        return TierReport.reportTimeForTier(reports[account_], tier_);
+        return TierReport.reportTimeForTier(report(account_, context_), tier_);
     }
 
     /// Errors if the user attempts to return to the ZERO tier.
@@ -62,14 +62,13 @@ contract ReadWriteTier is TierV2 {
     function setTier(
         address account_,
         uint256 endTier_,
-        bytes calldata data_
+        uint[] calldata context_
     ) external {
         // The user must move to at least tier 1.
         // The tier 0 status is reserved for users that have never
         // interacted with the contract.
         require(endTier_ > 0, "SET_ZERO_TIER");
 
-        uint256[] memory context_;
         uint256 report_ = report(account_, context_);
 
         uint256 startTier_ = TierReport.tierAtTimeFromReport(
@@ -84,7 +83,7 @@ contract ReadWriteTier is TierV2 {
             block.timestamp
         );
 
-        emit TierChange(msg.sender, account_, startTier_, endTier_, data_);
+        emit TierChange(msg.sender, account_, startTier_, endTier_, context_);
     }
 
     /// Re-export TierReport utilities

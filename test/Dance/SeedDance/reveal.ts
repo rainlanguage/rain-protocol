@@ -11,7 +11,11 @@ import type {
 import { assertError, kurtosis } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
-import { generateRandomWallet, getBlockTimestamp, timewarp } from "../../../utils/hardhat";
+import {
+  generateRandomWallet,
+  getBlockTimestamp,
+  timewarp,
+} from "../../../utils/hardhat";
 
 describe("SeedDance reveal", async function () {
   let seedDance: SeedDanceTest;
@@ -637,17 +641,18 @@ describe("SeedDance reveal", async function () {
   it("it should generate a random distribution of extra times", async () => {
     const extraTimeArr = [];
     const MAX_ADDRESSES = 1000;
-    const MAX_EXTRATIME = 10000; 
+    const MAX_EXTRATIME = 10000;
     const initialSeed = randomBytes(32);
 
     const timeBound: TimeBoundStruct = {
       baseDuration: 60,
-      maxExtraTime: MAX_EXTRATIME, 
+      maxExtraTime: MAX_EXTRATIME,
     };
 
     // Starting the dance
     const startTx = await seedDance.start(initialSeed);
-    const startTime_ = (await ethers.provider.getBlock(startTx.blockNumber)).timestamp;
+    const startTime_ = (await ethers.provider.getBlock(startTx.blockNumber))
+      .timestamp;
     const sharedSeed_ = await seedDance.sharedSeed();
 
     // Validating sharedSeed
@@ -665,12 +670,18 @@ describe("SeedDance reveal", async function () {
       const endTime = until_.toNumber();
 
       // Subtracting endTime by startTime_ and ignoring the baseDuration
-      const extraTime_ = ((endTime - startTime_)) - BigNumber.from(timeBound.baseDuration).toNumber();
+      const extraTime_ =
+        endTime -
+        startTime_ -
+        BigNumber.from(timeBound.baseDuration).toNumber();
       extraTimeArr.push(extraTime_);
     }
 
     // Calculating kurtosis for every addresses's extraTime
     const extraTimeKurtosis = kurtosis(extraTimeArr);
-    assert(extraTimeKurtosis < 0, "canRevealUntil does not have a fair random distribution");
+    assert(
+      extraTimeKurtosis < 0,
+      "canRevealUntil does not have a fair random distribution"
+    );
   });
 });
