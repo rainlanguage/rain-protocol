@@ -1,0 +1,51 @@
+import { assert } from "chai";
+import { keccak256, randomBytes } from "ethers/lib/utils";
+import { ethers } from "hardhat";
+import type {
+  CommitEvent,
+  SeedDanceTest,
+} from "../../../typechain/SeedDanceTest";
+import { basicDeploy } from "../../../utils/deploy/basic";
+import { getEventArgs } from "../../../utils/events";
+import { assertError } from "../../../utils/test/assertError";
+
+describe("SeedDance commit", async function () {
+  let seedDance: SeedDanceTest;
+
+  beforeEach(async () => {
+    seedDance = (await basicDeploy("SeedDanceTest", {})) as SeedDanceTest;
+  });
+
+  it("should allow anybody to make commitments before start", async () => {
+    const signers = await ethers.getSigners();
+
+    const signer1 = signers[1];
+    const signer2 = signers[2];
+
+    const secret1 = randomBytes(32);
+    const commitment1 = keccak256(secret1);
+
+    const txCommit = await seedDance.connect(signer1).commit(commitment1);
+
+    const { sender: sender_, commitment: commitment_ } = (await getEventArgs(
+      txCommit,
+      "Commit",
+      seedDance
+    )) as CommitEvent["args"];
+
+    assert(sender_ === signer1.address, "wrong commit sender in Commit event");
+    assert(commitment_.eq(commitment1), "wrong commitment in Commit event");
+
+    const initialSeed = randomBytes(32);
+    await seedDance.start(initialSeed);
+
+    const secret2 = randomBytes(32);
+    const commitment2 = keccak256(secret2);
+
+    await assertError(
+      async () => await seedDance.connect(signer2).commit(commitment2),
+      "STARTED",
+      "did not prevent commitment after already started"
+    );
+  });
+});

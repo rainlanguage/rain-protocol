@@ -1,5 +1,5 @@
 import { concat } from "ethers/lib/utils";
-import { Opcode } from "./ops";
+import { Opcode } from "./ops/allStandardOps";
 import { op } from "./vm";
 
 export const afterBlockNumberSource = (constant: number): Uint8Array => {

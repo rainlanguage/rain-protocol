@@ -7,7 +7,7 @@ import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
-export const Opcode = AllStandardOps;
+const Opcode = AllStandardOps;
 
 describe("EmissionsERC20 calculateClaim unchecked math", async function () {
   it("should panic when accumulator overflows with exponentiation op", async () => {

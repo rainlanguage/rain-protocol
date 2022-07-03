@@ -19,7 +19,6 @@ import {
   max_uint256,
   ONE,
 } from "../../../utils/constants/bigNumber";
-import { TRACK_CLEARED_COUNTERPARTY } from "../../../utils/constants/orderbook";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { fixedPointDiv } from "../../../utils/math";
@@ -105,7 +104,6 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       inputVaultId: aliceInputVault,
       outputToken: tokenB.address,
       outputVaultId: aliceOutputVault,
-      tracking: TRACK_CLEARED_COUNTERPARTY,
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -142,7 +140,6 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       inputVaultId: bobInputVault,
       outputToken: tokenA.address,
       outputVaultId: bobOutputVault,
-      tracking: 0x0,
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
@@ -179,7 +176,6 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       inputVaultId: carolInputVault,
       outputToken: tokenA.address,
       outputVaultId: carolOutputVault,
-      tracking: 0x0,
       vmStateConfig: {
         sources: [carolSource],
         constants: carolConstants,
@@ -299,6 +295,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
+    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),
@@ -341,6 +338,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       a: stateChange1.aOutput.sub(stateChange1.bInput),
       b: stateChange1.bOutput.sub(stateChange1.aInput),
     };
+    console.log({ actualBounty1 });
 
     assert(
       bInput1.eq(expectedOutputAmount1),
@@ -378,6 +376,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       a: stateChange2.aOutput.sub(stateChange2.bInput),
       b: stateChange2.bOutput.sub(stateChange2.aInput),
     };
+    console.log({ actualBounty2 });
 
     assert(
       bInput2.eq(expectedOutputAmount2),
@@ -420,6 +419,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       a: stateChange3.aOutput.sub(stateChange3.bInput),
       b: stateChange3.bOutput.sub(stateChange3.aInput),
     };
+    console.log({ actualBounty3 });
 
     assert(
       bInput3.eq(expectedOutputAmount3),

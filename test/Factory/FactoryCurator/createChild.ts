@@ -20,7 +20,7 @@ import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator createChild", async function () {
-  it("should revert if user does not meet tier requirement", async () => {
+  it.only("should revert if user does not meet tier requirement", async () => {
     const signers = await ethers.getSigners();
 
     const curator = signers[1];

@@ -14,7 +14,7 @@ contract SaleReentrant is ReserveToken {
     BuyConfig private buyConfig;
 
     /// Configures the contract to attempt to reenter.
-    constructor() ReserveToken() {} // solhint-disable-line no-empty-blocks
+    constructor() ReserveToken() {}
 
     /// Set the contract to attempt to reenter.
     /// @param sale_ Sale contract to reeenter.
