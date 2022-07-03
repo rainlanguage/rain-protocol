@@ -53,7 +53,7 @@ export const autoApproveDeploy = async (
     "implementation autoApprove factory zero address"
   );
 
-  const tx = await autoApproveFactory.createChildTyped(config);
+  const tx = await autoApproveFactory.connect(deployer).createChildTyped(config);
   const autoApprove = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(

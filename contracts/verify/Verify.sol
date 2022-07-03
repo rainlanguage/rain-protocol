@@ -287,9 +287,13 @@ contract Verify is AccessControl, Initializable {
     /// MAY be address 0.
     IVerifyCallback public callback;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Initializes the `Verify` contract e.g. as cloned by a factory.
     /// @param config_ The config required to initialize the contract.
-    function initialize(VerifyConfig calldata config_) external initializer {
+    function initialize(VerifyConfig memory config_) external initializer {
         require(config_.admin != address(0), "0_ACCOUNT");
 
         // `APPROVER_ADMIN` can admin each other in addition to

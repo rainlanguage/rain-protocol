@@ -21,7 +21,7 @@ contract VerifyTierFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -40,6 +40,6 @@ contract VerifyTierFactory is Factory {
     /// @param verify_ `Verify` of the `VerifyTier` logic.
     /// @return New `VerifyTier` child contract address.
     function createChildTyped(address verify_) external returns (VerifyTier) {
-        return VerifyTier(this.createChild(abi.encode(verify_)));
+        return VerifyTier(createChild(abi.encode(verify_)));
     }
 }

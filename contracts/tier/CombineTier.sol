@@ -43,6 +43,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
     address private vmStatePointer;
 
     constructor(address vmStateBuilder_) {
+        _disableInitializers();
         self = address(this);
         vmStateBuilder = vmStateBuilder_;
     }

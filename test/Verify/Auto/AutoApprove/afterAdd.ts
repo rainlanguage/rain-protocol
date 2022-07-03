@@ -59,6 +59,11 @@ describe("AutoApprove afterAdd", async function () {
       callback: autoApprove.address,
     });
 
+    const deployOwner = await autoApprove.owner()
+    assert(deployOwner === deployer.address, `deployer is not auto approve owner is ${deployOwner} expected ${deployer.address}`)
+
+    await autoApprove.connect(deployer).transferOwnership(verify.address)
+
     const evidenceAdd = hexlify(badID);
 
     // make AutoApprove an approver
@@ -117,7 +122,11 @@ describe("AutoApprove afterAdd", async function () {
       callback: autoApprove.address,
     });
 
+    await autoApprove.connect(deployer).transferOwnership(verify.address)
+
     const evidenceAdd = hexlify(correctID);
+
+    await verify.connect(signer1).add(evidenceAdd)
 
     // Can't approve without permissions
     await assertError(
@@ -226,6 +235,8 @@ describe("AutoApprove afterAdd", async function () {
       admin: admin.address,
       callback: autoApprove.address,
     });
+
+    await autoApprove.connect(deployer).transferOwnership(verify.address)
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 

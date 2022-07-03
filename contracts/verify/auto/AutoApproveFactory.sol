@@ -20,8 +20,11 @@ contract AutoApproveFactory is Factory {
         implementation = implementation_;
     }
 
+    /// Note: Caller MUST transfer ownership to the `Verify` contract that is
+    /// attempting to call the autoapprover callbacks, otherwise every
+    /// callback will revert.
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -30,9 +33,6 @@ contract AutoApproveFactory is Factory {
         StateConfig memory config_ = abi.decode(data_, (StateConfig));
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
-        // Caller MUST transfer ownership to the `Verify` contract that is
-        // attempting to call the autoapprover callbacks, otherwise every
-        // callback will revert.
         AutoApprove(clone_).transferOwnership(msg.sender);
         return clone_;
     }
@@ -43,10 +43,10 @@ contract AutoApproveFactory is Factory {
     ///
     /// @param config_ initialize configuration.
     /// @return New `AutoApprove` child contract.
-    function createChildTyped(StateConfig calldata config_)
+    function createChildTyped(StateConfig memory config_)
         external
         returns (AutoApprove)
     {
-        return AutoApprove(this.createChild(abi.encode(config_)));
+        return AutoApprove(createChild(abi.encode(config_)));
     }
 }

@@ -244,6 +244,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
+        _disableInitializers();
         self = address(this);
         vmStateBuilder = config_.vmStateBuilder;
         maximumSaleTimeout = config_.maximumSaleTimeout;

@@ -25,7 +25,9 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+        _disableInitializers();
+    }
 
     function initialize(StateConfig calldata stateConfig_)
         external
@@ -37,6 +39,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         Bounds[] memory boundss_ = new Bounds[](1);
         boundss_[0] = bounds_;
         _initializeStandardVM(stateConfig_, boundss_);
+        _transferOwnership(msg.sender);
 
         emit Initialize(msg.sender, stateConfig_);
     }
