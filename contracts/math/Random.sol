@@ -195,7 +195,9 @@ library Random {
                 // in memory from the bytes array we have to mask out the 2
                 // bytes at the end of the loaded value.
                 // solhint-disable-next-line max-line-length
-                let itemMask_ := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
+                let
+                    itemMask_
+                := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
 
                 // When we want to read ONLY the current item being considered
                 // from a full 32 byte `mload` we want to keep only the last

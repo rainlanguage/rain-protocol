@@ -29,22 +29,16 @@ contract RandomTest {
         uint256 a_ = gasleft();
         shuffled_ = Random.shuffle(seed_, len_);
         uint256 b_ = gasleft();
-        console.log(
-            "shuffle gas used: %s %s %s",
-            len_,
-            a_ - b_,
-            (a_ - b_) / len_
-        );
-        require(
-            uint256(
-                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000
-            ) == uint256(~uint256(0xFFFF)),
-            "BADBAD"
-        );
+        // console.log(
+        //     "shuffle gas used: %s %s %s",
+        //     len_,
+        //     a_ - b_,
+        //     (a_ - b_) / len_
+        // );
         a_ = gasleft();
         shuffled = SSTORE2.write(shuffled_);
         b_ = gasleft();
-        console.log("storage gas used: %s", a_ - b_);
+        // console.log("storage gas used: %s", a_ - b_);
     }
 
     function shuffleIdAtIndex(uint256 index_) external returns (uint256 id_) {
@@ -55,14 +49,14 @@ contract RandomTest {
 
         id_ = Random.shuffleIdAtIndex(shuffled_, index_);
         uint256 b_ = gasleft();
-        console.log("shuffle id: %s", id_);
-        console.log("shuffle index gas: %s", a_ - b_);
+        // console.log("shuffle id: %s", id_);
+        // console.log("shuffle index gas: %s", a_ - b_);
 
-        uint index2_ = index_+1;
+        uint256 index2_ = index_ + 1;
         a_ = gasleft();
         Random.shuffleIdAtIndex(shuffled_, index2_);
         b_ = gasleft();
-        console.log("shuffle index gas 2: %s", a_ - b_);
+        // console.log("shuffle index gas 2: %s", a_ - b_);
     }
 
     function randomId(uint256 seed_, uint256 index_)
@@ -76,7 +70,7 @@ contract RandomTest {
         id_ = Random.randomId(seed_, index_);
         uint256 b_ = gasleft();
 
-        console.log("random id: %s", id_);
-        console.log("random gas: %s", a_ - b_);
+        // console.log("random id: %s", id_);
+        // console.log("random gas: %s", a_ - b_);
     }
 }
