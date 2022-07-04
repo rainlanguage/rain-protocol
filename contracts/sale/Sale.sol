@@ -243,6 +243,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
+        _disableInitializers();
         self = address(this);
         vmStateBuilder = config_.vmStateBuilder;
         maximumSaleTimeout = config_.maximumSaleTimeout;
@@ -329,11 +330,11 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         override
         returns (StorageOpcodesRange memory)
     {
-        uint256 pointer_;
+        uint256 slot_;
         assembly {
-            pointer_ := _remainingUnits.slot
+            slot_ := _remainingUnits.slot
         }
-        return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
+        return StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
     }
 
     /// @inheritdoc ISale

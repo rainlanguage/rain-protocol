@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { BigNumber } from "ethers";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat, hexlify, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
 import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
@@ -292,7 +292,7 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source2 = concat([
-      // 2 ? 2 : 3
+      // 0 ? 2 : 3
         v0,
         v2,
         v3,
@@ -387,12 +387,14 @@ describe("RainVM logic ops", async function () {
   });
 
   it("should check that values are equal to each other", async () => {
-    const constants = [1, 2];
+    const id = hexZeroPad(ethers.utils.randomBytes(32), 32);
+
+    const constants = [1, 2, 2, id];
 
     // prettier-ignore
     const source0 = concat([
         op(Opcode.CONSTANT, 1), // 2
-        op(Opcode.CONSTANT, 1), // 2
+        op(Opcode.CONSTANT, 2), // also 2
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -422,6 +424,46 @@ describe("RainVM logic ops", async function () {
     const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
+
+    // prettier-ignore
+    const source2 = concat([
+        op(Opcode.CONSTANT, 0), // 1
+        op(Opcode.CONTEXT, 0), // 1
+      op(Opcode.EQUAL_TO),
+    ]);
+
+    await logic.initialize({
+      sources: [source2],
+      constants,
+    });
+
+    await logic.runContext([1]);
+    const result2 = await logic.stackTop(); // expect 1
+
+    assert(
+      isTruthy(result2),
+      "wrongly says constant 1 is not equal to context 1"
+    );
+
+    // prettier-ignore
+    const source3 = concat([
+        op(Opcode.CONSTANT, 3), // id
+        op(Opcode.CONTEXT, 0), // id
+      op(Opcode.EQUAL_TO),
+    ]);
+
+    await logic.initialize({
+      sources: [source3],
+      constants,
+    });
+
+    await logic.runContext([id]);
+    const result3 = await logic.stackTop(); // expect 1
+
+    assert(
+      isTruthy(result3),
+      "wrongly says id as constant is not equal to id as context"
+    );
   });
 
   it("should check that a value is zero", async () => {

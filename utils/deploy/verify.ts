@@ -9,6 +9,24 @@ import type {
 import { zeroAddress } from "../constants";
 import { getEventArgs } from "../events";
 
+export const verifyFactoryDeploy = async () => {
+  const verifyFactoryFactory = await ethers.getContractFactory("VerifyFactory");
+  const verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
+  await verifyFactory.deployed();
+
+  const { implementation } = (await getEventArgs(
+    verifyFactory.deployTransaction,
+    "Implementation",
+    verifyFactory
+  )) as ImplementationEventVerifyFactory["args"];
+  assert(
+    !(implementation === zeroAddress),
+    "implementation verify factory zero address"
+  );
+
+  return verifyFactory;
+};
+
 export const verifyDeploy = async (
   deployer: SignerWithAddress,
   verifyFactory: VerifyFactory,

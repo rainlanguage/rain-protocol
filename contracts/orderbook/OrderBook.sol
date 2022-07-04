@@ -69,6 +69,7 @@ contract OrderBook is RainVM {
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
+    using LibFnPtrs for bytes;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -329,27 +330,17 @@ contract OrderBook is RainVM {
         return stackTopLocation_;
     }
 
-    function localFnPtrs() internal pure returns (bytes memory) {
+    function localFnPtrs() internal pure returns (bytes memory localFnPtrs_) {
         unchecked {
-            uint256 lenBytes_ = LOCAL_OPS_LENGTH * 0x20;
-            function(uint256, uint256) pure returns (uint256) zeroFn_;
-            assembly {
-                zeroFn_ := 0
-            }
-            function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH +
-                1]
-                memory fns_ = [
-                    // will be overridden with length
-                    zeroFn_,
-                    opOrderFundsCleared,
-                    opOrderCounterpartyFundsCleared
-                ];
-            bytes memory ret_;
-            assembly {
-                mstore(fns_, lenBytes_)
-                ret_ := fns_
-            }
-            return ret_;
+            localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
+            localFnPtrs_.insertOpPtr(
+                LOCAL_OP_CLEARED_ORDER - ALL_STANDARD_OPS_LENGTH,
+                opOrderFundsCleared
+            );
+            localFnPtrs_.insertOpPtr(
+                LOCAL_OP_CLEARED_COUNTERPARTY - ALL_STANDARD_OPS_LENGTH,
+                opOrderCounterpartyFundsCleared
+            );
         }
     }
 

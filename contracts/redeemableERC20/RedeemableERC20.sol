@@ -156,6 +156,10 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// of the distribution.
     address private distributionEndForwardingAddress;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.

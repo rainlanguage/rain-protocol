@@ -20,7 +20,7 @@ contract EmissionsERC20Factory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -41,10 +41,10 @@ contract EmissionsERC20Factory is Factory {
     ///
     /// @param config_ `EmissionsERC20` constructor configuration.
     /// @return New `EmissionsERC20` child contract address.
-    function createChildTyped(EmissionsERC20Config calldata config_)
+    function createChildTyped(EmissionsERC20Config memory config_)
         external
         returns (EmissionsERC20)
     {
-        return EmissionsERC20(this.createChild(abi.encode(config_)));
+        return EmissionsERC20(createChild(abi.encode(config_)));
     }
 }
