@@ -15,8 +15,6 @@ import "../tier/libraries/TierConstants.sol";
 import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
 
-import "hardhat/console.sol";
-
 struct StakeConfig {
     address token;
     uint256 initialRatio;
@@ -31,25 +29,7 @@ struct Deposit {
     uint224 amount;
 }
 
-type Deposit2 is uint;
-
-library LibDeposit2 {
-    function from(uint32 timestamp_, uint224 amount_) internal pure returns (Deposit2 deposit_) {
-        deposit_ = Deposit2.wrap(uint(timestamp_) << 224 | uint(amount_));
-    }
-
-    function amount(Deposit2 deposit_) internal pure returns (uint amount_) {
-        amount_ = Deposit2.unwrap(deposit_) & type(uint224).max;
-    }
-
-    function timestamp(Deposit2 deposit_) internal pure returns (uint timestamp_) {
-        timestamp_ = Deposit2.unwrap(deposit_) >> 224;
-    }
-}
-
 contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
-    using LibDeposit2 for Deposit2;
-
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -58,7 +38,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     IERC20 private token;
     uint256 private initialRatio;
 
-    mapping(address => Deposit2[]) private deposits;
+    mapping(address => Deposit[]) private deposits;
 
     function initialize(StakeConfig calldata config_) external initializer {
         require(config_.token != address(0), "0_TOKEN");
@@ -89,43 +69,30 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         require(mintAmount_ > 0, "0_MINT");
         _mint(msg.sender, mintAmount_);
 
-        uint highwater_ = deposits[msg.sender].length > 0
-            ? deposits[msg.sender][deposits[msg.sender].length - 1].amount()
+        uint len_ = deposits[msg.sender].length;
+        uint highwater_ = len_ > 0
+            ? deposits[msg.sender][len_ - 1].amount
             : 0;
         deposits[msg.sender].push(
-            LibDeposit2.from(uint32(block.timestamp), (highwater_ + amount_).toUint224())
+            Deposit(uint32(block.timestamp), (highwater_ + amount_).toUint224())
         );
-
-        uint val_ = highwater_ + amount_ | (block.timestamp << 224);
-        uint cursor_;
-        assembly {
-            mstore(0, caller())
-            mstore(0x20, 10000)
-            let cursorLocation_ := keccak256(0, 0x40)
-            cursor_ := sload(cursorLocation_)
-            sstore(cursorLocation_, add(cursor_, 1))
-            mstore(0x20, cursor_)
-            let valLocation_ := keccak256(0, 0x40)
-            sstore(valLocation_, val_)
-            // mstore(0x20, amountLocation_)
-            // let timestampLocation_ := keccak256(0, 0x40)
-            // sstore(timestampLocation_, timestamp())
-        }
-        // console.log("cursor", cursor_);
     }
 
     function withdraw(uint256 amount_) external nonReentrant {
         require(amount_ > 0, "0_AMOUNT");
 
         // MUST revert if length is 0 so we're guaranteed to have some amount
-        // for the old highwater. Users without deposits can't withdraw.
+        // for the old highwater. Users without deposits can't withdraw so there
+        // will be an overflow here.
         uint256 i_ = deposits[msg.sender].length - 1;
-        uint256 oldHighwater_ = uint256(deposits[msg.sender][i_].amount());
-        // MUST revert if withdraw amount exceeds highwater.
+        uint256 oldHighwater_ = uint256(deposits[msg.sender][i_].amount);
+        // MUST revert if withdraw amount exceeds highwater. Overflow will
+        // ensure this.
         uint256 newHighwater_ = oldHighwater_ - amount_;
 
+        (uint high_,) = _earliestTimeAboveThreshold(msg.sender, newHighwater_, 0);
         unchecked {
-            while (deposits[msg.sender][i_].amount() > newHighwater_) {
+            while (i_ <= high_) {
                 delete deposits[msg.sender][i_];
                 if (i_ == 0) {
                     break;
@@ -136,8 +103,9 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
 
         // If the newHighwater_ is not identical to the current top we write it
         // as the new top.
-        uint256 cmpHighwater_ = deposits[msg.sender].length > 0
-            ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
+        uint lenAfter_ = deposits[msg.sender].length;
+        uint256 cmpHighwater_ = lenAfter_ > 0
+            ? deposits[msg.sender][lenAfter_ - 1].amount
             : 0;
         if (newHighwater_ > cmpHighwater_) {
             deposits[msg.sender].push(
@@ -160,24 +128,21 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         view
         returns (uint256 report_)
     {
-        report_ = type(uint256).max;
-        if (context_.length > 0) {
-            uint256 t_ = 0;
-            Deposit memory deposit_;
-            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
-                deposit_ = deposits[account_][i_];
-                while (
-                    t_ < context_.length && deposit_.amount >= context_[t_]
-                ) {
+        unchecked {
+            report_ = type(uint256).max;
+            if (context_.length > 0) {
+                uint high_ = 0;
+                uint time_ = uint256(TierConstants.NEVER_TIME);
+                for (uint t_ = 0; t_ < context_.length; t_++) {
+                    (high_, time_) = _earliestTimeAboveThreshold(account_, context_[t_], high_);
+                    if (time_ == uint256(TierConstants.NEVER_TIME)) {
+                        break;
+                    }
                     report_ = TierReport.updateTimeAtTier(
                         report_,
                         t_,
-                        deposit_.timestamp
+                        time_
                     );
-                    t_++;
-                }
-                if (t_ == context_.length) {
-                    break;
                 }
             }
         }
@@ -189,27 +154,17 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        uint a_ = gasleft();
-        // time_ = uint256(TierConstants.NEVER_TIME);
         if (tier_ < context_.length) {
             uint256 threshold_ = context_[tier_];
-            (, time_) = _eTAT(account_, threshold_, 0);
-            // (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
-            // Deposit memory deposit_;
-            // for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
-            //     deposit_ = deposits[account_][i_];
-            //     if (deposit_.amount >= threshold_) {
-            //         time_ = deposit_.timestamp;
-            //         break;
-            //     }
-            // }
+            (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
         }
-        uint b_ = gasleft();
-        console.log("x", a_ - b_);
+        else {
+            time_ = uint256(TierConstants.NEVER_TIME);
+        }
     }
 
     /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
-    function _eTAT(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
+    function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
         unchecked {
             uint len_ = deposits[account_].length;
             high_ = len_;
@@ -224,37 +179,9 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
                     low_ = mid_ + 1;
                 }
             }
-            time_ = high_ == len_ ? uint(TierConstants.NEVER_TIME) : deposit_.timestamp;
+            // At this point high_ and low_ are equal, but mid_ has not been
+            // updated to match, so high_ is what we return as-is.
+            time_ = high_ == len_ ? uint(TierConstants.NEVER_TIME) : deposits[account_][high_].timestamp;
         }
-    }
-
-    function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
-        unchecked {
-        uint cursor_;
-        uint cursorLocation_;
-        assembly {
-            mstore(0, account_)
-            mstore(0x20, 10000)
-            cursorLocation_ := keccak256(0, 0x40)
-            cursor_ := sload(cursorLocation_)
-        }
-        high_ = cursor_;
-        uint mid_;
-        uint val_;
-        while (low_ < high_) {
-            mid_ = Math.average(low_, high_);
-            assembly {
-                mstore(0x20, mid_)
-                val_ := sload(keccak256(0, 0x40))
-            }
-
-            if (val_ & type(uint224).max >= threshold_) {
-                high_ = mid_;
-            } else {
-                low_ = mid_ + 1;
-            }
-        }
-        time_ = high_ == cursor_ ? uint(TierConstants.NEVER_TIME) : val_ >> 224;
-    }
     }
 }

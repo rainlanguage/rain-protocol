@@ -9,7 +9,7 @@ import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 
-describe.only("Stake many successive deposits and withdraws", async function () {
+describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
   let reportOMeter: ReportOMeter;
   let token: ReserveToken;
