@@ -175,7 +175,8 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         // time_ = uint256(TierConstants.NEVER_TIME);
         if (tier_ < context_.length) {
             uint256 threshold_ = context_[tier_];
-            (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
+            (, time_) = _eTAT(account_, threshold_, 0);
+            // (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
             // Deposit memory deposit_;
             // for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
             //     deposit_ = deposits[account_][i_];
@@ -190,6 +191,25 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     }
 
     /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
+    function _eTAT(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
+        unchecked {
+            uint len_ = deposits[account_].length;
+            high_ = len_;
+            uint mid_;
+            Deposit memory deposit_;
+            while (low_ < high_) {
+                mid_ = Math.average(low_, high_);
+                deposit_ = deposits[account_][mid_];
+                if (uint(deposit_.amount) >= threshold_) {
+                    high_ = mid_;
+                } else {
+                    low_ = mid_ + 1;
+                }
+            }
+            time_ = high_ == len_ ? uint(TierConstants.NEVER_TIME) : deposit_.timestamp;
+        }
+    }
+
     function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
         unchecked {
         uint cursor_;
