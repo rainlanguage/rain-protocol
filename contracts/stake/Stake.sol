@@ -31,7 +31,25 @@ struct Deposit {
     uint224 amount;
 }
 
+type Deposit2 is uint;
+
+library LibDeposit2 {
+    function from(uint32 timestamp_, uint224 amount_) internal pure returns (Deposit2 deposit_) {
+        deposit_ = Deposit2.wrap(uint(timestamp_) << 224 | uint(amount_));
+    }
+
+    function amount(Deposit2 deposit_) internal pure returns (uint amount_) {
+        amount_ = Deposit2.unwrap(deposit_) & type(uint224).max;
+    }
+
+    function timestamp(Deposit2 deposit_) internal pure returns (uint timestamp_) {
+        timestamp_ = Deposit2.unwrap(deposit_) >> 224;
+    }
+}
+
 contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
+    using LibDeposit2 for Deposit2;
+
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -40,7 +58,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     IERC20 private token;
     uint256 private initialRatio;
 
-    mapping(address => Deposit[]) private deposits;
+    mapping(address => Deposit2[]) private deposits;
 
     function initialize(StakeConfig calldata config_) external initializer {
         require(config_.token != address(0), "0_TOKEN");
@@ -71,11 +89,11 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         require(mintAmount_ > 0, "0_MINT");
         _mint(msg.sender, mintAmount_);
 
-        uint224 highwater_ = deposits[msg.sender].length > 0
-            ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
+        uint highwater_ = deposits[msg.sender].length > 0
+            ? deposits[msg.sender][deposits[msg.sender].length - 1].amount()
             : 0;
         deposits[msg.sender].push(
-            Deposit(uint32(block.timestamp), highwater_ + amount_.toUint224())
+            LibDeposit2.from(uint32(block.timestamp), (highwater_ + amount_).toUint224())
         );
 
         uint val_ = highwater_ + amount_ | (block.timestamp << 224);
@@ -102,12 +120,12 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         // MUST revert if length is 0 so we're guaranteed to have some amount
         // for the old highwater. Users without deposits can't withdraw.
         uint256 i_ = deposits[msg.sender].length - 1;
-        uint256 oldHighwater_ = uint256(deposits[msg.sender][i_].amount);
+        uint256 oldHighwater_ = uint256(deposits[msg.sender][i_].amount());
         // MUST revert if withdraw amount exceeds highwater.
         uint256 newHighwater_ = oldHighwater_ - amount_;
 
         unchecked {
-            while (deposits[msg.sender][i_].amount > newHighwater_) {
+            while (deposits[msg.sender][i_].amount() > newHighwater_) {
                 delete deposits[msg.sender][i_];
                 if (i_ == 0) {
                     break;
