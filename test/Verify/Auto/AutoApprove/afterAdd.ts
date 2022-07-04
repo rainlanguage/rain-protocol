@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat, hexlify, hexZeroPad } from "ethers/lib/utils";
+import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { StateConfigStruct } from "../../../../typechain/AutoApprove";
 import { AutoApproveFactory } from "../../../../typechain/AutoApproveFactory";
@@ -24,7 +24,7 @@ describe("AutoApprove afterAdd", async function () {
     autoApproveFactory = await autoApproveFactoryDeploy();
   });
 
-  it("should not approve sender if evidence does not match the correct ID", async () => {
+  it("should automatically approve sender iff AutoApprove has APPROVER role", async () => {
     const signers = await ethers.getSigners();
 
     const deployer = signers[1];
@@ -32,14 +32,13 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const correctID = ethers.BigNumber.from(ethers.utils.randomBytes(32));
-    const badID = ethers.BigNumber.from(ethers.utils.randomBytes(32));
+    const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0),
+            op(Opcode.CONTEXT, 1),
             op(Opcode.CONSTANT, 0),
           op(Opcode.EQUAL_TO),
         ]),
@@ -59,12 +58,78 @@ describe("AutoApprove afterAdd", async function () {
       callback: autoApprove.address,
     });
 
-    const deployOwner = await autoApprove.owner()
-    assert(deployOwner === deployer.address, `deployer is not auto approve owner is ${deployOwner} expected ${deployer.address}`)
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
 
-    await autoApprove.connect(deployer).transferOwnership(verify.address)
+    const evidenceAdd = hexZeroPad(correctID, 32);
 
-    const evidenceAdd = hexlify(badID);
+    // Can't approve without permissions
+    await assertError(
+      async () => await verify.connect(signer1).add(evidenceAdd),
+      `AccessControl: account ${autoApprove.address.toLowerCase()} is missing role ${(
+        await verify.APPROVER()
+      ).toLowerCase()}`,
+      "autoApprove approved without approver role"
+    );
+
+    // make AutoApprove an approver
+    await verify
+      .connect(admin)
+      .grantRole(await verify.APPROVER_ADMIN(), aprAdmin.address);
+    await verify
+      .connect(admin)
+      .renounceRole(await verify.APPROVER_ADMIN(), admin.address);
+    await verify
+      .connect(aprAdmin)
+      .grantRole(await verify.APPROVER(), autoApprove.address);
+
+    // now signer1 can get their account automatically approved
+    await verify.connect(signer1).add(evidenceAdd);
+  });
+
+  it("should not approve sender if evidence does not match the correct ID", async () => {
+    const signers = await ethers.getSigners();
+
+    const deployer = signers[1];
+    const admin = signers[2];
+    const signer1 = signers[3];
+    const aprAdmin = signers[4];
+
+    const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
+    const badID = hexZeroPad(ethers.utils.randomBytes(32), 32);
+
+    const stateConfig: StateConfigStruct = {
+      // prettier-ignore
+      sources: [
+        concat([
+            op(Opcode.CONTEXT, 1),
+            op(Opcode.CONSTANT, 0),
+          op(Opcode.EQUAL_TO),
+        ]),
+      ],
+      constants: [correctID],
+    };
+
+    const autoApprove = await autoApproveDeploy(
+      deployer,
+      autoApproveFactory,
+      stateConfig
+    );
+
+    const verifyFactory = await verifyFactoryDeploy();
+    const verify = await verifyDeploy(deployer, verifyFactory, {
+      admin: admin.address,
+      callback: autoApprove.address,
+    });
+
+    const deployOwner = await autoApprove.owner();
+    assert(
+      deployOwner === deployer.address,
+      `deployer is not auto approve owner is ${deployOwner} expected ${deployer.address}`
+    );
+
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
+
+    const evidenceAdd = hexZeroPad(badID, 32);
 
     // make AutoApprove an approver
     await verify
@@ -96,13 +161,13 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const correctID = ethers.BigNumber.from(ethers.utils.randomBytes(32));
+    const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0),
+            op(Opcode.CONTEXT, 1),
             op(Opcode.CONSTANT, 0),
           op(Opcode.EQUAL_TO),
         ]),
@@ -122,20 +187,9 @@ describe("AutoApprove afterAdd", async function () {
       callback: autoApprove.address,
     });
 
-    await autoApprove.connect(deployer).transferOwnership(verify.address)
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
 
-    const evidenceAdd = hexlify(correctID);
-
-    await verify.connect(signer1).add(evidenceAdd)
-
-    // Can't approve without permissions
-    await assertError(
-      async () => await verify.connect(signer1).add(evidenceAdd),
-      `AccessControl: account ${autoApprove.address.toLowerCase()} is missing role ${(
-        await verify.APPROVER()
-      ).toLowerCase()}`,
-      "autoApprove approved without approver role"
-    );
+    const evidenceAdd = hexZeroPad(correctID, 32);
 
     // make AutoApprove an approver
     await verify
@@ -236,7 +290,7 @@ describe("AutoApprove afterAdd", async function () {
       callback: autoApprove.address,
     });
 
-    await autoApprove.connect(deployer).transferOwnership(verify.address)
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 

@@ -39,11 +39,11 @@ describe("AutoApprove evidence data approved op", async function () {
       sources: [
         concat([
             // has this evidence been used before?
-              op(Opcode.CONTEXT, 0),
+              op(Opcode.CONTEXT, 1),
             op(Opcode.EVIDENCE_DATA_APPROVED),
 
             // has it been 1 day since this evidence was last used for approval?
-                op(Opcode.CONTEXT, 0),
+                op(Opcode.CONTEXT, 1),
               op(Opcode.EVIDENCE_DATA_APPROVED),
                 op(Opcode.BLOCK_TIMESTAMP),
                 op(Opcode.CONSTANT, 2), // 1 day in seconds
@@ -69,6 +69,8 @@ describe("AutoApprove evidence data approved op", async function () {
       admin: admin.address,
       callback: autoApprove.address,
     });
+
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 
@@ -97,7 +99,7 @@ describe("AutoApprove evidence data approved op", async function () {
       async () =>
         (await getEventArgs(addTx1, "Approve", verify)) as ApproveEvent["args"],
       "Could not find event Approve",
-      "wrongly approved when evidence was reused immediately"
+      "wrongly approved when same evidence was reused immediately"
     );
 
     await timewarp(86500); // advance at least a day
@@ -117,7 +119,7 @@ describe("AutoApprove evidence data approved op", async function () {
       async () =>
         (await getEventArgs(addTx3, "Approve", verify)) as ApproveEvent["args"],
       "Could not find event Approve",
-      "wrongly approved when evidence was reused immediately"
+      "wrongly approved when same evidence was reused immediately"
     );
   });
 
@@ -135,7 +137,7 @@ describe("AutoApprove evidence data approved op", async function () {
       sources: [
         // approved ? deny : approve
         concat([
-              op(Opcode.CONTEXT, 0),
+              op(Opcode.CONTEXT, 1),
             op(Opcode.EVIDENCE_DATA_APPROVED),
             op(Opcode.CONSTANT, 0), // deny
             op(Opcode.CONSTANT, 1), // approve
@@ -155,6 +157,8 @@ describe("AutoApprove evidence data approved op", async function () {
       admin: admin.address,
       callback: autoApprove.address,
     });
+
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
 
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 

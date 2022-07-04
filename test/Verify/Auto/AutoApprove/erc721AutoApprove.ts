@@ -32,7 +32,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     )) as ReserveTokenERC721;
   });
 
-  it("should automatically approve only if sender owns the NFT", async () => {
+  it("should automatically approve only if account owns the NFT", async () => {
     const signers = await ethers.getSigners();
 
     const signer0 = signers[0];
@@ -42,7 +42,8 @@ describe("AutoApprove ERC721 ownership", async function () {
     const signer1 = signers[4];
 
     const vTokenAddr = op(Opcode.CONSTANT, 0);
-    const cNftId = op(Opcode.CONTEXT, 0);
+    const cAccount = op(Opcode.CONTEXT, 0);
+    const cNftId = op(Opcode.CONTEXT, 1);
 
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
@@ -51,7 +52,7 @@ describe("AutoApprove ERC721 ownership", async function () {
               vTokenAddr,
               cNftId,
             op(Opcode.IERC721_OWNER_OF),
-            op(Opcode.SENDER),
+            cAccount,
           op(Opcode.EQUAL_TO),
         ])],
       constants: [tokenERC721.address],
@@ -69,6 +70,8 @@ describe("AutoApprove ERC721 ownership", async function () {
       callback: autoApprove.address,
     });
 
+    await autoApprove.connect(deployer).transferOwnership(verify.address);
+
     // make AutoApprove an approver
     await verify
       .connect(admin)
@@ -83,7 +86,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     // signer1 acquires NFT with id 1
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
-    const evidenceAdd0 = hexZeroPad([1], 32);
+    const evidenceAdd0 = hexZeroPad("0x1", 32);
     const addTx0 = await verify.connect(signer1).add(evidenceAdd0);
     (await getEventArgs(addTx0, "Approve", verify)) as ApproveEvent["args"];
   });
