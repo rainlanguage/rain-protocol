@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "../vm/StandardStateBuilder.sol";
-import "../vm/ops/AllStandardOps.sol";
-import "./OrderBook.sol";
+import "../../vm/StandardStateBuilder.sol";
+import "./AutoApprove.sol";
 
-contract OrderBookStateBuilder is StandardStateBuilder {
+contract AutoApproveStateBuilder is StandardStateBuilder {
     using LibFnPtrs for bytes;
 
     function localStackPopsFnPtrs()
@@ -19,10 +18,8 @@ contract OrderBookStateBuilder is StandardStateBuilder {
             fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
             function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
                 memory fns_ = [
-                    // order funds cleared
-                    AllStandardOps.one,
-                    // order counterparty funds cleared
-                    AllStandardOps.two
+                    // approved evidence
+                    AllStandardOps.one
                 ];
             for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
                 fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
@@ -41,9 +38,7 @@ contract OrderBookStateBuilder is StandardStateBuilder {
             fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
             function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
                 memory fns_ = [
-                    // order funds cleared
-                    AllStandardOps.one,
-                    // order counterparty funds cleared
+                    // approved evidence
                     AllStandardOps.one
                 ];
             for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {

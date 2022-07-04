@@ -46,7 +46,7 @@
     "typechain": "^6.0.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.3.3",
-    "@openzeppelin/contracts-upgradeable": "^4.4.1"
+    "@openzeppelin/contracts": "=4.7.0",
+    "@openzeppelin/contracts-upgradeable": "=4.7.0"
   }
 }

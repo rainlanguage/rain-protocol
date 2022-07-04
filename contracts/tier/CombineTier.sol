@@ -43,6 +43,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
     address private vmStatePointer;
 
     constructor(address vmStateBuilder_) {
+        _disableInitializers();
         self = address(this);
         vmStateBuilder = vmStateBuilder_;
     }
@@ -81,8 +82,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
         emit Initialize(msg.sender, config_);
     }
 
-    /// @inheritdoc RainVM
-    function fnPtrs() public pure override returns (bytes memory) {
+    function fnPtrs() public pure virtual override returns (bytes memory) {
         return AllStandardOps.fnPtrs();
     }
 

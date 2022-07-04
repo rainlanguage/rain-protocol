@@ -76,6 +76,7 @@ contract EmissionsERC20 is
     mapping(address => uint256) private reports;
 
     constructor(address vmStateBuilder_) {
+        _disableInitializers();
         self = address(this);
         vmStateBuilder = vmStateBuilder_;
     }

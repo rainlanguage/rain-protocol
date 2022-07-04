@@ -24,7 +24,7 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// arguments and pass them to this function directly.
     ///
     /// @param data_ ABI encoded data to pass to child contract constructor.
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         returns (address);
@@ -37,8 +37,8 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     ///
     /// @param data_ Encoded data to pass down to child contract constructor.
     /// @return New child contract address.
-    function createChild(bytes calldata data_)
-        external
+    function createChild(bytes memory data_)
+        public
         virtual
         override
         nonReentrant

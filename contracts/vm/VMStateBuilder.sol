@@ -43,6 +43,36 @@ struct Bounds {
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
+library LibFnPtrs {
+    function insertStackMovePtr(
+        bytes memory fnPtrs_,
+        uint256 i_,
+        function(uint256) view returns (uint256) fn_
+    ) internal pure {
+        unchecked {
+            uint256 offset_ = i_ * 0x20;
+            require(offset_ < fnPtrs_.length, "FN_PTRS_OVERFLOW");
+            assembly {
+                mstore(add(fnPtrs_, add(0x20, mul(i_, 0x20))), fn_)
+            }
+        }
+    }
+
+    function insertOpPtr(
+        bytes memory fnPtrs_,
+        uint256 i_,
+        function(uint256, uint256) view returns (uint256) fn_
+    ) internal pure {
+        unchecked {
+            uint256 offset_ = i_ * 0x20;
+            require(offset_ < fnPtrs_.length, "FN_PTRS_OVERFLOW");
+            assembly {
+                mstore(add(fnPtrs_, add(0x20, mul(i_, 0x20))), fn_)
+            }
+        }
+    }
+}
+
 contract VMStateBuilder {
     using Math for uint256;
 

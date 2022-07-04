@@ -15,8 +15,7 @@ export const maxBN = (a: BigNumber, b: BigNumber): BigNumber =>
  * @param {Array<number>} arr - Array of values
  * @returns {Number} - sample excess kurtosis
  */
-export const kurtosis = (arr: Array<number>): number =>  {
-  
+export const kurtosis = (arr: Array<number>): number => {
   const len = arr.length;
   let delta = 0;
   let delta_n = 0;
@@ -39,15 +38,18 @@ export const kurtosis = (arr: Array<number>): number =>  {
     term1 = delta * delta_n * (N - 1);
 
     // moment
-    M4 += term1 * delta_n2 * (N * N - 3 * N + 3) + 6 * delta_n2 * M2 - 4 * delta_n * M3;
+    M4 +=
+      term1 * delta_n2 * (N * N - 3 * N + 3) +
+      6 * delta_n2 * M2 -
+      4 * delta_n * M3;
     M3 += term1 * delta_n * (N - 2) - 3 * delta_n * M2;
     M2 += term1;
     mean += delta_n;
   }
 
   // Calculate the population excess kurtosis:
-  const g = N * M4 / (M2 * M2) - 3;
+  const g = (N * M4) / (M2 * M2) - 3;
 
   // Return the corrected sample excess kurtosis:
-  return (N - 1) / ((N - 2) * (N - 3)) * ((N + 1) * g + 6);
-}
+  return ((N - 1) / ((N - 2) * (N - 3))) * ((N + 1) * g + 6);
+};

@@ -21,7 +21,7 @@ contract VerifyFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -39,10 +39,10 @@ contract VerifyFactory is Factory {
     ///
     /// @param config_ Initialization config for the new `Verify` child.
     /// @return New `Verify` child contract address.
-    function createChildTyped(VerifyConfig calldata config_)
+    function createChildTyped(VerifyConfig memory config_)
         external
         returns (Verify)
     {
-        return Verify(this.createChild(abi.encode(config_)));
+        return Verify(createChild(abi.encode(config_)));
     }
 }

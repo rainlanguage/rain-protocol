@@ -21,6 +21,10 @@ contract VerifyTier is TierV2, Initializable {
     /// The contract to check to produce reports.
     Verify private verify;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Sets the `verify` contract.
     /// @param verify_ The contract to check to produce reports.
     function initialize(address verify_) external initializer {
