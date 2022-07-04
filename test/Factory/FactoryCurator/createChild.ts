@@ -162,7 +162,7 @@ describe("FactoryCurator createChild", async function () {
     );
   });
 
-  it("should create a child on the good path", async () => {
+  it("should create a child using a registered config", async () => {
     const signers = await ethers.getSigners();
 
     const curator = signers[1];
