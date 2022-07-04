@@ -92,7 +92,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
 
         (uint high_,) = _earliestTimeAboveThreshold(msg.sender, newHighwater_, 0);
         unchecked {
-            while (i_ <= high_) {
+            while (i_ >= high_) {
                 delete deposits[msg.sender][i_];
                 if (i_ == 0) {
                     break;
