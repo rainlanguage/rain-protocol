@@ -16,8 +16,6 @@ contract SaleFactory is Factory {
     /// Build the reference implementation to clone for each child.
     constructor(SaleConstructorConfig memory config_) {
         address implementation_ = address(new Sale(config_));
-        // silence slither.
-        require(implementation_ != address(0), "0_IMPLEMENTATION");
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

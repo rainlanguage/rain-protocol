@@ -17,14 +17,12 @@ contract FactoryTest is Factory {
     /// Build the reference implementation to clone for each child.
     constructor() {
         address implementation_ = address(new FactoryChildTest());
-        // silence slither.
-        require(implementation_ != address(0), "0_IMPLEMENTATION");
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -46,6 +44,6 @@ contract FactoryTest is Factory {
         external
         returns (FactoryChildTest)
     {
-        return FactoryChildTest(this.createChild(abi.encodePacked(value_)));
+        return FactoryChildTest(createChild(abi.encodePacked(value_)));
     }
 }
