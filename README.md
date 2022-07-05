@@ -108,6 +108,16 @@ Generally we recommend using an audited commit WITH REMEDIATIONS but often this
 may be several months behind the latest functionality. All security sensitive
 decisions are your own.
 
+## Latest audit
+
+Audits from omniscia can be found:
+
+- https://omniscia.io/beehive-rain-protocol-round-2/
+- https://omniscia.io/beehive-rain-protocol/
+
+It is STRONGLY RECOMMENDED that downstream consumers lock their dependencies to
+a specific commit rather than rely on branch/tag names.
+
 ## Installation
 
 We strongly recommend using the nix shell https://nix.dev/tutorials/install-nix
