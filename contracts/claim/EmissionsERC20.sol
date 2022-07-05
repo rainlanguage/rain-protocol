@@ -4,12 +4,13 @@ pragma solidity =0.8.10;
 import "../tier/libraries/TierConstants.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
-import "../tier/ReadOnlyTier.sol";
-import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-// solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
+import "../tier/TierV2.sol";
+import "../tier/libraries/TierReport.sol";
+import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
+import "../vm/RainVM.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "../sstore2/SSTORE2.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
@@ -24,11 +25,15 @@ struct EmissionsERC20Config {
     StateConfig vmStateConfig;
 }
 
+/// @dev Source index for VM eval.
+uint256 constant ENTRYPOINT = 0;
+uint256 constant MIN_FINAL_STACK_INDEX = 1;
+
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
 /// Intended behaviour is to avoid sybils infinitely minting by putting the
-/// claim functionality behind a `ITier` contract. The emissions contract
+/// claim functionality behind a `TierV2` contract. The emissions contract
 /// itself implements `ReadOnlyTier` and every time a claim is processed it
 /// logs the block number of the claim against every tier claimed. So the block
 /// numbers in the tier report for `EmissionsERC20` are the last time that tier
@@ -38,26 +43,19 @@ struct EmissionsERC20Config {
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
+    TierV2,
     Initializable,
     RainVM,
-    VMState,
     ERC20Upgradeable,
-    IClaim,
-    ReadOnlyTier
+    IClaim
 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
-    /// @param allowDelegatedClaims True if accounts can call `claim` on behalf
-    /// of another account.
-    event Initialize(address sender, bool allowDelegatedClaims);
+    /// @param config All initialized config.
+    event Initialize(address sender, EmissionsERC20Config config);
 
-    /// @dev local opcode to put claimant account on the stack.
-    uint256 private constant OPCODE_CLAIMANT_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
-
-    /// @dev local offset for local ops.
-    uint256 private immutable localOpsStart;
+    address private immutable self;
+    address private immutable vmStateBuilder;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address private vmStatePointer;
@@ -77,13 +75,14 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    /// Constructs the emissions schedule source, opcodes and ERC20 to mint.
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+    constructor(address vmStateBuilder_) {
+        _disableInitializers();
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(EmissionsERC20Config memory config_)
+    function initialize(EmissionsERC20Config calldata config_)
         external
         initializer
     {
@@ -93,51 +92,27 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        vmStatePointer = _snapshot(_newState(config_.vmStateConfig));
+        Bounds memory bounds_;
+        bounds_.entrypoint = ENTRYPOINT;
+        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+        Bounds[] memory boundss_ = new Bounds[](1);
+        boundss_[0] = bounds_;
+
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.vmStateConfig,
+            boundss_
+        );
+        vmStatePointer = SSTORE2.write(vmStateBytes_);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
 
-        emit Initialize(msg.sender, config_.allowDelegatedClaims);
+        emit Initialize(msg.sender, config_);
     }
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
-            } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                // There's only one opcode, which stacks the account address.
-                address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(uint160(account_));
-                state_.stackIndex++;
-            }
-        }
-    }
-
-    /// Reports from the claim contract function differently to most tier
-    /// contracts. When the report is uninitialized it is `0` NOT `0xFF..`. The
-    /// intent is that the claim report is compatible with an "every" selectLte
-    /// against tiers that might be gating claims. It's important that we use
-    /// every for this check as the underlying tier doing the gating MUST be
-    /// respected on every claim even for users that have previously claimed as
-    /// they could have lost tiers since their last claim.
-    /// The standard "uninitialized is 0xFF.." logic can be simulated in a rain
-    /// script as `REPORT(this, account) IF(ISZERO(DUP(0)), never, DUP(0))` if
-    /// desired by the deployer (adjusting the DUP index to taste).
-    /// @inheritdoc ITier
-    function report(address account_)
+    /// @inheritdoc ITierV2
+    function report(address account_, uint256[] memory)
         public
         view
         virtual
@@ -145,6 +120,20 @@ contract EmissionsERC20 is
         returns (uint256)
     {
         return reports[account_];
+    }
+
+    /// @inheritdoc ITierV2
+    function reportTimeForTier(
+        address account_,
+        uint256 tier_,
+        uint256[] calldata
+    ) external view returns (uint256) {
+        return TierReport.reportTimeForTier(reports[account_], tier_);
+    }
+
+    /// @inheritdoc RainVM
+    function fnPtrs() public pure override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
     }
 
     /// Calculates the claim without processing it.
@@ -157,8 +146,15 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(claimant_), state_, 0);
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
+        bytes memory context_ = new bytes(0x20);
+        uint256 claimantContext_ = uint256(uint160(claimant_));
+        assembly {
+            mstore(add(context_, 0x20), claimantContext_)
+        }
+        eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
 
@@ -186,19 +182,11 @@ contract EmissionsERC20 is
         // Record the current block as the latest claim.
         // This can be diffed/combined with external reports in future claim
         // calculations.
-        reports[claimant_] = TierReport.updateBlocksForTierRange(
+        reports[claimant_] = TierReport.updateTimesForTierRange(
             TierConstants.NEVER_REPORT,
             TierConstants.TIER_ZERO,
             TierConstants.TIER_EIGHT,
-            block.number
-        );
-        emit TierChange(
-            msg.sender,
-            claimant_,
-            TierConstants.TIER_ZERO,
-            TierConstants.TIER_EIGHT,
-            // `data_` is emitted under `Claim`.
-            ""
+            block.timestamp
         );
         emit Claim(msg.sender, claimant_, data_);
     }

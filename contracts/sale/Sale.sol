@@ -5,22 +5,18 @@ import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
 import "../vm/RainVM.sol";
-// solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
-//solhint-disable-next-line max-line-length
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-//solhint-disable-next-line max-line-length
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-// solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-// solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "../sstore2/SSTORE2.sol";
+import "../vm/VMStateBuilder.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -36,6 +32,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
+    address vmStateBuilder;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -49,7 +46,7 @@ struct SaleConstructorConfig {
 /// @param recipient The recipient of the proceeds of a Sale, if/when the Sale
 /// is successful.
 /// @param reserve The reserve token the Sale is deonominated in.
-/// @param saleTimeout The number of blocks before this sale can timeout.
+/// @param saleTimeout The number of seconds before this sale can timeout.
 /// SHOULD be well after the expected end time as a timeout will fail an active
 /// or pending sale regardless of any funds raised.
 /// @param cooldownDuration forwarded to `Cooldown` contract initialization.
@@ -60,11 +57,9 @@ struct SaleConstructorConfig {
 /// contract unless it is all purchased, clearing the raise to 0 stock and thus
 /// ending the raise.
 struct SaleConfig {
-    StateConfig canStartStateConfig;
-    StateConfig canEndStateConfig;
-    StateConfig calculatePriceStateConfig;
+    StateConfig vmStateConfig;
     address recipient;
-    IERC20 reserve;
+    address reserve;
     uint256 saleTimeout;
     uint256 cooldownDuration;
     uint256 minimumRaise;
@@ -134,18 +129,20 @@ struct Receipt {
     uint256 price;
 }
 
+uint256 constant CAN_LIVE_ENTRYPOINT = 0;
+uint256 constant CALCULATE_PRICE_ENTRYPOINT = 1;
+
+uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
+uint256 constant CALCULATE_PRICE_MIN_FINAL_STACK_INDEX = 2;
+
+uint256 constant STORAGE_OPCODES_LENGTH = 4;
+
 // solhint-disable-next-line max-states-count
-contract Sale is
-    Initializable,
-    Cooldown,
-    RainVM,
-    VMState,
-    ISale,
-    ReentrancyGuard
-{
+contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
+    using LibState for State;
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -176,65 +173,55 @@ contract Sale is
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
 
-    /// @dev local opcode to stack remaining rTKN units.
-    uint256 private constant OPCODE_REMAINING_UNITS = 0;
-    /// @dev local opcode to stack total reserve taken in so far.
-    uint256 private constant OPCODE_TOTAL_RESERVE_IN = 1;
-    /// @dev local opcode to stack the rTKN units/amount of the current buy.
-    uint256 private constant OPCODE_CURRENT_BUY_UNITS = 2;
-    /// @dev local opcode to stack the address of the rTKN.
-    uint256 private constant OPCODE_TOKEN_ADDRESS = 3;
-    /// @dev local opcode to stack the address of the reserve token.
-    uint256 private constant OPCODE_RESERVE_ADDRESS = 4;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 5;
+    address private immutable self;
+    address private immutable vmStateBuilder;
 
-    /// @dev local offset for local ops.
-    uint256 private immutable localOpsStart;
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
     /// stuck in a pending or active status due to buggy scripts.
     uint256 private immutable maximumSaleTimeout;
-    /// @dev the cooldown duration cannot exceed this. Prevents "no refunds" in
-    /// a raise that never ends. Configured at the factory level upon deploy.
-    uint256 private immutable maximumCooldownDuration;
 
-    /// Factory responsible for minting rTKN.
-    RedeemableERC20Factory private immutable redeemableERC20Factory;
-    /// Minted rTKN for each sale.
-    /// Exposed via. `ISale.token()`.
-    RedeemableERC20 private _token;
-
-    /// @dev as per `SaleConfig`.
-    address private recipient;
-    /// @dev as per `SaleConfig`.
-    address private canStartStatePointer;
-    /// @dev as per `SaleConfig`.
-    address private canEndStatePointer;
-    /// @dev as per `SaleConfig`.
-    address private calculatePriceStatePointer;
-    /// @dev as per `SaleConfig`.
-    uint256 private minimumRaise;
-    /// @dev as per `SaleConfig`.
-    uint256 private dustSize;
-    /// @dev as per `SaleConfig`.
-    /// Exposed via. `ISale.reserve()`.
-    IERC20 private _reserve;
-
-    /// @dev the current sale status exposed as `ISale.saleStatus`.
-    SaleStatus private _saleStatus;
-    /// @dev the current sale can always end in failure at this block even if
-    /// it did not start. Provided it did not already end of course.
-    uint256 private saleTimeout;
+    /// *** STORAGE OPCODES START ***
 
     /// @dev remaining rTKN units to sell. MAY NOT be the rTKN balance of the
     /// Sale contract if rTKN has been sent directly to the sale contract
     /// outside the standard buy/refund loop.
-    uint256 private remainingUnits;
+    uint256 private _remainingUnits;
+
     /// @dev total reserve taken in to the sale contract via. buys. Does NOT
     /// include any reserve sent directly to the sale contract outside the
     /// standard buy/refund loop.
-    uint256 private totalReserveIn;
+    uint256 private _totalReserveIn;
+
+    /// Minted rTKN for each sale.
+    /// Exposed via. `ISale.token()`.
+    /// Represented as uint NOT address so that it is VM safe.
+    uint256 private _token;
+
+    /// @dev as per `SaleConfig`.
+    /// Exposed via. `ISale.reserve()`.
+    /// Represented as uint NOT address so that it is VM safe.
+    uint256 private _reserve;
+
+    /// *** STORAGE OPCODES END ***
+
+    /// Factory responsible for minting rTKN.
+    RedeemableERC20Factory private immutable redeemableERC20Factory;
+
+    /// @dev as per `SaleConfig`.
+    address private recipient;
+    /// @dev as per `SaleConfig`.
+    address private vmStatePointer;
+    /// @dev as per `SaleConfig`.
+    uint256 private minimumRaise;
+    /// @dev as per `SaleConfig`.
+    uint256 private dustSize;
+
+    /// @dev the current sale status exposed as `ISale.saleStatus`.
+    SaleStatus private _saleStatus;
+    /// @dev the current sale can always end in failure at this time even if
+    /// it did not start. Provided it did not already end of course.
+    uint256 private saleTimeoutStamp;
 
     /// @dev Binding buyers to receipt hashes to maybe a non-zero value.
     /// A receipt will only be honoured if the mapping resolves to non-zero.
@@ -252,10 +239,10 @@ contract Sale is
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_) {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
-
+        _disableInitializers();
+        self = address(this);
+        vmStateBuilder = config_.vmStateBuilder;
         maximumSaleTimeout = config_.maximumSaleTimeout;
-        maximumCooldownDuration = config_.maximumCooldownDuration;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
 
@@ -263,17 +250,13 @@ contract Sale is
     }
 
     function initialize(
-        SaleConfig memory config_,
+        SaleConfig calldata config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
-        require(
-            config_.cooldownDuration <= maximumCooldownDuration,
-            "MAX_COOLDOWN"
-        );
         initializeCooldown(config_.cooldownDuration);
 
         require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");
-        saleTimeout = block.number + config_.saleTimeout;
+        saleTimeoutStamp = block.timestamp + config_.saleTimeout;
 
         // 0 minimum raise is ambiguous as to how it should be handled. It
         // literally means "the raise succeeds without any trades", which
@@ -284,13 +267,22 @@ contract Sale is
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        canStartStatePointer = _snapshot(
-            _newState(config_.canStartStateConfig)
+        Bounds memory canLiveBounds_;
+        canLiveBounds_.entrypoint = CAN_LIVE_ENTRYPOINT;
+        canLiveBounds_.minFinalStackIndex = CAN_LIVE_MIN_FINAL_STACK_INDEX;
+        Bounds memory calculatePriceBounds_;
+        calculatePriceBounds_.entrypoint = CALCULATE_PRICE_ENTRYPOINT;
+        calculatePriceBounds_
+            .minFinalStackIndex = CALCULATE_PRICE_MIN_FINAL_STACK_INDEX;
+        Bounds[] memory boundss_ = new Bounds[](2);
+        boundss_[0] = canLiveBounds_;
+        boundss_[1] = calculatePriceBounds_;
+        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.vmStateConfig,
+            boundss_
         );
-        canEndStatePointer = _snapshot(_newState(config_.canEndStateConfig));
-        calculatePriceStatePointer = _snapshot(
-            _newState(config_.calculatePriceStateConfig)
-        );
+        vmStatePointer = SSTORE2.write(vmStateBytes_);
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;
@@ -299,7 +291,7 @@ contract Sale is
         // takes a nonzero value somehow due to refactor.
         _saleStatus = SaleStatus.Pending;
 
-        _reserve = config_.reserve;
+        _reserve = uint256(uint160(config_.reserve));
 
         // The distributor of the rTKN is always set to the sale contract.
         // It is an error for the deployer to attempt to set the distributor.
@@ -309,35 +301,46 @@ contract Sale is
         );
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
 
-        remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
+        _remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
 
-        RedeemableERC20 token_ = RedeemableERC20(
-            redeemableERC20Factory.createChild(
-                abi.encode(
-                    RedeemableERC20Config(
-                        address(config_.reserve),
-                        saleRedeemableERC20Config_.erc20Config,
-                        saleRedeemableERC20Config_.tier,
-                        saleRedeemableERC20Config_.minimumTier,
-                        saleRedeemableERC20Config_
-                            .distributionEndForwardingAddress
-                    )
+        address token_ = redeemableERC20Factory.createChild(
+            abi.encode(
+                RedeemableERC20Config(
+                    address(config_.reserve),
+                    saleRedeemableERC20Config_.erc20Config,
+                    saleRedeemableERC20Config_.tier,
+                    saleRedeemableERC20Config_.minimumTier,
+                    saleRedeemableERC20Config_.distributionEndForwardingAddress
                 )
             )
         );
-        _token = token_;
+        _token = uint256(uint160(token_));
 
         emit Initialize(msg.sender, config_, address(token_));
     }
 
+    /// @inheritdoc RainVM
+    function storageOpcodesRange()
+        public
+        pure
+        override
+        returns (StorageOpcodesRange memory)
+    {
+        uint256 slot_;
+        assembly {
+            slot_ := _remainingUnits.slot
+        }
+        return StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
+    }
+
     /// @inheritdoc ISale
     function token() external view returns (address) {
-        return address(_token);
+        return address(uint160(_token));
     }
 
     /// @inheritdoc ISale
     function reserve() external view returns (address) {
-        return address(_reserve);
+        return address(uint160(_reserve));
     }
 
     /// @inheritdoc ISale
@@ -345,92 +348,118 @@ contract Sale is
         return _saleStatus;
     }
 
-    /// Can the sale start?
-    /// Evals `canStartStatePointer` to a boolean that determines whether the
-    /// sale can start (move from pending to active). Buying from and ending
-    /// the sale will both always fail if the sale never started.
-    /// The sale can ONLY start if it is currently in pending status.
-    function canStart() public view returns (bool) {
-        // Only a pending sale can start. Starting a sale more than once would
-        // always be a bug.
-        if (_saleStatus == SaleStatus.Pending) {
-            State memory state_ = _restore(canStartStatePointer);
-            eval("", state_, 0);
-            return state_.stack[state_.stackIndex - 1] > 0;
-        } else {
-            return false;
-        }
+    function _loadState() internal view returns (State memory) {
+        return LibState.fromBytesPacked(SSTORE2.read(vmStatePointer));
     }
 
-    /// Can the sale end?
-    /// Evals `canEndStatePointer` to a boolean that determines whether the
-    /// sale can end (move from active to success/fail). Buying will fail if
-    /// the sale has ended.
-    /// If the sale is out of rTKN stock it can ALWAYS end and in this case
-    /// will NOT eval the "can end" script.
-    /// The sale can ONLY end if it is currently in active status.
-    function canEnd() public view returns (bool) {
-        // Only an active sale can end. Ending an ended or pending sale would
-        // always be a bug.
-        if (_saleStatus == SaleStatus.Active) {
-            // It is always possible to end an out of stock sale because at
-            // this point the only further buys that can happen are after a
-            // refund, and it makes no sense that someone would refund at a low
-            // price to buy at a high price. Therefore we should end the sale
-            // and tally the final result as soon as we sell out.
-            if (remainingUnits < 1) {
-                return true;
+    /// Can the Sale live?
+    /// Evals the "can live" script.
+    /// If a non zero value is returned then the sale can move from pending to
+    /// active, or remain active.
+    /// If a zero value is returned the sale can remain pending or move from
+    /// active to a finalised status.
+    /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
+    /// evaluating the script.
+    function _canLive(State memory state_) internal view returns (bool) {
+        unchecked {
+            if (_remainingUnits < 1) {
+                return false;
             }
-            // The raise is active and still has stock remaining so we delegate
-            // to the appropriate script for an answer.
-            else {
-                State memory state_ = _restore(canEndStatePointer);
-                eval("", state_, 0);
-                return state_.stack[state_.stackIndex - 1] > 0;
-            }
-        } else {
-            return false;
+            eval("", state_, CAN_LIVE_ENTRYPOINT);
+            bool canLive_ = state_.stack[state_.stackIndex - 1] > 0;
+            state_.reset();
+            return canLive_;
         }
     }
 
     /// Calculates the current reserve price quoted for 1 unit of rTKN.
     /// Used internally to process `buy`.
-    /// @param units_ Amount of rTKN to quote a price for, will be available to
-    /// the price script from OPCODE_CURRENT_BUY_UNITS.
-    function calculatePrice(uint256 units_) public view returns (uint256) {
-        State memory state_ = _restore(calculatePriceStatePointer);
-        eval(abi.encode(units_), state_, 0);
+    /// @param targetUnits_ Amount of rTKN to quote a price and units for, will
+    /// be available to the price script from OPCODE_CURRENT_BUY_UNITS. When
+    /// `buy` executes the target units will be the smaller of the remaining
+    /// stock and the desired units set by the caller.
+    /// @return (maxUnits, price) The top two items on the stack are used for
+    /// the units and price. When `buy` executes the real purchase size will be
+    /// the smaller of the target units and the returned maximum units. If this
+    /// is below the buyer's minimum the buy will revert.
+    function _calculateBuy(State memory state_, uint256 targetUnits_)
+        internal
+        view
+        returns (uint256, uint256)
+    {
+        unchecked {
+            bytes memory context_ = new bytes(0x20);
+            assembly {
+                mstore(add(context_, 0x20), targetUnits_)
+            }
+            eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
 
-        return state_.stack[state_.stackIndex - 1];
+            (uint256 maxUnits_, uint256 price_) = (
+                state_.stack[state_.stackIndex - 2],
+                state_.stack[state_.stackIndex - 1]
+            );
+            state_.reset();
+            return (maxUnits_, price_);
+        }
     }
 
-    /// Start the sale (move from pending to active).
-    /// `canStart` MUST return true.
-    function start() external {
-        require(canStart(), "CANT_START");
+    function _start() internal {
         _saleStatus = SaleStatus.Active;
         emit Start(msg.sender);
     }
 
-    /// End the sale (move from active to success or fail).
-    /// `canEnd` MUST return true.
-    function end() public {
-        require(canEnd(), "CANT_END");
-
-        bool success_ = totalReserveIn >= minimumRaise;
+    function _end() internal {
+        bool success_ = _totalReserveIn >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
 
-        remainingUnits = 0;
+        _remainingUnits = 0;
         _saleStatus = endStatus_;
         emit End(msg.sender, endStatus_);
-        _token.endDistribution(address(this));
+        RedeemableERC20(address(uint160(_token))).endDistribution(
+            address(this)
+        );
 
         // Only send reserve to recipient if the raise is a success.
         // If the raise is NOT a success then everyone can refund their reserve
         // deposited individually.
         if (success_) {
-            _reserve.safeTransfer(recipient, totalReserveIn);
+            IERC20(address(uint160(_reserve))).safeTransfer(
+                recipient,
+                _totalReserveIn
+            );
         }
+    }
+
+    function canLive() external view returns (bool) {
+        return _canLive(_loadState());
+    }
+
+    function calculateBuy(uint256 targetUnits_)
+        external
+        view
+        returns (uint256, uint256)
+    {
+        return _calculateBuy(_loadState(), targetUnits_);
+    }
+
+    /// Start the sale (move from pending to active).
+    /// This is also done automatically inline with each `buy` call so is
+    /// optional for anon to call outside of a purchase.
+    /// `canStart` MUST return true.
+    function start() external {
+        require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
+        require(_canLive(_loadState()), "NOT_LIVE");
+        _start();
+    }
+
+    /// End the sale (move from active to success or fail).
+    /// This is also done automatically inline with each `buy` call so is
+    /// optional for anon to call outside of a purchase.
+    /// `canEnd` MUST return true.
+    function end() external {
+        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
+        require(!_canLive(_loadState()), "LIVE");
+        _end();
     }
 
     /// Timeout the sale (move from pending or active to fail).
@@ -442,7 +471,7 @@ contract Sale is
     /// expect that eventually they will see a pass/fail state and so are safe
     /// to lock funds while a Sale is active.
     function timeout() external {
-        require(saleTimeout < block.number, "EARLY_TIMEOUT");
+        require(saleTimeoutStamp < block.timestamp, "EARLY_TIMEOUT");
         require(
             _saleStatus == SaleStatus.Pending ||
                 _saleStatus == SaleStatus.Active,
@@ -450,10 +479,12 @@ contract Sale is
         );
 
         // Mimic `end` with a failed state but `Timeout` event.
-        remainingUnits = 0;
+        _remainingUnits = 0;
         _saleStatus = SaleStatus.Fail;
         emit Timeout(msg.sender);
-        _token.endDistribution(address(this));
+        RedeemableERC20(address(uint160(_token))).endDistribution(
+            address(this)
+        );
     }
 
     /// Main entrypoint to the sale. Sells rTKN in exchange for reserve token.
@@ -476,12 +507,40 @@ contract Sale is
             "MINIMUM_OVER_DESIRED"
         );
 
+        // This state is loaded once and shared between 2x `_canLive` calls and
+        // a `_calculateBuy` call.
+        State memory state_ = _loadState();
+
+        // Start or end the sale as required.
+        if (_canLive(state_)) {
+            if (_saleStatus == SaleStatus.Pending) {
+                _start();
+            }
+        } else {
+            if (_saleStatus == SaleStatus.Active) {
+                _end();
+            }
+        }
+
+        // Check the status AFTER possibly modifying it to ensure the potential
+        // modification is respected.
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
-        uint256 units_ = config_.desiredUnits.min(remainingUnits);
-        require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
+        uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
 
-        uint256 price_ = calculatePrice(units_);
+        (uint256 maxUnits_, uint256 price_) = _calculateBuy(
+            state_,
+            targetUnits_
+        );
+
+        // The script may return a larger max units than the target so we have
+        // to cap it to prevent the sale selling more than requested. Scripts
+        // SHOULD NOT exceed the target units as it may be confusing to end
+        // users but it MUST be safe from the sale's perspective to do so.
+        // Scripts MAY return max units lower than the target units to enforce
+        // per-user or other purchase limits.
+        uint256 units_ = maxUnits_.min(targetUnits_);
+        require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
         uint256 cost_ = price_.fixedPointMul(units_);
@@ -505,38 +564,38 @@ contract Sale is
         // outside of a `buy` call. This also means we don't support reserve
         // tokens with balances that can change outside of transfers
         // (e.g. rebase).
-        remainingUnits -= units_;
-        totalReserveIn += cost_;
+        _remainingUnits -= units_;
+        _totalReserveIn += cost_;
 
         // This happens before `end` so that the transfer from happens before
         // the transfer to.
         // `end` changes state so `buy` needs to be nonReentrant.
-        _reserve.safeTransferFrom(
+        IERC20(address(uint160(_reserve))).safeTransferFrom(
             msg.sender,
             address(this),
             cost_ + config_.fee
         );
         // This happens before `end` so that the transfer happens before the
         // distributor is burned and token is frozen.
-        IERC20(address(_token)).safeTransfer(msg.sender, units_);
-
-        if (remainingUnits < 1) {
-            end();
-        } else {
-            require(remainingUnits >= dustSize, "DUST");
-        }
+        IERC20(address(uint160(_token))).safeTransfer(msg.sender, units_);
 
         emit Buy(msg.sender, config_, receipt_);
+
+        // Enforce the status of the sale after the purchase.
+        // The sale ending AFTER the purchase does NOT rollback the purchase,
+        // it simply prevents further purchases.
+        if (_canLive(state_)) {
+            // This prevents the sale from being left with so little stock that
+            // nobody else will want to clear it out. E.g. the dust might be
+            // worth significantly less than the price of gas to call `buy`.
+            require(_remainingUnits >= dustSize, "DUST");
+        } else {
+            _end();
+        }
     }
 
     /// @dev This is here so we can use a modifier like a function call.
-    function refundCooldown()
-        private
-        onlyAfterCooldown
-    // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    function refundCooldown() private onlyAfterCooldown {}
 
     /// Rollback a buy given its receipt.
     /// Ignoring gas (which cannot be refunded) the refund process rolls back
@@ -560,18 +619,21 @@ contract Sale is
 
         uint256 cost_ = receipt_.price.fixedPointMul(receipt_.units);
 
-        totalReserveIn -= cost_;
-        remainingUnits += receipt_.units;
+        _totalReserveIn -= cost_;
+        _remainingUnits += receipt_.units;
         fees[receipt_.feeRecipient] -= receipt_.fee;
 
         emit Refund(msg.sender, receipt_);
 
-        IERC20(address(_token)).safeTransferFrom(
+        IERC20(address(uint160(_token))).safeTransferFrom(
             msg.sender,
             address(this),
             receipt_.units
         );
-        _reserve.safeTransfer(msg.sender, cost_ + receipt_.fee);
+        IERC20(address(uint160(_reserve))).safeTransfer(
+            msg.sender,
+            cost_ + receipt_.fee
+        );
     }
 
     /// After a sale ends in success all fees collected for a recipient can be
@@ -585,45 +647,14 @@ contract Sale is
         uint256 amount_ = fees[recipient_];
         if (amount_ > 0) {
             delete fees[recipient_];
-            _reserve.safeTransfer(recipient_, amount_);
+            IERC20(address(uint160(_reserve))).safeTransfer(
+                recipient_,
+                amount_
+            );
         }
     }
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
-            } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                if (opcode_ == OPCODE_REMAINING_UNITS) {
-                    state_.stack[state_.stackIndex] = remainingUnits;
-                } else if (opcode_ == OPCODE_TOTAL_RESERVE_IN) {
-                    state_.stack[state_.stackIndex] = totalReserveIn;
-                } else if (opcode_ == OPCODE_CURRENT_BUY_UNITS) {
-                    uint256 units_ = abi.decode(context_, (uint256));
-                    state_.stack[state_.stackIndex] = units_;
-                } else if (opcode_ == OPCODE_TOKEN_ADDRESS) {
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_token))
-                    );
-                } else if (opcode_ == OPCODE_RESERVE_ADDRESS) {
-                    state_.stack[state_.stackIndex] = uint256(
-                        uint160(address(_reserve))
-                    );
-                }
-                state_.stackIndex++;
-            }
-        }
+    function fnPtrs() public pure override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
     }
 }

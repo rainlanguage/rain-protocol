@@ -7,13 +7,13 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./libraries/VerifyConstants.sol";
 
-/// Records the block a verify session reaches each status.
+/// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
 /// Most accounts will never be banned so most accounts will never reach every
 /// status, which is a good thing.
-/// @param addedSince Block the address was added else 0xFFFFFFFF.
-/// @param approvedSince Block the address was approved else 0xFFFFFFFF.
-/// @param bannedSince Block the address was banned else 0xFFFFFFFF.
+/// @param addedSince Time the address was added else 0xFFFFFFFF.
+/// @param approvedSince Time the address was approved else 0xFFFFFFFF.
+/// @param bannedSince Time the address was banned else 0xFFFFFFFF.
 struct State {
     uint32 addedSince;
     uint32 approvedSince;
@@ -40,6 +40,42 @@ struct Evidence {
 struct VerifyConfig {
     address admin;
     address callback;
+}
+
+library LibEvidence {
+    function _updateEvidenceRef(
+        uint256[] memory refs_,
+        Evidence memory evidence_,
+        uint256 refsIndex_
+    ) internal pure {
+        uint256 ptr_;
+        assembly {
+            ptr_ := evidence_
+        }
+        refs_[refsIndex_] = ptr_;
+    }
+
+    function _resizeRefs(uint256[] memory refs_, uint256 newLength_)
+        internal
+        pure
+    {
+        require(newLength_ <= refs_.length, "BAD_RESIZE");
+        assembly {
+            mstore(refs_, newLength_)
+        }
+    }
+
+    function _refsAsEvidences(uint256[] memory refs_)
+        internal
+        pure
+        returns (Evidence[] memory)
+    {
+        Evidence[] memory evidences_;
+        assembly {
+            evidences_ := refs_
+        }
+        return evidences_;
+    }
 }
 
 /// @title Verify
@@ -178,15 +214,15 @@ struct VerifyConfig {
 /// events are emitted for every time the action is called and the callbacks
 /// and onchain state changes are deduped. For example, an approve may be
 /// called twice for a single account, but by different approvers, potentially
-/// submitting different evidence for each approval. In this case the block of
+/// submitting different evidence for each approval. In this case the time of
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
 contract Verify is AccessControl, Initializable {
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
-    /// `addedSince` block on a `State` before trusting an equality check on
-    /// any other block number.
+    /// `addedSince` time on a `State` before trusting an equality check on
+    /// any other time.
     /// (i.e. removed or never added)
     uint32 private constant UNINITIALIZED = type(uint32).max;
 
@@ -251,9 +287,13 @@ contract Verify is AccessControl, Initializable {
     /// MAY be address 0.
     IVerifyCallback public callback;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Initializes the `Verify` contract e.g. as cloned by a factory.
     /// @param config_ The config required to initialize the contract.
-    function initialize(VerifyConfig calldata config_) external initializer {
+    function initialize(VerifyConfig memory config_) external initializer {
         require(config_.admin != address(0), "0_ACCOUNT");
 
         // `APPROVER_ADMIN` can admin each other in addition to
@@ -287,85 +327,52 @@ contract Verify is AccessControl, Initializable {
         emit Initialize(msg.sender, config_);
     }
 
-    function _updateEvidenceRef(
-        uint256[] memory refs_,
-        Evidence memory evidence_,
-        uint256 refsIndex_
-    ) private pure {
-        uint256 ptr_;
-        assembly {
-            ptr_ := evidence_
-        }
-        refs_[refsIndex_] = ptr_;
-    }
-
-    function _resizeRefs(uint256[] memory refs_, uint256 newLength_)
-        private
-        pure
-    {
-        require(newLength_ <= refs_.length, "BAD_RESIZE");
-        assembly {
-            mstore(refs_, newLength_)
-        }
-    }
-
-    function _refsAsEvidences(uint256[] memory refs_)
-        private
-        pure
-        returns (Evidence[] memory)
-    {
-        Evidence[] memory evidences_;
-        assembly {
-            evidences_ := refs_
-        }
-        return evidences_;
-    }
-
     /// Typed accessor into states.
     /// @param account_ The account to return the current `State` for.
     function state(address account_) external view returns (State memory) {
         return states[account_];
     }
 
-    /// Derives a single `Status` from a `State` and a reference block number.
+    /// Derives a single `Status` from a `State` and a reference timestamp.
     /// @param state_ The raw `State` to reduce into a `Status`.
-    /// @param blockNumber_ The block number to compare `State` against.
-    function statusAtBlock(State memory state_, uint256 blockNumber_)
+    /// @param timestamp_ The timestamp to compare `State` against.
+    /// @return status_ The status in `State` given `timestamp_`.
+    function statusAtTime(State memory state_, uint256 timestamp_)
         public
         pure
-        returns (uint256)
+        returns (uint256 status_)
     {
-        // The state hasn't even been added so is picking up block zero as the
-        // evm fallback value. In this case if we checked other blocks using
+        // The state hasn't even been added so is picking up time zero as the
+        // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
         // also having a `0` fallback value.
         // Using `< 1` here to silence slither.
         if (state_.addedSince < 1) {
-            return VerifyConstants.STATUS_NIL;
+            status_ = VerifyConstants.STATUS_NIL;
         }
         // Banned takes priority over everything.
-        else if (state_.bannedSince <= blockNumber_) {
-            return VerifyConstants.STATUS_BANNED;
+        else if (state_.bannedSince <= timestamp_) {
+            status_ = VerifyConstants.STATUS_BANNED;
         }
         // Approved takes priority over added.
-        else if (state_.approvedSince <= blockNumber_) {
-            return VerifyConstants.STATUS_APPROVED;
+        else if (state_.approvedSince <= timestamp_) {
+            status_ = VerifyConstants.STATUS_APPROVED;
         }
         // Added is lowest priority.
-        else if (state_.addedSince <= blockNumber_) {
-            return VerifyConstants.STATUS_ADDED;
+        else if (state_.addedSince <= timestamp_) {
+            status_ = VerifyConstants.STATUS_ADDED;
         }
-        // The `addedSince` block is after `blockNumber_` so `Status` is nil
-        // relative to `blockNumber_`.
+        // The `addedSince` time is after `timestamp_` so `Status` is nil
+        // relative to `timestamp_`.
         else {
-            return VerifyConstants.STATUS_NIL;
+            status_ = VerifyConstants.STATUS_NIL;
         }
     }
 
-    /// Requires that `msg.sender` is approved as at the current block.
+    /// Requires that `msg.sender` is approved as at the current timestamp.
     modifier onlyApproved() {
         require(
-            statusAtBlock(states[msg.sender], block.number) ==
+            statusAtTime(states[msg.sender], block.timestamp) ==
                 VerifyConstants.STATUS_APPROVED,
             "ONLY_APPROVED"
         );
@@ -373,8 +380,8 @@ contract Verify is AccessControl, Initializable {
     }
 
     /// @dev Builds a new `State` for use by `add` and `approve`.
-    function newState() private view returns (State memory) {
-        return State(uint32(block.number), UNINITIALIZED, UNINITIALIZED);
+    function newState() private view returns (State memory state_) {
+        state_ = State(uint32(block.timestamp), UNINITIALIZED, UNINITIALIZED);
     }
 
     /// An account adds their own verification evidence.
@@ -382,7 +389,7 @@ contract Verify is AccessControl, Initializable {
     /// @param data_ The evidence to support approving the `msg.sender`.
     function add(bytes calldata data_) external {
         State memory state_ = states[msg.sender];
-        uint256 currentStatus_ = statusAtBlock(state_, block.number);
+        uint256 currentStatus_ = statusAtTime(state_, block.timestamp);
         require(
             currentStatus_ != VerifyConstants.STATUS_APPROVED &&
                 currentStatus_ != VerifyConstants.STATUS_BANNED,
@@ -421,10 +428,10 @@ contract Verify is AccessControl, Initializable {
     /// process be infallible so that no individual approval can rollback the
     /// entire batch due to the actions of some other approver/banner. It is
     /// possible to approve an already approved or banned account. The
-    /// `Approve` event will always emit but the approved block will only be
+    /// `Approve` event will always emit but the approved time will only be
     /// set if it was previously uninitialized. A banned account will always
-    /// be seen as banned when calling `statusAtBlock` regardless of the
-    /// approval block, even if the approval is more recent than the ban. The
+    /// be seen as banned when calling `statusAtTime` regardless of the
+    /// approval time, even if the approval is more recent than the ban. The
     /// only way to reset a ban is to remove and reapprove the account.
     /// @param evidences_ All evidence for all approvals.
     function approve(Evidence[] memory evidences_) external onlyRole(APPROVER) {
@@ -443,23 +450,31 @@ contract Verify is AccessControl, Initializable {
                 if (state_.addedSince < 1) {
                     state_ = newState();
 
-                    _updateEvidenceRef(addedRefs_, evidence_, additions_);
+                    LibEvidence._updateEvidenceRef(
+                        addedRefs_,
+                        evidence_,
+                        additions_
+                    );
                     additions_++;
                 }
                 // If the account hasn't been approved we approve it. As there
                 // are many approvers operating independently and concurrently
                 // we do NOT `require` the approval be unique, but we also do
-                // NOT change the block as the oldest approval is most
+                // NOT change the time as the oldest approval is most
                 // important. However we emit an event for every approval even
                 // if the state does not change.
                 // It is possible to approve a banned account but
-                // `statusAtBlock` will ignore the approval time for any banned
-                // account and use the banned block only.
+                // `statusAtTime` will ignore the approval time for any banned
+                // account and use the banned time only.
                 if (state_.approvedSince == UNINITIALIZED) {
-                    state_.approvedSince = uint32(block.number);
+                    state_.approvedSince = uint32(block.timestamp);
                     states[evidence_.account] = state_;
 
-                    _updateEvidenceRef(approvedRefs_, evidence_, approvals_);
+                    LibEvidence._updateEvidenceRef(
+                        approvedRefs_,
+                        evidence_,
+                        approvals_
+                    );
                     approvals_++;
                 }
 
@@ -471,17 +486,17 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
-                    _resizeRefs(addedRefs_, additions_);
+                    LibEvidence._resizeRefs(addedRefs_, additions_);
                     callback_.afterAdd(
                         msg.sender,
-                        _refsAsEvidences(addedRefs_)
+                        LibEvidence._refsAsEvidences(addedRefs_)
                     );
                 }
                 if (approvals_ > 0) {
-                    _resizeRefs(approvedRefs_, approvals_);
+                    LibEvidence._resizeRefs(approvedRefs_, approvals_);
                     callback_.afterApprove(
                         msg.sender,
-                        _refsAsEvidences(approvedRefs_)
+                        LibEvidence._refsAsEvidences(approvedRefs_)
                     );
                 }
             }
@@ -523,15 +538,23 @@ contract Verify is AccessControl, Initializable {
                 if (state_.addedSince < 1) {
                     state_ = newState();
 
-                    _updateEvidenceRef(addedRefs_, evidence_, additions_);
+                    LibEvidence._updateEvidenceRef(
+                        addedRefs_,
+                        evidence_,
+                        additions_
+                    );
                     additions_++;
                 }
                 // Respect prior bans by leaving onchain storage as-is.
                 if (state_.bannedSince == UNINITIALIZED) {
-                    state_.bannedSince = uint32(block.number);
+                    state_.bannedSince = uint32(block.timestamp);
                     states[evidence_.account] = state_;
 
-                    _updateEvidenceRef(bannedRefs_, evidence_, bans_);
+                    LibEvidence._updateEvidenceRef(
+                        bannedRefs_,
+                        evidence_,
+                        bans_
+                    );
                     bans_++;
                 }
 
@@ -543,17 +566,17 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
-                    _resizeRefs(addedRefs_, additions_);
+                    LibEvidence._resizeRefs(addedRefs_, additions_);
                     callback_.afterAdd(
                         msg.sender,
-                        _refsAsEvidences(addedRefs_)
+                        LibEvidence._refsAsEvidences(addedRefs_)
                     );
                 }
                 if (bans_ > 0) {
-                    _resizeRefs(bannedRefs_, bans_);
+                    LibEvidence._resizeRefs(bannedRefs_, bans_);
                     callback_.afterBan(
                         msg.sender,
-                        _refsAsEvidences(bannedRefs_)
+                        LibEvidence._refsAsEvidences(bannedRefs_)
                     );
                 }
             }
@@ -585,7 +608,11 @@ contract Verify is AccessControl, Initializable {
                 state_ = states[evidences_[i_].account];
                 if (state_.addedSince > 0) {
                     delete (states[evidence_.account]);
-                    _updateEvidenceRef(removedRefs_, evidence_, removals_);
+                    LibEvidence._updateEvidenceRef(
+                        removedRefs_,
+                        evidence_,
+                        removals_
+                    );
                     removals_++;
                 }
                 emit Remove(msg.sender, evidence_);
@@ -593,10 +620,10 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (removals_ > 0) {
-                    _resizeRefs(removedRefs_, removals_);
+                    LibEvidence._resizeRefs(removedRefs_, removals_);
                     callback_.afterRemove(
                         msg.sender,
-                        _refsAsEvidences(removedRefs_)
+                        LibEvidence._refsAsEvidences(removedRefs_)
                     );
                 }
             }

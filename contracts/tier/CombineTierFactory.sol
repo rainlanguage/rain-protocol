@@ -3,8 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import {Factory} from "../factory/Factory.sol";
-import {CombineTier} from "./CombineTier.sol";
-import {StateConfig} from "../vm/libraries/VMState.sol";
+import {CombineTier, CombineTierConfig} from "./CombineTier.sol";
 
 /// @title CombineTierFactory
 /// @notice Factory for creating and deploying `CombineTier` contracts.
@@ -14,20 +13,23 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new CombineTier());
+    constructor(address vmStateBuilder_) {
+        address implementation_ = address(new CombineTier(vmStateBuilder_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
         returns (address)
     {
-        StateConfig memory config_ = abi.decode(data_, (StateConfig));
+        CombineTierConfig memory config_ = abi.decode(
+            data_,
+            (CombineTierConfig)
+        );
         address clone_ = Clones.clone(implementation);
         CombineTier(clone_).initialize(config_);
         return clone_;
@@ -37,12 +39,11 @@ contract CombineTierFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ `ImmutableSourceConfig` of the `CombineTier` logic.
     /// @return New `CombineTier` child contract address.
-    function createChildTyped(StateConfig calldata config_)
+    function createChildTyped(CombineTierConfig memory config_)
         external
         returns (CombineTier)
     {
-        return CombineTier(this.createChild(abi.encode(config_)));
+        return CombineTier(createChild(abi.encode(config_)));
     }
 }

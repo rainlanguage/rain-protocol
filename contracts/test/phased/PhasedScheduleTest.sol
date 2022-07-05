@@ -15,12 +15,11 @@ contract PhasedScheduleTest is Phased {
         uint256 initialPhase_ = currentPhase();
 
         succeedsOnlyPhase(initialPhase_);
-        schedulePhase(initialPhase_ + 1, block.number);
+        schedulePhase(initialPhase_ + 1, block.timestamp);
         succeedsOnlyPhase(initialPhase_ + 1);
     }
 
     /// Exposes `onlyPhase` for testing.
     /// @param phase_ As per `onlyPhase`.
-    // solhint-disable-next-line no-empty-blocks
     function succeedsOnlyPhase(uint256 phase_) internal onlyPhase(phase_) {}
 }

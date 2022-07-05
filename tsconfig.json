@@ -1,5 +1,5 @@
 {
-  "include": ["./test"],
+  "include": ["./test", "./utils"],
   "exclude": ["node_modules/*"],
   "compilerOptions": {
     "target": "ES2020",

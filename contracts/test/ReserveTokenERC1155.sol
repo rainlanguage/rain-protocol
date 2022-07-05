@@ -2,7 +2,6 @@
 pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-// solhint-disable-next-line max-line-length
 import {ERC1155Burnable} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 
 /// @title ReserveTokenERC1155

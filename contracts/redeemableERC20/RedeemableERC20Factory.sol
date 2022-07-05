@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import {Factory} from "../factory/Factory.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "./RedeemableERC20.sol";
-import {ITier} from "../tier/ITier.sol";
+import {ITierV2} from "../tier/ITierV2.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title RedeemableERC20Factory
@@ -21,7 +21,7 @@ contract RedeemableERC20Factory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -40,12 +40,12 @@ contract RedeemableERC20Factory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ `RedeemableERC20` constructor configuration.
+    /// @param config_ `RedeemableERC20` initializer configuration.
     /// @return New `RedeemableERC20` child contract.
-    function createChildTyped(RedeemableERC20Config calldata config_)
+    function createChildTyped(RedeemableERC20Config memory config_)
         external
         returns (RedeemableERC20)
     {
-        return RedeemableERC20(this.createChild(abi.encode(config_)));
+        return RedeemableERC20(createChild(abi.encode(config_)));
     }
 }

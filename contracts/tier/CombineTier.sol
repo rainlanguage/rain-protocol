@@ -3,75 +3,123 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import {RainVM, State} from "../vm/RainVM.sol";
-import {VMState, StateConfig} from "../vm/libraries/VMState.sol";
-// solhint-disable-next-line max-line-length
-import {AllStandardOps, ALL_STANDARD_OPS_START, ALL_STANDARD_OPS_LENGTH} from "../vm/ops/AllStandardOps.sol";
+import "../vm/RainVM.sol";
+import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
-import {ReadOnlyTier, ITier} from "./ReadOnlyTier.sol";
+import {ITierV2} from "./ITierV2.sol";
+import {TierV2} from "./TierV2.sol";
+import "../vm/VMStateBuilder.sol";
+
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+
+uint256 constant REPORT_ENTRYPOINT = 0;
+uint256 constant REPORT_FOR_TIER_ENTRYPOINT = 1;
+uint256 constant MIN_FINAL_STACK_INDEX = 1;
+
+/// All config used during initialization of a CombineTier.
+/// @param combinedTiersLength The first N values in the constants array of the
+/// sourceConfig MUST be all the combined tiers that are known statically. Of
+/// course some tier addresses MAY only be known at runtime and so these cannot
+/// be included. For those that are included there will be additional deploy
+/// time checks to ensure compatibility with each other (i.e. reportUnits).
+/// @param sourceConfig Source to run for both report and reportForTier as
+/// sources 0 and 1 respectively.
+struct CombineTierConfig {
+    uint256 combinedTiersLength;
+    StateConfig sourceConfig;
+}
 
 /// @title CombineTier
-/// @notice Implements `ReadOnlyTier` over RainVM. Allows combining the reports
-/// from any other `ITier` contracts referenced in the `ImmutableSource` set at
-/// construction.
+/// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the rain script will be
-/// used as the return of `report`.
-contract CombineTier is ReadOnlyTier, RainVM, VMState, Initializable {
-    /// @dev local opcode to put tier report account on the stack.
-    uint256 private constant OPCODE_ACCOUNT = 0;
-    /// @dev local opcodes length.
-    uint256 internal constant LOCAL_OPS_LENGTH = 1;
+/// used as the return of all `ITierV2` functions exposed by `CombineTier`.
+contract CombineTier is TierV2, RainVM, Initializable {
+    event Initialize(address sender, CombineTierConfig config);
 
-    /// @dev local offset for combine tier ops.
-    uint256 private immutable localOpsStart;
-
+    // This allows cloned contracts to forward the template contract to the VM
+    // state builder during initialization.
+    address private immutable self;
+    address private immutable vmStateBuilder;
     address private vmStatePointer;
 
-    constructor() {
-        localOpsStart = ALL_STANDARD_OPS_START + ALL_STANDARD_OPS_LENGTH;
+    constructor(address vmStateBuilder_) {
+        _disableInitializers();
+        self = address(this);
+        vmStateBuilder = vmStateBuilder_;
     }
 
-    /// @param config_ The StateConfig will be deployed as a pointer under
-    /// `vmStatePointer`.
-    function initialize(StateConfig memory config_) external initializer {
-        vmStatePointer = _snapshot(_newState(config_));
-    }
+    function initialize(CombineTierConfig calldata config_)
+        external
+        initializer
+    {
+        Bounds memory reportBounds_;
+        reportBounds_.entrypoint = REPORT_ENTRYPOINT;
+        reportBounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+        Bounds memory reportForTierBounds_;
+        reportForTierBounds_.entrypoint = REPORT_FOR_TIER_ENTRYPOINT;
+        reportForTierBounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
+        Bounds[] memory boundss_ = new Bounds[](2);
+        boundss_[0] = reportBounds_;
+        boundss_[1] = reportForTierBounds_;
+        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
+            self,
+            config_.sourceConfig,
+            boundss_
+        );
+        vmStatePointer = SSTORE2.write(stateBytes_);
 
-    /// @inheritdoc RainVM
-    function applyOp(
-        bytes memory context_,
-        State memory state_,
-        uint256 opcode_,
-        uint256 operand_
-    ) internal view override {
-        unchecked {
-            if (opcode_ < localOpsStart) {
-                AllStandardOps.applyOp(
-                    state_,
-                    opcode_ - ALL_STANDARD_OPS_START,
-                    operand_
-                );
-            } else {
-                opcode_ -= localOpsStart;
-                require(opcode_ < LOCAL_OPS_LENGTH, "MAX_OPCODE");
-                // There's only one opcode, which stacks the address to report.
-                address account_ = abi.decode(context_, (address));
-                state_.stack[state_.stackIndex] = uint256(uint160(account_));
-                state_.stackIndex++;
-            }
+        // Integrity check for all known combined tiers.
+        for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
+            require(
+                ERC165Checker.supportsInterface(
+                    address(uint160(config_.sourceConfig.constants[i_])),
+                    type(ITierV2).interfaceId
+                ),
+                "ERC165_TIERV2"
+            );
         }
+
+        emit Initialize(msg.sender, config_);
     }
 
-    /// @inheritdoc ITier
-    function report(address account_)
+    function fnPtrs() public pure virtual override returns (bytes memory) {
+        return AllStandardOps.fnPtrs();
+    }
+
+    /// @inheritdoc ITierV2
+    function report(address account_, uint256[] memory context_)
         external
         view
         virtual
         override
-        returns (uint256)
+        returns (uint256 report_)
     {
-        State memory state_ = _restore(vmStatePointer);
-        eval(abi.encode(account_), state_, 0);
-        return state_.stack[state_.stackIndex - 1];
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
+        bytes memory evalContext_ = bytes.concat(
+            bytes32(uint256(uint160(account_))),
+            abi.encodePacked(context_)
+        );
+        eval(evalContext_, state_, REPORT_ENTRYPOINT);
+        report_ = state_.stack[state_.stackIndex - 1];
+    }
+
+    /// @inheritdoc ITierV2
+    function reportTimeForTier(
+        address account_,
+        uint256 tier_,
+        uint256[] calldata context_
+    ) external view returns (uint256 time_) {
+        State memory state_ = LibState.fromBytesPacked(
+            SSTORE2.read(vmStatePointer)
+        );
+        bytes memory evalContext_ = bytes.concat(
+            bytes32(uint256(uint160(account_))),
+            bytes32(tier_),
+            abi.encodePacked(context_)
+        );
+        eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
+        time_ = state_.stack[state_.stackIndex - 1];
     }
 }

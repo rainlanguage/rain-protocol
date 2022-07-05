@@ -16,14 +16,12 @@ contract SaleFactory is Factory {
     /// Build the reference implementation to clone for each child.
     constructor(SaleConstructorConfig memory config_) {
         address implementation_ = address(new Sale(config_));
-        // silence slither.
-        require(implementation_ != address(0), "0_IMPLEMENTATION");
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -46,11 +44,11 @@ contract SaleFactory is Factory {
     /// @return New `Sale` child contract.
     function createChildTyped(
         SaleConfig calldata config_,
-        SaleRedeemableERC20Config calldata saleRedeemableERC20Config_
+        SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external returns (Sale) {
         return
             Sale(
-                this.createChild(
+                createChild(
                     abi.encode(config_, saleRedeemableERC20Config_)
                 )
             );

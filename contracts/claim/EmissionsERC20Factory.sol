@@ -3,7 +3,6 @@ pragma solidity =0.8.10;
 
 import {Factory} from "../factory/Factory.sol";
 import {EmissionsERC20, EmissionsERC20Config} from "./EmissionsERC20.sol";
-import {ITier} from "../tier/ITier.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title EmissionsERC20Factory
@@ -14,14 +13,14 @@ contract EmissionsERC20Factory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new EmissionsERC20());
+    constructor(address vmStateBuilder_) {
+        address implementation_ = address(new EmissionsERC20(vmStateBuilder_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes calldata data_)
+    function _createChild(bytes memory data_)
         internal
         virtual
         override
@@ -42,10 +41,10 @@ contract EmissionsERC20Factory is Factory {
     ///
     /// @param config_ `EmissionsERC20` constructor configuration.
     /// @return New `EmissionsERC20` child contract address.
-    function createChildTyped(EmissionsERC20Config calldata config_)
+    function createChildTyped(EmissionsERC20Config memory config_)
         external
         returns (EmissionsERC20)
     {
-        return EmissionsERC20(this.createChild(abi.encode(config_)));
+        return EmissionsERC20(createChild(abi.encode(config_)));
     }
 }

@@ -13,7 +13,7 @@ contract RedeemableERC20Reentrant is ReserveToken {
     RedeemableERC20 private redeemableERC20;
 
     /// Configures the contract to attempt to reenter.
-    constructor() ReserveToken() {} // solhint-disable-line no-empty-blocks
+    constructor() ReserveToken() {}
 
     /// Set the contract to attempt to reenter.
     /// @param redeemableERC20_ RedeemableERC20 contract to reeenter.

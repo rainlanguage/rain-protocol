@@ -2,8 +2,8 @@ let
   pkgs = import
     (builtins.fetchTarball {
       name = "nixos-unstable-2021-10-01";
-      url = "https://github.com/nixos/nixpkgs/archive/d3d2c44a26b693293e8c79da0c3e3227fc212882.tar.gz";
-      sha256 = "0vi4r7sxzfdaxzlhpmdkvkn3fjg533fcwsy3yrcj5fiyqip2p3kl";
+      url = "https://github.com/nixos/nixpkgs/archive/369ab30030d8c56fe87a06c1fe3b2c0e85ba6253.tar.gz";
+      sha256 = "1f1lw5qrd3549l4fq3w4bqz3b6415hwjks2pa9yqz9cfpjh13y7l";
     })
     { };
 
@@ -45,10 +45,6 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
-    rm -rf docusaurus/.docusaurus
-    rm -rf docusaurus/build
-    rm -rf docusaurus/node_modules
-    rm -rf docs/api
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -88,28 +84,6 @@ let
     npm install
     hardhat compile --force
     hardhat test
-  '';
-
-  docgen = pkgs.writeShellScriptBin "docgen" ''
-    rm -rf docs/api && npm run docgen
-  '';
-
-  docs-dev = pkgs.writeShellScriptBin "docs-dev" ''
-    docgen && npm run start --prefix docusaurus
-  '';
-
-  docs-build = pkgs.writeShellScriptBin "docs-build" ''
-    docgen && npm run build --prefix docusaurus
-  '';
-
-  docs-serve = pkgs.writeShellScriptBin "docs-serve" ''
-    npm run serve --prefix docusaurus
-  '';
-
-  docs-version = pkgs.writeShellScriptBin "docs-version" ''
-    docs-build && npm run docusaurus --prefix docusaurus docs:version ''${GIT_TAG}
-    # build again so docusaurus-search-local can index newly added version
-    npm run build --prefix docusaurus
   '';
 
   prepack = pkgs.writeShellScriptBin "prepack" ''
@@ -164,7 +138,7 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.nixpkgs-fmt
     pkgs.yarn
-    pkgs.nodejs-17_x
+    pkgs.nodejs-16_x
     pkgs.slither-analyzer
     local-node
     local-fork
@@ -176,11 +150,6 @@ pkgs.stdenv.mkDerivation {
     ci-test
     ci-lint
     cut-dist
-    docgen
-    docs-dev
-    docs-build
-    docs-serve
-    docs-version
     prepack
     prepublish
     solt-the-earth
@@ -191,6 +160,5 @@ pkgs.stdenv.mkDerivation {
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
-    npm install --prefix docusaurus --legacy-peer-deps
   '';
 }

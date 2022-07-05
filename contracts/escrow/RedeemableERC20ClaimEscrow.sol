@@ -199,7 +199,6 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// that deposited balance. The prorata scaling calculation happens inline
     /// within the `withdraw` function.
     /// trust => withdrawn token =>  rTKN supply => withdrawer => amount
-    // solhint-disable-next-line max-line-length
     mapping(address => mapping(address => mapping(uint256 => mapping(address => uint256))))
         internal withdrawals;
 
@@ -216,7 +215,6 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// failed they will receive the full amount they deposited back. Every
     /// depositor must call `undeposit` for themselves.
     /// trust => deposited token => depositor => rTKN supply => amount
-    // solhint-disable-next-line max-line-length
     mapping(address => mapping(address => mapping(address => mapping(uint256 => uint256))))
         internal deposits;
 
@@ -453,12 +451,10 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
         uint256 totalDeposited_ = totalDeposits[sale_][token_][supply_];
         uint256 withdrawn_ = withdrawals[sale_][token_][supply_][msg.sender];
+        withdrawals[sale_][token_][supply_][msg.sender] = totalDeposited_;
 
         RedeemableERC20 redeemable_ = RedeemableERC20(token(sale_));
 
-        withdrawals[sale_][token_][supply_][msg.sender] = totalDeposited_;
-
-        //solhint-disable-next-line max-line-length
         uint256 amount_ = (// Underflow MUST error here (should not be possible).
         (totalDeposited_ - withdrawn_) *
             // prorata share of `msg.sender`'s current balance vs. supply
