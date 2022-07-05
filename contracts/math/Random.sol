@@ -194,7 +194,6 @@ library Random {
                 // When we `mload` then `or` the new values with existing data
                 // in memory from the bytes array we have to mask out the 2
                 // bytes at the end of the loaded value.
-                // solhint-disable-next-line max-line-length
                 let
                     itemMask_
                 := 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000

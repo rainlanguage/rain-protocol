@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-//solhint-disable-next-line max-line-length
 import {RedeemableERC20ClaimEscrow} from "../../escrow/RedeemableERC20ClaimEscrow.sol";
 
 /// @title RedeemableERC20ClaimEscrowWrapper

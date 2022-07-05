@@ -300,12 +300,13 @@ contract VMStateBuilder {
                         require(
                             operand_ <
                                 (bounds_.argumentsLength +
-                                    stateConfig_.constants.length)
+                                    stateConfig_.constants.length),
+                                    "OOB_CONSTANT"
                         );
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STACK) {
                         // trying to read past the current stack top.
-                        require(operand_ < bounds_.stackIndex);
+                        require(operand_ < bounds_.stackIndex, "OOB_STACK");
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_CONTEXT) {
                         // Note that context length check is handled at runtime
@@ -314,7 +315,7 @@ contract VMStateBuilder {
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STORAGE) {
                         // trying to read past allowed storage slots.
-                        require(operand_ < bounds_.storageLength);
+                        require(operand_ < bounds_.storageLength, "OOB_STORAGE");
                         bounds_.stackIndex++;
                     }
                     if (opcode_ == OPCODE_ZIPMAP) {

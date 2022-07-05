@@ -8,15 +8,11 @@ import "../vm/RainVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
-//solhint-disable-next-line max-line-length
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
-//solhint-disable-next-line max-line-length
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-// solhint-disable-next-line max-line-length
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-// solhint-disable-next-line max-line-length
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
