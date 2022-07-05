@@ -2,8 +2,8 @@ let
   pkgs = import
     (builtins.fetchTarball {
       name = "nixos-unstable-2021-10-01";
-      url = "https://github.com/nixos/nixpkgs/archive/8161cdf3ac174cf8d1b59fad113010671262cca7.tar.gz";
-      sha256 = "1nna04bdl5jmrkw130s8iv9fk376k8jm8yjyx2k2gipxd9d75slr";
+      url = "https://github.com/nixos/nixpkgs/archive/369ab30030d8c56fe87a06c1fe3b2c0e85ba6253.tar.gz";
+      sha256 = "1f1lw5qrd3549l4fq3w4bqz3b6415hwjks2pa9yqz9cfpjh13y7l";
     })
     { };
 
@@ -138,7 +138,7 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.nixpkgs-fmt
     pkgs.yarn
-    pkgs.nodejs-18_x
+    pkgs.nodejs-16_x
     pkgs.slither-analyzer
     local-node
     local-fork
