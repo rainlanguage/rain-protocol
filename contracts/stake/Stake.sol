@@ -38,7 +38,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     IERC20 private token;
     uint256 private initialRatio;
 
-    mapping(address => Deposit[]) private deposits;
+    mapping(address => Deposit[]) public deposits;
 
     function initialize(StakeConfig calldata config_) external initializer {
         require(config_.token != address(0), "0_TOKEN");
@@ -90,31 +90,29 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         // ensure this.
         uint256 newHighwater_ = oldHighwater_ - amount_;
 
-        (uint256 high_, ) = _earliestTimeAboveThreshold(
-            msg.sender,
-            newHighwater_,
-            0
-        );
+        uint high_ = 0;
+        if (newHighwater_ > 0) {
+            (high_, ) = _earliestTimeAtLeastThreshold(
+                msg.sender,
+                newHighwater_,
+                0
+            );
+        }
+
         unchecked {
-            while (i_ >= high_) {
+            while (i_ > high_) {
                 delete deposits[msg.sender][i_];
-                if (i_ == 0) {
-                    break;
-                }
                 i_--;
             }
         }
 
-        // If the newHighwater_ is not identical to the current top we write it
-        // as the new top.
-        uint256 lenAfter_ = deposits[msg.sender].length;
-        uint256 cmpHighwater_ = lenAfter_ > 0
-            ? deposits[msg.sender][lenAfter_ - 1].amount
-            : 0;
-        if (newHighwater_ > cmpHighwater_) {
-            deposits[msg.sender].push(
-                Deposit(uint32(block.timestamp), newHighwater_.toUint224())
-            );
+        // For non-zero highwaters we preserve the timestamp on the new top
+        // deposit and only set the amount to the new highwater.
+        if (newHighwater_ > 0) {
+            deposits[msg.sender][high_].amount = newHighwater_.toUint224();
+        }
+        else {
+            delete deposits[msg.sender][i_];
         }
 
         // MUST calculate withdrawal amount against pre-burn supply.
@@ -139,7 +137,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
                 uint256 time_ = uint256(TierConstants.NEVER_TIME);
                 for (uint256 t_ = 0; t_ < context_.length; t_++) {
                     uint256 threshold_ = context_[t_];
-                    (high_, time_) = _earliestTimeAboveThreshold(
+                    (high_, time_) = _earliestTimeAtLeastThreshold(
                         account_,
                         threshold_,
                         high_
@@ -159,16 +157,19 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        if (tier_ <= context_.length) {
+        if (tier_ == 0) {
+            time_ = uint(TierConstants.ALWAYS);
+        }
+        else if (tier_ <= context_.length) {
             uint256 threshold_ = context_[tier_ - 1];
-            (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
+            (, time_) = _earliestTimeAtLeastThreshold(account_, threshold_, 0);
         } else {
             time_ = uint256(TierConstants.NEVER_TIME);
         }
     }
 
     /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
-    function _earliestTimeAboveThreshold(
+    function _earliestTimeAtLeastThreshold(
         address account_,
         uint256 threshold_,
         uint256 low_
