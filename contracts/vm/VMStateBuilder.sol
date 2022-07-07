@@ -103,9 +103,10 @@ contract VMStateBuilder {
         address vm_,
         StateConfig memory config_,
         Bounds[] memory boundss_
-    ) external returns (bytes memory) {
+    ) external returns (bytes memory state_) {
         unchecked {
             bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
+            uint ag_ = gasleft();
             uint256 storageLength_ = RainVM(vm_).storageOpcodesRange().length;
             uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
@@ -141,7 +142,7 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            return
+            state_ =
                 LibState.toBytesPacked(
                     State(
                         0,
@@ -151,6 +152,8 @@ contract VMStateBuilder {
                         config_.constants.length
                     )
                 );
+            uint bg_ = gasleft();
+        console.log("build gas", ag_ - bg_);
         }
     }
 

@@ -42,12 +42,16 @@ contract AllStandardOpsTest is RainVM {
         bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
         Bounds[] memory boundss_ = new Bounds[](1);
         boundss_[0] = bounds_;
+        uint256 b_ = gasleft();
+        console.log("pre new state gas", a_ - b_);
+
+        a_ = gasleft();
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
             self,
             stateConfig_,
             boundss_
         );
-        uint256 b_ = gasleft();
+        b_ = gasleft();
         console.log("new state gas", a_ - b_);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
