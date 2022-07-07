@@ -25,6 +25,62 @@ describe("Stake deposit", async function () {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
+  it("should calculate correct mint amounts based on current supply", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[1];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const amount = ethers.BigNumber.from("1000" + sixZeros);
+
+    const tokenPoolSize0_ = await token.balanceOf(stake.address);
+    const totalSupply0_ = await stake.totalSupply();
+    assert(tokenPoolSize0_.eq(totalSupply0_));
+    assert(tokenPoolSize0_.isZero());
+
+    // Alice deposits reserve tokens
+    await token.transfer(alice.address, amount);
+    await token.connect(alice).approve(stake.address, amount);
+    await stake.connect(alice).deposit(amount);
+
+    const expectedMint0 = amount.mul(stakeConfigStruct.initialRatio).div(ONE);
+    const actualMint0 = await stake.totalSupply();
+
+    assert(
+      expectedMint0.eq(actualMint0),
+      `wrong amount minted when supply == 0
+      expected  ${expectedMint0}
+      got       ${actualMint0}`
+    );
+
+    const tokenPoolSize1_ = await token.balanceOf(stake.address);
+    const totalSupply1_ = await stake.totalSupply();
+    assert(tokenPoolSize1_.eq(totalSupply1_));
+
+    // Alice deposits more reserve tokens
+    await token.transfer(alice.address, amount);
+    await token.connect(alice).approve(stake.address, amount);
+    await stake.connect(alice).deposit(amount);
+
+    const expectedMint1 = actualMint0.mul(amount).div(tokenPoolSize1_);
+    const actualMint1 = (await stake.totalSupply()).sub(actualMint0);
+
+    assert(
+      expectedMint1.eq(actualMint1),
+      `wrong amount minted when supply > 0
+      expected  ${expectedMint1}
+      got       ${actualMint1}`
+    );
+  });
+
   it("should revert deposit if mint amount is calculated to be 0", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -100,6 +156,28 @@ describe("Stake deposit", async function () {
     await stake.connect(alice).deposit(1);
     await token.connect(alice).approve(stake.address, 1);
     await stake.connect(alice).deposit(1);
+  });
+
+  it("should process deposit of 2 tokens", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(alice.address, 4);
+    await token.connect(alice).approve(stake.address, 2);
+    await stake.connect(alice).deposit(2);
+    await token.connect(alice).approve(stake.address, 2);
+    await stake.connect(alice).deposit(2);
   });
 
   it("should process deposits", async function () {

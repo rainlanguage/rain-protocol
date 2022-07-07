@@ -134,7 +134,8 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
                 uint high_ = 0;
                 uint time_ = uint256(TierConstants.NEVER_TIME);
                 for (uint t_ = 0; t_ < context_.length; t_++) {
-                    (high_, time_) = _earliestTimeAboveThreshold(account_, context_[t_], high_);
+                    uint256 threshold_ = context_[t_];
+                    (high_, time_) = _earliestTimeAboveThreshold(account_, threshold_, high_);
                     if (time_ == uint256(TierConstants.NEVER_TIME)) {
                         break;
                     }
@@ -154,8 +155,8 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        if (tier_ < context_.length) {
-            uint256 threshold_ = context_[tier_];
+        if (tier_ <= context_.length) {
+            uint256 threshold_ = context_[tier_ - 1];
             (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
         }
         else {
