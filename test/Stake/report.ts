@@ -28,6 +28,99 @@ describe("Stake report", async function () {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
+  it("should return a correct report when staked tokens exceeded all thresholds until some were withdrawn, and then deposited again to exceed all thresholds", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = THRESHOLDS[7].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const blockTime0_ = await getBlockTimestamp();
+
+    const report0_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport0 = numArrayToReport([
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+    ]);
+
+    assert(
+      report0_.eq(expectedReport0),
+      `did not return correct stake report after first deposit
+      expected  ${hexlify(expectedReport0)}
+      got       ${hexlify(report0_)}`
+    );
+
+    await timewarp(86400);
+
+    const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
+    await stake.connect(alice).withdraw(withdrawAmount);
+
+    const report1_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport1 = numArrayToReport([
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report1_.eq(expectedReport1),
+      `did not return correct stake report after withdraw
+      expected  ${hexlify(expectedReport1)}
+      got       ${hexlify(report1_)}`
+    );
+
+    await token.connect(alice).approve(stake.address, withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount);
+
+    const blockTime1_ = await getBlockTimestamp();
+
+    const report2_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport2 = numArrayToReport([
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime1_,
+      blockTime1_,
+      blockTime1_,
+      blockTime1_,
+    ]);
+
+    assert(
+      report2_.eq(expectedReport2),
+      `did not return correct stake report after second deposit
+      expected  ${hexlify(expectedReport2)}
+      got       ${hexlify(report2_)}`
+    );
+  });
+
   it("should return a correct report when staked tokens exceeded 1st threshold until some were withdrawn, and then deposited again to exceed 1st threshold", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
