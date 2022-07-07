@@ -69,8 +69,8 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         require(mintAmount_ > 0, "0_MINT");
         _mint(msg.sender, mintAmount_);
 
-        uint len_ = deposits[msg.sender].length;
-        uint highwater_ = len_ > 0
+        uint256 len_ = deposits[msg.sender].length;
+        uint256 highwater_ = len_ > 0
             ? deposits[msg.sender][len_ - 1].amount
             : 0;
         deposits[msg.sender].push(
@@ -90,7 +90,11 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         // ensure this.
         uint256 newHighwater_ = oldHighwater_ - amount_;
 
-        (uint high_,) = _earliestTimeAboveThreshold(msg.sender, newHighwater_, 0);
+        (uint256 high_, ) = _earliestTimeAboveThreshold(
+            msg.sender,
+            newHighwater_,
+            0
+        );
         unchecked {
             while (i_ >= high_) {
                 delete deposits[msg.sender][i_];
@@ -103,7 +107,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
 
         // If the newHighwater_ is not identical to the current top we write it
         // as the new top.
-        uint lenAfter_ = deposits[msg.sender].length;
+        uint256 lenAfter_ = deposits[msg.sender].length;
         uint256 cmpHighwater_ = lenAfter_ > 0
             ? deposits[msg.sender][lenAfter_ - 1].amount
             : 0;
@@ -131,19 +135,19 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         unchecked {
             report_ = type(uint256).max;
             if (context_.length > 0) {
-                uint high_ = 0;
-                uint time_ = uint256(TierConstants.NEVER_TIME);
-                for (uint t_ = 0; t_ < context_.length; t_++) {
+                uint256 high_ = 0;
+                uint256 time_ = uint256(TierConstants.NEVER_TIME);
+                for (uint256 t_ = 0; t_ < context_.length; t_++) {
                     uint256 threshold_ = context_[t_];
-                    (high_, time_) = _earliestTimeAboveThreshold(account_, threshold_, high_);
+                    (high_, time_) = _earliestTimeAboveThreshold(
+                        account_,
+                        threshold_,
+                        high_
+                    );
                     if (time_ == uint256(TierConstants.NEVER_TIME)) {
                         break;
                     }
-                    report_ = TierReport.updateTimeAtTier(
-                        report_,
-                        t_,
-                        time_
-                    );
+                    report_ = TierReport.updateTimeAtTier(report_, t_, time_);
                 }
             }
         }
@@ -158,23 +162,26 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         if (tier_ <= context_.length) {
             uint256 threshold_ = context_[tier_ - 1];
             (, time_) = _earliestTimeAboveThreshold(account_, threshold_, 0);
-        }
-        else {
+        } else {
             time_ = uint256(TierConstants.NEVER_TIME);
         }
     }
 
     /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
-    function _earliestTimeAboveThreshold(address account_, uint threshold_, uint low_) internal view returns (uint high_, uint time_) {
+    function _earliestTimeAboveThreshold(
+        address account_,
+        uint256 threshold_,
+        uint256 low_
+    ) internal view returns (uint256 high_, uint256 time_) {
         unchecked {
-            uint len_ = deposits[account_].length;
+            uint256 len_ = deposits[account_].length;
             high_ = len_;
-            uint mid_;
+            uint256 mid_;
             Deposit memory deposit_;
             while (low_ < high_) {
                 mid_ = Math.average(low_, high_);
                 deposit_ = deposits[account_][mid_];
-                if (uint(deposit_.amount) >= threshold_) {
+                if (uint256(deposit_.amount) >= threshold_) {
                     high_ = mid_;
                 } else {
                     low_ = mid_ + 1;
@@ -182,7 +189,9 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
             }
             // At this point high_ and low_ are equal, but mid_ has not been
             // updated to match, so high_ is what we return as-is.
-            time_ = high_ == len_ ? uint(TierConstants.NEVER_TIME) : deposits[account_][high_].timestamp;
+            time_ = high_ == len_
+                ? uint256(TierConstants.NEVER_TIME)
+                : deposits[account_][high_].timestamp;
         }
     }
 }
