@@ -6,32 +6,32 @@ import "./VMStateBuilder.sol";
 import "./ops/AllStandardOps.sol";
 
 contract StandardStateBuilder is VMStateBuilder {
-    function localStackPopsFnPtrs()
+    function localStackPops()
         internal
         pure
         virtual
-        returns (bytes memory localStackPopsFnPtrs_)
+        returns (uint256[] memory pops_)
     {}
 
     function localStackPushes()
         internal
         pure
         virtual
-        returns (uint[] memory pushes_)
+        returns (uint256[] memory pushes_)
     {}
 
     /// @inheritdoc VMStateBuilder
-    function stackPopsFnPtrs() public pure override returns (bytes memory) {
-        return
-            bytes.concat(
-                AllStandardOps.stackPopsFnPtrs(),
-                localStackPopsFnPtrs()
-            );
+    function stackPops() public pure override returns (uint256[] memory pops_) {
+        pops_ = AllStandardOps.stackPops(localStackPops());
     }
 
     /// @inheritdoc VMStateBuilder
-    function stackPushes() public view override returns (uint[] memory pushes_) {
-        pushes_ =
-                AllStandardOps.stackPushes(localStackPushes());
+    function stackPushes()
+        public
+        pure
+        override
+        returns (uint256[] memory pushes_)
+    {
+        pushes_ = AllStandardOps.stackPushes(localStackPushes());
     }
 }

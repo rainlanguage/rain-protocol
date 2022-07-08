@@ -8,33 +8,31 @@ import "./OrderBook.sol";
 contract OrderBookStateBuilder is StandardStateBuilder {
     using LibFnPtrs for bytes;
 
-    function localStackPopsFnPtrs()
+    /// @inheritdoc StandardStateBuilder
+    function localStackPops()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint256[] memory)
     {
-        function(uint256) view returns (uint256)[3] memory fns_ = [
-            LibFnPtrs.toStackMoveFn(2 * 0x20),
-            // order funds cleared
-            AllStandardOps.one,
-            // order counterparty funds cleared
-            AllStandardOps.two
-        ];
-        assembly {
-            fnPtrs_ := fns_
-        }
+        uint256[] memory pops_ = new uint256[](LOCAL_OPS_LENGTH);
+        // order funds cleared
+        pops_[0] = 1;
+        // order counterparty funds cleared
+        pops_[1] = 2;
+        return pops_;
     }
 
+    /// @inheritdoc StandardStateBuilder
     function localStackPushes()
         internal
         pure
         virtual
         override
-        returns (uint[] memory )
+        returns (uint256[] memory)
     {
-        uint[] memory pushes_ = new uint[](LOCAL_OPS_LENGTH);
+        uint256[] memory pushes_ = new uint256[](LOCAL_OPS_LENGTH);
         // order funds cleared
         pushes_[0] = 1;
         // order counterparty funds cleared

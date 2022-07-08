@@ -6,12 +6,12 @@ import "./AllStandardOps.sol";
 
 contract AllStandardOpsStateBuilder is VMStateBuilder {
     /// @inheritdoc VMStateBuilder
-    function stackPopsFnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.stackPopsFnPtrs();
+    function stackPops() public pure override returns (uint256[] memory) {
+        return AllStandardOps.stackPops(new uint256[](0));
     }
 
     /// @inheritdoc VMStateBuilder
-    function stackPushes() public view override returns (uint[] memory) {
-        return AllStandardOps.stackPushes(new uint[](0));
+    function stackPushes() public view override returns (uint256[] memory) {
+        return AllStandardOps.stackPushes(new uint256[](0));
     }
 }
