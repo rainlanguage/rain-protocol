@@ -45,7 +45,7 @@ describe("OrderBook add order", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it("should add orders", async function () {
+  it.only("should add orders", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

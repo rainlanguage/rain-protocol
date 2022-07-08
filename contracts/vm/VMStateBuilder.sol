@@ -73,26 +73,44 @@ library LibFnPtrs {
     }
 }
 
+struct VmStructure {
+    uint16 storageOpcodesLength;
+    address packedFnPtrsAddress;
+}
+
 contract VMStateBuilder {
     using Math for uint256;
 
     address private immutable _stackPopsFnPtrs;
     address private immutable _stackPushesFnPtrs;
-    mapping(address => address) private ptrCache;
+    mapping(address => VmStructure) private structureCache;
 
     constructor() {
         _stackPopsFnPtrs = SSTORE2.write(stackPopsFnPtrs());
         _stackPushesFnPtrs = SSTORE2.write(stackPushesFnPtrs());
     }
 
-    function _packedFnPtrs(address vm_) private returns (bytes memory) {
+    function _vmStructure(address vm_)
+        private
+        returns (VmStructure memory vmStructure_)
+    {
         unchecked {
-            bytes memory packedPtrs_ = SSTORE2.read(ptrCache[vm_]);
-            if (packedPtrs_.length == 0) {
-                ptrCache[vm_] = SSTORE2.write(packFnPtrs(RainVM(vm_).fnPtrs()));
-                return _packedFnPtrs(vm_);
+            vmStructure_ = structureCache[vm_];
+            if (vmStructure_.packedFnPtrsAddress == address(0)) {
+                bytes memory packedFnPtrs_ = packFnPtrs(RainVM(vm_).fnPtrs());
+                StorageOpcodesRange memory storageOpcodesRange_ = RainVM(vm_)
+                    .storageOpcodesRange();
+                require(
+                    storageOpcodesRange_.length <= type(uint16).max,
+                    "OOB_STORAGE_OPCODES"
+                );
+
+                vmStructure_ = VmStructure(
+                    uint16(storageOpcodesRange_.length),
+                    SSTORE2.write(packedFnPtrs_)
+                );
+                structureCache[vm_] = vmStructure_;
             }
-            return packedPtrs_;
         }
     }
 
@@ -105,14 +123,18 @@ contract VMStateBuilder {
         Bounds[] memory boundss_
     ) external returns (bytes memory state_) {
         unchecked {
-            bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
-            uint ag_ = gasleft();
-            uint256 storageLength_ = RainVM(vm_).storageOpcodesRange().length;
+            VmStructure memory vmStructure_ = _vmStructure(vm_);
+            bytes memory packedFnPtrs_ = SSTORE2.read(
+                vmStructure_.packedFnPtrsAddress
+            );
             uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
 
+            uint256 ag_ = gasleft();
             for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
-                boundss_[b_].storageLength = storageLength_;
+                boundss_[b_].storageLength = uint256(
+                    vmStructure_.storageOpcodesLength
+                );
 
                 // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the
                 // length to get the valid opcodes length.
@@ -128,6 +150,7 @@ contract VMStateBuilder {
                     "FINAL_STACK_INDEX"
                 );
             }
+            uint256 bg_ = gasleft();
 
             // build a new constants array with space for the arguments.
             uint256[] memory constants_ = new uint256[](
@@ -142,18 +165,16 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            state_ =
-                LibState.toBytesPacked(
-                    State(
-                        0,
-                        new uint256[](stackLength_),
-                        ptrSources_,
-                        constants_,
-                        config_.constants.length
-                    )
-                );
-            uint bg_ = gasleft();
-        console.log("build gas", ag_ - bg_);
+            state_ = LibState.toBytesPacked(
+                State(
+                    0,
+                    new uint256[](stackLength_),
+                    ptrSources_,
+                    constants_,
+                    config_.constants.length
+                )
+            );
+            console.log("build gas", ag_ - bg_);
         }
     }
 
@@ -304,7 +325,7 @@ contract VMStateBuilder {
                             operand_ <
                                 (bounds_.argumentsLength +
                                     stateConfig_.constants.length),
-                                    "OOB_CONSTANT"
+                            "OOB_CONSTANT"
                         );
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STACK) {
@@ -318,7 +339,10 @@ contract VMStateBuilder {
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STORAGE) {
                         // trying to read past allowed storage slots.
-                        require(operand_ < bounds_.storageLength, "OOB_STORAGE");
+                        require(
+                            operand_ < bounds_.storageLength,
+                            "OOB_STORAGE"
+                        );
                         bounds_.stackIndex++;
                     }
                     if (opcode_ == OPCODE_ZIPMAP) {

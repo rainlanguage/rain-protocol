@@ -47,10 +47,6 @@ contract SaleFactory is Factory {
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external returns (Sale) {
         return
-            Sale(
-                createChild(
-                    abi.encode(config_, saleRedeemableERC20Config_)
-                )
-            );
+            Sale(createChild(abi.encode(config_, saleRedeemableERC20Config_)));
     }
 }
