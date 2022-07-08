@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
-import { max_uint32, ONE } from "../../utils/constants/bigNumber";
+import { max_uint32, ONE, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
@@ -25,6 +25,98 @@ describe("Stake reportTimeForTier", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+  });
+
+  it("should reset earliest time if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[1];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    // Give Alice reserve tokens and desposit them
+    const depositAmount0 = THRESHOLDS[7].add(1); // exceeds all thresholds
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0);
+
+    const timeOne0_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.ONE,
+      THRESHOLDS
+    );
+    const timeEight0_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.EIGHT,
+      THRESHOLDS
+    );
+
+    const blockTime0_ = await getBlockTimestamp();
+    assert(timeOne0_.eq(blockTime0_));
+    assert(timeEight0_.eq(blockTime0_));
+
+    await timewarp(86400);
+
+    // Alice withdraws tokens
+    const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
+    await stake.connect(alice).withdraw(withdrawAmount);
+
+    const timeOne1_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.ONE,
+      THRESHOLDS
+    );
+    const timeFour1_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.FOUR,
+      THRESHOLDS
+    );
+    const timeEight1_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.EIGHT,
+      THRESHOLDS
+    );
+
+    assert(
+      timeEight1_.eq(max_uint32),
+      "withdraw did not reset tier EIGHT time"
+    );
+    assert(
+      timeOne1_.eq(blockTime0_),
+      "withdraw did wrongly reset tier ONE time"
+    );
+    assert(
+      timeFour1_.eq(blockTime0_),
+      "withdraw did wrongly reset tier FOUR time"
+    );
+
+    await timewarp(86400);
+
+    // Alice deposits again, exceeding all thresholds again
+    await token.connect(alice).approve(stake.address, withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount);
+
+    const timeOne2_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.ONE,
+      THRESHOLDS
+    );
+    const timeEight2_ = await stake.reportTimeForTier(
+      alice.address,
+      Tier.EIGHT,
+      THRESHOLDS
+    );
+
+    const blockTime2_ = await getBlockTimestamp();
+    assert(timeOne2_.eq(blockTime0_));
+    assert(timeEight2_.eq(blockTime2_));
   });
 
   it("should reset earliest time if user briefly fails to exceed 1st threshold (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {

@@ -136,7 +136,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
                 uint256 time_ = uint256(TierConstants.NEVER_TIME);
                 for (uint256 t_ = 0; t_ < context_.length; t_++) {
                     uint256 threshold_ = context_[t_];
-                    (high_, time_) = _earliestTimeAtLeastThreshold(
+                    (, time_) = _earliestTimeAtLeastThreshold(
                         account_,
                         threshold_,
                         high_
