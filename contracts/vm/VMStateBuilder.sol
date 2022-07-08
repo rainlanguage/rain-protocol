@@ -50,24 +50,10 @@ library LibFnPtrs {
         }
     }
 
-    function unsafeInsertStackMovePtr(
-        bytes memory fnPtrs_,
-        uint256 i_,
-        function(uint256) view returns (uint256) fn_
-    ) internal pure {
-            assembly {
-                mstore(add(fnPtrs_, add(0x20, mul(i_, 0x20))), fn_)
-            }
-    }
-
-    function unsafeInsertOpPtr(
-        bytes memory fnPtrs_,
-        uint256 i_,
-        function(uint256, uint256) view returns (uint256) fn_
-    ) internal pure {
-            assembly {
-                mstore(add(fnPtrs_, add(0x20, mul(i_, 0x20))), fn_)
-            }
+    function toOpFn(uint i_) internal pure returns (function(uint, uint) view returns (uint) fn_) {
+        assembly {
+            fn_ := i_
+        }
     }
 }
 

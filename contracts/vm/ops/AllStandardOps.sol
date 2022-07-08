@@ -76,7 +76,6 @@ library AllStandardOps {
 
     function stackPopsFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            // fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
             function(uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH +
                 1]
                 memory fns_ = [
@@ -89,7 +88,7 @@ library AllStandardOps {
                     zero,
                     // opcode storage
                     zero,
-                    // opcode zipmap (will be ignored)
+                    // opcode zipmap (ignored)
                     zero,
                     // opcode debug
                     zero,
@@ -177,15 +176,11 @@ library AllStandardOps {
             assembly {
                 fnPtrs_ := fns_
             }
-            // for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
-            //     fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
-            // }
         }
     }
 
     function stackPushesFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            // fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
             function(uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH +
                 1]
                 memory fns_ = [
@@ -286,19 +281,16 @@ library AllStandardOps {
             assembly {
                 fnPtrs_ := fns_
             }
-            // for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
-            //     fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
-            // }
         }
     }
 
     function fnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
             function(uint256, uint256)
                 view
-                returns (uint256)[ALL_STANDARD_OPS_COUNT]
+                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
+                    LibFnPtrs.toOpFn(ALL_STANDARD_OPS_LENGTH * 0x20),
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
@@ -340,8 +332,8 @@ library AllStandardOps {
                     OpSelectLte.selectLte,
                     OpUpdateTimesForTierRange.updateTimesForTierRange
                 ];
-            for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
-                fnPtrs_.unsafeInsertOpPtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
+            assembly {
+                fnPtrs_ := fns_
             }
         }
     }
