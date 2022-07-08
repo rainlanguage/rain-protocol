@@ -114,7 +114,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     {
         unchecked {
             localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            localFnPtrs_.insertOpPtr(
+            localFnPtrs_.unsafeInsertOpPtr(
                 OP_EVIDENCE_DATA_APPROVED,
                 opEvidenceDataApproved
             );

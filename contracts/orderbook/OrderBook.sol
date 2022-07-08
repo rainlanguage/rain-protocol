@@ -332,11 +332,11 @@ contract OrderBook is RainVM {
     function localFnPtrs() internal pure returns (bytes memory localFnPtrs_) {
         unchecked {
             localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            localFnPtrs_.insertOpPtr(
+            localFnPtrs_.unsafeInsertOpPtr(
                 LOCAL_OP_CLEARED_ORDER - ALL_STANDARD_OPS_LENGTH,
                 opOrderFundsCleared
             );
-            localFnPtrs_.insertOpPtr(
+            localFnPtrs_.unsafeInsertOpPtr(
                 LOCAL_OP_CLEARED_COUNTERPARTY - ALL_STANDARD_OPS_LENGTH,
                 opOrderCounterpartyFundsCleared
             );

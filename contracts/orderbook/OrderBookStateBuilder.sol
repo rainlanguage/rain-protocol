@@ -25,7 +25,7 @@ contract OrderBookStateBuilder is StandardStateBuilder {
                     AllStandardOps.two
                 ];
             for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
+                fnPtrs_.unsafeInsertStackMovePtr(i_, fns_[i_]);
             }
         }
     }
@@ -47,7 +47,7 @@ contract OrderBookStateBuilder is StandardStateBuilder {
                     AllStandardOps.one
                 ];
             for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
+                fnPtrs_.unsafeInsertStackMovePtr(i_, fns_[i_]);
             }
         }
     }

@@ -77,8 +77,9 @@ library AllStandardOps {
     function stackPopsFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
             fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_COUNT]
+            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_COUNT + 1]
                 memory fns_ = [
+                    LibFnPtrs.toStackMoveFn(ALL_STANDARD_OPS_LENGTH * 0x20),
                     // erc20 balance of
                     two,
                     // erc20 total supply
@@ -160,17 +161,21 @@ library AllStandardOps {
                     // update times for tier range
                     two
                 ];
-            for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
-                fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
+            assembly {
+                fnPtrs_ := fns_
             }
+            // for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
+            //     fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
+            // }
         }
     }
 
     function stackPushesFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_COUNT]
+            // fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
+            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_COUNT + 1]
                 memory fns_ = [
+                    LibFnPtrs.toStackMoveFn(ALL_STANDARD_OPS_LENGTH * 0x20),
                     // erc20 balance of
                     one,
                     // erc20 total supply
@@ -252,9 +257,12 @@ library AllStandardOps {
                     // update times for tier range
                     one
                 ];
-            for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
-                fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
+            assembly {
+                fnPtrs_ := fns_
             }
+            // for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
+            //     fnPtrs_.insertStackMovePtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
+            // }
         }
     }
 
@@ -307,7 +315,7 @@ library AllStandardOps {
                     OpUpdateTimesForTierRange.updateTimesForTierRange
                 ];
             for (uint256 i_ = 0; i_ < ALL_STANDARD_OPS_COUNT; i_++) {
-                fnPtrs_.insertOpPtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
+                fnPtrs_.unsafeInsertOpPtr(i_ + RAIN_VM_OPS_LENGTH, fns_[i_]);
             }
         }
     }
