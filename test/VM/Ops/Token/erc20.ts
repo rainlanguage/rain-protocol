@@ -41,7 +41,7 @@ describe("RainVM ERC20 ops", async function () {
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
 
-  it.only("should return ERC20 total supply", async () => {
+  it("should return ERC20 total supply", async () => {
     const constants = [tokenERC20.address];
     const vTokenAddr = op(Opcode.CONSTANT, 0);
 

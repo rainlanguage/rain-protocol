@@ -181,7 +181,7 @@ library AllStandardOps {
             assembly {
                 // hack to sneak in more allocated memory for the pushes array
                 // before anything else can allocate.
-                mstore(0x40, add(localsLen_, mload(0x40)))
+                mstore(0x40, add(mul(localsLen_, 0x20), mload(0x40)))
                 pops_ := popsFixed_
             }
             for (uint256 i_ = 0; i_ < localsLen_; i_++) {
@@ -295,7 +295,7 @@ library AllStandardOps {
             assembly {
                 // hack to sneak in more allocated memory for the pushes array
                 // before anything else can allocate.
-                mstore(0x40, add(localsLen_, mload(0x40)))
+                mstore(0x40, add(mul(localsLen_, 0x20), mload(0x40)))
                 pushes_ := pushesFixed_
             }
             for (uint256 i_ = 0; i_ < localsLen_; i_++) {

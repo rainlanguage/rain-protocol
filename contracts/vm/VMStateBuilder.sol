@@ -38,7 +38,6 @@ struct Bounds {
     uint256 stackLength;
     uint256 argumentsLength;
     uint256 storageLength;
-    uint256 opcodesLength;
 }
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
@@ -93,12 +92,7 @@ contract VMStateBuilder {
     /// see equal to or less than is a literal stack move.
     uint256 private constant MOVE_POINTER_CUTOFF = 5;
 
-    address private immutable _fnPtrs;
     mapping(address => VmStructure) private structureCache;
-
-    constructor() {
-        _fnPtrs = SSTORE2.write(abi.encode(FnPtrs(stackPops(), stackPushes())));
-    }
 
     function _vmStructure(address vm_)
         private
@@ -134,6 +128,7 @@ contract VMStateBuilder {
         Bounds[] memory boundss_
     ) external returns (bytes memory state_) {
         unchecked {
+            uint256 ag_ = gasleft();
             VmStructure memory vmStructure_ = _vmStructure(vm_);
             bytes memory packedFnPtrs_ = SSTORE2.read(
                 vmStructure_.packedFnPtrsAddress
@@ -141,16 +136,14 @@ contract VMStateBuilder {
             uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
 
-            uint256 ag_ = gasleft();
+            uint[] memory stackPops_ = stackPops();
+            uint[] memory stackPushes_ = stackPushes();
             for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
                 boundss_[b_].storageLength = uint256(
                     vmStructure_.storageOpcodesLength
                 );
 
-                // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the
-                // length to get the valid opcodes length.
-                boundss_[b_].opcodesLength = packedFnPtrs_.length / 2;
-                ensureIntegrity(config_, boundss_[b_]);
+                ensureIntegrity(stackPops_, stackPushes_, config_, boundss_[b_]);
                 argumentsLength_ = argumentsLength_.max(
                     boundss_[b_].argumentsLength
                 );
@@ -271,6 +264,8 @@ contract VMStateBuilder {
     }
 
     function _ensureIntegrityZipmap(
+        uint[] memory stackPops_,
+        uint[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_,
         uint256 operand_
@@ -286,24 +281,21 @@ contract VMStateBuilder {
             uint256 innerEntrypoint_ = operand_ & 0x07;
             bounds_.entrypoint = innerEntrypoint_;
             for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                ensureIntegrity(stateConfig_, bounds_);
+                ensureIntegrity(stackPops_, stackPushes_, stateConfig_, bounds_);
             }
             bounds_.entrypoint = outerEntrypoint_;
         }
     }
 
     function ensureIntegrity(
+        uint[] memory stackPops_,
+        uint[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_
     ) public view {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            // uint256 a_ = gasleft();
-            uint256[] memory stackPushes_ = stackPushes();
-            uint256[] memory stackPops_ = stackPops();
-            // uint256 b_ = gasleft();
-            // console.log("ei", a_ - b_);
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;
@@ -360,13 +352,13 @@ contract VMStateBuilder {
                         bounds_.stackIndex++;
                     }
                     if (opcode_ == OPCODE_ZIPMAP) {
-                        _ensureIntegrityZipmap(stateConfig_, bounds_, operand_);
+                        _ensureIntegrityZipmap(stackPops_, stackPushes_, stateConfig_, bounds_, operand_);
                     }
                 } else {
-                    // Opcodes can't exceed the bounds of valid fn pointers.
-                    require(opcode_ < bounds_.opcodesLength, "MAX_OPCODE");
-
+                    // OOB opcodes will be picked up here and error due to the
+                    // index being invalid.
                     uint256 pop_ = stackPops_[opcode_];
+
                     // If the pop is higher than the cutoff for static pop
                     // values run it and use the return instead.
                     if (pop_ > MOVE_POINTER_CUTOFF) {
@@ -376,10 +368,10 @@ contract VMStateBuilder {
                         }
                         pop_ = popsFn_(operand_);
                     }
-                    bounds_.stackIndex -= pop_;
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack
-                    // length later.
+                    // length later (but not in this unchecked block).
+                    bounds_.stackIndex -= pop_;
                     bounds_.stackLength = bounds_.stackLength.max(
                         bounds_.stackIndex
                     );

@@ -360,7 +360,7 @@ describe("Sale calculate price", async function () {
             distributionEndForwardingAddress: ethers.constants.AddressZero,
           }
         ),
-      "MAX_OPCODE",
+      "Array accessed at an out-of-bounds or negative index",
       "did not prevent out of bounds opcode deploy"
     );
   });
