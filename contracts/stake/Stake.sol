@@ -90,7 +90,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         // ensure this.
         uint256 newHighwater_ = oldHighwater_ - amount_;
 
-        uint high_ = 0;
+        uint256 high_ = 0;
         if (newHighwater_ > 0) {
             (high_, ) = _earliestTimeAtLeastThreshold(
                 msg.sender,
@@ -110,8 +110,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         // deposit and only set the amount to the new highwater.
         if (newHighwater_ > 0) {
             deposits[msg.sender][high_].amount = newHighwater_.toUint224();
-        }
-        else {
+        } else {
             delete deposits[msg.sender][i_];
         }
 
@@ -158,9 +157,8 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
         if (tier_ == 0) {
-            time_ = uint(TierConstants.ALWAYS);
-        }
-        else if (tier_ <= context_.length) {
+            time_ = TierConstants.ALWAYS;
+        } else if (tier_ <= context_.length) {
             uint256 threshold_ = context_[tier_ - 1];
             (, time_) = _earliestTimeAtLeastThreshold(account_, threshold_, 0);
         } else {
