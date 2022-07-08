@@ -15,35 +15,28 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
         returns (bytes memory fnPtrs_)
     {
         unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
+            function(uint256) view returns (uint256)[LOCAL_OPS_LENGTH + 1]
                 memory fns_ = [
+                    LibFnPtrs.toStackMoveFn(LOCAL_OPS_LENGTH * 0x20),
                     // approved evidence
                     AllStandardOps.one
                 ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.unsafeInsertStackMovePtr(i_, fns_[i_]);
+            assembly {
+                fnPtrs_ := fns_
             }
         }
     }
 
-    function localStackPushesFnPtrs()
+    function localStackPushes()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint[] memory)
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // approved evidence
-                    AllStandardOps.one
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.unsafeInsertStackMovePtr(i_, fns_[i_]);
-            }
-        }
+        uint[] memory pushes_ = new uint[](1);
+        // approved evidence
+        pushes_[0] = 1;
+        return pushes_;
     }
 }

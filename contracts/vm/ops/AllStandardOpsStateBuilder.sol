@@ -11,7 +11,7 @@ contract AllStandardOpsStateBuilder is VMStateBuilder {
     }
 
     /// @inheritdoc VMStateBuilder
-    function stackPushesFnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.stackPushesFnPtrs();
+    function stackPushes() public view override returns (uint[] memory) {
+        return AllStandardOps.stackPushes(new uint[](0));
     }
 }

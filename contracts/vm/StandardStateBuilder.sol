@@ -13,11 +13,11 @@ contract StandardStateBuilder is VMStateBuilder {
         returns (bytes memory localStackPopsFnPtrs_)
     {}
 
-    function localStackPushesFnPtrs()
+    function localStackPushes()
         internal
         pure
         virtual
-        returns (bytes memory localStackPushesFnPtrs_)
+        returns (uint[] memory pushes_)
     {}
 
     /// @inheritdoc VMStateBuilder
@@ -30,11 +30,8 @@ contract StandardStateBuilder is VMStateBuilder {
     }
 
     /// @inheritdoc VMStateBuilder
-    function stackPushesFnPtrs() public pure override returns (bytes memory) {
-        return
-            bytes.concat(
-                AllStandardOps.stackPushesFnPtrs(),
-                localStackPushesFnPtrs()
-            );
+    function stackPushes() public view override returns (uint[] memory pushes_) {
+        pushes_ =
+                AllStandardOps.stackPushes(localStackPushes());
     }
 }

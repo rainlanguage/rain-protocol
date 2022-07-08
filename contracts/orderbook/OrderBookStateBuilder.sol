@@ -15,40 +15,30 @@ contract OrderBookStateBuilder is StandardStateBuilder {
         override
         returns (bytes memory fnPtrs_)
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // order funds cleared
-                    AllStandardOps.one,
-                    // order counterparty funds cleared
-                    AllStandardOps.two
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.unsafeInsertStackMovePtr(i_, fns_[i_]);
-            }
+        function(uint256) view returns (uint256)[3] memory fns_ = [
+            LibFnPtrs.toStackMoveFn(2 * 0x20),
+            // order funds cleared
+            AllStandardOps.one,
+            // order counterparty funds cleared
+            AllStandardOps.two
+        ];
+        assembly {
+            fnPtrs_ := fns_
         }
     }
 
-    function localStackPushesFnPtrs()
+    function localStackPushes()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint[] memory )
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // order funds cleared
-                    AllStandardOps.one,
-                    // order counterparty funds cleared
-                    AllStandardOps.one
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.unsafeInsertStackMovePtr(i_, fns_[i_]);
-            }
-        }
+        uint[] memory pushes_ = new uint[](LOCAL_OPS_LENGTH);
+        // order funds cleared
+        pushes_[0] = 1;
+        // order counterparty funds cleared
+        pushes_[1] = 1;
+        return pushes_;
     }
 }

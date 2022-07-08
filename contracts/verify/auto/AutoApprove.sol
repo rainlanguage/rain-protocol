@@ -113,11 +113,15 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         returns (bytes memory localFnPtrs_)
     {
         unchecked {
-            localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            localFnPtrs_.unsafeInsertOpPtr(
-                OP_EVIDENCE_DATA_APPROVED,
-                opEvidenceDataApproved
-            );
+            function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH +
+                1]
+                memory fns_ = [
+                    LibFnPtrs.toOpFn(LOCAL_OPS_LENGTH * 0x20),
+                    opEvidenceDataApproved
+                ];
+            assembly {
+                localFnPtrs_ := fns_
+            }
         }
     }
 }

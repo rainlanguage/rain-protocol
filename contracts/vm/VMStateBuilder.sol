@@ -44,15 +44,29 @@ struct Bounds {
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 library LibFnPtrs {
-    function toStackMoveFn(uint i_) internal pure returns (function(uint) view returns (uint) fn_) {
+    function toStackMoveFn(uint256 i_)
+        internal
+        pure
+        returns (function(uint256) view returns (uint256) fn_)
+    {
         assembly {
             fn_ := i_
         }
     }
 
-    function toOpFn(uint i_) internal pure returns (function(uint, uint) view returns (uint) fn_) {
+    function toOpFn(uint256 i_)
+        internal
+        pure
+        returns (function(uint256, uint256) view returns (uint256) fn_)
+    {
         assembly {
             fn_ := i_
+        }
+    }
+
+    function asUint(function(uint) view returns (uint) fn_) internal pure returns (uint i_) {
+        assembly {
+            i_ := fn_
         }
     }
 }
@@ -64,17 +78,24 @@ struct VmStructure {
 
 struct FnPtrs {
     bytes stackPopsFnPtrs;
-    bytes stackPushesFnPtrs;
+    uint[] stackPushes;
 }
 
 contract VMStateBuilder {
     using Math for uint256;
 
+    /// @dev total hack to differentiate between stack move functions and values
+    /// we assume that no function pointers are less than this so anything we
+    /// see equal to or less than is a literal stack move.
+    uint private constant MOVE_POINTER_CUTOFF = 5;
+
     address private immutable _fnPtrs;
     mapping(address => VmStructure) private structureCache;
 
     constructor() {
-        _fnPtrs = SSTORE2.write(abi.encode(FnPtrs(stackPopsFnPtrs(), stackPushesFnPtrs())));
+        _fnPtrs = SSTORE2.write(
+            abi.encode(FnPtrs(stackPopsFnPtrs(), stackPushes()))
+        );
     }
 
     function _vmStructure(address vm_)
@@ -91,10 +112,7 @@ contract VMStateBuilder {
                     storageOpcodesRange_.length <= type(uint16).max,
                     "OOB_STORAGE_OPCODES"
                 );
-                require(
-                    packedFnPtrs_.length % 2 == 0,
-                    "INVALID_POINTERS"
-                );
+                require(packedFnPtrs_.length % 2 == 0, "INVALID_POINTERS");
 
                 vmStructure_ = VmStructure(
                     uint16(storageOpcodesRange_.length),
@@ -129,9 +147,9 @@ contract VMStateBuilder {
                 // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the
                 // length to get the valid opcodes length.
                 boundss_[b_].opcodesLength = packedFnPtrs_.length / 2;
-            uint256 ag_ = gasleft();
+                uint256 ag_ = gasleft();
                 ensureIntegrity(config_, boundss_[b_]);
-            uint256 bg_ = gasleft();
+                uint256 bg_ = gasleft();
                 argumentsLength_ = argumentsLength_.max(
                     boundss_[b_].argumentsLength
                 );
@@ -141,7 +159,7 @@ contract VMStateBuilder {
                     boundss_[b_].stackIndex >= boundss_[b_].minFinalStackIndex,
                     "FINAL_STACK_INDEX"
                 );
-            console.log("build gas", ag_ - bg_);
+                console.log("build gas", ag_ - bg_);
             }
 
             // build a new constants array with space for the arguments.
@@ -279,13 +297,13 @@ contract VMStateBuilder {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            uint a_ = gasleft();
+            uint256 a_ = gasleft();
             // FnPtrs memory fnPtrs_ = abi.decode(SSTORE2.read(_fnPtrs), (FnPtrs));
             // bytes memory stackPushesFns_ = fnPtrs_.stackPushesFnPtrs;
             // bytes memory stackPopsFns_ = fnPtrs_.stackPopsFnPtrs;
-            bytes memory stackPushesFns_ = stackPushesFnPtrs();
+            uint[] memory stackPushes_ = stackPushes();
             bytes memory stackPopsFns_ = stackPopsFnPtrs();
-            uint b_ = gasleft();
+            uint256 b_ = gasleft();
             console.log("ei", a_ - b_);
             uint256 i_ = 0;
             uint256 sourceLen_;
@@ -349,13 +367,9 @@ contract VMStateBuilder {
                     // Opcodes can't exceed the bounds of valid fn pointers.
                     require(opcode_ < bounds_.opcodesLength, "MAX_OPCODE");
                     function(uint256) pure returns (uint256) popsFn_;
-                    function(uint256) pure returns (uint256) pushesFn_;
                     assembly {
                         popsFn_ := mload(
                             add(stackPopsFns_, add(0x20, mul(opcode_, 0x20)))
-                        )
-                        pushesFn_ := mload(
-                            add(stackPushesFns_, add(0x20, mul(opcode_, 0x20)))
                         )
                     }
 
@@ -367,7 +381,17 @@ contract VMStateBuilder {
                         bounds_.stackIndex
                     );
 
-                    bounds_.stackIndex += pushesFn_(operand_);
+                    uint push_ = stackPushes_[opcode_];
+                    // If the push is higher than the cutoff for static push
+                    // values run it and use the return instead.
+                    if (push_ > MOVE_POINTER_CUTOFF) {
+                        function(uint256) pure returns (uint256) pushesFn_;
+                        assembly {
+                            pushesFn_ := push_
+                        }
+                        push_ = pushesFn_(operand_);
+                    }
+                    bounds_.stackIndex += push_;
                 }
 
                 bounds_.stackLength = bounds_.stackLength.max(
@@ -382,5 +406,5 @@ contract VMStateBuilder {
 
     function stackPopsFnPtrs() public pure virtual returns (bytes memory) {}
 
-    function stackPushesFnPtrs() public pure virtual returns (bytes memory) {}
+    function stackPushes() public view virtual returns (uint[] memory) {}
 }

@@ -44,6 +44,8 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
+import "hardhat/console.sol";
+
 uint256 constant ALL_STANDARD_OPS_COUNT = 40;
 uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
     ALL_STANDARD_OPS_COUNT;
@@ -179,107 +181,112 @@ library AllStandardOps {
         }
     }
 
-    function stackPushesFnPtrs() internal pure returns (bytes memory fnPtrs_) {
+    function stackPushes(uint[] memory locals_) internal view returns (uint[] memory pushes_) {
         unchecked {
-            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH +
-                1]
-                memory fns_ = [
-                    LibFnPtrs.toStackMoveFn(ALL_STANDARD_OPS_LENGTH * 0x20),
+            uint localsLen_ = locals_.length;
+            uint[ALL_STANDARD_OPS_LENGTH + 1] memory pushesFixed_ = [
+                    ALL_STANDARD_OPS_LENGTH + localsLen_,
                     // opcode constant
-                    one,
+                    1,
                     // opcode stack
-                    one,
+                    1,
                     // opcode context
-                    one,
+                    1,
                     // opcode storage
-                    one,
+                    1,
                     // opcode zipmap (will be ignored)
-                    zero,
+                    0,
                     // opcode debug
-                    one,
+                    1,
                     // erc20 balance of
-                    one,
+                    1,
                     // erc20 total supply
-                    one,
+                    1,
                     // erc20 snapshot balance of at
-                    one,
+                    1,
                     // erc20 snapshot total supply at
-                    one,
+                    1,
                     // erc721 balance of
-                    one,
+                    1,
                     // erc721 owner of
-                    one,
+                    1,
                     // erc1155 balance of
-                    one,
+                    1,
                     // erc1155 balance of batch
-                    nonzeroOperandN,
+                    LibFnPtrs.asUint(nonzeroOperandN),
                     // block number
-                    one,
+                    1,
                     // caller
-                    one,
+                    1,
                     // this address
-                    one,
+                    1,
                     // timestamp
-                    one,
+                    1,
                     // scale18
-                    one,
+                    1,
                     // scale18 div
-                    one,
+                    1,
                     // scale18 mul
-                    one,
+                    1,
                     // scaleBy
-                    one,
+                    1,
                     // scaleN
-                    one,
+                    1,
                     // any
-                    one,
+                    1,
                     // eager if
-                    one,
+                    1,
                     // equal to
-                    one,
+                    1,
                     // every
-                    one,
+                    1,
                     // greater than
-                    one,
+                    1,
                     // iszero
-                    one,
+                    1,
                     // less than
-                    one,
+                    1,
                     // saturating add
-                    one,
+                    1,
                     // saturating mul
-                    one,
+                    1,
                     // saturating sub
-                    one,
+                    1,
                     // add
-                    one,
+                    1,
                     // div
-                    one,
+                    1,
                     // exp
-                    one,
+                    1,
                     // max
-                    one,
+                    1,
                     // min
-                    one,
+                    1,
                     // mod
-                    one,
+                    1,
                     // mul
-                    one,
+                    1,
                     // sub
-                    one,
+                    1,
                     // tier report
-                    one,
+                    1,
                     // tier report time for tier
-                    one,
+                    1,
                     // tier saturating diff
-                    one,
+                    1,
                     // select lte
-                    one,
+                    1,
                     // update times for tier range
-                    one
+                    1
                 ];
             assembly {
-                fnPtrs_ := fns_
+                // hack to sneak in more allocated memory for the pushes array
+                // before anything else can allocate.
+                mstore(0x40, add(localsLen_, mload(0x40)))
+                pushes_ := pushesFixed_
+            }
+            for (uint i_ = 0; i_ < localsLen_; i_++) {
+                pushes_[i_ + ALL_STANDARD_OPS_LENGTH] = locals_[i_];
             }
         }
     }
@@ -291,6 +298,12 @@ library AllStandardOps {
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory fns_ = [
                     LibFnPtrs.toOpFn(ALL_STANDARD_OPS_LENGTH * 0x20),
+                    LibFnPtrs.toOpFn(0),
+                    LibFnPtrs.toOpFn(0),
+                    LibFnPtrs.toOpFn(0),
+                    LibFnPtrs.toOpFn(0),
+                    LibFnPtrs.toOpFn(0),
+                    LibFnPtrs.toOpFn(0),
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
