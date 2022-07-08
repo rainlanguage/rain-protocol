@@ -134,7 +134,6 @@ contract VMStateBuilder {
         Bounds[] memory boundss_
     ) external returns (bytes memory state_) {
         unchecked {
-                uint256 ag_ = gasleft();
             VmStructure memory vmStructure_ = _vmStructure(vm_);
             bytes memory packedFnPtrs_ = SSTORE2.read(
                 vmStructure_.packedFnPtrsAddress
@@ -142,6 +141,7 @@ contract VMStateBuilder {
             uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
 
+            uint256 ag_ = gasleft();
             for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
                 boundss_[b_].storageLength = uint256(
                     vmStructure_.storageOpcodesLength
