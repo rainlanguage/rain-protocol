@@ -70,16 +70,29 @@ library AllStandardOps {
     }
 
     function nonzeroOperandN(uint256 operand_) internal pure returns (uint256) {
-        require(operand_ > 0, "0_OPERAND");
+        require(operand_ > 0, "0_OPERAND_NZON");
         return operand_;
     }
 
     function stackPopsFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
-            fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
-            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_COUNT + 1]
+            // fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
+            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH +
+                1]
                 memory fns_ = [
                     LibFnPtrs.toStackMoveFn(ALL_STANDARD_OPS_LENGTH * 0x20),
+                    // opcode constant
+                    zero,
+                    // opcode stack
+                    zero,
+                    // opcode context
+                    zero,
+                    // opcode storage
+                    zero,
+                    // opcode zipmap (will be ignored)
+                    zero,
+                    // opcode debug
+                    zero,
                     // erc20 balance of
                     two,
                     // erc20 total supply
@@ -173,9 +186,22 @@ library AllStandardOps {
     function stackPushesFnPtrs() internal pure returns (bytes memory fnPtrs_) {
         unchecked {
             // fnPtrs_ = new bytes(ALL_STANDARD_OPS_LENGTH * 0x20);
-            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_COUNT + 1]
+            function(uint256) view returns (uint256)[ALL_STANDARD_OPS_LENGTH +
+                1]
                 memory fns_ = [
                     LibFnPtrs.toStackMoveFn(ALL_STANDARD_OPS_LENGTH * 0x20),
+                    // opcode constant
+                    one,
+                    // opcode stack
+                    one,
+                    // opcode context
+                    one,
+                    // opcode storage
+                    one,
+                    // opcode zipmap (will be ignored)
+                    zero,
+                    // opcode debug
+                    one,
                     // erc20 balance of
                     one,
                     // erc20 total supply
