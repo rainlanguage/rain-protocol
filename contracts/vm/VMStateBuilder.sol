@@ -43,6 +43,11 @@ struct Bounds {
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 library LibFnPtrs {
+    /// Retype an integer to an opcode function pointer.
+    /// NO checks are performed to ensure the input is a valid function pointer.
+    /// The caller MUST ensure this is safe and correct to call.
+    /// @param i_ The integer to cast to an opcode function pointer.
+    /// @return fn_ The opcode function pointer.
     function asOpFn(uint256 i_)
         internal
         pure
@@ -53,6 +58,19 @@ library LibFnPtrs {
         }
     }
 
+    /// Retype a stack move function pointer to an integer.
+    /// Provided the origin of the function pointer is solidity and NOT yul, the
+    /// returned integer will be valid to run if retyped back via yul. If the
+    /// origin of the function pointer is yul then we cannot guarantee anything
+    /// about the validity beyond the correctness of the yul code in question.
+    ///
+    /// Function pointers as integers are NOT portable across contracts as the
+    /// code in different contracts is different so function pointers will point
+    /// to a different, incompatible part of the code.
+    ///
+    /// Function pointers as integers lose the information about their signature
+    /// so MUST ONLY be called in an appropriate context once restored.
+    /// @param fn_ The stack move function pointer to integerify.
     function asUint(function(uint256) view returns (uint256) fn_)
         internal
         pure
@@ -84,6 +102,38 @@ contract VMStateBuilder {
 
     mapping(address => VmStructure) private structureCache;
 
+    /// Modifies a list of function pointers INLINE to a packed bytes where each
+    /// pointer is 2 bytes instead of 32 in the final bytes.
+    /// As the output is ALWAYS equal or less length than the input AND we never
+    /// use the input after it has been packed, we modify and re-type the input
+    /// directly/mutably. This avoids unnecessary memory allocations but has the
+    /// effect that it is NOT SAFE to use `fnPtrs_` after it has been consumed.
+    /// The caller MUST ensure safety so this function is private rather than
+    /// internal to prevent it being accidentally misused outside this contract.
+    function consumeAndPackFnPtrs(uint256[] memory fnPtrs_)
+        private
+        pure
+        returns (bytes memory fnPtrsPacked_)
+    {
+        unchecked {
+            assembly {
+                for {
+                    let cursor_ := add(fnPtrs_, 0x20)
+                    let end_ := add(cursor_, mul(0x20, mload(fnPtrs_)))
+                    let oCursor_ := add(fnPtrs_, 0x02)
+                } lt(cursor_, end_) {
+                    cursor_ := add(cursor_, 0x20)
+                    oCursor_ := add(oCursor_, 0x02)
+                } {
+                    mstore(oCursor_, or(mload(oCursor_), mload(cursor_)))
+                }
+                mstore(fnPtrs_, mul(0x20, mload(fnPtrs_)))
+                fnPtrsPacked_ := fnPtrs_
+            }
+            return fnPtrsPacked_;
+        }
+    }
+
     function _vmStructure(address vm_)
         private
         returns (VmStructure memory vmStructure_)
@@ -91,7 +141,9 @@ contract VMStateBuilder {
         unchecked {
             vmStructure_ = structureCache[vm_];
             if (vmStructure_.packedFnPtrsAddress == address(0)) {
-                bytes memory packedFnPtrs_ = packFnPtrs(RainVM(vm_).fnPtrs());
+
+                bytes memory packedFnPtrs_ = consumeAndPackFnPtrs(RainVM(vm_).fnPtrs());
+
                 StorageOpcodesRange memory storageOpcodesRange_ = RainVM(vm_)
                     .storageOpcodesRange();
                 require(
@@ -154,12 +206,7 @@ contract VMStateBuilder {
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-                uint256 ag_ = gasleft();
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
-                uint256 bg_ = gasleft();
-                console.log("build gas", ag_ - bg_);
-                console.logBytes(config_.sources[i_]);
-                console.logBytes(ptrSources_[i_]);
             }
 
             state_ = LibState.toBytesPacked(
@@ -174,13 +221,29 @@ contract VMStateBuilder {
         }
     }
 
+    /// Given a list of packed function pointers and some opcode based source,
+    /// return a source with all non-core opcodes replaced with the function
+    /// pointers provided. Every 1-byte opcode will be replaced with a 2-byte
+    /// function pointer so the output source will be 3/2 the length of the
+    /// input, after accounting for the operand which remains unchanged.
+    /// Non-core opcodes remain numeric as they have special handling and are
+    /// NOT compatible with the ptr/operand input system that all other ops
+    /// adhere to.
+    /// There is NO attempt to validate the packed fn pointers or the input
+    /// source, other than to check the total length of each is even. The caller
+    /// MUST ensure all integrity checks/requirements are met.
+    /// @param packedFnPtrs_ The function pointers packed as 2-bytes in a list
+    /// in the same order/index as the relevant opcodes.
+    /// @param source_ The 1-byte opcode based input source that is expected to
+    /// be produced by end users.
     function ptrSource(bytes memory packedFnPtrs_, bytes memory source_)
-        public
+        internal
         pure
         returns (bytes memory)
     {
         unchecked {
             uint256 sourceLen_ = source_.length;
+            require(packedFnPtrs_.length % 2 == 0, "ODD_PACKED_PTRS");
             require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
 
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
@@ -217,29 +280,7 @@ contract VMStateBuilder {
         }
     }
 
-    function packFnPtrs(uint256[] memory fnPtrs_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        unchecked {
-            // 2 bytes per ptr.
-            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length * 2);
-            assembly {
-                for {
-                    let cursor_ := add(fnPtrs_, 0x20)
-                    let end_ := add(cursor_, mul(0x20, mload(fnPtrs_)))
-                    let oCursor_ := add(fnPtrsPacked_, 0x02)
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    oCursor_ := add(oCursor_, 0x02)
-                } {
-                    mstore(oCursor_, or(mload(oCursor_), mload(cursor_)))
-                }
-            }
-            return fnPtrsPacked_;
-        }
-    }
+
 
     function _ensureIntegrityZipmap(
         uint256[] memory stackPops_,
