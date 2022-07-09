@@ -82,8 +82,8 @@ contract CombineTier is TierV2, RainVM, Initializable {
         emit Initialize(msg.sender, config_);
     }
 
-    function fnPtrs() public pure virtual override returns (bytes memory) {
-        return AllStandardOps.fnPtrs();
+    function fnPtrs() public pure virtual override returns (uint[] memory) {
+        return AllStandardOps.fnPtrs(new uint[](0));
     }
 
     /// @inheritdoc ITierV2

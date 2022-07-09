@@ -329,10 +329,10 @@ contract OrderBook is RainVM {
         return stackTopLocation_;
     }
 
-    function localFnPtrs() internal pure returns (bytes memory localFnPtrs_) {
+    function localFnPtrs() internal pure returns (uint[] memory localFnPtrs_) {
         function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH + 1]
             memory fns_ = [
-                LibFnPtrs.toOpFn(LOCAL_OPS_LENGTH * 0x20),
+                LibFnPtrs.asOpFn(LOCAL_OPS_LENGTH),
                 opOrderFundsCleared,
                 opOrderCounterpartyFundsCleared
             ];
@@ -341,7 +341,7 @@ contract OrderBook is RainVM {
         }
     }
 
-    function fnPtrs() public pure override returns (bytes memory) {
-        return bytes.concat(AllStandardOps.fnPtrs(), localFnPtrs());
+    function fnPtrs() public pure override returns (uint[] memory) {
+        return AllStandardOps.fnPtrs(localFnPtrs());
     }
 }

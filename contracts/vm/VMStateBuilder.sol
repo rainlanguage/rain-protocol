@@ -43,17 +43,7 @@ struct Bounds {
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 library LibFnPtrs {
-    function toStackMoveFn(uint256 i_)
-        internal
-        pure
-        returns (function(uint256) view returns (uint256) fn_)
-    {
-        assembly {
-            fn_ := i_
-        }
-    }
-
-    function toOpFn(uint256 i_)
+    function asOpFn(uint256 i_)
         internal
         pure
         returns (function(uint256, uint256) view returns (uint256) fn_)
@@ -128,7 +118,6 @@ contract VMStateBuilder {
         Bounds[] memory boundss_
     ) external returns (bytes memory state_) {
         unchecked {
-            uint256 ag_ = gasleft();
             VmStructure memory vmStructure_ = _vmStructure(vm_);
             bytes memory packedFnPtrs_ = SSTORE2.read(
                 vmStructure_.packedFnPtrsAddress
@@ -148,11 +137,6 @@ contract VMStateBuilder {
                     boundss_[b_].argumentsLength
                 );
                 stackLength_ = stackLength_.max(boundss_[b_].stackLength);
-                // Stack needs to be high enough to read from after eval.
-                require(
-                    boundss_[b_].stackIndex >= boundss_[b_].minFinalStackIndex,
-                    "FINAL_STACK_INDEX"
-                );
             }
 
             // build a new constants array with space for the arguments.
@@ -165,7 +149,10 @@ contract VMStateBuilder {
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+            uint256 ag_ = gasleft();
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
+                uint256 bg_ = gasleft();
+            console.log("build gas", ag_ - bg_);
             }
 
             state_ = LibState.toBytesPacked(
@@ -177,8 +164,6 @@ contract VMStateBuilder {
                     config_.constants.length
                 )
             );
-                uint256 bg_ = gasleft();
-            console.log("build gas", ag_ - bg_);
         }
     }
 
@@ -195,17 +180,17 @@ contract VMStateBuilder {
 
             uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
             assembly {
-                let start_ := 1
-                let end_ := add(sourceLen_, 1)
                 for {
-                    let i_ := start_
+                    let cursor_ := 1
+                    let end_ := add(sourceLen_, cursor_)
                     let o_ := 0
-                } lt(i_, end_) {
-                    i_ := add(i_, 1)
+                } lt(cursor_, end_) {
+                    cursor_ := add(cursor_, 1)
                 } {
-                    let op_ := byte(31, mload(add(source_, i_)))
+                    let op_ := byte(31, mload(add(source_, cursor_)))
+                    let isOpcode_ := mod(cursor_, 2)
                     // is opcode
-                    if mod(i_, 2) {
+                    if isOpcode_ {
                         // core ops simply zero pad.
                         if lt(op_, rainVMOpsLength_) {
                             o_ := add(o_, 1)
@@ -227,7 +212,7 @@ contract VMStateBuilder {
                         }
                     }
                     // is operand
-                    if iszero(mod(i_, 2)) {
+                    if iszero(isOpcode_) {
                         mstore8(add(ptrSource_, add(0x20, o_)), op_)
                     }
                     o_ := add(o_, 1)
@@ -237,26 +222,24 @@ contract VMStateBuilder {
         }
     }
 
-    function packFnPtrs(bytes memory fnPtrs_)
+    function packFnPtrs(uint[] memory fnPtrs_)
         internal
         pure
         returns (bytes memory)
     {
         unchecked {
-            require(fnPtrs_.length % 0x20 == 0, "BAD_FN_PTRS_LENGTH");
-            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length / 0x10);
+            // 2 bytes per ptr.
+            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length * 2);
             assembly {
                 for {
-                    let i_ := 0
-                    let o_ := 0x02
-                } lt(i_, mload(fnPtrs_)) {
-                    i_ := add(i_, 0x20)
-                    o_ := add(o_, 0x02)
+                    let cursor_ := add(fnPtrs_, 0x20)
+                    let end_ := add(cursor_, mul(0x20, mload(fnPtrs_)))
+                    let oCursor_ := add(fnPtrsPacked_, 0x02)
+                } lt(cursor_, end_) {
+                    cursor_ := add(cursor_, 0x20)
+                    oCursor_ := add(oCursor_, 0x02)
                 } {
-                    let location_ := add(fnPtrsPacked_, o_)
-                    let old_ := mload(location_)
-                    let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
-                    mstore(location_, new_)
+                    mstore(oCursor_, or(mload(oCursor_), mload(cursor_)))
                 }
             }
             return fnPtrsPacked_;
@@ -351,7 +334,7 @@ contract VMStateBuilder {
                         );
                         bounds_.stackIndex++;
                     }
-                    if (opcode_ == OPCODE_ZIPMAP) {
+                    else if (opcode_ == OPCODE_ZIPMAP) {
                         _ensureIntegrityZipmap(stackPops_, stackPushes_, stateConfig_, bounds_, operand_);
                     }
                 } else {
@@ -396,6 +379,11 @@ contract VMStateBuilder {
             // Both an overflow or underflow in uint256 space will show up as
             // an upper bound exceeding the uint8 space.
             require(bounds_.stackLength <= MAX_STACK_LENGTH, "MAX_STACK");
+            // Stack needs to be high enough to read from after eval.
+            require(
+                bounds_.stackIndex >= bounds_.minFinalStackIndex,
+                "FINAL_STACK_INDEX"
+            );
         }
     }
 

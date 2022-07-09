@@ -304,19 +304,20 @@ library AllStandardOps {
         }
     }
 
-    function fnPtrs() internal pure returns (bytes memory fnPtrs_) {
+    function fnPtrs(uint[] memory locals_) internal pure returns (uint[] memory ptrs_) {
         unchecked {
+            uint localsLen_ = locals_.length;
             function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
-                memory fns_ = [
-                    LibFnPtrs.toOpFn(ALL_STANDARD_OPS_LENGTH * 0x20),
-                    LibFnPtrs.toOpFn(0),
-                    LibFnPtrs.toOpFn(0),
-                    LibFnPtrs.toOpFn(0),
-                    LibFnPtrs.toOpFn(0),
-                    LibFnPtrs.toOpFn(0),
-                    LibFnPtrs.toOpFn(0),
+                memory ptrsFixed_ = [
+                    LibFnPtrs.asOpFn(ALL_STANDARD_OPS_LENGTH + localsLen_),
+                    LibFnPtrs.asOpFn(0),
+                    LibFnPtrs.asOpFn(0),
+                    LibFnPtrs.asOpFn(0),
+                    LibFnPtrs.asOpFn(0),
+                    LibFnPtrs.asOpFn(0),
+                    LibFnPtrs.asOpFn(0),
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
@@ -359,7 +360,13 @@ library AllStandardOps {
                     OpUpdateTimesForTierRange.updateTimesForTierRange
                 ];
             assembly {
-                fnPtrs_ := fns_
+                // hack to sneak in more allocated memory for the pushes array
+                // before anything else can allocate.
+                mstore(0x40, add(mul(localsLen_, 0x20), mload(0x40)))
+                ptrs_ := ptrsFixed_
+            }
+            for (uint256 i_ = 0; i_ < localsLen_; i_++) {
+                ptrs_[i_ + ALL_STANDARD_OPS_LENGTH] = locals_[i_];
             }
         }
     }
