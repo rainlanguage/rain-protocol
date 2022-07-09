@@ -241,7 +241,7 @@ abstract contract RainVM {
         return StorageOpcodesRange(0, 0);
     }
 
-    function fnPtrs() public pure virtual returns (uint[] memory);
+    function fnPtrs() public pure virtual returns (uint256[] memory);
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`

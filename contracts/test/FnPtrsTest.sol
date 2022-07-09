@@ -35,5 +35,5 @@ contract FnPtrsTest is RainVM {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
-    function fnPtrs() public pure override returns (uint[] memory ret_) {}
+    function fnPtrs() public pure override returns (uint256[] memory ret_) {}
 }

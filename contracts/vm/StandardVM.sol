@@ -31,10 +31,10 @@ contract StandardVM is RainVM {
         internal
         pure
         virtual
-        returns (uint[] memory localFnPtrs_)
+        returns (uint256[] memory localFnPtrs_)
     {}
 
-    function fnPtrs() public pure virtual override returns (uint[] memory) {
+    function fnPtrs() public pure virtual override returns (uint256[] memory) {
         return AllStandardOps.fnPtrs(localFnPtrs());
     }
 }

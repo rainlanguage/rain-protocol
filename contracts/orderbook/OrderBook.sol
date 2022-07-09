@@ -329,7 +329,11 @@ contract OrderBook is RainVM {
         return stackTopLocation_;
     }
 
-    function localFnPtrs() internal pure returns (uint[] memory localFnPtrs_) {
+    function localFnPtrs()
+        internal
+        pure
+        returns (uint256[] memory localFnPtrs_)
+    {
         function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH + 1]
             memory fns_ = [
                 LibFnPtrs.asOpFn(LOCAL_OPS_LENGTH),
@@ -341,7 +345,7 @@ contract OrderBook is RainVM {
         }
     }
 
-    function fnPtrs() public pure override returns (uint[] memory) {
+    function fnPtrs() public pure override returns (uint256[] memory) {
         return AllStandardOps.fnPtrs(localFnPtrs());
     }
 }

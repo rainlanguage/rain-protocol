@@ -36,7 +36,7 @@ contract StackHeightTest is RainVM {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
-    function fnPtrs() public pure override returns (uint[] memory) {
-        return AllStandardOps.fnPtrs(new uint[](0));
+    function fnPtrs() public pure override returns (uint256[] memory) {
+        return AllStandardOps.fnPtrs(new uint256[](0));
     }
 }

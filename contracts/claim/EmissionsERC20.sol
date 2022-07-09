@@ -132,8 +132,8 @@ contract EmissionsERC20 is
     }
 
     /// @inheritdoc RainVM
-    function fnPtrs() public pure override returns (uint[] memory) {
-        return AllStandardOps.fnPtrs(new uint[](0));
+    function fnPtrs() public pure override returns (uint256[] memory) {
+        return AllStandardOps.fnPtrs(new uint256[](0));
     }
 
     /// Calculates the claim without processing it.

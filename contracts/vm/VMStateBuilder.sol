@@ -125,14 +125,19 @@ contract VMStateBuilder {
             uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
 
-            uint[] memory stackPops_ = stackPops();
-            uint[] memory stackPushes_ = stackPushes();
+            uint256[] memory stackPops_ = stackPops();
+            uint256[] memory stackPushes_ = stackPushes();
             for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
                 boundss_[b_].storageLength = uint256(
                     vmStructure_.storageOpcodesLength
                 );
 
-                ensureIntegrity(stackPops_, stackPushes_, config_, boundss_[b_]);
+                ensureIntegrity(
+                    stackPops_,
+                    stackPushes_,
+                    config_,
+                    boundss_[b_]
+                );
                 argumentsLength_ = argumentsLength_.max(
                     boundss_[b_].argumentsLength
                 );
@@ -149,10 +154,12 @@ contract VMStateBuilder {
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-            uint256 ag_ = gasleft();
+                uint256 ag_ = gasleft();
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
                 uint256 bg_ = gasleft();
-            console.log("build gas", ag_ - bg_);
+                console.log("build gas", ag_ - bg_);
+                console.logBytes(config_.sources[i_]);
+                console.logBytes(ptrSources_[i_]);
             }
 
             state_ = LibState.toBytesPacked(
@@ -178,51 +185,39 @@ contract VMStateBuilder {
 
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
-            uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
+            uint256 nonCoreOpsStart_ = RAIN_VM_OPS_LENGTH - 1;
             assembly {
                 for {
-                    let cursor_ := 1
+                    let packedFnPtrsStart_ := add(2, packedFnPtrs_)
+                    let cursor_ := add(source_, 2)
                     let end_ := add(sourceLen_, cursor_)
-                    let o_ := 0
+                    let oCursor_ := add(ptrSource_, 3)
                 } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 1)
+                    cursor_ := add(cursor_, 2)
+                    oCursor_ := add(oCursor_, 3)
                 } {
-                    let op_ := byte(31, mload(add(source_, cursor_)))
-                    let isOpcode_ := mod(cursor_, 2)
-                    // is opcode
-                    if isOpcode_ {
-                        // core ops simply zero pad.
-                        if lt(op_, rainVMOpsLength_) {
-                            o_ := add(o_, 1)
-                            mstore8(add(ptrSource_, add(0x20, o_)), op_)
-                        }
-                        if iszero(lt(op_, rainVMOpsLength_)) {
-                            let fn_ := mload(
-                                add(packedFnPtrs_, add(0x2, mul(op_, 0x2)))
-                            )
-                            mstore8(
-                                add(ptrSource_, add(0x20, o_)),
-                                byte(30, fn_)
-                            )
-                            o_ := add(o_, 1)
-                            mstore8(
-                                add(ptrSource_, add(0x20, o_)),
-                                byte(31, fn_)
-                            )
-                        }
+                    let sourceData_ := mload(cursor_)
+                    let op_ := byte(30, sourceData_)
+                    if gt(op_, nonCoreOpsStart_) {
+                        op_ := and(
+                            mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
+                            0xFFFF
+                        )
                     }
-                    // is operand
-                    if iszero(isOpcode_) {
-                        mstore8(add(ptrSource_, add(0x20, o_)), op_)
-                    }
-                    o_ := add(o_, 1)
+                    mstore(
+                        oCursor_,
+                        or(
+                            mload(oCursor_),
+                            or(shl(8, op_), byte(31, sourceData_))
+                        )
+                    )
                 }
             }
             return ptrSource_;
         }
     }
 
-    function packFnPtrs(uint[] memory fnPtrs_)
+    function packFnPtrs(uint256[] memory fnPtrs_)
         internal
         pure
         returns (bytes memory)
@@ -247,8 +242,8 @@ contract VMStateBuilder {
     }
 
     function _ensureIntegrityZipmap(
-        uint[] memory stackPops_,
-        uint[] memory stackPushes_,
+        uint256[] memory stackPops_,
+        uint256[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_,
         uint256 operand_
@@ -264,15 +259,20 @@ contract VMStateBuilder {
             uint256 innerEntrypoint_ = operand_ & 0x07;
             bounds_.entrypoint = innerEntrypoint_;
             for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                ensureIntegrity(stackPops_, stackPushes_, stateConfig_, bounds_);
+                ensureIntegrity(
+                    stackPops_,
+                    stackPushes_,
+                    stateConfig_,
+                    bounds_
+                );
             }
             bounds_.entrypoint = outerEntrypoint_;
         }
     }
 
     function ensureIntegrity(
-        uint[] memory stackPops_,
-        uint[] memory stackPushes_,
+        uint256[] memory stackPops_,
+        uint256[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_
     ) public view {
@@ -333,9 +333,14 @@ contract VMStateBuilder {
                             "OOB_STORAGE"
                         );
                         bounds_.stackIndex++;
-                    }
-                    else if (opcode_ == OPCODE_ZIPMAP) {
-                        _ensureIntegrityZipmap(stackPops_, stackPushes_, stateConfig_, bounds_, operand_);
+                    } else if (opcode_ == OPCODE_ZIPMAP) {
+                        _ensureIntegrityZipmap(
+                            stackPops_,
+                            stackPushes_,
+                            stateConfig_,
+                            bounds_,
+                            operand_
+                        );
                     }
                 } else {
                     // OOB opcodes will be picked up here and error due to the

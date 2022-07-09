@@ -79,7 +79,7 @@ library AllStandardOps {
     function stackPops(uint256[] memory locals_)
         internal
         pure
-        returns (uint[] memory pops_)
+        returns (uint256[] memory pops_)
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
@@ -304,9 +304,13 @@ library AllStandardOps {
         }
     }
 
-    function fnPtrs(uint[] memory locals_) internal pure returns (uint[] memory ptrs_) {
+    function fnPtrs(uint256[] memory locals_)
+        internal
+        pure
+        returns (uint256[] memory ptrs_)
+    {
         unchecked {
-            uint localsLen_ = locals_.length;
+            uint256 localsLen_ = locals_.length;
             function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]

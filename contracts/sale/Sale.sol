@@ -654,7 +654,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         }
     }
 
-    function fnPtrs() public pure override returns (uint[] memory) {
-        return AllStandardOps.fnPtrs(new uint[](0));
+    function fnPtrs() public pure override returns (uint256[] memory) {
+        return AllStandardOps.fnPtrs(new uint256[](0));
     }
 }

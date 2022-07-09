@@ -110,7 +110,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         pure
         virtual
         override
-        returns (uint[] memory localFnPtrs_)
+        returns (uint256[] memory localFnPtrs_)
     {
         unchecked {
             function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH +
