@@ -72,12 +72,12 @@ library LibCommitment {
         );
     }
 
-    /// The zero valued commitment.
+    /// The nil valued commitment.
     /// No secret can match this commitment, or at least probably nobody knows
     /// the secret that does match this commitment.
-    /// @return zero_ Zero valued commitment.
-    function zero() internal pure returns (Commitment zero_) {
-        zero_ = Commitment.wrap(0);
+    /// @return nil_ Nil valued commitment.
+    function nil() internal pure returns (Commitment nil_) {
+        nil_ = Commitment.wrap(0);
     }
 }
 
@@ -310,7 +310,7 @@ contract SeedDance {
         );
         // Clear out commitment so it can't be used again for the same seed.
         // Also a lil' gas refund.
-        _commitments[msg.sender] = LibCommitment.zero();
+        _commitments[msg.sender] = LibCommitment.nil();
 
         // Build the new shared seed.
         Seed newSeed_ = LibSeed.with(_sharedSeed, Secret.unwrap(secret_));

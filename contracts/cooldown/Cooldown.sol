@@ -41,10 +41,10 @@ pragma solidity =0.8.10;
 contract Cooldown {
     event CooldownInitialize(address sender, uint256 cooldownDuration);
     event CooldownTriggered(address caller, uint256 cooldown);
-    /// Time in blocks to restrict access to modified functions.
+    /// Time in seconds to restrict access to modified functions.
     uint256 internal cooldownDuration;
 
-    /// Every caller has its own cooldown, the minimum block that the caller
+    /// Every caller has its own cooldown, the minimum time that the caller
     /// call another function sharing the same cooldown state.
     mapping(address => uint256) private cooldowns;
     address private caller;

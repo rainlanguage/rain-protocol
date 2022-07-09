@@ -18,7 +18,7 @@ contract LibCommitmentTest {
         commitment_ = LibCommitment.fromSecret(secret_);
     }
 
-    function zero() external pure returns (Commitment zero_) {
-        zero_ = LibCommitment.zero();
+    function nil() external pure returns (Commitment nil_) {
+        nil_ = LibCommitment.nil();
     }
 }

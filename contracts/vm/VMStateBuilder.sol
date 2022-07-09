@@ -102,38 +102,6 @@ contract VMStateBuilder {
 
     mapping(address => VmStructure) private structureCache;
 
-    /// Modifies a list of function pointers INLINE to a packed bytes where each
-    /// pointer is 2 bytes instead of 32 in the final bytes.
-    /// As the output is ALWAYS equal or less length than the input AND we never
-    /// use the input after it has been packed, we modify and re-type the input
-    /// directly/mutably. This avoids unnecessary memory allocations but has the
-    /// effect that it is NOT SAFE to use `fnPtrs_` after it has been consumed.
-    /// The caller MUST ensure safety so this function is private rather than
-    /// internal to prevent it being accidentally misused outside this contract.
-    function consumeAndPackFnPtrs(uint256[] memory fnPtrs_)
-        private
-        pure
-        returns (bytes memory fnPtrsPacked_)
-    {
-        unchecked {
-            assembly {
-                for {
-                    let cursor_ := add(fnPtrs_, 0x20)
-                    let end_ := add(cursor_, mul(0x20, mload(fnPtrs_)))
-                    let oCursor_ := add(fnPtrs_, 0x02)
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    oCursor_ := add(oCursor_, 0x02)
-                } {
-                    mstore(oCursor_, or(mload(oCursor_), mload(cursor_)))
-                }
-                mstore(fnPtrs_, mul(0x20, mload(fnPtrs_)))
-                fnPtrsPacked_ := fnPtrs_
-            }
-            return fnPtrsPacked_;
-        }
-    }
-
     function _vmStructure(address vm_)
         private
         returns (VmStructure memory vmStructure_)
@@ -141,8 +109,8 @@ contract VMStateBuilder {
         unchecked {
             vmStructure_ = structureCache[vm_];
             if (vmStructure_.packedFnPtrsAddress == address(0)) {
-
-                bytes memory packedFnPtrs_ = consumeAndPackFnPtrs(RainVM(vm_).fnPtrs());
+                bytes memory packedFunctionPointers_ = RainVM(vm_)
+                    .packedFunctionPointers();
 
                 StorageOpcodesRange memory storageOpcodesRange_ = RainVM(vm_)
                     .storageOpcodesRange();
@@ -150,11 +118,14 @@ contract VMStateBuilder {
                     storageOpcodesRange_.length <= type(uint16).max,
                     "OOB_STORAGE_OPCODES"
                 );
-                require(packedFnPtrs_.length % 2 == 0, "INVALID_POINTERS");
+                require(
+                    packedFunctionPointers_.length % 2 == 0,
+                    "INVALID_POINTERS"
+                );
 
                 vmStructure_ = VmStructure(
                     uint16(storageOpcodesRange_.length),
-                    SSTORE2.write(packedFnPtrs_)
+                    SSTORE2.write(packedFunctionPointers_)
                 );
                 structureCache[vm_] = vmStructure_;
             }
@@ -279,8 +250,6 @@ contract VMStateBuilder {
             return ptrSource_;
         }
     }
-
-
 
     function _ensureIntegrityZipmap(
         uint256[] memory stackPops_,

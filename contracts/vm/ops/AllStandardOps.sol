@@ -55,23 +55,7 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
 library AllStandardOps {
     using LibFnPtrs for bytes;
 
-    function zero(uint256) internal pure returns (uint256) {
-        return 0;
-    }
-
-    function one(uint256) internal pure returns (uint256) {
-        return 1;
-    }
-
-    function two(uint256) internal pure returns (uint256) {
-        return 2;
-    }
-
-    function three(uint256) internal pure returns (uint256) {
-        return 3;
-    }
-
-    function nonzeroOperandN(uint256 operand_) internal pure returns (uint256) {
+    function nonZeroOperandN(uint256 operand_) internal pure returns (uint256) {
         require(operand_ > 0, "0_OPERAND_NZON");
         return operand_;
     }
@@ -83,6 +67,7 @@ library AllStandardOps {
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
+            uint nonZeroOperandN_ = LibFnPtrs.asUint(nonZeroOperandN);
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory popsFixed_ = [
                 ALL_STANDARD_OPS_LENGTH + localsLen_,
                 // opcode constant
@@ -132,13 +117,13 @@ library AllStandardOps {
                 // scaleN
                 1,
                 // any
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // eager if
                 3,
                 // equal to
                 2,
                 // every
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // greater than
                 2,
                 // iszero
@@ -146,27 +131,27 @@ library AllStandardOps {
                 // less than
                 2,
                 // saturating add
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // saturating mul
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // saturating sub
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // add
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // div
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // exp
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // max
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // min
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // mod
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // mul
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // sub
-                LibFnPtrs.asUint(nonzeroOperandN),
+                nonZeroOperandN_,
                 // tier report
                 LibFnPtrs.asUint(OpITierV2Report.stackPops),
                 // tier report time for tier
@@ -226,7 +211,7 @@ library AllStandardOps {
                 // erc1155 balance of
                 1,
                 // erc1155 balance of batch
-                LibFnPtrs.asUint(nonzeroOperandN),
+                LibFnPtrs.asUint(nonZeroOperandN),
                 // block number
                 1,
                 // caller
@@ -304,24 +289,25 @@ library AllStandardOps {
         }
     }
 
-    function fnPtrs(uint256[] memory locals_)
+    function fnPtrs(function(uint,uint) view returns(uint) [] memory locals_)
         internal
         pure
-        returns (uint256[] memory ptrs_)
+        returns (function(uint,uint) view returns(uint)[] memory ptrs_)
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
+            function(uint, uint) view returns (uint) nil_ = LibFnPtrs.asOpFn(0);
             function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory ptrsFixed_ = [
                     LibFnPtrs.asOpFn(ALL_STANDARD_OPS_LENGTH + localsLen_),
-                    LibFnPtrs.asOpFn(0),
-                    LibFnPtrs.asOpFn(0),
-                    LibFnPtrs.asOpFn(0),
-                    LibFnPtrs.asOpFn(0),
-                    LibFnPtrs.asOpFn(0),
-                    LibFnPtrs.asOpFn(0),
+                    nil_,
+                    nil_,
+                    nil_,
+                    nil_,
+                    nil_,
+                    nil_,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
