@@ -109,6 +109,9 @@ contract VMStateBuilder {
         unchecked {
             vmStructure_ = structureCache[vm_];
             if (vmStructure_.packedFnPtrsAddress == address(0)) {
+                // The VM must be a deployed contract before we attempt to
+                // retrieve a structure for it.
+                require(vm_.code.length > 0, "0_SIZE_VM");
                 bytes memory packedFunctionPointers_ = RainVM(vm_)
                     .packedFunctionPointers();
 
