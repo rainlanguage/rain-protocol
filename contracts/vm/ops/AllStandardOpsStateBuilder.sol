@@ -11,7 +11,7 @@ contract AllStandardOpsStateBuilder is VMStateBuilder {
     }
 
     /// @inheritdoc VMStateBuilder
-    function stackPushes() public view override returns (uint256[] memory) {
+    function stackPushes() public pure override returns (uint256[] memory) {
         return AllStandardOps.stackPushes(new uint256[](0));
     }
 }
