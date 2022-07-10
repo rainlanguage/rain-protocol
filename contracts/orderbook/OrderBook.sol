@@ -4,6 +4,7 @@ pragma solidity =0.8.10;
 import "../vm/StandardVM.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/Multicall.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
@@ -63,7 +64,7 @@ library LibEvalContext {
     }
 }
 
-contract OrderBook is StandardVM {
+contract OrderBook is Multicall, StandardVM {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
@@ -271,12 +272,14 @@ contract OrderBook is StandardVM {
             }
         }
         if (stateChange_.aInput > 0) {
-            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][a_.validInputs[clearConfig_.aInputIndex].vaultId] += stateChange_
-                .aInput;
+            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][
+                a_.validInputs[clearConfig_.aInputIndex].vaultId
+            ] += stateChange_.aInput;
         }
         if (stateChange_.bInput > 0) {
-            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][b_.validInputs[clearConfig_.bInputIndex].vaultId] += stateChange_
-                .bInput;
+            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][
+                b_.validInputs[clearConfig_.bInputIndex].vaultId
+            ] += stateChange_.bInput;
         }
         {
             // At least one of these will overflow due to negative bounties if
@@ -284,14 +287,14 @@ contract OrderBook is StandardVM {
             uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
             uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
             if (aBounty_ > 0) {
-                vaults[msg.sender][a_.validOutputs[clearConfig_.aOutputIndex].token][
-                    clearConfig_.aBountyVaultId
-                ] += aBounty_;
+                vaults[msg.sender][
+                    a_.validOutputs[clearConfig_.aOutputIndex].token
+                ][clearConfig_.aBountyVaultId] += aBounty_;
             }
             if (bBounty_ > 0) {
-                vaults[msg.sender][b_.validOutputs[clearConfig_.bOutputIndex].token][
-                    clearConfig_.bBountyVaultId
-                ] += bBounty_;
+                vaults[msg.sender][
+                    b_.validOutputs[clearConfig_.bOutputIndex].token
+                ][clearConfig_.bBountyVaultId] += bBounty_;
             }
         }
 
