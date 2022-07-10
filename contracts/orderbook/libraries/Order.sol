@@ -2,7 +2,6 @@
 pragma solidity =0.8.10;
 
 import "../OrderBook.sol";
-import "./Vault.sol";
 import "../../vm/RainVM.sol";
 import "../../vm/VMStateBuilder.sol";
 
@@ -10,19 +9,20 @@ type OrderHash is uint256;
 type OrderLiveness is uint256;
 
 struct OrderConfig {
-    address inputToken;
-    VaultId inputVaultId;
-    address outputToken;
-    VaultId outputVaultId;
+    IO[] validInputs;
+    IO[] validOutputs;
     StateConfig vmStateConfig;
+}
+
+struct IO {
+    address token;
+    uint vaultId;
 }
 
 struct Order {
     address owner;
-    address inputToken;
-    VaultId inputVaultId;
-    address outputToken;
-    VaultId outputVaultId;
+    IO[] validInputs;
+    IO[] validOutputs;
     uint256 tracking;
     bytes vmState;
 }
@@ -91,10 +91,8 @@ library LibOrder {
         return
             Order(
                 msg.sender,
-                config_.inputToken,
-                config_.inputVaultId,
-                config_.outputToken,
-                config_.outputVaultId,
+                config_.validInputs,
+                config_.validOutputs,
                 deriveTracking(config_.vmStateConfig.sources),
                 VMStateBuilder(vmStateBuilder_).buildState(
                     vm_,
