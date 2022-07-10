@@ -81,7 +81,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
             State memory state_ = _loadVMState();
             uint256[] memory evalContext_ = new uint256[](context_.length + 1);
             evalContext_[0] = uint256(uint160(account_));
-            for (uint i_ = 0; i_ < context_.length; i_++) {
+            for (uint256 i_ = 0; i_ < context_.length; i_++) {
                 evalContext_[i_ + 1] = context_[i_];
             }
             eval(evalContext_, state_, REPORT_ENTRYPOINT);
@@ -100,7 +100,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
             uint256[] memory evalContext_ = new uint256[](context_.length + 2);
             evalContext_[0] = uint256(uint160(account_));
             evalContext_[1] = tier_;
-            for (uint i_ = 0; i_ < context_.length; i_++) {
+            for (uint256 i_ = 0; i_ < context_.length; i_++) {
                 evalContext_[i_ + 2] = context_[i_];
             }
             eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);

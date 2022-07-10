@@ -225,8 +225,7 @@ uint256 constant DEBUG_STACK_INDEX = 3;
 ///
 /// Internally `RainVM` makes heavy use of unchecked math and assembly logic
 /// as the opcode dispatch logic runs on a tight loop and so gas costs can ramp
-/// up very quickly. Implementing contracts and opcode packs SHOULD require
-/// that opcodes they receive do not exceed the codes they are expecting.
+/// up very quickly.
 abstract contract RainVM {
     using Math for uint256;
     using SaturatingMath for uint256;
@@ -461,10 +460,7 @@ abstract contract RainVM {
                         // This is the only runtime integrity check that we do
                         // as it is not possible to know how long context might
                         // be in general until runtime.
-                        require(
-                            operand_ < context_.length,
-                            "CONTEXT_LENGTH"
-                        );
+                        require(operand_ < context_.length, "CONTEXT_LENGTH");
                         assembly {
                             mstore(
                                 stackTopLocation_,

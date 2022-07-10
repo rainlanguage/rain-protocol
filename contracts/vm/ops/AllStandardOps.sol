@@ -67,7 +67,7 @@ library AllStandardOps {
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
-            uint nonZeroOperandN_ = LibFnPtrs.asUint(nonZeroOperandN);
+            uint256 nonZeroOperandN_ = LibFnPtrs.asUint(nonZeroOperandN);
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory popsFixed_ = [
                 ALL_STANDARD_OPS_LENGTH + localsLen_,
                 // opcode constant
@@ -289,14 +289,19 @@ library AllStandardOps {
         }
     }
 
-    function fnPtrs(function(uint,uint) view returns(uint) [] memory locals_)
+    function fnPtrs(
+        function(uint256, uint256) view returns (uint256)[] memory locals_
+    )
         internal
         pure
-        returns (function(uint,uint) view returns(uint)[] memory ptrs_)
+        returns (
+            function(uint256, uint256) view returns (uint256)[] memory ptrs_
+        )
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
-            function(uint, uint) view returns (uint) nil_ = LibFnPtrs.asOpFn(0);
+            function(uint256, uint256) view returns (uint256) nil_ = LibFnPtrs
+                .asOpFn(0);
             function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]

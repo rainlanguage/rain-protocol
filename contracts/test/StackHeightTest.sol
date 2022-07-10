@@ -11,8 +11,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 2; // note this value
 /// @title StackHeightTest
 /// Test contract that has misconfigured final stack height.
 contract StackHeightTest is StandardVM {
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
-    }
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.

@@ -64,22 +64,19 @@ contract StandardVM is RainVM {
     function consumeAndPackFnPtrs(
         function(uint256, uint256) view returns (uint256)[] memory fnPtrs_
     ) private pure returns (bytes memory fnPtrsPacked_) {
-        unchecked {
-            assembly {
-                for {
-                    let cursor_ := add(fnPtrs_, 0x20)
-                    let end_ := add(cursor_, mul(0x20, mload(fnPtrs_)))
-                    let oCursor_ := add(fnPtrs_, 0x02)
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    oCursor_ := add(oCursor_, 0x02)
-                } {
-                    mstore(oCursor_, or(mload(oCursor_), mload(cursor_)))
-                }
-                mstore(fnPtrs_, mul(2, mload(fnPtrs_)))
-                fnPtrsPacked_ := fnPtrs_
+        assembly {
+            for {
+                let cursor_ := add(fnPtrs_, 0x20)
+                let end_ := add(cursor_, mul(0x20, mload(fnPtrs_)))
+                let oCursor_ := add(fnPtrs_, 0x02)
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                oCursor_ := add(oCursor_, 0x02)
+            } {
+                mstore(oCursor_, or(mload(oCursor_), mload(cursor_)))
             }
-            return fnPtrsPacked_;
+            mstore(fnPtrs_, mul(2, mload(fnPtrs_)))
+            fnPtrsPacked_ := fnPtrs_
         }
     }
 }

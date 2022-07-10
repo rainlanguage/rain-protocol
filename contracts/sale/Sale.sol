@@ -351,7 +351,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
-            eval(new uint[](0), state_, CAN_LIVE_ENTRYPOINT);
+            eval(new uint256[](0), state_, CAN_LIVE_ENTRYPOINT);
             bool canLive_ = state_.stack[state_.stackIndex - 1] > 0;
             state_.reset();
             return canLive_;
@@ -374,7 +374,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         returns (uint256, uint256)
     {
         unchecked {
-            uint[] memory context_ = new uint[](1);
+            uint256[] memory context_ = new uint256[](1);
             context_[0] = targetUnits_;
             eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
 

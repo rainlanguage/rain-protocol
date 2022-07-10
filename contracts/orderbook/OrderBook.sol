@@ -52,9 +52,9 @@ library LibEvalContext {
     function toContext(EvalContext memory evalContext_)
         internal
         pure
-        returns (uint[] memory context_)
+        returns (uint256[] memory context_)
     {
-        context_ = new uint[](2);
+        context_ = new uint256[](2);
         context_[0] = OrderHash.unwrap(evalContext_.orderHash);
         context_[1] = uint256(uint160(evalContext_.counterparty));
     }
@@ -331,14 +331,10 @@ contract OrderBook is StandardVM {
                 memory localFnPtrs_
         )
     {
-        function(uint256, uint256) view returns (uint256)[LOCAL_OPS_LENGTH + 1]
-            memory fns_ = [
-                LibFnPtrs.asOpFn(LOCAL_OPS_LENGTH),
-                opOrderFundsCleared,
-                opOrderCounterpartyFundsCleared
-            ];
-        assembly {
-            localFnPtrs_ := fns_
-        }
+        localFnPtrs_ = new function(uint256, uint256) view returns (uint256)[](
+            2
+        );
+        localFnPtrs_[0] = opOrderFundsCleared;
+        localFnPtrs_[1] = opOrderCounterpartyFundsCleared;
     }
 }

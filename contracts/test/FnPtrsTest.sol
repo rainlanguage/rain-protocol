@@ -10,9 +10,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// @title FnPtrsTest
 /// Test contract that returns bad fnPtrs length.
 contract FnPtrsTest is StandardVM {
-
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
-    }
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
@@ -25,5 +23,10 @@ contract FnPtrsTest is StandardVM {
         _saveVMState(stateConfig_, boundss_);
     }
 
-    function packedFunctionPointers() public pure override returns (bytes memory ret_) {}
+    function packedFunctionPointers()
+        public
+        pure
+        override
+        returns (bytes memory ret_)
+    {}
 }

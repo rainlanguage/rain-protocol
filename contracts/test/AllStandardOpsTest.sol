@@ -24,8 +24,7 @@ contract AllStandardOpsTest is StandardVM {
 
     State private _state;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
-    }
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
@@ -56,7 +55,7 @@ contract AllStandardOpsTest is StandardVM {
     /// Runs `eval` and stores full state.
     function run() public {
         State memory state_ = _loadVMState();
-        eval(new uint[](0), state_, ENTRYPOINT);
+        eval(new uint256[](0), state_, ENTRYPOINT);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
