@@ -62,8 +62,8 @@ contract AllStandardOpsTest is StandardVM {
         _state = state_;
     }
 
-    /// Runs `eval` and stores full state. Stores `values_` to be accessed later
-    /// via CONTEXT opcode.
+    /// Runs `eval` and stores full state. Stores `context_` to be accessed
+    /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
         State memory state_ = _loadVMState();

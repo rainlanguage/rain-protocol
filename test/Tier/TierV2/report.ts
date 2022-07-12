@@ -64,6 +64,6 @@ describe("TierV2 report op", async function () {
 
     const actualReport = paddedUInt256(result);
 
-    compareTierReports(expectedReport, actualReport, 0);
+    compareTierReports(expectedReport, actualReport);
   });
 });

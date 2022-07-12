@@ -62,7 +62,7 @@ describe("EmissionsERC20 Report Test", async function () {
       await emissionsERC20.report(claimant.address, [])
     );
 
-    compareTierReports(expectedReport, actualReport, 0);
+    compareTierReports(expectedReport, actualReport);
   });
 
   it("should diff reports correctly", async function () {
