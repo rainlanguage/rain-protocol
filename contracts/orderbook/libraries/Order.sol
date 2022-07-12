@@ -60,10 +60,16 @@ library LibOrder {
                             continue
                         }
                         if eq(op_, localOpClearedOrder_) {
-                            tracking_ := or(tracking_, trackingMaskClearedOrder_)
+                            tracking_ := or(
+                                tracking_,
+                                trackingMaskClearedOrder_
+                            )
                         }
                         if eq(op_, localOpClearedCounterparty_) {
-                            tracking_ := or(tracking_, trackingMaskClearedCounterparty_)
+                            tracking_ := or(
+                                tracking_,
+                                trackingMaskClearedCounterparty_
+                            )
                         }
                         if eq(tracking_, trackingMaskAll_) {
                             // break the outer non-assembly loop by setting i_

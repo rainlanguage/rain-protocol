@@ -1,10 +1,9 @@
 {
   "recommendations": [
-    "svelte.svelte-vscode",
     "arrterian.nix-env-selector",
     "bbenoist.nix",
-    "juanblanco.solidity",
     "simonsiefke.prettier-vscode",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "NomicFoundation.hardhat-solidity"
   ]
 }
