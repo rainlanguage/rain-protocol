@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "../vm/RainVM.sol";
+import "../vm/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
@@ -33,19 +33,11 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, RainVM, Initializable {
+contract CombineTier is TierV2, StandardVM, Initializable {
     event Initialize(address sender, CombineTierConfig config);
 
-    // This allows cloned contracts to forward the template contract to the VM
-    // state builder during initialization.
-    address private immutable self;
-    address private immutable vmStateBuilder;
-    address private vmStatePointer;
-
-    constructor(address vmStateBuilder_) {
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
         _disableInitializers();
-        self = address(this);
-        vmStateBuilder = vmStateBuilder_;
     }
 
     function initialize(CombineTierConfig calldata config_)
@@ -61,12 +53,7 @@ contract CombineTier is TierV2, RainVM, Initializable {
         Bounds[] memory boundss_ = new Bounds[](2);
         boundss_[0] = reportBounds_;
         boundss_[1] = reportForTierBounds_;
-        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
-            self,
-            config_.sourceConfig,
-            boundss_
-        );
-        vmStatePointer = SSTORE2.write(stateBytes_);
+        _saveVMState(config_.sourceConfig, boundss_);
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
@@ -82,10 +69,6 @@ contract CombineTier is TierV2, RainVM, Initializable {
         emit Initialize(msg.sender, config_);
     }
 
-    function fnPtrs() public pure virtual override returns (bytes memory) {
-        return AllStandardOps.fnPtrs();
-    }
-
     /// @inheritdoc ITierV2
     function report(address account_, uint256[] memory context_)
         external
@@ -94,15 +77,16 @@ contract CombineTier is TierV2, RainVM, Initializable {
         override
         returns (uint256 report_)
     {
-        State memory state_ = LibState.fromBytesPacked(
-            SSTORE2.read(vmStatePointer)
-        );
-        bytes memory evalContext_ = bytes.concat(
-            bytes32(uint256(uint160(account_))),
-            abi.encodePacked(context_)
-        );
-        eval(evalContext_, state_, REPORT_ENTRYPOINT);
-        report_ = state_.stack[state_.stackIndex - 1];
+        unchecked {
+            State memory state_ = _loadVMState();
+            uint256[] memory evalContext_ = new uint256[](context_.length + 1);
+            evalContext_[0] = uint256(uint160(account_));
+            for (uint256 i_ = 0; i_ < context_.length; i_++) {
+                evalContext_[i_ + 1] = context_[i_];
+            }
+            eval(evalContext_, state_, REPORT_ENTRYPOINT);
+            report_ = state_.stack[state_.stackIndex - 1];
+        }
     }
 
     /// @inheritdoc ITierV2
@@ -111,15 +95,16 @@ contract CombineTier is TierV2, RainVM, Initializable {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        State memory state_ = LibState.fromBytesPacked(
-            SSTORE2.read(vmStatePointer)
-        );
-        bytes memory evalContext_ = bytes.concat(
-            bytes32(uint256(uint160(account_))),
-            bytes32(tier_),
-            abi.encodePacked(context_)
-        );
-        eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
-        time_ = state_.stack[state_.stackIndex - 1];
+        unchecked {
+            State memory state_ = _loadVMState();
+            uint256[] memory evalContext_ = new uint256[](context_.length + 2);
+            evalContext_[0] = uint256(uint160(account_));
+            evalContext_[1] = tier_;
+            for (uint256 i_ = 0; i_ < context_.length; i_++) {
+                evalContext_[i_ + 2] = context_[i_];
+            }
+            eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
+            time_ = state_.stack[state_.stackIndex - 1];
+        }
     }
 }

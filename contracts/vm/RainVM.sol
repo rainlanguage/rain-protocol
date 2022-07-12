@@ -225,8 +225,7 @@ uint256 constant DEBUG_STACK_INDEX = 3;
 ///
 /// Internally `RainVM` makes heavy use of unchecked math and assembly logic
 /// as the opcode dispatch logic runs on a tight loop and so gas costs can ramp
-/// up very quickly. Implementing contracts and opcode packs SHOULD require
-/// that opcodes they receive do not exceed the codes they are expecting.
+/// up very quickly.
 abstract contract RainVM {
     using Math for uint256;
     using SaturatingMath for uint256;
@@ -241,7 +240,17 @@ abstract contract RainVM {
         return StorageOpcodesRange(0, 0);
     }
 
-    function fnPtrs() public pure virtual returns (bytes memory);
+    /// Expose all the function pointers for every opcode as 2-byte pointers in
+    /// a bytes list. The implementing VM MUST ensure each pointer is to a
+    /// `function(uint256,uint256) view returns (uint256)` function as this is
+    /// the ONLY supported signature for opcodes. Pointers for the core opcodes
+    /// must be provided in the packed pointers list but will be ignored at
+    /// runtime.
+    function packedFunctionPointers()
+        public
+        pure
+        virtual
+        returns (bytes memory ptrs_);
 
     /// Zipmap is rain script's native looping construct.
     /// N values are taken from the stack as `uint256` then split into `uintX`
@@ -273,7 +282,7 @@ abstract contract RainVM {
     /// @param state_ The execution state of the VM.
     /// @param operand_ The operand_ associated with this dispatch to zipmap.
     function zipmap(
-        bytes memory context_,
+        uint256[] memory context_,
         State memory state_,
         uint256 stackTopLocation_,
         uint256 operand_
@@ -376,7 +385,7 @@ abstract contract RainVM {
     /// are provided so the caller can provide additional data and kickoff the
     /// opcode dispatch from the correct source in `sources`.
     function eval(
-        bytes memory context_,
+        uint256[] memory context_,
         State memory state_,
         uint256 sourceIndex_
     ) internal view returns (uint256) {
@@ -451,10 +460,7 @@ abstract contract RainVM {
                         // This is the only runtime integrity check that we do
                         // as it is not possible to know how long context might
                         // be in general until runtime.
-                        require(
-                            operand_ * 0x20 < context_.length,
-                            "CONTEXT_LENGTH"
-                        );
+                        require(operand_ < context_.length, "CONTEXT_LENGTH");
                         assembly {
                             mstore(
                                 stackTopLocation_,

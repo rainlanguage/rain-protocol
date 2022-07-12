@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "../vm/RainVM.sol";
+import "../vm/StandardVM.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -49,19 +49,18 @@ uint256 constant TRACKING_MASK_ALL = TRACKING_MASK_CLEARED_ORDER |
     TRACKING_MASK_CLEARED_COUNTERPARTY;
 
 library LibEvalContext {
-    function toContextBytes(EvalContext memory evalContext_)
+    function toContext(EvalContext memory evalContext_)
         internal
         pure
-        returns (bytes memory)
+        returns (uint256[] memory context_)
     {
-        uint256[2] memory vals_;
-        vals_[0] = OrderHash.unwrap(evalContext_.orderHash);
-        vals_[1] = uint256(uint160(evalContext_.counterparty));
-        return abi.encodePacked(vals_);
+        context_ = new uint256[](2);
+        context_[0] = OrderHash.unwrap(evalContext_.orderHash);
+        context_[1] = uint256(uint160(evalContext_.counterparty));
     }
 }
 
-contract OrderBook is RainVM {
+contract OrderBook is StandardVM {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
@@ -82,9 +81,6 @@ contract OrderBook is RainVM {
     event Clear(address sender, Order a_, Order b_, BountyConfig bountyConfig);
     event AfterClear(ClearStateChange stateChange);
 
-    address private immutable self;
-    address private immutable vmStateBuilder;
-
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
     // depositor => token => vault => token amount.
@@ -99,10 +95,7 @@ contract OrderBook is RainVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmStateBuilder_) {
-        self = address(this);
-        vmStateBuilder = vmStateBuilder_;
-    }
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -193,7 +186,7 @@ contract OrderBook is RainVM {
                 {
                     vmState_ = LibState.fromBytesPacked(a_.vmState);
                     eval(
-                        EvalContext(aHash_, b_.owner).toContextBytes(),
+                        EvalContext(aHash_, b_.owner).toContext(),
                         vmState_,
                         ENTRYPOINT
                     );
@@ -204,7 +197,7 @@ contract OrderBook is RainVM {
                 {
                     vmState_ = LibState.fromBytesPacked(b_.vmState);
                     eval(
-                        EvalContext(bHash_, a_.owner).toContextBytes(),
+                        EvalContext(bHash_, a_.owner).toContext(),
                         vmState_,
                         ENTRYPOINT
                     );
@@ -329,21 +322,19 @@ contract OrderBook is RainVM {
         return stackTopLocation_;
     }
 
-    function localFnPtrs() internal pure returns (bytes memory localFnPtrs_) {
-        unchecked {
-            localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            localFnPtrs_.insertOpPtr(
-                LOCAL_OP_CLEARED_ORDER - ALL_STANDARD_OPS_LENGTH,
-                opOrderFundsCleared
-            );
-            localFnPtrs_.insertOpPtr(
-                LOCAL_OP_CLEARED_COUNTERPARTY - ALL_STANDARD_OPS_LENGTH,
-                opOrderCounterpartyFundsCleared
-            );
-        }
-    }
-
-    function fnPtrs() public pure override returns (bytes memory) {
-        return bytes.concat(AllStandardOps.fnPtrs(), localFnPtrs());
+    function localFnPtrs()
+        internal
+        pure
+        override
+        returns (
+            function(uint256, uint256) view returns (uint256)[]
+                memory localFnPtrs_
+        )
+    {
+        localFnPtrs_ = new function(uint256, uint256) view returns (uint256)[](
+            2
+        );
+        localFnPtrs_[0] = opOrderFundsCleared;
+        localFnPtrs_[1] = opOrderCounterpartyFundsCleared;
     }
 }

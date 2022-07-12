@@ -7,43 +7,31 @@ import "./AutoApprove.sol";
 contract AutoApproveStateBuilder is StandardStateBuilder {
     using LibFnPtrs for bytes;
 
-    function localStackPopsFnPtrs()
+    /// @inheritdoc StandardStateBuilder
+    function localStackPops()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint256[] memory)
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // approved evidence
-                    AllStandardOps.one
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
-            }
-        }
+        uint256[] memory pops_ = new uint256[](1);
+        // approved evidence
+        pops_[0] = 1;
+        return pops_;
     }
 
-    function localStackPushesFnPtrs()
+    /// @inheritdoc StandardStateBuilder
+    function localStackPushes()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint256[] memory)
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // approved evidence
-                    AllStandardOps.one
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
-            }
-        }
+        uint256[] memory pushes_ = new uint256[](1);
+        // approved evidence
+        pushes_[0] = 1;
+        return pushes_;
     }
 }

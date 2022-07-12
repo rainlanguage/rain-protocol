@@ -8,47 +8,35 @@ import "./OrderBook.sol";
 contract OrderBookStateBuilder is StandardStateBuilder {
     using LibFnPtrs for bytes;
 
-    function localStackPopsFnPtrs()
+    /// @inheritdoc StandardStateBuilder
+    function localStackPops()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint256[] memory)
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // order funds cleared
-                    AllStandardOps.one,
-                    // order counterparty funds cleared
-                    AllStandardOps.two
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
-            }
-        }
+        uint256[] memory pops_ = new uint256[](LOCAL_OPS_LENGTH);
+        // order funds cleared
+        pops_[0] = 1;
+        // order counterparty funds cleared
+        pops_[1] = 2;
+        return pops_;
     }
 
-    function localStackPushesFnPtrs()
+    /// @inheritdoc StandardStateBuilder
+    function localStackPushes()
         internal
         pure
         virtual
         override
-        returns (bytes memory fnPtrs_)
+        returns (uint256[] memory)
     {
-        unchecked {
-            fnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            function(uint256) pure returns (uint256)[LOCAL_OPS_LENGTH]
-                memory fns_ = [
-                    // order funds cleared
-                    AllStandardOps.one,
-                    // order counterparty funds cleared
-                    AllStandardOps.one
-                ];
-            for (uint256 i_ = 0; i_ < LOCAL_OPS_LENGTH; i_++) {
-                fnPtrs_.insertStackMovePtr(i_, fns_[i_]);
-            }
-        }
+        uint256[] memory pushes_ = new uint256[](LOCAL_OPS_LENGTH);
+        // order funds cleared
+        pushes_[0] = 1;
+        // order counterparty funds cleared
+        pushes_[1] = 1;
+        return pushes_;
     }
 }

@@ -72,10 +72,10 @@ library LibOrder {
                             )
                         }
                         if eq(tracking_, trackingMaskAll_) {
-                            // break the outer non-assembly loop by setting i_
+                            // break the outer loop by setting i_
                             // to sources length.
                             i_ := mload(sources_)
-                            // break the inner assembly loop.
+                            // break the inner loop.
                             break
                         }
                     }

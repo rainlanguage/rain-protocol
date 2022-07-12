@@ -4,7 +4,7 @@ pragma solidity =0.8.10;
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
-import "../vm/RainVM.sol";
+import "../vm/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -138,7 +138,7 @@ uint256 constant CALCULATE_PRICE_MIN_FINAL_STACK_INDEX = 2;
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
+contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -172,9 +172,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// rTKN being refunded.
     /// Includes the receipt used to justify the refund.
     event Refund(address sender, Receipt receipt);
-
-    address private immutable self;
-    address private immutable vmStateBuilder;
 
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
@@ -211,8 +208,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// @dev as per `SaleConfig`.
     address private recipient;
     /// @dev as per `SaleConfig`.
-    address private vmStatePointer;
-    /// @dev as per `SaleConfig`.
     uint256 private minimumRaise;
     /// @dev as per `SaleConfig`.
     uint256 private dustSize;
@@ -238,10 +233,10 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_) {
+    constructor(SaleConstructorConfig memory config_)
+        StandardVM(config_.vmStateBuilder)
+    {
         _disableInitializers();
-        self = address(this);
-        vmStateBuilder = config_.vmStateBuilder;
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
@@ -277,12 +272,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         Bounds[] memory boundss_ = new Bounds[](2);
         boundss_[0] = canLiveBounds_;
         boundss_[1] = calculatePriceBounds_;
-        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
-            self,
-            config_.vmStateConfig,
-            boundss_
-        );
-        vmStatePointer = SSTORE2.write(vmStateBytes_);
+        _saveVMState(config_.vmStateConfig, boundss_);
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;
@@ -348,10 +338,6 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         return _saleStatus;
     }
 
-    function _loadState() internal view returns (State memory) {
-        return LibState.fromBytesPacked(SSTORE2.read(vmStatePointer));
-    }
-
     /// Can the Sale live?
     /// Evals the "can live" script.
     /// If a non zero value is returned then the sale can move from pending to
@@ -365,7 +351,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
-            eval("", state_, CAN_LIVE_ENTRYPOINT);
+            eval(new uint256[](0), state_, CAN_LIVE_ENTRYPOINT);
             bool canLive_ = state_.stack[state_.stackIndex - 1] > 0;
             state_.reset();
             return canLive_;
@@ -388,10 +374,8 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         returns (uint256, uint256)
     {
         unchecked {
-            bytes memory context_ = new bytes(0x20);
-            assembly {
-                mstore(add(context_, 0x20), targetUnits_)
-            }
+            uint256[] memory context_ = new uint256[](1);
+            context_[0] = targetUnits_;
             eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
 
             (uint256 maxUnits_, uint256 price_) = (
@@ -430,8 +414,11 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         }
     }
 
+    /// External view into whether the sale can currently be active.
+    /// Offchain users MAY call this directly or calculate the outcome
+    /// themselves.
     function canLive() external view returns (bool) {
-        return _canLive(_loadState());
+        return _canLive(_loadVMState());
     }
 
     function calculateBuy(uint256 targetUnits_)
@@ -439,7 +426,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        return _calculateBuy(_loadState(), targetUnits_);
+        return _calculateBuy(_loadVMState(), targetUnits_);
     }
 
     /// Start the sale (move from pending to active).
@@ -448,7 +435,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        require(_canLive(_loadState()), "NOT_LIVE");
+        require(_canLive(_loadVMState()), "NOT_LIVE");
         _start();
     }
 
@@ -458,7 +445,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        require(!_canLive(_loadState()), "LIVE");
+        require(!_canLive(_loadVMState()), "LIVE");
         _end();
     }
 
@@ -509,7 +496,7 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
 
         // This state is loaded once and shared between 2x `_canLive` calls and
         // a `_calculateBuy` call.
-        State memory state_ = _loadState();
+        State memory state_ = _loadVMState();
 
         // Start or end the sale as required.
         if (_canLive(state_)) {
@@ -652,9 +639,5 @@ contract Sale is Initializable, Cooldown, RainVM, ISale, ReentrancyGuard {
                 amount_
             );
         }
-    }
-
-    function fnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.fnPtrs();
     }
 }

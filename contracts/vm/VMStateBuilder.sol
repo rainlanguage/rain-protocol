@@ -38,61 +38,100 @@ struct Bounds {
     uint256 stackLength;
     uint256 argumentsLength;
     uint256 storageLength;
-    uint256 opcodesLength;
 }
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 library LibFnPtrs {
-    function insertStackMovePtr(
-        bytes memory fnPtrs_,
-        uint256 i_,
-        function(uint256) view returns (uint256) fn_
-    ) internal pure {
-        unchecked {
-            uint256 offset_ = i_ * 0x20;
-            require(offset_ < fnPtrs_.length, "FN_PTRS_OVERFLOW");
-            assembly {
-                mstore(add(fnPtrs_, add(0x20, mul(i_, 0x20))), fn_)
-            }
+    /// Retype an integer to an opcode function pointer.
+    /// NO checks are performed to ensure the input is a valid function pointer.
+    /// The caller MUST ensure this is safe and correct to call.
+    /// @param i_ The integer to cast to an opcode function pointer.
+    /// @return fn_ The opcode function pointer.
+    function asOpFn(uint256 i_)
+        internal
+        pure
+        returns (function(uint256, uint256) view returns (uint256) fn_)
+    {
+        assembly {
+            fn_ := i_
         }
     }
 
-    function insertOpPtr(
-        bytes memory fnPtrs_,
-        uint256 i_,
-        function(uint256, uint256) view returns (uint256) fn_
-    ) internal pure {
-        unchecked {
-            uint256 offset_ = i_ * 0x20;
-            require(offset_ < fnPtrs_.length, "FN_PTRS_OVERFLOW");
-            assembly {
-                mstore(add(fnPtrs_, add(0x20, mul(i_, 0x20))), fn_)
-            }
+    /// Retype a stack move function pointer to an integer.
+    /// Provided the origin of the function pointer is solidity and NOT yul, the
+    /// returned integer will be valid to run if retyped back via yul. If the
+    /// origin of the function pointer is yul then we cannot guarantee anything
+    /// about the validity beyond the correctness of the yul code in question.
+    ///
+    /// Function pointers as integers are NOT portable across contracts as the
+    /// code in different contracts is different so function pointers will point
+    /// to a different, incompatible part of the code.
+    ///
+    /// Function pointers as integers lose the information about their signature
+    /// so MUST ONLY be called in an appropriate context once restored.
+    /// @param fn_ The stack move function pointer to integerify.
+    function asUint(function(uint256) view returns (uint256) fn_)
+        internal
+        pure
+        returns (uint256 i_)
+    {
+        assembly {
+            i_ := fn_
         }
     }
+}
+
+struct VmStructure {
+    uint16 storageOpcodesLength;
+    address packedFnPtrsAddress;
+}
+
+struct FnPtrs {
+    uint256[] stackPops;
+    uint256[] stackPushes;
 }
 
 contract VMStateBuilder {
     using Math for uint256;
 
-    address private immutable _stackPopsFnPtrs;
-    address private immutable _stackPushesFnPtrs;
-    mapping(address => address) private ptrCache;
+    /// @dev total hack to differentiate between stack move functions and values
+    /// we assume that no function pointers are less than this so anything we
+    /// see equal to or less than is a literal stack move.
+    uint256 private constant MOVE_POINTER_CUTOFF = 5;
 
-    constructor() {
-        _stackPopsFnPtrs = SSTORE2.write(stackPopsFnPtrs());
-        _stackPushesFnPtrs = SSTORE2.write(stackPushesFnPtrs());
-    }
+    mapping(address => VmStructure) private structureCache;
 
-    function _packedFnPtrs(address vm_) private returns (bytes memory) {
+    function _vmStructure(address vm_)
+        private
+        returns (VmStructure memory vmStructure_)
+    {
         unchecked {
-            bytes memory packedPtrs_ = SSTORE2.read(ptrCache[vm_]);
-            if (packedPtrs_.length == 0) {
-                ptrCache[vm_] = SSTORE2.write(packFnPtrs(RainVM(vm_).fnPtrs()));
-                return _packedFnPtrs(vm_);
+            vmStructure_ = structureCache[vm_];
+            if (vmStructure_.packedFnPtrsAddress == address(0)) {
+                // The VM must be a deployed contract before we attempt to
+                // retrieve a structure for it.
+                require(vm_.code.length > 0, "0_SIZE_VM");
+                bytes memory packedFunctionPointers_ = RainVM(vm_)
+                    .packedFunctionPointers();
+
+                StorageOpcodesRange memory storageOpcodesRange_ = RainVM(vm_)
+                    .storageOpcodesRange();
+                require(
+                    storageOpcodesRange_.length <= type(uint16).max,
+                    "OOB_STORAGE_OPCODES"
+                );
+                require(
+                    packedFunctionPointers_.length % 2 == 0,
+                    "INVALID_POINTERS"
+                );
+
+                vmStructure_ = VmStructure(
+                    uint16(storageOpcodesRange_.length),
+                    SSTORE2.write(packedFunctionPointers_)
+                );
+                structureCache[vm_] = vmStructure_;
             }
-            return packedPtrs_;
         }
     }
 
@@ -103,29 +142,32 @@ contract VMStateBuilder {
         address vm_,
         StateConfig memory config_,
         Bounds[] memory boundss_
-    ) external returns (bytes memory) {
+    ) external returns (bytes memory state_) {
         unchecked {
-            bytes memory packedFnPtrs_ = _packedFnPtrs(vm_);
-            uint256 storageLength_ = RainVM(vm_).storageOpcodesRange().length;
+            VmStructure memory vmStructure_ = _vmStructure(vm_);
+            bytes memory packedFnPtrs_ = SSTORE2.read(
+                vmStructure_.packedFnPtrsAddress
+            );
             uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
 
+            uint256[] memory stackPops_ = stackPops();
+            uint256[] memory stackPushes_ = stackPushes();
             for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
-                boundss_[b_].storageLength = storageLength_;
+                boundss_[b_].storageLength = uint256(
+                    vmStructure_.storageOpcodesLength
+                );
 
-                // Opcodes are 1 byte and fnPtrs are 2 bytes so we halve the
-                // length to get the valid opcodes length.
-                boundss_[b_].opcodesLength = packedFnPtrs_.length / 2;
-                ensureIntegrity(config_, boundss_[b_]);
+                ensureIntegrity(
+                    stackPops_,
+                    stackPushes_,
+                    config_,
+                    boundss_[b_]
+                );
                 argumentsLength_ = argumentsLength_.max(
                     boundss_[b_].argumentsLength
                 );
                 stackLength_ = stackLength_.max(boundss_[b_].stackLength);
-                // Stack needs to be high enough to read from after eval.
-                require(
-                    boundss_[b_].stackIndex >= boundss_[b_].minFinalStackIndex,
-                    "FINAL_STACK_INDEX"
-                );
             }
 
             // build a new constants array with space for the arguments.
@@ -141,101 +183,80 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            return
-                LibState.toBytesPacked(
-                    State(
-                        0,
-                        new uint256[](stackLength_),
-                        ptrSources_,
-                        constants_,
-                        config_.constants.length
-                    )
-                );
+            state_ = LibState.toBytesPacked(
+                State(
+                    0,
+                    new uint256[](stackLength_),
+                    ptrSources_,
+                    constants_,
+                    config_.constants.length
+                )
+            );
         }
     }
 
+    /// Given a list of packed function pointers and some opcode based source,
+    /// return a source with all non-core opcodes replaced with the function
+    /// pointers provided. Every 1-byte opcode will be replaced with a 2-byte
+    /// function pointer so the output source will be 3/2 the length of the
+    /// input, after accounting for the operand which remains unchanged.
+    /// Non-core opcodes remain numeric as they have special handling and are
+    /// NOT compatible with the ptr/operand input system that all other ops
+    /// adhere to.
+    /// There is NO attempt to validate the packed fn pointers or the input
+    /// source, other than to check the total length of each is even. The caller
+    /// MUST ensure all integrity checks/requirements are met.
+    /// @param packedFnPtrs_ The function pointers packed as 2-bytes in a list
+    /// in the same order/index as the relevant opcodes.
+    /// @param source_ The 1-byte opcode based input source that is expected to
+    /// be produced by end users.
     function ptrSource(bytes memory packedFnPtrs_, bytes memory source_)
-        public
+        internal
         pure
         returns (bytes memory)
     {
         unchecked {
             uint256 sourceLen_ = source_.length;
+            require(packedFnPtrs_.length % 2 == 0, "ODD_PACKED_PTRS");
             require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
 
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
-            uint256 rainVMOpsLength_ = RAIN_VM_OPS_LENGTH;
+            uint256 nonCoreOpsStart_ = RAIN_VM_OPS_LENGTH - 1;
             assembly {
-                let start_ := 1
-                let end_ := add(sourceLen_, 1)
                 for {
-                    let i_ := start_
-                    let o_ := 0
-                } lt(i_, end_) {
-                    i_ := add(i_, 1)
+                    let packedFnPtrsStart_ := add(2, packedFnPtrs_)
+                    let cursor_ := add(source_, 2)
+                    let end_ := add(sourceLen_, cursor_)
+                    let oCursor_ := add(ptrSource_, 3)
+                } lt(cursor_, end_) {
+                    cursor_ := add(cursor_, 2)
+                    oCursor_ := add(oCursor_, 3)
                 } {
-                    let op_ := byte(31, mload(add(source_, i_)))
-                    // is opcode
-                    if mod(i_, 2) {
-                        // core ops simply zero pad.
-                        if lt(op_, rainVMOpsLength_) {
-                            o_ := add(o_, 1)
-                            mstore8(add(ptrSource_, add(0x20, o_)), op_)
-                        }
-                        if iszero(lt(op_, rainVMOpsLength_)) {
-                            let fn_ := mload(
-                                add(packedFnPtrs_, add(0x2, mul(op_, 0x2)))
-                            )
-                            mstore8(
-                                add(ptrSource_, add(0x20, o_)),
-                                byte(30, fn_)
-                            )
-                            o_ := add(o_, 1)
-                            mstore8(
-                                add(ptrSource_, add(0x20, o_)),
-                                byte(31, fn_)
-                            )
-                        }
+                    let sourceData_ := mload(cursor_)
+                    let op_ := byte(30, sourceData_)
+                    if gt(op_, nonCoreOpsStart_) {
+                        op_ := and(
+                            mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
+                            0xFFFF
+                        )
                     }
-                    // is operand
-                    if iszero(mod(i_, 2)) {
-                        mstore8(add(ptrSource_, add(0x20, o_)), op_)
-                    }
-                    o_ := add(o_, 1)
+                    mstore(
+                        oCursor_,
+                        or(
+                            mload(oCursor_),
+                            or(shl(8, op_), byte(31, sourceData_))
+                        )
+                    )
                 }
             }
             return ptrSource_;
         }
     }
 
-    function packFnPtrs(bytes memory fnPtrs_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        unchecked {
-            require(fnPtrs_.length % 0x20 == 0, "BAD_FN_PTRS_LENGTH");
-            bytes memory fnPtrsPacked_ = new bytes(fnPtrs_.length / 0x10);
-            assembly {
-                for {
-                    let i_ := 0
-                    let o_ := 0x02
-                } lt(i_, mload(fnPtrs_)) {
-                    i_ := add(i_, 0x20)
-                    o_ := add(o_, 0x02)
-                } {
-                    let location_ := add(fnPtrsPacked_, o_)
-                    let old_ := mload(location_)
-                    let new_ := or(old_, mload(add(fnPtrs_, add(0x20, i_))))
-                    mstore(location_, new_)
-                }
-            }
-            return fnPtrsPacked_;
-        }
-    }
-
     function _ensureIntegrityZipmap(
+        uint256[] memory stackPops_,
+        uint256[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_,
         uint256 operand_
@@ -251,21 +272,26 @@ contract VMStateBuilder {
             uint256 innerEntrypoint_ = operand_ & 0x07;
             bounds_.entrypoint = innerEntrypoint_;
             for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                ensureIntegrity(stateConfig_, bounds_);
+                ensureIntegrity(
+                    stackPops_,
+                    stackPushes_,
+                    stateConfig_,
+                    bounds_
+                );
             }
             bounds_.entrypoint = outerEntrypoint_;
         }
     }
 
     function ensureIntegrity(
+        uint256[] memory stackPops_,
+        uint256[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_
     ) public view {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            bytes memory stackPopsFns_ = SSTORE2.read(_stackPopsFnPtrs);
-            bytes memory stackPushesFns_ = SSTORE2.read(_stackPushesFnPtrs);
             uint256 i_ = 0;
             uint256 sourceLen_;
             uint256 opcode_;
@@ -301,7 +327,7 @@ contract VMStateBuilder {
                             operand_ <
                                 (bounds_.argumentsLength +
                                     stateConfig_.constants.length),
-                                    "OOB_CONSTANT"
+                            "OOB_CONSTANT"
                         );
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STACK) {
@@ -315,35 +341,53 @@ contract VMStateBuilder {
                         bounds_.stackIndex++;
                     } else if (opcode_ == OPCODE_STORAGE) {
                         // trying to read past allowed storage slots.
-                        require(operand_ < bounds_.storageLength, "OOB_STORAGE");
+                        require(
+                            operand_ < bounds_.storageLength,
+                            "OOB_STORAGE"
+                        );
                         bounds_.stackIndex++;
-                    }
-                    if (opcode_ == OPCODE_ZIPMAP) {
-                        _ensureIntegrityZipmap(stateConfig_, bounds_, operand_);
+                    } else if (opcode_ == OPCODE_ZIPMAP) {
+                        _ensureIntegrityZipmap(
+                            stackPops_,
+                            stackPushes_,
+                            stateConfig_,
+                            bounds_,
+                            operand_
+                        );
                     }
                 } else {
-                    // Opcodes can't exceed the bounds of valid fn pointers.
-                    require(opcode_ < bounds_.opcodesLength, "MAX_OPCODE");
-                    function(uint256) pure returns (uint256) popsFn_;
-                    function(uint256) pure returns (uint256) pushesFn_;
-                    assembly {
-                        popsFn_ := mload(
-                            add(stackPopsFns_, add(0x20, mul(opcode_, 0x20)))
-                        )
-                        pushesFn_ := mload(
-                            add(stackPushesFns_, add(0x20, mul(opcode_, 0x20)))
-                        )
-                    }
+                    // OOB opcodes will be picked up here and error due to the
+                    // index being invalid.
+                    uint256 pop_ = stackPops_[opcode_];
 
+                    // If the pop is higher than the cutoff for static pop
+                    // values run it and use the return instead.
+                    if (pop_ > MOVE_POINTER_CUTOFF) {
+                        function(uint256) pure returns (uint256) popsFn_;
+                        assembly {
+                            popsFn_ := pop_
+                        }
+                        pop_ = popsFn_(operand_);
+                    }
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack
-                    // length below.
-                    bounds_.stackIndex -= popsFn_(operand_);
+                    // length later (but not in this unchecked block).
+                    bounds_.stackIndex -= pop_;
                     bounds_.stackLength = bounds_.stackLength.max(
                         bounds_.stackIndex
                     );
 
-                    bounds_.stackIndex += pushesFn_(operand_);
+                    uint256 push_ = stackPushes_[opcode_];
+                    // If the push is higher than the cutoff for static push
+                    // values run it and use the return instead.
+                    if (push_ > MOVE_POINTER_CUTOFF) {
+                        function(uint256) pure returns (uint256) pushesFn_;
+                        assembly {
+                            pushesFn_ := push_
+                        }
+                        push_ = pushesFn_(operand_);
+                    }
+                    bounds_.stackIndex += push_;
                 }
 
                 bounds_.stackLength = bounds_.stackLength.max(
@@ -353,10 +397,15 @@ contract VMStateBuilder {
             // Both an overflow or underflow in uint256 space will show up as
             // an upper bound exceeding the uint8 space.
             require(bounds_.stackLength <= MAX_STACK_LENGTH, "MAX_STACK");
+            // Stack needs to be high enough to read from after eval.
+            require(
+                bounds_.stackIndex >= bounds_.minFinalStackIndex,
+                "FINAL_STACK_INDEX"
+            );
         }
     }
 
-    function stackPopsFnPtrs() public pure virtual returns (bytes memory) {}
+    function stackPops() public pure virtual returns (uint256[] memory) {}
 
-    function stackPushesFnPtrs() public pure virtual returns (bytes memory) {}
+    function stackPushes() public view virtual returns (uint256[] memory) {}
 }

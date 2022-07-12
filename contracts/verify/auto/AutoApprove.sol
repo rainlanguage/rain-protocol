@@ -38,7 +38,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
         Bounds[] memory boundss_ = new Bounds[](1);
         boundss_[0] = bounds_;
-        _initializeStandardVM(stateConfig_, boundss_);
+        _saveVMState(stateConfig_, boundss_);
         _transferOwnership(msg.sender);
 
         emit Initialize(msg.sender, stateConfig_);
@@ -52,17 +52,13 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         unchecked {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
-            bytes memory context_;
-            State memory state_ = LibState.fromBytesPacked(
-                SSTORE2.read(vmStatePointer)
-            );
+            uint256[] memory context_ = new uint256[](2);
+            State memory state_ = _loadVMState();
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
-                    context_ = bytes.concat(
-                        bytes32(uint256(uint160(evidences_[i_].account))),
-                        evidences_[i_].data
-                    );
+                    context_[0] = uint256(uint160(evidences_[i_].account));
+                    context_[1] = uint256(bytes32(evidences_[i_].data));
                     eval(context_, state_, ENTRYPOINT);
                     if (state_.stack[state_.stackIndex - 1] > 0) {
                         _approvedEvidenceData[
@@ -110,14 +106,14 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         pure
         virtual
         override
-        returns (bytes memory localFnPtrs_)
+        returns (
+            function(uint256, uint256) view returns (uint256)[]
+                memory localFnPtrs_
+        )
     {
-        unchecked {
-            localFnPtrs_ = new bytes(LOCAL_OPS_LENGTH * 0x20);
-            localFnPtrs_.insertOpPtr(
-                OP_EVIDENCE_DATA_APPROVED,
-                opEvidenceDataApproved
-            );
-        }
+        localFnPtrs_ = new function(uint256, uint256) view returns (uint256)[](
+            1
+        );
+        localFnPtrs_[0] = opEvidenceDataApproved;
     }
 }

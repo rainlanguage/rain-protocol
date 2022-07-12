@@ -38,8 +38,8 @@ describe("SeedDance LibCommitment", async function () {
     );
   });
 
-  it("should return zero commitment", async () => {
-    const zero = await libCommitment.zero();
-    assert(zero.isZero());
+  it("should return nil commitment", async () => {
+    const nil = await libCommitment.nil();
+    assert(nil.isZero());
   });
 });

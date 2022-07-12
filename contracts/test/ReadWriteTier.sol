@@ -25,7 +25,7 @@ contract ReadWriteTier is TierV2 {
         address account,
         uint256 startTier,
         uint256 endTier,
-        uint[] context
+        uint256[] context
     );
 
     /// account => reports
@@ -62,7 +62,7 @@ contract ReadWriteTier is TierV2 {
     function setTier(
         address account_,
         uint256 endTier_,
-        uint[] calldata context_
+        uint256[] calldata context_
     ) external {
         // The user must move to at least tier 1.
         // The tier 0 status is reserved for users that have never

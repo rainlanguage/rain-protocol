@@ -7,7 +7,7 @@ import "./IClaim.sol";
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierReport.sol";
 import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
-import "../vm/RainVM.sol";
+import "../vm/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
@@ -45,7 +45,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 contract EmissionsERC20 is
     TierV2,
     Initializable,
-    RainVM,
+    StandardVM,
     ERC20Upgradeable,
     IClaim
 {
@@ -53,12 +53,6 @@ contract EmissionsERC20 is
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
     event Initialize(address sender, EmissionsERC20Config config);
-
-    address private immutable self;
-    address private immutable vmStateBuilder;
-
-    /// Address of the immutable rain script deployed as a `VMState`.
-    address private vmStatePointer;
 
     /// Whether the claimant must be the caller of `claim`. If `false` then
     /// accounts other than claimant can claim. This may or may not be
@@ -75,10 +69,8 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmStateBuilder_) {
+    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
         _disableInitializers();
-        self = address(this);
-        vmStateBuilder = vmStateBuilder_;
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
@@ -97,13 +89,7 @@ contract EmissionsERC20 is
         bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
         Bounds[] memory boundss_ = new Bounds[](1);
         boundss_[0] = bounds_;
-
-        bytes memory vmStateBytes_ = VMStateBuilder(vmStateBuilder).buildState(
-            self,
-            config_.vmStateConfig,
-            boundss_
-        );
-        vmStatePointer = SSTORE2.write(vmStateBytes_);
+        _saveVMState(config_.vmStateConfig, boundss_);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -131,11 +117,6 @@ contract EmissionsERC20 is
         return TierReport.reportTimeForTier(reports[account_], tier_);
     }
 
-    /// @inheritdoc RainVM
-    function fnPtrs() public pure override returns (bytes memory) {
-        return AllStandardOps.fnPtrs();
-    }
-
     /// Calculates the claim without processing it.
     /// Read only method that may be useful downstream both onchain and
     /// offchain if a claimant wants to check the claim amount before deciding
@@ -146,14 +127,9 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        State memory state_ = LibState.fromBytesPacked(
-            SSTORE2.read(vmStatePointer)
-        );
-        bytes memory context_ = new bytes(0x20);
-        uint256 claimantContext_ = uint256(uint160(claimant_));
-        assembly {
-            mstore(add(context_, 0x20), claimantContext_)
-        }
+        State memory state_ = _loadVMState();
+        uint256[] memory context_ = new uint256[](1);
+        context_[0] = uint256(uint160(claimant_));
         eval(context_, state_, ENTRYPOINT);
         return state_.stack[state_.stackIndex - 1];
     }
