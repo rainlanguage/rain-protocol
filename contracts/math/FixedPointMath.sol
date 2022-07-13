@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
+import "@openzeppelin/contracts/utils/math/Math.sol";
+
 /// @dev The scale of all fixed point math. This is adopting the conventions of
 /// both ETH (wei) and most ERC20 tokens, so is hopefully uncontroversial.
 uint256 constant FP_DECIMALS = 18;
@@ -16,6 +18,8 @@ uint256 constant FP_ONE = 1e18;
 /// "one" as 10 ** 18 and scale everything up/down to this as fixed point math.
 /// Overflows are errors as per Solidity.
 library FixedPointMath {
+    using Math for uint;
+
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
     /// @param a_ Some fixed point decimal value.
     /// @param aDecimals_ The number of fixed decimals of `a_`.
@@ -102,7 +106,7 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        return (a_ * b_) / FP_ONE;
+        return a_.mulDiv(b_, FP_ONE);
     }
 
     /// Fixed point division in native scale decimals.
@@ -115,6 +119,6 @@ library FixedPointMath {
         pure
         returns (uint256)
     {
-        return (a_ * FP_ONE) / b_;
+        return a_.mulDiv(FP_ONE, b_);
     }
 }
