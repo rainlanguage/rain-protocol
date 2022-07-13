@@ -274,7 +274,7 @@ describe("Stake deposit", async function () {
       alice.address,
       amountToTransfer
     );
-    
+
     console.log("userA balance of reserveToken before deploying the stake contract:   " + (await reserveToken.balanceOf(alice.address)))
     console.log("--------------------------------------------------------------------")
 
@@ -307,8 +307,10 @@ describe("Stake deposit", async function () {
     console.log("userA balance of reserveToken after depositing into stake:   " + (await reserveToken.balanceOf(alice.address)))
     console.log("--------------------------------------------------------------------")
 
-    console.log("userA withdrawing 10 reserveToken from stake")
-    await stake.withdraw("10000000")
+    console.log("userA withdrawing 10 reserveToken from stake (needs to withdraw half the shares)")
+    const shares = await stake.balanceOf(alice.address)
+    console.log(`userA shares: ${shares}`)
+    await stake.withdraw(shares.div(2))
     console.log("--------------------------------------------------------------------")
 
     console.log("stToken totalSupply after withdraw:   " + (await stake.totalSupply()))

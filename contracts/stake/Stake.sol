@@ -49,8 +49,8 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         emit Initialize(msg.sender, config_);
     }
 
-    function deposit(uint256 amount_) external nonReentrant {
-        require(amount_ > 0, "0_AMOUNT");
+    function deposit(uint256 assets_) external nonReentrant returns (uint shares_) {
+        require(assets_ > 0, "0_AMOUNT");
 
         // MUST check token balance before receiving additional tokens.
         uint256 tokenPoolSize_ = token.balanceOf(address(this));
@@ -58,28 +58,27 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 supply_ = totalSupply();
 
         // Pull tokens before minting BUT AFTER reading contract balance.
-        token.safeTransferFrom(msg.sender, address(this), amount_);
+        token.safeTransferFrom(msg.sender, address(this), assets_);
 
-        uint256 mintAmount_;
         if (supply_ == 0) {
-            mintAmount_ = amount_.fixedPointMul(initialRatio);
+            shares_ = assets_.fixedPointMul(initialRatio);
         } else {
-            mintAmount_ = supply_.mulDiv(amount_, tokenPoolSize_);
+            shares_ = supply_.mulDiv(assets_, tokenPoolSize_);
         }
-        require(mintAmount_ > 0, "0_MINT");
-        _mint(msg.sender, mintAmount_);
+        require(shares_ > 0, "0_MINT");
+        _mint(msg.sender, shares_);
 
         uint256 len_ = deposits[msg.sender].length;
         uint256 highwater_ = len_ > 0
             ? deposits[msg.sender][len_ - 1].amount
             : 0;
         deposits[msg.sender].push(
-            Deposit(uint32(block.timestamp), (highwater_ + amount_).toUint224())
+            Deposit(uint32(block.timestamp), (highwater_ + shares_).toUint224())
         );
     }
 
-    function withdraw(uint256 amount_) external nonReentrant {
-        require(amount_ > 0, "0_AMOUNT");
+    function withdraw(uint256 shares_) external nonReentrant returns (uint assets_) {
+        require(shares_ > 0, "0_AMOUNT");
 
         // MUST revert if length is 0 so we're guaranteed to have some amount
         // for the old highwater. Users without deposits can't withdraw so there
@@ -88,7 +87,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 oldHighwater_ = uint256(deposits[msg.sender][i_].amount);
         // MUST revert if withdraw amount exceeds highwater. Overflow will
         // ensure this.
-        uint256 newHighwater_ = oldHighwater_ - amount_;
+        uint256 newHighwater_ = oldHighwater_ - shares_;
 
         uint256 high_ = 0;
         if (newHighwater_ > 0) {
@@ -116,10 +115,11 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
 
         // MUST calculate withdrawal amount against pre-burn supply.
         uint256 supply_ = totalSupply();
-        _burn(msg.sender, amount_);
+        _burn(msg.sender, shares_);
+        assets_ = shares_.mulDiv(token.balanceOf(address(this)), supply_);
         token.safeTransfer(
             msg.sender,
-            amount_.mulDiv(token.balanceOf(address(this)), supply_)
+            assets_
         );
     }
 
