@@ -3,7 +3,6 @@ pragma solidity =0.8.10;
 
 import "../OrderBook.sol";
 import "./Vault.sol";
-import "../../vm/RainVM.sol";
 import "../../vm/VMStateBuilder.sol";
 
 type OrderHash is uint256;
