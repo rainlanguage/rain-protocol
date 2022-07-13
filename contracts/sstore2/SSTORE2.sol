@@ -11,7 +11,7 @@ import "./utils/Bytecode.sol";
   Readme: https://github.com/0xsequence/sstore2#readme
 */
 library SSTORE2 {
-    error WriteError();
+    // error WriteError();
 
     /**
     @notice Stores `_data` and returns `pointer` as key for later retrieval
@@ -32,7 +32,8 @@ library SSTORE2 {
         }
 
         // Address MUST be non-zero
-        if (pointer == address(0)) revert WriteError();
+        // if (pointer == address(0)) revert WriteError();
+        require(pointer != address(0));
     }
 
     /**

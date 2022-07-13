@@ -2,7 +2,7 @@
 pragma solidity =0.8.10;
 
 library Bytecode {
-    error InvalidCodeAtRange(uint256 _size, uint256 _start, uint256 _end);
+    // error InvalidCodeAtRange(uint256 _size, uint256 _start, uint256 _end);
 
     /**
     @notice Generate a creation code that results on a contract with `_code` as
@@ -65,7 +65,8 @@ library Bytecode {
         if (csize == 0) return bytes("");
 
         if (_start > csize) return bytes("");
-        if (_end < _start) revert InvalidCodeAtRange(csize, _start, _end);
+        require(_start <= _end);
+        // if (_end < _start) revert InvalidCodeAtRange(csize, _start, _end);
 
         unchecked {
             uint256 reqSize = _end - _start;
