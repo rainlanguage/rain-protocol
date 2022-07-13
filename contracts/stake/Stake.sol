@@ -33,6 +33,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using FixedPointMath for uint256;
+    using Math for uint;
 
     IERC20 private token;
     uint256 private initialRatio;
@@ -63,7 +64,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         if (supply_ == 0) {
             mintAmount_ = amount_.fixedPointMul(initialRatio);
         } else {
-            mintAmount_ = (supply_ * amount_) / tokenPoolSize_;
+            mintAmount_ = supply_.mulDiv(amount_, tokenPoolSize_);
         }
         require(mintAmount_ > 0, "0_MINT");
         _mint(msg.sender, mintAmount_);
@@ -118,7 +119,7 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         _burn(msg.sender, amount_);
         token.safeTransfer(
             msg.sender,
-            (amount_ * token.balanceOf(address(this))) / supply_
+            amount_.mulDiv(token.balanceOf(address(this)), supply_)
         );
     }
 
