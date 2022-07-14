@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ERC20Redeem is ERC20BurnableUpgradeable {
     using SafeERC20 for IERC20;
-    using Math for uint;
+    using Math for uint256;
 
     /// Anon has burned their tokens in exchange for some treasury assets.
     /// Emitted once per redeemed asset.
@@ -78,8 +78,10 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
         uint256 supply_ = IERC20(address(this)).totalSupply();
         uint256 amount_ = 0;
         for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
-            amount_ =
-                treasuryAssets_[i_].balanceOf(address(this)).mulDiv(redeemAmount_, supply_);
+            amount_ = treasuryAssets_[i_].balanceOf(address(this)).mulDiv(
+                redeemAmount_,
+                supply_
+            );
             require(amount_ > 0, "ZERO_AMOUNT");
             emit Redeem(
                 msg.sender,

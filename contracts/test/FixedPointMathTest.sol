@@ -6,7 +6,7 @@ import {FixedPointMath} from "../math/FixedPointMath.sol";
 /// @title FixedPointMathTest
 /// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
 contract FixedPointMathTest {
-    using FixedPointMath for uint;
+    using FixedPointMath for uint256;
 
     /// Wraps `FixedPointMath.scale18`.
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.

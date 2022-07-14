@@ -455,15 +455,17 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
         RedeemableERC20 redeemable_ = RedeemableERC20(token(sale_));
 
-        uint256 amount_ = // Underflow MUST error here (should not be possible).
-            // prorata share of `msg.sender`'s current balance vs. supply
+        uint256 amount_ = // prorata share of `msg.sender`'s current balance vs. supply // Underflow MUST error here (should not be possible).
             // as at the time deposit was made. If nobody burns they will
             // all get a share rounded down by integer division. 100 split
             // 3 ways will be 33 tokens each, leaving 1 TKN as escrow dust,
             // for example. If someone burns before withdrawing they will
             // receive less, so 0/33/33 from 100 with 34 TKN as escrow
             // dust, for example.
-        (totalDeposited_ - withdrawn_).mulDiv(redeemable_.balanceOf(msg.sender), supply_);
+            (totalDeposited_ - withdrawn_).mulDiv(
+                redeemable_.balanceOf(msg.sender),
+                supply_
+            );
 
         // Guard against outputs exceeding inputs.
         // For example a malicious `Trust` could report a `redeemable_` token

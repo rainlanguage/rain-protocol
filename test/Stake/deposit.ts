@@ -266,7 +266,7 @@ describe("Stake deposit", async function () {
     const alice = signers[2];
 
     // Transfer tokens from the deployer to the alice with the instances
-    const amountToTransfer = '50000000';
+    const amountToTransfer = "50000000";
     await token.connect(deployer).approve(alice.address, amountToTransfer);
     const reserveToken = token.connect(alice);
     await reserveToken.transferFrom(
@@ -275,11 +275,18 @@ describe("Stake deposit", async function () {
       amountToTransfer
     );
 
-    console.log("userA balance of reserveToken before deploying the stake contract:   " + (await reserveToken.balanceOf(alice.address)))
-    console.log("--------------------------------------------------------------------")
+    console.log(
+      "userA balance of reserveToken before deploying the stake contract:   " +
+        (await reserveToken.balanceOf(alice.address))
+    );
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
-    console.log("deploying the stake contract with initial ratio of 1:1")
-    console.log("--------------------------------------------------------------------")
+    console.log("deploying the stake contract with initial ratio of 1:1");
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -289,34 +296,72 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeDeploy(alice, stakeFactory, stakeConfigStruct);
-    console.log("stake contract deployed")
-    console.log("--------------------------------------------------------------------")
+    console.log("stake contract deployed");
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
-    console.log("stToken totalSupply before deposit:   " + (await stake.totalSupply()))
-    console.log("reserveToken balance of stake contract before deposit:   " + (await reserveToken.balanceOf(stake.address)))
-    console.log("--------------------------------------------------------------------")
+    console.log(
+      "stToken totalSupply before deposit:   " + (await stake.totalSupply())
+    );
+    console.log(
+      "reserveToken balance of stake contract before deposit:   " +
+        (await reserveToken.balanceOf(stake.address))
+    );
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
-    console.log("userA depositing 20 reserveToken into stake")
+    console.log("userA depositing 20 reserveToken into stake");
     await reserveToken.approve(stake.address, ethers.constants.MaxUint256);
-    await stake.deposit("20000000")
-    console.log("--------------------------------------------------------------------")
+    await stake.deposit("20000000");
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
-    console.log("stToken totalSupply after deposit:   " + (await stake.totalSupply()))
-    console.log("reserveToken balance of stake contract after deposit:   " + (await reserveToken.balanceOf(stake.address)))
-    console.log("userA balance of stToken after depositing into stake:   " + (await stake.balanceOf(alice.address)))
-    console.log("userA balance of reserveToken after depositing into stake:   " + (await reserveToken.balanceOf(alice.address)))
-    console.log("--------------------------------------------------------------------")
+    console.log(
+      "stToken totalSupply after deposit:   " + (await stake.totalSupply())
+    );
+    console.log(
+      "reserveToken balance of stake contract after deposit:   " +
+        (await reserveToken.balanceOf(stake.address))
+    );
+    console.log(
+      "userA balance of stToken after depositing into stake:   " +
+        (await stake.balanceOf(alice.address))
+    );
+    console.log(
+      "userA balance of reserveToken after depositing into stake:   " +
+        (await reserveToken.balanceOf(alice.address))
+    );
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
-    console.log("userA withdrawing 10 reserveToken from stake (needs to withdraw half the shares)")
-    const shares = await stake.balanceOf(alice.address)
-    console.log(`userA shares: ${shares}`)
-    await stake.withdraw(shares.div(2))
-    console.log("--------------------------------------------------------------------")
+    console.log(
+      "userA withdrawing 10 reserveToken from stake (needs to withdraw half the shares)"
+    );
+    const shares = await stake.balanceOf(alice.address);
+    console.log(`userA shares: ${shares}`);
+    await stake.withdraw(shares.div(2));
+    console.log(
+      "--------------------------------------------------------------------"
+    );
 
-    console.log("stToken totalSupply after withdraw:   " + (await stake.totalSupply()))
-    console.log("reserveToken balance of stake contract after withdraw:   " + (await reserveToken.balanceOf(stake.address)))
-    console.log("userA balance of stToken after withdrawing from stake:   " + (await stake.balanceOf(alice.address)))
-    console.log("userA balance of reserveToken after withdrawing from stake:   " + (await reserveToken.balanceOf(alice.address)))
-
+    console.log(
+      "stToken totalSupply after withdraw:   " + (await stake.totalSupply())
+    );
+    console.log(
+      "reserveToken balance of stake contract after withdraw:   " +
+        (await reserveToken.balanceOf(stake.address))
+    );
+    console.log(
+      "userA balance of stToken after withdrawing from stake:   " +
+        (await stake.balanceOf(alice.address))
+    );
+    console.log(
+      "userA balance of reserveToken after withdrawing from stake:   " +
+        (await reserveToken.balanceOf(alice.address))
+    );
   });
 });
