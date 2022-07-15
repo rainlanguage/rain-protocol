@@ -83,12 +83,13 @@ describe("Stake direct ledger analysis", async function () {
     await stake.connect(alice).withdraw(withdrawAmount);
     const depositsAlice1_ = await getDeposits(stake, alice.address);
     console.log({ depositsAlice1_ });
-    assert(depositsAlice1_.length === 16);
+    assert(depositsAlice1_.length === 12);
     await timewarp(86400);
 
     await stake.connect(alice).withdraw(withdrawAmount);
     const depositsAlice2_ = await getDeposits(stake, alice.address);
-    assert(depositsAlice2_.length === 16);
+    console.log({ depositsAlice2_ });
+    assert(depositsAlice2_.length === 8);
   });
 
   it("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
