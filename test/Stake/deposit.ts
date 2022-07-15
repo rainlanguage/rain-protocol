@@ -3,9 +3,11 @@ import { ethers } from "hardhat";
 import { ReserveToken } from "../../typechain/ReserveToken";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
+import { getBlockTimestamp, timewarp } from "../../utils";
 import { ONE, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
+import { getDeposits } from "../../utils/stake/deposits";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Stake deposit", async function () {
@@ -134,6 +136,9 @@ describe("Stake deposit", async function () {
       "0_AMOUNT",
       "wrongly processed deposit of 0 tokens"
     );
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
   });
 
   it("should process minimum deposit of 1 token", async function () {
@@ -154,8 +159,26 @@ describe("Stake deposit", async function () {
     await token.transfer(alice.address, 2);
     await token.connect(alice).approve(stake.address, 1);
     await stake.connect(alice).deposit(1);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    const time0_ = await getBlockTimestamp();
+    assert(depositsAlice0_.length === 1);
+    assert(depositsAlice0_[0].timestamp === time0_);
+    assert(depositsAlice0_[0].amount.eq(1));
+
+    await timewarp(86400);
+
     await token.connect(alice).approve(stake.address, 1);
     await stake.connect(alice).deposit(1);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 2);
+    assert(depositsAlice1_[0].timestamp === time0_);
+    assert(depositsAlice1_[0].amount.eq(1));
+    assert(depositsAlice1_[1].timestamp !== time0_);
+    assert(depositsAlice1_[1].timestamp === time1_);
+    assert(depositsAlice1_[1].amount.eq(2));
   });
 
   it("should process deposit of 2 tokens", async function () {
@@ -176,8 +199,26 @@ describe("Stake deposit", async function () {
     await token.transfer(alice.address, 4);
     await token.connect(alice).approve(stake.address, 2);
     await stake.connect(alice).deposit(2);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    const time0_ = await getBlockTimestamp();
+    assert(depositsAlice0_.length === 1);
+    assert(depositsAlice0_[0].timestamp === time0_);
+    assert(depositsAlice0_[0].amount.eq(2));
+
+    await timewarp(86400);
+
     await token.connect(alice).approve(stake.address, 2);
     await stake.connect(alice).deposit(2);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 2);
+    assert(depositsAlice1_[0].timestamp === time0_);
+    assert(depositsAlice1_[0].amount.eq(2));
+    assert(depositsAlice1_[1].timestamp !== time0_);
+    assert(depositsAlice1_[1].timestamp === time1_);
+    assert(depositsAlice1_[1].amount.eq(4));
   });
 
   it("should process deposits", async function () {
@@ -194,6 +235,9 @@ describe("Stake deposit", async function () {
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
     // Give Alice some reserve tokens
     await token.transfer(
       alice.address,
@@ -205,18 +249,18 @@ describe("Stake deposit", async function () {
 
     assert(stTokenSupply0.isZero(), "initial stToken supply was not 0");
 
+    const amount0 = tokenBalanceAlice0.div(10);
+
     // deposit some of Alice's tokens
-    await token
-      .connect(alice)
-      .approve(stake.address, tokenBalanceAlice0.div(10));
-    await stake.connect(alice).deposit(tokenBalanceAlice0.div(10));
+    await token.connect(alice).approve(stake.address, amount0);
+    await stake.connect(alice).deposit(amount0);
 
     const tokenBalanceAlice1 = await token.balanceOf(alice.address);
     const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
     const stTokenSupply1 = await stake.totalSupply();
 
     assert(
-      tokenBalanceAlice1.eq(tokenBalanceAlice0.sub(tokenBalanceAlice0.div(10))),
+      tokenBalanceAlice1.eq(tokenBalanceAlice0.sub(amount0)),
       "deposit did not transfer correct token amount to Stake contract"
     );
     assert(
@@ -232,18 +276,26 @@ describe("Stake deposit", async function () {
       "alice balance was not equal to total stToken supply"
     );
 
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(amount0));
+
+    await timewarp(86400);
+
+    const amount1 = tokenBalanceAlice0.div(10);
+
     // deposit more of Alice's tokens
-    await token
-      .connect(alice)
-      .approve(stake.address, tokenBalanceAlice0.div(10));
-    await stake.connect(alice).deposit(tokenBalanceAlice0.div(10));
+    await token.connect(alice).approve(stake.address, amount1);
+    await stake.connect(alice).deposit(amount1);
 
     const tokenBalanceAlice2 = await token.balanceOf(alice.address);
     const stTokenBalanceAlice2 = await stake.balanceOf(alice.address);
     const stTokenSupply2 = await stake.totalSupply();
 
     assert(
-      tokenBalanceAlice2.eq(tokenBalanceAlice1.sub(tokenBalanceAlice0.div(10))),
+      tokenBalanceAlice2.eq(tokenBalanceAlice1.sub(amount1)),
       "deposit did not transfer correct token amount to Stake contract"
     );
     assert(
@@ -258,6 +310,15 @@ describe("Stake deposit", async function () {
       stTokenBalanceAlice2.eq(stTokenSupply2),
       "alice balance was not equal to total stToken supply"
     );
+
+    const depositsAlice2_ = await getDeposits(stake, alice.address);
+    const time2_ = await getBlockTimestamp();
+    assert(depositsAlice2_.length === 2);
+    assert(depositsAlice2_[0].timestamp === time1_);
+    assert(depositsAlice2_[0].amount.eq(amount0));
+    assert(depositsAlice2_[1].timestamp !== time1_);
+    assert(depositsAlice2_[1].timestamp === time2_);
+    assert(depositsAlice2_[1].amount.eq(amount0.add(amount1)));
   });
 
   it("burn amount issue", async function () {
