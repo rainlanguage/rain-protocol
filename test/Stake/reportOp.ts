@@ -94,7 +94,7 @@ describe("Stake report Ops", async function () {
   });
 
 
-  it.only("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed the 1st threshold", async function () {
+  it("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed the 1st threshold", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
@@ -118,7 +118,7 @@ describe("Stake report Ops", async function () {
 
     // prettier-ignore
     // Passing context data in constants
-    let source = concat([
+    const source = concat([
       op(Opcode.CONSTANT, 0), // ITierV2 contract
       op(Opcode.SENDER), // address
       op(Opcode.CONSTANT, 1),
