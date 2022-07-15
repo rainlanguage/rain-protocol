@@ -6,6 +6,8 @@ import { StakeFactory } from "../../typechain/StakeFactory";
 import { ONE, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
+import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
+import { getDeposits } from "../../utils/stake/deposits";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Stake withdraw", async function () {
@@ -23,6 +25,41 @@ describe("Stake withdraw", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+  });
+
+  it("should process multiple successive withdraws", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      token: token.address,
+      initialRatio: ONE,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("1000" + sixZeros)
+    );
+    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
+    await stake.connect(alice).deposit(tokenBalanceAlice0);
+
+    await timewarp(86400);
+
+    await stake.connect(alice).withdraw(tokenBalanceAlice0.div(10));
+
+    await timewarp(86400);
+
+    await stake.connect(alice).withdraw(tokenBalanceAlice0.div(10));
   });
 
   it("should calculate new highwater when amount withdrawn less than old highwater", async function () {
@@ -215,6 +252,9 @@ describe("Stake withdraw", async function () {
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
     // Give Alice some reserve tokens and deposit them
     await token.transfer(
       alice.address,
@@ -224,11 +264,25 @@ describe("Stake withdraw", async function () {
     await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
     await stake.connect(alice).deposit(tokenBalanceAlice0);
 
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
+
+    await timewarp(86400);
+
     // Give Bob some reserve tokens and deposit them
     await token.transfer(bob.address, ethers.BigNumber.from("1000" + sixZeros));
     const tokenBalanceBob0 = await token.balanceOf(bob.address);
     await token.connect(bob).approve(stake.address, tokenBalanceBob0);
     await stake.connect(bob).deposit(tokenBalanceBob0);
+
+    const depositsBob1_ = await getDeposits(stake, bob.address);
+    const time2_ = await getBlockTimestamp();
+    assert(depositsBob1_.length === 1);
+    assert(depositsBob1_[0].timestamp === time2_);
+    assert(depositsBob1_[0].amount.eq(tokenBalanceBob0));
 
     // Alice and Bob each own 50% of stToken supply
     const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
@@ -240,6 +294,8 @@ describe("Stake withdraw", async function () {
     );
 
     const tokenPool0 = await token.balanceOf(stake.address);
+
+    await timewarp(86400);
 
     // Alice redeems all her stTokens to withdraw share of tokens she is entitled to
     await stake.connect(alice).withdraw(stTokenBalanceAlice0);
@@ -254,5 +310,11 @@ describe("Stake withdraw", async function () {
       expected  ${tokenPool0.div(2)}
       got       ${tokenBalanceAlice1}`
     );
+
+    // Alice withdraws all stake tokens
+    const depositsAlice2_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice2_.length === 1);
+    assert(depositsAlice2_[0].timestamp === 0);
+    assert(depositsAlice2_[0].amount.isZero());
   });
 });
