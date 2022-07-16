@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import {LibFnPtrs} from "../VMStateBuilder.sol";
+import "../../type/Cast.sol";
 import "../RainVM.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
@@ -51,7 +51,9 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    using LibFnPtrs for bytes;
+    using Cast for uint;
+    using Cast for function(uint) pure returns (uint);
+    using Cast for function(uint,uint) view returns (uint);
 
     function nonZeroOperandN(uint256 operand_) internal pure returns (uint256) {
         require(operand_ > 0, "0_OPERAND_NZON");
@@ -65,7 +67,7 @@ library AllStandardOps {
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
-            uint256 nonZeroOperandN_ = LibFnPtrs.asUint(nonZeroOperandN);
+            uint256 nonZeroOperandN_ = nonZeroOperandN.asUint256();
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory popsFixed_ = [
                 ALL_STANDARD_OPS_LENGTH + localsLen_,
                 // opcode constant
@@ -95,7 +97,7 @@ library AllStandardOps {
                 // erc1155 balance of
                 3,
                 // erc1155 balance of batch
-                LibFnPtrs.asUint(OpERC1155BalanceOfBatch.stackPops),
+                OpERC1155BalanceOfBatch.stackPops.asUint256(),
                 // block number
                 0,
                 // caller
@@ -151,13 +153,13 @@ library AllStandardOps {
                 // sub
                 nonZeroOperandN_,
                 // tier report
-                LibFnPtrs.asUint(OpITierV2Report.stackPops),
+                OpITierV2Report.stackPops.asUint256(),
                 // tier report time for tier
-                LibFnPtrs.asUint(OpITierV2ReportTimeForTier.stackPops),
+                OpITierV2ReportTimeForTier.stackPops.asUint256(),
                 // tier saturating diff
                 2,
                 // select lte
-                LibFnPtrs.asUint(OpSelectLte.stackPops),
+                OpSelectLte.stackPops.asUint256(),
                 // update times for tier range
                 2
             ];
@@ -209,7 +211,7 @@ library AllStandardOps {
                 // erc1155 balance of
                 1,
                 // erc1155 balance of batch
-                LibFnPtrs.asUint(nonZeroOperandN),
+                nonZeroOperandN.asUint256(),
                 // block number
                 1,
                 // caller
@@ -298,18 +300,23 @@ library AllStandardOps {
     {
         unchecked {
             uint256 localsLen_ = locals_.length;
-            function(uint256, uint256) view returns (uint256) nil_ = LibFnPtrs
-                .asOpFn(0);
+            function(uint256, uint256) view returns (uint256) nil_ = uint(0).asOpFn();
             function(uint256, uint256)
                 view
                 returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory ptrsFixed_ = [
-                    LibFnPtrs.asOpFn(ALL_STANDARD_OPS_LENGTH + localsLen_),
+                    uint(ALL_STANDARD_OPS_LENGTH + localsLen_).asOpFn(),
+                    // constant
                     nil_,
+                    // stack
                     nil_,
+                    // context
                     nil_,
+                    // storage
                     nil_,
+                    // zipmap
                     nil_,
+                    // debug
                     nil_,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,

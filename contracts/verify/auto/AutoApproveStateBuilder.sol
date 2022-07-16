@@ -5,8 +5,6 @@ import "../../vm/StandardStateBuilder.sol";
 import "./AutoApprove.sol";
 
 contract AutoApproveStateBuilder is StandardStateBuilder {
-    using LibFnPtrs for bytes;
-
     /// @inheritdoc StandardStateBuilder
     function localStackPops()
         internal

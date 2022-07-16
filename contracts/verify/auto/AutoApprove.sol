@@ -21,7 +21,6 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     event Initialize(address sender, StateConfig config);
 
     using LibState for State;
-    using LibFnPtrs for bytes;
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 

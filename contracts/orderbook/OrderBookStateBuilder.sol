@@ -6,8 +6,6 @@ import "../vm/ops/AllStandardOps.sol";
 import "./OrderBook.sol";
 
 contract OrderBookStateBuilder is StandardStateBuilder {
-    using LibFnPtrs for bytes;
-
     /// @inheritdoc StandardStateBuilder
     function localStackPops()
         internal

@@ -67,7 +67,6 @@ contract OrderBook is StandardVM {
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
-    using LibFnPtrs for bytes;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
