@@ -12,7 +12,7 @@ pragma solidity =0.8.10;
 /// As most structures in solidity have the same memory structure as a `uint256`
 /// or fixed/dynamic array of `uint256` there are many conversions that can be
 /// done with near zero or minimal overhead.
-library Cast {
+library LibCast {
     /// Retype an integer to an opcode function pointer.
     /// @param i_ The integer to cast to an opcode function pointer.
     /// @return fn_ The opcode function pointer.

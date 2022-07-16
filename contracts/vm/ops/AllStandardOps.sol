@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "../../type/Cast.sol";
+import "../../type/LibCast.sol";
+import "../../array/LibUint256Array.sol";
 import "../RainVM.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
@@ -48,12 +49,23 @@ uint256 constant ALL_STANDARD_OPS_COUNT = 40;
 uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
     ALL_STANDARD_OPS_COUNT;
 
+library LibCastPtrs {
+    function asDynamicArray(uint[ALL_STANDARD_OPS_LENGTH+1] memory fixed_) internal pure returns (uint[] memory dynamic_) {
+        assembly {
+            dynamic_ := fixed_
+        }
+        require(dynamic_.length == ALL_STANDARD_OPS_LENGTH, "BAD_DYNAMIC_LENGTH");
+    }
+}
+
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    using Cast for uint;
-    using Cast for function(uint) pure returns (uint);
-    using Cast for function(uint,uint) view returns (uint);
+    using LibCast for uint;
+    using LibCast for function(uint) pure returns (uint);
+    using LibCast for function(uint,uint) view returns (uint);
+    using LibUint256Array for uint[];
+    using LibCastPtrs for uint[ALL_STANDARD_OPS_LENGTH+1];
 
     function nonZeroOperandN(uint256 operand_) internal pure returns (uint256) {
         require(operand_ > 0, "0_OPERAND_NZON");
@@ -66,10 +78,9 @@ library AllStandardOps {
         returns (uint256[] memory pops_)
     {
         unchecked {
-            uint256 localsLen_ = locals_.length;
             uint256 nonZeroOperandN_ = nonZeroOperandN.asUint256();
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory popsFixed_ = [
-                ALL_STANDARD_OPS_LENGTH + localsLen_,
+                ALL_STANDARD_OPS_LENGTH,
                 // opcode constant
                 0,
                 // opcode stack
@@ -163,15 +174,8 @@ library AllStandardOps {
                 // update times for tier range
                 2
             ];
-            assembly {
-                // hack to sneak in more allocated memory for the pushes array
-                // before anything else can allocate.
-                mstore(0x40, add(mul(localsLen_, 0x20), mload(0x40)))
-                pops_ := popsFixed_
-            }
-            for (uint256 i_ = 0; i_ < localsLen_; i_++) {
-                pops_[i_ + ALL_STANDARD_OPS_LENGTH] = locals_[i_];
-            }
+            pops_ = popsFixed_.asDynamicArray();
+            pops_.extend(locals_);
         }
     }
 
@@ -181,9 +185,8 @@ library AllStandardOps {
         returns (uint256[] memory pushes_)
     {
         unchecked {
-            uint256 localsLen_ = locals_.length;
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pushesFixed_ = [
-                ALL_STANDARD_OPS_LENGTH + localsLen_,
+                ALL_STANDARD_OPS_LENGTH,
                 // opcode constant
                 1,
                 // opcode stack
@@ -277,15 +280,8 @@ library AllStandardOps {
                 // update times for tier range
                 1
             ];
-            assembly {
-                // hack to sneak in more allocated memory for the pushes array
-                // before anything else can allocate.
-                mstore(0x40, add(mul(localsLen_, 0x20), mload(0x40)))
-                pushes_ := pushesFixed_
-            }
-            for (uint256 i_ = 0; i_ < localsLen_; i_++) {
-                pushes_[i_ + ALL_STANDARD_OPS_LENGTH] = locals_[i_];
-            }
+            pushes_ = pushesFixed_.asDynamicArray();
+            pushes_.extend(locals_);
         }
     }
 
