@@ -28,7 +28,7 @@ library OpITierV2ReportTimeForTier {
         uint256 tier_;
         uint256[] memory context_;
         assembly {
-            stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
+            stackTopLocation_ := sub(stackTopLocation_, add(0x20, mul(0x20, operand_)))
             location_ := sub(stackTopLocation_, 0x40)
             tierContract_ := mload(location_)
             account_ := mload(add(location_, 0x20))
