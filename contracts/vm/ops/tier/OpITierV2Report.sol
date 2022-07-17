@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/ITierV2.sol";
+import "../../LibStackTop.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.report` as an opcode.
@@ -17,10 +18,10 @@ library OpITierV2Report {
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(uint256 operand_, uint256 stackTopLocation_)
+    function report(uint256 operand_, StackTop stackTopLocation_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 tierContract_;

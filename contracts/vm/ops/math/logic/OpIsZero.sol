@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
+import "../../../LibStackTop.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
 library OpIsZero {
-    function isZero(uint256, uint256 stackTopLocation_)
+    function isZero(uint256, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         assembly ("memory-safe") {
             // The index doesn't change for iszero as there is

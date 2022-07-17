@@ -2,15 +2,16 @@
 pragma solidity ^0.8.15;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "../../LibStackTop.sol";
 
 /// @title OpERC1155BalanceOf
 /// @notice Opcode for getting the current erc1155 balance of an account.
 library OpERC1155BalanceOf {
     // Stack the return of `balanceOf`.
-    function balanceOf(uint256, uint256 stackTopLocation_)
+    function balanceOf(uint256, StackTop stackTopLocation_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 token_;

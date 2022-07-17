@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
+import "../../../LibStackTop.sol";
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
@@ -8,10 +9,10 @@ library OpEagerIf {
     /// before EAGER_IF will select one of them. If both x_ and y_
     /// are cheap (e.g. constant values) then this may also be the
     /// simplest and cheapest way to select one of them.
-    function eagerIf(uint256, uint256 stackTopLocation_)
+    function eagerIf(uint256, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, 0x60)

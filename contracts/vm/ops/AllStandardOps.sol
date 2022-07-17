@@ -54,9 +54,9 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 40;
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(uint256, uint256) view returns (uint256);
-    using LibCast for function(uint256, uint256) pure returns (uint256);
-    using LibCast for function(uint256, uint256) view returns (uint256)[];
+    using LibCast for function(uint256, StackTop) view returns (StackTop);
+    using LibCast for function(uint256, StackTop) pure returns (StackTop);
+    using LibCast for function(uint256, StackTop) view returns (StackTop)[];
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
@@ -128,8 +128,7 @@ library AllStandardOps {
                 3,
                 // erc1155 balance of batch
                 OpERC1155BalanceOfBatch.stackPops.asUint256(),
-                // block number
-                0,
+                OpBlockNumber.POPS,
                 // caller
                 0,
                 // this address
@@ -234,8 +233,7 @@ library AllStandardOps {
                 1,
                 // erc1155 balance of batch
                 nonZeroOperandN.asUint256(),
-                // block number
-                1,
+                OpBlockNumber.PUSHES,
                 // caller
                 1,
                 // this address
@@ -305,8 +303,8 @@ library AllStandardOps {
     }
 
     function packedFunctionPointers(
-        function(uint256, uint256) view returns (uint256)[] memory locals_
-    ) internal view returns (bytes memory packedFunctionPointers_) {
+        function(uint256, StackTop) view returns (StackTop)[] memory locals_
+    ) internal pure returns (bytes memory packedFunctionPointers_) {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
                 ALL_STANDARD_OPS_LENGTH,

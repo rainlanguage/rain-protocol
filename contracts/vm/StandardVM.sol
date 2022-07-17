@@ -37,7 +37,7 @@ contract StandardVM is RainVM {
         pure
         virtual
         returns (
-            function(uint256, uint256) view returns (uint256)[]
+            function(uint256, StackTop) view returns (StackTop)[]
                 memory localFnPtrs_
         )
     {}

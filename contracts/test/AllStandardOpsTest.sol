@@ -55,7 +55,10 @@ contract AllStandardOpsTest is StandardVM {
     /// Runs `eval` and stores full state.
     function run() public {
         State memory state_ = _loadVMState();
+        uint a_ = gasleft();
         eval(new uint256[](0), state_, ENTRYPOINT);
+        uint b_ = gasleft();
+        console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.

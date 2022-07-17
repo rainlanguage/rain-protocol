@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../../LibStackTop.sol";
+
 /// @title OpMax
 /// @notice Opcode to stack the maximum of N numbers.
 library OpMax {
-    function max(uint256 operand_, uint256 stackTopLocation_)
+    function max(uint256 operand_, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))

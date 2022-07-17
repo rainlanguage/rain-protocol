@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../../LibStackTop.sol";
+
 /// @title OpExp
 /// @notice Opcode to exponentiate N numbers.
 library OpExp {
-    function exp(uint256 operand_, uint256 stackTopLocation_)
+    function exp(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 accumulator_;
         uint256 cursor_;
         uint256 item_;
         assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+            location_ := sub(stackTop_, mul(operand_, 0x20))
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
-        while (cursor_ < stackTopLocation_) {
+        while (cursor_ < StackTop.unwrap(stackTop_)) {
             assembly ("memory-safe") {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
@@ -28,8 +30,8 @@ library OpExp {
         }
         assembly ("memory-safe") {
             mstore(location_, accumulator_)
-            stackTopLocation_ := add(location_, 0x20)
+            stackTop_ := add(location_, 0x20)
         }
-        return stackTopLocation_;
+        return stackTop_;
     }
 }

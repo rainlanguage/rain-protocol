@@ -2,16 +2,17 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
+import "../../LibStackTop.sol";
 
 library OpSaturatingDiff {
     // Stack the tierwise saturating subtraction of two reports.
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(uint256, uint256 stackTopLocation_)
+    function saturatingDiff(uint256, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 newerReport_;

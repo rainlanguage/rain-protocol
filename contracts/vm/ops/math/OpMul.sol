@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../../LibStackTop.sol";
+
 /// @title OpMul
 /// @notice Opcode for multiplying N numbers.
 library OpMul {
-    function mul(uint256 operand_, uint256 stackTopLocation_)
+    function mul(uint256 operand_, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))

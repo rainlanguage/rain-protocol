@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
+import "../../LibStackTop.sol";
 
 library OpUpdateTimesForTierRange {
     // Stacks a report with updated times over tier range.
@@ -11,8 +12,8 @@ library OpUpdateTimesForTierRange {
     // taken from the stack.
     function updateTimesForTierRange(
         uint256 operand_,
-        uint256 stackTopLocation_
-    ) internal pure returns (uint256) {
+        StackTop stackTopLocation_
+    ) internal pure returns (StackTop) {
         uint256 location_;
         uint256 report_;
         uint256 startTier_ = operand_ & 0x0f; // & 00001111

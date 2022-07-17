@@ -2,16 +2,17 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
+import "../../../LibStackTop.sol";
 
 /// @title OpFixedPointScaleN
 /// @notice Opcode for scaling a number to N fixed point.
 library OpFixedPointScaleN {
     using FixedPointMath for uint256;
 
-    function scaleN(uint256 operand_, uint256 stackTopLocation_)
+    function scaleN(uint256 operand_, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 a_;

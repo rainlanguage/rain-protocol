@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../../LibStackTop.sol";
+
 /// @title OpTimestamp
 /// @notice Opcode for getting the current timestamp.
 library OpTimestamp {
-    function timestamp(uint256, uint256 stackTopLocation_)
+    using LibStackTop for StackTop;
+
+    function timestamp(uint256, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly ("memory-safe") {
-            mstore(stackTopLocation_, timestamp())
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
+        return stackTop_.push(block.timestamp);
     }
 }

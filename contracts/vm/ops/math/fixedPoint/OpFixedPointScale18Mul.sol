@@ -2,16 +2,17 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
+import "../../../LibStackTop.sol";
 
 /// @title OpFixedPointScale18Mul
 /// @notice Opcode for performing scale 18 fixed point multiplication.
 library OpFixedPointScale18Mul {
     using FixedPointMath for uint256;
 
-    function scale18Mul(uint256 operand_, uint256 stackTopLocation_)
+    function scale18Mul(uint256 operand_, StackTop stackTopLocation_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 a_;

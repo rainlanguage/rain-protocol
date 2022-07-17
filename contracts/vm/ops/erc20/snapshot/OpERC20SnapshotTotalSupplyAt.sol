@@ -2,16 +2,17 @@
 pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
+import "../../../LibStackTop.sol";
 
 /// @title OpERC20SnapshotTotalSupplyAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.totalSupplyAt`.
 /// https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20Snapshot
 library OpERC20SnapshotTotalSupplyAt {
     /// Stack `totalSupplyAt`.
-    function totalSupplyAt(uint256, uint256 stackTopLocation_)
+    function totalSupplyAt(uint256, StackTop stackTopLocation_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 token_;

@@ -2,6 +2,7 @@
 pragma solidity =0.8.15;
 
 import "../vm/StandardVM.sol";
+import "../vm/LibStackTop.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -280,10 +281,10 @@ contract OrderBook is StandardVM {
         emit AfterClear(stateChange_);
     }
 
-    function opOrderFundsCleared(uint256, uint256 stackTopLocation_)
+    function opOrderFundsCleared(uint256, StackTop stackTopLocation_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         OrderHash orderHash_;
@@ -298,10 +299,10 @@ contract OrderBook is StandardVM {
         return stackTopLocation_;
     }
 
-    function opOrderCounterpartyFundsCleared(uint256, uint256 stackTopLocation_)
+    function opOrderCounterpartyFundsCleared(uint256, StackTop stackTopLocation_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         OrderHash orderHash_;
@@ -326,11 +327,11 @@ contract OrderBook is StandardVM {
         pure
         override
         returns (
-            function(uint256, uint256) view returns (uint256)[]
+            function(uint256, StackTop) view returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(uint256, uint256) view returns (uint256)[](
+        localFnPtrs_ = new function(uint256, StackTop) view returns (StackTop)[](
             2
         );
         localFnPtrs_[0] = opOrderFundsCleared;

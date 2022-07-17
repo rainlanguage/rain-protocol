@@ -2,28 +2,29 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
+import "../../../LibStackTop.sol";
 
 /// @title OpSaturatingAdd
 /// @notice Opcode for adding N numbers with saturating addition.
 library OpSaturatingAdd {
     using SaturatingMath for uint256;
 
-    function saturatingAdd(uint256 operand_, uint256 stackTopLocation_)
+    function saturatingAdd(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
         uint256 location_;
         uint256 accumulator_;
         uint256 cursor_;
         uint256 item_;
         assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, mul(operand_, 0x20))
+            location_ := sub(stackTop_, mul(operand_, 0x20))
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
         while (
-            cursor_ < stackTopLocation_ && accumulator_ < type(uint256).max
+            cursor_ < StackTop.unwrap(stackTop_) && accumulator_ < type(uint256).max
         ) {
             assembly ("memory-safe") {
                 item_ := mload(cursor_)
@@ -33,8 +34,8 @@ library OpSaturatingAdd {
         }
         assembly ("memory-safe") {
             mstore(location_, accumulator_)
-            stackTopLocation_ := add(location_, 0x20)
+            stackTop_ := add(location_, 0x20)
         }
-        return stackTopLocation_;
+        return stackTop_;
     }
 }

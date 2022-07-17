@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../../LibStackTop.sol";
+
 /// @title OpCaller
 /// @notice Opcode for getting the current caller.
 library OpCaller {
-    function caller(uint256, uint256 stackTopLocation_)
+    using LibStackTop for StackTop;
+
+    function caller(uint256, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly ("memory-safe") {
-            mstore(stackTopLocation_, caller())
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
+        return stackTop_.push(uint(uint160(msg.sender)));
     }
 }
