@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
@@ -6,8 +7,10 @@ import {
   AllStandardOpsTest,
   StateStruct,
 } from "../../../typechain/AllStandardOpsTest";
+import { CombineTier } from "../../../typechain/CombineTier";
+import { ALWAYS, combineTierDeploy, paddedUInt256, paddedUInt32, Tier, tierRange } from "../../../utils";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { bytify, op, zipmapSize } from "../../../utils/rainvm/vm";
+import { bytify, op, selectLte, selectLteLogic, selectLteMode, zipmapSize } from "../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -535,6 +538,82 @@ describe("RainVM zipmap", async function () {
     assert(
       result.eq(expected),
       `wrong result of zipmap
+      expected  ${expected}
+      got       ${result}`
+    );
+  });
+
+  it("should handle combo ops script", async () => {
+    const signers = await ethers.getSigners();
+
+    const alwaysTier = (await combineTierDeploy(signers[0], {
+      combinedTiersLength: 0,
+      sourceConfig: {
+        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 0)],
+        constants: [ALWAYS],
+      },
+    })) as CombineTier;
+
+	const price = "10";
+	const maxPercent = 100;
+	const discountsPercents = paddedUInt256(
+		BigNumber.from(
+			"0x" +
+			paddedUInt32(maxPercent - 40) +
+			paddedUInt32(maxPercent - 35) +
+			paddedUInt32(maxPercent - 30) +
+			paddedUInt32(maxPercent - 25) +
+			paddedUInt32(maxPercent - 20) +
+			paddedUInt32(maxPercent - 15) +
+			paddedUInt32(maxPercent - 10) +
+			paddedUInt32(maxPercent - 5)
+		)
+	);
+
+	const constants = [
+		price,
+		ethers.constants.MaxUint256,
+		alwaysTier.address,
+		discountsPercents,
+		maxPercent
+	];
+
+	const sources = [
+		concat([
+			op(Opcode.CONSTANT, 0),
+			op(Opcode.CONSTANT, 1),
+			op(Opcode.CONSTANT, 4),
+			op(Opcode.UPDATE_TIMES_FOR_TIER_RANGE, tierRange(Tier.ZERO, Tier.EIGHT)),
+			op(Opcode.CONSTANT, 3),
+			op(Opcode.CONSTANT, 2),
+			op(Opcode.SENDER),
+			op(Opcode.ITIERV2_REPORT),
+			op(Opcode.BLOCK_TIMESTAMP),
+			op(Opcode.SELECT_LTE, selectLte(selectLteLogic.every, selectLteMode.first, 2)),
+			op(Opcode.SATURATING_DIFF),
+			op(Opcode.ZIPMAP, zipmapSize(1, 3, 0)),
+			op(Opcode.MIN, 8),
+			op(Opcode.MUL, 2),
+			op(Opcode.CONSTANT, 3),
+			op(Opcode.DIV, 2),
+		]),
+		concat([
+			op(Opcode.CONSTANT, 4),
+			op(Opcode.CONSTANT, 5),
+			op(Opcode.SUB, 2),
+		])
+	];
+
+	await logic.initialize({ sources, constants });
+
+	await logic.connect(signers[0]).run();
+    const result = await logic.stackTop();
+
+    const expected = 10 * (60 / 100);
+
+    assert(
+      result.eq(expected),
+      `price did not received correct discount
       expected  ${expected}
       got       ${result}`
     );
