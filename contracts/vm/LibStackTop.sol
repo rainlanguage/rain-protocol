@@ -19,7 +19,7 @@ library LibStackTop {
         }
     }
 
-    function set(StackTop stackTop_, a_) internal pure returns (StackTop) {
+    function set(StackTop stackTop_, uint a_) internal pure {
         assembly ("memory-safe") {
             mstore(stackTop_, a_)
         }
