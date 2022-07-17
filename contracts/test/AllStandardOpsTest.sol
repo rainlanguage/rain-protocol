@@ -22,7 +22,7 @@ contract AllStandardOpsTest is StandardVM {
 
     /// *** STORAGE OPCODES END ***
 
-    State private _state;
+    VMState private _state;
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
@@ -48,13 +48,13 @@ contract AllStandardOpsTest is StandardVM {
         return _state.stack;
     }
 
-    function state() external view returns (State memory) {
+    function state() external view returns (VMState memory) {
         return _state;
     }
 
     /// Runs `eval` and stores full state.
     function run() public {
-        State memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState();
         uint256 a_ = gasleft();
         eval(new uint256[](0), state_, ENTRYPOINT);
         uint256 b_ = gasleft();
@@ -69,7 +69,7 @@ contract AllStandardOpsTest is StandardVM {
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
-        State memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState();
         eval(context_, state_, ENTRYPOINT);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read

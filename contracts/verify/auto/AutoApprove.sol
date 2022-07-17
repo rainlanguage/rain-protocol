@@ -22,7 +22,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     /// @param config All initialized config.
     event Initialize(address sender, StateConfig config);
 
-    using LibState for State;
+    using LibVMState for VMState;
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
@@ -54,7 +54,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[] memory context_ = new uint256[](2);
-            State memory state_ = _loadVMState();
+            VMState memory state_ = _loadVMState();
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
@@ -89,7 +89,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         view
         returns (StackTop)
     {
-        (StackTop location_, uint evidenceData_) = stackTop_.peek();
+        (StackTop location_, uint256 evidenceData_) = stackTop_.peek();
         location_.set(_approvedEvidenceData[evidenceData_]);
         return stackTop_;
     }

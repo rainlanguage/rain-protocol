@@ -54,6 +54,7 @@ struct FnPtrs {
 
 contract VMStateBuilder {
     using Math for uint256;
+    using LibVMState for VMState;
 
     /// @dev total hack to differentiate between stack move functions and values
     /// we assume that no function pointers are less than this so anything we
@@ -102,7 +103,7 @@ contract VMStateBuilder {
         address vm_,
         StateConfig memory config_,
         Bounds[] memory boundss_
-    ) external returns (bytes memory state_) {
+    ) external returns (bytes memory stateBytes_) {
         unchecked {
             VmStructure memory vmStructure_ = _vmStructure(vm_);
             bytes memory packedFnPtrs_ = SSTORE2.read(
@@ -143,15 +144,15 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            state_ = LibState.toBytesPacked(
-                State(
+            stateBytes_ =
+                VMState(
                     0,
                     new uint256[](stackLength_),
                     ptrSources_,
                     constants_,
                     config_.constants.length
                 )
-            );
+            .toBytesPacked();
         }
     }
 

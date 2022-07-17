@@ -78,7 +78,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         returns (uint256 report_)
     {
         unchecked {
-            State memory state_ = _loadVMState();
+            VMState memory state_ = _loadVMState();
             uint256[] memory evalContext_ = new uint256[](context_.length + 1);
             evalContext_[0] = uint256(uint160(account_));
             for (uint256 i_ = 0; i_ < context_.length; i_++) {
@@ -96,7 +96,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
         unchecked {
-            State memory state_ = _loadVMState();
+            VMState memory state_ = _loadVMState();
             uint256[] memory evalContext_ = new uint256[](context_.length + 2);
             evalContext_[0] = uint256(uint160(account_));
             evalContext_[1] = tier_;

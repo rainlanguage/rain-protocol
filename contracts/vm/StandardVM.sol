@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
+import "./LibVMState.sol";
 import "./RainVM.sol";
 import "./VMStateBuilder.sol";
 import "./ops/AllStandardOps.sol";
 
 contract StandardVM is RainVM {
+    using LibVMState for bytes;
     address internal immutable self;
     address internal immutable vmStateBuilder;
 
@@ -28,8 +30,8 @@ contract StandardVM is RainVM {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
-    function _loadVMState() internal view returns (State memory) {
-        return LibState.fromBytesPacked(SSTORE2.read(vmStatePointer));
+    function _loadVMState() internal view returns (VMState memory) {
+        return SSTORE2.read(vmStatePointer).fromBytesPacked();
     }
 
     function localFnPtrs()

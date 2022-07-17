@@ -19,7 +19,7 @@ library LibUint256Array {
         pure
     {
         uint256 freeMemoryPointer_;
-        assembly {
+        assembly ("memory-safe") {
             // Solidity stores free memory pointer at 0x40
             freeMemoryPointer_ := mload(0x40)
             let baseLength_ := mload(base_)

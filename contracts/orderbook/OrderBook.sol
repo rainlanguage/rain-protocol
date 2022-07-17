@@ -62,6 +62,7 @@ library LibEvalContext {
 }
 
 contract OrderBook is StandardVM {
+    using LibVMState for bytes;
     using LibStackTop for StackTop;
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -183,9 +184,9 @@ contract OrderBook is StandardVM {
             emit Clear(msg.sender, a_, b_, bountyConfig_);
 
             unchecked {
-                State memory vmState_;
+                VMState memory vmState_;
                 {
-                    vmState_ = LibState.fromBytesPacked(a_.vmState);
+                    vmState_ = a_.vmState.fromBytesPacked();
                     eval(
                         EvalContext(aHash_, b_.owner).toContext(),
                         vmState_,
@@ -196,7 +197,7 @@ contract OrderBook is StandardVM {
                 }
 
                 {
-                    vmState_ = LibState.fromBytesPacked(b_.vmState);
+                    vmState_ = b_.vmState.fromBytesPacked();
                     eval(
                         EvalContext(bHash_, a_.owner).toContext(),
                         vmState_,
@@ -292,10 +293,11 @@ contract OrderBook is StandardVM {
         return stackTop_;
     }
 
-    function opOrderCounterpartyFundsCleared(
-        uint256,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function opOrderCounterpartyFundsCleared(uint256, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         (
             StackTop location_,
             StackTop stackTopAfter_,

@@ -21,14 +21,14 @@ library OpExp {
             cursor_ := add(location_, 0x20)
         }
         while (cursor_ < StackTop.unwrap(stackTop_)) {
-            assembly {
+            assembly ("memory-safe") {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
             }
             // This is NOT in assembly so that we get overflow safety.
             accumulator_ = accumulator_**item_;
         }
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, accumulator_)
             stackTop_ := add(location_, 0x20)
         }
