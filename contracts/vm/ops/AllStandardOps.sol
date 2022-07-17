@@ -47,8 +47,6 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 40;
 
 /// @title AllStandardOps
@@ -308,7 +306,7 @@ library AllStandardOps {
 
     function packedFunctionPointers(
         function(uint256, uint256) view returns (uint256)[] memory locals_
-    ) internal pure returns (bytes memory packedFunctionPointers_) {
+    ) internal view returns (bytes memory packedFunctionPointers_) {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
                 ALL_STANDARD_OPS_LENGTH,

@@ -5,7 +5,6 @@ import {Factory} from "../factory/Factory.sol";
 import "./FactoryChildTest.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "hardhat/console.sol";
 
 /// @title FactoryTest
 /// @notice Test factory for creating and deploying `FactoryChildTest` contracts.

@@ -303,7 +303,6 @@ contract OrderBook is StandardVM {
         view
         returns (uint256)
     {
-        console.log("foo");
         uint256 location_;
         OrderHash orderHash_;
         uint256 counterparty_;

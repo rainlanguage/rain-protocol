@@ -45,7 +45,7 @@ contract StandardVM is RainVM {
     /// @inheritdoc RainVM
     function packedFunctionPointers()
         public
-        pure
+        view
         virtual
         override
         returns (bytes memory)

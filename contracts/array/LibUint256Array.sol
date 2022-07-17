@@ -61,7 +61,7 @@ library LibUint256Array {
         assembly ("memory-safe") {
             for {
                 let inputCursor_ := add(values_, 0x20)
-                let end_ := add(inputCursor_, mload(values_))
+                let end_ := add(inputCursor_, mul(0x20, mload(values_)))
             } lt(inputCursor_, end_) {
                 inputCursor_ := add(inputCursor_, 0x20)
                 outputCursor_ := add(outputCursor_, 0x20)
