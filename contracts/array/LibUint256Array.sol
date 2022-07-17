@@ -5,7 +5,10 @@ pragma solidity ^0.8.15;
 /// @notice Things we want to do carefully and efficiently with uint256 arrays
 /// that Solidity doesn't give us native tools for.
 library LibUint256Array {
-    function truncate(uint[] memory array_, uint newLength_) internal pure {
+    function truncate(uint256[] memory array_, uint256 newLength_)
+        internal
+        pure
+    {
         require(newLength_ <= array_.length, "OOB_TRUNCATE");
         assembly ("memory-safe") {
             mstore(array_, newLength_)

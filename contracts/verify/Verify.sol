@@ -174,8 +174,8 @@ struct VerifyConfig {
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
 contract Verify is AccessControl, Initializable {
-    using LibUint256Array for uint[];
-    using LibEvidence for uint[];
+    using LibUint256Array for uint256[];
+    using LibEvidence for uint256[];
 
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
@@ -445,10 +445,7 @@ contract Verify is AccessControl, Initializable {
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
                     addedRefs_.truncate(additions_);
-                    callback_.afterAdd(
-                        msg.sender,
-                        addedRefs_.asEvidences()
-                    );
+                    callback_.afterAdd(msg.sender, addedRefs_.asEvidences());
                 }
                 if (approvals_ > 0) {
                     approvedRefs_.truncate(approvals_);
@@ -525,17 +522,11 @@ contract Verify is AccessControl, Initializable {
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
                     addedRefs_.truncate(additions_);
-                    callback_.afterAdd(
-                        msg.sender,
-                        addedRefs_.asEvidences()
-                    );
+                    callback_.afterAdd(msg.sender, addedRefs_.asEvidences());
                 }
                 if (bans_ > 0) {
                     bannedRefs_.truncate(bans_);
-                    callback_.afterBan(
-                        msg.sender,
-                        bannedRefs_.asEvidences()
-                    );
+                    callback_.afterBan(msg.sender, bannedRefs_.asEvidences());
                 }
             }
         }

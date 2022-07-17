@@ -81,12 +81,12 @@ contract AllStandardOpsTest is StandardVM {
         public
         pure
         override
-        returns (StorageOpcodesRange memory)
+        returns (StorageOpcodesRange memory storageOpcodesRange_)
     {
         uint256 pointer_;
         assembly ("memory-safe") {
             pointer_ := _val0.slot
         }
-        return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
+        storageOpcodesRange_ = StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
     }
 }

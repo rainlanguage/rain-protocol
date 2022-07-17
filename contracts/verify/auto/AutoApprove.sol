@@ -17,8 +17,8 @@ uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     using LibStackTop for StackTop;
-    using LibUint256Array for uint[];
-    using LibEvidence for uint[];
+    using LibUint256Array for uint256[];
+    using LibEvidence for uint256[];
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -80,9 +80,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
             }
             if (approvals_ > 0) {
                 approvedRefs_.truncate(approvals_);
-                Verify(msg.sender).approve(
-                    approvedRefs_.asEvidences()
-                );
+                Verify(msg.sender).approve(approvedRefs_.asEvidences());
             }
         }
     }

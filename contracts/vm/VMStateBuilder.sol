@@ -144,15 +144,13 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            stateBytes_ =
-                VMState(
-                    0,
-                    new uint256[](stackLength_),
-                    ptrSources_,
-                    constants_,
-                    config_.constants.length
-                )
-            .toBytesPacked();
+            stateBytes_ = VMState(
+                0,
+                new uint256[](stackLength_),
+                ptrSources_,
+                constants_,
+                config_.constants.length
+            ).toBytesPacked();
         }
     }
 
@@ -187,14 +185,14 @@ contract VMStateBuilder {
             assembly ("memory-safe") {
                 for {
                     let packedFnPtrsStart_ := add(2, packedFnPtrs_)
-                    let cursor_ := add(source_, 2)
-                    let end_ := add(sourceLen_, cursor_)
-                    let oCursor_ := add(ptrSource_, 3)
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 2)
-                    oCursor_ := add(oCursor_, 3)
+                    let inputCursor_ := add(source_, 2)
+                    let end_ := add(sourceLen_, inputCursor_)
+                    let outputCursor_ := add(ptrSource_, 3)
+                } lt(inputCursor_, end_) {
+                    inputCursor_ := add(inputCursor_, 2)
+                    outputCursor_ := add(outputCursor_, 3)
                 } {
-                    let sourceData_ := mload(cursor_)
+                    let sourceData_ := mload(inputCursor_)
                     let op_ := byte(30, sourceData_)
                     if gt(op_, nonCoreOpsStart_) {
                         op_ := and(
@@ -203,9 +201,9 @@ contract VMStateBuilder {
                         )
                     }
                     mstore(
-                        oCursor_,
+                        outputCursor_,
                         or(
-                            mload(oCursor_),
+                            mload(outputCursor_),
                             or(shl(8, op_), byte(31, sourceData_))
                         )
                     )
@@ -253,24 +251,22 @@ contract VMStateBuilder {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            uint256 i_ = 0;
-            uint256 sourceLen_;
+            uint256 cursor_;
+            uint end_;
             uint256 opcode_;
             uint256 operand_;
-            uint256 sourceLocation_;
 
             assembly ("memory-safe") {
-                sourceLocation_ := mload(
+                cursor_ := mload(
                     add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
                 )
-
-                sourceLen_ := mload(sourceLocation_)
+                end_ := add(cursor_, mload(cursor_))
             }
 
-            while (i_ < sourceLen_) {
+            while (cursor_ < end_) {
                 assembly ("memory-safe") {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
+                    cursor_ := add(cursor_, 2)
+                    let op_ := mload(cursor_)
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
@@ -324,11 +320,7 @@ contract VMStateBuilder {
                     // If the pop is higher than the cutoff for static pop
                     // values run it and use the return instead.
                     if (pop_ > MOVE_POINTER_CUTOFF) {
-                        function(uint256) pure returns (uint256) popsFn_;
-                        assembly ("memory-safe") {
-                            popsFn_ := pop_
-                        }
-                        pop_ = popsFn_(operand_);
+                        pop_ = pop_.asStackMoveFn()(operand_);
                     }
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack
@@ -342,11 +334,7 @@ contract VMStateBuilder {
                     // If the push is higher than the cutoff for static push
                     // values run it and use the return instead.
                     if (push_ > MOVE_POINTER_CUTOFF) {
-                        function(uint256) pure returns (uint256) pushesFn_;
-                        assembly ("memory-safe") {
-                            pushesFn_ := push_
-                        }
-                        push_ = pushesFn_(operand_);
+                        push_ = push_.asStackMoveFn()(operand_);
                     }
                     bounds_.stackIndex += push_;
                 }

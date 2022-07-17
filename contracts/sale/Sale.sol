@@ -314,13 +314,13 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         public
         pure
         override
-        returns (StorageOpcodesRange memory)
+        returns (StorageOpcodesRange memory storageOpcodesRange_)
     {
         uint256 slot_;
-        assembly ("memory-safe") {
+        assembly {
             slot_ := _remainingUnits.slot
         }
-        return StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
+        storageOpcodesRange_ = StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
     }
 
     /// @inheritdoc ISale
