@@ -77,7 +77,7 @@ library AllStandardOps {
         pure
         returns (uint256[] memory dynamic_)
     {
-        assembly ("memory-safe") {
+        assembly {
             dynamic_ := fixed_
         }
         require(

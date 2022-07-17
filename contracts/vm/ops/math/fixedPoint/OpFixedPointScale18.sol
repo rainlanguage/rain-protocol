@@ -8,22 +8,15 @@ import "../../../LibStackTop.sol";
 /// @notice Opcode for scaling a number to 18 fixed point.
 library OpFixedPointScale18 {
     using FixedPointMath for uint256;
+    using LibStackTop for StackTop;
 
-    function scale18(uint256 operand_, StackTop stackTopLocation_)
+    function scale18(uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)
     {
-        uint256 location_;
-        uint256 a_;
-        assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, 0x20)
-            a_ := mload(location_)
-        }
-        uint256 b_ = a_.scale18(operand_);
-        assembly ("memory-safe") {
-            mstore(location_, b_)
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint256 a_) = stackTop_.peek();
+        location_.set(a_.scale18(operand_));
+        return stackTop_;
     }
 }

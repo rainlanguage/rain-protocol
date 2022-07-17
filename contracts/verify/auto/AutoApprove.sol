@@ -15,6 +15,8 @@ uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract AutoApprove is VerifyCallback, StandardVM, Initializable {
+    using LibStackTop for StackTop;
+
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
@@ -82,22 +84,14 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         }
     }
 
-    function opEvidenceDataApproved(uint256, StackTop stackTopLocation_)
+    function opEvidenceDataApproved(uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)
     {
-        uint256 location_;
-        uint256 evidenceData_;
-        assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, 0x20)
-            evidenceData_ := mload(location_)
-        }
-        uint256 approved_ = _approvedEvidenceData[evidenceData_];
-        assembly ("memory-safe") {
-            mstore(location_, approved_)
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint evidenceData_) = stackTop_.peek();
+        location_.set(_approvedEvidenceData[evidenceData_]);
+        return stackTop_;
     }
 
     function localFnPtrs()
@@ -110,9 +104,9 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(uint256, StackTop) view returns (StackTop)[](
-            1
-        );
+        localFnPtrs_ = new function(uint256, StackTop)
+            view
+            returns (StackTop)[](1);
         localFnPtrs_[0] = opEvidenceDataApproved;
     }
 }

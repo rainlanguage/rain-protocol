@@ -15,20 +15,8 @@ library OpERC20TotalSupply {
         view
         returns (StackTop)
     {
-        // uint256 location_;
-        // uint256 token_;
-        // assembly ("memory-safe") {
-        //     location_ := sub(stackTop_, 0x20)
-        //     token_ := mload(location_)
-        // }
-        (StackTop peek_, uint token_) = stackTop_.peek();
-        peek_.set(
-            IERC20(address(uint160(token_))).totalSupply()
-        );
-        // return stackTop_;
-        // assembly ("memory-safe") {
-        //     mstore(location_, supply_)
-        // }
+        (StackTop location_, uint256 token_) = stackTop_.peek();
+        location_.set(IERC20(address(uint160(token_))).totalSupply());
         return stackTop_;
     }
 }

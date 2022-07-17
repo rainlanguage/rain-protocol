@@ -183,7 +183,7 @@ contract VMStateBuilder {
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
             uint256 nonCoreOpsStart_ = RAIN_VM_OPS_LENGTH - 1;
-            assembly ("memory-safe") {
+            assembly {
                 for {
                     let packedFnPtrsStart_ := add(2, packedFnPtrs_)
                     let cursor_ := add(source_, 2)
@@ -258,7 +258,7 @@ contract VMStateBuilder {
             uint256 operand_;
             uint256 sourceLocation_;
 
-            assembly ("memory-safe") {
+            assembly {
                 sourceLocation_ := mload(
                     add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
                 )
@@ -267,7 +267,7 @@ contract VMStateBuilder {
             }
 
             while (i_ < sourceLen_) {
-                assembly ("memory-safe") {
+                assembly {
                     i_ := add(i_, 2)
                     let op_ := mload(add(sourceLocation_, i_))
                     opcode_ := byte(30, op_)
@@ -324,7 +324,7 @@ contract VMStateBuilder {
                     // values run it and use the return instead.
                     if (pop_ > MOVE_POINTER_CUTOFF) {
                         function(uint256) pure returns (uint256) popsFn_;
-                        assembly ("memory-safe") {
+                        assembly {
                             popsFn_ := pop_
                         }
                         pop_ = popsFn_(operand_);
@@ -342,7 +342,7 @@ contract VMStateBuilder {
                     // values run it and use the return instead.
                     if (push_ > MOVE_POINTER_CUTOFF) {
                         function(uint256) pure returns (uint256) pushesFn_;
-                        assembly ("memory-safe") {
+                        assembly {
                             pushesFn_ := push_
                         }
                         push_ = pushesFn_(operand_);

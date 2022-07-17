@@ -13,6 +13,6 @@ library OpCaller {
         view
         returns (StackTop)
     {
-        return stackTop_.push(uint(uint160(msg.sender)));
+        return stackTop_.push(uint256(uint160(msg.sender)));
     }
 }

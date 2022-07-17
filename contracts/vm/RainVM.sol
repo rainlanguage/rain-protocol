@@ -3,6 +3,8 @@ pragma solidity =0.8.15;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../math/SaturatingMath.sol";
+import "../type/LibCast.sol";
+import "./LibStackTop.sol";
 
 import "hardhat/console.sol";
 
@@ -68,7 +70,7 @@ library LibState {
         unchecked {
             State memory state_;
             uint256 indexes_;
-            assembly ("memory-safe") {
+            assembly {
                 // Load indexes from state bytes.
                 indexes_ := mload(add(stateBytes_, 0x20))
                 // mask out everything but the constants length from state
@@ -84,7 +86,7 @@ library LibState {
             bytes[] memory ptrSources_;
             uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
 
-            assembly ("memory-safe") {
+            assembly {
                 let sourcesStart_ := add(
                     stateBytes_,
                     add(
@@ -229,6 +231,7 @@ uint256 constant DEBUG_STACK_INDEX = 3;
 abstract contract RainVM {
     using Math for uint256;
     using SaturatingMath for uint256;
+    using LibCast for uint;
 
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesRange()
@@ -284,9 +287,9 @@ abstract contract RainVM {
     function zipmap(
         uint256[] memory context_,
         State memory state_,
-        uint256 stackTopLocation_,
+        StackTop stackTop_,
         uint256 operand_
-    ) internal view returns (uint256) {
+    ) internal view returns (StackTop) {
         unchecked {
             uint256 sourceIndex_ = operand_ & 0x07;
             uint256 loopSize_ = (operand_ >> 3) & 0x03;
@@ -312,15 +315,15 @@ abstract contract RainVM {
             uint256[] memory baseVals_ = new uint256[](valLength_);
             uint256 baseValsBottom_;
             {
-                assembly ("memory-safe") {
+                assembly {
                     baseValsBottom_ := add(baseVals_, 0x20)
                     for {
                         let cursor_ := sub(
-                            stackTopLocation_,
+                            stackTop_,
                             mul(valLength_, 0x20)
                         )
                         let baseValsCursor_ := baseValsBottom_
-                    } lt(cursor_, stackTopLocation_) {
+                    } lt(cursor_, stackTop_) {
                         cursor_ := add(cursor_, 0x20)
                         baseValsCursor_ := add(baseValsCursor_, 0x20)
                     } {
@@ -330,7 +333,7 @@ abstract contract RainVM {
             }
 
             uint256 argumentsBottomLocation_;
-            assembly ("memory-safe") {
+            assembly {
                 let constantsBottomLocation_ := add(
                     mload(add(state_, 0x60)),
                     0x20
@@ -356,7 +359,7 @@ abstract contract RainVM {
                     uint256 argumentsCursor_ = argumentsBottomLocation_;
                     uint256 cursor_ = baseValsBottom_;
                     while (cursor_ < maxCursor_) {
-                        assembly ("memory-safe") {
+                        assembly {
                             mstore(
                                 argumentsCursor_,
                                 and(shr(step_, mload(cursor_)), mask_)
@@ -366,9 +369,9 @@ abstract contract RainVM {
                         }
                     }
                 }
-                stackTopLocation_ = eval(context_, state_, sourceIndex_);
+                stackTop_ = eval(context_, state_, sourceIndex_);
             }
-            return stackTopLocation_;
+            return stackTop_;
         }
     }
 
@@ -388,7 +391,7 @@ abstract contract RainVM {
         uint256[] memory context_,
         State memory state_,
         uint256 sourceIndex_
-    ) internal view returns (uint256) {
+    ) internal view returns (StackTop) {
         unchecked {
             uint256 pc_ = 0;
             uint256 opcode_;
@@ -397,13 +400,13 @@ abstract contract RainVM {
             uint256 sourceLen_;
             uint256 constantsBottomLocation_;
             uint256 stackBottomLocation_;
-            uint256 stackTopLocation_;
+            StackTop stackTop_;
             uint256 firstFnPtrLocation_;
 
-            assembly ("memory-safe") {
+            assembly {
                 let stackLocation_ := mload(add(state_, 0x20))
                 stackBottomLocation_ := add(stackLocation_, 0x20)
-                stackTopLocation_ := add(
+                stackTop_ := add(
                     stackBottomLocation_,
                     // Add stack index offset.
                     mul(mload(state_), 0x20)
@@ -422,18 +425,18 @@ abstract contract RainVM {
 
             // Loop until complete.
             while (pc_ < sourceLen_) {
-                assembly ("memory-safe") {
+                assembly {
                     pc_ := add(pc_, 3)
-                    let op_ := mload(add(sourceLocation_, pc_))
-                    operand_ := byte(31, op_)
-                    opcode_ := and(shr(8, op_), 0xFFFF)
+                    let op_ := and(mload(add(sourceLocation_, pc_)), 0xFFFFFF)
+                    operand_ := and(op_, 0xFF)
+                    opcode_ := shr(8, op_)
                 }
 
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_CONSTANT) {
-                        assembly ("memory-safe") {
+                        assembly {
                             mstore(
-                                stackTopLocation_,
+                                stackTop_,
                                 mload(
                                     add(
                                         constantsBottomLocation_,
@@ -441,12 +444,12 @@ abstract contract RainVM {
                                     )
                                 )
                             )
-                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                            stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_STACK) {
-                        assembly ("memory-safe") {
+                        assembly {
                             mstore(
-                                stackTopLocation_,
+                                stackTop_,
                                 mload(
                                     add(
                                         stackBottomLocation_,
@@ -454,16 +457,16 @@ abstract contract RainVM {
                                     )
                                 )
                             )
-                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                            stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_CONTEXT) {
                         // This is the only runtime integrity check that we do
                         // as it is not possible to know how long context might
                         // be in general until runtime.
                         require(operand_ < context_.length, "CONTEXT_LENGTH");
-                        assembly ("memory-safe") {
+                        assembly {
                             mstore(
-                                stackTopLocation_,
+                                stackTop_,
                                 mload(
                                     add(
                                         context_,
@@ -471,25 +474,25 @@ abstract contract RainVM {
                                     )
                                 )
                             )
-                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                            stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_STORAGE) {
                         StorageOpcodesRange
                             memory storageOpcodesRange_ = storageOpcodesRange();
-                        assembly ("memory-safe") {
+                        assembly {
                             mstore(
-                                stackTopLocation_,
+                                stackTop_,
                                 sload(
                                     add(operand_, mload(storageOpcodesRange_))
                                 )
                             )
-                            stackTopLocation_ := add(stackTopLocation_, 0x20)
+                            stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
-                        stackTopLocation_ = zipmap(
+                        stackTop_ = zipmap(
                             context_,
                             state_,
-                            stackTopLocation_,
+                            stackTop_,
                             operand_
                         );
                     } else {
@@ -508,11 +511,7 @@ abstract contract RainVM {
                         }
                     }
                 } else {
-                    function(uint256, uint256) view returns (uint256) fn_;
-                    assembly ("memory-safe") {
-                        fn_ := opcode_
-                    }
-                    stackTopLocation_ = fn_(operand_, stackTopLocation_);
+                    stackTop_ = opcode_.asOpFn()(operand_, stackTop_);
                 }
                 // The stack index may be the same as the length as this means
                 // the stack is full. But we cannot write past the end of the
@@ -534,9 +533,9 @@ abstract contract RainVM {
                 );
             }
             state_.stackIndex =
-                (stackTopLocation_ - stackBottomLocation_) /
+                (StackTop.unwrap(stackTop_) - stackBottomLocation_) /
                 0x20;
-            return stackTopLocation_;
+            return stackTop_;
         }
     }
 }

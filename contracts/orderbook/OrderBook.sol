@@ -62,6 +62,7 @@ library LibEvalContext {
 }
 
 contract OrderBook is StandardVM {
+    using LibStackTop for StackTop;
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
@@ -281,45 +282,32 @@ contract OrderBook is StandardVM {
         emit AfterClear(stateChange_);
     }
 
-    function opOrderFundsCleared(uint256, StackTop stackTopLocation_)
+    function opOrderFundsCleared(uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)
     {
-        uint256 location_;
-        OrderHash orderHash_;
-        assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, 0x20)
-            orderHash_ := mload(location_)
-        }
-        uint256 fundsCleared_ = clearedOrder[orderHash_];
-        assembly ("memory-safe") {
-            mstore(location_, fundsCleared_)
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint256 orderHash_) = stackTop_.peek();
+        location_.set(clearedOrder[OrderHash.wrap(orderHash_)]);
+        return stackTop_;
     }
 
-    function opOrderCounterpartyFundsCleared(uint256, StackTop stackTopLocation_)
-        internal
-        view
-        returns (StackTop)
-    {
-        uint256 location_;
-        OrderHash orderHash_;
-        uint256 counterparty_;
-        assembly ("memory-safe") {
-            stackTopLocation_ := sub(stackTopLocation_, 0x20)
-            location_ := sub(stackTopLocation_, 0x20)
-            orderHash_ := mload(location_)
-            counterparty_ := mload(stackTopLocation_)
-        }
-        uint256 fundsCleared_ = clearedCounterparty[orderHash_][
-            address(uint160(counterparty_))
-        ];
-        assembly ("memory-safe") {
-            mstore(location_, fundsCleared_)
-        }
-        return stackTopLocation_;
+    function opOrderCounterpartyFundsCleared(
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        (
+            StackTop location_,
+            StackTop stackTopAfter_,
+            uint256 orderHash_,
+            uint256 counterparty_
+        ) = stackTop_.popAndPeek();
+        location_.set(
+            clearedCounterparty[OrderHash.wrap(orderHash_)][
+                address(uint160(counterparty_))
+            ]
+        );
+        return stackTopAfter_;
     }
 
     function localFnPtrs()
@@ -331,9 +319,9 @@ contract OrderBook is StandardVM {
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(uint256, StackTop) view returns (StackTop)[](
-            2
-        );
+        localFnPtrs_ = new function(uint256, StackTop)
+            view
+            returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;
         localFnPtrs_[1] = opOrderCounterpartyFundsCleared;
     }

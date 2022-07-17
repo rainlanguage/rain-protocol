@@ -19,7 +19,7 @@ library LibUint256Array {
         pure
     {
         uint256 freeMemoryPointer_;
-        assembly ("memory-safe") {
+        assembly {
             // Solidity stores free memory pointer at 0x40
             freeMemoryPointer_ := mload(0x40)
             let baseLength_ := mload(base_)
@@ -58,7 +58,7 @@ library LibUint256Array {
         internal
         pure
     {
-        assembly ("memory-safe") {
+        assembly {
             for {
                 let inputCursor_ := add(values_, 0x20)
                 let end_ := add(inputCursor_, mul(0x20, mload(values_)))

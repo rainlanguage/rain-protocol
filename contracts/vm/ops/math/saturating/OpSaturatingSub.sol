@@ -18,19 +18,19 @@ library OpSaturatingSub {
         uint256 accumulator_;
         uint256 cursor_;
         uint256 item_;
-        assembly ("memory-safe") {
+        assembly {
             location_ := sub(stackTop_, mul(operand_, 0x20))
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
         while (cursor_ < StackTop.unwrap(stackTop_) && 0 < accumulator_) {
-            assembly ("memory-safe") {
+            assembly {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
             }
             accumulator_ = accumulator_.saturatingSub(item_);
         }
-        assembly ("memory-safe") {
+        assembly {
             mstore(location_, accumulator_)
             stackTop_ := add(location_, 0x20)
         }

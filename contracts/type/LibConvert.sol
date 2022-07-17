@@ -13,7 +13,7 @@ library LibConvert {
         pure
         returns (bytes memory bytes_)
     {
-        assembly ("memory-safe") {
+        assembly {
             bytes_ := is_
             // Length in bytes is 32x the length in uint256
             mstore(bytes_, mul(0x20, mload(bytes_)))

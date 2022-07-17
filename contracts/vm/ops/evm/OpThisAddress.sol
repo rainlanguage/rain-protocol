@@ -13,6 +13,6 @@ library OpThisAddress {
         view
         returns (StackTop)
     {
-        return stackTop_.push(uint(uint160(address(this))));
+        return stackTop_.push(uint256(uint160(address(this))));
     }
 }

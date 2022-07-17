@@ -8,22 +8,15 @@ import "../../../LibStackTop.sol";
 /// @notice Opcode for scaling a number to N fixed point.
 library OpFixedPointScaleN {
     using FixedPointMath for uint256;
+    using LibStackTop for StackTop;
 
-    function scaleN(uint256 operand_, StackTop stackTopLocation_)
+    function scaleN(uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)
     {
-        uint256 location_;
-        uint256 a_;
-        assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, 0x20)
-            a_ := mload(location_)
-        }
-        uint256 b_ = a_.scaleN(operand_);
-        assembly ("memory-safe") {
-            mstore(location_, b_)
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint256 a_) = stackTop_.peek();
+        location_.set(a_.scaleN(operand_));
+        return stackTop_;
     }
 }

@@ -8,22 +8,15 @@ import "../../../LibStackTop.sol";
 /// @notice Opcode for scaling a number by some OOMs.
 library OpFixedPointScaleBy {
     using FixedPointMath for uint256;
+    using LibStackTop for StackTop;
 
-    function scaleBy(uint256 operand_, StackTop stackTopLocation_)
+    function scaleBy(uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)
     {
-        uint256 location_;
-        uint256 a_;
-        assembly ("memory-safe") {
-            location_ := sub(stackTopLocation_, 0x20)
-            a_ := mload(location_)
-        }
-        uint256 b_ = a_.scaleBy(int8(uint8(operand_)));
-        assembly ("memory-safe") {
-            mstore(location_, b_)
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint256 a_) = stackTop_.peek();
+        location_.set(a_.scaleBy(int8(uint8(operand_))));
+        return stackTop_;
     }
 }

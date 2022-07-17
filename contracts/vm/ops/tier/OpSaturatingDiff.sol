@@ -5,31 +5,26 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../LibStackTop.sol";
 
 library OpSaturatingDiff {
+    using LibStackTop for StackTop;
+
     // Stack the tierwise saturating subtraction of two reports.
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(uint256, StackTop stackTopLocation_)
+    function saturatingDiff(uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)
     {
-        uint256 location_;
-        uint256 newerReport_;
-        uint256 olderReport_;
-        assembly ("memory-safe") {
-            stackTopLocation_ := sub(stackTopLocation_, 0x20)
-            location_ := sub(stackTopLocation_, 0x20)
-            newerReport_ := mload(location_)
-            olderReport_ := mload(stackTopLocation_)
-        }
-        uint256 result_ = TierwiseCombine.saturatingSub(
-            newerReport_,
-            olderReport_
+        (
+            StackTop location_,
+            StackTop stackTopAfter_,
+            uint256 newerReport_,
+            uint256 olderReport_
+        ) = stackTop_.popAndPeek();
+        location_.set(
+            TierwiseCombine.saturatingSub(newerReport_, olderReport_)
         );
-        assembly ("memory-safe") {
-            mstore(location_, result_)
-        }
-        return stackTopLocation_;
+        return stackTopAfter_;
     }
 }

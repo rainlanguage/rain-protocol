@@ -13,7 +13,7 @@ library OpAny {
         pure
         returns (StackTop)
     {
-        assembly ("memory-safe") {
+        assembly {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             for {
                 let cursor_ := location_

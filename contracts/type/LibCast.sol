@@ -23,7 +23,7 @@ library LibCast {
         pure
         returns (function(uint256, StackTop) view returns (StackTop) fn_)
     {
-        assembly ("memory-safe") {
+        assembly {
             fn_ := i_
         }
     }
@@ -47,8 +47,14 @@ library LibCast {
         pure
         returns (uint256 i_)
     {
-        assembly ("memory-safe") {
+        assembly {
             i_ := fn_
+        }
+    }
+
+    function asUint256(bool bool_) internal pure returns (uint256 i_) {
+        assembly {
+            i_ := bool_
         }
     }
 
@@ -57,7 +63,7 @@ library LibCast {
         pure
         returns (uint256 i_)
     {
-        assembly ("memory-safe") {
+        assembly {
             i_ := fn_
         }
     }
@@ -65,7 +71,7 @@ library LibCast {
     function asUint256Array(
         function(uint256, StackTop) view returns (StackTop)[] memory fns_
     ) internal pure returns (uint256[] memory is_) {
-        assembly ("memory-safe") {
+        assembly {
             is_ := fns_
         }
     }

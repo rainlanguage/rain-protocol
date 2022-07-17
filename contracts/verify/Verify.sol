@@ -49,7 +49,7 @@ library LibEvidence {
         uint256 refsIndex_
     ) internal pure {
         uint256 ptr_;
-        assembly ("memory-safe") {
+        assembly {
             ptr_ := evidence_
         }
         refs_[refsIndex_] = ptr_;
@@ -60,7 +60,7 @@ library LibEvidence {
         pure
     {
         require(newLength_ <= refs_.length, "BAD_RESIZE");
-        assembly ("memory-safe") {
+        assembly {
             mstore(refs_, newLength_)
         }
     }
@@ -71,7 +71,7 @@ library LibEvidence {
         returns (Evidence[] memory)
     {
         Evidence[] memory evidences_;
-        assembly ("memory-safe") {
+        assembly {
             evidences_ := refs_
         }
         return evidences_;

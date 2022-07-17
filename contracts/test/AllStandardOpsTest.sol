@@ -55,9 +55,9 @@ contract AllStandardOpsTest is StandardVM {
     /// Runs `eval` and stores full state.
     function run() public {
         State memory state_ = _loadVMState();
-        uint a_ = gasleft();
+        uint256 a_ = gasleft();
         eval(new uint256[](0), state_, ENTRYPOINT);
-        uint b_ = gasleft();
+        uint256 b_ = gasleft();
         console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
@@ -84,7 +84,7 @@ contract AllStandardOpsTest is StandardVM {
         returns (StorageOpcodesRange memory)
     {
         uint256 pointer_;
-        assembly ("memory-safe") {
+        assembly {
             pointer_ := _val0.slot
         }
         return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
