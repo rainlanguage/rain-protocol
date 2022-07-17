@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title Uint256Array
 /// @notice Things we want to do carefully and efficiently with uint256 arrays
@@ -14,9 +14,12 @@ library LibUint256Array {
     /// time in Solidity.
     /// @param base_ The base integer array that will be extended by `extend_`.
     /// @param extend_ The integer array that extends `base_`.
-    function extend(uint[] memory base_, uint[] memory extend_) internal pure {
-        uint freeMemoryPointer_;
-        assembly {
+    function extend(uint256[] memory base_, uint256[] memory extend_)
+        internal
+        pure
+    {
+        uint256 freeMemoryPointer_;
+        assembly ("memory-safe") {
             // Solidity stores free memory pointer at 0x40
             freeMemoryPointer_ := mload(0x40)
             let baseLength_ := mload(base_)
@@ -26,7 +29,10 @@ library LibUint256Array {
             // it is NOT safe to copy `extend_` over the top of already
             // allocated memory. This happens whenever some memory is allocated
             // after `base_` is allocated but before `extend` is called.
-            if gt(freeMemoryPointer_, add(base_, add(0x20, mul(0x20, baseLength_)))) {
+            if gt(
+                freeMemoryPointer_,
+                add(base_, add(0x20, mul(0x20, baseLength_)))
+            ) {
                 revert(0, 0)
             }
 
@@ -48,8 +54,11 @@ library LibUint256Array {
     /// `[location:location+data_.length]` will be overwritten.
     /// The length of `values_` is NOT copied to the output location, ONLY the
     /// uint256 values of the `values_` array are copied.
-    function unsafeCopyValuesTo(uint[] memory values_, uint outputCursor_) internal pure {
-        assembly {
+    function unsafeCopyValuesTo(uint256[] memory values_, uint256 outputCursor_)
+        internal
+        pure
+    {
+        assembly ("memory-safe") {
             for {
                 let inputCursor_ := add(values_, 0x20)
                 let end_ := add(inputCursor_, mload(values_))

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -89,12 +89,12 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     {
         uint256 location_;
         uint256 evidenceData_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTopLocation_, 0x20)
             evidenceData_ := mload(location_)
         }
         uint256 approved_ = _approvedEvidenceData[evidenceData_];
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, approved_)
         }
         return stackTopLocation_;

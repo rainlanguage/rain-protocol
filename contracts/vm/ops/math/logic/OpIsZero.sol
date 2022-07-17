@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
@@ -9,7 +9,7 @@ library OpIsZero {
         pure
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             // The index doesn't change for iszero as there is
             // one input and output.
             let location_ := sub(stackTopLocation_, 0x20)

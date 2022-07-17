@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "../vm/StandardVM.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -287,12 +287,12 @@ contract OrderBook is StandardVM {
     {
         uint256 location_;
         OrderHash orderHash_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTopLocation_, 0x20)
             orderHash_ := mload(location_)
         }
         uint256 fundsCleared_ = clearedOrder[orderHash_];
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, fundsCleared_)
         }
         return stackTopLocation_;
@@ -303,10 +303,11 @@ contract OrderBook is StandardVM {
         view
         returns (uint256)
     {
+        console.log("foo");
         uint256 location_;
         OrderHash orderHash_;
         uint256 counterparty_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             orderHash_ := mload(location_)
@@ -315,7 +316,7 @@ contract OrderBook is StandardVM {
         uint256 fundsCleared_ = clearedCounterparty[orderHash_][
             address(uint160(counterparty_))
         ];
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, fundsCleared_)
         }
         return stackTopLocation_;

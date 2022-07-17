@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
@@ -12,7 +12,7 @@ library OpAny {
         pure
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             for {
                 let cursor_ := location_

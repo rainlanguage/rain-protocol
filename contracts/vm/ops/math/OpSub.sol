@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpSub
 /// @notice Opcode for subtracting N numbers.
@@ -9,7 +9,7 @@ library OpSub {
         pure
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
             let intermediate_

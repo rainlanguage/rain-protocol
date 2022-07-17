@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
 
@@ -16,7 +16,7 @@ library OpSaturatingDiff {
         uint256 location_;
         uint256 newerReport_;
         uint256 olderReport_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             newerReport_ := mload(location_)
@@ -26,7 +26,7 @@ library OpSaturatingDiff {
             newerReport_,
             olderReport_
         );
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, result_)
         }
         return stackTopLocation_;

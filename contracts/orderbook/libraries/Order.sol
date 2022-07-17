@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
 import "./Vault.sol";
@@ -46,7 +46,7 @@ library LibOrder {
             uint trackingMaskAll_ = TRACKING_MASK_ALL;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 bytes memory source_ = sources_[i_];
-                assembly {
+                assembly ("memory-safe") {
                     let op_ := 0
                     for {
                         let cursor_ := add(source_, 1)

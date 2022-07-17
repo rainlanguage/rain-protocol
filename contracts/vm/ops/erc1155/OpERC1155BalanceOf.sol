@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
@@ -16,7 +16,7 @@ library OpERC1155BalanceOf {
         uint256 token_;
         uint256 account_;
         uint256 id_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTopLocation_, 0x60)
             stackTopLocation_ := add(location_, 0x20)
             token_ := mload(location_)
@@ -27,7 +27,7 @@ library OpERC1155BalanceOf {
             address(uint160(account_)),
             id_
         );
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, result_)
         }
         return stackTopLocation_;

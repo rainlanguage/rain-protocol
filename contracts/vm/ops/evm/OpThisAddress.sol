@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpThisAddress
 /// @notice Opcode for getting the address of the current contract.
@@ -9,7 +9,7 @@ library OpThisAddress {
         view
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             mstore(stackTopLocation_, address())
             stackTopLocation_ := add(stackTopLocation_, 0x20)
         }

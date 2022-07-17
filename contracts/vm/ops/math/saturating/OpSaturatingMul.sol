@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
 
@@ -17,7 +17,7 @@ library OpSaturatingMul {
         uint256 accumulator_;
         uint256 cursor_;
         uint256 item_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
@@ -25,13 +25,13 @@ library OpSaturatingMul {
         while (
             cursor_ < stackTopLocation_ && accumulator_ < type(uint256).max
         ) {
-            assembly {
+            assembly ("memory-safe") {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
             }
             accumulator_ = accumulator_.saturatingMul(item_);
         }
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, accumulator_)
             stackTopLocation_ := add(location_, 0x20)
         }

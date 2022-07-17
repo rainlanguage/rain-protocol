@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
 
@@ -16,14 +16,14 @@ library OpFixedPointScale18Mul {
         uint256 location_;
         uint256 a_;
         uint256 b_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             a_ := mload(location_)
             b_ := mload(stackTopLocation_)
         }
         uint256 c_ = a_.scale18(operand_).fixedPointMul(b_);
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, c_)
         }
         return stackTopLocation_;

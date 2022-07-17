@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
@@ -24,7 +24,7 @@ library OpERC1155BalanceOfBatch {
         address[] memory addresses_ = new address[](operand_);
         uint256[] memory ids_ = new uint256[](operand_);
         uint256 token_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTopLocation_, add(0x20, mul(operand_, 0x40)))
             token_ := mload(location_)
             let cursor_ := add(location_, 0x20)
@@ -52,7 +52,7 @@ library OpERC1155BalanceOfBatch {
         uint256[] memory balances_ = IERC1155(address(uint160(token_)))
             .balanceOfBatch(addresses_, ids_);
 
-        assembly {
+        assembly ("memory-safe") {
             let cursor_ := location_
             for {
                 let balancesCursor_ := add(balances_, 0x20)

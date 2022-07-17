@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "../../type/LibCast.sol";
+import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
+import "../../bytes/LibPackBytes.sol";
 import "../RainVM.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
@@ -45,27 +47,46 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_COUNT = 40;
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH +
-    ALL_STANDARD_OPS_COUNT;
+import "hardhat/console.sol";
 
-library LibCastPtrs {
-    function asDynamicArray(uint[ALL_STANDARD_OPS_LENGTH+1] memory fixed_) internal pure returns (uint[] memory dynamic_) {
-        assembly {
-            dynamic_ := fixed_
-        }
-        require(dynamic_.length == ALL_STANDARD_OPS_LENGTH, "BAD_DYNAMIC_LENGTH");
-    }
-}
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 40;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
-    using LibCast for uint;
-    using LibCast for function(uint) pure returns (uint);
-    using LibCast for function(uint,uint) view returns (uint);
-    using LibUint256Array for uint[];
-    using LibCastPtrs for uint[ALL_STANDARD_OPS_LENGTH+1];
+    using LibCast for uint256;
+    using LibCast for function(uint256) pure returns (uint256);
+    using LibCast for function(uint256, uint256) view returns (uint256);
+    using LibCast for function(uint256, uint256) pure returns (uint256);
+    using LibCast for function(uint256, uint256) view returns (uint256)[];
+    using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
+    using LibUint256Array for uint256[];
+    using LibConvert for uint256[];
+    using LibPackBytes for bytes;
+
+    /// An oddly specific conversion between a fixed and dynamic uint256 array.
+    /// This is useful for the purpose of building metadata for bounds checks
+    /// and dispatch of all the standard ops provided by RainVM.
+    /// The cast will fail if the length of the dynamic array doesn't match the
+    /// first item of the fixed array; it relies on differences in memory
+    /// layout in Solidity that MAY change in the future. The rollback guards
+    /// against changes in Solidity memory layout silently breaking this cast.
+    /// @param fixed_ The fixed size uint array to cast to a dynamic uint array.
+    /// Specifically the size is fixed to match the number of standard ops.
+    /// @param dynamic_ The dynamic uint array with length of the standard ops.
+    function asUint256Array(uint256[ALL_STANDARD_OPS_LENGTH + 1] memory fixed_)
+        internal
+        pure
+        returns (uint256[] memory dynamic_)
+    {
+        assembly ("memory-safe") {
+            dynamic_ := fixed_
+        }
+        require(
+            dynamic_.length == ALL_STANDARD_OPS_LENGTH,
+            "BAD_DYNAMIC_LENGTH"
+        );
+    }
 
     function nonZeroOperandN(uint256 operand_) internal pure returns (uint256) {
         require(operand_ > 0, "0_OPERAND_NZON");
@@ -174,7 +195,7 @@ library AllStandardOps {
                 // update times for tier range
                 2
             ];
-            pops_ = popsFixed_.asDynamicArray();
+            pops_ = popsFixed_.asUint256Array();
             pops_.extend(locals_);
         }
     }
@@ -280,90 +301,74 @@ library AllStandardOps {
                 // update times for tier range
                 1
             ];
-            pushes_ = pushesFixed_.asDynamicArray();
+            pushes_ = pushesFixed_.asUint256Array();
             pushes_.extend(locals_);
         }
     }
 
-    function fnPtrs(
+    function packedFunctionPointers(
         function(uint256, uint256) view returns (uint256)[] memory locals_
-    )
-        internal
-        pure
-        returns (
-            function(uint256, uint256) view returns (uint256)[] memory ptrs_
-        )
-    {
+    ) internal pure returns (bytes memory packedFunctionPointers_) {
         unchecked {
-            uint256 localsLen_ = locals_.length;
-            function(uint256, uint256) view returns (uint256) nil_ = uint(0).asOpFn();
-            function(uint256, uint256)
-                view
-                returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
-                memory ptrsFixed_ = [
-                    uint(ALL_STANDARD_OPS_LENGTH + localsLen_).asOpFn(),
-                    // constant
-                    nil_,
-                    // stack
-                    nil_,
-                    // context
-                    nil_,
-                    // storage
-                    nil_,
-                    // zipmap
-                    nil_,
-                    // debug
-                    nil_,
-                    OpERC20BalanceOf.balanceOf,
-                    OpERC20TotalSupply.totalSupply,
-                    OpERC20SnapshotBalanceOfAt.balanceOfAt,
-                    OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
-                    OpERC721BalanceOf.balanceOf,
-                    OpERC721OwnerOf.ownerOf,
-                    OpERC1155BalanceOf.balanceOf,
-                    OpERC1155BalanceOfBatch.balanceOfBatch,
-                    OpBlockNumber.blockNumber,
-                    OpCaller.caller,
-                    OpThisAddress.thisAddress,
-                    OpTimestamp.timestamp,
-                    OpFixedPointScale18.scale18,
-                    OpFixedPointScale18Div.scale18Div,
-                    OpFixedPointScale18Mul.scale18Mul,
-                    OpFixedPointScaleBy.scaleBy,
-                    OpFixedPointScaleN.scaleN,
-                    OpAny.any,
-                    OpEagerIf.eagerIf,
-                    OpEqualTo.equalTo,
-                    OpEvery.every,
-                    OpGreaterThan.greaterThan,
-                    OpIsZero.isZero,
-                    OpLessThan.lessThan,
-                    OpSaturatingAdd.saturatingAdd,
-                    OpSaturatingMul.saturatingMul,
-                    OpSaturatingSub.saturatingSub,
-                    OpAdd.add,
-                    OpDiv.div,
-                    OpExp.exp,
-                    OpMax.max,
-                    OpMin.min,
-                    OpMod.mod,
-                    OpMul.mul,
-                    OpSub.sub,
-                    OpITierV2Report.report,
-                    OpITierV2ReportTimeForTier.reportTimeForTier,
-                    OpSaturatingDiff.saturatingDiff,
-                    OpSelectLte.selectLte,
-                    OpUpdateTimesForTierRange.updateTimesForTierRange
-                ];
-            assembly {
-                // hack to sneak in more allocated memory for the pushes array
-                // before anything else can allocate.
-                mstore(0x40, add(mul(localsLen_, 0x20), mload(0x40)))
-                ptrs_ := ptrsFixed_
-            }
-            for (uint256 i_ = 0; i_ < localsLen_; i_++) {
-                ptrs_[i_ + ALL_STANDARD_OPS_LENGTH] = locals_[i_];
-            }
+            uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
+                ALL_STANDARD_OPS_LENGTH,
+                // constant
+                0,
+                // stack
+                0,
+                // context
+                0,
+                // storage
+                0,
+                // zipmap
+                0,
+                // debug
+                0,
+                OpERC20BalanceOf.balanceOf.asUint256(),
+                OpERC20TotalSupply.totalSupply.asUint256(),
+                OpERC20SnapshotBalanceOfAt.balanceOfAt.asUint256(),
+                OpERC20SnapshotTotalSupplyAt.totalSupplyAt.asUint256(),
+                OpERC721BalanceOf.balanceOf.asUint256(),
+                OpERC721OwnerOf.ownerOf.asUint256(),
+                OpERC1155BalanceOf.balanceOf.asUint256(),
+                OpERC1155BalanceOfBatch.balanceOfBatch.asUint256(),
+                OpBlockNumber.blockNumber.asUint256(),
+                OpCaller.caller.asUint256(),
+                OpThisAddress.thisAddress.asUint256(),
+                OpTimestamp.timestamp.asUint256(),
+                OpFixedPointScale18.scale18.asUint256(),
+                OpFixedPointScale18Div.scale18Div.asUint256(),
+                OpFixedPointScale18Mul.scale18Mul.asUint256(),
+                OpFixedPointScaleBy.scaleBy.asUint256(),
+                OpFixedPointScaleN.scaleN.asUint256(),
+                OpAny.any.asUint256(),
+                OpEagerIf.eagerIf.asUint256(),
+                OpEqualTo.equalTo.asUint256(),
+                OpEvery.every.asUint256(),
+                OpGreaterThan.greaterThan.asUint256(),
+                OpIsZero.isZero.asUint256(),
+                OpLessThan.lessThan.asUint256(),
+                OpSaturatingAdd.saturatingAdd.asUint256(),
+                OpSaturatingMul.saturatingMul.asUint256(),
+                OpSaturatingSub.saturatingSub.asUint256(),
+                OpAdd.add.asUint256(),
+                OpDiv.div.asUint256(),
+                OpExp.exp.asUint256(),
+                OpMax.max.asUint256(),
+                OpMin.min.asUint256(),
+                OpMod.mod.asUint256(),
+                OpMul.mul.asUint256(),
+                OpSub.sub.asUint256(),
+                OpITierV2Report.report.asUint256(),
+                OpITierV2ReportTimeForTier.reportTimeForTier.asUint256(),
+                OpSaturatingDiff.saturatingDiff.asUint256(),
+                OpSelectLte.selectLte.asUint256(),
+                OpUpdateTimesForTierRange.updateTimesForTierRange.asUint256()
+            ];
+            uint256[] memory pointers_ = pointersFixed_.asUint256Array();
+            pointers_.extend(locals_.asUint256Array());
+            packedFunctionPointers_ = pointers_.toBytes();
+            packedFunctionPointers_.pack32To2();
         }
     }
 }

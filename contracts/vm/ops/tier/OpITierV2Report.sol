@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../tier/ITierV2.sol";
 
@@ -26,7 +26,7 @@ library OpITierV2Report {
         uint256 tierContract_;
         uint256 account_;
         uint256[] memory context_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
             location_ := sub(stackTopLocation_, 0x20)
             tierContract_ := mload(location_)
@@ -40,7 +40,7 @@ library OpITierV2Report {
             address(uint160(account_)),
             context_
         );
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, report_)
         }
         return stackTopLocation_;

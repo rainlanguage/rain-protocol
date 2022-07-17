@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpLessThan
 /// @notice Opcode to compare the top two stack values.
@@ -9,7 +9,7 @@ library OpLessThan {
         pure
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             let location_ := sub(stackTopLocation_, 0x20)
             mstore(location_, lt(mload(location_), mload(stackTopLocation_)))

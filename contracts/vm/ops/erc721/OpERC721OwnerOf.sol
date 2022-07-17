@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
@@ -16,7 +16,7 @@ library OpERC721OwnerOf {
         uint256 token_;
         uint256 id_;
 
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             token_ := mload(location_)
@@ -25,7 +25,7 @@ library OpERC721OwnerOf {
         uint256 owner_ = uint256(
             uint160(IERC721(address(uint160(token_))).ownerOf(id_))
         );
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, owner_)
         }
         return stackTopLocation_;

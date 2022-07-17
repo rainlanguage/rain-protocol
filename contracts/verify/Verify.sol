@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "./IVerifyCallback.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
@@ -49,7 +49,7 @@ library LibEvidence {
         uint256 refsIndex_
     ) internal pure {
         uint256 ptr_;
-        assembly {
+        assembly ("memory-safe") {
             ptr_ := evidence_
         }
         refs_[refsIndex_] = ptr_;
@@ -60,7 +60,7 @@ library LibEvidence {
         pure
     {
         require(newLength_ <= refs_.length, "BAD_RESIZE");
-        assembly {
+        assembly ("memory-safe") {
             mstore(refs_, newLength_)
         }
     }
@@ -71,7 +71,7 @@ library LibEvidence {
         returns (Evidence[] memory)
     {
         Evidence[] memory evidences_;
-        assembly {
+        assembly ("memory-safe") {
             evidences_ := refs_
         }
         return evidences_;

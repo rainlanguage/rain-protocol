@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 
@@ -16,7 +16,7 @@ library OpERC20SnapshotTotalSupplyAt {
         uint256 location_;
         uint256 token_;
         uint256 snapshotId_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             token_ := mload(location_)
@@ -24,7 +24,7 @@ library OpERC20SnapshotTotalSupplyAt {
         }
         uint256 totalSupply_ = ERC20Snapshot(address(uint160(token_)))
             .totalSupplyAt(snapshotId_);
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, totalSupply_)
         }
         return stackTopLocation_;

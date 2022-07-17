@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpBlockNumber
 /// @notice Opcode for getting the current block number.
@@ -9,7 +9,7 @@ library OpBlockNumber {
         view
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             mstore(stackTopLocation_, number())
             stackTopLocation_ := add(stackTopLocation_, 0x20)
         }

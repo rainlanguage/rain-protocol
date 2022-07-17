@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -15,7 +15,7 @@ library OpERC20BalanceOf {
         uint256 location_;
         uint256 token_;
         uint256 account_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             token_ := mload(location_)
@@ -24,7 +24,7 @@ library OpERC20BalanceOf {
         uint256 balance_ = IERC20(address(uint160(token_))).balanceOf(
             address(uint160(account_))
         );
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, balance_)
         }
         return stackTopLocation_;

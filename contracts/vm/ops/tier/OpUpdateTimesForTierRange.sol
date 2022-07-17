@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
 
@@ -19,7 +19,7 @@ library OpUpdateTimesForTierRange {
         uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
         uint256 timestamp_;
 
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, 0x20)
             location_ := sub(stackTopLocation_, 0x20)
             report_ := mload(location_)
@@ -33,7 +33,7 @@ library OpUpdateTimesForTierRange {
             timestamp_
         );
 
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, result_)
         }
         return stackTopLocation_;

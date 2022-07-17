@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
@@ -317,7 +317,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         returns (StorageOpcodesRange memory)
     {
         uint256 slot_;
-        assembly {
+        assembly ("memory-safe") {
             slot_ := _remainingUnits.slot
         }
         return StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpExp
 /// @notice Opcode to exponentiate N numbers.
@@ -13,20 +13,20 @@ library OpExp {
         uint256 accumulator_;
         uint256 cursor_;
         uint256 item_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
         }
         while (cursor_ < stackTopLocation_) {
-            assembly {
+            assembly ("memory-safe") {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
             }
             // This is NOT in assembly so that we get overflow safety.
             accumulator_ = accumulator_**item_;
         }
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, accumulator_)
             stackTopLocation_ := add(location_, 0x20)
         }

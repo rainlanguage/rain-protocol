@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpCaller
 /// @notice Opcode for getting the current caller.
@@ -9,7 +9,7 @@ library OpCaller {
         view
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             mstore(stackTopLocation_, caller())
             stackTopLocation_ := add(stackTopLocation_, 0x20)
         }

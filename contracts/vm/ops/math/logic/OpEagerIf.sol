@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
@@ -13,7 +13,7 @@ library OpEagerIf {
         pure
         returns (uint256)
     {
-        assembly {
+        assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, 0x60)
             stackTopLocation_ := add(location_, 0x20)
             // false => use second value
