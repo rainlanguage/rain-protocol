@@ -11,7 +11,7 @@ library OpDiv {
         pure
         returns (StackTop)
     {
-        assembly {
+        assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
             let accumulator_ := mload(location_)
             let item_

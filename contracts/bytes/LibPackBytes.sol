@@ -16,7 +16,7 @@ pragma solidity ^0.8.15;
 library LibPackBytes {
     function pack32To2(bytes memory bytes_) internal pure {
         require(bytes_.length % 32 == 0, "BYTES_MOD_32");
-        assembly {
+        assembly ("memory-safe") {
             for {
                 let inputCursor_ := add(bytes_, 32)
                 let end_ := add(inputCursor_, mload(bytes_))

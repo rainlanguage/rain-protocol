@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
 import "../../vm/StandardVM.sol";
+import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 
 uint256 constant ENTRYPOINT = 0;
@@ -16,6 +17,8 @@ uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     using LibStackTop for StackTop;
+    using LibUint256Array for uint[];
+    using LibEvidence for uint[];
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -76,9 +79,9 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
                 }
             }
             if (approvals_ > 0) {
-                LibEvidence._resizeRefs(approvedRefs_, approvals_);
+                approvedRefs_.truncate(approvals_);
                 Verify(msg.sender).approve(
-                    LibEvidence._refsAsEvidences(approvedRefs_)
+                    approvedRefs_.asEvidences()
                 );
             }
         }

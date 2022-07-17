@@ -27,7 +27,7 @@ library SSTORE2 {
         );
 
         // Deploy contract using create
-        assembly {
+        assembly ("memory-safe") {
             pointer := create(0, add(code, 32), mload(code))
         }
 

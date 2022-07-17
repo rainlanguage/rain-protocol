@@ -9,7 +9,7 @@ library LibStackTop {
         pure
         returns (StackTop)
     {
-        assembly {
+        assembly ("memory-safe") {
             mstore(stackTop_, a_)
             stackTop_ := add(stackTop_, 0x20)
         }
@@ -21,7 +21,7 @@ library LibStackTop {
         pure
         returns (StackTop location_, uint256 a_)
     {
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTop_, 0x20)
             a_ := mload(location_)
         }
@@ -37,7 +37,7 @@ library LibStackTop {
             uint256 b_
         )
     {
-        assembly {
+        assembly ("memory-safe") {
             stackTopAfter_ := sub(stackTop_, 0x20)
             location_ := sub(stackTopAfter_, 0x20)
             a_ := mload(location_)
@@ -56,7 +56,7 @@ library LibStackTop {
             uint256 c_
         )
     {
-        assembly {
+        assembly ("memory-safe") {
             stackTopAfter_ := sub(stackTop_, 0x40)
             location_ := sub(stackTopAfter_, 0x20)
             a_ := mload(location_)
@@ -66,7 +66,7 @@ library LibStackTop {
     }
 
     function set(StackTop stackTop_, uint256 a_) internal pure {
-        assembly {
+        assembly ("memory-safe") {
             mstore(stackTop_, a_)
         }
     }

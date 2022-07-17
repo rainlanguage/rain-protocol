@@ -104,7 +104,7 @@ library LibVMState {
             bytes[] memory ptrSources_;
             uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
 
-            assembly {
+            assembly ("memory-safe") {
                 let sourcesStart_ := add(
                     stateBytes_,
                     add(

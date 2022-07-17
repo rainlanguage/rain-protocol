@@ -18,7 +18,7 @@ library OpSaturatingAdd {
         uint256 accumulator_;
         uint256 cursor_;
         uint256 item_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(stackTop_, mul(operand_, 0x20))
             accumulator_ := mload(location_)
             cursor_ := add(location_, 0x20)
@@ -27,13 +27,13 @@ library OpSaturatingAdd {
             cursor_ < StackTop.unwrap(stackTop_) &&
             accumulator_ < type(uint256).max
         ) {
-            assembly {
+            assembly ("memory-safe") {
                 item_ := mload(cursor_)
                 cursor_ := add(cursor_, 0x20)
             }
             accumulator_ = accumulator_.saturatingAdd(item_);
         }
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, accumulator_)
             stackTop_ := add(location_, 0x20)
         }

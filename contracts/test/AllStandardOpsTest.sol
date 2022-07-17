@@ -84,7 +84,7 @@ contract AllStandardOpsTest is StandardVM {
         returns (StorageOpcodesRange memory)
     {
         uint256 pointer_;
-        assembly {
+        assembly ("memory-safe") {
             pointer_ := _val0.slot
         }
         return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);

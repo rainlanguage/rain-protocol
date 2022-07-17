@@ -174,7 +174,7 @@ abstract contract RainVM {
             uint256[] memory baseVals_ = new uint256[](valLength_);
             uint256 baseValsBottom_;
             {
-                assembly {
+                assembly ("memory-safe") {
                     baseValsBottom_ := add(baseVals_, 0x20)
                     for {
                         let cursor_ := sub(stackTop_, mul(valLength_, 0x20))
@@ -189,7 +189,7 @@ abstract contract RainVM {
             }
 
             uint256 argumentsBottomLocation_;
-            assembly {
+            assembly ("memory-safe") {
                 let constantsBottomLocation_ := add(
                     mload(add(state_, 0x60)),
                     0x20
@@ -215,7 +215,7 @@ abstract contract RainVM {
                     uint256 argumentsCursor_ = argumentsBottomLocation_;
                     uint256 cursor_ = baseValsBottom_;
                     while (cursor_ < maxCursor_) {
-                        assembly {
+                        assembly ("memory-safe") {
                             mstore(
                                 argumentsCursor_,
                                 and(shr(step_, mload(cursor_)), mask_)
@@ -258,7 +258,7 @@ abstract contract RainVM {
             StackTop stackTop_;
             uint256 firstFnPtrLocation_;
 
-            assembly {
+            assembly ("memory-safe") {
                 let stackLocation_ := mload(add(state_, 0x20))
                 stackBottomLocation_ := add(stackLocation_, 0x20)
                 stackTop_ := add(
@@ -281,7 +281,7 @@ abstract contract RainVM {
 
             // Loop until complete.
             while (cursor_ < end_) {
-                assembly {
+                assembly ("memory-safe") {
                     cursor_ := add(cursor_, 3)
                     let op_ := and(mload(cursor_), 0xFFFFFF)
                     operand_ := and(op_, 0xFF)
@@ -290,7 +290,7 @@ abstract contract RainVM {
 
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_CONSTANT) {
-                        assembly {
+                        assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
                                 mload(
@@ -303,7 +303,7 @@ abstract contract RainVM {
                             stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_STACK) {
-                        assembly {
+                        assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
                                 mload(
@@ -320,7 +320,7 @@ abstract contract RainVM {
                         // as it is not possible to know how long context might
                         // be in general until runtime.
                         require(operand_ < context_.length, "CONTEXT_LENGTH");
-                        assembly {
+                        assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
                                 mload(
@@ -335,7 +335,7 @@ abstract contract RainVM {
                     } else if (opcode_ == OPCODE_STORAGE) {
                         StorageOpcodesRange
                             memory storageOpcodesRange_ = storageOpcodesRange();
-                        assembly {
+                        assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
                                 sload(

@@ -34,7 +34,7 @@ library OpSelectLte {
         uint256 location_;
         uint256[] memory reports_ = new uint256[](reportsLength_);
         uint256 time_;
-        assembly {
+        assembly ("memory-safe") {
             location_ := sub(
                 stackTopLocation_,
                 mul(add(reportsLength_, 1), 0x20)
@@ -58,7 +58,7 @@ library OpSelectLte {
             logic_,
             mode_
         );
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, result_)
             stackTopLocation_ := add(location_, 0x20)
         }

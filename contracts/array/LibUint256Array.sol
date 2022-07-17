@@ -5,6 +5,13 @@ pragma solidity ^0.8.15;
 /// @notice Things we want to do carefully and efficiently with uint256 arrays
 /// that Solidity doesn't give us native tools for.
 library LibUint256Array {
+    function truncate(uint[] memory array_, uint newLength_) internal pure {
+        require(newLength_ <= array_.length, "OOB_TRUNCATE");
+        assembly ("memory-safe") {
+            mstore(array_, newLength_)
+        }
+    }
+
     /// Extends `base_` with `extend_` by allocating additional `extend_.length`
     /// uints onto `base_`. Reverts if some other memory has been allocated
     /// after `base_` already, in which case it is NOT safe to copy inline.
@@ -58,7 +65,7 @@ library LibUint256Array {
         internal
         pure
     {
-        assembly {
+        assembly ("memory-safe") {
             for {
                 let inputCursor_ := add(values_, 0x20)
                 let end_ := add(inputCursor_, mul(0x20, mload(values_)))

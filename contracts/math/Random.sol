@@ -62,7 +62,7 @@ library Random {
             require(n_ < max_, "MAX_N");
             require(max_ <= type(uint8).max, "MAX_MAX");
             bytes memory array_ = new bytes(max_);
-            assembly {
+            assembly ("memory-safe") {
                 // Select a random index [0, j_] using the hash of the
                 // current value in scratch memory as source of randomness.
                 function randomIndex(j_) -> v_ {
@@ -183,7 +183,7 @@ library Random {
         unchecked {
             // Allocate all the items up front as empty bytes.
             shuffled_ = new bytes(len_ * 2);
-            assembly {
+            assembly ("memory-safe") {
                 // Initialize the seed in scratch space.
                 // Needed for "random" rolls below.
                 mstore(0, seed_)
@@ -265,7 +265,7 @@ library Random {
         unchecked {
             uint256 offset_ = index_ * 2;
             bytes memory idBytes_ = SSTORE2.read(ptr_, offset_, offset_ + 2);
-            assembly {
+            assembly ("memory-safe") {
                 id_ := and(mload(add(idBytes_, 2)), 0xFFFF)
             }
         }
@@ -327,7 +327,7 @@ library Random {
         pure
         returns (uint256 id_)
     {
-        assembly {
+        assembly ("memory-safe") {
             mstore(0, seed_)
             mstore(0x20, index_)
             id_ := keccak256(0, 0x40)

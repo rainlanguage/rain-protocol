@@ -28,7 +28,7 @@ library OpITierV2ReportTimeForTier {
         uint256 account_;
         uint256 tier_;
         uint256[] memory context_;
-        assembly {
+        assembly ("memory-safe") {
             stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
             location_ := sub(stackTopLocation_, 0x40)
             tierContract_ := mload(location_)
@@ -41,7 +41,7 @@ library OpITierV2ReportTimeForTier {
         }
         uint256 reportTime_ = ITierV2(address(uint160(tierContract_)))
             .reportTimeForTier(address(uint160(account_)), tier_, context_);
-        assembly {
+        assembly ("memory-safe") {
             mstore(location_, reportTime_)
             stackTopLocation_ := add(location_, 0x20)
         }

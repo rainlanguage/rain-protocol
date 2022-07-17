@@ -14,7 +14,7 @@ library OpEagerIf {
         pure
         returns (StackTop)
     {
-        assembly {
+        assembly ("memory-safe") {
             let location_ := sub(stackTopLocation_, 0x60)
             stackTopLocation_ := add(location_, 0x20)
             // false => use second value
