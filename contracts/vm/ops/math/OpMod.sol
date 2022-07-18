@@ -6,31 +6,19 @@ import "../../LibStackTop.sol";
 /// @title OpMod
 /// @notice Opcode to mod N numbers.
 library OpMod {
-    function mod(uint256 operand_, StackTop stackTopLocation_)
+    using LibStackTop for StackTop;
+
+    function mod(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (StackTop)
+        returns (StackTop stackTopAfter_)
     {
-        assembly ("memory-safe") {
-            let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-            let accumulator_ := mload(location_)
-            let item_
-            for {
-                let cursor_ := add(location_, 0x20)
-            } lt(cursor_, stackTopLocation_) {
-                cursor_ := add(cursor_, 0x20)
-            } {
-                item_ := mload(cursor_)
-                // Adapted from Open Zeppelin safe math.
-                if iszero(item_) {
-                    revert(0, 0)
-                }
-                accumulator_ := mod(accumulator_, item_)
-            }
-            mstore(location_, accumulator_)
-            stackTopLocation_ := add(location_, 0x20)
+        StackTop location_ = stackTop_.down(operand_);
+        uint accumulator_ = location_.peekUp();
+        stackTopAfter_ = location_.up();
+        for (StackTop i_ = stackTopAfter_; i_.lt(stackTop_); i_ = i_.up()) {
+            accumulator_ %= i_.peekUp();
         }
-
-        return stackTopLocation_;
+        location_.set(accumulator_);
     }
 }
