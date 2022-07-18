@@ -10,7 +10,7 @@ import "hardhat/console.sol";
 /// @notice Exposes `ITierV2.report` as an opcode.
 library OpITierV2Report {
     using LibStackTop for StackTop;
-    using LibStackTop for uint[];
+    using LibStackTop for uint256[];
 
     function stackPops(uint256 operand_)
         internal
@@ -28,12 +28,16 @@ library OpITierV2Report {
         view
         returns (StackTop stackTopAfter_)
     {
-        (uint account_, uint[] memory context_) = stackTop_.list(operand_);
+        (uint256 account_, uint256[] memory context_) = stackTop_.list(
+            operand_
+        );
         stackTopAfter_ = context_.asStackTop();
-        (StackTop location_, uint tierContract_) = stackTopAfter_.peek();
-        location_.set(ITierV2(address(uint160(tierContract_))).report(
-            address(uint160(account_)),
-            context_
-        ));
+        (StackTop location_, uint256 tierContract_) = stackTopAfter_.peek();
+        location_.set(
+            ITierV2(address(uint160(tierContract_))).report(
+                address(uint160(account_)),
+                context_
+            )
+        );
     }
 }

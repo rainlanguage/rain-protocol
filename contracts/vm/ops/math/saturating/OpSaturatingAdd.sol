@@ -16,9 +16,13 @@ library OpSaturatingAdd {
         returns (StackTop stackTopAfter_)
     {
         StackTop location_ = stackTop_.down(operand_);
-        uint accumulator_ = location_.peekUp();
+        uint256 accumulator_ = location_.peekUp();
         stackTopAfter_ = location_.up();
-        for (StackTop i_ = stackTopAfter_; i_.lt(stackTop_) && accumulator_ < type(uint).max; i_ = i_.up()) {
+        for (
+            StackTop i_ = stackTopAfter_;
+            i_.lt(stackTop_) && accumulator_ < type(uint256).max;
+            i_ = i_.up()
+        ) {
             accumulator_ = accumulator_.saturatingAdd(i_.peekUp());
         }
         location_.set(accumulator_);

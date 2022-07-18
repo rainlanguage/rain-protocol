@@ -231,9 +231,9 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     const TIERWISE_DIFF = () =>
       concat([
         CURRENT_BLOCK_AS_REPORT(),
+        op(Opcode.BLOCK_NUMBER),
         TIER_REPORT(),
         LAST_CLAIM_REPORT(),
-        op(Opcode.BLOCK_NUMBER),
         op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
@@ -509,9 +509,9 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     const TIERWISE_DIFF = () =>
       concat([
         CURRENT_TIMESTAMP_AS_REPORT(),
+        op(Opcode.BLOCK_TIMESTAMP),
         TIER_REPORT(),
         LAST_CLAIM_REPORT(),
-        op(Opcode.BLOCK_TIMESTAMP),
         op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);

@@ -81,10 +81,13 @@ library LibUint256Array {
         }
     }
 
-    function getUnchecked(uint[] memory list_, uint i_) internal pure returns(uint item_) {
+    function getUnchecked(uint256[] memory list_, uint256 i_)
+        internal
+        pure
+        returns (uint256 item_)
+    {
         assembly ("memory-safe") {
             item_ := mload(add(list_, mul(0x20, i_)))
         }
     }
-
 }

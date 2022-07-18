@@ -87,6 +87,9 @@ contract AllStandardOpsTest is StandardVM {
         assembly ("memory-safe") {
             pointer_ := _val0.slot
         }
-        storageOpcodesRange_ = StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
+        storageOpcodesRange_ = StorageOpcodesRange(
+            pointer_,
+            STORAGE_OPCODES_LENGTH
+        );
     }
 }

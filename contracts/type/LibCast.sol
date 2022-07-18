@@ -28,7 +28,11 @@ library LibCast {
         }
     }
 
-    function asStackMoveFn(uint i_) internal pure returns (function(uint) pure returns (uint) fn_) {
+    function asStackMoveFn(uint256 i_)
+        internal
+        pure
+        returns (function(uint256) pure returns (uint256) fn_)
+    {
         assembly ("memory-safe") {
             fn_ := i_
         }

@@ -320,7 +320,10 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         assembly {
             slot_ := _remainingUnits.slot
         }
-        storageOpcodesRange_ = StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
+        storageOpcodesRange_ = StorageOpcodesRange(
+            slot_,
+            STORAGE_OPCODES_LENGTH
+        );
     }
 
     /// @inheritdoc ISale

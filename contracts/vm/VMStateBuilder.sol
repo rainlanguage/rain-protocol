@@ -55,7 +55,7 @@ struct FnPtrs {
 contract VMStateBuilder {
     using Math for uint256;
     using LibVMState for VMState;
-    using LibCast for uint;
+    using LibCast for uint256;
 
     /// @dev total hack to differentiate between stack move functions and values
     /// we assume that no function pointers are less than this so anything we
@@ -253,7 +253,7 @@ contract VMStateBuilder {
             uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
             uint256 cursor_;
-            uint end_;
+            uint256 end_;
             uint256 opcode_;
             uint256 operand_;
 

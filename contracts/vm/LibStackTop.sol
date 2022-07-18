@@ -16,7 +16,7 @@ library LibStackTop {
         return stackTop_;
     }
 
-    function peekUp(StackTop stackTop_) internal pure returns (uint a_) {
+    function peekUp(StackTop stackTop_) internal pure returns (uint256 a_) {
         assembly ("memory-safe") {
             a_ := mload(stackTop_)
         }
@@ -77,7 +77,11 @@ library LibStackTop {
         }
     }
 
-    function list(StackTop stackTop_, uint length_) internal pure returns (uint head_, uint[] memory tail_) {
+    function list(StackTop stackTop_, uint256 length_)
+        internal
+        pure
+        returns (uint256 head_, uint256[] memory tail_)
+    {
         assembly ("memory-safe") {
             tail_ := sub(stackTop_, add(0x20, mul(length_, 0x20)))
             head_ := mload(tail_)
@@ -85,7 +89,11 @@ library LibStackTop {
         }
     }
 
-    function asStackTop(uint[] memory list_) internal pure returns (StackTop stackTop_) {
+    function asStackTop(uint256[] memory list_)
+        internal
+        pure
+        returns (StackTop stackTop_)
+    {
         assembly ("memory-safe") {
             stackTop_ := list_
         }
@@ -97,7 +105,17 @@ library LibStackTop {
         }
     }
 
-    function down(StackTop stackTop_, uint n_) internal pure returns (StackTop) {
+    function down(StackTop stackTop_) internal pure returns (StackTop) {
+        unchecked {
+            return StackTop.wrap(StackTop.unwrap(stackTop_) - 0x20);
+        }
+    }
+
+    function down(StackTop stackTop_, uint256 n_)
+        internal
+        pure
+        returns (StackTop)
+    {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) - 0x20 * n_);
         }

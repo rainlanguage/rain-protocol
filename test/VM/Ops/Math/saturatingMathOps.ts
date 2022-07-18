@@ -52,7 +52,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "normal multiplication overflow did not error"
     );
 
@@ -103,7 +103,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "normal subtraction overflow did not error"
     );
 
@@ -151,7 +151,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "normal addition overflow did not error"
     );
 

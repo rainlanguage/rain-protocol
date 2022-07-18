@@ -14,7 +14,7 @@ library OpSub {
         returns (StackTop stackTopAfter_)
     {
         StackTop location_ = stackTop_.down(operand_);
-        uint accumulator_ = location_.peekUp();
+        uint256 accumulator_ = location_.peekUp();
         stackTopAfter_ = location_.up();
         for (StackTop i_ = stackTopAfter_; i_.lt(stackTop_); i_ = i_.up()) {
             accumulator_ -= i_.peekUp();
