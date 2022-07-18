@@ -8,9 +8,6 @@ import "../../LibStackTop.sol";
 library OpBlockNumber {
     using LibStackTop for StackTop;
 
-    uint256 public constant POPS = 0;
-    uint256 public constant PUSHES = 1;
-
     function blockNumber(uint256, StackTop stackTop_)
         internal
         view

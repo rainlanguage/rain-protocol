@@ -128,7 +128,8 @@ library AllStandardOps {
                 3,
                 // erc1155 balance of batch
                 OpERC1155BalanceOfBatch.stackPops.asUint256(),
-                OpBlockNumber.POPS,
+                // block number
+                0,
                 // caller
                 0,
                 // this address
@@ -233,7 +234,8 @@ library AllStandardOps {
                 1,
                 // erc1155 balance of batch
                 nonZeroOperandN.asUint256(),
-                OpBlockNumber.PUSHES,
+                // block number
+                1,
                 // caller
                 1,
                 // this address

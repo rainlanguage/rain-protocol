@@ -14,29 +14,21 @@ struct StorageOpcodesRange {
 
 /// @dev Copies a value either off `constants` to the top of the stack.
 uint256 constant OPCODE_CONSTANT = 0;
-uint constant OPCODE_CONSTANT_FN_PTR = 0;
-uint256 constant OPCODE_CONSTANT_POPS = 0;
-uint256 constant OPCODE_CONSTANT_PUSHES = 1;
 
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
 /// specifies the index to copy from.
 uint256 constant OPCODE_STACK = 1;
-uint constant OPCODE_STACK_FN_PTR = 0;
 
 uint256 constant OPCODE_CONTEXT = 2;
-uint constant OPCODE_CONTEXT_FN_PTR = 0;
 
 uint256 constant OPCODE_STORAGE = 3;
-uint constant OPCODE_STORAGE_FN_PTR = 0;
 
 /// @dev Takes N values off the stack, interprets them as an array then zips
 /// and maps a source from `sources` over them.
 uint256 constant OPCODE_ZIPMAP = 4;
-uint constant OPCODE_ZIPMAP_FN_PTR = 0;
 
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
 uint256 constant OPCODE_DEBUG = 5;
-uint constant OPCODE_DEBUG_FN_PTR = 0;
 
 /// @dev Number of provided opcodes for `RainVM`.
 uint256 constant RAIN_VM_OPS_LENGTH = 6;
