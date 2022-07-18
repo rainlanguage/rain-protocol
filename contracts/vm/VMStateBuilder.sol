@@ -55,6 +55,7 @@ struct FnPtrs {
 contract VMStateBuilder {
     using Math for uint256;
     using LibVMState for VMState;
+    using LibCast for uint;
 
     /// @dev total hack to differentiate between stack move functions and values
     /// we assume that no function pointers are less than this so anything we

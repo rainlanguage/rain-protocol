@@ -9,7 +9,7 @@ import { op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
-describe("RainVM MathOps standard math", async () => {
+describe.only("RainVM MathOps standard math", async () => {
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
 

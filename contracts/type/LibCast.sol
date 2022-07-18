@@ -28,6 +28,12 @@ library LibCast {
         }
     }
 
+    function asStackMoveFn(uint i_) internal pure returns (function(uint) pure returns (uint) fn_) {
+        assembly ("memory-safe") {
+            fn_ := i_
+        }
+    }
+
     /// Retype a stack move function pointer to an integer.
     /// Provided the origin of the function pointer is solidity and NOT yul, the
     /// returned integer will be valid to run if retyped back via yul. If the
