@@ -57,21 +57,38 @@ library LibUint256Array {
         unsafeCopyValuesTo(extend_, freeMemoryPointer_);
     }
 
-    /// Copies `values_` to `location_` with NO attempt to check that this is
+    /// Copies `inputs_` to `location_` with NO attempt to check that this is
     /// safe to do so. The caller MUST ensure that there exists allocated
     /// memory at `location_` in which it is safe and appropriate to copy ALL
-    /// `values_` to. Anything that was already written to memory at
+    /// `inputs_` to. Anything that was already written to memory at
     /// `[location:location+data_.length]` will be overwritten.
-    /// The length of `values_` is NOT copied to the output location, ONLY the
-    /// uint256 values of the `values_` array are copied.
-    function unsafeCopyValuesTo(uint256[] memory values_, uint256 outputCursor_)
+    /// The length of `inputs_` is NOT copied to the output location, ONLY the
+    /// uint256 values of the `inputs_` array are copied.
+    function unsafeCopyValuesTo(uint256[] memory inputs_, uint256 outputCursor_)
         internal
         pure
     {
+        uint inputCursor_;
+        assembly ("memory-safe") {
+            inputCursor_ := add(inputs_, 0x20)
+        }
+        unsafeCopyValuesTo(inputCursor_, outputCursor_, inputs_.length);
+    }
+
+    function unsafeCopyValuesToNewArray(uint inputCursor_, uint length_) internal pure returns (uint[] memory) {
+        uint[] memory outputs_ = new uint[](length_);
+        uint outputCursor_;
+        assembly ("memory-safe") {
+            outputCursor_ := add(outputs_, 0x20)
+        }
+        unsafeCopyValuesTo(inputCursor_, outputCursor_, length_);
+        return outputs_;
+    }
+
+    function unsafeCopyValuesTo(uint inputCursor_, uint outputCursor_, uint length_) internal pure {
         assembly ("memory-safe") {
             for {
-                let inputCursor_ := add(values_, 0x20)
-                let end_ := add(inputCursor_, mul(0x20, mload(values_)))
+                let end_ := add(inputCursor_, mul(0x20, length_))
             } lt(inputCursor_, end_) {
                 inputCursor_ := add(inputCursor_, 0x20)
                 outputCursor_ := add(outputCursor_, 0x20)

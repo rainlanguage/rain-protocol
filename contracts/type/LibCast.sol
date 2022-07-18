@@ -85,4 +85,10 @@ library LibCast {
             is_ := fns_
         }
     }
+
+    function asAddresses(uint[] memory is_) internal pure returns (address[] memory addresses_) {
+        assembly ("memory-safe") {
+            addresses_ := is_
+        }
+    }
 }

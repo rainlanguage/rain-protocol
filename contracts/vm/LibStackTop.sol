@@ -105,6 +105,12 @@ library LibStackTop {
         }
     }
 
+    function up(StackTop stackTop_, uint n_) internal pure returns (StackTop) {
+        unchecked {
+            return StackTop.wrap(StackTop.unwrap(stackTop_) + 0x20 * n_);
+        }
+    }
+
     function down(StackTop stackTop_) internal pure returns (StackTop) {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) - 0x20);
