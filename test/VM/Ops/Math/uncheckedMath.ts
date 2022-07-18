@@ -72,7 +72,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator overflow did not panic"
     );
   });
@@ -97,7 +97,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator underflow did not panic"
     );
   });
@@ -122,7 +122,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator overflow did not panic"
     );
   });

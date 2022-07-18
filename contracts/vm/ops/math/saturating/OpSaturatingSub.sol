@@ -8,32 +8,19 @@ import "../../../LibStackTop.sol";
 /// @notice Opcode for subtracting N numbers with saturating subtraction.
 library OpSaturatingSub {
     using SaturatingMath for uint256;
+    using LibStackTop for StackTop;
 
     function saturatingSub(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (StackTop)
+        returns (StackTop stackTopAfter_)
     {
-        uint256 location_;
-        uint256 accumulator_;
-        uint256 cursor_;
-        uint256 item_;
-        assembly ("memory-safe") {
-            location_ := sub(stackTop_, mul(operand_, 0x20))
-            accumulator_ := mload(location_)
-            cursor_ := add(location_, 0x20)
+        StackTop location_ = stackTop_.down(operand_);
+        uint accumulator_ = location_.peekUp();
+        stackTopAfter_ = location_.up();
+        for (StackTop i_ = stackTopAfter_; i_.lt(stackTopAfter_) && 0 < accumulator_; i_ = i_.up()) {
+            accumulator_ = accumulator_.saturatingSub(i_.peekUp());
         }
-        while (cursor_ < StackTop.unwrap(stackTop_) && 0 < accumulator_) {
-            assembly ("memory-safe") {
-                item_ := mload(cursor_)
-                cursor_ := add(cursor_, 0x20)
-            }
-            accumulator_ = accumulator_.saturatingSub(item_);
-        }
-        assembly ("memory-safe") {
-            mstore(location_, accumulator_)
-            stackTop_ := add(location_, 0x20)
-        }
-        return stackTop_;
+        location_.set(accumulator_);
     }
 }

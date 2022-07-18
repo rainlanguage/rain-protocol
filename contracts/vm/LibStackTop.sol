@@ -79,9 +79,9 @@ library LibStackTop {
 
     function list(StackTop stackTop_, uint length_) internal pure returns (uint head_, uint[] memory tail_) {
         assembly ("memory-safe") {
-            tail_ := sub(stackTop_, mul(length_, 0x20))
+            tail_ := sub(stackTop_, add(0x20, mul(length_, 0x20)))
             head_ := mload(tail_)
-            mstore(tail_, sub(length_, 1))
+            mstore(tail_, length_)
         }
     }
 

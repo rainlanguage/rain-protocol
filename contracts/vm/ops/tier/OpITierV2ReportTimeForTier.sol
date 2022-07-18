@@ -7,6 +7,9 @@ import "../../LibStackTop.sol";
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.reportTimeForTier` as an opcode.
 library OpITierV2ReportTimeForTier {
+    using LibStackTop for StackTop;
+    using LibStackTop for uint[];
+
     function stackPops(uint256 operand_)
         internal
         pure
@@ -18,33 +21,15 @@ library OpITierV2ReportTimeForTier {
     }
 
     // Stack the `reportTimeForTier` returned by an `ITierV2` contract.
-    function reportTimeForTier(uint256 operand_, StackTop stackTopLocation_)
+    function reportTimeForTier(uint256 operand_, StackTop stackTop_)
         internal
         view
         returns (StackTop)
     {
-        uint256 location_;
-        uint256 tierContract_;
-        uint256 account_;
-        uint256 tier_;
-        uint256[] memory context_;
-        assembly ("memory-safe") {
-            stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
-            location_ := sub(stackTopLocation_, 0x40)
-            tierContract_ := mload(location_)
-            account_ := mload(add(location_, 0x20))
-            tier_ := mload(stackTopLocation_)
-            // we can reuse the tier_ as the length for context_ and achieve a
-            // near zero-cost bytes array to send to `reportTimeForTier`.
-            mstore(stackTopLocation_, operand_)
-            context_ := stackTopLocation_
-        }
-        uint256 reportTime_ = ITierV2(address(uint160(tierContract_)))
-            .reportTimeForTier(address(uint160(account_)), tier_, context_);
-        assembly ("memory-safe") {
-            mstore(location_, reportTime_)
-            stackTopLocation_ := add(location_, 0x20)
-        }
-        return stackTopLocation_;
+        (uint tier_, uint[] memory context_) = stackTop_.list(operand_);
+        (StackTop location_, StackTop stackTopAfter_, uint tierContract_, uint account_) = context_.asStackTop().popAndPeek();
+        location_.set(ITierV2(address(uint160(tierContract_)))
+            .reportTimeForTier(address(uint160(account_)), tier_, context_));
+        return stackTopAfter_;
     }
 }

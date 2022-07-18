@@ -190,7 +190,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator overflow did not panic"
     );
   });
@@ -264,7 +264,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator underflow did not panic"
     );
   });
@@ -343,7 +343,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator overflow did not panic"
     );
   });

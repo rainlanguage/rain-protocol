@@ -357,12 +357,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     claimAmount                                 ${claimAmount}
     `);
 
-    // assert(
-    //   claimAmount.eq(expectedClaimAmount),
-    //   `wrong claim calculation result
-    //   expected  ${expectedClaimAmount}
-    //   got       ${claimAmount}`
-    // );
     console.log(claimAmount, expectedClaimAmount);
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
