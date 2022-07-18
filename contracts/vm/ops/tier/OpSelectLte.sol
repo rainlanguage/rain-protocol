@@ -37,9 +37,10 @@ library OpSelectLte {
             (uint256 time_, uint256[] memory reports_) = stackTop_.list(
                 reportsLength_
             );
-            return reports_.asStackTop().push(
-                TierwiseCombine.selectLte(logic_, mode_, time_, reports_)
-            );
+            return
+                reports_.asStackTop().push(
+                    TierwiseCombine.selectLte(logic_, mode_, time_, reports_)
+                );
         }
     }
 }

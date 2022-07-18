@@ -12,8 +12,8 @@ import "hardhat/console.sol";
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
     using LibStackTop for StackTop;
-    using LibStackTop for uint[];
-    using LibCast for uint[];
+    using LibStackTop for uint256[];
+    using LibCast for uint256[];
 
     function stackPops(uint256 operand_) internal pure returns (uint256) {
         unchecked {
@@ -30,12 +30,20 @@ library OpERC1155BalanceOfBatch {
         returns (StackTop)
     {
         StackTop idsStart_ = stackTop_.down(operand_);
-        uint[] memory ids_ = LibUint256Array.unsafeCopyValuesToNewArray(StackTop.unwrap(idsStart_), operand_);
-        (uint token_, uint[] memory addresses_) = idsStart_.list(operand_);
+        uint256[] memory ids_ = LibUint256Array.unsafeCopyValuesToNewArray(
+            StackTop.unwrap(idsStart_),
+            operand_
+        );
+        (uint256 token_, uint256[] memory addresses_) = idsStart_.list(
+            operand_
+        );
 
         uint256[] memory balances_ = IERC1155(address(uint160(token_)))
             .balanceOfBatch(addresses_.asAddresses(), ids_);
-        LibUint256Array.unsafeCopyValuesTo(balances_, StackTop.unwrap(addresses_.asStackTop()));
+        LibUint256Array.unsafeCopyValuesTo(
+            balances_,
+            StackTop.unwrap(addresses_.asStackTop())
+        );
         return addresses_.asStackTop().up(operand_);
     }
 }

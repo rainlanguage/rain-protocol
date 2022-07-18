@@ -68,16 +68,20 @@ library LibUint256Array {
         internal
         pure
     {
-        uint inputCursor_;
+        uint256 inputCursor_;
         assembly ("memory-safe") {
             inputCursor_ := add(inputs_, 0x20)
         }
         unsafeCopyValuesTo(inputCursor_, outputCursor_, inputs_.length);
     }
 
-    function unsafeCopyValuesToNewArray(uint inputCursor_, uint length_) internal pure returns (uint[] memory) {
-        uint[] memory outputs_ = new uint[](length_);
-        uint outputCursor_;
+    function unsafeCopyValuesToNewArray(uint256 inputCursor_, uint256 length_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
+        uint256[] memory outputs_ = new uint256[](length_);
+        uint256 outputCursor_;
         assembly ("memory-safe") {
             outputCursor_ := add(outputs_, 0x20)
         }
@@ -85,7 +89,11 @@ library LibUint256Array {
         return outputs_;
     }
 
-    function unsafeCopyValuesTo(uint inputCursor_, uint outputCursor_, uint length_) internal pure {
+    function unsafeCopyValuesTo(
+        uint256 inputCursor_,
+        uint256 outputCursor_,
+        uint256 length_
+    ) internal pure {
         assembly ("memory-safe") {
             for {
                 let end_ := add(inputCursor_, mul(0x20, length_))

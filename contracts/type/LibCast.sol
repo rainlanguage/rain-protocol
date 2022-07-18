@@ -86,7 +86,11 @@ library LibCast {
         }
     }
 
-    function asAddresses(uint[] memory is_) internal pure returns (address[] memory addresses_) {
+    function asAddresses(uint256[] memory is_)
+        internal
+        pure
+        returns (address[] memory addresses_)
+    {
         assembly ("memory-safe") {
             addresses_ := is_
         }
