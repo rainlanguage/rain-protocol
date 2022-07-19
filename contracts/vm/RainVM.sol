@@ -288,6 +288,7 @@ abstract contract RainVM {
         uint256 operand_
     ) internal view returns (uint256) {
         unchecked {
+            console.log("zipmap");
             uint256 sourceIndex_ = operand_ & 0x07;
             uint256 loopSize_ = (operand_ >> 3) & 0x03;
             uint256 mask_;
@@ -528,6 +529,7 @@ abstract contract RainVM {
                 // opcode used assembly in a way that can underflow the stack
                 // as this would allow a malicious rain script to write to the
                 // stack length and/or the stack index.
+                console.log(opcode_, state_.stackIndex, state_.stack.length);
                 require(
                     state_.stackIndex <= state_.stack.length,
                     "STACK_OVERFLOW"

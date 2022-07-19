@@ -543,7 +543,7 @@ describe("RainVM zipmap", async function () {
     );
   });
 
-  it("should handle combo ops script", async () => {
+  it.only("should handle combo ops script", async () => {
     const signers = await ethers.getSigners();
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
