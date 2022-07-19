@@ -156,7 +156,6 @@ abstract contract RainVM {
         uint256 operand_
     ) internal view returns (StackTop) {
         unchecked {
-            console.log("zipmap", StackTop.unwrap(stackTop_));
             uint256 sourceIndex_ = operand_ & 0x07;
             uint256 loopSize_ = (operand_ >> 3) & 0x03;
             uint256 mask_;
@@ -175,7 +174,6 @@ abstract contract RainVM {
                 stepSize_ = 0x20;
             }
             uint256 valLength_ = (operand_ >> 5) + 1;
-            console.log("zipmap vals", valLength_);
 
             // Set aside base values so they can't be clobbered during eval
             // as the stack changes on each loop.
@@ -256,12 +254,6 @@ abstract contract RainVM {
         VMState memory state_,
         uint256 sourceIndex_
     ) internal view returns (StackTop) {
-        function (uint[] memory, VMState memory, uint) internal view returns (StackTop) eval_ = eval;
-        uint pc_;
-        assembly {
-            pc_ := eval_
-        }
-        console.log("eval pc", pc_);
         unchecked {
             uint256 cursor_;
             uint256 end_;
@@ -292,7 +284,6 @@ abstract contract RainVM {
                 // first fn pointer is seen if we move two bytes into the data.
                 firstFnPtrLocation_ := add(mload(add(state_, 0xA0)), 0x02)
             }
-            console.log("eval");
             // Loop until complete.
             while (cursor_ < end_) {
 
@@ -302,7 +293,6 @@ abstract contract RainVM {
                     operand_ := and(op_, 0xFF)
                     opcode_ := shr(8, op_)
                 }
-                                console.log("start", opcode_, operand_, (StackTop.unwrap(stackTop_) - stackBottomLocation_) / 0x20);
 
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
                     if (opcode_ == OPCODE_CONSTANT) {
@@ -361,7 +351,6 @@ abstract contract RainVM {
                             stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
-                        console.log("zipmap");
                         // Need the stack index to match the stack top before
                         // we try to dial back into a nested eval call.
                         state_.stackIndex =
@@ -373,34 +362,13 @@ abstract contract RainVM {
                             stackTop_,
                             operand_
                         );
-                        console.log("zipmap end", (StackTop.unwrap(stackTop_) - stackBottomLocation_) / 0x20);
                     } else {
                         state_.debug(DebugStyle(operand_));
                     }
                 } else {
                     stackTop_ = opcode_.asOpFn()(operand_, stackTop_);
                 }
-                // // The stack index may be the same as the length as this means
-                // // the stack is full. But we cannot write past the end of the
-                // // stack. This also catches a stack index that underflows due
-                // // to unchecked or assembly math. This check MAY be redundant
-                // // with standard OOB checks on the stack array due to indexing
-                // // into it, but is a required guard in the case of VM assembly.
-                // // Future versions of the VM will precalculate all stack
-                // // movements at deploy time rather than runtime as this kind of
-                // // accounting adds nontrivial gas across longer scripts that
-                // // include many opcodes.
-                // // Note: This check would NOT be safe in the case that some
-                // // opcode used assembly in a way that can underflow the stack
-                // // as this would allow a malicious rain script to write to the
-                // // stack length and/or the stack index.
-                // console.log(opcode_, state_.stackIndex, state_.stack.length);
-                // require(
-                //     state_.stackIndex <= state_.stack.length,
-                //     "STACK_OVERFLOW"
-                // );
             }
-            console.log("end", (StackTop.unwrap(stackTop_) - stackBottomLocation_) / 0x20);
             state_.stackIndex =
                 (StackTop.unwrap(stackTop_) - stackBottomLocation_) /
                 0x20;
