@@ -5,7 +5,7 @@ import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
 import {
   AllStandardOpsTest,
-  StateStruct,
+  VMStateStruct,
 } from "../../../typechain/AllStandardOpsTest";
 import { CombineTier } from "../../../typechain/CombineTier";
 import { ALWAYS, combineTierDeploy, paddedUInt256, paddedUInt32, Tier, tierRange } from "../../../utils";
@@ -97,7 +97,7 @@ describe("RainVM zipmap", async function () {
     await logic.initialize({ sources, constants });
 
     await logic.run();
-    const resultState = (await logic.state()) as StateStruct;
+    const resultState = (await logic.state()) as VMStateStruct;
 
     // We're not expecting a single result here.
     // The first 16 positions in the stack should match our expected output.
@@ -177,7 +177,7 @@ describe("RainVM zipmap", async function () {
     await logic.initialize({ sources, constants });
 
     await logic.run();
-    const resultState = (await logic.state()) as StateStruct;
+    const resultState = (await logic.state()) as VMStateStruct;
 
     const expectedMul1 = 6;
     const actualMul1 = ethers.BigNumber.from(resultState.stack[0]);
@@ -318,7 +318,7 @@ describe("RainVM zipmap", async function () {
     await logic.initialize({ sources, constants });
 
     await logic.run();
-    const resultState = (await logic.state()) as StateStruct;
+    const resultState = (await logic.state()) as VMStateStruct;
 
     const expectedIndex = 2;
     const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
@@ -398,7 +398,7 @@ describe("RainVM zipmap", async function () {
     await logic.initialize({ sources, constants });
 
     await logic.run();
-    const resultState = (await logic.state()) as StateStruct;
+    const resultState = (await logic.state()) as VMStateStruct;
 
     const expectedIndex = 2;
     const actualIndex = ethers.BigNumber.from(resultState.stackIndex);
@@ -468,7 +468,7 @@ describe("RainVM zipmap", async function () {
     await logic.initialize({ sources, constants });
 
     await logic.run();
-    const resultState = (await logic.state()) as StateStruct;
+    const resultState = (await logic.state()) as VMStateStruct;
 
     const expectedIndex = 2;
     const actualIndex = ethers.BigNumber.from(resultState.stackIndex);

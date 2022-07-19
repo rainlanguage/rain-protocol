@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../tier/ITierV2.sol";
+import "../../LibStackTop.sol";
+
+import "hardhat/console.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.report` as an opcode.
 library OpITierV2Report {
+    using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
+
     function stackPops(uint256 operand_)
         internal
         pure
@@ -17,32 +23,21 @@ library OpITierV2Report {
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(uint256 operand_, uint256 stackTopLocation_)
+    function report(uint256 operand_, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop stackTopAfter_)
     {
-        uint256 location_;
-        uint256 tierContract_;
-        uint256 account_;
-        uint256[] memory context_;
-        assembly {
-            stackTopLocation_ := sub(stackTopLocation_, add(0x20, operand_))
-            location_ := sub(stackTopLocation_, 0x20)
-            tierContract_ := mload(location_)
-            account_ := mload(stackTopLocation_)
-            // we can reuse the account_ as the length for context_
-            // and achieve a near zero-cost bytes array to send to `report`.
-            mstore(stackTopLocation_, operand_)
-            context_ := stackTopLocation_
-        }
-        uint256 report_ = ITierV2(address(uint160(tierContract_))).report(
-            address(uint160(account_)),
-            context_
+        (uint256 account_, uint256[] memory context_) = stackTop_.list(
+            operand_
         );
-        assembly {
-            mstore(location_, report_)
-        }
-        return stackTopLocation_;
+        stackTopAfter_ = context_.asStackTop();
+        (StackTop location_, uint256 tierContract_) = stackTopAfter_.peek();
+        location_.set(
+            ITierV2(address(uint160(tierContract_))).report(
+                address(uint160(account_)),
+                context_
+            )
+        );
     }
 }

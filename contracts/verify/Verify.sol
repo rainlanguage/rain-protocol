@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "./IVerifyCallback.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./libraries/VerifyConstants.sol";
+import "./LibEvidence.sol";
+import "../array/LibUint256Array.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -20,17 +22,6 @@ struct State {
     uint32 bannedSince;
 }
 
-/// Structure of arbitrary evidence to support any action taken.
-/// Priviledged roles are expected to provide evidence just as applicants as an
-/// audit trail will be preserved permanently in the logs.
-/// @param account The account this evidence is relevant to.
-/// @param data Arbitrary bytes representing evidence. MAY be e.g. a reference
-/// to a sufficiently decentralised external system such as an IPFS hash.
-struct Evidence {
-    address account;
-    bytes data;
-}
-
 /// Config to initialize a Verify contract with.
 /// @param admin The address to ASSIGN ALL ADMIN ROLES to initially. This
 /// address is free and encouraged to delegate fine grained permissions to
@@ -40,42 +31,6 @@ struct Evidence {
 struct VerifyConfig {
     address admin;
     address callback;
-}
-
-library LibEvidence {
-    function _updateEvidenceRef(
-        uint256[] memory refs_,
-        Evidence memory evidence_,
-        uint256 refsIndex_
-    ) internal pure {
-        uint256 ptr_;
-        assembly {
-            ptr_ := evidence_
-        }
-        refs_[refsIndex_] = ptr_;
-    }
-
-    function _resizeRefs(uint256[] memory refs_, uint256 newLength_)
-        internal
-        pure
-    {
-        require(newLength_ <= refs_.length, "BAD_RESIZE");
-        assembly {
-            mstore(refs_, newLength_)
-        }
-    }
-
-    function _refsAsEvidences(uint256[] memory refs_)
-        internal
-        pure
-        returns (Evidence[] memory)
-    {
-        Evidence[] memory evidences_;
-        assembly {
-            evidences_ := refs_
-        }
-        return evidences_;
-    }
 }
 
 /// @title Verify
@@ -219,6 +174,9 @@ library LibEvidence {
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
 contract Verify is AccessControl, Initializable {
+    using LibUint256Array for uint256[];
+    using LibEvidence for uint256[];
+
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
     /// `addedSince` time on a `State` before trusting an equality check on
@@ -486,17 +444,14 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
-                    LibEvidence._resizeRefs(addedRefs_, additions_);
-                    callback_.afterAdd(
-                        msg.sender,
-                        LibEvidence._refsAsEvidences(addedRefs_)
-                    );
+                    addedRefs_.truncate(additions_);
+                    callback_.afterAdd(msg.sender, addedRefs_.asEvidences());
                 }
                 if (approvals_ > 0) {
-                    LibEvidence._resizeRefs(approvedRefs_, approvals_);
+                    approvedRefs_.truncate(approvals_);
                     callback_.afterApprove(
                         msg.sender,
-                        LibEvidence._refsAsEvidences(approvedRefs_)
+                        approvedRefs_.asEvidences()
                     );
                 }
             }
@@ -566,18 +521,12 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
-                    LibEvidence._resizeRefs(addedRefs_, additions_);
-                    callback_.afterAdd(
-                        msg.sender,
-                        LibEvidence._refsAsEvidences(addedRefs_)
-                    );
+                    addedRefs_.truncate(additions_);
+                    callback_.afterAdd(msg.sender, addedRefs_.asEvidences());
                 }
                 if (bans_ > 0) {
-                    LibEvidence._resizeRefs(bannedRefs_, bans_);
-                    callback_.afterBan(
-                        msg.sender,
-                        LibEvidence._refsAsEvidences(bannedRefs_)
-                    );
+                    bannedRefs_.truncate(bans_);
+                    callback_.afterBan(msg.sender, bannedRefs_.asEvidences());
                 }
             }
         }
@@ -620,10 +569,10 @@ contract Verify is AccessControl, Initializable {
             IVerifyCallback callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (removals_ > 0) {
-                    LibEvidence._resizeRefs(removedRefs_, removals_);
+                    removedRefs_.truncate(removals_);
                     callback_.afterRemove(
                         msg.sender,
-                        LibEvidence._refsAsEvidences(removedRefs_)
+                        removedRefs_.asEvidences()
                     );
                 }
             }

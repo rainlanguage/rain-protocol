@@ -93,7 +93,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator overflow did not panic"
     );
   });
@@ -137,7 +137,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator underflow did not panic"
     );
   });
@@ -181,7 +181,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Transaction reverted",
+      "Arithmetic operation underflowed or overflowed",
       "accumulator overflow did not panic"
     );
   });

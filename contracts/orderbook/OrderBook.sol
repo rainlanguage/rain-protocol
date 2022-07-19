@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "../vm/StandardVM.sol";
+import "../vm/LibStackTop.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -61,13 +62,14 @@ library LibEvalContext {
 }
 
 contract OrderBook is StandardVM {
+    using LibVMState for bytes;
+    using LibStackTop for StackTop;
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
-    using LibFnPtrs for bytes;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -182,9 +184,9 @@ contract OrderBook is StandardVM {
             emit Clear(msg.sender, a_, b_, bountyConfig_);
 
             unchecked {
-                State memory vmState_;
+                VMState memory vmState_;
                 {
-                    vmState_ = LibState.fromBytesPacked(a_.vmState);
+                    vmState_ = a_.vmState.fromBytesPacked();
                     eval(
                         EvalContext(aHash_, b_.owner).toContext(),
                         vmState_,
@@ -195,7 +197,7 @@ contract OrderBook is StandardVM {
                 }
 
                 {
-                    vmState_ = LibState.fromBytesPacked(b_.vmState);
+                    vmState_ = b_.vmState.fromBytesPacked();
                     eval(
                         EvalContext(bHash_, a_.owner).toContext(),
                         vmState_,
@@ -281,45 +283,33 @@ contract OrderBook is StandardVM {
         emit AfterClear(stateChange_);
     }
 
-    function opOrderFundsCleared(uint256, uint256 stackTopLocation_)
+    function opOrderFundsCleared(uint256, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
-        uint256 location_;
-        OrderHash orderHash_;
-        assembly {
-            location_ := sub(stackTopLocation_, 0x20)
-            orderHash_ := mload(location_)
-        }
-        uint256 fundsCleared_ = clearedOrder[orderHash_];
-        assembly {
-            mstore(location_, fundsCleared_)
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint256 orderHash_) = stackTop_.peek();
+        location_.set(clearedOrder[OrderHash.wrap(orderHash_)]);
+        return stackTop_;
     }
 
-    function opOrderCounterpartyFundsCleared(uint256, uint256 stackTopLocation_)
+    function opOrderCounterpartyFundsCleared(uint256, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
-        uint256 location_;
-        OrderHash orderHash_;
-        uint256 counterparty_;
-        assembly {
-            stackTopLocation_ := sub(stackTopLocation_, 0x20)
-            location_ := sub(stackTopLocation_, 0x20)
-            orderHash_ := mload(location_)
-            counterparty_ := mload(stackTopLocation_)
-        }
-        uint256 fundsCleared_ = clearedCounterparty[orderHash_][
-            address(uint160(counterparty_))
-        ];
-        assembly {
-            mstore(location_, fundsCleared_)
-        }
-        return stackTopLocation_;
+        (
+            StackTop location_,
+            StackTop stackTopAfter_,
+            uint256 orderHash_,
+            uint256 counterparty_
+        ) = stackTop_.popAndPeek();
+        location_.set(
+            clearedCounterparty[OrderHash.wrap(orderHash_)][
+                address(uint160(counterparty_))
+            ]
+        );
+        return stackTopAfter_;
     }
 
     function localFnPtrs()
@@ -327,13 +317,13 @@ contract OrderBook is StandardVM {
         pure
         override
         returns (
-            function(uint256, uint256) view returns (uint256)[]
+            function(uint256, StackTop) view returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(uint256, uint256) view returns (uint256)[](
-            2
-        );
+        localFnPtrs_ = new function(uint256, StackTop)
+            view
+            returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;
         localFnPtrs_[1] = opOrderCounterpartyFundsCleared;
     }
