@@ -580,17 +580,18 @@ describe("RainVM zipmap", async function () {
 
 	const sources = [
 		concat([
-			op(Opcode.CONSTANT, 0),
-			op(Opcode.CONSTANT, 1),
-			op(Opcode.CONSTANT, 4),
-			op(Opcode.UPDATE_TIMES_FOR_TIER_RANGE, tierRange(Tier.ZERO, Tier.EIGHT)),
-			op(Opcode.CONSTANT, 3),
-			op(Opcode.CONSTANT, 2),
-			op(Opcode.SENDER),
-			op(Opcode.ITIERV2_REPORT),
-			op(Opcode.BLOCK_TIMESTAMP),
-			op(Opcode.SELECT_LTE, selectLte(selectLteLogic.every, selectLteMode.first, 2)),
-			op(Opcode.SATURATING_DIFF),
+			op(Opcode.CONSTANT, 0), // 1
+			op(Opcode.CONSTANT, 1), // 2
+			op(Opcode.CONSTANT, 4), // 3
+			op(Opcode.UPDATE_TIMES_FOR_TIER_RANGE, tierRange(Tier.ZERO, Tier.EIGHT)), // 2
+        op(Opcode.BLOCK_TIMESTAMP), // 5
+        op(Opcode.CONSTANT, 3), // 3
+          op(Opcode.CONSTANT, 2), // 4
+          op(Opcode.SENDER), // 5
+        op(Opcode.ITIERV2_REPORT), // 4
+			op(Opcode.SELECT_LTE, selectLte(selectLteLogic.every, selectLteMode.first, 2)), // 3
+			op(Opcode.SATURATING_DIFF), // 2
+
 			op(Opcode.ZIPMAP, zipmapSize(1, 3, 0)),
 			op(Opcode.MIN, 8),
 			op(Opcode.MUL, 2),
@@ -603,6 +604,8 @@ describe("RainVM zipmap", async function () {
 			op(Opcode.SUB, 2),
 		])
 	];
+
+  console.log(op(Opcode.ITIERV2_REPORT))
 
 	await logic.initialize({ sources, constants });
 
