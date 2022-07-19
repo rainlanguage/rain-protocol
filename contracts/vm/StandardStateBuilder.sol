@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.10;
 
-import "./RainVM.sol";
 import "./VMStateBuilder.sol";
 import "./ops/AllStandardOps.sol";
 
