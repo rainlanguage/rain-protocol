@@ -15,13 +15,11 @@ import { concat } from "ethers/lib/utils";
 import { op } from "../../utils/rainvm/vm";
 import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
 
-
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken;
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
-
 
   before(async () => {
     const stakeFactoryFactory = await ethers.getContractFactory(
@@ -68,11 +66,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0);
 
+    // prettier-ignore
     // time0
     const source0 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
@@ -85,13 +84,14 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time0_ = await logic.stackTop();
 
+    // prettier-ignore
     // time1
     const source1 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // context - TIER
+        op(Opcode.CONSTANT, 2), 
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1),
     ]);
 
     await logic.initialize({
@@ -103,13 +103,14 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time1_ = await logic.stackTop();
 
+    // prettier-ignore
     // time2
     const source2 = concat([
       op(Opcode.CONSTANT, 0), // ITierV2 contract
       op(Opcode.SENDER), // Address
       op(Opcode.CONSTANT, 1), // TIER
       op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length)
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length),
     ]);
 
     await logic.initialize({
@@ -121,14 +122,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time2_ = await logic.stackTop();
 
+    // prettier-ignore
     // time3
     const source3 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.CONSTANT, 3), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 2).length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // TIER
+        op(Opcode.CONSTANT, 3), // TIER
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 2).length),
     ]);
 
     await logic.initialize({
@@ -140,15 +142,16 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time3_ = await logic.stackTop();
 
+    // prettier-ignore
     // time4
     const source4 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.CONSTANT, 3), // TIER
-      op(Opcode.CONSTANT, 4), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 3).length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // TIER
+        op(Opcode.CONSTANT, 3), // TIER
+        op(Opcode.CONSTANT, 4), // TIER
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 3).length),
     ]);
 
     await logic.initialize({
@@ -160,16 +163,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time4_ = await logic.stackTop();
 
+    // prettier-ignore
     // time5
     const source5 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.CONSTANT, 3), // TIER
-      op(Opcode.CONSTANT, 4), // TIER
-      op(Opcode.CONSTANT, 5), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 4).length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // TIER
+        op(Opcode.CONSTANT, 3), // TIER
+        op(Opcode.CONSTANT, 4), // TIER
+        op(Opcode.CONSTANT, 5), // TIER
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 4).length),
     ]);
 
     await logic.initialize({
@@ -181,17 +185,18 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time5_ = await logic.stackTop();
 
+    // prettier-ignore
     // time6
     const source6 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.CONSTANT, 3), // TIER
-      op(Opcode.CONSTANT, 4), // TIER
-      op(Opcode.CONSTANT, 5), // TIER
-      op(Opcode.CONSTANT, 6), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 5).length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // TIER
+        op(Opcode.CONSTANT, 3), // TIER
+        op(Opcode.CONSTANT, 4), // TIER
+        op(Opcode.CONSTANT, 5), // TIER
+        op(Opcode.CONSTANT, 6), // TIER
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 5).length),
     ]);
 
     await logic.initialize({
@@ -203,18 +208,19 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const time6_ = await logic.stackTop();
 
+    // prettier-ignore
     // time7
     const source7 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // TIER
-      op(Opcode.CONSTANT, 3), // TIER
-      op(Opcode.CONSTANT, 4), // TIER
-      op(Opcode.CONSTANT, 5), // TIER
-      op(Opcode.CONSTANT, 6), // TIER
-      op(Opcode.CONSTANT, 7), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 6).length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // TIER
+        op(Opcode.CONSTANT, 3), // TIER
+        op(Opcode.CONSTANT, 4), // TIER
+        op(Opcode.CONSTANT, 5), // TIER
+        op(Opcode.CONSTANT, 6), // TIER
+        op(Opcode.CONSTANT, 7), // TIER
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 6).length),
     ]);
 
     await logic.initialize({
@@ -250,11 +256,12 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
+    // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // Address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // Address
+        op(Opcode.CONSTANT, 1), // TIER
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ]);
 
     await logic.initialize({
@@ -291,20 +298,21 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime_ = await getBlockTimestamp(); // Expected blockTimeStamp after the deposit
 
+    // prettier-ignore
     // Passing context data in constants
     const source = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // THRESHOLD
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
-      op(Opcode.CONSTANT, 9),
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // THRESHOLD
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.CONSTANT, 4),
+        op(Opcode.CONSTANT, 5),
+        op(Opcode.CONSTANT, 6),
+        op(Opcode.CONSTANT, 7),
+        op(Opcode.CONSTANT, 8),
+        op(Opcode.CONSTANT, 9),
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
     await logic.initialize({
@@ -344,20 +352,21 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
+    // prettier-ignore
     // Passing context data in constants
     const source = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // THRESHOLD
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
-      op(Opcode.CONSTANT, 9),
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // THRESHOLD
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.CONSTANT, 4),
+        op(Opcode.CONSTANT, 5),
+        op(Opcode.CONSTANT, 6),
+        op(Opcode.CONSTANT, 7),
+        op(Opcode.CONSTANT, 8),
+        op(Opcode.CONSTANT, 9),
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
     await logic.initialize({
@@ -425,7 +434,6 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     assert(time2_.eq(time0_), "did not return earliest time above threshold");
   });
 
-
   it("should reset earliest time using ITIERV2_REPORT_TIME_FOR_TIER if user briefly fails to exceed 1st threshold (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -448,19 +456,20 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
+    // prettier-ignore
     const source = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // THRESHOLD
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
-      op(Opcode.CONSTANT, 9),
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // THRESHOLD
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.CONSTANT, 4),
+        op(Opcode.CONSTANT, 5),
+        op(Opcode.CONSTANT, 6),
+        op(Opcode.CONSTANT, 7),
+        op(Opcode.CONSTANT, 8),
+        op(Opcode.CONSTANT, 9),
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
     await logic.initialize({
@@ -494,7 +503,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // Alice deposits again, exceeding threshold again
     await token.connect(alice).approve(stake.address, withdrawAmount);
     await stake.connect(alice).deposit(withdrawAmount);
-    
+
     const blockTime2_ = await getBlockTimestamp();
 
     await logic.initialize({
@@ -537,19 +546,20 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await stake.connect(alice).deposit(depositAmount0);
     const blockTime0_ = await getBlockTimestamp();
 
+    // prettier-ignore
     const source = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1), // TIER
-      op(Opcode.CONSTANT, 2), // THRESHOLD
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
-      op(Opcode.CONSTANT, 9),
-      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // address
+        op(Opcode.CONSTANT, 1), // TIER
+        op(Opcode.CONSTANT, 2), // THRESHOLD
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.CONSTANT, 4),
+        op(Opcode.CONSTANT, 5),
+        op(Opcode.CONSTANT, 6),
+        op(Opcode.CONSTANT, 7),
+        op(Opcode.CONSTANT, 8),
+        op(Opcode.CONSTANT, 9),
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
     await logic.initialize({
@@ -596,7 +606,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await logic.connect(alice).run();
 
     const timeFour1_ = await logic.stackTop();
-    
+
     await logic.initialize({
       sources: [source],
       constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
@@ -605,7 +615,6 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await logic.connect(alice).run();
 
     const timeEight1_ = await logic.stackTop();
-    
 
     assert(
       timeEight1_.eq(max_uint32),
@@ -648,6 +657,4 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     assert(timeOne2_.eq(blockTime0_));
     assert(timeEight2_.eq(blockTime2_));
   });
-
-
 });

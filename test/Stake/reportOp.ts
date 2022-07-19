@@ -22,17 +22,18 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   let logic: AllStandardOpsTest;
 
   // Passing context data in constants
+  // prettier-ignore
   const source = concat([
-    op(Opcode.CONSTANT, 0), // ITierV2 contract
-    op(Opcode.SENDER), // address
-    op(Opcode.CONSTANT, 1),
-    op(Opcode.CONSTANT, 2),
-    op(Opcode.CONSTANT, 3),
-    op(Opcode.CONSTANT, 4),
-    op(Opcode.CONSTANT, 5),
-    op(Opcode.CONSTANT, 6),
-    op(Opcode.CONSTANT, 7),
-    op(Opcode.CONSTANT, 8),
+      op(Opcode.CONSTANT, 0), // ITierV2 contract
+      op(Opcode.SENDER), // address
+      op(Opcode.CONSTANT, 1), // context
+      op(Opcode.CONSTANT, 2),
+      op(Opcode.CONSTANT, 3),
+      op(Opcode.CONSTANT, 4),
+      op(Opcode.CONSTANT, 5),
+      op(Opcode.CONSTANT, 6),
+      op(Opcode.CONSTANT, 7),
+      op(Opcode.CONSTANT, 8),
     op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
   ]);
 
@@ -77,8 +78,8 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // address
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
 
@@ -121,7 +122,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     await logic.connect(alice).run();
 
-    const expected = max_uint256
+    const expected = max_uint256;
 
     const result = await logic.stackTop();
 
@@ -131,7 +132,6 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
-
   });
 
   it("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed the 1st threshold", async function () {
@@ -176,15 +176,12 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       0xffffffff,
     ]);
 
-
-
     assert(
       result.eq(expected),
       `did not return correct stake result
       expected  ${hexlify(expected)}
       got       ${hexlify(result)}`
     );
-
   });
 
   it("should return a correct report using ITIERV2_REPORT when enough tokens have been staked to exceed the 2nd threshold then the 4th threshold", async function () {
@@ -570,18 +567,19 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     );
 
     // Passing context data in constants
+    // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
-      op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1),
-      op(Opcode.CONSTANT, 2),
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
-      op(Opcode.ITIERV2_REPORT, thresholds0.length)
+        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.SENDER), // address
+        op(Opcode.CONSTANT, 1), // context
+        op(Opcode.CONSTANT, 2),
+        op(Opcode.CONSTANT, 3),
+        op(Opcode.CONSTANT, 4),
+        op(Opcode.CONSTANT, 5),
+        op(Opcode.CONSTANT, 6),
+        op(Opcode.CONSTANT, 7),
+        op(Opcode.CONSTANT, 8),
+      op(Opcode.ITIERV2_REPORT, thresholds0.length),
     ]);
 
     await logic.initialize({
@@ -592,7 +590,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await logic.connect(alice).run();
 
     const result0 = await logic.stackTop();
-    
+
     // Passing context data in constants
     const source1 = concat([
       op(Opcode.CONSTANT, 0), // ITierV2 contract
@@ -605,7 +603,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       op(Opcode.CONSTANT, 6),
       op(Opcode.CONSTANT, 7),
       op(Opcode.CONSTANT, 8),
-      op(Opcode.ITIERV2_REPORT, thresholds1.length)
+      op(Opcode.ITIERV2_REPORT, thresholds1.length),
     ]);
 
     await logic.initialize({
@@ -651,5 +649,4 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       got       ${hexlify(result1)}`
     );
   });
-
 });
