@@ -4,7 +4,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   AfterClearEvent,
-  BountyConfigStruct,
+  ClearConfigStruct,
   ClearEvent,
   ClearStateChangeStruct,
   DepositConfigStruct,
@@ -107,10 +107,8 @@ describe("OrderBook counterparty in context", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
-      inputToken: tokenA.address,
-      inputVaultId: aliceInputVault,
-      outputToken: tokenB.address,
-      outputVaultId: aliceOutputVault,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -142,10 +140,8 @@ describe("OrderBook counterparty in context", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      inputToken: tokenB.address,
-      inputVaultId: bobInputVault,
-      outputToken: tokenA.address,
-      outputVaultId: bobOutputVault,
+      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
@@ -177,10 +173,8 @@ describe("OrderBook counterparty in context", async function () {
       vBidPriceCarol,
     ]);
     const bidOrderConfigCarol: OrderConfigStruct = {
-      inputToken: tokenB.address,
-      inputVaultId: carolInputVault,
-      outputToken: tokenA.address,
-      outputVaultId: carolOutputVault,
+      validInputs: [{ token: tokenB.address, vaultId: carolInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: carolOutputVault }],
       vmStateConfig: {
         sources: [bidSourceCarol],
         constants: bidConstantsCarol,
@@ -277,16 +271,20 @@ describe("OrderBook counterparty in context", async function () {
 
     // BOUNTY BOT CLEARS THE ORDER - BAD MATCH
 
-    const bountyConfig: BountyConfigStruct = {
-      aVaultId: bountyBotVaultA,
-      bVaultId: bountyBotVaultB,
+    const clearConfig: ClearConfigStruct = {
+      aInputIndex: 0,
+      aOutputIndex: 0,
+      bInputIndex: 0,
+      bOutputIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
     };
 
     await assertError(
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askConfig, bidConfig, bountyConfig),
+          .clear(askConfig, bidConfig, clearConfig),
       "0_CLEAR",
       "should revert with 0 amount since bob does not match expected counterparty"
     );
@@ -295,13 +293,13 @@ describe("OrderBook counterparty in context", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfigCarol, bountyConfig);
+      .clear(askConfig, bidConfigCarol, clearConfig);
 
     const {
       sender: clearSender,
       a_: clearA_,
       b_: clearB_,
-      bountyConfig: clearBountyConfig,
+      clearConfig: clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
       "Clear",
@@ -335,7 +333,7 @@ describe("OrderBook counterparty in context", async function () {
     assert(clearSender === bountyBot.address);
     compareSolStructs(clearA_, askConfig);
     compareSolStructs(clearB_, bidConfigCarol);
-    compareStructs(clearBountyConfig, bountyConfig);
+    compareStructs(clearBountyConfig, clearConfig);
     compareStructs(clearStateChange, expectedClearStateChange);
   });
 });

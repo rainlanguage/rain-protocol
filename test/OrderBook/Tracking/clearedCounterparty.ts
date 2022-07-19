@@ -4,7 +4,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   AfterClearEvent,
-  BountyConfigStruct,
+  ClearConfigStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderBook,
@@ -100,10 +100,8 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
-      inputToken: tokenA.address,
-      inputVaultId: aliceInputVault,
-      outputToken: tokenB.address,
-      outputVaultId: aliceOutputVault,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -136,10 +134,8 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      inputToken: tokenB.address,
-      inputVaultId: bobInputVault,
-      outputToken: tokenA.address,
-      outputVaultId: bobOutputVault,
+      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
@@ -172,10 +168,8 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       vCarolPrice,
     ]);
     const carolOrderConfig: OrderConfigStruct = {
-      inputToken: tokenB.address,
-      inputVaultId: carolInputVault,
-      outputToken: tokenA.address,
-      outputVaultId: carolOutputVault,
+      validInputs: [{ token: tokenB.address, vaultId: carolInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: carolOutputVault }],
       vmStateConfig: {
         sources: [carolSource],
         constants: carolConstants,
@@ -271,9 +265,13 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     // BOUNTY BOT CLEARS THE ORDERS
 
-    const bountyConfig: BountyConfigStruct = {
-      aVaultId: bountyBotVaultA,
-      bVaultId: bountyBotVaultB,
+    const clearConfig: ClearConfigStruct = {
+      aInputIndex: 0,
+      aOutputIndex: 0,
+      bInputIndex: 0,
+      bOutputIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
     };
 
     const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
@@ -283,7 +281,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bobConfig, bountyConfig);
+      .clear(askConfig, bobConfig, clearConfig);
     const { stateChange: stateChange0 } = (await getEventArgs(
       txClearOrder0,
       "AfterClear",
@@ -326,7 +324,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bobConfig, bountyConfig);
+      .clear(askConfig, bobConfig, clearConfig);
     const { stateChange: stateChange1 } = (await getEventArgs(
       txClearOrder1,
       "AfterClear",
@@ -364,7 +362,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder2 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, carolConfig, bountyConfig);
+      .clear(askConfig, carolConfig, clearConfig);
     const { stateChange: stateChange2 } = (await getEventArgs(
       txClearOrder2,
       "AfterClear",
@@ -407,7 +405,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder3 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, carolConfig, bountyConfig);
+      .clear(askConfig, carolConfig, clearConfig);
     const { stateChange: stateChange3 } = (await getEventArgs(
       txClearOrder3,
       "AfterClear",
