@@ -365,7 +365,6 @@ describe("Stake deposit", async function () {
     await reserveToken.approve(stake.address, ethers.constants.MaxUint256);
     await stake.deposit("20000000", alice.address);
     
-    const shares = await stake.balanceOf(alice.address);
     
   });
 });

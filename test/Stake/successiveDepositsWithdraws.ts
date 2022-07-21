@@ -1,11 +1,9 @@
-import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
 import { ReportOMeter } from "../../typechain/ReportOMeter";
 import { sixZeros } from "../../utils/constants/bigNumber";
-import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { assert } from "chai";
@@ -120,15 +118,6 @@ describe("Stake many successive deposits and withdraws", async function () {
       );
     }
 
-    const thresholds = THRESHOLDS;
-
-    const reportAlice = await stake.report(alice.address, thresholds);
-    const reportBob = await stake.report(bob.address, thresholds);
-
-    const reportHexAlice = hexlify(reportAlice);
-    const reportHexBob = hexlify(reportBob);
-
-
     await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
       ethers.BigNumber.from("1000" + "000000000"),
     ]);
@@ -180,14 +169,6 @@ describe("Stake many successive deposits and withdraws", async function () {
         .withdraw(stTokenBalanceBob.div(2), bob.address, bob.address);
     }
 
-    const thresholds = THRESHOLDS;
-
-    const reportAlice = await stake.report(alice.address, thresholds);
-    const reportBob = await stake.report(bob.address, thresholds);
-
-    const reportHexAlice = hexlify(reportAlice);
-    const reportHexBob = hexlify(reportBob);
-
     await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
       ethers.BigNumber.from("1000" + "000000000"),
     ]);
@@ -234,14 +215,6 @@ describe("Stake many successive deposits and withdraws", async function () {
       // // Bob redeems half of his stTokens
       // await stake.connect(bob).withdraw(stTokenBalanceBob.div(2));
     }
-
-    const thresholds = THRESHOLDS;
-
-    const reportAlice = await stake.report(alice.address, thresholds);
-    const reportBob = await stake.report(bob.address, thresholds);
-
-    const reportHexAlice = hexlify(reportAlice);
-    const reportHexBob = hexlify(reportBob);
 
     await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
       ethers.BigNumber.from("1000" + "000000000"),
