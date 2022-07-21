@@ -65,7 +65,9 @@ describe("Stake reportTimeForTier", async function () {
 
     // Alice withdraws tokens
     const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     const timeOne1_ = await stake.reportTimeForTier(
       alice.address,
@@ -150,7 +152,9 @@ describe("Stake reportTimeForTier", async function () {
 
     // Alice withdraws tokens
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     const time1_ = await stake.reportTimeForTier(
       alice.address,

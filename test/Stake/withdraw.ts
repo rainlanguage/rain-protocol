@@ -27,7 +27,7 @@ describe("Stake withdraw", async function () {
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
-  
+
   it("should not process an invalid withdraw", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -37,25 +37,25 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
     // ZeroAddress receiver
     await assertError(
-      async () => await stake.connect(alice).withdraw(0, zeroAddress, alice.address),
+      async () =>
+        await stake.connect(alice).withdraw(0, zeroAddress, alice.address),
       "0_WITHDRAW_RECEIVER",
       "wrongly processed withdraw to zeroAddress"
     );
-    
+
     // ZeroAddress owner
     await assertError(
-      async () => await stake.connect(alice).withdraw(0, alice.address, zeroAddress),
+      async () =>
+        await stake.connect(alice).withdraw(0, alice.address, zeroAddress),
       "0_WITHDRAW_OWNER",
       "wrongly processed withdraw from zeroAddress"
     );
-
   });
 
   it("should process multiple successive withdraws", async function () {
@@ -67,7 +67,6 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -86,11 +85,15 @@ describe("Stake withdraw", async function () {
 
     await timewarp(86400);
 
-    await stake.connect(alice).withdraw(tokenBalanceAlice0.div(10), alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(tokenBalanceAlice0.div(10), alice.address, alice.address);
 
     await timewarp(86400);
 
-    await stake.connect(alice).withdraw(tokenBalanceAlice0.div(10), alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(tokenBalanceAlice0.div(10), alice.address, alice.address);
   });
 
   it("should calculate new highwater when amount withdrawn less than old highwater", async function () {
@@ -103,7 +106,6 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -126,7 +128,9 @@ describe("Stake withdraw", async function () {
     // Alice and Bob each own 50% of stToken supply
     const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
 
-    await stake.connect(alice).withdraw(stTokenBalanceAlice0.div(2), alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(stTokenBalanceAlice0.div(2), alice.address, alice.address);
 
     const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
 
@@ -146,19 +150,24 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
     // Give Alice some reserve tokens and deposit them
-    await token.transfer(alice.address, ethers.BigNumber.from("1000" + eighteenZeros));
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("1000" + eighteenZeros)
+    );
     const tokenBalanceAlice0 = await token.balanceOf(alice.address);
     await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
     await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
 
     // Give Bob some reserve tokens and deposit them
-    await token.transfer(bob.address, ethers.BigNumber.from("1000" + eighteenZeros));
+    await token.transfer(
+      bob.address,
+      ethers.BigNumber.from("1000" + eighteenZeros)
+    );
     const tokenBalanceBob0 = await token.balanceOf(bob.address);
     await token.connect(bob).approve(stake.address, tokenBalanceBob0);
     await stake.connect(bob).deposit(tokenBalanceBob0, bob.address);
@@ -168,7 +177,9 @@ describe("Stake withdraw", async function () {
 
     await assertError(
       async () =>
-        await stake.connect(alice).withdraw(stTokenBalanceAlice0.add(1), alice.address, alice.address),
+        await stake
+          .connect(alice)
+          .withdraw(stTokenBalanceAlice0.add(1), alice.address, alice.address),
       "ERC4626: withdraw more than max",
       "overdrew when performing withdraw"
     );
@@ -184,7 +195,6 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -199,7 +209,10 @@ describe("Stake withdraw", async function () {
     await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
 
     // Give Bob some reserve tokens and deposit them
-    await token.transfer(bob.address, ethers.BigNumber.from("1000" + eighteenZeros));
+    await token.transfer(
+      bob.address,
+      ethers.BigNumber.from("1000" + eighteenZeros)
+    );
     const tokenBalanceBob0 = await token.balanceOf(bob.address);
     await token.connect(bob).approve(stake.address, tokenBalanceBob0);
     await stake.connect(bob).deposit(tokenBalanceBob0, bob.address);
@@ -211,7 +224,9 @@ describe("Stake withdraw", async function () {
     const tokenPool0 = await token.balanceOf(stake.address);
 
     // Alice redeems all her stTokens to withdraw share of tokens she is entitled to
-    await stake.connect(alice).withdraw(stTokenBalanceAlice0, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(stTokenBalanceAlice0, alice.address, alice.address);
 
     const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
     const tokenBalanceAlice1 = await token.balanceOf(alice.address);
@@ -225,7 +240,9 @@ describe("Stake withdraw", async function () {
     );
 
     // Bob redeems all his stTokens to withdraw share of tokens he is entitled to
-    await stake.connect(bob).withdraw(stTokenBalanceBob0, bob.address, bob.address);
+    await stake
+      .connect(bob)
+      .withdraw(stTokenBalanceBob0, bob.address, bob.address);
 
     const stTokenBalanceBob1 = await stake.balanceOf(bob.address);
     const tokenBalanceBob1 = await token.balanceOf(bob.address);
@@ -253,13 +270,13 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
     await assertError(
-      async () => await stake.connect(alice).withdraw(0, alice.address, alice.address),
+      async () =>
+        await stake.connect(alice).withdraw(0, alice.address, alice.address),
       "0_WITHDRAW_ASSETS",
       "wrongly processed withdraw of 0 stTokens"
     );
@@ -275,7 +292,6 @@ describe("Stake withdraw", async function () {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -326,7 +342,9 @@ describe("Stake withdraw", async function () {
     await timewarp(86400);
 
     // Alice redeems all her stTokens to withdraw share of tokens she is entitled to
-    await stake.connect(alice).withdraw(stTokenBalanceAlice0, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(stTokenBalanceAlice0, alice.address, alice.address);
 
     const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
     const tokenBalanceAlice1 = await token.balanceOf(alice.address);

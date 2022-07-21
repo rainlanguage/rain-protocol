@@ -81,16 +81,26 @@ describe("Stake direct ledger analysis", async function () {
     // Alice withdraws some tokens
     const withdrawAmount = totalDepositAmount.div(4);
 
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice1_ = await getDeposits(stake, alice.address);
-    const expectedAliceLength1 = 12
-    assert(depositsAlice1_.length === expectedAliceLength1, `wrong alice length 1, expected ${expectedAliceLength1} got ${depositsAlice1_.length}`);
+    const expectedAliceLength1 = 12;
+    assert(
+      depositsAlice1_.length === expectedAliceLength1,
+      `wrong alice length 1, expected ${expectedAliceLength1} got ${depositsAlice1_.length}`
+    );
     await timewarp(86400);
 
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice2_ = await getDeposits(stake, alice.address);
-    const expectedAliceLength2 = 8
-    assert(depositsAlice2_.length === expectedAliceLength2, `wrong alice length 2, expected ${expectedAliceLength2} got ${depositsAlice2_.length}`);
+    const expectedAliceLength2 = 8;
+    assert(
+      depositsAlice2_.length === expectedAliceLength2,
+      `wrong alice length 2, expected ${expectedAliceLength2} got ${depositsAlice2_.length}`
+    );
     assert(depositsAlice2_.length === 8);
   });
 
@@ -107,13 +117,13 @@ describe("Stake direct ledger analysis", async function () {
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-    
+
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
-    
+
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     const time0_ = await getBlockTimestamp();
     assert(depositsAlice0_.length === 1);
@@ -124,7 +134,9 @@ describe("Stake direct ledger analysis", async function () {
 
     // Alice withdraws some tokens
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     const depositsAlice1_ = await getDeposits(stake, alice.address);
     const time1_ = await getBlockTimestamp();
@@ -145,16 +157,18 @@ describe("Stake direct ledger analysis", async function () {
       assert(depositItem.amount.eq(depositsAlice1_[index].amount));
     });
     await timewarp(86400);
-    
+
     // Alice deposits again, exceeding threshold again
     const totalSupply3 = await stake.totalSupply();
     const totalAssets3 = await stake.totalAssets();
     // Calculating expected share wrt the totalAssets. This will change due to the direct token transfer done by maliciousActor
-    const expectedShares3 = BigNumber.from(withdrawAmount).mul(totalSupply3).div(totalAssets3);
+    const expectedShares3 = BigNumber.from(withdrawAmount)
+      .mul(totalSupply3)
+      .div(totalAssets3);
 
     await token.connect(alice).approve(stake.address, withdrawAmount);
     await stake.connect(alice).deposit(withdrawAmount, alice.address);
-    
+
     const depositsAlice3_ = await getDeposits(stake, alice.address);
     const time2_ = await getBlockTimestamp();
     assert(depositsAlice3_.length === 2);
@@ -162,7 +176,11 @@ describe("Stake direct ledger analysis", async function () {
     assert(depositsAlice3_[0].timestamp === time0_);
     assert(depositsAlice3_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
     assert(depositsAlice3_[1].timestamp === time2_);
-    assert(depositsAlice3_[1].amount.eq(depositsAlice3_[0].amount.add(expectedShares3)));
+    assert(
+      depositsAlice3_[1].amount.eq(
+        depositsAlice3_[0].amount.add(expectedShares3)
+      )
+    );
   });
 
   it("should update the `deposits` ledger correctly when depositing and withdrawing", async () => {
@@ -194,7 +212,9 @@ describe("Stake direct ledger analysis", async function () {
 
     // Alice withdraws some tokens
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     const depositsAlice1_ = await getDeposits(stake, alice.address);
     const time1_ = await getBlockTimestamp();
@@ -219,7 +239,7 @@ describe("Stake direct ledger analysis", async function () {
     assert(depositsAlice2_[1].amount.eq(depositAmount0));
   });
 
-  it.only("should correctly pop the records from ledger ", async () => {
+  it("should correctly pop the records from ledger ", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[1];
@@ -243,27 +263,43 @@ describe("Stake direct ledger analysis", async function () {
       await timewarp(86400);
     }
     const depositsAlice0_ = await getDeposits(stake, alice.address);
-    console.log("\n===========================Depositing 250 * 4\nDepositAlice0\n", depositsAlice0_);
+    console.log(
+      "\n===========================Depositing 250 * 4\nDepositAlice0\n",
+      depositsAlice0_
+    );
     assert(depositsAlice0_.length === 4);
-   
 
     // Alice withdraws some tokens
     const withdrawAmount = totalDepositAmount.div(2);
 
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice1_ = await getDeposits(stake, alice.address);
-    console.log("\n===========================Withdrawing 500 == 1000-500=500\nDepositAlice1\n", {depositsAlice1_});
-    const expectedAliceLength1 = 2
-    assert(depositsAlice1_.length === expectedAliceLength1, `wrong alice length 1, expected ${expectedAliceLength1} got ${depositsAlice1_.length}`);
+    console.log(
+      "\n===========================Withdrawing 500 == 1000-500=500\nDepositAlice1\n",
+      { depositsAlice1_ }
+    );
+    const expectedAliceLength1 = 2;
+    assert(
+      depositsAlice1_.length === expectedAliceLength1,
+      `wrong alice length 1, expected ${expectedAliceLength1} got ${depositsAlice1_.length}`
+    );
     await timewarp(86400);
 
     // Failing here as there's still an entry remaining with null values
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice2_ = await getDeposits(stake, alice.address);
-    console.log("\n===========================Withdrawing 500 == 500-500=0\nDepositAlice2\n", {depositsAlice2_});
-    const expectedAliceLength2 = 0
-    assert(depositsAlice2_.length === expectedAliceLength2, `wrong alice length 2, expected ${expectedAliceLength2} got ${depositsAlice2_.length}`);
-
+    console.log(
+      "\n===========================Withdrawing 500 == 500-500=0\nDepositAlice2\n",
+      { depositsAlice2_ }
+    );
+    const expectedAliceLength2 = 0;
+    assert(
+      depositsAlice2_.length === expectedAliceLength2,
+      `wrong alice length 2, expected ${expectedAliceLength2} got ${depositsAlice2_.length}`
+    );
   });
-
 });

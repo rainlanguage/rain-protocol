@@ -106,7 +106,9 @@ describe("Stake many successive deposits and withdraws", async function () {
       );
 
       // Bob redeems half of his stTokens
-      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2), bob.address, bob.address);
+      await stake
+        .connect(bob)
+        .withdraw(stTokenBalanceBob.div(2), bob.address, bob.address);
 
       const tokenPoolSize3_ = await token.balanceOf(stake.address);
       const totalSupply3_ = await stake.totalSupply();

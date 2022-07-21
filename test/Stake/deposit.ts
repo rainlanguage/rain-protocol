@@ -51,7 +51,7 @@ describe("Stake deposit", async function () {
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
   });
-  
+
   it("should calculate correct mint amounts based on current supply", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -62,10 +62,10 @@ describe("Stake deposit", async function () {
       symbol: "STKN",
       asset: token.address,
     };
-    
+
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    const amount = ethers.BigNumber.from("1"+eighteenZeros);
+    const amount = ethers.BigNumber.from("1" + eighteenZeros);
     const tokenPoolSize0_ = await token.balanceOf(stake.address);
     const totalSupply0_ = await stake.totalSupply();
     assert(tokenPoolSize0_.eq(totalSupply0_));
@@ -75,8 +75,8 @@ describe("Stake deposit", async function () {
     await token.transfer(alice.address, amount);
     await token.connect(alice).approve(stake.address, amount);
     await stake.connect(alice).deposit(amount, alice.address);
-    
-    const expectedMint0 = amount
+
+    const expectedMint0 = amount;
     const actualMint0 = await stake.totalSupply();
 
     assert(
@@ -442,5 +442,4 @@ describe("Stake deposit", async function () {
         (await reserveToken.balanceOf(alice.address))
     );
   });
-
 });
