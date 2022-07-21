@@ -94,7 +94,7 @@ describe("Stake direct ledger analysis", async function () {
     assert(depositsAlice2_.length === 8);
   });
 
-  it("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
+  it.only("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[1];
@@ -149,8 +149,10 @@ describe("Stake direct ledger analysis", async function () {
     // Alice deposits again, exceeding threshold again
     const totalSupply3 = await stake.totalSupply();
     const totalAssets3 = await stake.totalAssets();
+
+    // ERC4626Upgradable's _convertToShares implementation
     // Calculating expected share wrt the totalAssets. This will change due to the direct token transfer done by maliciousActor
-    const expectedShares3 = BigNumber.from(withdrawAmount).mul(totalSupply3).div(totalAssets3);
+    const expectedShares3_ = BigNumber.from(withdrawAmount).mul(totalSupply3).div(totalAssets3);
 
     await token.connect(alice).approve(stake.address, withdrawAmount);
     await stake.connect(alice).deposit(withdrawAmount, alice.address);
@@ -162,7 +164,21 @@ describe("Stake direct ledger analysis", async function () {
     assert(depositsAlice3_[0].timestamp === time0_);
     assert(depositsAlice3_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
     assert(depositsAlice3_[1].timestamp === time2_);
-    assert(depositsAlice3_[1].amount.eq(depositsAlice3_[0].amount.add(expectedShares3)));
+    assert(depositsAlice3_[1].amount.eq(depositsAlice3_[0].amount.add(expectedShares3_)));
+
+    // ERC4626Upgradable's _convertToShares implementation
+    // Withdrawing and validating the shares
+    const totalSupply4 = await stake.totalSupply();
+    const totalAssets4 = await stake.totalAssets();
+    let expectedShares4_ = BigNumber.from(withdrawAmount).mul(totalSupply4).div(totalAssets4);
+    if(BigNumber.from(withdrawAmount).mul(totalSupply4).mod(totalAssets4).gt(0))
+      expectedShares4_ = expectedShares4_.add(1)
+    
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    const depositsAlice4_ = await getDeposits(stake, alice.address);
+
+    assert(depositsAlice4_[depositsAlice4_.length-1].amount.eq(depositsAlice3_[1].amount.sub(expectedShares4_)));
+
   });
 
   it("should update the `deposits` ledger correctly when depositing and withdrawing", async () => {
@@ -219,7 +235,7 @@ describe("Stake direct ledger analysis", async function () {
     assert(depositsAlice2_[1].amount.eq(depositAmount0));
   });
 
-  it.only("should correctly pop the records from ledger ", async () => {
+  it("should correctly pop the records from ledger ", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[1];
