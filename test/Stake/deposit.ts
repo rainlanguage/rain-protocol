@@ -51,7 +51,7 @@ describe("Stake deposit", async function () {
     const depositsAlice0_ = await getDeposits(stake, alice.address);
     assert(depositsAlice0_.length === 0);
   });
-  
+
   it("should calculate correct mint amounts based on current supply", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -62,10 +62,10 @@ describe("Stake deposit", async function () {
       symbol: "STKN",
       asset: token.address,
     };
-    
+
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    const amount = ethers.BigNumber.from("1"+eighteenZeros);
+    const amount = ethers.BigNumber.from("1" + eighteenZeros);
     const tokenPoolSize0_ = await token.balanceOf(stake.address);
     const totalSupply0_ = await stake.totalSupply();
     assert(tokenPoolSize0_.eq(totalSupply0_));
@@ -75,8 +75,8 @@ describe("Stake deposit", async function () {
     await token.transfer(alice.address, amount);
     await token.connect(alice).approve(stake.address, amount);
     await stake.connect(alice).deposit(amount, alice.address);
-    
-    const expectedMint0 = amount
+
+    const expectedMint0 = amount;
     const actualMint0 = await stake.totalSupply();
 
     assert(
@@ -354,19 +354,6 @@ describe("Stake deposit", async function () {
       amountToTransfer
     );
 
-    console.log(
-      "userA balance of reserveToken before deploying the stake contract:   " +
-        (await reserveToken.balanceOf(alice.address))
-    );
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
-    console.log("deploying the stake contract with initial ratio of 1:1");
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -374,73 +361,11 @@ describe("Stake deposit", async function () {
     };
 
     const stake = await stakeDeploy(alice, stakeFactory, stakeConfigStruct);
-    console.log("stake contract deployed");
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
-    console.log(
-      "stToken totalSupply before deposit:   " + (await stake.totalSupply())
-    );
-    console.log(
-      "reserveToken balance of stake contract before deposit:   " +
-        (await reserveToken.balanceOf(stake.address))
-    );
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
-    console.log("userA depositing 20 reserveToken into stake");
+    
     await reserveToken.approve(stake.address, ethers.constants.MaxUint256);
     await stake.deposit("20000000", alice.address);
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
-    console.log(
-      "stToken totalSupply after deposit:   " + (await stake.totalSupply())
-    );
-    console.log(
-      "reserveToken balance of stake contract after deposit:   " +
-        (await reserveToken.balanceOf(stake.address))
-    );
-    console.log(
-      "userA balance of stToken after depositing into stake:   " +
-        (await stake.balanceOf(alice.address))
-    );
-    console.log(
-      "userA balance of reserveToken after depositing into stake:   " +
-        (await reserveToken.balanceOf(alice.address))
-    );
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
-    console.log(
-      "userA withdrawing 10 reserveToken from stake (needs to withdraw half the shares)"
-    );
+    
     const shares = await stake.balanceOf(alice.address);
-    console.log(`userA shares: ${shares}`);
-    await stake.withdraw(shares.div(2), alice.address, alice.address);
-    console.log(
-      "--------------------------------------------------------------------"
-    );
-
-    console.log(
-      "stToken totalSupply after withdraw:   " + (await stake.totalSupply())
-    );
-    console.log(
-      "reserveToken balance of stake contract after withdraw:   " +
-        (await reserveToken.balanceOf(stake.address))
-    );
-    console.log(
-      "userA balance of stToken after withdrawing from stake:   " +
-        (await stake.balanceOf(alice.address))
-    );
-    console.log(
-      "userA balance of reserveToken after withdrawing from stake:   " +
-        (await reserveToken.balanceOf(alice.address))
-    );
+    
   });
-
 });

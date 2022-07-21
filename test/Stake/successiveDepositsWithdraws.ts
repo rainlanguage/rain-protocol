@@ -106,7 +106,9 @@ describe("Stake many successive deposits and withdraws", async function () {
       );
 
       // Bob redeems half of his stTokens
-      await stake.connect(bob).withdraw(stTokenBalanceBob.div(2), bob.address, bob.address);
+      await stake
+        .connect(bob)
+        .withdraw(stTokenBalanceBob.div(2), bob.address, bob.address);
 
       const tokenPoolSize3_ = await token.balanceOf(stake.address);
       const totalSupply3_ = await stake.totalSupply();
@@ -126,7 +128,6 @@ describe("Stake many successive deposits and withdraws", async function () {
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
 
-    console.log({ reportHexAlice, reportHexBob });
 
     await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
       ethers.BigNumber.from("1000" + "000000000"),
@@ -187,8 +188,6 @@ describe("Stake many successive deposits and withdraws", async function () {
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
 
-    console.log({ reportHexAlice, reportHexBob });
-
     await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
       ethers.BigNumber.from("1000" + "000000000"),
     ]);
@@ -243,8 +242,6 @@ describe("Stake many successive deposits and withdraws", async function () {
 
     const reportHexAlice = hexlify(reportAlice);
     const reportHexBob = hexlify(reportBob);
-
-    console.log({ reportHexAlice, reportHexBob });
 
     await reportOMeter.gaugeReportTimeForTier(stake.address, alice.address, 0, [
       ethers.BigNumber.from("1000" + "000000000"),

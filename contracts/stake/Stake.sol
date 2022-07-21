@@ -119,7 +119,7 @@ contract Stake is ERC4626Upgradeable, TierV2, ReentrancyGuard {
         if (newHighwater_ > 0) {
             depositRecords[owner_][high_].amount = newHighwater_.toUint224();
         } else {
-            delete depositRecords[owner_][i_];
+            depositRecords[owner_].pop();
         }
     }
 
