@@ -1,9 +1,10 @@
 import { assert } from "chai";
+import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
-import { eighteenZeros, ONE, sixZeros } from "../../utils/constants/bigNumber";
+import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
@@ -40,7 +41,7 @@ describe("Stake direct ledger analysis", async function () {
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them over a series of deposits
+    // Give Alice reserve tokens and deposit them over a series of deposits
     const totalDepositAmount = ethers.BigNumber.from("10000" + eighteenZeros);
     const depositAmount = totalDepositAmount.div(16);
     await token.transfer(alice.address, totalDepositAmount);
@@ -81,137 +82,140 @@ describe("Stake direct ledger analysis", async function () {
 
     await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice1_ = await getDeposits(stake, alice.address);
-    console.log(depositsAlice1_.length)
-    console.log({ depositsAlice1_ });
     const expectedAliceLength1 = 12
     assert(depositsAlice1_.length === expectedAliceLength1, `wrong alice length 1, expected ${expectedAliceLength1} got ${depositsAlice1_.length}`);
     await timewarp(86400);
 
     await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice2_ = await getDeposits(stake, alice.address);
-    console.log({ depositsAlice2_ });
+    const expectedAliceLength2 = 8
+    assert(depositsAlice2_.length === expectedAliceLength2, `wrong alice length 2, expected ${expectedAliceLength2} got ${depositsAlice2_.length}`);
     assert(depositsAlice2_.length === 8);
   });
 
-  // it("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
-  //   const signers = await ethers.getSigners();
-  //   const deployer = signers[0];
-  //   const alice = signers[1];
-  //   const maliciousActor = signers[2];
+  it("should maintain the integrity of the `deposits` ledger correctly when tokens are sent directly to contract", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[1];
+    const maliciousActor = signers[2];
 
-  //   const stakeConfigStruct: StakeConfigStruct = {
-  //     name: "Stake Token",
-  //     symbol: "STKN",
-  //     asset: token.address,
-  //   };
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
 
-  //   const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    
+    // Give Alice reserve tokens and deposit them
+    const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
+    
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    const time0_ = await getBlockTimestamp();
+    assert(depositsAlice0_.length === 1);
+    assert(depositsAlice0_[0].timestamp === time0_);
+    assert(depositsAlice0_[0].amount.eq(depositAmount0));
 
-  //   // Give Alice reserve tokens and desposit them
-  //   const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
-  //   await token.transfer(alice.address, depositAmount0);
-  //   await token.connect(alice).approve(stake.address, depositAmount0);
-  //   await stake.connect(alice).deposit(depositAmount0);
+    await timewarp(86400);
 
-  //   const depositsAlice0_ = await getDeposits(stake, alice.address);
-  //   const time0_ = await getBlockTimestamp();
-  //   assert(depositsAlice0_.length === 1);
-  //   assert(depositsAlice0_[0].timestamp === time0_);
-  //   assert(depositsAlice0_[0].amount.eq(depositAmount0));
+    // Alice withdraws some tokens
+    const withdrawAmount = 100;
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
 
-  //   await timewarp(86400);
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp !== time1_);
+    assert(depositsAlice1_[0].timestamp === time0_);
+    assert(depositsAlice1_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
 
-  //   // Alice withdraws some tokens
-  //   const withdrawAmount = 100;
-  //   await stake.connect(alice).withdraw(withdrawAmount);
+    await timewarp(86400);
+    // Malicious actor sends tokens directly to the stake contract
+    await token.transfer(maliciousActor.address, depositAmount0);
+    await token.connect(maliciousActor).transfer(stake.address, depositAmount0);
 
-  //   const depositsAlice1_ = await getDeposits(stake, alice.address);
-  //   const time1_ = await getBlockTimestamp();
-  //   assert(depositsAlice1_.length === 1);
-  //   assert(depositsAlice1_[0].timestamp !== time1_);
-  //   assert(depositsAlice1_[0].timestamp === time0_);
-  //   assert(depositsAlice1_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
+    // Alice's ledger should remain identical
+    const depositsAlice2_ = await getDeposits(stake, alice.address);
+    depositsAlice2_.forEach((depositItem, index) => {
+      assert(depositItem.timestamp === depositsAlice1_[index].timestamp);
+      assert(depositItem.amount.eq(depositsAlice1_[index].amount));
+    });
+    await timewarp(86400);
+    
+    // Alice deposits again, exceeding threshold again
+    const totalSupply3 = await stake.totalSupply();
+    const totalAssets3 = await stake.totalAssets();
+    // Calculating expected share wrt the totalAssets. This will change due to the direct token transfer done by maliciousActor
+    const expectedShares3 = BigNumber.from(withdrawAmount).mul(totalSupply3).div(totalAssets3);
 
-  //   await timewarp(86400);
+    await token.connect(alice).approve(stake.address, withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
+    
+    const depositsAlice3_ = await getDeposits(stake, alice.address);
+    const time2_ = await getBlockTimestamp();
+    assert(depositsAlice3_.length === 2);
+    assert(depositsAlice3_[0].timestamp !== time1_);
+    assert(depositsAlice3_[0].timestamp === time0_);
+    assert(depositsAlice3_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
+    assert(depositsAlice3_[1].timestamp === time2_);
+    assert(depositsAlice3_[1].amount.eq(depositsAlice3_[0].amount.add(expectedShares3)));
+  });
 
-  //   // Malicious actor sends tokens directly to the stake contract
-  //   await token.transfer(maliciousActor.address, depositAmount0);
-  //   await token.connect(maliciousActor).transfer(stake.address, depositAmount0);
+  it("should update the `deposits` ledger correctly when depositing and withdrawing", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[1];
 
-  //   // Alice's ledger should remain identical
-  //   const depositsAlice2_ = await getDeposits(stake, alice.address);
-  //   depositsAlice2_.forEach((depositItem, index) => {
-  //     assert(depositItem.timestamp === depositsAlice1_[index].timestamp);
-  //     assert(depositItem.amount.eq(depositsAlice1_[index].amount));
-  //   });
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
 
-  //   await timewarp(86400);
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-  //   // Alice deposits again, exceeding threshold again
-  //   await token.connect(alice).approve(stake.address, withdrawAmount);
-  //   await stake.connect(alice).deposit(withdrawAmount);
+    // Give Alice reserve tokens and deposit them
+    const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
-  //   const depositsAlice3_ = await getDeposits(stake, alice.address);
-  //   const time2_ = await getBlockTimestamp();
-  //   assert(depositsAlice3_.length === 2);
-  //   assert(depositsAlice3_[0].timestamp !== time1_);
-  //   assert(depositsAlice3_[0].timestamp === time0_);
-  //   assert(depositsAlice3_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
-  //   assert(depositsAlice3_[1].timestamp === time2_);
-  //   assert(depositsAlice3_[1].amount.eq(depositAmount0));
-  // });
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    const time0_ = await getBlockTimestamp();
+    assert(depositsAlice0_.length === 1);
+    assert(depositsAlice0_[0].timestamp === time0_);
+    assert(depositsAlice0_[0].amount.eq(depositAmount0));
 
-  // it("should update the `deposits` ledger correctly when depositing and withdrawing", async () => {
-  //   const signers = await ethers.getSigners();
-  //   const deployer = signers[0];
-  //   const alice = signers[1];
+    await timewarp(86400);
 
-  //   const stakeConfigStruct: StakeConfigStruct = {
-  //     name: "Stake Token",
-  //     symbol: "STKN",
-  //     asset: token.address,
-  //   };
+    // Alice withdraws some tokens
+    const withdrawAmount = 100;
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
 
-  //   const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp !== time1_);
+    assert(depositsAlice1_[0].timestamp === time0_);
+    assert(depositsAlice1_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
 
-  //   // Give Alice reserve tokens and desposit them
-  //   const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
-  //   await token.transfer(alice.address, depositAmount0);
-  //   await token.connect(alice).approve(stake.address, depositAmount0);
-  //   await stake.connect(alice).deposit(depositAmount0);
+    await timewarp(86400);
 
-  //   const depositsAlice0_ = await getDeposits(stake, alice.address);
-  //   const time0_ = await getBlockTimestamp();
-  //   assert(depositsAlice0_.length === 1);
-  //   assert(depositsAlice0_[0].timestamp === time0_);
-  //   assert(depositsAlice0_[0].amount.eq(depositAmount0));
+    // Alice deposits again, exceeding threshold again
+    await token.connect(alice).approve(stake.address, withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
 
-  //   await timewarp(86400);
+    const depositsAlice2_ = await getDeposits(stake, alice.address);
+    const time2_ = await getBlockTimestamp();
+    assert(depositsAlice2_.length === 2);
+    assert(depositsAlice2_[0].timestamp !== time1_);
+    assert(depositsAlice2_[0].timestamp === time0_);
+    assert(depositsAlice2_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
+    assert(depositsAlice2_[1].timestamp === time2_);
+    assert(depositsAlice2_[1].amount.eq(depositAmount0));
+  });
 
-  //   // Alice withdraws some tokens
-  //   const withdrawAmount = 100;
-  //   await stake.connect(alice).withdraw(withdrawAmount);
-
-  //   const depositsAlice1_ = await getDeposits(stake, alice.address);
-  //   const time1_ = await getBlockTimestamp();
-  //   assert(depositsAlice1_.length === 1);
-  //   assert(depositsAlice1_[0].timestamp !== time1_);
-  //   assert(depositsAlice1_[0].timestamp === time0_);
-  //   assert(depositsAlice1_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
-
-  //   await timewarp(86400);
-
-  //   // Alice deposits again, exceeding threshold again
-  //   await token.connect(alice).approve(stake.address, withdrawAmount);
-  //   await stake.connect(alice).deposit(withdrawAmount);
-
-  //   const depositsAlice2_ = await getDeposits(stake, alice.address);
-  //   const time2_ = await getBlockTimestamp();
-  //   assert(depositsAlice2_.length === 2);
-  //   assert(depositsAlice2_[0].timestamp !== time1_);
-  //   assert(depositsAlice2_[0].timestamp === time0_);
-  //   assert(depositsAlice2_[0].amount.eq(depositAmount0.sub(withdrawAmount)));
-  //   assert(depositsAlice2_[1].timestamp === time2_);
-  //   assert(depositsAlice2_[1].amount.eq(depositAmount0));
-  // });
 });

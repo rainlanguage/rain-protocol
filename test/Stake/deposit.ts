@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
-import { getBlockTimestamp, timewarp } from "../../utils";
+import { getBlockTimestamp, timewarp, zeroAddress } from "../../utils";
 import { eighteenZeros, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
@@ -27,6 +27,31 @@ describe("Stake deposit", async function () {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
+  it("should not process an invalid deposit", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    await token.connect(alice).approve(stake.address, 1);
+
+    await assertError(
+      async () => await stake.connect(alice).deposit(1, zeroAddress),
+      "0_DEPOSIT_RECEIVER",
+      "wrongly processed deposit to zeroAddress"
+    );
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+  });
+  
   it("should calculate correct mint amounts based on current supply", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
