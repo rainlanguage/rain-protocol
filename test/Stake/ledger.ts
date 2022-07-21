@@ -10,7 +10,7 @@ import { stakeDeploy } from "../../utils/deploy/stake";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
 
-describe.only("Stake direct ledger analysis", async function () {
+describe("Stake direct ledger analysis", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
 
@@ -83,7 +83,8 @@ describe.only("Stake direct ledger analysis", async function () {
     const depositsAlice1_ = await getDeposits(stake, alice.address);
     console.log(depositsAlice1_.length)
     console.log({ depositsAlice1_ });
-    assert(depositsAlice1_.length === 12);
+    const expectedAliceLength1 = 12
+    assert(depositsAlice1_.length === expectedAliceLength1, `wrong alice length 1, expected ${expectedAliceLength1} got ${depositsAlice1_.length}`);
     await timewarp(86400);
 
     await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
