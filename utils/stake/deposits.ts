@@ -13,7 +13,7 @@ export const getDeposits = async (stake: Stake, signerAddress: string) => {
 
   while (flag) {
     try {
-      const depositItem = await stake.deposits(signerAddress, i);
+      const depositItem = await stake.depositRecords(signerAddress, i);
       deposits.push(depositItem);
       i++;
     } catch (e) {
