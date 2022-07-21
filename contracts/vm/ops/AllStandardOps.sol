@@ -18,6 +18,7 @@ import "./evm/OpBlockNumber.sol";
 import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
 import "./evm/OpTimestamp.sol";
+import "./list/OpExplode32.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Div.sol";
 import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
@@ -47,7 +48,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 40;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 41;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -136,6 +137,8 @@ library AllStandardOps {
                 0,
                 // timestamp
                 0,
+                // explode32
+                1,
                 // scale18
                 1,
                 // scale18 div
@@ -242,6 +245,8 @@ library AllStandardOps {
                 1,
                 // timestamp
                 1,
+                // explode32
+                8,
                 // scale18
                 1,
                 // scale18 div
@@ -334,6 +339,7 @@ library AllStandardOps {
                 OpCaller.caller.asUint256(),
                 OpThisAddress.thisAddress.asUint256(),
                 OpTimestamp.timestamp.asUint256(),
+                OpExplode32.explode32.asUint256(),
                 OpFixedPointScale18.scale18.asUint256(),
                 OpFixedPointScale18Div.scale18Div.asUint256(),
                 OpFixedPointScale18Mul.scale18Mul.asUint256(),
