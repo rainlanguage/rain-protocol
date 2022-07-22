@@ -86,6 +86,12 @@ let
     hardhat test
   '';
 
+  echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
+    # By now, we will use the `echidna-test` file in the repo to avoid rework 
+    # clear; ./echidna-test contracts/test/echidna/SaturingMath_Echidna.sol --contract SaturingMath_Echidna
+    find contracts/test/echidna -name '*.sol' | xargs -i ./echidna-test '{}'
+  '';
+
   prepack = pkgs.writeShellScriptBin "prepack" ''
     set -euo pipefail
     shopt -s globstar
@@ -147,6 +153,7 @@ pkgs.stdenv.mkDerivation {
     prettier-check
     prettier-write
     security-check
+    echidna-test
     ci-test
     ci-lint
     cut-dist
@@ -154,6 +161,11 @@ pkgs.stdenv.mkDerivation {
     prepublish
     solt-the-earth
     flush-all
+    # Echidna config
+    # Do we need to add Crytic-compile and slither-analyzer? Or echidna pckg already added it?
+    # pkgs.solc
+    pkgs.echidna
+    pkgs.solc-select
   ];
 
   shellHook = ''
