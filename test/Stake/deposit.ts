@@ -384,7 +384,7 @@ describe("Stake deposit", async function () {
     await token.connect(alice).approve(stake.address, ethers.constants.MaxUint256);
     const depositUnits = ethers.BigNumber.from("20000000");
     // alice depositing 
-    await stake.deposit(depositUnits);
+    await stake.deposit(depositUnits, alice.address);
 
 
     const stTokenTotalSupply1 = await stake.totalSupply();
@@ -393,7 +393,7 @@ describe("Stake deposit", async function () {
     const tokenBalanceAlice0 = await token.balanceOf(alice.address);
 
     assert(
-      stTokenTotalSupply1.eq(depositUnits.mul(10**12)),
+      stTokenTotalSupply1.eq(depositUnits),
       "stToken has not minted correct units"
     );
     assert(
@@ -401,7 +401,7 @@ describe("Stake deposit", async function () {
       "stake contract token balance is not equal to deposited amount"
     );
     assert(
-      stTokenBalanceAlice0.eq(depositUnits.mul(10**12)),
+      stTokenBalanceAlice0.eq(depositUnits),
       "Alice has not received correct share units"
     );
     assert(
@@ -411,7 +411,7 @@ describe("Stake deposit", async function () {
 
     // alice withdrawing half of her shares
     const shares = await stake.balanceOf(alice.address)
-    await stake.withdraw(shares.div(2))
+    await stake.withdraw(shares.div(2), alice.address, alice.address)
 
     const stTokenTotalSupply2 = await stake.totalSupply();
     const tokenBalanceStake2 = await token.balanceOf(stake.address);
