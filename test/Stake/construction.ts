@@ -4,7 +4,6 @@ import { ReserveToken } from "../../typechain/ReserveToken";
 import { InitializeEvent, StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
 import { zeroAddress } from "../../utils/constants/address";
-import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { getEventArgs } from "../../utils/events";
@@ -35,29 +34,14 @@ describe("Stake construction", async function () {
     const stakeConfigStructZeroToken: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: zeroAddress,
-      initialRatio: ONE,
+      asset: zeroAddress,
     };
 
     await assertError(
       async () =>
         await stakeDeploy(deployer, stakeFactory, stakeConfigStructZeroToken),
-      "0_TOKEN",
+      "0_ASSET",
       "wrongly initialised Stake with token configured as 0 address"
-    );
-
-    const stakeConfigStructZeroRatio: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      token: token.address,
-      initialRatio: 0,
-    };
-
-    await assertError(
-      async () =>
-        await stakeDeploy(deployer, stakeFactory, stakeConfigStructZeroRatio),
-      "0_RATIO",
-      "wrongly initialised Stake with initialRatio of 0"
     );
   });
 
@@ -68,8 +52,7 @@ describe("Stake construction", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

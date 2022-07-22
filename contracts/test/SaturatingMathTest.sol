@@ -6,7 +6,7 @@ import {SaturatingMath} from "../math/SaturatingMath.sol";
 /// @title SaturatingMathTest
 /// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
 contract SaturatingMathTest {
-    using SaturatingMath for uint;
+    using SaturatingMath for uint256;
 
     /// Wraps `SaturatingMath.saturatingAdd`.
     /// Saturating addition.

@@ -2,26 +2,27 @@
 pragma solidity =0.8.10;
 
 import "../OrderBook.sol";
-import "./Vault.sol";
+import "../../vm/RainVM.sol";
 import "../../vm/VMStateBuilder.sol";
 
 type OrderHash is uint256;
 type OrderLiveness is uint256;
 
 struct OrderConfig {
-    address inputToken;
-    VaultId inputVaultId;
-    address outputToken;
-    VaultId outputVaultId;
+    IO[] validInputs;
+    IO[] validOutputs;
     StateConfig vmStateConfig;
+}
+
+struct IO {
+    address token;
+    uint vaultId;
 }
 
 struct Order {
     address owner;
-    address inputToken;
-    VaultId inputVaultId;
-    address outputToken;
-    VaultId outputVaultId;
+    IO[] validInputs;
+    IO[] validOutputs;
     uint256 tracking;
     bytes vmState;
 }
@@ -39,11 +40,11 @@ library LibOrder {
         returns (uint256 tracking_)
     {
         unchecked {
-            uint localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
-            uint localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
-            uint trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
-            uint trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
-            uint trackingMaskAll_ = TRACKING_MASK_ALL;
+            uint256 localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
+            uint256 localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
+            uint256 trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
+            uint256 trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
+            uint256 trackingMaskAll_ = TRACKING_MASK_ALL;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 bytes memory source_ = sources_[i_];
                 assembly {
@@ -96,10 +97,8 @@ library LibOrder {
         return
             Order(
                 msg.sender,
-                config_.inputToken,
-                config_.inputVaultId,
-                config_.outputToken,
-                config_.outputVaultId,
+                config_.validInputs,
+                config_.validOutputs,
                 deriveTracking(config_.vmStateConfig.sources),
                 VMStateBuilder(vmStateBuilder_).buildState(
                     vm_,

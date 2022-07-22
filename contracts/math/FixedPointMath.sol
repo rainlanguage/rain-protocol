@@ -18,7 +18,7 @@ uint256 constant FP_ONE = 1e18;
 /// "one" as 10 ** 18 and scale everything up/down to this as fixed point math.
 /// Overflows are errors as per Solidity.
 library FixedPointMath {
-    using Math for uint;
+    using Math for uint256;
 
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
     /// @param a_ Some fixed point decimal value.

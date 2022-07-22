@@ -7,24 +7,27 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
-import "./libraries/Vault.sol";
 import "./libraries/Order.sol";
 
 struct DepositConfig {
     address token;
-    VaultId vaultId;
+    uint256 vaultId;
     uint256 amount;
 }
 
 struct WithdrawConfig {
     address token;
-    VaultId vaultId;
+    uint256 vaultId;
     uint256 amount;
 }
 
-struct BountyConfig {
-    VaultId aVaultId;
-    VaultId bVaultId;
+struct ClearConfig {
+    uint256 aInputIndex;
+    uint256 aOutputIndex;
+    uint256 bInputIndex;
+    uint256 bOutputIndex;
+    uint256 aBountyVaultId;
+    uint256 bBountyVaultId;
 }
 
 struct EvalContext {
@@ -78,13 +81,13 @@ contract OrderBook is StandardVM {
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
     event OrderLive(address sender, Order config);
     event OrderDead(address sender, Order config);
-    event Clear(address sender, Order a_, Order b_, BountyConfig bountyConfig);
+    event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
 
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
-    // depositor => token => vault => token amount.
-    mapping(address => mapping(address => mapping(VaultId => uint256)))
+    // depositor => token => vault id => token amount.
+    mapping(address => mapping(address => mapping(uint256 => uint256)))
         private vaults;
 
     // funds were cleared from the hashed order to anyone.
@@ -156,13 +159,21 @@ contract OrderBook is StandardVM {
     function clear(
         Order memory a_,
         Order memory b_,
-        BountyConfig calldata bountyConfig_
+        ClearConfig calldata clearConfig_
     ) external {
         OrderHash aHash_ = a_.hash();
         OrderHash bHash_ = b_.hash();
         {
-            require(a_.outputToken == b_.inputToken, "TOKEN_MISMATCH");
-            require(b_.outputToken == a_.inputToken, "TOKEN_MISMATCH");
+            require(
+                a_.validOutputs[clearConfig_.aOutputIndex].token ==
+                    b_.validInputs[clearConfig_.bInputIndex].token,
+                "TOKEN_MISMATCH"
+            );
+            require(
+                b_.validOutputs[clearConfig_.bOutputIndex].token ==
+                    a_.validInputs[clearConfig_.aInputIndex].token,
+                "TOKEN_MISMATCH"
+            );
             require(orders[aHash_].isLive(), "A_NOT_LIVE");
             require(orders[bHash_].isLive(), "B_NOT_LIVE");
         }
@@ -179,7 +190,7 @@ contract OrderBook is StandardVM {
 
             // emit the Clear event before a_ and b_ are mutated due to the
             // VM execution in eval.
-            emit Clear(msg.sender, a_, b_, bountyConfig_);
+            emit Clear(msg.sender, a_, b_, clearConfig_);
 
             unchecked {
                 State memory vmState_;
@@ -209,10 +220,14 @@ contract OrderBook is StandardVM {
             // outputs are capped by the remaining funds in their output vault.
             {
                 aOutputMax_ = aOutputMax_.min(
-                    vaults[a_.owner][a_.outputToken][a_.outputVaultId]
+                    vaults[a_.owner][
+                        a_.validOutputs[clearConfig_.aOutputIndex].token
+                    ][a_.validOutputs[clearConfig_.aOutputIndex].vaultId]
                 );
                 bOutputMax_ = bOutputMax_.min(
-                    vaults[b_.owner][b_.outputToken][b_.outputVaultId]
+                    vaults[b_.owner][
+                        b_.validOutputs[clearConfig_.bOutputIndex].token
+                    ][b_.validOutputs[clearConfig_.bOutputIndex].vaultId]
                 );
             }
 
@@ -233,8 +248,9 @@ contract OrderBook is StandardVM {
         }
 
         if (stateChange_.aOutput > 0) {
-            vaults[a_.owner][a_.outputToken][a_.outputVaultId] -= stateChange_
-                .aOutput;
+            vaults[a_.owner][a_.validOutputs[clearConfig_.aOutputIndex].token][
+                a_.validOutputs[clearConfig_.aOutputIndex].vaultId
+            ] -= stateChange_.aOutput;
             if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
                 clearedOrder[aHash_] += stateChange_.aOutput;
             }
@@ -244,8 +260,9 @@ contract OrderBook is StandardVM {
             }
         }
         if (stateChange_.bOutput > 0) {
-            vaults[b_.owner][b_.outputToken][b_.outputVaultId] -= stateChange_
-                .bOutput;
+            vaults[b_.owner][b_.validOutputs[clearConfig_.bOutputIndex].token][
+                b_.validOutputs[clearConfig_.bOutputIndex].vaultId
+            ] -= stateChange_.bOutput;
             if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
                 clearedOrder[bHash_] += stateChange_.bOutput;
             }
@@ -254,11 +271,11 @@ contract OrderBook is StandardVM {
             }
         }
         if (stateChange_.aInput > 0) {
-            vaults[a_.owner][a_.inputToken][a_.inputVaultId] += stateChange_
+            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][a_.validInputs[clearConfig_.aInputIndex].vaultId] += stateChange_
                 .aInput;
         }
         if (stateChange_.bInput > 0) {
-            vaults[b_.owner][b_.inputToken][b_.inputVaultId] += stateChange_
+            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][b_.validInputs[clearConfig_.bInputIndex].vaultId] += stateChange_
                 .bInput;
         }
         {
@@ -267,13 +284,13 @@ contract OrderBook is StandardVM {
             uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
             uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
             if (aBounty_ > 0) {
-                vaults[msg.sender][a_.outputToken][
-                    bountyConfig_.aVaultId
+                vaults[msg.sender][a_.validOutputs[clearConfig_.aOutputIndex].token][
+                    clearConfig_.aBountyVaultId
                 ] += aBounty_;
             }
             if (bBounty_ > 0) {
-                vaults[msg.sender][b_.outputToken][
-                    bountyConfig_.bVaultId
+                vaults[msg.sender][b_.validOutputs[clearConfig_.bOutputIndex].token][
+                    clearConfig_.bBountyVaultId
                 ] += bBounty_;
             }
         }
