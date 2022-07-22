@@ -339,19 +339,27 @@ describe("Stake deposit", async function () {
     assert(depositsAlice2_[1].amount.eq(amount0.add(amount1)));
   });
 
-  it("burn amount issue", async function () {
+  it("should process deposit and withdraw with a non 1:1 ratio", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
 
     // Transfer tokens from the deployer to the alice with the instances
-    const amountToTransfer = "50000000";
-    await token.connect(deployer).approve(alice.address, amountToTransfer);
-    const reserveToken = token.connect(alice);
-    await reserveToken.transferFrom(
+    const amountToTransfer = ethers.BigNumber.from('50000000');
+    await token.connect(deployer).approve(deployer.address, amountToTransfer);
+
+    //await token.connect(alice);
+    await token.transferFrom(
       deployer.address,
       alice.address,
       amountToTransfer
+    );
+
+    const tokenBalanceAlice = await token.balanceOf(alice.address)
+
+    assert(
+      tokenBalanceAlice.eq(amountToTransfer),
+      "Alice did not received the tokens"
     );
 
     const stakeConfigStruct: StakeConfigStruct = {
@@ -359,12 +367,72 @@ describe("Stake deposit", async function () {
       symbol: "STKN",
       asset: token.address,
     };
-
     const stake = await stakeDeploy(alice, stakeFactory, stakeConfigStruct);
-    
-    await reserveToken.approve(stake.address, ethers.constants.MaxUint256);
-    await stake.deposit("20000000", alice.address);
-    
-    
+
+    const stTokenTotalSupply0 = await stake.totalSupply();
+    const tokenBalanceStake0 = await token.balanceOf(stake.address);
+
+    assert(
+      stTokenTotalSupply0.isZero(),
+      "stToken supply is not zero before any deposits"
+    );
+    assert(
+      tokenBalanceStake0.isZero(),
+      "stake contract token balance is not zero before any deposits"
+    );
+
+    await token.connect(alice).approve(stake.address, ethers.constants.MaxUint256);
+    const depositUnits = ethers.BigNumber.from("20000000");
+    // alice depositing 
+    await stake.deposit(depositUnits, alice.address);
+
+
+    const stTokenTotalSupply1 = await stake.totalSupply();
+    const tokenBalanceStake1 = await token.balanceOf(stake.address);
+    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
+    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+
+    assert(
+      stTokenTotalSupply1.eq(depositUnits),
+      "stToken has not minted correct units"
+    );
+    assert(
+      tokenBalanceStake1.eq(depositUnits),
+      "stake contract token balance is not equal to deposited amount"
+    );
+    assert(
+      stTokenBalanceAlice0.eq(depositUnits),
+      "Alice has not received correct share units"
+    );
+    assert(
+      tokenBalanceAlice0.eq(amountToTransfer.sub(depositUnits)),
+      "alice doesn't have correct token balance after deposit"
+    );
+
+    // alice withdrawing half of her shares
+    const shares = await stake.balanceOf(alice.address)
+    await stake.withdraw(shares.div(2), alice.address, alice.address)
+
+    const stTokenTotalSupply2 = await stake.totalSupply();
+    const tokenBalanceStake2 = await token.balanceOf(stake.address);
+    const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
+    const tokenBalanceAlice1 = await token.balanceOf(alice.address) 
+      
+    assert(
+      stTokenTotalSupply2.eq(stTokenTotalSupply1.div(2)),
+      "stToken has not burned correct units"
+    );
+    assert(
+      tokenBalanceStake2.eq(tokenBalanceStake1.div(2)),
+      "stake contract token balance has not transfered correct units to alice"
+    );
+    assert(
+      stTokenBalanceAlice1.eq(stTokenBalanceAlice0.div(2)),
+      "alice doesn't have correct share units after withdrawing"
+    );
+    assert(
+      tokenBalanceAlice1.eq(tokenBalanceAlice0.add(depositUnits.div(2))),
+      "alice has not received correct token units after withdrawing"
+    );
   });
 });
