@@ -40,11 +40,11 @@ library LibOrder {
         returns (uint256 tracking_)
     {
         unchecked {
-            uint localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
-            uint localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
-            uint trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
-            uint trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
-            uint trackingMaskAll_ = TRACKING_MASK_ALL;
+            uint256 localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
+            uint256 localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
+            uint256 trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
+            uint256 trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
+            uint256 trackingMaskAll_ = TRACKING_MASK_ALL;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 bytes memory source_ = sources_[i_];
                 assembly {
