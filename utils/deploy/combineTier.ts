@@ -51,5 +51,9 @@ export const combineTierDeploy = async (
   ) as CombineTier;
   await contract.deployed();
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  contract.deployTransaction = tx;
+
   return contract;
 };
