@@ -63,10 +63,8 @@ describe("OrderBook remove order", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
-      inputToken: tokenA.address,
-      inputVaultId: aliceInputVault,
-      outputToken: tokenB.address,
-      outputVaultId: aliceOutputVault,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,

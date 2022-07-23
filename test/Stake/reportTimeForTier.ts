@@ -1,9 +1,9 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken } from "../../typechain/ReserveToken";
+import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
-import { max_uint32, ONE, sixZeros } from "../../utils/constants/bigNumber";
+import { max_uint32, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
@@ -12,7 +12,7 @@ import { Tier } from "../../utils/types/tier";
 
 describe("Stake reportTimeForTier", async function () {
   let stakeFactory: StakeFactory;
-  let token: ReserveToken;
+  let token: ReserveToken18;
 
   before(async () => {
     const stakeFactoryFactory = await ethers.getContractFactory(
@@ -24,7 +24,7 @@ describe("Stake reportTimeForTier", async function () {
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
   it("should reset earliest time if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
@@ -35,17 +35,16 @@ describe("Stake reportTimeForTier", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[7].add(1); // exceeds all thresholds
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const timeOne0_ = await stake.reportTimeForTier(
       alice.address,
@@ -66,7 +65,9 @@ describe("Stake reportTimeForTier", async function () {
 
     // Alice withdraws tokens
     const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
-    await stake.connect(alice).withdraw(withdrawAmount);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     const timeOne1_ = await stake.reportTimeForTier(
       alice.address,
@@ -101,7 +102,7 @@ describe("Stake reportTimeForTier", async function () {
 
     // Alice deposits again, exceeding all thresholds again
     await token.connect(alice).approve(stake.address, withdrawAmount);
-    await stake.connect(alice).deposit(withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
 
     const timeOne2_ = await stake.reportTimeForTier(
       alice.address,
@@ -127,17 +128,16 @@ describe("Stake reportTimeForTier", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const time0_ = await stake.reportTimeForTier(
       alice.address,
@@ -152,7 +152,9 @@ describe("Stake reportTimeForTier", async function () {
 
     // Alice withdraws tokens
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     const time1_ = await stake.reportTimeForTier(
       alice.address,
@@ -169,7 +171,7 @@ describe("Stake reportTimeForTier", async function () {
 
     // Alice deposits again, exceeding threshold again
     await token.connect(alice).approve(stake.address, withdrawAmount);
-    await stake.connect(alice).deposit(withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
 
     const time2_ = await stake.reportTimeForTier(
       alice.address,
@@ -196,17 +198,16 @@ describe("Stake reportTimeForTier", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const time0_ = await stake.reportTimeForTier(
       alice.address,
@@ -223,7 +224,7 @@ describe("Stake reportTimeForTier", async function () {
     const depositAmount1 = 10; // still exceeds 1st threshold, but less than 2nd threshold
     await token.transfer(alice.address, depositAmount1);
     await token.connect(alice).approve(stake.address, depositAmount1);
-    await stake.connect(alice).deposit(depositAmount1);
+    await stake.connect(alice).deposit(depositAmount1, alice.address);
 
     const time1_ = await stake.reportTimeForTier(
       alice.address,
@@ -242,7 +243,7 @@ describe("Stake reportTimeForTier", async function () {
       .add(1); // exceeds 2nd threshold
     await token.transfer(alice.address, depositAmount2);
     await token.connect(alice).approve(stake.address, depositAmount2);
-    await stake.connect(alice).deposit(depositAmount2);
+    await stake.connect(alice).deposit(depositAmount2, alice.address);
 
     const timeTWO_ = await stake.reportTimeForTier(
       alice.address,
@@ -270,17 +271,16 @@ describe("Stake reportTimeForTier", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const time_ = await stake.reportTimeForTier(
       alice.address,
@@ -303,8 +303,7 @@ describe("Stake reportTimeForTier", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -322,17 +321,16 @@ describe("Stake reportTimeForTier", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const time0_ = await stake.reportTimeForTier(alice.address, Tier.ONE, []);
     const time1_ = await stake.reportTimeForTier(alice.address, Tier.TWO, [
