@@ -3,6 +3,7 @@ export enum AllStandardOps {
   STACK,
   CONTEXT,
   STORAGE,
+  LOOP_N,
   ZIPMAP,
   DEBUG,
   ERC20_BALANCE_OF,

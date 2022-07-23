@@ -109,6 +109,8 @@ library AllStandardOps {
                 0,
                 // opcode storage
                 0,
+                // opcode loop n (ignored)
+                0,
                 // opcode zipmap (ignored)
                 0,
                 // opcode debug
@@ -217,6 +219,8 @@ library AllStandardOps {
                 1,
                 // opcode storage
                 1,
+                // opcode loop n (will be ignored)
+                0,
                 // opcode zipmap (will be ignored)
                 0,
                 // opcode debug
@@ -322,6 +326,8 @@ library AllStandardOps {
                 // context
                 0,
                 // storage
+                0,
+                // loop n
                 0,
                 // zipmap
                 0,

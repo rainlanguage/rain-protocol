@@ -23,15 +23,17 @@ uint256 constant OPCODE_CONTEXT = 2;
 
 uint256 constant OPCODE_STORAGE = 3;
 
+uint constant OPCODE_LOOP_N = 4;
+
 /// @dev Takes N values off the stack, interprets them as an array then zips
 /// and maps a source from `sources` over them.
-uint256 constant OPCODE_ZIPMAP = 4;
+uint256 constant OPCODE_ZIPMAP = 5;
 
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
-uint256 constant OPCODE_DEBUG = 5;
+uint256 constant OPCODE_DEBUG = 6;
 
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 6;
+uint256 constant RAIN_VM_OPS_LENGTH = 7;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -350,7 +352,10 @@ abstract contract RainVM {
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }
-                    } else if (opcode_ == OPCODE_ZIPMAP) {
+                    } else if (opcode_ == OPCODE_LOOP_N) {
+
+                    }
+                    else if (opcode_ == OPCODE_ZIPMAP) {
                         stackTop_ = zipmap(
                             context_,
                             state_,
