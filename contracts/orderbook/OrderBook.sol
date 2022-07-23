@@ -67,6 +67,7 @@ library LibEvalContext {
 contract OrderBook is StandardVM {
     using LibVMState for bytes;
     using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
@@ -198,24 +199,22 @@ contract OrderBook is StandardVM {
                 VMState memory vmState_;
                 {
                     vmState_ = a_.vmState.fromBytesPacked();
-                    eval(
+                    (aOutputMax_, aPrice_) = eval(
                         EvalContext(aHash_, b_.owner).toContext(),
                         vmState_,
-                        ENTRYPOINT
-                    );
-                    aPrice_ = vmState_.stack[vmState_.stackIndex - 1];
-                    aOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
+                        ENTRYPOINT,
+                        vmState_.stack.asStackTopUp()
+                    ).peek2();
                 }
 
                 {
                     vmState_ = b_.vmState.fromBytesPacked();
-                    eval(
+                    (bOutputMax_, bPrice_) = eval(
                         EvalContext(bHash_, a_.owner).toContext(),
                         vmState_,
-                        ENTRYPOINT
-                    );
-                    bPrice_ = vmState_.stack[vmState_.stackIndex - 1];
-                    bOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
+                        ENTRYPOINT,
+                        vmState_.stack.asStackTopUp()
+                    ).peek2();
                 }
             }
 
@@ -307,7 +306,7 @@ contract OrderBook is StandardVM {
         view
         returns (StackTop)
     {
-        (StackTop location_, uint256 orderHash_) = stackTop_.peek();
+        (StackTop location_, uint256 orderHash_) = stackTop_.pop();
         location_.set(clearedOrder[OrderHash.wrap(orderHash_)]);
         return stackTop_;
     }

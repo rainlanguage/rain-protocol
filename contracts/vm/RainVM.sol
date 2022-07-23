@@ -236,7 +236,7 @@ abstract contract RainVM {
                         }
                     }
                 }
-                stackTop_ = eval(context_, state_, sourceIndex_);
+                stackTop_ = eval(context_, state_, sourceIndex_, stackTop_);
             }
             return stackTop_;
         }
@@ -257,8 +257,9 @@ abstract contract RainVM {
     function eval(
         uint256[] memory context_,
         VMState memory state_,
-        uint256 sourceIndex_
-    ) internal view returns (StackTop stackTop_) {
+        uint256 sourceIndex_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         unchecked {
             uint256 cursor_ = StackTop.unwrap(
                 state_.ptrSources[sourceIndex_].asStackTop()
@@ -266,7 +267,6 @@ abstract contract RainVM {
             uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
             StackTop constantsBottom_ = state_.constants.asStackTopUp();
             StackTop stackBottom_ = state_.stack.asStackTopUp();
-            stackTop_ = stackBottom_.up(state_.stackIndex);
 
             // Loop until complete.
             while (cursor_ < end_) {
@@ -289,10 +289,7 @@ abstract contract RainVM {
                             mstore(
                                 stackTop_,
                                 mload(
-                                    add(
-                                        constantsBottom_,
-                                        mul(0x20, operand_)
-                                    )
+                                    add(constantsBottom_, mul(0x20, operand_))
                                 )
                             )
                             stackTop_ := add(stackTop_, 0x20)
@@ -301,12 +298,7 @@ abstract contract RainVM {
                         assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
-                                mload(
-                                    add(
-                                        stackBottom_,
-                                        mul(operand_, 0x20)
-                                    )
-                                )
+                                mload(add(stackBottom_, mul(operand_, 0x20)))
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }
@@ -342,12 +334,12 @@ abstract contract RainVM {
                     } else if (opcode_ == OPCODE_LOOP_N) {
                         uint256 n_ = operand_ & 0x0F;
                         uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
-                        state_.syncIndexToStackTop(stackTop_);
                         for (uint256 i_ = 0; i_ <= n_; i_++) {
                             stackTop_ = eval(
                                 context_,
                                 state_,
-                                loopSourceIndex_
+                                loopSourceIndex_,
+                                stackTop_
                             );
                         }
                     } else if (opcode_ == OPCODE_ZIPMAP) {
@@ -359,14 +351,14 @@ abstract contract RainVM {
                             operand_
                         );
                     } else {
-                        state_.syncIndexToStackTop(stackTop_);
-                        state_.debug(DebugStyle(operand_));
+                        state_.debug(stackTop_, DebugStyle(operand_));
                     }
                 } else {
                     stackTop_ = opcode_.asOpFn()(operand_, stackTop_);
                 }
             }
-            state_.syncIndexToStackTop(stackTop_);
+
+            return stackTop_;
         }
     }
 }

@@ -14,7 +14,7 @@ library OpIsZero {
         pure
         returns (StackTop)
     {
-        (StackTop location_, uint256 a_) = stackTop_.peek();
+        (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set((a_ == 0).asUint256());
         return stackTop_;
     }

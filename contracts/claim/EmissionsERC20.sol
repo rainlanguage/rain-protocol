@@ -51,6 +51,9 @@ contract EmissionsERC20 is
     ERC20Upgradeable,
     IClaim
 {
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
+
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
@@ -132,8 +135,9 @@ contract EmissionsERC20 is
         VMState memory state_ = _loadVMState();
         uint256[] memory context_ = new uint256[](1);
         context_[0] = uint256(uint160(claimant_));
-        eval(context_, state_, ENTRYPOINT);
-        return state_.stack[state_.stackIndex - 1];
+        return
+            eval(context_, state_, ENTRYPOINT, state_.stack.asStackTopUp())
+                .peek();
     }
 
     /// Processes the claim for `claimant_`.

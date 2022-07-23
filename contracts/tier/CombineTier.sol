@@ -34,6 +34,9 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2, StandardVM, Initializable {
+    using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
+
     event Initialize(address sender, CombineTierConfig config);
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
@@ -75,7 +78,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         view
         virtual
         override
-        returns (uint256 report_)
+        returns (uint256)
     {
         unchecked {
             VMState memory state_ = _loadVMState();
@@ -84,8 +87,13 @@ contract CombineTier is TierV2, StandardVM, Initializable {
             for (uint256 i_ = 0; i_ < context_.length; i_++) {
                 evalContext_[i_ + 1] = context_[i_];
             }
-            eval(evalContext_, state_, REPORT_ENTRYPOINT);
-            report_ = state_.stack[state_.stackIndex - 1];
+            return
+                eval(
+                    evalContext_,
+                    state_,
+                    REPORT_ENTRYPOINT,
+                    state_.stack.asStackTopUp()
+                ).peek();
         }
     }
 
@@ -94,7 +102,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         address account_,
         uint256 tier_,
         uint256[] calldata context_
-    ) external view returns (uint256 time_) {
+    ) external view returns (uint256) {
         unchecked {
             VMState memory state_ = _loadVMState();
             uint256[] memory evalContext_ = new uint256[](context_.length + 2);
@@ -103,8 +111,13 @@ contract CombineTier is TierV2, StandardVM, Initializable {
             for (uint256 i_ = 0; i_ < context_.length; i_++) {
                 evalContext_[i_ + 2] = context_[i_];
             }
-            eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
-            time_ = state_.stack[state_.stackIndex - 1];
+            return
+                eval(
+                    evalContext_,
+                    state_,
+                    REPORT_FOR_TIER_ENTRYPOINT,
+                    state_.stack.asStackTopUp()
+                ).peek();
         }
     }
 }

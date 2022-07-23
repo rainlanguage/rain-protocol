@@ -19,6 +19,8 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     using LibStackTop for StackTop;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -63,8 +65,14 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
                 if (evidences_[i_].data.length == 0x20) {
                     context_[0] = uint256(uint160(evidences_[i_].account));
                     context_[1] = uint256(bytes32(evidences_[i_].data));
-                    eval(context_, state_, ENTRYPOINT);
-                    if (state_.stack[state_.stackIndex - 1] > 0) {
+                    if (
+                        eval(
+                            context_,
+                            state_,
+                            ENTRYPOINT,
+                            state_.stack.asStackTopUp()
+                        ).peek() > 0
+                    ) {
                         _approvedEvidenceData[
                             uint256(bytes32(evidences_[i_].data))
                         ] = block.timestamp;
@@ -75,7 +83,6 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
                         );
                         approvals_++;
                     }
-                    state_.reset();
                 }
             }
             if (approvals_ > 0) {
@@ -90,7 +97,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         view
         returns (StackTop)
     {
-        (StackTop location_, uint256 evidenceData_) = stackTop_.peek();
+        (StackTop location_, uint256 evidenceData_) = stackTop_.pop();
         location_.set(_approvedEvidenceData[evidenceData_]);
         return stackTop_;
     }

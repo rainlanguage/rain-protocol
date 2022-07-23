@@ -13,6 +13,10 @@ uint256 constant STORAGE_OPCODES_LENGTH = 3;
 /// @title AllStandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is StandardVM {
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
+    using LibVMState for VMState;
+
     /// *** STORAGE OPCODES START ***
 
     uint256 private _val0 = 0;
@@ -23,6 +27,7 @@ contract AllStandardOpsTest is StandardVM {
     /// *** STORAGE OPCODES END ***
 
     VMState private _state;
+    uint256 private _stackIndex;
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
@@ -38,10 +43,8 @@ contract AllStandardOpsTest is StandardVM {
         _saveVMState(stateConfig_, boundss_);
     }
 
-    /// Wraps `runState` and returns top of stack.
-    /// @return top of `runState` stack.
-    function stackTop() external view returns (uint256) {
-        return _state.stack[_state.stackIndex - 1];
+    function stackTop() external view returns (uint) {
+        return _state.stack[_stackIndex - 1];
     }
 
     function stack() external view returns (uint256[] memory) {
@@ -56,13 +59,19 @@ contract AllStandardOpsTest is StandardVM {
     function run() public {
         VMState memory state_ = _loadVMState();
         uint256 a_ = gasleft();
-        eval(new uint256[](0), state_, ENTRYPOINT);
+        StackTop stackTop_ = eval(
+            new uint256[](0),
+            state_,
+            ENTRYPOINT,
+            state_.stack.asStackTopUp()
+        );
         uint256 b_ = gasleft();
         console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
         _state = state_;
+        _stackIndex = state_.stackTopToIndex(stackTop_);
     }
 
     /// Runs `eval` and stores full state. Stores `context_` to be accessed
@@ -70,7 +79,7 @@ contract AllStandardOpsTest is StandardVM {
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
         VMState memory state_ = _loadVMState();
-        eval(context_, state_, ENTRYPOINT);
+        eval(context_, state_, ENTRYPOINT, state_.stack.asStackTopUp());
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.

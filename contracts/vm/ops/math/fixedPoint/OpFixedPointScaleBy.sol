@@ -15,7 +15,7 @@ library OpFixedPointScaleBy {
         pure
         returns (StackTop)
     {
-        (StackTop location_, uint256 a_) = stackTop_.peek();
+        (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set(a_.scaleBy(int8(uint8(operand_))));
         return stackTop_;
     }

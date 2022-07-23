@@ -9,7 +9,7 @@ import { op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
-describe.only("RainVM EVM constant ops", async () => {
+describe("RainVM EVM constant ops", async () => {
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
 

@@ -143,6 +143,8 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
     using LibVMState for VMState;
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -354,10 +356,13 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
-            eval(new uint256[](0), state_, CAN_LIVE_ENTRYPOINT);
-            bool canLive_ = state_.stack[state_.stackIndex - 1] > 0;
-            state_.reset();
-            return canLive_;
+            return
+                eval(
+                    new uint256[](0),
+                    state_,
+                    CAN_LIVE_ENTRYPOINT,
+                    state_.stack.asStackTopUp()
+                ).peek() > 0;
         }
     }
 
@@ -379,14 +384,13 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         unchecked {
             uint256[] memory context_ = new uint256[](1);
             context_[0] = targetUnits_;
-            eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
-
-            (uint256 maxUnits_, uint256 price_) = (
-                state_.stack[state_.stackIndex - 2],
-                state_.stack[state_.stackIndex - 1]
-            );
-            state_.reset();
-            return (maxUnits_, price_);
+            return
+                eval(
+                    context_,
+                    state_,
+                    CALCULATE_PRICE_ENTRYPOINT,
+                    state_.stack.asStackTopUp()
+                ).peek2();
         }
     }
 

@@ -15,7 +15,7 @@ library OpFixedPointScale18 {
         pure
         returns (StackTop)
     {
-        (StackTop location_, uint256 a_) = stackTop_.peek();
+        (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set(a_.scale18(operand_));
         return stackTop_;
     }

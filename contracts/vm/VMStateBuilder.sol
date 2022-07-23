@@ -149,7 +149,6 @@ contract VMStateBuilder {
             }
 
             stateBytes_ = VMState(
-                0,
                 new uint256[](stackLength_),
                 ptrSources_,
                 constants_,

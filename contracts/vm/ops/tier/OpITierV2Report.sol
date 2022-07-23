@@ -32,7 +32,7 @@ library OpITierV2Report {
             operand_
         );
         stackTopAfter_ = context_.asStackTop();
-        (StackTop location_, uint256 tierContract_) = stackTopAfter_.peek();
+        (StackTop location_, uint256 tierContract_) = stackTopAfter_.pop();
         location_.set(
             ITierV2(address(uint160(tierContract_))).report(
                 address(uint160(account_)),

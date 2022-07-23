@@ -15,7 +15,7 @@ library OpERC20TotalSupply {
         view
         returns (StackTop)
     {
-        (StackTop location_, uint256 token_) = stackTop_.peek();
+        (StackTop location_, uint256 token_) = stackTop_.pop();
         location_.set(IERC20(address(uint160(token_))).totalSupply());
         return stackTop_;
     }

@@ -30,7 +30,6 @@ enum DebugStyle {
 /// @param arguments `ZIPMAP` populates arguments which can be copied to the
 /// stack by `VAL`.
 struct VMState {
-    uint256 stackIndex;
     uint256[] stack;
     bytes[] ptrSources;
     uint256[] constants;
@@ -45,29 +44,6 @@ library LibVMState {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
 
-    function syncIndexToStackTop(VMState memory state_, StackTop stackTop_)
-        internal
-        pure
-    {
-        unchecked {
-            state_.stackIndex =
-                (StackTop.unwrap(stackTop_) -
-                    StackTop.unwrap(state_.stack.asStackTop().up())) /
-                0x20;
-        }
-    }
-
-    /// Put the state back to a freshly eval-able value. The same state can be
-    /// run more than once (e.g. two different entrypoints) to yield different
-    /// stacks, as long as all the sources are VALID and reset is called
-    /// between each eval call.
-    /// Generally this should be called whenever eval is run over a state that
-    /// is exposed to the calling context (e.g. it is an argument) so that the
-    /// caller may safely eval multiple times on any state it has in scope.
-    function reset(VMState memory state_) internal pure {
-        state_.stackIndex = 0;
-    }
-
     function toBytesDebug(VMState memory state_)
         internal
         pure
@@ -76,18 +52,30 @@ library LibVMState {
         return abi.encode(state_);
     }
 
-    function debug(VMState memory state_, DebugStyle debugStyle_)
+    function stackTopToIndex(VMState memory state_, StackTop stackTop_)
         internal
-        view
+        pure
+        returns (uint256)
     {
-        bytes memory debug_;
+        unchecked {
+            return
+                (StackTop.unwrap(stackTop_) -
+                    StackTop.unwrap(state_.stack.asStackTopUp())) / 0x20;
+        }
+    }
+
+    function debug(
+        VMState memory state_,
+        StackTop stackTop_,
+        DebugStyle debugStyle_
+    ) internal view {
         if (debugStyle_ == DebugStyle.StateAbi) {
-            debug_ = abi.encode(state_);
+            console.logBytes(abi.encode(state_));
         } else if (debugStyle_ == DebugStyle.StatePacked) {
-            debug_ = state_.toBytesPacked();
+            console.logBytes(state_.toBytesPacked());
         } else if (debugStyle_ == DebugStyle.Stack) {
             console.log("~stack~");
-            console.log("idx: %s", state_.stackIndex);
+            console.log("idx: %s", state_.stackTopToIndex(stackTop_));
             unchecked {
                 for (uint256 i_ = 0; i_ < state_.stack.length; i_++) {
                     console.log(i_, state_.stack[i_]);
@@ -95,10 +83,7 @@ library LibVMState {
             }
             console.log("~~~~~");
         } else if (debugStyle_ == DebugStyle.StackIndex) {
-            debug_ = abi.encodePacked(state_.stackIndex);
-        }
-        if (debug_.length > 0) {
-            console.logBytes(debug_);
+            console.log(state_.stackTopToIndex(stackTop_));
         }
     }
 
@@ -117,7 +102,7 @@ library LibVMState {
                 // bytes.
                 mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
                 // point state constants at state bytes
-                mstore(add(state_, 0x60), add(stateBytes_, 0x20))
+                mstore(add(state_, 0x40), add(stateBytes_, 0x20))
             }
             // Stack index 0 is implied.
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
@@ -154,7 +139,7 @@ library LibVMState {
                 }
                 // point state at sources_ rather than clone in memory
                 ptrSources_ := ptrSourcesPtrs_
-                mstore(add(state_, 0x40), ptrSources_)
+                mstore(add(state_, 0x20), ptrSources_)
             }
             return state_;
         }

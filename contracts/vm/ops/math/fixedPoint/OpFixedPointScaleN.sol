@@ -15,7 +15,7 @@ library OpFixedPointScaleN {
         pure
         returns (StackTop)
     {
-        (StackTop location_, uint256 a_) = stackTop_.peek();
+        (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set(a_.scaleN(operand_));
         return stackTop_;
     }
