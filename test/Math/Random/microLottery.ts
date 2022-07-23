@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import type { Contract } from "ethers";
 import type { RandomTest } from "../../../typechain/RandomTest";
+import { assertError } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { prettyPrintMatrix } from "../../../utils/output/log";
 
@@ -204,5 +205,28 @@ describe("Random Micro lottery", async function () {
         assert(set.has(j), `item missing: ${j}`);
       }
     }
+  });
+
+  it("should fail with the reverts if the requires are not passed", async function () {
+    const random = (await basicDeploy("RandomTest", {})) as RandomTest &
+      Contract;
+
+    const SEED = 1000;
+    const invalidMax = 0xff + 1; // 1 full byte plus one === 255 + 1
+
+    assertError(
+      async () => await random.microLottery(SEED, invalidMax, 0),
+      "MAX_MAX",
+      "Max not panic with values major to 1 byte"
+    );
+
+    const littleMax = 2;
+    const n = 2;
+
+    assertError(
+      async () => await random.microLottery(SEED, littleMax, n),
+      "MAX_N",
+      "Max not panic when n_ is lower than max_"
+    );
   });
 });
