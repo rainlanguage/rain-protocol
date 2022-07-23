@@ -16,7 +16,7 @@ struct OrderConfig {
 
 struct IO {
     address token;
-    uint vaultId;
+    uint256 vaultId;
 }
 
 struct Order {

@@ -16,7 +16,17 @@ library LibStackTop {
         return stackTop_;
     }
 
-    function push(StackTop stackTop_, uint a_, uint b_, uint c_, uint d_, uint e_, uint f_, uint g_, uint h_) internal pure returns (StackTop) {
+    function push(
+        StackTop stackTop_,
+        uint256 a_,
+        uint256 b_,
+        uint256 c_,
+        uint256 d_,
+        uint256 e_,
+        uint256 f_,
+        uint256 g_,
+        uint256 h_
+    ) internal pure returns (StackTop) {
         assembly ("memory-safe") {
             mstore(stackTop_, a_)
             mstore(add(stackTop_, 0x20), b_)
@@ -34,6 +44,16 @@ library LibStackTop {
     function peekUp(StackTop stackTop_) internal pure returns (uint256 a_) {
         assembly ("memory-safe") {
             a_ := mload(stackTop_)
+        }
+    }
+
+    function peekUp(StackTop stackTop_, uint256 n_)
+        internal
+        pure
+        returns (uint256 a_)
+    {
+        assembly ("memory-safe") {
+            a_ := mload(add(stackTop_, mul(0x20, n_)))
         }
     }
 
@@ -111,6 +131,16 @@ library LibStackTop {
     {
         assembly ("memory-safe") {
             stackTop_ := list_
+        }
+    }
+
+    function asStackTop(bytes memory bytes_)
+        internal
+        pure
+        returns (StackTop stackTop_)
+    {
+        assembly ("memory-safe") {
+            stackTop_ := bytes_
         }
     }
 

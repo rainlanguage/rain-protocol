@@ -56,9 +56,11 @@ contract LibUint256ArrayTest {
         assembly ("memory-safe") {
             inputCursor_ := add(inputs_, 0x20)
         }
-        return LibUint256Array.unsafeCopyValuesToNewArray(
-            inputCursor_, inputs_.length
-        );
+        return
+            LibUint256Array.unsafeCopyValuesToNewArray(
+                inputCursor_,
+                inputs_.length
+            );
     }
 
     function getUnchecked(uint256[] memory list_, uint256 i_)
@@ -66,8 +68,6 @@ contract LibUint256ArrayTest {
         pure
         returns (uint256)
     {
-        return LibUint256Array.getUnchecked(
-            list_, i_
-        );
+        return LibUint256Array.getUnchecked(list_, i_);
     }
 }

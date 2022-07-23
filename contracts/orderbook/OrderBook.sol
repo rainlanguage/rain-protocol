@@ -273,12 +273,14 @@ contract OrderBook is StandardVM {
             }
         }
         if (stateChange_.aInput > 0) {
-            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][a_.validInputs[clearConfig_.aInputIndex].vaultId] += stateChange_
-                .aInput;
+            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][
+                a_.validInputs[clearConfig_.aInputIndex].vaultId
+            ] += stateChange_.aInput;
         }
         if (stateChange_.bInput > 0) {
-            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][b_.validInputs[clearConfig_.bInputIndex].vaultId] += stateChange_
-                .bInput;
+            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][
+                b_.validInputs[clearConfig_.bInputIndex].vaultId
+            ] += stateChange_.bInput;
         }
         {
             // At least one of these will overflow due to negative bounties if
@@ -286,14 +288,14 @@ contract OrderBook is StandardVM {
             uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
             uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
             if (aBounty_ > 0) {
-                vaults[msg.sender][a_.validOutputs[clearConfig_.aOutputIndex].token][
-                    clearConfig_.aBountyVaultId
-                ] += aBounty_;
+                vaults[msg.sender][
+                    a_.validOutputs[clearConfig_.aOutputIndex].token
+                ][clearConfig_.aBountyVaultId] += aBounty_;
             }
             if (bBounty_ > 0) {
-                vaults[msg.sender][b_.validOutputs[clearConfig_.bOutputIndex].token][
-                    clearConfig_.bBountyVaultId
-                ] += bBounty_;
+                vaults[msg.sender][
+                    b_.validOutputs[clearConfig_.bOutputIndex].token
+                ][clearConfig_.bBountyVaultId] += bBounty_;
             }
         }
 

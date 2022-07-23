@@ -307,7 +307,7 @@ describe("Stake direct ledger analysis", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice2_ = await getDeposits(stake, alice.address);
-   
+
     const expectedAliceLength2 = 0;
     assert(
       depositsAlice2_.length === expectedAliceLength2,

@@ -23,7 +23,7 @@ uint256 constant OPCODE_CONTEXT = 2;
 
 uint256 constant OPCODE_STORAGE = 3;
 
-uint constant OPCODE_LOOP_N = 4;
+uint256 constant OPCODE_LOOP_N = 4;
 
 /// @dev Takes N values off the stack, interprets them as an array then zips
 /// and maps a source from `sources` over them.
@@ -99,6 +99,9 @@ abstract contract RainVM {
     using SaturatingMath for uint256;
     using LibCast for uint256;
     using LibVMState for VMState;
+    using LibStackTop for uint256[];
+    using LibStackTop for bytes;
+    using LibStackTop for StackTop;
 
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesRange()
@@ -255,40 +258,24 @@ abstract contract RainVM {
         uint256[] memory context_,
         VMState memory state_,
         uint256 sourceIndex_
-    ) internal view returns (StackTop) {
+    ) internal view returns (StackTop stackTop_) {
         unchecked {
-            uint256 cursor_;
-            uint256 end_;
+            StackTop cursor_ = state_.ptrSources[sourceIndex_].asStackTop();
+            StackTop end_ = StackTop.wrap(
+                StackTop.unwrap(cursor_) +
+                    state_.ptrSources[sourceIndex_].length
+            );
             uint256 opcode_;
             uint256 operand_;
-            uint256 constantsBottomLocation_;
-            uint256 stackBottomLocation_;
-            StackTop stackTop_;
-            uint256 firstFnPtrLocation_;
-
-            assembly ("memory-safe") {
-                let stackLocation_ := mload(add(state_, 0x20))
-                stackBottomLocation_ := add(stackLocation_, 0x20)
-                stackTop_ := add(
-                    stackBottomLocation_,
-                    // Add stack index offset.
-                    mul(mload(state_), 0x20)
-                )
-                let sourceLocation_ := mload(
-                    add(
-                        mload(add(state_, 0x40)),
-                        add(0x20, mul(sourceIndex_, 0x20))
-                    )
-                )
-                cursor_ := sourceLocation_
-                end_ := add(cursor_, mload(sourceLocation_))
-                constantsBottomLocation_ := add(mload(add(state_, 0x60)), 0x20)
-                // first fn pointer is seen if we move two bytes into the data.
-                firstFnPtrLocation_ := add(mload(add(state_, 0xA0)), 0x02)
-            }
+            StackTop constantsBottomLocation_ = state_
+                .constants
+                .asStackTop()
+                .up();
+            stackTop_ = state_.stackTopAtIndex();
+            StackTop stackBottomLocation_ = state_.stack.asStackTop().up();
 
             // Loop until complete.
-            while (cursor_ < end_) {
+            while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
                 assembly ("memory-safe") {
                     cursor_ := add(cursor_, 3)
                     let op_ := and(mload(cursor_), 0xFFFFFF)
@@ -353,9 +340,18 @@ abstract contract RainVM {
                             stackTop_ := add(stackTop_, 0x20)
                         }
                     } else if (opcode_ == OPCODE_LOOP_N) {
-
-                    }
-                    else if (opcode_ == OPCODE_ZIPMAP) {
+                        uint256 n_ = operand_ & 0x0F;
+                        uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
+                        state_.syncIndexToStackTop(stackTop_);
+                        for (uint256 i_ = 0; i_ <= n_; i_++) {
+                            stackTop_ = eval(
+                                context_,
+                                state_,
+                                loopSourceIndex_
+                            );
+                        }
+                    } else if (opcode_ == OPCODE_ZIPMAP) {
+                        // state_.syncIndexToStackTop(stackTop_);
                         stackTop_ = zipmap(
                             context_,
                             state_,
@@ -363,6 +359,7 @@ abstract contract RainVM {
                             operand_
                         );
                     } else {
+                        state_.syncIndexToStackTop(stackTop_);
                         state_.debug(DebugStyle(operand_));
                     }
                 } else {
@@ -387,10 +384,7 @@ abstract contract RainVM {
                     "STACK_OVERFLOW"
                 );
             }
-            state_.stackIndex =
-                (StackTop.unwrap(stackTop_) - stackBottomLocation_) /
-                0x20;
-            return stackTop_;
+            state_.syncIndexToStackTop(stackTop_);
         }
     }
 }

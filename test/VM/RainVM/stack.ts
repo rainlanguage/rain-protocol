@@ -64,7 +64,7 @@ describe("RainVM stack op", async function () {
   });
 
   it("should evaluate to correct stack element when STACK is called within a nested evaluation", async () => {
-    const constants = [10, 20, 30, 40];
+    const constants = [8, 16, 32, 64];
 
     // STACK should have access to all evaluated stack values
 
@@ -82,11 +82,11 @@ describe("RainVM stack op", async function () {
     await logic.run();
 
     const result = await logic.stackTop();
-
+    const expected = constants[2] + constants[3] + constants[0];
     assert(
-      result.eq(80),
+      result.eq(expected),
       `STACK operand evaluated to wrong stack element when STACK is called within a nested evaluation
-      expected  ${80}
+      expected  ${expected}
       got       ${result}`
     );
   });

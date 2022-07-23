@@ -14,17 +14,18 @@ library OpExplode32 {
         pure
         returns (StackTop)
     {
-        (StackTop location_, uint i_) = stackTop_.peek();
-        uint mask_ = uint(type(uint32).max);
-        return location_.push(
-            i_ & mask_,
-            i_ >> 0x20 & mask_,
-            i_ >> 0x40 & mask_,
-            i_ >> 0x60 & mask_,
-            i_ >> 0x80 & mask_,
-            i_ >> 0xA0 & mask_,
-            i_ >> 0xC0 & mask_,
-            i_ >> 0xE0 & mask_
-        );
+        (StackTop location_, uint256 i_) = stackTop_.peek();
+        uint256 mask_ = uint256(type(uint32).max);
+        return
+            location_.push(
+                i_ & mask_,
+                (i_ >> 0x20) & mask_,
+                (i_ >> 0x40) & mask_,
+                (i_ >> 0x60) & mask_,
+                (i_ >> 0x80) & mask_,
+                (i_ >> 0xA0) & mask_,
+                (i_ >> 0xC0) & mask_,
+                (i_ >> 0xE0) & mask_
+            );
     }
 }

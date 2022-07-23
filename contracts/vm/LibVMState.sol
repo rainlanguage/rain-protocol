@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "./LibStackTop.sol";
 import "hardhat/console.sol";
 
 enum DebugStyle {
@@ -41,6 +42,30 @@ struct VMState {
 
 library LibVMState {
     using LibVMState for VMState;
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
+
+    function syncIndexToStackTop(VMState memory state_, StackTop stackTop_)
+        internal
+        pure
+    {
+        unchecked {
+            state_.stackIndex =
+                (StackTop.unwrap(stackTop_) -
+                    StackTop.unwrap(state_.stack.asStackTop().up())) /
+                0x20;
+        }
+    }
+
+    function stackTopAtIndex(VMState memory state_)
+        internal
+        pure
+        returns (StackTop)
+    {
+        unchecked {
+            return state_.stack.asStackTop().up(state_.stackIndex + 1);
+        }
+    }
 
     /// Put the state back to a freshly eval-able value. The same state can be
     /// run more than once (e.g. two different entrypoints) to yield different
@@ -71,7 +96,14 @@ library LibVMState {
         } else if (debugStyle_ == DebugStyle.StatePacked) {
             debug_ = state_.toBytesPacked();
         } else if (debugStyle_ == DebugStyle.Stack) {
-            debug_ = abi.encodePacked(state_.stack);
+            console.log("~stack~");
+            console.log("idx: %s", state_.stackIndex);
+            unchecked {
+                for (uint256 i_ = 0; i_ < state_.stack.length; i_++) {
+                    console.log(i_, state_.stack[i_]);
+                }
+            }
+            console.log("~~~~~");
         } else if (debugStyle_ == DebugStyle.StackIndex) {
             debug_ = abi.encodePacked(state_.stackIndex);
         }
