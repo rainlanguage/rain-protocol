@@ -134,6 +134,16 @@ library LibStackTop {
         }
     }
 
+    function asStackTopUp(uint256[] memory list_)
+        internal
+        pure
+        returns (StackTop stackTop_)
+    {
+        assembly ("memory-safe") {
+            stackTop_ := add(list_, 0x20)
+        }
+    }
+
     function asStackTop(bytes memory bytes_)
         internal
         pure
@@ -143,6 +153,12 @@ library LibStackTop {
             stackTop_ := bytes_
         }
     }
+
+    // function asStackTopUp(bytes memory bytes_) internal pure returns (StackTop stackTop_) {
+    //     assembly ("memory-safe") {
+    //         stackTop_ := add(bytes_, 0x20)
+    //     }
+    // }
 
     function up(StackTop stackTop_) internal pure returns (StackTop) {
         unchecked {

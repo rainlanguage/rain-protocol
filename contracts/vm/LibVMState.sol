@@ -57,16 +57,6 @@ library LibVMState {
         }
     }
 
-    function stackTopAtIndex(VMState memory state_)
-        internal
-        pure
-        returns (StackTop)
-    {
-        unchecked {
-            return state_.stack.asStackTop().up(state_.stackIndex + 1);
-        }
-    }
-
     /// Put the state back to a freshly eval-able value. The same state can be
     /// run more than once (e.g. two different entrypoints) to yield different
     /// stacks, as long as all the sources are VALID and reset is called

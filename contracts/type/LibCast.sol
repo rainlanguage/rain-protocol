@@ -86,6 +86,14 @@ library LibCast {
         }
     }
 
+    function asUint256Array(
+        function(uint256) pure returns (uint256)[] memory fns_
+    ) internal pure returns (uint256[] memory is_) {
+        assembly ("memory-safe") {
+            is_ := fns_
+        }
+    }
+
     function asAddresses(uint256[] memory is_)
         internal
         pure

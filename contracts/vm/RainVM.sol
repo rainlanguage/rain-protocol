@@ -260,27 +260,27 @@ abstract contract RainVM {
         uint256 sourceIndex_
     ) internal view returns (StackTop stackTop_) {
         unchecked {
-            StackTop cursor_ = state_.ptrSources[sourceIndex_].asStackTop();
-            StackTop end_ = StackTop.wrap(
-                StackTop.unwrap(cursor_) +
-                    state_.ptrSources[sourceIndex_].length
+            uint256 cursor_ = StackTop.unwrap(
+                state_.ptrSources[sourceIndex_].asStackTop()
             );
-            uint256 opcode_;
-            uint256 operand_;
-            StackTop constantsBottomLocation_ = state_
-                .constants
-                .asStackTop()
-                .up();
-            stackTop_ = state_.stackTopAtIndex();
-            StackTop stackBottomLocation_ = state_.stack.asStackTop().up();
+            uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
+            StackTop constantsBottom_ = state_.constants.asStackTopUp();
+            StackTop stackBottom_ = state_.stack.asStackTopUp();
+            stackTop_ = stackBottom_.up(state_.stackIndex);
 
             // Loop until complete.
-            while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
-                assembly ("memory-safe") {
-                    cursor_ := add(cursor_, 3)
-                    let op_ := and(mload(cursor_), 0xFFFFFF)
-                    operand_ := and(op_, 0xFF)
-                    opcode_ := shr(8, op_)
+            while (cursor_ < end_) {
+                uint256 opcode_;
+                uint256 operand_;
+                cursor_ += 3;
+                {
+                    uint256 op_;
+                    assembly ("memory-safe") {
+                        op_ := mload(cursor_)
+                    }
+                    op_ &= 0xFFFFFF;
+                    operand_ = op_ & 0xFF;
+                    opcode_ = op_ >> 8;
                 }
 
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
@@ -290,7 +290,7 @@ abstract contract RainVM {
                                 stackTop_,
                                 mload(
                                     add(
-                                        constantsBottomLocation_,
+                                        constantsBottom_,
                                         mul(0x20, operand_)
                                     )
                                 )
@@ -303,7 +303,7 @@ abstract contract RainVM {
                                 stackTop_,
                                 mload(
                                     add(
-                                        stackBottomLocation_,
+                                        stackBottom_,
                                         mul(operand_, 0x20)
                                     )
                                 )
@@ -365,24 +365,6 @@ abstract contract RainVM {
                 } else {
                     stackTop_ = opcode_.asOpFn()(operand_, stackTop_);
                 }
-                // The stack index may be the same as the length as this means
-                // the stack is full. But we cannot write past the end of the
-                // stack. This also catches a stack index that underflows due
-                // to unchecked or assembly math. This check MAY be redundant
-                // with standard OOB checks on the stack array due to indexing
-                // into it, but is a required guard in the case of VM assembly.
-                // Future versions of the VM will precalculate all stack
-                // movements at deploy time rather than runtime as this kind of
-                // accounting adds nontrivial gas across longer scripts that
-                // include many opcodes.
-                // Note: This check would NOT be safe in the case that some
-                // opcode used assembly in a way that can underflow the stack
-                // as this would allow a malicious rain script to write to the
-                // stack length and/or the stack index.
-                require(
-                    state_.stackIndex <= state_.stack.length,
-                    "STACK_OVERFLOW"
-                );
             }
             state_.syncIndexToStackTop(stackTop_);
         }

@@ -3,8 +3,11 @@ pragma solidity =0.8.15;
 
 import "../../vm/StandardStateBuilder.sol";
 import "./AutoApprove.sol";
+import "../../type/LibCast.sol";
 
 contract AutoApproveStateBuilder is StandardStateBuilder {
+    using LibCast for function(uint256) pure returns (uint256)[];
+
     /// @inheritdoc StandardStateBuilder
     function localStackPops()
         internal
@@ -13,10 +16,12 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
         override
         returns (uint256[] memory)
     {
-        uint256[] memory pops_ = new uint256[](1);
+        function(uint256) pure returns (uint256)[] memory pops_ = new function(
+            uint256
+        ) pure returns (uint256)[](1);
         // approved evidence
-        pops_[0] = 1;
-        return pops_;
+        pops_[0] = AllStandardOps.one;
+        return pops_.asUint256Array();
     }
 
     /// @inheritdoc StandardStateBuilder
@@ -27,9 +32,10 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
         override
         returns (uint256[] memory)
     {
-        uint256[] memory pushes_ = new uint256[](1);
+        function(uint256) pure returns (uint256)[]
+            memory pushes_ = new function(uint256) pure returns (uint256)[](1);
         // approved evidence
-        pushes_[0] = 1;
-        return pushes_;
+        pushes_[0] = AllStandardOps.one;
+        return pushes_.asUint256Array();
     }
 }

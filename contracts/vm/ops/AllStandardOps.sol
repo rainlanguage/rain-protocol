@@ -58,6 +58,9 @@ library AllStandardOps {
     using LibCast for function(uint256, StackTop) view returns (StackTop);
     using LibCast for function(uint256, StackTop) pure returns (StackTop);
     using LibCast for function(uint256, StackTop) view returns (StackTop)[];
+    using AllStandardOps for function(uint256)
+        pure
+        returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1];
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
@@ -73,6 +76,19 @@ library AllStandardOps {
     /// @param fixed_ The fixed size uint array to cast to a dynamic uint array.
     /// Specifically the size is fixed to match the number of standard ops.
     /// @param dynamic_ The dynamic uint array with length of the standard ops.
+    function asUint256Array(
+        function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+            memory fixed_
+    ) internal pure returns (uint256[] memory dynamic_) {
+        assembly ("memory-safe") {
+            dynamic_ := fixed_
+        }
+        require(
+            dynamic_.length == ALL_STANDARD_OPS_LENGTH,
+            "BAD_DYNAMIC_LENGTH"
+        );
+    }
+
     function asUint256Array(uint256[ALL_STANDARD_OPS_LENGTH + 1] memory fixed_)
         internal
         pure
@@ -87,6 +103,26 @@ library AllStandardOps {
         );
     }
 
+    function zero(uint256) internal pure returns (uint256) {
+        return 0;
+    }
+
+    function one(uint256) internal pure returns (uint256) {
+        return 1;
+    }
+
+    function two(uint256) internal pure returns (uint256) {
+        return 2;
+    }
+
+    function three(uint256) internal pure returns (uint256) {
+        return 3;
+    }
+
+    function eight(uint256) internal pure returns (uint256) {
+        return 8;
+    }
+
     function nonZeroOperandN(uint256 operand_) internal pure returns (uint256) {
         require(operand_ > 0, "0_OPERAND_NZON");
         return operand_;
@@ -98,106 +134,108 @@ library AllStandardOps {
         returns (uint256[] memory pops_)
     {
         unchecked {
-            uint256 nonZeroOperandN_ = nonZeroOperandN.asUint256();
-            uint256[ALL_STANDARD_OPS_LENGTH + 1] memory popsFixed_ = [
-                ALL_STANDARD_OPS_LENGTH,
-                // opcode constant
-                0,
-                // opcode stack
-                0,
-                // opcode context
-                0,
-                // opcode storage
-                0,
-                // opcode loop n (ignored)
-                0,
-                // opcode zipmap (ignored)
-                0,
-                // opcode debug
-                0,
-                // erc20 balance of
-                2,
-                // erc20 total supply
-                1,
-                // erc20 snapshot balance of at
-                3,
-                // erc20 snapshot total supply at
-                2,
-                // erc721 balance of
-                2,
-                // erc721 owner of
-                2,
-                // erc1155 balance of
-                3,
-                // erc1155 balance of batch
-                OpERC1155BalanceOfBatch.stackPops.asUint256(),
-                // block number
-                0,
-                // caller
-                0,
-                // this address
-                0,
-                // timestamp
-                0,
-                // explode32
-                1,
-                // scale18
-                1,
-                // scale18 div
-                2,
-                // scale18 mul
-                2,
-                // scaleBy
-                1,
-                // scaleN
-                1,
-                // any
-                nonZeroOperandN_,
-                // eager if
-                3,
-                // equal to
-                2,
-                // every
-                nonZeroOperandN_,
-                // greater than
-                2,
-                // iszero
-                1,
-                // less than
-                2,
-                // saturating add
-                nonZeroOperandN_,
-                // saturating mul
-                nonZeroOperandN_,
-                // saturating sub
-                nonZeroOperandN_,
-                // add
-                nonZeroOperandN_,
-                // div
-                nonZeroOperandN_,
-                // exp
-                nonZeroOperandN_,
-                // max
-                nonZeroOperandN_,
-                // min
-                nonZeroOperandN_,
-                // mod
-                nonZeroOperandN_,
-                // mul
-                nonZeroOperandN_,
-                // sub
-                nonZeroOperandN_,
-                // tier report
-                OpITierV2Report.stackPops.asUint256(),
-                // tier report time for tier
-                OpITierV2ReportTimeForTier.stackPops.asUint256(),
-                // tier saturating diff
-                2,
-                // select lte
-                OpSelectLte.stackPops.asUint256(),
-                // update times for tier range
-                2
-            ];
+            // uint256 nonZeroOperandN_ = nonZeroOperandN.asUint256();
+            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH +
+                1]
+                memory popsFixed_ = [
+                    ALL_STANDARD_OPS_LENGTH.asStackMoveFn(),
+                    // opcode constant
+                    zero,
+                    // opcode stack
+                    zero,
+                    // opcode context
+                    zero,
+                    // opcode storage
+                    zero,
+                    // opcode loop n (ignored)
+                    zero,
+                    // opcode zipmap (ignored)
+                    zero,
+                    // opcode debug
+                    zero,
+                    // erc20 balance of
+                    two,
+                    // erc20 total supply
+                    one,
+                    // erc20 snapshot balance of at
+                    three,
+                    // erc20 snapshot total supply at
+                    two,
+                    // erc721 balance of
+                    two,
+                    // erc721 owner of
+                    two,
+                    // erc1155 balance of
+                    three,
+                    // erc1155 balance of batch
+                    OpERC1155BalanceOfBatch.stackPops,
+                    // block number
+                    zero,
+                    // caller
+                    zero,
+                    // this address
+                    zero,
+                    // timestamp
+                    zero,
+                    // explode32
+                    one,
+                    // scale18
+                    one,
+                    // scale18 div
+                    two,
+                    // scale18 mul
+                    two,
+                    // scaleBy
+                    one,
+                    // scaleN
+                    one,
+                    // any
+                    nonZeroOperandN,
+                    // eager if
+                    three,
+                    // equal to
+                    two,
+                    // every
+                    nonZeroOperandN,
+                    // greater than
+                    two,
+                    // iszero
+                    one,
+                    // less than
+                    two,
+                    // saturating add
+                    nonZeroOperandN,
+                    // saturating mul
+                    nonZeroOperandN,
+                    // saturating sub
+                    nonZeroOperandN,
+                    // add
+                    nonZeroOperandN,
+                    // div
+                    nonZeroOperandN,
+                    // exp
+                    nonZeroOperandN,
+                    // max
+                    nonZeroOperandN,
+                    // min
+                    nonZeroOperandN,
+                    // mod
+                    nonZeroOperandN,
+                    // mul
+                    nonZeroOperandN,
+                    // sub
+                    nonZeroOperandN,
+                    // tier report
+                    OpITierV2Report.stackPops,
+                    // tier report time for tier
+                    OpITierV2ReportTimeForTier.stackPops,
+                    // tier saturating diff
+                    two,
+                    // select lte
+                    OpSelectLte.stackPops,
+                    // update times for tier range
+                    two
+                ];
             pops_ = popsFixed_.asUint256Array();
             pops_.extend(locals_);
         }
@@ -209,105 +247,107 @@ library AllStandardOps {
         returns (uint256[] memory pushes_)
     {
         unchecked {
-            uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pushesFixed_ = [
-                ALL_STANDARD_OPS_LENGTH,
-                // opcode constant
-                1,
-                // opcode stack
-                1,
-                // opcode context
-                1,
-                // opcode storage
-                1,
-                // opcode loop n (will be ignored)
-                0,
-                // opcode zipmap (will be ignored)
-                0,
-                // opcode debug
-                1,
-                // erc20 balance of
-                1,
-                // erc20 total supply
-                1,
-                // erc20 snapshot balance of at
-                1,
-                // erc20 snapshot total supply at
-                1,
-                // erc721 balance of
-                1,
-                // erc721 owner of
-                1,
-                // erc1155 balance of
-                1,
-                // erc1155 balance of batch
-                nonZeroOperandN.asUint256(),
-                // block number
-                1,
-                // caller
-                1,
-                // this address
-                1,
-                // timestamp
-                1,
-                // explode32
-                8,
-                // scale18
-                1,
-                // scale18 div
-                1,
-                // scale18 mul
-                1,
-                // scaleBy
-                1,
-                // scaleN
-                1,
-                // any
-                1,
-                // eager if
-                1,
-                // equal to
-                1,
-                // every
-                1,
-                // greater than
-                1,
-                // iszero
-                1,
-                // less than
-                1,
-                // saturating add
-                1,
-                // saturating mul
-                1,
-                // saturating sub
-                1,
-                // add
-                1,
-                // div
-                1,
-                // exp
-                1,
-                // max
-                1,
-                // min
-                1,
-                // mod
-                1,
-                // mul
-                1,
-                // sub
-                1,
-                // tier report
-                1,
-                // tier report time for tier
-                1,
-                // tier saturating diff
-                1,
-                // select lte
-                1,
-                // update times for tier range
-                1
-            ];
+            function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH +
+                1]
+                memory pushesFixed_ = [
+                    ALL_STANDARD_OPS_LENGTH.asStackMoveFn(),
+                    // opcode constant
+                    one,
+                    // opcode stack
+                    one,
+                    // opcode context
+                    one,
+                    // opcode storage
+                    one,
+                    // opcode loop n (will be ignored)
+                    zero,
+                    // opcode zipmap (will be ignored)
+                    zero,
+                    // opcode debug
+                    one,
+                    // erc20 balance of
+                    one,
+                    // erc20 total supply
+                    one,
+                    // erc20 snapshot balance of at
+                    one,
+                    // erc20 snapshot total supply at
+                    one,
+                    // erc721 balance of
+                    one,
+                    // erc721 owner of
+                    one,
+                    // erc1155 balance of
+                    one,
+                    // erc1155 balance of batch
+                    nonZeroOperandN,
+                    // block number
+                    one,
+                    // caller
+                    one,
+                    // this address
+                    one,
+                    // timestamp
+                    one,
+                    // explode32
+                    eight,
+                    // scale18
+                    one,
+                    // scale18 div
+                    one,
+                    // scale18 mul
+                    one,
+                    // scaleBy
+                    one,
+                    // scaleN
+                    one,
+                    // any
+                    one,
+                    // eager if
+                    one,
+                    // equal to
+                    one,
+                    // every
+                    one,
+                    // greater than
+                    one,
+                    // iszero
+                    one,
+                    // less than
+                    one,
+                    // saturating add
+                    one,
+                    // saturating mul
+                    one,
+                    // saturating sub
+                    one,
+                    // add
+                    one,
+                    // div
+                    one,
+                    // exp
+                    one,
+                    // max
+                    one,
+                    // min
+                    one,
+                    // mod
+                    one,
+                    // mul
+                    one,
+                    // sub
+                    one,
+                    // tier report
+                    one,
+                    // tier report time for tier
+                    one,
+                    // tier saturating diff
+                    one,
+                    // select lte
+                    one,
+                    // update times for tier range
+                    one
+                ];
             pushes_ = pushesFixed_.asUint256Array();
             pushes_.extend(locals_);
         }

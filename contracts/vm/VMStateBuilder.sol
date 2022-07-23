@@ -3,6 +3,7 @@ pragma solidity =0.8.15;
 import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../sstore2/SSTORE2.sol";
+import "./LibStackTop.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
@@ -56,11 +57,13 @@ contract VMStateBuilder {
     using Math for uint256;
     using LibVMState for VMState;
     using LibCast for uint256;
+    using LibStackTop for bytes;
+    using LibStackTop for StackTop;
 
     /// @dev total hack to differentiate between stack move functions and values
     /// we assume that no function pointers are less than this so anything we
     /// see equal to or less than is a literal stack move.
-    uint256 private constant MOVE_POINTER_CUTOFF = 5;
+    uint256 private constant MOVE_POINTER_CUTOFF = 3;
 
     mapping(address => VmStructure) private structureCache;
 
@@ -251,20 +254,23 @@ contract VMStateBuilder {
     ) public view {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
-            require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            uint256 cursor_;
-            uint256 end_;
+            StackTop cursor_ = stateConfig_.sources[entrypoint_].asStackTop();
+            StackTop end_ = StackTop.wrap(
+                StackTop.unwrap(cursor_) +
+                    stateConfig_.sources[entrypoint_].length
+            );
+            // uint256 end_;
             uint256 opcode_;
             uint256 operand_;
 
-            assembly ("memory-safe") {
-                cursor_ := mload(
-                    add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
-                )
-                end_ := add(cursor_, mload(cursor_))
-            }
+            // assembly ("memory-safe") {
+            //     cursor_ := mload(
+            //         add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
+            //     )
+            //     end_ := add(cursor_, mload(cursor_))
+            // }
 
-            while (cursor_ < end_) {
+            while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
                 assembly ("memory-safe") {
                     cursor_ := add(cursor_, 2)
                     let op_ := mload(cursor_)
@@ -314,30 +320,21 @@ contract VMStateBuilder {
                         );
                     }
                 } else {
-                    // OOB opcodes will be picked up here and error due to the
-                    // index being invalid.
-                    uint256 pop_ = stackPops_[opcode_];
-
-                    // If the pop is higher than the cutoff for static pop
-                    // values run it and use the return instead.
-                    if (pop_ > MOVE_POINTER_CUTOFF) {
-                        pop_ = pop_.asStackMoveFn()(operand_);
-                    }
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack
                     // length later (but not in this unchecked block).
-                    bounds_.stackIndex -= pop_;
+                    // OOB opcodes will be picked up here and error due to the
+                    // index being invalid.
+                    bounds_.stackIndex -= stackPops_[opcode_].asStackMoveFn()(
+                        operand_
+                    );
                     bounds_.stackLength = bounds_.stackLength.max(
                         bounds_.stackIndex
                     );
 
-                    uint256 push_ = stackPushes_[opcode_];
-                    // If the push is higher than the cutoff for static push
-                    // values run it and use the return instead.
-                    if (push_ > MOVE_POINTER_CUTOFF) {
-                        push_ = push_.asStackMoveFn()(operand_);
-                    }
-                    bounds_.stackIndex += push_;
+                    bounds_.stackIndex += stackPushes_[opcode_].asStackMoveFn()(
+                        operand_
+                    );
                 }
 
                 bounds_.stackLength = bounds_.stackLength.max(
