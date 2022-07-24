@@ -30,7 +30,7 @@ enum DebugStyle {
 /// @param arguments `ZIPMAP` populates arguments which can be copied to the
 /// stack by `VAL`.
 struct VMState {
-    uint256[] stack;
+    StackTop stackBottom;
     StackTop constantsBottom;
     StackTop contextBottom;
     bytes[] ptrSources;
@@ -49,7 +49,7 @@ library LibVMState {
         unchecked {
             return
                 (StackTop.unwrap(stackTop_) -
-                    StackTop.unwrap(state_.stack.asStackTopUp())) / 0x20;
+                    StackTop.unwrap(state_.stackBottom)) / 0x20;
         }
     }
 
@@ -63,11 +63,15 @@ library LibVMState {
         } else if (debugStyle_ == DebugStyle.StatePacked) {
             console.logBytes(state_.toBytesPacked());
         } else if (debugStyle_ == DebugStyle.Stack) {
+            uint256[] memory stack_ = state_
+                .stackBottom
+                .down()
+                .asUint256Array();
             console.log("~stack~");
             console.log("idx: %s", state_.stackTopToIndex(stackTop_));
             unchecked {
-                for (uint256 i_ = 0; i_ < state_.stack.length; i_++) {
-                    console.log(i_, state_.stack[i_]);
+                for (uint256 i_ = 0; i_ < stack_.length; i_++) {
+                    console.log(i_, stack_[i_]);
                 }
             }
             console.log("~~~~~");
@@ -93,7 +97,8 @@ library LibVMState {
                 // point state constant bottom at state bytes, after length
                 mstore(add(state_, 0x20), add(stateBytes_, 0x40))
             }
-            state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
+            state_.stackBottom = (new uint256[]((indexes_ >> 8) & 0xFF))
+                .asStackTopUp();
             uint256 sourcesLen_ = (indexes_ >> 16) & 0xFF;
             bytes[] memory ptrSources_;
             uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
@@ -139,10 +144,13 @@ library LibVMState {
     {
         unchecked {
             // indexes + constants
-            uint256[] memory constants_ = state_.constantsBottom.down().asUint256Array();
+            uint256[] memory constants_ = state_
+                .constantsBottom
+                .down()
+                .asUint256Array();
             // constants is first so we can literally use it on the other end
             uint256 indexes_ = constants_.length |
-                (state_.stack.length << 8) |
+                (state_.stackBottom.peek() << 8) |
                 (state_.ptrSources.length << 16);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),

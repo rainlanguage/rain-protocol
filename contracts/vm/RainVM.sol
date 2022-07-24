@@ -121,6 +121,14 @@ abstract contract RainVM {
         virtual
         returns (bytes memory ptrs_);
 
+    function eval(VMState memory state_, uint256 sourceIndex_)
+        internal
+        view
+        returns (StackTop)
+    {
+        return eval(state_, sourceIndex_, state_.stackBottom);
+    }
+
     /// Evaluates a rain script.
     /// The main workhorse of the rain VM, `eval` runs any core opcodes and
     /// dispatches anything it is unaware of to the implementing contract.
@@ -143,7 +151,6 @@ abstract contract RainVM {
                 state_.ptrSources[sourceIndex_].asStackTop()
             );
             uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
-            StackTop stackBottom_ = state_.stack.asStackTopUp();
 
             // Loop until complete.
             while (cursor_ < end_) {
@@ -166,7 +173,10 @@ abstract contract RainVM {
                             mstore(
                                 stackTop_,
                                 mload(
-                                    add(mload(add(state_, 0x20)), mul(0x20, operand_))
+                                    add(
+                                        mload(add(state_, 0x20)),
+                                        mul(0x20, operand_)
+                                    )
                                 )
                             )
                             stackTop_ := add(stackTop_, 0x20)
@@ -175,7 +185,7 @@ abstract contract RainVM {
                         assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
-                                mload(add(stackBottom_, mul(0x20, operand_)))
+                                mload(add(mload(state_), mul(0x20, operand_)))
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }
@@ -190,7 +200,12 @@ abstract contract RainVM {
                         assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
-                                mload(add(mload(add(state_, 0x40)), mul(0x20, operand_)))
+                                mload(
+                                    add(
+                                        mload(add(state_, 0x40)),
+                                        mul(0x20, operand_)
+                                    )
+                                )
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }

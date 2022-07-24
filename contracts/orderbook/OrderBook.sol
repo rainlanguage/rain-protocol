@@ -201,22 +201,14 @@ contract OrderBook is StandardVM {
                     vmState_ = a_.vmState.fromBytesPacked(
                         EvalContext(aHash_, b_.owner).toContext()
                     );
-                    (aOutputMax_, aPrice_) = eval(
-                        vmState_,
-                        ENTRYPOINT,
-                        vmState_.stack.asStackTopUp()
-                    ).peek2();
+                    (aOutputMax_, aPrice_) = eval(vmState_, ENTRYPOINT).peek2();
                 }
 
                 {
                     vmState_ = b_.vmState.fromBytesPacked(
                         EvalContext(bHash_, a_.owner).toContext()
                     );
-                    (bOutputMax_, bPrice_) = eval(
-                        vmState_,
-                        ENTRYPOINT,
-                        vmState_.stack.asStackTopUp()
-                    ).peek2();
+                    (bOutputMax_, bPrice_) = eval(vmState_, ENTRYPOINT).peek2();
                 }
             }
 

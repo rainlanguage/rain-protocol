@@ -26,7 +26,7 @@ contract AllStandardOpsTest is StandardVM {
 
     /// *** STORAGE OPCODES END ***
 
-    VMState private _state;
+    uint[] private _stack;
     uint256 private _stackIndex;
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
@@ -44,15 +44,11 @@ contract AllStandardOpsTest is StandardVM {
     }
 
     function stackTop() external view returns (uint256) {
-        return _state.stack[_stackIndex - 1];
+        return _stack[_stackIndex - 1];
     }
 
     function stack() external view returns (uint256[] memory) {
-        return _state.stack;
-    }
-
-    function state() external view returns (VMState memory) {
-        return _state;
+        return _stack;
     }
 
     /// Runs `eval` and stores full state.
@@ -61,15 +57,14 @@ contract AllStandardOpsTest is StandardVM {
         uint256 a_ = gasleft();
         StackTop stackTop_ = eval(
             state_,
-            ENTRYPOINT,
-            state_.stack.asStackTopUp()
+            ENTRYPOINT
         );
         uint256 b_ = gasleft();
         console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
-        _state = state_;
+        _stack = state_.stackBottom.down().asUint256Array();
         _stackIndex = state_.stackTopToIndex(stackTop_);
     }
 
@@ -80,13 +75,12 @@ contract AllStandardOpsTest is StandardVM {
         VMState memory state_ = _loadVMState(context_);
         StackTop stackTop_ = eval(
             state_,
-            ENTRYPOINT,
-            state_.stack.asStackTopUp()
+            ENTRYPOINT
         );
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
-        _state = state_;
+        _stack = state_.stackBottom.down().asUint256Array();
         _stackIndex = state_.stackTopToIndex(stackTop_);
     }
 

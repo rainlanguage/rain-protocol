@@ -151,7 +151,11 @@ library LibStackTop {
         }
     }
 
-    function asUint256Array(StackTop stackTop_) internal pure returns (uint[] memory array_) {
+    function asUint256Array(StackTop stackTop_)
+        internal
+        pure
+        returns (uint256[] memory array_)
+    {
         assembly ("memory-safe") {
             array_ := stackTop_
         }

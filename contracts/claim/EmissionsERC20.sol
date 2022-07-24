@@ -135,7 +135,7 @@ contract EmissionsERC20 is
         uint256[] memory context_ = new uint256[](1);
         context_[0] = uint256(uint160(claimant_));
         VMState memory state_ = _loadVMState(context_);
-        return eval(state_, ENTRYPOINT, state_.stack.asStackTopUp()).peek();
+        return eval(state_, ENTRYPOINT).peek();
     }
 
     /// Processes the claim for `claimant_`.

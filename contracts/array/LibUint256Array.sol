@@ -7,13 +7,17 @@ pragma solidity ^0.8.15;
 library LibUint256Array {
     using LibUint256Array for uint256[];
 
-    function arrayFrom(uint a_) internal pure returns (uint[] memory) {
-        uint256[] memory array_ = new uint[](1);
+    function arrayFrom(uint256 a_) internal pure returns (uint256[] memory) {
+        uint256[] memory array_ = new uint256[](1);
         array_[0] = a_;
         return array_;
     }
 
-    function arrayFrom(uint256 a_, uint[] memory tail_) internal pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256[] memory tail_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         uint256[] memory array_ = new uint256[](1);
         array_[0] = a_;
         // Extend inline here so the compiler doesn't re-org it to an unsafe
