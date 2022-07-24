@@ -143,7 +143,6 @@ abstract contract RainVM {
                 state_.ptrSources[sourceIndex_].asStackTop()
             );
             uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
-            StackTop constantsBottom_ = state_.constants.asStackTopUp();
             StackTop stackBottom_ = state_.stack.asStackTopUp();
 
             // Loop until complete.
@@ -167,7 +166,7 @@ abstract contract RainVM {
                             mstore(
                                 stackTop_,
                                 mload(
-                                    add(constantsBottom_, mul(0x20, operand_))
+                                    add(mload(add(state_, 0x20)), mul(0x20, operand_))
                                 )
                             )
                             stackTop_ := add(stackTop_, 0x20)

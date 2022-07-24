@@ -141,23 +141,29 @@ library LibStackTop {
         }
     }
 
-    function asStackTop(uint256[] memory list_)
+    function asStackTop(uint256[] memory array_)
         internal
         pure
         returns (StackTop stackTop_)
     {
         assembly ("memory-safe") {
-            stackTop_ := list_
+            stackTop_ := array_
         }
     }
 
-    function asStackTopUp(uint256[] memory list_)
+    function asUint256Array(StackTop stackTop_) internal pure returns (uint[] memory array_) {
+        assembly ("memory-safe") {
+            array_ := stackTop_
+        }
+    }
+
+    function asStackTopUp(uint256[] memory array_)
         internal
         pure
         returns (StackTop stackTop_)
     {
         assembly ("memory-safe") {
-            stackTop_ := add(list_, 0x20)
+            stackTop_ := add(array_, 0x20)
         }
     }
 

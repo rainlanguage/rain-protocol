@@ -140,7 +140,7 @@ contract VMStateBuilder {
 
             stateBytes_ = VMState(
                 new uint256[](stackLength_),
-                config_.constants,
+                config_.constants.asStackTopUp(),
                 context_.asStackTopUp(),
                 ptrSources_
             ).toBytesPacked();
@@ -219,16 +219,8 @@ contract VMStateBuilder {
                 StackTop.unwrap(cursor_) +
                     stateConfig_.sources[entrypoint_].length
             );
-            // uint256 end_;
             uint256 opcode_;
             uint256 operand_;
-
-            // assembly ("memory-safe") {
-            //     cursor_ := mload(
-            //         add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
-            //     )
-            //     end_ := add(cursor_, mload(cursor_))
-            // }
 
             while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
                 assembly ("memory-safe") {

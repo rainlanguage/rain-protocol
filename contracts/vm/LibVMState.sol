@@ -31,7 +31,7 @@ enum DebugStyle {
 /// stack by `VAL`.
 struct VMState {
     uint256[] stack;
-    uint256[] constants;
+    StackTop constantsBottom;
     StackTop contextBottom;
     bytes[] ptrSources;
 }
@@ -90,8 +90,8 @@ library LibVMState {
                 // mask out everything but the constants length from state
                 // bytes.
                 mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
-                // point state constants at state bytes
-                mstore(add(state_, 0x20), add(stateBytes_, 0x20))
+                // point state constant bottom at state bytes, after length
+                mstore(add(state_, 0x20), add(stateBytes_, 0x40))
             }
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
             uint256 sourcesLen_ = (indexes_ >> 16) & 0xFF;
@@ -139,9 +139,9 @@ library LibVMState {
     {
         unchecked {
             // indexes + constants
-            uint256[] memory constants_ = state_.constants;
+            uint256[] memory constants_ = state_.constantsBottom.down().asUint256Array();
             // constants is first so we can literally use it on the other end
-            uint256 indexes_ = state_.constants.length |
+            uint256 indexes_ = constants_.length |
                 (state_.stack.length << 8) |
                 (state_.ptrSources.length << 16);
             bytes memory ret_ = bytes.concat(
