@@ -36,6 +36,8 @@ struct CombineTierConfig {
 contract CombineTier is TierV2, StandardVM, Initializable {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
+    using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
 
     event Initialize(address sender, CombineTierConfig config);
 
@@ -81,19 +83,11 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         returns (uint256)
     {
         unchecked {
-            VMState memory state_ = _loadVMState();
-            uint256[] memory evalContext_ = new uint256[](context_.length + 1);
-            evalContext_[0] = uint256(uint160(account_));
-            for (uint256 i_ = 0; i_ < context_.length; i_++) {
-                evalContext_[i_ + 1] = context_[i_];
-            }
+            VMState memory state_ = _loadVMState(uint256(uint160(account_))
+                .arrayFrom(context_));
             return
-                eval(
-                    evalContext_,
-                    state_,
-                    REPORT_ENTRYPOINT,
-                    state_.stack.asStackTopUp()
-                ).peek();
+                eval(state_, REPORT_ENTRYPOINT, state_.stack.asStackTopUp())
+                    .peek();
         }
     }
 
@@ -101,19 +95,18 @@ contract CombineTier is TierV2, StandardVM, Initializable {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] calldata context_
+        uint256[] memory context_
     ) external view returns (uint256) {
         unchecked {
-            VMState memory state_ = _loadVMState();
-            uint256[] memory evalContext_ = new uint256[](context_.length + 2);
-            evalContext_[0] = uint256(uint160(account_));
-            evalContext_[1] = tier_;
-            for (uint256 i_ = 0; i_ < context_.length; i_++) {
-                evalContext_[i_ + 2] = context_[i_];
-            }
+            VMState memory state_ = _loadVMState(
+                LibUint256Array.arrayFrom(
+                    uint256(uint160(account_)),
+                    tier_,
+                    context_
+                )
+            );
             return
                 eval(
-                    evalContext_,
                     state_,
                     REPORT_FOR_TIER_ENTRYPOINT,
                     state_.stack.asStackTopUp()

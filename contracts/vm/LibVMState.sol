@@ -32,6 +32,7 @@ enum DebugStyle {
 struct VMState {
     uint256[] stack;
     uint256[] constants;
+    uint256[] context;
     bytes[] ptrSources;
 }
 
@@ -39,14 +40,6 @@ library LibVMState {
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
-
-    function toBytesDebug(VMState memory state_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encode(state_);
-    }
 
     function stackTopToIndex(VMState memory state_, StackTop stackTop_)
         internal
@@ -83,13 +76,13 @@ library LibVMState {
         }
     }
 
-    function fromBytesPacked(bytes memory stateBytes_)
-        internal
-        pure
-        returns (VMState memory)
-    {
+    function fromBytesPacked(
+        bytes memory stateBytes_,
+        uint256[] memory context_
+    ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
+            state_.context = context_;
             uint256 indexes_;
             assembly ("memory-safe") {
                 // Load indexes from state bytes.
@@ -133,7 +126,7 @@ library LibVMState {
                 }
                 // point state at sources_ rather than clone in memory
                 ptrSources_ := ptrSourcesPtrs_
-                mstore(add(state_, 0x40), ptrSources_)
+                mstore(add(state_, 0x60), ptrSources_)
             }
             return state_;
         }

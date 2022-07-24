@@ -132,12 +132,10 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        VMState memory state_ = _loadVMState();
         uint256[] memory context_ = new uint256[](1);
         context_[0] = uint256(uint160(claimant_));
-        return
-            eval(context_, state_, ENTRYPOINT, state_.stack.asStackTopUp())
-                .peek();
+        VMState memory state_ = _loadVMState(context_);
+        return eval(state_, ENTRYPOINT, state_.stack.asStackTopUp()).peek();
     }
 
     /// Processes the claim for `claimant_`.

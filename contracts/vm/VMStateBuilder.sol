@@ -102,7 +102,7 @@ contract VMStateBuilder {
     /// Builds a new `State` bytes from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
-    function buildState(
+    function buildStateBytes(
         address vm_,
         StateConfig memory config_,
         Bounds[] memory boundss_
@@ -134,10 +134,13 @@ contract VMStateBuilder {
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
+            // Dummy context is never written to the packed bytes.
+            uint256[] memory context_ = new uint256[](0);
 
             stateBytes_ = VMState(
                 new uint256[](stackLength_),
                 config_.constants,
+                context_,
                 ptrSources_
             ).toBytesPacked();
         }
@@ -298,7 +301,7 @@ contract VMStateBuilder {
         }
     }
 
-    function stackPops() public pure virtual returns (uint256[] memory) {}
+    function stackPops() public view virtual returns (uint256[] memory) {}
 
     function stackPushes() public view virtual returns (uint256[] memory) {}
 }

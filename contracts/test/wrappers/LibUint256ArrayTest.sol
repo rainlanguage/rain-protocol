@@ -22,7 +22,7 @@ contract LibUint256ArrayTest {
 
     function extend(uint256[] memory base_, uint256[] memory extend_)
         external
-        pure
+        view
         returns (uint256[] memory)
     {
         uint256[] memory base0_ = new uint256[](base_.length);

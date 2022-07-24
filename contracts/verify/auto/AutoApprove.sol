@@ -59,19 +59,16 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[] memory context_ = new uint256[](2);
-            VMState memory state_ = _loadVMState();
+            VMState memory state_ = _loadVMState(new uint256[](0));
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
                     context_[0] = uint256(uint160(evidences_[i_].account));
                     context_[1] = uint256(bytes32(evidences_[i_].data));
+                    state_.context = context_;
                     if (
-                        eval(
-                            context_,
-                            state_,
-                            ENTRYPOINT,
-                            state_.stack.asStackTopUp()
-                        ).peek() > 0
+                        eval(state_, ENTRYPOINT, state_.stack.asStackTopUp())
+                            .peek() > 0
                     ) {
                         _approvedEvidenceData[
                             uint256(bytes32(evidences_[i_].data))

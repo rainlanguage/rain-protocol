@@ -100,7 +100,7 @@ library LibOrder {
                 config_.validInputs,
                 config_.validOutputs,
                 deriveTracking(config_.vmStateConfig.sources),
-                VMStateBuilder(vmStateBuilder_).buildState(
+                VMStateBuilder(vmStateBuilder_).buildStateBytes(
                     vm_,
                     config_.vmStateConfig,
                     boundss_

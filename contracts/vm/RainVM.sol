@@ -134,7 +134,6 @@ abstract contract RainVM {
     /// are provided so the caller can provide additional data and kickoff the
     /// opcode dispatch from the correct source in `sources`.
     function eval(
-        uint256[] memory context_,
         VMState memory state_,
         uint256 sourceIndex_,
         StackTop stackTop_
@@ -146,6 +145,7 @@ abstract contract RainVM {
             uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
             StackTop constantsBottom_ = state_.constants.asStackTopUp();
             StackTop stackBottom_ = state_.stack.asStackTopUp();
+            StackTop contextBottom_ = state_.context.asStackTopUp();
 
             // Loop until complete.
             while (cursor_ < end_) {
@@ -177,7 +177,7 @@ abstract contract RainVM {
                         assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
-                                mload(add(stackBottom_, mul(operand_, 0x20)))
+                                mload(add(stackBottom_, mul(0x20, operand_)))
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }
@@ -185,16 +185,14 @@ abstract contract RainVM {
                         // This is the only runtime integrity check that we do
                         // as it is not possible to know how long context might
                         // be in general until runtime.
-                        require(operand_ < context_.length, "CONTEXT_LENGTH");
+                        require(
+                            operand_ < contextBottom_.peek(),
+                            "CONTEXT_LENGTH"
+                        );
                         assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
-                                mload(
-                                    add(
-                                        context_,
-                                        add(0x20, mul(0x20, operand_))
-                                    )
-                                )
+                                mload(add(contextBottom_, mul(0x20, operand_)))
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }
@@ -215,7 +213,6 @@ abstract contract RainVM {
                         uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
                         for (uint256 i_ = 0; i_ <= n_; i_++) {
                             stackTop_ = eval(
-                                context_,
                                 state_,
                                 loopSourceIndex_,
                                 stackTop_

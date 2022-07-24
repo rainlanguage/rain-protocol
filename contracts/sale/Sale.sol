@@ -130,10 +130,10 @@ struct Receipt {
 }
 
 uint256 constant CAN_LIVE_ENTRYPOINT = 0;
-uint256 constant CALCULATE_PRICE_ENTRYPOINT = 1;
+uint256 constant CALCULATE_BUY_ENTRYPOINT = 1;
 
 uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
-uint256 constant CALCULATE_PRICE_MIN_FINAL_STACK_INDEX = 2;
+uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
@@ -145,6 +145,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
+    using LibUint256Array for uint256;
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -267,13 +268,13 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         Bounds memory canLiveBounds_;
         canLiveBounds_.entrypoint = CAN_LIVE_ENTRYPOINT;
         canLiveBounds_.minFinalStackIndex = CAN_LIVE_MIN_FINAL_STACK_INDEX;
-        Bounds memory calculatePriceBounds_;
-        calculatePriceBounds_.entrypoint = CALCULATE_PRICE_ENTRYPOINT;
-        calculatePriceBounds_
-            .minFinalStackIndex = CALCULATE_PRICE_MIN_FINAL_STACK_INDEX;
+        Bounds memory calculateBuyBounds_;
+        calculateBuyBounds_.entrypoint = CALCULATE_BUY_ENTRYPOINT;
+        calculateBuyBounds_
+            .minFinalStackIndex = CALCULATE_BUY_MIN_FINAL_STACK_INDEX;
         Bounds[] memory boundss_ = new Bounds[](2);
         boundss_[0] = canLiveBounds_;
-        boundss_[1] = calculatePriceBounds_;
+        boundss_[1] = calculateBuyBounds_;
         _saveVMState(config_.vmStateConfig, boundss_);
         recipient = config_.recipient;
 
@@ -356,41 +357,10 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
+            state_.context = new uint256[](0);
             return
-                eval(
-                    new uint256[](0),
-                    state_,
-                    CAN_LIVE_ENTRYPOINT,
-                    state_.stack.asStackTopUp()
-                ).peek() > 0;
-        }
-    }
-
-    /// Calculates the current reserve price quoted for 1 unit of rTKN.
-    /// Used internally to process `buy`.
-    /// @param targetUnits_ Amount of rTKN to quote a price and units for, will
-    /// be available to the price script from OPCODE_CURRENT_BUY_UNITS. When
-    /// `buy` executes the target units will be the smaller of the remaining
-    /// stock and the desired units set by the caller.
-    /// @return (maxUnits, price) The top two items on the stack are used for
-    /// the units and price. When `buy` executes the real purchase size will be
-    /// the smaller of the target units and the returned maximum units. If this
-    /// is below the buyer's minimum the buy will revert.
-    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
-        internal
-        view
-        returns (uint256, uint256)
-    {
-        unchecked {
-            uint256[] memory context_ = new uint256[](1);
-            context_[0] = targetUnits_;
-            return
-                eval(
-                    context_,
-                    state_,
-                    CALCULATE_PRICE_ENTRYPOINT,
-                    state_.stack.asStackTopUp()
-                ).peek2();
+                eval(state_, CAN_LIVE_ENTRYPOINT, state_.stack.asStackTopUp())
+                    .peek() > 0;
         }
     }
 
@@ -425,7 +395,18 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// Offchain users MAY call this directly or calculate the outcome
     /// themselves.
     function canLive() external view returns (bool) {
-        return _canLive(_loadVMState());
+        return _canLive(_loadVMState(new uint256[](0)));
+    }
+
+    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
+        internal
+        view
+        returns (uint256, uint256)
+    {
+        state_.context = targetUnits_.arrayFrom();
+        return
+            eval(state_, CALCULATE_BUY_ENTRYPOINT, state_.stack.asStackTopUp())
+                .peek2();
     }
 
     function calculateBuy(uint256 targetUnits_)
@@ -433,7 +414,8 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        return _calculateBuy(_loadVMState(), targetUnits_);
+        VMState memory state_ = _loadVMState(new uint256[](0));
+        return _calculateBuy(state_, targetUnits_);
     }
 
     /// Start the sale (move from pending to active).
@@ -442,7 +424,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        require(_canLive(_loadVMState()), "NOT_LIVE");
+        require(_canLive(_loadVMState(new uint256[](0))), "NOT_LIVE");
         _start();
     }
 
@@ -452,7 +434,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        require(!_canLive(_loadVMState()), "LIVE");
+        require(!_canLive(_loadVMState(new uint256[](0))), "LIVE");
         _end();
     }
 
@@ -503,7 +485,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
 
         // This state is loaded once and shared between 2x `_canLive` calls and
         // a `_calculateBuy` call.
-        VMState memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState(new uint256[](0));
 
         // Start or end the sale as required.
         if (_canLive(state_)) {
@@ -521,7 +503,6 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
         uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
-
         (uint256 maxUnits_, uint256 price_) = _calculateBuy(
             state_,
             targetUnits_

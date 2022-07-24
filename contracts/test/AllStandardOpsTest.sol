@@ -57,10 +57,9 @@ contract AllStandardOpsTest is StandardVM {
 
     /// Runs `eval` and stores full state.
     function run() public {
-        VMState memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState(new uint256[](0));
         uint256 a_ = gasleft();
         StackTop stackTop_ = eval(
-            new uint256[](0),
             state_,
             ENTRYPOINT,
             state_.stack.asStackTopUp()
@@ -78,9 +77,8 @@ contract AllStandardOpsTest is StandardVM {
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
-        VMState memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState(context_);
         StackTop stackTop_ = eval(
-            context_,
             state_,
             ENTRYPOINT,
             state_.stack.asStackTopUp()

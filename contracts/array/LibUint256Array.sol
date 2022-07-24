@@ -5,6 +5,37 @@ pragma solidity ^0.8.15;
 /// @notice Things we want to do carefully and efficiently with uint256 arrays
 /// that Solidity doesn't give us native tools for.
 library LibUint256Array {
+    using LibUint256Array for uint256[];
+
+    function arrayFrom(uint a_) internal pure returns (uint[] memory) {
+        uint256[] memory array_ = new uint[](1);
+        array_[0] = a_;
+        return array_;
+    }
+
+    function arrayFrom(uint256 a_, uint[] memory tail_) internal pure returns (uint256[] memory) {
+        uint256[] memory array_ = new uint256[](1);
+        array_[0] = a_;
+        // Extend inline here so the compiler doesn't re-org it to an unsafe
+        // extension codepath.
+        array_.extend(tail_);
+        return array_;
+    }
+
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256[] memory tail_
+    ) internal view returns (uint256[] memory) {
+        uint256[] memory array_ = new uint256[](2);
+        array_[0] = a_;
+        array_[1] = b_;
+        // Extend inline here so the compiler doesn't re-org it to an unsafe
+        // extension codepath.
+        array_.extend(tail_);
+        return array_;
+    }
+
     function truncate(uint256[] memory array_, uint256 newLength_)
         internal
         pure

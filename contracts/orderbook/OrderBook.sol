@@ -198,9 +198,10 @@ contract OrderBook is StandardVM {
             unchecked {
                 VMState memory vmState_;
                 {
-                    vmState_ = a_.vmState.fromBytesPacked();
+                    vmState_ = a_.vmState.fromBytesPacked(
+                        EvalContext(aHash_, b_.owner).toContext()
+                    );
                     (aOutputMax_, aPrice_) = eval(
-                        EvalContext(aHash_, b_.owner).toContext(),
                         vmState_,
                         ENTRYPOINT,
                         vmState_.stack.asStackTopUp()
@@ -208,9 +209,10 @@ contract OrderBook is StandardVM {
                 }
 
                 {
-                    vmState_ = b_.vmState.fromBytesPacked();
+                    vmState_ = b_.vmState.fromBytesPacked(
+                        EvalContext(bHash_, a_.owner).toContext()
+                    );
                     (bOutputMax_, bPrice_) = eval(
-                        EvalContext(bHash_, a_.owner).toContext(),
                         vmState_,
                         ENTRYPOINT,
                         vmState_.stack.asStackTopUp()
