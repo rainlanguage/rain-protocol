@@ -58,6 +58,7 @@ contract VMStateBuilder {
     using LibCast for uint256;
     using LibStackTop for bytes;
     using LibStackTop for StackTop;
+    using LibStackTop for uint[];
 
     /// @dev total hack to differentiate between stack move functions and values
     /// we assume that no function pointers are less than this so anything we
@@ -140,7 +141,7 @@ contract VMStateBuilder {
             stateBytes_ = VMState(
                 new uint256[](stackLength_),
                 config_.constants,
-                context_,
+                context_.asStackTopUp(),
                 ptrSources_
             ).toBytesPacked();
         }

@@ -145,7 +145,6 @@ abstract contract RainVM {
             uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
             StackTop constantsBottom_ = state_.constants.asStackTopUp();
             StackTop stackBottom_ = state_.stack.asStackTopUp();
-            StackTop contextBottom_ = state_.context.asStackTopUp();
 
             // Loop until complete.
             while (cursor_ < end_) {
@@ -186,13 +185,13 @@ abstract contract RainVM {
                         // as it is not possible to know how long context might
                         // be in general until runtime.
                         require(
-                            operand_ < contextBottom_.peek(),
+                            operand_ < state_.contextBottom.peek(),
                             "CONTEXT_LENGTH"
                         );
                         assembly ("memory-safe") {
                             mstore(
                                 stackTop_,
-                                mload(add(contextBottom_, mul(0x20, operand_)))
+                                mload(add(mload(add(state_, 0x40)), mul(0x20, operand_)))
                             )
                             stackTop_ := add(stackTop_, 0x20)
                         }

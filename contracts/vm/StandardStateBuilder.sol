@@ -20,14 +20,14 @@ contract StandardStateBuilder is VMStateBuilder {
     {}
 
     /// @inheritdoc VMStateBuilder
-    function stackPops() public view override returns (uint256[] memory pops_) {
+    function stackPops() public pure override returns (uint256[] memory pops_) {
         pops_ = AllStandardOps.stackPops(localStackPops());
     }
 
     /// @inheritdoc VMStateBuilder
     function stackPushes()
         public
-        view
+        pure
         override
         returns (uint256[] memory pushes_)
     {

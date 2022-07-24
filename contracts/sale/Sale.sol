@@ -357,7 +357,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
-            state_.context = new uint256[](0);
+            state_.contextBottom = (new uint256[](0)).asStackTopUp();
             return
                 eval(state_, CAN_LIVE_ENTRYPOINT, state_.stack.asStackTopUp())
                     .peek() > 0;
@@ -403,7 +403,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        state_.context = targetUnits_.arrayFrom();
+        state_.contextBottom = targetUnits_.arrayFrom().asStackTopUp();
         return
             eval(state_, CALCULATE_BUY_ENTRYPOINT, state_.stack.asStackTopUp())
                 .peek2();
