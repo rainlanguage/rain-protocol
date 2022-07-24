@@ -31,8 +31,8 @@ enum DebugStyle {
 /// stack by `VAL`.
 struct VMState {
     uint256[] stack;
-    bytes[] ptrSources;
     uint256[] constants;
+    bytes[] ptrSources;
 }
 
 library LibVMState {
@@ -98,9 +98,8 @@ library LibVMState {
                 // bytes.
                 mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
                 // point state constants at state bytes
-                mstore(add(state_, 0x40), add(stateBytes_, 0x20))
+                mstore(add(state_, 0x20), add(stateBytes_, 0x20))
             }
-            // Stack index 0 is implied.
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
             uint256 sourcesLen_ = (indexes_ >> 16) & 0xFF;
             bytes[] memory ptrSources_;
@@ -134,7 +133,7 @@ library LibVMState {
                 }
                 // point state at sources_ rather than clone in memory
                 ptrSources_ := ptrSourcesPtrs_
-                mstore(add(state_, 0x20), ptrSources_)
+                mstore(add(state_, 0x40), ptrSources_)
             }
             return state_;
         }

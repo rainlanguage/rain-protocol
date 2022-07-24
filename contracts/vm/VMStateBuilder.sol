@@ -138,8 +138,8 @@ contract VMStateBuilder {
 
             stateBytes_ = VMState(
                 new uint256[](stackLength_),
-                ptrSources_,
-                config_.constants
+                config_.constants,
+                ptrSources_
             ).toBytesPacked();
         }
     }
