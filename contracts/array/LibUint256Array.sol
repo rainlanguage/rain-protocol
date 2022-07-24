@@ -26,7 +26,7 @@ library LibUint256Array {
         uint256 a_,
         uint256 b_,
         uint256[] memory tail_
-    ) internal view returns (uint256[] memory) {
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](2);
         array_[0] = a_;
         array_[1] = b_;

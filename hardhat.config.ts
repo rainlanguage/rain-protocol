@@ -22,6 +22,15 @@ const config: HardhatUserConfig = {
           optimizer: {
             enabled: true,
             runs: 1000000000,
+            details: {
+              "peephole": true,
+              "inliner": true,
+              "jumpdestRemover": true,
+              "orderLiterals": true,
+              "deduplicate": true,
+              "cse": true,
+              "constantOptimizer": true,
+            }
           },
           // viaIR: true,
           metadata: {

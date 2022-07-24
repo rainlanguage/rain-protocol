@@ -130,7 +130,7 @@ library AllStandardOps {
 
     function stackPops(uint256[] memory locals_)
         internal
-        view
+        pure
         returns (uint256[] memory pops_)
     {
         unchecked {
@@ -241,7 +241,7 @@ library AllStandardOps {
 
     function stackPushes(uint256[] memory locals_)
         internal
-        view
+        pure
         returns (uint256[] memory pushes_)
     {
         unchecked {
@@ -351,7 +351,7 @@ library AllStandardOps {
 
     function packedFunctionPointers(
         function(uint256, StackTop) view returns (StackTop)[] memory locals_
-    ) internal view returns (bytes memory packedFunctionPointers_) {
+    ) internal pure returns (bytes memory packedFunctionPointers_) {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
                 ALL_STANDARD_OPS_LENGTH,
