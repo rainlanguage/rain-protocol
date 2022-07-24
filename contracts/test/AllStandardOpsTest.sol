@@ -43,7 +43,7 @@ contract AllStandardOpsTest is StandardVM {
         _saveVMState(stateConfig_, boundss_);
     }
 
-    function stackTop() external view returns (uint) {
+    function stackTop() external view returns (uint256) {
         return _state.stack[_stackIndex - 1];
     }
 
@@ -79,7 +79,12 @@ contract AllStandardOpsTest is StandardVM {
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
         VMState memory state_ = _loadVMState();
-        StackTop stackTop_ = eval(context_, state_, ENTRYPOINT, state_.stack.asStackTopUp());
+        StackTop stackTop_ = eval(
+            context_,
+            state_,
+            ENTRYPOINT,
+            state_.stack.asStackTopUp()
+        );
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.

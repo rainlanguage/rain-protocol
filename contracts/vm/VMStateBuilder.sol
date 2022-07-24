@@ -113,7 +113,6 @@ contract VMStateBuilder {
             bytes memory packedFnPtrs_ = SSTORE2.read(
                 vmStructure_.packedFnPtrsAddress
             );
-            uint256 argumentsLength_ = 0;
             uint256 stackLength_ = 0;
 
             uint256[] memory stackPops_ = stackPops();
@@ -129,18 +128,7 @@ contract VMStateBuilder {
                     config_,
                     boundss_[b_]
                 );
-                argumentsLength_ = argumentsLength_.max(
-                    boundss_[b_].argumentsLength
-                );
                 stackLength_ = stackLength_.max(boundss_[b_].stackLength);
-            }
-
-            // build a new constants array with space for the arguments.
-            uint256[] memory constants_ = new uint256[](
-                config_.constants.length + argumentsLength_
-            );
-            for (uint256 i_ = 0; i_ < config_.constants.length; i_++) {
-                constants_[i_] = config_.constants[i_];
             }
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
@@ -151,8 +139,7 @@ contract VMStateBuilder {
             stateBytes_ = VMState(
                 new uint256[](stackLength_),
                 ptrSources_,
-                constants_,
-                config_.constants.length
+                config_.constants
             ).toBytesPacked();
         }
     }

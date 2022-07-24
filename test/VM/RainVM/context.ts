@@ -9,7 +9,7 @@ import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
-describe.only("RainVM context", async function () {
+describe("RainVM context", async function () {
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
 

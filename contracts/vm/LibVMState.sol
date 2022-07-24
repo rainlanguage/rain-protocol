@@ -33,10 +33,6 @@ struct VMState {
     uint256[] stack;
     bytes[] ptrSources;
     uint256[] constants;
-    /// `ZIPMAP` populates arguments into constants which can be copied to the
-    /// stack by `VAL` as usual, starting from this index. This copying is
-    /// destructive so it is recommended to leave space in the constants array.
-    uint256 argumentsIndex;
 }
 
 library LibVMState {
@@ -106,8 +102,7 @@ library LibVMState {
             }
             // Stack index 0 is implied.
             state_.stack = new uint256[]((indexes_ >> 8) & 0xFF);
-            state_.argumentsIndex = (indexes_ >> 16) & 0xFF;
-            uint256 sourcesLen_ = (indexes_ >> 24) & 0xFF;
+            uint256 sourcesLen_ = (indexes_ >> 16) & 0xFF;
             bytes[] memory ptrSources_;
             uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
 
@@ -156,8 +151,7 @@ library LibVMState {
             // constants is first so we can literally use it on the other end
             uint256 indexes_ = state_.constants.length |
                 (state_.stack.length << 8) |
-                (state_.argumentsIndex << 16) |
-                (state_.ptrSources.length << 24);
+                (state_.ptrSources.length << 16);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)
