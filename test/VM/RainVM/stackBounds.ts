@@ -37,44 +37,44 @@ describe("RainVM stack bounds", async function () {
     );
   });
 
-  it("should error when trying to read an out-of-bounds argument", async () => {
-    const constants = [1, 2, 3];
-    const v1 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v3 = op(Opcode.CONSTANT, 2);
+  // it("should error when trying to read an out-of-bounds argument", async () => {
+  //   const constants = [1, 2, 3];
+  //   const v1 = op(Opcode.CONSTANT, 0);
+  //   const v2 = op(Opcode.CONSTANT, 1);
+  //   const v3 = op(Opcode.CONSTANT, 2);
 
-    const a0 = op(Opcode.CONSTANT, 3);
-    const a1 = op(Opcode.CONSTANT, 4);
-    const aOOB = op(Opcode.CONSTANT, 6);
+  //   const a0 = op(Opcode.CONSTANT, 3);
+  //   const a1 = op(Opcode.CONSTANT, 4);
+  //   const aOOB = op(Opcode.CONSTANT, 6);
 
-    // zero-based counting
-    const sourceIndex = 1; // 1
-    const loopSize = 0; // 1
-    const valSize = 2; // 3
+  //   // zero-based counting
+  //   const sourceIndex = 1; // 1
+  //   const loopSize = 0; // 1
+  //   const valSize = 2; // 3
 
-    // prettier-ignore
-    const sources = [
-      concat([
-          v1,
-          v2,
-          v3,
-        op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
-      ]),
-      concat([
-        // (arg0 arg1 arg2 add)
-          a0,
-          a1,
-          aOOB,
-        op(Opcode.ADD, 3),
-      ]),
-    ];
+  //   // prettier-ignore
+  //   const sources = [
+  //     concat([
+  //         v1,
+  //         v2,
+  //         v3,
+  //       op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
+  //     ]),
+  //     concat([
+  //       // (arg0 arg1 arg2 add)
+  //         a0,
+  //         a1,
+  //         aOOB,
+  //       op(Opcode.ADD, 3),
+  //     ]),
+  //   ];
 
-    await assertError(
-      async () => await logic.initialize({ sources, constants }),
-      "", // there is at least an error
-      "did not error when trying to read an out-of-bounds argument"
-    );
-  });
+  //   await assertError(
+  //     async () => await logic.initialize({ sources, constants }),
+  //     "", // there is at least an error
+  //     "did not error when trying to read an out-of-bounds argument"
+  //   );
+  // });
 
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];

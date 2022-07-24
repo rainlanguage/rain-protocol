@@ -216,41 +216,12 @@ contract VMStateBuilder {
         }
     }
 
-    function _ensureIntegrityZipmap(
-        uint256[] memory stackPops_,
-        uint256[] memory stackPushes_,
-        StateConfig memory stateConfig_,
-        Bounds memory bounds_,
-        uint256 operand_
-    ) private view {
-        unchecked {
-            uint256 valLength_ = (operand_ >> 5) + 1;
-            // read underflow here will show up as an OOB max later.
-            bounds_.stackIndex -= valLength_;
-            bounds_.stackLength = bounds_.stackLength.max(bounds_.stackIndex);
-            bounds_.argumentsLength = bounds_.argumentsLength.max(valLength_);
-            uint256 loopTimes_ = 1 << ((operand_ >> 3) & 0x03);
-            uint256 outerEntrypoint_ = bounds_.entrypoint;
-            uint256 innerEntrypoint_ = operand_ & 0x07;
-            bounds_.entrypoint = innerEntrypoint_;
-            for (uint256 n_ = 0; n_ < loopTimes_; n_++) {
-                ensureIntegrity(
-                    stackPops_,
-                    stackPushes_,
-                    stateConfig_,
-                    bounds_
-                );
-            }
-            bounds_.entrypoint = outerEntrypoint_;
-        }
-    }
-
     function ensureIntegrity(
         uint256[] memory stackPops_,
         uint256[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_
-    ) public view {
+    ) public pure {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             StackTop cursor_ = stateConfig_.sources[entrypoint_].asStackTop();
@@ -309,14 +280,6 @@ contract VMStateBuilder {
                             "OOB_STORAGE"
                         );
                         bounds_.stackIndex++;
-                    } else if (opcode_ == OPCODE_ZIPMAP) {
-                        _ensureIntegrityZipmap(
-                            stackPops_,
-                            stackPushes_,
-                            stateConfig_,
-                            bounds_,
-                            operand_
-                        );
                     }
                 } else {
                     // This will catch popping/reading from underflowing the

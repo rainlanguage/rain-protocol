@@ -25,15 +25,11 @@ uint256 constant OPCODE_STORAGE = 3;
 
 uint256 constant OPCODE_LOOP_N = 4;
 
-/// @dev Takes N values off the stack, interprets them as an array then zips
-/// and maps a source from `sources` over them.
-uint256 constant OPCODE_ZIPMAP = 5;
-
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
-uint256 constant OPCODE_DEBUG = 6;
+uint256 constant OPCODE_DEBUG = 5;
 
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 7;
+uint256 constant RAIN_VM_OPS_LENGTH = 6;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -124,123 +120,6 @@ abstract contract RainVM {
         view
         virtual
         returns (bytes memory ptrs_);
-
-    /// Zipmap is rain script's native looping construct.
-    /// N values are taken from the stack as `uint256` then split into `uintX`
-    /// values where X is configurable by `operand_`. Each 1 increment in the
-    /// operand size config doubles the number of items in the implied arrays.
-    /// For example, size 0 is 1 `uint256` value, size 1 is
-    /// `2x `uint128` values, size 2 is 4x `uint64` values and so on.
-    ///
-    /// The implied arrays are zipped and then copied into `arguments` and
-    /// mapped over with a source from `sources`. Each iteration of the mapping
-    /// copies values into `arguments` from index `0` but there is no attempt
-    /// to zero out any values that may already be in the `arguments` array.
-    /// It is the callers responsibility to ensure that the `arguments` array
-    /// is correctly sized and populated for the mapped source.
-    ///
-    /// The `operand_` for the zipmap opcode is split into 3 components:
-    /// - 3 low bits: The index of the source to use from `sources`.
-    /// - 2 middle bits: The size of the loop, where 0 is 1 iteration
-    /// - 3 high bits: The number of vals to be zipped from the stack where 0
-    ///   is 1 value to be zipped.
-    ///
-    /// This is a separate function to avoid blowing solidity compile stack.
-    /// In the future it may be moved inline to `eval` for gas efficiency.
-    ///
-    /// See https://en.wikipedia.org/wiki/Zipping_(computer_science)
-    /// See https://en.wikipedia.org/wiki/Map_(higher-order_function)
-    /// @param context_ Domain specific context the wrapping contract can
-    /// provide to passthrough back to its own opcodes.
-    /// @param state_ The execution state of the VM.
-    /// @param operand_ The operand_ associated with this dispatch to zipmap.
-    function zipmap(
-        uint256[] memory context_,
-        VMState memory state_,
-        StackTop stackTop_,
-        uint256 operand_
-    ) internal view returns (StackTop) {
-        unchecked {
-            uint256 sourceIndex_ = operand_ & 0x07;
-            uint256 loopSize_ = (operand_ >> 3) & 0x03;
-            uint256 mask_;
-            uint256 stepSize_;
-            if (loopSize_ == 0) {
-                mask_ = type(uint256).max;
-                stepSize_ = 0x100;
-            } else if (loopSize_ == 1) {
-                mask_ = type(uint128).max;
-                stepSize_ = 0x80;
-            } else if (loopSize_ == 2) {
-                mask_ = type(uint64).max;
-                stepSize_ = 0x40;
-            } else {
-                mask_ = type(uint32).max;
-                stepSize_ = 0x20;
-            }
-            uint256 valLength_ = (operand_ >> 5) + 1;
-
-            // Set aside base values so they can't be clobbered during eval
-            // as the stack changes on each loop.
-            uint256[] memory baseVals_ = new uint256[](valLength_);
-            uint256 baseValsBottom_;
-            {
-                assembly ("memory-safe") {
-                    baseValsBottom_ := add(baseVals_, 0x20)
-                    for {
-                        let cursor_ := sub(stackTop_, mul(valLength_, 0x20))
-                        let baseValsCursor_ := baseValsBottom_
-                    } lt(cursor_, stackTop_) {
-                        cursor_ := add(cursor_, 0x20)
-                        baseValsCursor_ := add(baseValsCursor_, 0x20)
-                    } {
-                        mstore(baseValsCursor_, mload(cursor_))
-                    }
-                }
-            }
-
-            uint256 argumentsBottomLocation_;
-            assembly ("memory-safe") {
-                let constantsBottomLocation_ := add(
-                    mload(add(state_, 0x60)),
-                    0x20
-                )
-                argumentsBottomLocation_ := add(
-                    constantsBottomLocation_,
-                    mul(
-                        0x20,
-                        mload(
-                            // argumentsIndex
-                            add(state_, 0x80)
-                        )
-                    )
-                )
-            }
-
-            for (uint256 step_ = 0; step_ < 0x100; step_ += stepSize_) {
-                // Prepare arguments.
-                {
-                    // max cursor is in this scope to avoid stack overflow from
-                    // solidity.
-                    uint256 maxCursor_ = baseValsBottom_ + (valLength_ * 0x20);
-                    uint256 argumentsCursor_ = argumentsBottomLocation_;
-                    uint256 cursor_ = baseValsBottom_;
-                    while (cursor_ < maxCursor_) {
-                        assembly ("memory-safe") {
-                            mstore(
-                                argumentsCursor_,
-                                and(shr(step_, mload(cursor_)), mask_)
-                            )
-                            cursor_ := add(cursor_, 0x20)
-                            argumentsCursor_ := add(argumentsCursor_, 0x20)
-                        }
-                    }
-                }
-                stackTop_ = eval(context_, state_, sourceIndex_, stackTop_);
-            }
-            return stackTop_;
-        }
-    }
 
     /// Evaluates a rain script.
     /// The main workhorse of the rain VM, `eval` runs any core opcodes and
@@ -342,14 +221,6 @@ abstract contract RainVM {
                                 stackTop_
                             );
                         }
-                    } else if (opcode_ == OPCODE_ZIPMAP) {
-                        // state_.syncIndexToStackTop(stackTop_);
-                        stackTop_ = zipmap(
-                            context_,
-                            state_,
-                            stackTop_,
-                            operand_
-                        );
                     } else {
                         state_.debug(stackTop_, DebugStyle(operand_));
                     }

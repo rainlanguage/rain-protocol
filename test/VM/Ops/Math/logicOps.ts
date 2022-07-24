@@ -35,92 +35,92 @@ describe("RainVM logic ops", async function () {
     )) as AllStandardOpsTest;
   });
 
-  it("should support logic ops within a zipmap loop", async function () {
-    const report = paddedUInt256(
-      ethers.BigNumber.from(
-        "0x" +
-          paddedUInt32(1) +
-          paddedUInt32(0) +
-          paddedUInt32(3) +
-          paddedUInt32(0) +
-          paddedUInt32(5) +
-          paddedUInt32(0) +
-          paddedUInt32(7) +
-          paddedUInt32(8)
-      )
-    );
+  // it("should support logic ops within a zipmap loop", async function () {
+  //   const report = paddedUInt256(
+  //     ethers.BigNumber.from(
+  //       "0x" +
+  //         paddedUInt32(1) +
+  //         paddedUInt32(0) +
+  //         paddedUInt32(3) +
+  //         paddedUInt32(0) +
+  //         paddedUInt32(5) +
+  //         paddedUInt32(0) +
+  //         paddedUInt32(7) +
+  //         paddedUInt32(8)
+  //     )
+  //   );
 
-    const reportMax = max_uint256;
+  //   const reportMax = max_uint256;
 
-    const constants = [report, reportMax];
+  //   const constants = [report, reportMax];
 
-    const vReport = op(Opcode.CONSTANT, 0);
-    const vReportMax = op(Opcode.CONSTANT, 1);
+  //   const vReport = op(Opcode.CONSTANT, 0);
+  //   const vReportMax = op(Opcode.CONSTANT, 1);
 
-    // BEGIN zipmap args
+  //   // BEGIN zipmap args
 
-    const argReport = op(Opcode.CONSTANT, 2);
-    const argReportMax = op(Opcode.CONSTANT, 3);
+  //   const argReport = op(Opcode.CONSTANT, 2);
+  //   const argReportMax = op(Opcode.CONSTANT, 3);
 
-    // END zipmap args
+  //   // END zipmap args
 
-    // prettier-ignore
-    const ZIPMAP_FN = () =>
-      concat([
-            argReport,
-          op(Opcode.ISZERO),
-          argReportMax,
-          argReport,
-        op(Opcode.EAGER_IF),
-      ]);
+  //   // prettier-ignore
+  //   const ZIPMAP_FN = () =>
+  //     concat([
+  //           argReport,
+  //         op(Opcode.ISZERO),
+  //         argReportMax,
+  //         argReport,
+  //       op(Opcode.EAGER_IF),
+  //     ]);
 
-    // prettier-ignore
-    const SOURCE = () =>
-      concat([
-          vReport,
-          vReportMax,
-        op(Opcode.ZIPMAP, zipmapSize(1, 3, 1)),
-      ]);
+  //   // prettier-ignore
+  //   const SOURCE = () =>
+  //     concat([
+  //         vReport,
+  //         vReportMax,
+  //       op(Opcode.ZIPMAP, zipmapSize(1, 3, 1)),
+  //     ]);
 
-    await logic.initialize({ sources: [SOURCE(), ZIPMAP_FN()], constants });
+  //   await logic.initialize({ sources: [SOURCE(), ZIPMAP_FN()], constants });
 
-    await logic.run();
+  //   await logic.run();
 
-    const result = await logic.state();
+  //   const result = await logic.state();
 
-    const resultReport = ethers.BigNumber.from(
-      "0x" +
-        paddedUInt32(result.stack[7]) +
-        paddedUInt32(result.stack[6]) +
-        paddedUInt32(result.stack[5]) +
-        paddedUInt32(result.stack[4]) +
-        paddedUInt32(result.stack[3]) +
-        paddedUInt32(result.stack[2]) +
-        paddedUInt32(result.stack[1]) +
-        paddedUInt32(result.stack[0])
-    );
+  //   const resultReport = ethers.BigNumber.from(
+  //     "0x" +
+  //       paddedUInt32(result.stack[7]) +
+  //       paddedUInt32(result.stack[6]) +
+  //       paddedUInt32(result.stack[5]) +
+  //       paddedUInt32(result.stack[4]) +
+  //       paddedUInt32(result.stack[3]) +
+  //       paddedUInt32(result.stack[2]) +
+  //       paddedUInt32(result.stack[1]) +
+  //       paddedUInt32(result.stack[0])
+  //   );
 
-    const expectedReport = paddedUInt256(
-      ethers.BigNumber.from(
-        "0x" +
-          paddedUInt32(1) +
-          paddedUInt32("0xffffffff") +
-          paddedUInt32(3) +
-          paddedUInt32("0xffffffff") +
-          paddedUInt32(5) +
-          paddedUInt32("0xffffffff") +
-          paddedUInt32(7) +
-          paddedUInt32(8)
-      )
-    );
+  //   const expectedReport = paddedUInt256(
+  //     ethers.BigNumber.from(
+  //       "0x" +
+  //         paddedUInt32(1) +
+  //         paddedUInt32("0xffffffff") +
+  //         paddedUInt32(3) +
+  //         paddedUInt32("0xffffffff") +
+  //         paddedUInt32(5) +
+  //         paddedUInt32("0xffffffff") +
+  //         paddedUInt32(7) +
+  //         paddedUInt32(8)
+  //     )
+  //   );
 
-    assert(
-      resultReport.eq(expectedReport),
-      `wrong calculation result
-      expected  ${hexlify(expectedReport)}
-      got       ${hexlify(resultReport)}`
-    );
-  });
+  //   assert(
+  //     resultReport.eq(expectedReport),
+  //     `wrong calculation result
+  //     expected  ${hexlify(expectedReport)}
+  //     got       ${hexlify(resultReport)}`
+  //   );
+  // });
 
   it("should check whether any value in a list is non-zero", async () => {
     const constants = [0, 1, 2, 3];

@@ -149,8 +149,6 @@ library AllStandardOps {
                     zero,
                     // opcode loop n (ignored)
                     zero,
-                    // opcode zipmap (ignored)
-                    zero,
                     // opcode debug
                     zero,
                     // erc20 balance of
@@ -261,8 +259,6 @@ library AllStandardOps {
                     one,
                     // opcode loop n (will be ignored)
                     zero,
-                    // opcode zipmap (will be ignored)
-                    zero,
                     // opcode debug
                     one,
                     // erc20 balance of
@@ -368,8 +364,6 @@ library AllStandardOps {
                 // storage
                 0,
                 // loop n
-                0,
-                // zipmap
                 0,
                 // debug
                 0,
