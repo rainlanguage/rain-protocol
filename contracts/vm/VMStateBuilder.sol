@@ -37,7 +37,6 @@ struct Bounds {
     uint256 minFinalStackIndex;
     uint256 stackIndex;
     uint256 stackLength;
-    uint256 argumentsLength;
     uint256 storageLength;
 }
 
@@ -245,9 +244,7 @@ contract VMStateBuilder {
                         // script it doesn't expose the ability to read past
                         // the constants array in memory so we allow it here.
                         require(
-                            operand_ <
-                                (bounds_.argumentsLength +
-                                    stateConfig_.constants.length),
+                            operand_ < stateConfig_.constants.length,
                             "OOB_CONSTANT"
                         );
                         bounds_.stackIndex++;
