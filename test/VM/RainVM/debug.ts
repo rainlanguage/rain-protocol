@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { Debug, op } from "../../../utils/rainvm/vm";
+import { Debug, op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -31,8 +31,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 1),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StackIndex),
     ])];
@@ -48,8 +48,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 1),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.Stack),
     ])];
@@ -65,8 +65,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 1),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StatePacked),
     ])];
@@ -82,8 +82,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 1),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StateAbi),
     ])];

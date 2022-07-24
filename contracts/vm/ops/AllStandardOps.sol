@@ -139,15 +139,15 @@ library AllStandardOps {
                 1]
                 memory popsFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asStackMoveFn(),
-                    // opcode constant
+                    // memory
                     zero,
-                    // opcode stack
+                    // call (ignored)
                     zero,
-                    // opcode context
+                    // loop n (ignored)
+                    zero,
+                    // loop if (ignored)
                     zero,
                     // opcode storage
-                    zero,
-                    // opcode loop n (ignored)
                     zero,
                     // opcode debug
                     zero,
@@ -249,16 +249,16 @@ library AllStandardOps {
                 1]
                 memory pushesFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asStackMoveFn(),
-                    // opcode constant
+                    // memory
                     one,
-                    // opcode stack
-                    one,
-                    // opcode context
-                    one,
-                    // opcode storage
-                    one,
-                    // opcode loop n (will be ignored)
+                    // call (ignored)
                     zero,
+                    // loop n (ignored)
+                    zero,
+                    // loop if (ignored)
+                    zero,
+                    // storage
+                    one,
                     // opcode debug
                     one,
                     // erc20 balance of
@@ -355,15 +355,15 @@ library AllStandardOps {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
                 ALL_STANDARD_OPS_LENGTH,
-                // constant
+                // memory
                 0,
-                // stack
-                0,
-                // context
-                0,
-                // storage
+                // call
                 0,
                 // loop n
+                0,
+                // loop if
+                0,
+                // storage
                 0,
                 // debug
                 0,

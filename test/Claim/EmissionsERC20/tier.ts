@@ -11,6 +11,8 @@ import {
   Tier,
   tierRange,
   timewarp,
+  memoryOperand,
+  MemoryType,
 } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
@@ -32,7 +34,7 @@ describe("EmissionsERC20 Tier Test", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const vAlways = op(Opcode.CONSTANT, 1);
+    const vAlways = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const CURRENT_TIMESTAMP_AS_REPORT = () =>
@@ -49,15 +51,15 @@ describe("EmissionsERC20 Tier Test", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CONTEXT, 0),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.CONSTANT, 0),
-          op(Opcode.CONTEXT, 0),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
@@ -157,9 +159,15 @@ describe("EmissionsERC20 Tier Test", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const vReadWriteTier = op(Opcode.CONSTANT, 0);
-    const vConstructionTime = op(Opcode.CONSTANT, 1);
-    const vAlways = op(Opcode.CONSTANT, 2);
+    const vReadWriteTier = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vConstructionTime = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vAlways = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     await readWriteTier.setTier(claimant.address, Tier.TWO, []);
 
@@ -182,15 +190,15 @@ describe("EmissionsERC20 Tier Test", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CONTEXT, 0),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-        vReadWriteTier,
-          op(Opcode.CONTEXT, 0),
+          vReadWriteTier,
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
@@ -297,7 +305,7 @@ describe("EmissionsERC20 Tier Test", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const vAlways = op(Opcode.CONSTANT, 1);
+    const vAlways = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const CURRENT_TIMESTAMP_AS_REPORT = () =>
@@ -314,15 +322,15 @@ describe("EmissionsERC20 Tier Test", async function () {
     const LAST_CLAIM_REPORT = () =>
       concat([
           op(Opcode.THIS_ADDRESS),
-          op(Opcode.CONTEXT, 0),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-          op(Opcode.CONSTANT, 0),
-          op(Opcode.CONTEXT, 0),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       ]);
 

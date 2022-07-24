@@ -7,7 +7,7 @@ import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { ReserveTokenERC1155 } from "../../../../typechain/ReserveTokenERC1155";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -58,10 +58,10 @@ describe("RainVM ERC1155 ops", async function () {
       tokenERC1155.address,
       tokenId,
     ];
-    const vSigner1 = op(Opcode.CONSTANT, 0);
-    const vSigner2 = op(Opcode.CONSTANT, 1);
-    const vTokenAddr = op(Opcode.CONSTANT, 2);
-    const vTokenId = op(Opcode.CONSTANT, 3);
+    const vSigner1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vSigner2 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vTokenAddr = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vTokenId = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sources = [
@@ -114,9 +114,9 @@ describe("RainVM ERC1155 ops", async function () {
     const tokenId = 0;
 
     const constants = [signer1.address, tokenERC1155.address, tokenId];
-    const vSigner1 = op(Opcode.CONSTANT, 0);
-    const vTokenAddr = op(Opcode.CONSTANT, 1);
-    const vTokenId = op(Opcode.CONSTANT, 2);
+    const vSigner1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vTokenId = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [

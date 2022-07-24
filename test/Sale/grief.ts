@@ -11,7 +11,7 @@ import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
 import { createEmptyBlock } from "../../utils/hardhat";
 import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
@@ -60,12 +60,12 @@ describe("Sale griefer", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,

@@ -14,7 +14,7 @@ import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
@@ -55,8 +55,11 @@ describe("OrderBook remove order", async function () {
 
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(Opcode.CONSTANT, 0);
-    const vAskPrice = op(Opcode.CONSTANT, 1);
+    const vAskOutputMax = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,

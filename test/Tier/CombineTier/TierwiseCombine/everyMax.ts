@@ -12,7 +12,7 @@ import {
   op,
   selectLte,
   selectLteLogic,
-  selectLteMode,
+  selectLteMode, memoryOperand, MemoryType
 } from "../../../../utils/rainvm/vm";
 import { ALWAYS, NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
@@ -21,7 +21,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'every' logic and 'max' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxAccount = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
 
   // prettier-ignore
   // return default report
@@ -37,14 +37,20 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [NEVER],
       },
     })) as CombineTier;
@@ -57,11 +63,11 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     // prettier-ignore
     const sourceReport = concat([
       op(Opcode.BLOCK_TIMESTAMP),
-            op(Opcode.CONSTANT, 0),
-            op(Opcode.CONTEXT, 0),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
           op(Opcode.ITIERV2_REPORT, 0),
-            op(Opcode.CONSTANT, 1),
-            op(Opcode.CONTEXT, 0),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
           op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
@@ -110,11 +116,11 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     // prettier-ignore
     const sourceReport = concat([
       op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.CONSTANT, 1),
-          op(Opcode.CONTEXT),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
-          op(Opcode.CONSTANT, 0),
-          op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         op(Opcode.ITIERV2_REPORT),
       op(
         Opcode.SELECT_LTE,

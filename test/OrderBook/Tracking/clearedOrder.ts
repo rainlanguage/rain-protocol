@@ -23,13 +23,13 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { fixedPointDiv } from "../../../utils/math";
 import { OrderBookOpcode } from "../../../utils/rainvm/ops/orderBookOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook tracking order funds cleared", async function () {
-  const cOrderHash = op(Opcode.CONTEXT, 0);
+  const cOrderHash = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -76,9 +76,9 @@ describe("OrderBook tracking order funds cleared", async function () {
     const askBlock = await ethers.provider.getBlockNumber();
 
     const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.CONSTANT, 0);
-    const vAskBlock = op(Opcode.CONSTANT, 1);
-    const v5 = op(Opcode.CONSTANT, 2);
+    const vAskPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vAskBlock = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v5 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
     // prettier-ignore
     const askSource = concat([
       // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
@@ -121,8 +121,11 @@ describe("OrderBook tracking order funds cleared", async function () {
     const bidOutputMax = max_uint256;
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,

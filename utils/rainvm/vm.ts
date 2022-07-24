@@ -1,6 +1,12 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
 
+export enum MemoryType {
+  Stack,
+  Constant,
+  Context,
+}
+
 export enum Debug {
   StateAbi,
   StatePacked,
@@ -43,6 +49,10 @@ export function op(
   erand: number | BytesLike | Hexable = 0
 ): Uint8Array {
   return concat([bytify(code), bytify(erand)]);
+}
+
+export function memoryOperand(type: number, offset: number): number {
+  return (offset << 2) + type;
 }
 
 /**

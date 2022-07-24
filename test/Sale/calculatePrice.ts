@@ -18,7 +18,7 @@ import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import { assertError } from "../../utils/test/assertError";
 import { SaleStorage } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
@@ -63,16 +63,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vFractionMultiplier = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vFractionMultiplier = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
     // prettier-ignore
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         // price
           vBasePrice,
               vFractionMultiplier,
@@ -202,16 +205,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vFractionMultiplier = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vFractionMultiplier = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
     // prettier-ignore
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         // price
           vBasePrice,
               vFractionMultiplier,
@@ -332,8 +338,8 @@ describe("Sale calculate price", async function () {
       initialSupply: totalTokenSupply,
     };
     const constants = [startBlock - 1, startBlock + saleDuration - 1];
-    const vStart = op(Opcode.CONSTANT, 0);
-    const vEnd = op(Opcode.CONSTANT, 1);
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
     const sources = [betweenBlockNumbersSource(vStart, vEnd), concat([op(99)])]; // bad source
     await assertError(
       async () =>
@@ -390,18 +396,21 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vSupplyDivisor = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vSupplyDivisor = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -518,15 +527,18 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vReserveDivisor = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vReserveDivisor = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
@@ -647,15 +659,18 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vSupplyDivisor = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vSupplyDivisor = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.STORAGE, SaleStorage.RemainingUnits),
@@ -747,14 +762,14 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         // price
         // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),

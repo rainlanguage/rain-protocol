@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
@@ -32,10 +32,10 @@ describe("RainVM stack op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 1),
-      op(Opcode.STACK, 3),
-      op(Opcode.CONSTANT, 2),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)),
     ])];
 
     await assertError(
@@ -50,10 +50,10 @@ describe("RainVM stack op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 1),
-      op(Opcode.CONSTANT, 2),
-      op(Opcode.STACK, 3),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Stack, 3)),
     ])];
 
     await assertError(
@@ -70,11 +70,11 @@ describe("RainVM stack op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.CONSTANT, 0), // STACK should equal this
-      op(Opcode.CONSTANT, 1),
-        op(Opcode.CONSTANT, 2), // not this (well, not without operand = 2)
-        op(Opcode.CONSTANT, 3),
-        op(Opcode.STACK),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // STACK should equal this
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)), // not this (well, not without operand = 2)
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.ADD, 3),
     ])];
 
@@ -96,11 +96,11 @@ describe("RainVM stack op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 1),
-        op(Opcode.CONSTANT, 2),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.ADD, 3),
-      op(Opcode.STACK),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ])];
 
     await logic.initialize({ sources, constants });
@@ -119,10 +119,10 @@ describe("RainVM stack op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 1),
-      op(Opcode.CONSTANT, 2),
-      op(Opcode.STACK, 1),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Stack, 1)),
     ])];
 
     await logic.initialize({ sources, constants });

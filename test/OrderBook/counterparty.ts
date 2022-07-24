@@ -24,7 +24,7 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
@@ -34,7 +34,7 @@ import {
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.CONTEXT, 1);
+  const cCounterparty = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1));
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -90,10 +90,19 @@ describe("OrderBook counterparty in context", async function () {
       askPrice,
       carol.address,
     ];
-    const vAskOutputMax = op(Opcode.CONSTANT, 0);
-    const vAskOutputMaxIfNotMatch = op(Opcode.CONSTANT, 1);
-    const vAskPrice = op(Opcode.CONSTANT, 2);
-    const vExpectedCounterparty = op(Opcode.CONSTANT, 3);
+    const vAskOutputMax = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskOutputMaxIfNotMatch = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vAskPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vExpectedCounterparty = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 3)
+    );
 
     // prettier-ignore
     const askSource = concat([
@@ -132,8 +141,11 @@ describe("OrderBook counterparty in context", async function () {
 
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -165,8 +177,14 @@ describe("OrderBook counterparty in context", async function () {
 
     const bidPriceCarol = fixedPointDiv(ONE, askPrice);
     const bidConstantsCarol = [max_uint256, bidPriceCarol];
-    const vBidOutputMaxCarol = op(Opcode.CONSTANT, 0);
-    const vBidPriceCarol = op(Opcode.CONSTANT, 1);
+    const vBidOutputMaxCarol = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPriceCarol = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const bidSourceCarol = concat([
       vBidOutputMaxCarol,

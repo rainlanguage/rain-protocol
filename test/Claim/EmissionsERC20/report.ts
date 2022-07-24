@@ -12,6 +12,8 @@ import {
   Tier,
   tierRange,
   timewarp,
+  memoryOperand,
+  MemoryType,
 } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
@@ -40,7 +42,9 @@ describe("EmissionsERC20 Report Test", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.CONSTANT)])],
+          sources: [
+            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+          ],
           constants: [claimAmount],
         },
       }
@@ -80,8 +84,11 @@ describe("EmissionsERC20 Report Test", async function () {
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const constants = [readWriteTier.address, Util.NEVER];
-    const valTierAddr = op(Opcode.CONSTANT, 0);
-    const valNever = op(Opcode.CONSTANT, 1);
+    const valTierAddr = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valNever = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const emissionsERC20 = await emissionsDeploy(
       creator,
@@ -105,7 +112,7 @@ describe("EmissionsERC20 Report Test", async function () {
                 tierRange(Tier.ZERO, Tier.EIGHT)
               ),
               valTierAddr,
-              op(Opcode.CONTEXT),
+              op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
               op(Opcode.ITIERV2_REPORT),
               op(Opcode.SATURATING_DIFF),
             ]),
@@ -161,7 +168,7 @@ describe("EmissionsERC20 Report Test", async function () {
             concat([
               // lastClaimReport
               op(Opcode.THIS_ADDRESS),
-              op(Opcode.CONTEXT),
+              op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
               op(Opcode.ITIERV2_REPORT),
             ]),
           ],
@@ -196,10 +203,13 @@ describe("EmissionsERC20 Report Test", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const valTierAddr = op(Opcode.CONSTANT, 0);
-    const valAlways = op(Opcode.CONSTANT, 1);
+    const valTierAddr = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valAlways = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
 
-    const ctxClaimant = op(Opcode.CONTEXT, 0);
+    const ctxClaimant = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
 
     // prettier-ignore
     const CURRENT_TIMESTAMP_AS_REPORT = () =>

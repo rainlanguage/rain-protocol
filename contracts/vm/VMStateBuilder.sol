@@ -38,6 +38,7 @@ struct Bounds {
     uint256 stackIndex;
     uint256 stackLength;
     uint256 storageLength;
+    uint256 contextLength;
 }
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
@@ -211,7 +212,7 @@ contract VMStateBuilder {
         uint256[] memory stackPushes_,
         StateConfig memory stateConfig_,
         Bounds memory bounds_
-    ) public pure {
+    ) public view {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             StackTop cursor_ = stateConfig_.sources[entrypoint_].asStackTop();
@@ -232,27 +233,46 @@ contract VMStateBuilder {
 
                 // Additional integrity checks for core opcodes.
                 if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OPCODE_CONSTANT) {
-                        // trying to read past the end of the constants array.
-                        // note that it is possible for a script to reach into
-                        // arguments space after a zipmap has completed. While
-                        // this is almost certainly a critical bug for the
-                        // script it doesn't expose the ability to read past
-                        // the constants array in memory so we allow it here.
-                        require(
-                            operand_ < stateConfig_.constants.length,
-                            "OOB_CONSTANT"
-                        );
+                    if (opcode_ == OPCODE_MEMORY) {
+                        uint256 type_ = operand_ & 0x3;
+                        uint256 offset_ = operand_ >> 2;
+                        if (type_ == OPCODE_MEMORY_TYPE_STACK) {
+                            // trying to read past the current stack top.
+                            require(offset_ < bounds_.stackIndex, "OOB_STACK");
+                        } else if (type_ == OPCODE_MEMORY_TYPE_CONSTANT) {
+                            // trying to read past the end of the constants array.
+                            // note that it is possible for a script to reach into
+                            // arguments space after a zipmap has completed. While
+                            // this is almost certainly a critical bug for the
+                            // script it doesn't expose the ability to read past
+                            // the constants array in memory so we allow it here.
+                            require(
+                                offset_ < stateConfig_.constants.length,
+                                "OOB_CONSTANT"
+                            );
+                        } else if (type_ == OPCODE_MEMORY_TYPE_CONTEXT) {
+                            // @TODO
+                            // require(
+                            //     offset_ < bounds_.contextLength,
+                            //     "OOB_CONTEXT"
+                            // );
+                        } else {
+                            revert("OOB_TYPE");
+                        }
+
                         bounds_.stackIndex++;
-                    } else if (opcode_ == OPCODE_STACK) {
-                        // trying to read past the current stack top.
-                        require(operand_ < bounds_.stackIndex, "OOB_STACK");
-                        bounds_.stackIndex++;
-                    } else if (opcode_ == OPCODE_CONTEXT) {
-                        // Note that context length check is handled at runtime
-                        // because we don't know how long context should be at
-                        // this point.
-                        bounds_.stackIndex++;
+                    } else if (opcode_ == OPCODE_LOOP_N) {
+                        // @TODO
+                        uint256 n_ = operand_ & 0x0F;
+                        uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
+                        for (uint256 i_ = 0; i_ < n_; i_++) {
+                            ensureIntegrity(
+                                stackPops_,
+                                stackPushes_,
+                                stateConfig_,
+                                bounds_
+                            );
+                        }
                     } else if (opcode_ == OPCODE_STORAGE) {
                         // trying to read past allowed storage slots.
                         require(

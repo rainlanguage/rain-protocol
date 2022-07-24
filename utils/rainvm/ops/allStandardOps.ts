@@ -1,9 +1,9 @@
 export enum AllStandardOps {
-  CONSTANT,
-  STACK,
-  CONTEXT,
-  STORAGE,
+  MEMORY,
+  CALL,
   LOOP_N,
+  LOOP_IF,
+  STORAGE,
   DEBUG,
   ERC20_BALANCE_OF,
   ERC20_TOTAL_SUPPLY,

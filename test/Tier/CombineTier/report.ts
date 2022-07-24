@@ -4,14 +4,14 @@ import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain/CombineTier";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { ALWAYS, NEVER } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;
 
 describe("CombineTier default report", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxAccount = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
 
   // prettier-ignore
   // return default report
@@ -27,14 +27,20 @@ describe("CombineTier default report", async function () {
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [NEVER],
       },
     })) as CombineTier;
@@ -46,15 +52,15 @@ describe("CombineTier default report", async function () {
 
     // prettier-ignore
     const sourceAlwaysReport = concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONTEXT, 0),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceNeverReport = concat([
-        op(Opcode.CONSTANT, 1),
-        op(Opcode.CONTEXT, 0),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 

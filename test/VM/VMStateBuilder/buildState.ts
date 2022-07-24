@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
 import { StackHeightTest } from "../../../typechain/StackHeightTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
@@ -35,8 +35,8 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 1
     // prettier-ignore
     const sources0 = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 0),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.ADD, 2),
     ])];
 
@@ -51,8 +51,8 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 2
     // prettier-ignore
     const sources1 = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ])];
 
     // should pass with stack height = min stack height
@@ -61,9 +61,9 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 3
     // prettier-ignore
     const sources2 = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
   ])];
 
     // should pass with stack height > min stack height

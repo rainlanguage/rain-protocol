@@ -7,7 +7,7 @@ import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { compareTierReports } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
@@ -41,7 +41,7 @@ describe("TierV2 report op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.CONSTANT, 0), // ITierV2 contract
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.SENDER), // address
       op(Opcode.ITIERV2_REPORT)
     ]);

@@ -6,7 +6,7 @@ import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
@@ -27,7 +27,9 @@ describe("EmissionsERC20 construction", async () => {
         initialSupply: 0,
       },
       vmStateConfig: {
-        sources: [concat([op(Opcode.CONSTANT)])],
+        sources: [
+          concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+        ],
         constants: [0],
       },
     };

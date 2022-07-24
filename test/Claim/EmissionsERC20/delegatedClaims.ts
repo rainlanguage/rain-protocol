@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import * as Util from "../../../utils";
-import { op } from "../../../utils";
+import { op, memoryOperand, MemoryType } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
@@ -31,7 +31,9 @@ describe("EmissionsERC20 Delegated Claims Test", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.CONSTANT)])],
+          sources: [
+            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+          ],
           constants: [claimAmount],
         },
       }
@@ -74,7 +76,9 @@ describe("EmissionsERC20 Delegated Claims Test", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.CONSTANT)])],
+          sources: [
+            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+          ],
           constants: [claimAmount],
         },
       }

@@ -15,7 +15,7 @@ import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
 import { createEmptyBlock } from "../../../utils/hardhat";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
@@ -61,14 +61,17 @@ describe("Sale unchecked math", async function () {
       startBlock + saleDuration - 1,
     ];
 
-    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
-    const vTwo = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vHalfMaxUInt256 = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTwo = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         vHalfMaxUInt256,
         vTwo,
       op(Opcode.EXP, 2)
@@ -140,14 +143,17 @@ describe("Sale unchecked math", async function () {
       startBlock + saleDuration - 1,
     ];
 
-    const vHalfMaxUInt256 = op(Opcode.CONSTANT, 0);
-    const vThree = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vHalfMaxUInt256 = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vThree = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         vHalfMaxUInt256,
         vThree,
       op(Opcode.MUL, 2)
@@ -214,14 +220,14 @@ describe("Sale unchecked math", async function () {
 
     const constants = [0, 1, startBlock - 1, startBlock + saleDuration - 1];
 
-    const vZero = op(Opcode.CONSTANT, 0);
-    const vOne = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vZero = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         vZero,
         vOne,
       op(Opcode.SUB, 2)
@@ -293,14 +299,17 @@ describe("Sale unchecked math", async function () {
       startBlock + saleDuration - 1,
     ];
 
-    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
-    const vOne = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vMaxUInt256 = op(
+      Opcode.MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
         vMaxUInt256,
         vOne,
       op(Opcode.ADD, 2)

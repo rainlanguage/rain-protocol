@@ -6,7 +6,7 @@ import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierV2 report time for tier op", async function () {
@@ -39,9 +39,9 @@ describe("TierV2 report time for tier op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.CONSTANT, 0), // ITierV2 contract
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.SENDER), // account
-        op(Opcode.CONSTANT, 1), // tier
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // tier
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 

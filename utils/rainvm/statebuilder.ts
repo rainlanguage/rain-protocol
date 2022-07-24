@@ -7,5 +7,6 @@ export const newVMStateBuilderBounds = (): BoundsStruct => {
     stackIndex: 0,
     stackLength: 0,
     storageLength: 0,
+    contextLength: 0,
   };
 };

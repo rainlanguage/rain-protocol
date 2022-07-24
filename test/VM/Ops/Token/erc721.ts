@@ -7,7 +7,7 @@ import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { ReserveTokenERC721 } from "../../../../typechain/ReserveTokenERC721";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -50,8 +50,8 @@ describe("RainVM ERC721 ops", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId = op(Opcode.CONSTANT, 0);
-    const vTokenAddr = op(Opcode.CONSTANT, 1);
+    const vNftId = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -77,8 +77,8 @@ describe("RainVM ERC721 ops", async function () {
 
   it("should return ERC721 balance of signer", async () => {
     const constants = [signer1.address, tokenERC721.address];
-    const vSigner1 = op(Opcode.CONSTANT, 0);
-    const vTokenAddr = op(Opcode.CONSTANT, 1);
+    const vSigner1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [

@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
@@ -29,7 +29,7 @@ describe("RainVM context", async function () {
 
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 3)])];
+    const sources = [concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 3))])];
 
     await logic.initialize({ sources, constants });
 
@@ -46,9 +46,9 @@ describe("RainVM context", async function () {
     const constants = [];
     const sources = [
       concat([
-        op(Opcode.CONTEXT, 0),
-        op(Opcode.CONTEXT, 1),
-        op(Opcode.CONTEXT, 2),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1)),
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 2)),
       ]),
     ];
 
@@ -74,7 +74,7 @@ describe("RainVM context", async function () {
 
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0)])];
+    const sources = [concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0))])];
 
     await logic.initialize({ sources, constants });
 

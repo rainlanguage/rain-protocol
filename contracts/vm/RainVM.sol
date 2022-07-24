@@ -6,6 +6,7 @@ import "../math/SaturatingMath.sol";
 import "../type/LibCast.sol";
 import "./LibStackTop.sol";
 import "./LibVMState.sol";
+import "../array/LibUint256Array.sol";
 
 struct StorageOpcodesRange {
     uint256 pointer;
@@ -13,17 +14,23 @@ struct StorageOpcodesRange {
 }
 
 /// @dev Copies a value either off `constants` to the top of the stack.
-uint256 constant OPCODE_CONSTANT = 0;
+uint256 constant OPCODE_MEMORY = 0;
+
+uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
+uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
+uint256 constant OPCODE_MEMORY_TYPE_CONTEXT = 2;
+
+uint256 constant OPCODE_CALL = 1;
+uint256 constant OPCODE_LOOP_N = 2;
+uint constant OPCODE_LOOP_IF = 3;
 
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
 /// specifies the index to copy from.
-uint256 constant OPCODE_STACK = 1;
+// uint256 constant OPCODE_STACK = 1;
 
-uint256 constant OPCODE_CONTEXT = 2;
+// uint256 constant OPCODE_CONTEXT = 2;
 
-uint256 constant OPCODE_STORAGE = 3;
-
-uint256 constant OPCODE_LOOP_N = 4;
+uint256 constant OPCODE_STORAGE = 4;
 
 /// @dev ABI encodes the entire stack and logs it to the hardhat console.
 uint256 constant OPCODE_DEBUG = 5;
@@ -167,78 +174,67 @@ abstract contract RainVM {
                     opcode_ = op_ >> 8;
                 }
 
-                if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OPCODE_CONSTANT) {
-                        assembly ("memory-safe") {
-                            mstore(
-                                stackTop_,
-                                mload(
-                                    add(
-                                        mload(add(state_, 0x20)),
-                                        mul(0x20, operand_)
-                                    )
+                if (opcode_ == OPCODE_MEMORY) {
+                    assembly ("memory-safe") {
+                        let type_ := and(operand_, 0x3)
+                        let offset_ := shr(2, operand_)
+                        mstore(
+                            stackTop_,
+                            mload(
+                                add(
+                                    mload(add(state_, mul(0x20, type_))),
+                                    mul(0x20, offset_)
                                 )
                             )
-                            stackTop_ := add(stackTop_, 0x20)
-                        }
-                    } else if (opcode_ == OPCODE_STACK) {
-                        assembly ("memory-safe") {
-                            mstore(
-                                stackTop_,
-                                mload(add(mload(state_), mul(0x20, operand_)))
-                            )
-                            stackTop_ := add(stackTop_, 0x20)
-                        }
-                    } else if (opcode_ == OPCODE_CONTEXT) {
-                        // This is the only runtime integrity check that we do
-                        // as it is not possible to know how long context might
-                        // be in general until runtime.
-                        require(
-                            operand_ < state_.contextBottom.peek(),
-                            "CONTEXT_LENGTH"
-                        );
-                        assembly ("memory-safe") {
-                            mstore(
-                                stackTop_,
-                                mload(
-                                    add(
-                                        mload(add(state_, 0x40)),
-                                        mul(0x20, operand_)
-                                    )
-                                )
-                            )
-                            stackTop_ := add(stackTop_, 0x20)
-                        }
-                    } else if (opcode_ == OPCODE_STORAGE) {
-                        StorageOpcodesRange
-                            memory storageOpcodesRange_ = storageOpcodesRange();
-                        assembly ("memory-safe") {
-                            mstore(
-                                stackTop_,
-                                sload(
-                                    add(operand_, mload(storageOpcodesRange_))
-                                )
-                            )
-                            stackTop_ := add(stackTop_, 0x20)
-                        }
-                    } else if (opcode_ == OPCODE_LOOP_N) {
-                        uint256 n_ = operand_ & 0x0F;
-                        uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
-                        for (uint256 i_ = 0; i_ <= n_; i_++) {
-                            stackTop_ = eval(
-                                state_,
-                                loopSourceIndex_,
-                                stackTop_
-                            );
-                        }
-                    } else {
-                        state_.debug(stackTop_, DebugStyle(operand_));
+                        )
+                        stackTop_ := add(stackTop_, 0x20)
                     }
-                } else {
+                } else if (opcode_ >= RAIN_VM_OPS_LENGTH) {
                     stackTop_ = opcode_.asOpFn()(operand_, stackTop_);
+                } else if (opcode_ == OPCODE_CALL) {
+                    uint256 inputs_ = operand_ & 0x7;
+                    uint256 outputs_ = (operand_ >> 3) & 0x3;
+                    uint256 callSourceIndex_ = (operand_ >> 5) & 0x7;
+                    stackTop_ = stackTop_.down(inputs_);
+                    StackTop stackTopAfter_ = eval(
+                        state_,
+                        callSourceIndex_,
+                        stackTop_
+                    );
+                    LibUint256Array.unsafeCopyValuesTo(
+                        StackTop.unwrap(stackTopAfter_.down(outputs_)),
+                        StackTop.unwrap(stackTop_),
+                        outputs_
+                    );
+                    stackTop_ = stackTop_.up(outputs_);
+                } else if (opcode_ == OPCODE_LOOP_N) {
+                    uint256 n_ = operand_ & 0x0F;
+                    uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
+                    for (uint256 i_ = 0; i_ <= n_; i_++) {
+                        stackTop_ = eval(state_, loopSourceIndex_, stackTop_);
+                    }
+                } else if (opcode_ == OPCODE_LOOP_IF) {
+                    while(stackTop_.peek() > 0) {
+                        // LOOP_IF is NOT allowed to change the stack top so we
+                        // ignore the return of eval. This is enforced by bounds
+                        // checks.
+                        eval(state_, operand_, stackTop_.down());
+                    }
+                    stackTop_ = stackTop_.down();
+                } else if (opcode_ == OPCODE_STORAGE) {
+                    StorageOpcodesRange
+                        memory storageOpcodesRange_ = storageOpcodesRange();
+                    assembly ("memory-safe") {
+                        mstore(
+                            stackTop_,
+                            sload(add(operand_, mload(storageOpcodesRange_)))
+                        )
+                    }
+                    stackTop_ = stackTop_.up();
+                } else {
+                    state_.debug(stackTop_, DebugStyle(operand_));
                 }
             }
-
             return stackTop_;
         }
     }

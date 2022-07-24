@@ -4,7 +4,7 @@ import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOps
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
 import { NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
@@ -52,11 +52,11 @@ describe("RainVM update tier range op", async function () {
 
     const constants0 = [block, NEVER];
 
-    const vBlock = op(Opcode.CONSTANT, 0);
+    const vBlock = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.CONSTANT, 1),
+      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
         vBlock,
       op(
         Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
