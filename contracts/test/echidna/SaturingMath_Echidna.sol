@@ -3,45 +3,52 @@ pragma solidity 0.8.10;
 
 import {SaturatingMath} from "../../math/SaturatingMath.sol";
 
-/// @title SaturatingMathTest
-/// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
+/// @title SaturingMath_Echidna
+/// Wrapper around the `SaturatingMath` library for echidna fuzz testing.
 contract SaturingMath_Echidna {
-    /// Wraps `SaturatingMath.saturatingAdd`.
-    /// Saturating addition.
-    /// @param a_ First term.
-    /// @param b_ Second term.
-    /// @return Minimum of a_ + b_ and max uint256.
-    function saturatingAdd(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
-        return SaturatingMath.saturatingAdd(a_, b_);
+    uint256 a;
+    uint256 b;
+    uint256 c;
+
+    /// Allow echidna add any value
+    /// @param _a First term.
+    /// @param _b Second term.
+    function setValues(uint256 _a, uint256 _b) public {
+        a = _a;
+        b = _b;
     }
 
-    /// Wraps `SaturatingMath.saturatingSub`.
-    /// Saturating subtraction.
-    /// @param a_ Minuend.
-    /// @param b_ Subtrahend.
-    /// @return a_ - b_ if a_ greater than b_, else 0.
-    function saturatingSub(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
-        return SaturatingMath.saturatingSub(a_, b_);
+    function echidna_saturatingAdd() external returns (bool) {
+        c = SaturatingMath.saturatingAdd(a, b);
+
+        if (a >= b) {
+            return c >= a;
+        } else {
+            return c >= b;
+        }
     }
 
-    /// Wraps `SaturatingMath.saturatingMul`.
-    /// Saturating multiplication.
-    /// @param a_ First term.
-    /// @param b_ Second term.
-    /// @return Minimum of a_ * b_ and max uint256.
-    function saturatingMul(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
-        return SaturatingMath.saturatingMul(a_, b_);
+    function echidna_saturatingSub() external returns (bool) {
+        c = SaturatingMath.saturatingSub(a, b);
+
+        if ( a > b ) {
+            return c <= a;
+        } else {
+            return c == 0;
+        }
+    }
+
+    function echidna_saturatingMul() external returns (bool) {
+        c = SaturatingMath.saturatingMul(a, b);
+
+        if (a == 0 || b == 0) {
+            return c == 0;
+        }
+
+        if (c / a != b) {
+            return c == type(uint256).max;
+        } else {
+            return true;
+        }
     }
 }
