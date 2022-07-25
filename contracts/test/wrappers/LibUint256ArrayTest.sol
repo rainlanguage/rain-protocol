@@ -23,15 +23,15 @@ contract LibUint256ArrayTest {
     function extend(uint256[] memory base_, uint256[] memory extend_)
         external
         pure
-        returns (uint256[] memory)
+        returns (uint256[] memory baseCopy_)
     {
-        uint256[] memory base0_ = new uint256[](base_.length);
+        baseCopy_ = new uint256[](base_.length);
         LibUint256Array.unsafeCopyValuesTo(
             base_,
-            StackTop.unwrap(base0_.asStackTop().up())
+            StackTop.unwrap(baseCopy_.asStackTop().up())
         );
-        base0_.extend(extend_);
-        return base0_;
+        baseCopy_.extend(extend_);
+        return baseCopy_;
     }
 
     function unsafeCopyValuesTo(uint256[] memory inputs_)
