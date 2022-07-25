@@ -84,6 +84,19 @@ let
     npm install
     hardhat compile --force
     hardhat test
+    echidna-test
+  '';
+
+  echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
+    # By now, we will use the `echidna-test` file in the repo
+    find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})"' 
+  '';
+
+  init-solc = pkgs.writeShellScriptBin "init-solc" ''
+    if [[ "$(solc-select use 0.8.10)" =~ "You need to install '0.8.10' prior to using it." ]]; then
+      solc-select install 0.8.10;
+      solc-select use 0.8.10;
+    fi
   '';
 
   prepack = pkgs.writeShellScriptBin "prepack" ''
@@ -147,6 +160,7 @@ pkgs.stdenv.mkDerivation {
     prettier-check
     prettier-write
     security-check
+    echidna-test
     ci-test
     ci-lint
     cut-dist
@@ -154,11 +168,19 @@ pkgs.stdenv.mkDerivation {
     prepublish
     solt-the-earth
     flush-all
+    # Echidna config
+    # Do we need to add Crytic-compile and slither-analyzer? Or echidna pckg already added it?
+    init-solc
+    # pkgs.solc
+    # pkgs.echidna
+    pkgs.python39Packages.solc-select
+    pkgs.python39Packages.crytic-compile
   ];
 
   shellHook = ''
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
+    init-solc
   '';
 }
