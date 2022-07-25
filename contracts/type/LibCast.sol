@@ -43,7 +43,15 @@ library LibCast {
         }
     }
 
-    function asEvalFn(uint i_) internal pure returns (function(VMState memory, uint, StackTop) view returns (StackTop) fn_) {
+    function asEvalFn(uint256 i_)
+        internal
+        pure
+        returns (
+            function(VMState memory, uint256, StackTop)
+                view
+                returns (StackTop) fn_
+        )
+    {
         assembly ("memory-safe") {
             fn_ := i_
         }

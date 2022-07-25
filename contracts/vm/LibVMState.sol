@@ -34,19 +34,17 @@ struct VMState {
     StackTop constantsBottom;
     StackTop contextBottom;
     bytes[] ptrSources;
-    function (
-        VMState memory,
-        uint256,
-        StackTop
-    ) view returns (StackTop) eval;
+    function(VMState memory, uint256, StackTop) view returns (StackTop) eval;
 }
 
 library LibVMState {
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
-    using LibCast for uint;
-    using LibCast for function (VMState memory,uint256,StackTop) view returns (StackTop);
+    using LibCast for uint256;
+    using LibCast for function(VMState memory, uint256, StackTop)
+        view
+        returns (StackTop);
 
     function stackTopToIndex(VMState memory state_, StackTop stackTop_)
         internal
@@ -155,15 +153,13 @@ library LibVMState {
                 .down()
                 .asUint256Array();
             // constants is first so we can literally use it on the other end
-            uint256 indexes_ =
-            // 8 bit constant length
-                constants_.length |
-                // 8 bit stack length
-                (state_.stackBottom.peek() << 8) |
-                // 8 bit ptr sources length
-                (state_.ptrSources.length << 16) |
-                // 16 bit eval ptr
-                (state_.eval.asUint256() << 24);
+            uint256 indexes_ = constants_.length | // 8 bit constant length
+                    // 8 bit stack length
+                    (state_.stackBottom.peek() << 8) |
+                    // 8 bit ptr sources length
+                    (state_.ptrSources.length << 16) |
+                    // 16 bit eval ptr
+                    (state_.eval.asUint256() << 24);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)

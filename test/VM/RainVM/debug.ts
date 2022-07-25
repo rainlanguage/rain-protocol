@@ -76,5 +76,4 @@ describe("RainVM debug op", async function () {
 
     assert(true); // you have to check this log yourself
   });
-
 });

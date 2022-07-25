@@ -93,7 +93,7 @@ contract VMStateBuilder {
                     "INVALID_POINTERS"
                 );
 
-                uint evalPtr_ = RainVM(vm_).evalPtr();
+                uint256 evalPtr_ = RainVM(vm_).evalPtr();
 
                 vmStructure_ = VmStructure(
                     uint16(storageOpcodesRange_.length),
@@ -148,7 +148,7 @@ contract VMStateBuilder {
                 config_.constants.asStackTopUp(),
                 context_.asStackTopUp(),
                 ptrSources_,
-                uint(vmStructure_.evalPtr).asEvalFn()
+                uint256(vmStructure_.evalPtr).asEvalFn()
             ).toBytesPacked();
         }
     }
@@ -180,7 +180,6 @@ contract VMStateBuilder {
 
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
-            uint256 nonCoreOpsStart_ = RAIN_VM_OPS_LENGTH - 1;
             assembly ("memory-safe") {
                 for {
                     let packedFnPtrsStart_ := add(2, packedFnPtrs_)
@@ -193,12 +192,10 @@ contract VMStateBuilder {
                 } {
                     let sourceData_ := mload(inputCursor_)
                     let op_ := byte(30, sourceData_)
-                    if gt(op_, nonCoreOpsStart_) {
                         op_ := and(
                             mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
                             0xFFFF
                         )
-                    }
                     mstore(
                         outputCursor_,
                         or(
@@ -237,48 +234,50 @@ contract VMStateBuilder {
                 }
 
                 // Additional integrity checks for core opcodes.
-                if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    if (opcode_ == OPCODE_MEMORY) {
-                        uint256 type_ = operand_ & 0x3;
-                        uint256 offset_ = operand_ >> 2;
-                        if (type_ == OPCODE_MEMORY_TYPE_STACK) {
-                            // trying to read past the current stack top.
-                            require(offset_ < bounds_.stackIndex, "OOB_STACK");
-                        } else if (type_ == OPCODE_MEMORY_TYPE_CONSTANT) {
-                            // trying to read past the end of the constants array.
-                            // note that it is possible for a script to reach into
-                            // arguments space after a zipmap has completed. While
-                            // this is almost certainly a critical bug for the
-                            // script it doesn't expose the ability to read past
-                            // the constants array in memory so we allow it here.
-                            require(
-                                offset_ < stateConfig_.constants.length,
-                                "OOB_CONSTANT"
-                            );
-                        } else if (type_ == OPCODE_MEMORY_TYPE_CONTEXT) {
-                            // @TODO
-                            // require(
-                            //     offset_ < bounds_.contextLength,
-                            //     "OOB_CONTEXT"
-                            // );
-                        } else {
-                            revert("OOB_TYPE");
-                        }
+                // if (opcode_ < RAIN_VM_OPS_LENGTH) {
+                    // if (opcode_ == OPCODE_MEMORY) {
+                    //     uint256 type_ = operand_ & 0x3;
+                    //     uint256 offset_ = operand_ >> 2;
+                    //     if (type_ == OPCODE_MEMORY_TYPE_STACK) {
+                    //         // trying to read past the current stack top.
+                    //         require(offset_ < bounds_.stackIndex, "OOB_STACK");
+                    //     } else if (type_ == OPCODE_MEMORY_TYPE_CONSTANT) {
+                    //         // trying to read past the end of the constants array.
+                    //         // note that it is possible for a script to reach into
+                    //         // arguments space after a zipmap has completed. While
+                    //         // this is almost certainly a critical bug for the
+                    //         // script it doesn't expose the ability to read past
+                    //         // the constants array in memory so we allow it here.
+                    //         require(
+                    //             offset_ < stateConfig_.constants.length,
+                    //             "OOB_CONSTANT"
+                    //         );
+                    //     } else if (type_ == OPCODE_MEMORY_TYPE_CONTEXT) {
+                    //         // @TODO
+                    //         // require(
+                    //         //     offset_ < bounds_.contextLength,
+                    //         //     "OOB_CONTEXT"
+                    //         // );
+                    //     } else {
+                    //         revert("OOB_TYPE");
+                    //     }
 
-                        bounds_.stackIndex++;
-                    } else if (opcode_ == OPCODE_LOOP_N) {
-                        // @TODO
-                        uint256 n_ = operand_ & 0x0F;
-                        uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
-                        for (uint256 i_ = 0; i_ < n_; i_++) {
-                            ensureIntegrity(
-                                stackPops_,
-                                stackPushes_,
-                                stateConfig_,
-                                bounds_
-                            );
-                        }
-                    }
+                    //     bounds_.stackIndex++;
+                    // }
+
+                    // else if (opcode_ == OPCODE_LOOP_N) {
+                    //     // @TODO
+                    //     uint256 n_ = operand_ & 0x0F;
+                    //     uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
+                    //     for (uint256 i_ = 0; i_ < n_; i_++) {
+                    //         ensureIntegrity(
+                    //             stackPops_,
+                    //             stackPushes_,
+                    //             stateConfig_,
+                    //             bounds_
+                    //         );
+                    //     }
+                    // }
                     // @TODO
                     // else if (opcode_ == OPCODE_STORAGE) {
                     //     // trying to read past allowed storage slots.
@@ -288,7 +287,7 @@ contract VMStateBuilder {
                     //     );
                     //     bounds_.stackIndex++;
                     // }
-                } else {
+                // } else {
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack
                     // length later (but not in this unchecked block).
@@ -304,7 +303,7 @@ contract VMStateBuilder {
                     bounds_.stackIndex += stackPushes_[opcode_].asStackMoveFn()(
                         operand_
                     );
-                }
+                // }
 
                 bounds_.stackLength = bounds_.stackLength.max(
                     bounds_.stackIndex

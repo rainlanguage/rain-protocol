@@ -13,19 +13,6 @@ struct StorageOpcodesRange {
     uint256 length;
 }
 
-/// @dev Copies a value either off `constants` to the top of the stack.
-uint256 constant OPCODE_MEMORY = 0;
-
-uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
-uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
-uint256 constant OPCODE_MEMORY_TYPE_CONTEXT = 2;
-
-uint256 constant OPCODE_CALL = 1;
-uint256 constant OPCODE_LOOP_N = 2;
-
-/// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 3;
-
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
 /// Libraries and contracts map opcodes to `view` functionality then RainVM
@@ -116,8 +103,11 @@ abstract contract RainVM {
         virtual
         returns (bytes memory ptrs_);
 
-    function evalPtr() external view returns (uint ptr_) {
-        function(VMState memory, uint, StackTop) internal view returns (StackTop) eval_ = eval;
+    function evalPtr() external pure returns (uint256 ptr_) {
+        function(VMState memory, uint256, StackTop)
+            internal
+            view
+            returns (StackTop) eval_ = eval;
         assembly ("memory-safe") {
             ptr_ := eval_
         }
@@ -167,47 +157,7 @@ abstract contract RainVM {
                     operand_ = op_ & 0xFF;
                     opcode_ = op_ >> 8;
                 }
-
-                if (opcode_ == OPCODE_MEMORY) {
-                    assembly ("memory-safe") {
-                        let type_ := and(operand_, 0x3)
-                        let offset_ := shr(2, operand_)
-                        mstore(
-                            stackTop_,
-                            mload(
-                                add(
-                                    mload(add(state_, mul(0x20, type_))),
-                                    mul(0x20, offset_)
-                                )
-                            )
-                        )
-                        stackTop_ := add(stackTop_, 0x20)
-                    }
-                } else if (opcode_ >= RAIN_VM_OPS_LENGTH) {
-                    stackTop_ = opcode_.asOpFn()(state_, operand_, stackTop_);
-                } else if (opcode_ == OPCODE_CALL) {
-                    uint256 inputs_ = operand_ & 0x7;
-                    uint256 outputs_ = (operand_ >> 3) & 0x3;
-                    uint256 callSourceIndex_ = (operand_ >> 5) & 0x7;
-                    stackTop_ = stackTop_.down(inputs_);
-                    StackTop stackTopAfter_ = eval(
-                        state_,
-                        callSourceIndex_,
-                        stackTop_
-                    );
-                    LibUint256Array.unsafeCopyValuesTo(
-                        StackTop.unwrap(stackTopAfter_.down(outputs_)),
-                        StackTop.unwrap(stackTop_),
-                        outputs_
-                    );
-                    stackTop_ = stackTop_.up(outputs_);
-                } else if (opcode_ == OPCODE_LOOP_N) {
-                    uint256 n_ = operand_ & 0x0F;
-                    uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
-                    for (uint256 i_ = 0; i_ <= n_; i_++) {
-                        stackTop_ = eval(state_, loopSourceIndex_, stackTop_);
-                    }
-                }
+                stackTop_ = opcode_.asOpFn()(state_, operand_, stackTop_);
             }
             return stackTop_;
         }

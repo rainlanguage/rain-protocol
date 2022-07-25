@@ -6,9 +6,12 @@ import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibPackBytes.sol";
 import "../RainVM.sol";
+import "./core/OpCall.sol";
 import "./core/OpDebug.sol";
 import "./core/OpStorage.sol";
 import "./core/OpDoWhile.sol";
+import "./core/OpLoopN.sol";
+import "./core/OpMemory.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
 import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
@@ -51,7 +54,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 44;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 47;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -150,9 +153,9 @@ library AllStandardOps {
                     ALL_STANDARD_OPS_LENGTH.asStackMoveFn(),
                     // memory
                     zero,
-                    // call (ignored)
+                    // call
                     zero,
-                    // loop n (ignored)
+                    // loop n
                     zero,
                     // do while
                     zero,
@@ -260,9 +263,9 @@ library AllStandardOps {
                     ALL_STANDARD_OPS_LENGTH.asStackMoveFn(),
                     // memory
                     one,
-                    // call (ignored)
+                    // call
                     zero,
-                    // loop n (ignored)
+                    // loop n
                     zero,
                     // do while
                     zero,
@@ -365,12 +368,9 @@ library AllStandardOps {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
                 ALL_STANDARD_OPS_LENGTH,
-                // memory
-                0,
-                // call
-                0,
-                // loop n
-                0,
+                OpMemory.memoryRead.asUint256(),
+                OpCall.call.asUint256(),
+                OpLoopN.loopN.asUint256(),
                 OpDoWhile.doWhile.asUint256(),
                 OpStorage.storageRead.asUint256(),
                 OpDebug.debug.asUint256(),
