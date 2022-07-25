@@ -24,10 +24,8 @@ uint256 constant OPCODE_CALL = 1;
 uint256 constant OPCODE_LOOP_N = 2;
 uint256 constant OPCODE_LOOP_IF = 3;
 
-uint256 constant OPCODE_STORAGE = 4;
-
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 5;
+uint256 constant RAIN_VM_OPS_LENGTH = 4;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -219,16 +217,6 @@ abstract contract RainVM {
                         eval(state_, operand_, stackTop_.down());
                     }
                     stackTop_ = stackTop_.down();
-                } else if (opcode_ == OPCODE_STORAGE) {
-                    StorageOpcodesRange
-                        memory storageOpcodesRange_ = storageOpcodesRange();
-                    assembly ("memory-safe") {
-                        mstore(
-                            stackTop_,
-                            sload(add(operand_, mload(storageOpcodesRange_)))
-                        )
-                    }
-                    stackTop_ = stackTop_.up();
                 }
             }
             return stackTop_;

@@ -11,11 +11,11 @@ library OpERC721OwnerOf {
     using LibStackTop for StackTop;
 
     // Stack the return of `ownerOf`.
-    function ownerOf(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function ownerOf(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

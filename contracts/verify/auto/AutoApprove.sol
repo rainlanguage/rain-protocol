@@ -86,11 +86,11 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         }
     }
 
-    function opEvidenceDataApproved(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function opEvidenceDataApproved(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         (StackTop location_, uint256 evidenceData_) = stackTop_.pop();
         location_.set(_approvedEvidenceData[evidenceData_]);
         return stackTop_;
@@ -102,7 +102,9 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         virtual
         override
         returns (
-            function(VMState memory, uint256, StackTop) view returns (StackTop)[]
+            function(VMState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
                 memory localFnPtrs_
         )
     {

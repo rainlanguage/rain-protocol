@@ -9,11 +9,11 @@ import "../../LibVMState.sol";
 library OpMul {
     using LibStackTop for StackTop;
 
-    function mul(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function mul(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         StackTop location_ = stackTop_.down(operand_);
         uint256 accumulator_ = location_.peekUp();
         stackTopAfter_ = location_.up();

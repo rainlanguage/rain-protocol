@@ -11,11 +11,11 @@ library OpEvery {
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function every(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         StackTop location_ = stackTop_.down(operand_);
         for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
             if (i_.peekUp() == 0) {

@@ -9,11 +9,11 @@ import "../../LibVMState.sol";
 library OpCaller {
     using LibStackTop for StackTop;
 
-    function caller(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function caller(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(uint256(uint160(msg.sender)));
     }
 }

@@ -7,6 +7,7 @@ import "../../array/LibUint256Array.sol";
 import "../../bytes/LibPackBytes.sol";
 import "../RainVM.sol";
 import "./core/OpDebug.sol";
+import "./core/OpStorage.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
 import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
@@ -49,16 +50,22 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 42;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 43;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(VMState memory, uint256, StackTop) view returns (StackTop);
-    using LibCast for function(VMState memory, uint256, StackTop) pure returns (StackTop);
-    using LibCast for function(VMState memory, uint256, StackTop) view returns (StackTop)[];
+    using LibCast for function(VMState memory, uint256, StackTop)
+        view
+        returns (StackTop);
+    using LibCast for function(VMState memory, uint256, StackTop)
+        pure
+        returns (StackTop);
+    using LibCast for function(VMState memory, uint256, StackTop)
+        view
+        returns (StackTop)[];
     using AllStandardOps for function(uint256)
         pure
         returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1];
@@ -351,7 +358,8 @@ library AllStandardOps {
     }
 
     function packedFunctionPointers(
-        function(VMState memory, uint256, StackTop) view returns (StackTop)[] memory locals_
+        function(VMState memory, uint256, StackTop) view returns (StackTop)[]
+            memory locals_
     ) internal pure returns (bytes memory packedFunctionPointers_) {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
@@ -364,8 +372,7 @@ library AllStandardOps {
                 0,
                 // loop if
                 0,
-                // storage
-                0,
+                OpStorage.storageRead.asUint256(),
                 OpDebug.debug.asUint256(),
                 OpERC20BalanceOf.balanceOf.asUint256(),
                 OpERC20TotalSupply.totalSupply.asUint256(),

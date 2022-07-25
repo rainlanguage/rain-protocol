@@ -11,11 +11,11 @@ library OpFixedPointScaleBy {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scaleBy(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function scaleBy(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set(a_.scaleBy(int8(uint8(operand_))));
         return stackTop_;

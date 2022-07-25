@@ -10,11 +10,11 @@ library OpEagerIf {
     /// before EAGER_IF will select one of them. If both x_ and y_
     /// are cheap (e.g. constant values) then this may also be the
     /// simplest and cheapest way to select one of them.
-    function eagerIf(VMState memory, uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function eagerIf(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         assembly ("memory-safe") {
             let location_ := sub(stackTop_, 0x60)
             stackTop_ := add(location_, 0x20)

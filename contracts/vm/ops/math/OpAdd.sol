@@ -10,11 +10,11 @@ import "../../LibVMState.sol";
 library OpAdd {
     using LibStackTop for StackTop;
 
-    function add(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function add(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         StackTop location_ = stackTop_.down(operand_);
         uint256 accumulator_ = location_.peekUp();
         stackTopAfter_ = location_.up();

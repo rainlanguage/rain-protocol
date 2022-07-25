@@ -273,14 +273,16 @@ contract VMStateBuilder {
                                 bounds_
                             );
                         }
-                    } else if (opcode_ == OPCODE_STORAGE) {
-                        // trying to read past allowed storage slots.
-                        require(
-                            operand_ < bounds_.storageLength,
-                            "OOB_STORAGE"
-                        );
-                        bounds_.stackIndex++;
                     }
+                    // @TODO
+                    // else if (opcode_ == OPCODE_STORAGE) {
+                    //     // trying to read past allowed storage slots.
+                    //     require(
+                    //         operand_ < bounds_.storageLength,
+                    //         "OOB_STORAGE"
+                    //     );
+                    //     bounds_.stackIndex++;
+                    // }
                 } else {
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack

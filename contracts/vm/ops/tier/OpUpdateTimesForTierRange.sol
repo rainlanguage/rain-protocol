@@ -13,11 +13,11 @@ library OpUpdateTimesForTierRange {
     // the `operand_` respectively.
     // The report to update and timestamp to update to are both
     // taken from the stack.
-    function updateTimesForTierRange(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function updateTimesForTierRange(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         uint256 startTier_ = operand_ & 0x0f; // & 00001111
         uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
 

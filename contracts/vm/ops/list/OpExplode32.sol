@@ -10,11 +10,11 @@ import "../../LibVMState.sol";
 library OpExplode32 {
     using LibStackTop for StackTop;
 
-    function explode32(VMState memory, uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function explode32(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (StackTop location_, uint256 i_) = stackTop_.pop();
         uint256 mask_ = uint256(type(uint32).max);
         return

@@ -12,11 +12,11 @@ library OpERC20SnapshotTotalSupplyAt {
     using LibStackTop for StackTop;
 
     /// Stack `totalSupplyAt`.
-    function totalSupplyAt(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function totalSupplyAt(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

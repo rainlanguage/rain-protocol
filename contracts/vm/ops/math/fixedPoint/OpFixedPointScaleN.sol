@@ -11,11 +11,11 @@ library OpFixedPointScaleN {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scaleN(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function scaleN(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set(a_.scaleN(operand_));
         return stackTop_;

@@ -11,11 +11,11 @@ library OpERC20BalanceOf {
     using LibStackTop for StackTop;
 
     /// Stack `balanceOf`.
-    function balanceOf(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function balanceOf(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

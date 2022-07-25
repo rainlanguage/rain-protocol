@@ -22,11 +22,11 @@ library OpITierV2ReportTimeForTier {
     }
 
     // Stack the `reportTimeForTier` returned by an `ITierV2` contract.
-    function reportTimeForTier(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function reportTimeForTier(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         (uint256 tier_, uint256[] memory context_) = stackTop_.list(operand_);
         (
             StackTop location_,

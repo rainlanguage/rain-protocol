@@ -32,9 +32,11 @@ describe("RainVM storage", async function () {
   it("should error when attempting to read stored value outside STORAGE opcode range", async () => {
     const constants = [];
 
+    const storageOffset = (await logic.storageOpcodesRange())[0]
+
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STORAGE, 3),
+      op(Opcode.STORAGE, storageOffset.add(3)),
     ])];
 
     await assertError(
@@ -47,11 +49,13 @@ describe("RainVM storage", async function () {
   it("should support reading stored values via STORAGE opcode", async () => {
     const constants = [];
 
+    const storageOffset = (await logic.storageOpcodesRange())[0]
+
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STORAGE, 0),
-      op(Opcode.STORAGE, 1),
-      op(Opcode.STORAGE, 2),
+      op(Opcode.STORAGE, storageOffset.add(0)),
+      op(Opcode.STORAGE, storageOffset.add(1)),
+      op(Opcode.STORAGE, storageOffset.add(2)),
     ])];
 
     await logic.initialize({ sources, constants });

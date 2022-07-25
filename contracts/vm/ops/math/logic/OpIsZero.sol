@@ -10,11 +10,11 @@ library OpIsZero {
     using LibCast for bool;
     using LibStackTop for StackTop;
 
-    function isZero(VMState memory, uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function isZero(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set((a_ == 0).asUint256());
         return stackTop_;

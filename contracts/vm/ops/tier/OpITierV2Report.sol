@@ -24,11 +24,11 @@ library OpITierV2Report {
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop stackTopAfter_)
-    {
+    function report(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop stackTopAfter_) {
         (uint256 account_, uint256[] memory context_) = stackTop_.list(
             operand_
         );

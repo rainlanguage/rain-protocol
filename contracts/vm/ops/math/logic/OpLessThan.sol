@@ -10,11 +10,11 @@ library OpLessThan {
     using LibStackTop for StackTop;
     using LibCast for bool;
 
-    function lessThan(VMState memory, uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function lessThan(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

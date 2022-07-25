@@ -9,11 +9,11 @@ import "../../LibVMState.sol";
 library OpBlockNumber {
     using LibStackTop for StackTop;
 
-    function blockNumber(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function blockNumber(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(block.number);
     }
 }

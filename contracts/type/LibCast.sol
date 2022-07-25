@@ -22,7 +22,11 @@ library LibCast {
     function asOpFn(uint256 i_)
         internal
         pure
-        returns (function(VMState memory, uint256, StackTop) view returns (StackTop) fn_)
+        returns (
+            function(VMState memory, uint256, StackTop)
+                view
+                returns (StackTop) fn_
+        )
     {
         assembly ("memory-safe") {
             fn_ := i_
@@ -69,18 +73,17 @@ library LibCast {
         }
     }
 
-    function asUint256(function(VMState memory, uint256, StackTop) view returns (StackTop) fn_)
-        internal
-        pure
-        returns (uint256 i_)
-    {
+    function asUint256(
+        function(VMState memory, uint256, StackTop) view returns (StackTop) fn_
+    ) internal pure returns (uint256 i_) {
         assembly ("memory-safe") {
             i_ := fn_
         }
     }
 
     function asUint256Array(
-        function(VMState memory, uint256, StackTop) view returns (StackTop)[] memory fns_
+        function(VMState memory, uint256, StackTop) view returns (StackTop)[]
+            memory fns_
     ) internal pure returns (uint256[] memory is_) {
         assembly ("memory-safe") {
             is_ := fns_

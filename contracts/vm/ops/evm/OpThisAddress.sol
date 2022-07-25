@@ -9,11 +9,11 @@ import "../../LibVMState.sol";
 library OpThisAddress {
     using LibStackTop for StackTop;
 
-    function thisAddress(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function thisAddress(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(uint256(uint160(address(this))));
     }
 }

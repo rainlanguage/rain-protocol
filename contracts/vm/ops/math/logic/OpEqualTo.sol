@@ -10,11 +10,11 @@ library OpEqualTo {
     using LibCast for bool;
     using LibStackTop for StackTop;
 
-    function equalTo(VMState memory, uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function equalTo(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

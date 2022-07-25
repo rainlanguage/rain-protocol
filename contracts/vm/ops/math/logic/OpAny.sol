@@ -11,11 +11,11 @@ library OpAny {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function any(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         StackTop location_ = stackTop_.down(operand_);
         for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
             uint256 item_ = i_.peekUp();

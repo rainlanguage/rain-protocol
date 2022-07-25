@@ -12,11 +12,11 @@ library OpDebug {
     using LibVMState for VMState;
 
     /// Debug the current state.
-    function debug(VMState memory state_, uint256 operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function debug(
+        VMState memory state_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         state_.debug(stackTop_, DebugStyle(operand_));
         return stackTop_;
     }

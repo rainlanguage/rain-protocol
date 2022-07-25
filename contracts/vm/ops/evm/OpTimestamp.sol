@@ -9,11 +9,11 @@ import "../../LibVMState.sol";
 library OpTimestamp {
     using LibStackTop for StackTop;
 
-    function timestamp(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function timestamp(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(block.timestamp);
     }
 }

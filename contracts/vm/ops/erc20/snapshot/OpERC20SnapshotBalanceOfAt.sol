@@ -12,11 +12,11 @@ library OpERC20SnapshotBalanceOfAt {
     using LibStackTop for StackTop;
 
     /// Stack `balanceOfAt`.
-    function balanceOfAt(VMState memory, uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function balanceOfAt(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

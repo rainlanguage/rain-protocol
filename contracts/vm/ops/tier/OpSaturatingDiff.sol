@@ -12,11 +12,11 @@ library OpSaturatingDiff {
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(VMState memory, uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function saturatingDiff(
+        VMState memory,
+        uint256,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,

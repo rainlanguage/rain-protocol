@@ -11,11 +11,11 @@ library OpSaturatingAdd {
     using SaturatingMath for uint256;
     using LibStackTop for StackTop;
 
-    function saturatingAdd(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function saturatingAdd(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         StackTop location_ = stackTop_.down(operand_);
         uint256 accumulator_ = location_.peekUp();
         stackTopAfter_ = location_.up();

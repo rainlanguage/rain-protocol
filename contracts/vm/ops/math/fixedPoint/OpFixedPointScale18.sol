@@ -11,11 +11,11 @@ library OpFixedPointScale18 {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scale18(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function scale18(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (StackTop location_, uint256 a_) = stackTop_.pop();
         location_.set(a_.scale18(operand_));
         return stackTop_;

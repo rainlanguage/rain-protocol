@@ -11,11 +11,11 @@ library OpFixedPointScale18Div {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scale18Div(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
+    function scale18Div(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
         (
             StackTop location_,
             StackTop stackTopAfter_,
