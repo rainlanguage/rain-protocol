@@ -24,19 +24,10 @@ uint256 constant OPCODE_CALL = 1;
 uint256 constant OPCODE_LOOP_N = 2;
 uint256 constant OPCODE_LOOP_IF = 3;
 
-/// @dev Duplicates any value in the stack to the top of the stack. The operand
-/// specifies the index to copy from.
-// uint256 constant OPCODE_STACK = 1;
-
-// uint256 constant OPCODE_CONTEXT = 2;
-
 uint256 constant OPCODE_STORAGE = 4;
 
-/// @dev ABI encodes the entire stack and logs it to the hardhat console.
-uint256 constant OPCODE_DEBUG = 5;
-
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 6;
+uint256 constant RAIN_VM_OPS_LENGTH = 5;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -238,8 +229,6 @@ abstract contract RainVM {
                         )
                     }
                     stackTop_ = stackTop_.up();
-                } else {
-                    state_.debug(stackTop_, DebugStyle(operand_));
                 }
             }
             return stackTop_;
