@@ -10,7 +10,9 @@ import {
   op,
   paddedUInt256,
   paddedUInt32,
-  zipmapSize, memoryOperand, MemoryType
+  zipmapSize,
+  memoryOperand,
+  MemoryType,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;

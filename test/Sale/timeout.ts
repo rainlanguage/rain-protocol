@@ -62,7 +62,10 @@ describe("Sale timeout", async function () {
     const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)), vBasePrice]),
+      concat([
+        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+        vBasePrice,
+      ]),
     ];
     await assertError(
       async () =>

@@ -22,7 +22,7 @@ uint256 constant OPCODE_MEMORY_TYPE_CONTEXT = 2;
 
 uint256 constant OPCODE_CALL = 1;
 uint256 constant OPCODE_LOOP_N = 2;
-uint constant OPCODE_LOOP_IF = 3;
+uint256 constant OPCODE_LOOP_IF = 3;
 
 /// @dev Duplicates any value in the stack to the top of the stack. The operand
 /// specifies the index to copy from.
@@ -154,10 +154,17 @@ abstract contract RainVM {
         StackTop stackTop_
     ) internal view returns (StackTop) {
         unchecked {
-            uint256 cursor_ = StackTop.unwrap(
-                state_.ptrSources[sourceIndex_].asStackTop()
-            );
-            uint256 end_ = cursor_ + state_.ptrSources[sourceIndex_].length;
+            uint256 cursor_;
+            uint256 end_;
+            assembly ("memory-safe") {
+                cursor_ := mload(
+                    add(
+                        mload(add(state_, 0x60)),
+                        add(0x20, mul(0x20, sourceIndex_))
+                    )
+                )
+                end_ := add(cursor_, mload(cursor_))
+            }
 
             // Loop until complete.
             while (cursor_ < end_) {
@@ -214,7 +221,7 @@ abstract contract RainVM {
                         stackTop_ = eval(state_, loopSourceIndex_, stackTop_);
                     }
                 } else if (opcode_ == OPCODE_LOOP_IF) {
-                    while(stackTop_.peek() > 0) {
+                    while (stackTop_.peek() > 0) {
                         // LOOP_IF is NOT allowed to change the stack top so we
                         // ignore the return of eval. This is enforced by bounds
                         // checks.

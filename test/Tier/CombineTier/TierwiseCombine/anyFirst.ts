@@ -11,7 +11,9 @@ import {
   op,
   selectLte,
   selectLteLogic,
-  selectLteMode, memoryOperand, MemoryType
+  selectLteMode,
+  memoryOperand,
+  MemoryType,
 } from "../../../../utils/rainvm/vm";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";

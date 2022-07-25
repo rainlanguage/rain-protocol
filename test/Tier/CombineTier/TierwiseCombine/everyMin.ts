@@ -14,7 +14,7 @@ import {
   selectLteLogic,
   selectLteMode,
   memoryOperand,
-  MemoryType
+  MemoryType,
 } from "../../../../utils/rainvm/vm";
 import { ALWAYS, NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
