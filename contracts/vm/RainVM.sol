@@ -197,7 +197,7 @@ abstract contract RainVM {
                         stackTop_ := add(stackTop_, 0x20)
                     }
                 } else if (opcode_ >= RAIN_VM_OPS_LENGTH) {
-                    stackTop_ = opcode_.asOpFn()(operand_, stackTop_);
+                    stackTop_ = opcode_.asOpFn()(state_, operand_, stackTop_);
                 } else if (opcode_ == OPCODE_CALL) {
                     uint256 inputs_ = operand_ & 0x7;
                     uint256 outputs_ = (operand_ >> 3) & 0x3;

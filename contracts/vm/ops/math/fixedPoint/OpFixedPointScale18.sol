@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpFixedPointScale18
 /// @notice Opcode for scaling a number to 18 fixed point.
@@ -10,7 +11,7 @@ library OpFixedPointScale18 {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scale18(uint256 operand_, StackTop stackTop_)
+    function scale18(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

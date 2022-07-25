@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
@@ -10,7 +11,7 @@ library OpAny {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(uint256 operand_, StackTop stackTop_)
+    function any(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

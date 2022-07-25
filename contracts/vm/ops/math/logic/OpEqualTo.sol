@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../../type/LibCast.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpEqualTo
 /// @notice Opcode to compare the top two stack values.
@@ -9,7 +10,7 @@ library OpEqualTo {
     using LibCast for bool;
     using LibStackTop for StackTop;
 
-    function equalTo(uint256, StackTop stackTop_)
+    function equalTo(VMState memory, uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpSaturatingSub
 /// @notice Opcode for subtracting N numbers with saturating subtraction.
@@ -10,7 +11,7 @@ library OpSaturatingSub {
     using SaturatingMath for uint256;
     using LibStackTop for StackTop;
 
-    function saturatingSub(uint256 operand_, StackTop stackTop_)
+    function saturatingSub(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpERC1155BalanceOf
 /// @notice Opcode for getting the current erc1155 balance of an account.
@@ -10,7 +11,7 @@ library OpERC1155BalanceOf {
     using LibStackTop for StackTop;
 
     // Stack the return of `balanceOf`.
-    function balanceOf(uint256, StackTop stackTop_)
+    function balanceOf(VMState memory, uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)

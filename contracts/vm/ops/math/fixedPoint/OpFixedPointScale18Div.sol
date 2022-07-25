@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpFixedPointScale18Div
 /// @notice Opcode for performing scale 18 fixed point division.
@@ -10,7 +11,7 @@ library OpFixedPointScale18Div {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scale18Div(uint256 operand_, StackTop stackTop_)
+    function scale18Div(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

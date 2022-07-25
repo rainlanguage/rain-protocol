@@ -2,13 +2,14 @@
 pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpExp
 /// @notice Opcode to exponentiate N numbers.
 library OpExp {
     using LibStackTop for StackTop;
 
-    function exp(uint256 operand_, StackTop stackTop_)
+    function exp(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

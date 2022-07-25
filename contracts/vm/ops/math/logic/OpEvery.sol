@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpEvery
 /// @notice Opcode to compare the top N stack values.
@@ -10,7 +11,7 @@ library OpEvery {
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(uint256 operand_, StackTop stackTop_)
+    function every(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

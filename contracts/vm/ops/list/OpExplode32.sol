@@ -3,13 +3,14 @@ pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
+import "../../LibVMState.sol";
 
 /// @title OpExplode
 /// @notice Opcode for exploding a single value into 8x 32 bit integers.
 library OpExplode32 {
     using LibStackTop for StackTop;
 
-    function explode32(uint256, StackTop stackTop_)
+    function explode32(VMState memory, uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

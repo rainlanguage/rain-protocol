@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpERC20TotalSupply
 /// @notice Opcode for ERC20 `totalSupply`.
@@ -10,7 +11,7 @@ library OpERC20TotalSupply {
     using LibStackTop for StackTop;
 
     // Stack the return of `totalSupply`.
-    function totalSupply(uint256, StackTop stackTop_)
+    function totalSupply(VMState memory, uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)

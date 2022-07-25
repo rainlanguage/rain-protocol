@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../tier/ITierV2.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 import "hardhat/console.sol";
 
@@ -23,7 +24,7 @@ library OpITierV2Report {
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(uint256 operand_, StackTop stackTop_)
+    function report(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         view
         returns (StackTop stackTopAfter_)

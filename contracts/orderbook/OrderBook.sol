@@ -295,7 +295,7 @@ contract OrderBook is StandardVM {
         emit AfterClear(stateChange_);
     }
 
-    function opOrderFundsCleared(uint256, StackTop stackTop_)
+    function opOrderFundsCleared(VMState memory, uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)
@@ -305,7 +305,7 @@ contract OrderBook is StandardVM {
         return stackTop_;
     }
 
-    function opOrderCounterpartyFundsCleared(uint256, StackTop stackTop_)
+    function opOrderCounterpartyFundsCleared(VMState memory, uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)
@@ -329,11 +329,11 @@ contract OrderBook is StandardVM {
         pure
         override
         returns (
-            function(uint256, StackTop) view returns (StackTop)[]
+            function(VMState memory, uint256, StackTop) view returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(uint256, StackTop)
+        localFnPtrs_ = new function(VMState memory, uint256, StackTop)
             view
             returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;

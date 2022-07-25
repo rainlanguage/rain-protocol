@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../../type/LibCast.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpLessThan
 /// @notice Opcode to compare the top two stack values.
@@ -9,7 +10,7 @@ library OpLessThan {
     using LibStackTop for StackTop;
     using LibCast for bool;
 
-    function lessThan(uint256, StackTop stackTop_)
+    function lessThan(VMState memory, uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

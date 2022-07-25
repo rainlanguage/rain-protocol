@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;
@@ -12,7 +13,7 @@ library OpUpdateTimesForTierRange {
     // the `operand_` respectively.
     // The report to update and timestamp to update to are both
     // taken from the stack.
-    function updateTimesForTierRange(uint256 operand_, StackTop stackTop_)
+    function updateTimesForTierRange(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
@@ -25,7 +26,7 @@ library OpSelectLte {
     // `mode_` is the 2 highest bits after `logic_`.
     // The other bits specify how many values to take from the stack
     // as reports to compare against each other and the block number.
-    function selectLte(uint256 operand_, StackTop stackTop_)
+    function selectLte(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

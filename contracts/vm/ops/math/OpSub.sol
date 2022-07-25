@@ -2,13 +2,14 @@
 pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpSub
 /// @notice Opcode for subtracting N numbers.
 library OpSub {
     using LibStackTop for StackTop;
 
-    function sub(uint256 operand_, StackTop stackTop_)
+    function sub(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

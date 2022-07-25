@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpERC20BalanceOf
 /// @notice Opcode for ERC20 `balanceOf`.
@@ -10,7 +11,7 @@ library OpERC20BalanceOf {
     using LibStackTop for StackTop;
 
     /// Stack `balanceOf`.
-    function balanceOf(uint256, StackTop stackTop_)
+    function balanceOf(VMState memory, uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)

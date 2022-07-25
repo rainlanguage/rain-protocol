@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpSaturatingMul
 /// @notice Opcode for multiplying N numbers with saturating multiplication.
@@ -10,7 +11,7 @@ library OpSaturatingMul {
     using SaturatingMath for uint256;
     using LibStackTop for StackTop;
 
-    function saturatingMul(uint256 operand_, StackTop stackTop_)
+    function saturatingMul(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

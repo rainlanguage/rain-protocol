@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpERC20SnapshotBalanceOfAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.balanceOfAt`.
@@ -11,7 +12,7 @@ library OpERC20SnapshotBalanceOfAt {
     using LibStackTop for StackTop;
 
     /// Stack `balanceOfAt`.
-    function balanceOfAt(uint256, StackTop stackTop_)
+    function balanceOfAt(VMState memory, uint256, StackTop stackTop_)
         internal
         view
         returns (StackTop)

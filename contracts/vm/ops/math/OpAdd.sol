@@ -3,13 +3,14 @@ pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
+import "../../LibVMState.sol";
 
 /// @title OpAdd
 /// @notice Opcode for adding N numbers.
 library OpAdd {
     using LibStackTop for StackTop;
 
-    function add(uint256 operand_, StackTop stackTop_)
+    function add(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

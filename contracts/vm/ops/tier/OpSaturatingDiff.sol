@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 library OpSaturatingDiff {
     using LibStackTop for StackTop;
@@ -11,7 +12,7 @@ library OpSaturatingDiff {
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(uint256, StackTop stackTop_)
+    function saturatingDiff(VMState memory, uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

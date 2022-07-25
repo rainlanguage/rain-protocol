@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpSaturatingAdd
 /// @notice Opcode for adding N numbers with saturating addition.
@@ -10,7 +11,7 @@ library OpSaturatingAdd {
     using SaturatingMath for uint256;
     using LibStackTop for StackTop;
 
-    function saturatingAdd(uint256 operand_, StackTop stackTop_)
+    function saturatingAdd(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

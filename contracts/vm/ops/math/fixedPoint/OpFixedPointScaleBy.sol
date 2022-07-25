@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpFixedPointScaleBy
 /// @notice Opcode for scaling a number by some OOMs.
@@ -10,7 +11,7 @@ library OpFixedPointScaleBy {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
 
-    function scaleBy(uint256 operand_, StackTop stackTop_)
+    function scaleBy(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

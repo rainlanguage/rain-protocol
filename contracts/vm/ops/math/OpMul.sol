@@ -2,13 +2,14 @@
 pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpMul
 /// @notice Opcode for multiplying N numbers.
 library OpMul {
     using LibStackTop for StackTop;
 
-    function mul(uint256 operand_, StackTop stackTop_)
+    function mul(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

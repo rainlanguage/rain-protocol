@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../../type/LibCast.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
@@ -9,7 +10,7 @@ library OpIsZero {
     using LibCast for bool;
     using LibStackTop for StackTop;
 
-    function isZero(uint256, StackTop stackTop_)
+    function isZero(VMState memory, uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

@@ -2,13 +2,14 @@
 pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
+import "../../LibVMState.sol";
 
 /// @title OpDiv
 /// @notice Opcode for dividing N numbers.
 library OpDiv {
     using LibStackTop for StackTop;
 
-    function div(uint256 operand_, StackTop stackTop_)
+    function div(VMState memory, uint256 operand_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)

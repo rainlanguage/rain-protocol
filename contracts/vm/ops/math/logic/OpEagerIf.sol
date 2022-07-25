@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
+import "../../../LibVMState.sol";
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
@@ -9,7 +10,7 @@ library OpEagerIf {
     /// before EAGER_IF will select one of them. If both x_ and y_
     /// are cheap (e.g. constant values) then this may also be the
     /// simplest and cheapest way to select one of them.
-    function eagerIf(uint256, StackTop stackTop_)
+    function eagerIf(VMState memory, uint256, StackTop stackTop_)
         internal
         pure
         returns (StackTop)

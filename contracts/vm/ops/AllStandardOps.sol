@@ -55,9 +55,9 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 41;
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(uint256, StackTop) view returns (StackTop);
-    using LibCast for function(uint256, StackTop) pure returns (StackTop);
-    using LibCast for function(uint256, StackTop) view returns (StackTop)[];
+    using LibCast for function(VMState memory, uint256, StackTop) view returns (StackTop);
+    using LibCast for function(VMState memory, uint256, StackTop) pure returns (StackTop);
+    using LibCast for function(VMState memory, uint256, StackTop) view returns (StackTop)[];
     using AllStandardOps for function(uint256)
         pure
         returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1];
@@ -350,7 +350,7 @@ library AllStandardOps {
     }
 
     function packedFunctionPointers(
-        function(uint256, StackTop) view returns (StackTop)[] memory locals_
+        function(VMState memory, uint256, StackTop) view returns (StackTop)[] memory locals_
     ) internal pure returns (bytes memory packedFunctionPointers_) {
         unchecked {
             uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [

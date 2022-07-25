@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../vm/LibStackTop.sol";
+import "../vm/LibVMState.sol";
 
 /// @title Cast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
@@ -21,7 +22,7 @@ library LibCast {
     function asOpFn(uint256 i_)
         internal
         pure
-        returns (function(uint256, StackTop) view returns (StackTop) fn_)
+        returns (function(VMState memory, uint256, StackTop) view returns (StackTop) fn_)
     {
         assembly ("memory-safe") {
             fn_ := i_
@@ -68,7 +69,7 @@ library LibCast {
         }
     }
 
-    function asUint256(function(uint256, StackTop) view returns (StackTop) fn_)
+    function asUint256(function(VMState memory, uint256, StackTop) view returns (StackTop) fn_)
         internal
         pure
         returns (uint256 i_)
@@ -79,7 +80,7 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(uint256, StackTop) view returns (StackTop)[] memory fns_
+        function(VMState memory, uint256, StackTop) view returns (StackTop)[] memory fns_
     ) internal pure returns (uint256[] memory is_) {
         assembly ("memory-safe") {
             is_ := fns_
