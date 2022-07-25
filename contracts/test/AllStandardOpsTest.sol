@@ -55,7 +55,7 @@ contract AllStandardOpsTest is StandardVM {
     function run() public {
         VMState memory state_ = _loadVMState(new uint256[](0));
         uint256 a_ = gasleft();
-        StackTop stackTop_ = eval(state_, ENTRYPOINT);
+        StackTop stackTop_ = eval(state_, ENTRYPOINT, state_.stackBottom);
         uint256 b_ = gasleft();
         console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
@@ -70,7 +70,7 @@ contract AllStandardOpsTest is StandardVM {
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
         VMState memory state_ = _loadVMState(context_);
-        StackTop stackTop_ = eval(state_, ENTRYPOINT);
+        StackTop stackTop_ = eval(state_, ENTRYPOINT, state_.stackBottom);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.

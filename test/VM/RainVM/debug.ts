@@ -77,20 +77,4 @@ describe("RainVM debug op", async function () {
     assert(true); // you have to check this log yourself
   });
 
-  it("should log state as bytes when DEBUG operand is set to DEBUG_STATE_ABI", async () => {
-    const constants = [10, 20];
-
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-      op(Opcode.DEBUG, Debug.StateAbi),
-    ])];
-
-    await logic.initialize({ sources, constants });
-    await logic.run();
-
-    assert(true); // you have to check this log yourself
-  });
 });

@@ -86,7 +86,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
             VMState memory state_ = _loadVMState(
                 uint256(uint160(account_)).arrayFrom(context_)
             );
-            return eval(state_, REPORT_ENTRYPOINT).peek();
+            return eval(state_, REPORT_ENTRYPOINT, state_.stackBottom).peek();
         }
     }
 
@@ -104,7 +104,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
                     context_
                 )
             );
-            return eval(state_, REPORT_FOR_TIER_ENTRYPOINT).peek();
+            return eval(state_, REPORT_FOR_TIER_ENTRYPOINT, state_.stackBottom).peek();
         }
     }
 }

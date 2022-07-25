@@ -22,10 +22,9 @@ uint256 constant OPCODE_MEMORY_TYPE_CONTEXT = 2;
 
 uint256 constant OPCODE_CALL = 1;
 uint256 constant OPCODE_LOOP_N = 2;
-uint256 constant OPCODE_LOOP_IF = 3;
 
 /// @dev Number of provided opcodes for `RainVM`.
-uint256 constant RAIN_VM_OPS_LENGTH = 4;
+uint256 constant RAIN_VM_OPS_LENGTH = 3;
 
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
@@ -117,12 +116,11 @@ abstract contract RainVM {
         virtual
         returns (bytes memory ptrs_);
 
-    function eval(VMState memory state_, uint256 sourceIndex_)
-        internal
-        view
-        returns (StackTop)
-    {
-        return eval(state_, sourceIndex_, state_.stackBottom);
+    function evalPtr() external view returns (uint ptr_) {
+        function(VMState memory, uint, StackTop) internal view returns (StackTop) eval_ = eval;
+        assembly ("memory-safe") {
+            ptr_ := eval_
+        }
     }
 
     /// Evaluates a rain script.
@@ -209,14 +207,6 @@ abstract contract RainVM {
                     for (uint256 i_ = 0; i_ <= n_; i_++) {
                         stackTop_ = eval(state_, loopSourceIndex_, stackTop_);
                     }
-                } else if (opcode_ == OPCODE_LOOP_IF) {
-                    while (stackTop_.peek() > 0) {
-                        // LOOP_IF is NOT allowed to change the stack top so we
-                        // ignore the return of eval. This is enforced by bounds
-                        // checks.
-                        eval(state_, operand_, stackTop_.down());
-                    }
-                    stackTop_ = stackTop_.down();
                 }
             }
             return stackTop_;

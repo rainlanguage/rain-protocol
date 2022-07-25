@@ -8,7 +8,6 @@ export enum MemoryType {
 }
 
 export enum Debug {
-  StateAbi,
   StatePacked,
   Stack,
   StackIndex,

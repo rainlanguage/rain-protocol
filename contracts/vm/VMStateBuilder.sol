@@ -45,6 +45,7 @@ uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 struct VmStructure {
     uint16 storageOpcodesLength;
+    uint16 evalPtr;
     address packedFnPtrsAddress;
 }
 
@@ -92,8 +93,11 @@ contract VMStateBuilder {
                     "INVALID_POINTERS"
                 );
 
+                uint evalPtr_ = RainVM(vm_).evalPtr();
+
                 vmStructure_ = VmStructure(
                     uint16(storageOpcodesRange_.length),
+                    uint16(evalPtr_),
                     SSTORE2.write(packedFunctionPointers_)
                 );
                 structureCache[vm_] = vmStructure_;
@@ -143,7 +147,8 @@ contract VMStateBuilder {
                 (new uint256[](stackLength_)).asStackTopUp(),
                 config_.constants.asStackTopUp(),
                 context_.asStackTopUp(),
-                ptrSources_
+                ptrSources_,
+                uint(vmStructure_.evalPtr).asEvalFn()
             ).toBytesPacked();
         }
     }

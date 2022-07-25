@@ -2,10 +2,10 @@
 pragma solidity ^0.8.15;
 
 import "./LibStackTop.sol";
+import "../type/LibCast.sol";
 import "hardhat/console.sol";
 
 enum DebugStyle {
-    StateAbi,
     StatePacked,
     Stack,
     StackIndex
@@ -34,12 +34,19 @@ struct VMState {
     StackTop constantsBottom;
     StackTop contextBottom;
     bytes[] ptrSources;
+    function (
+        VMState memory,
+        uint256,
+        StackTop
+    ) view returns (StackTop) eval;
 }
 
 library LibVMState {
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
+    using LibCast for uint;
+    using LibCast for function (VMState memory,uint256,StackTop) view returns (StackTop);
 
     function stackTopToIndex(VMState memory state_, StackTop stackTop_)
         internal
@@ -58,9 +65,7 @@ library LibVMState {
         StackTop stackTop_,
         DebugStyle debugStyle_
     ) internal view {
-        if (debugStyle_ == DebugStyle.StateAbi) {
-            console.logBytes(abi.encode(state_));
-        } else if (debugStyle_ == DebugStyle.StatePacked) {
+        if (debugStyle_ == DebugStyle.StatePacked) {
             console.logBytes(state_.toBytesPacked());
         } else if (debugStyle_ == DebugStyle.Stack) {
             uint256[] memory stack_ = state_
@@ -133,6 +138,7 @@ library LibVMState {
                 ptrSources_ := ptrSourcesPtrs_
                 mstore(add(state_, 0x60), ptrSources_)
             }
+            state_.eval = ((indexes_ >> 24) & 0xFFFF).asEvalFn();
             return state_;
         }
     }
@@ -149,9 +155,15 @@ library LibVMState {
                 .down()
                 .asUint256Array();
             // constants is first so we can literally use it on the other end
-            uint256 indexes_ = constants_.length |
+            uint256 indexes_ =
+            // 8 bit constant length
+                constants_.length |
+                // 8 bit stack length
                 (state_.stackBottom.peek() << 8) |
-                (state_.ptrSources.length << 16);
+                // 8 bit ptr sources length
+                (state_.ptrSources.length << 16) |
+                // 16 bit eval ptr
+                (state_.eval.asUint256() << 24);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)

@@ -8,6 +8,7 @@ import "../../bytes/LibPackBytes.sol";
 import "../RainVM.sol";
 import "./core/OpDebug.sol";
 import "./core/OpStorage.sol";
+import "./core/OpDoWhile.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
 import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
@@ -50,7 +51,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 43;
+uint256 constant ALL_STANDARD_OPS_LENGTH = RAIN_VM_OPS_LENGTH + 44;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -153,7 +154,7 @@ library AllStandardOps {
                     zero,
                     // loop n (ignored)
                     zero,
-                    // loop if (ignored)
+                    // do while
                     zero,
                     // storage
                     zero,
@@ -263,7 +264,7 @@ library AllStandardOps {
                     zero,
                     // loop n (ignored)
                     zero,
-                    // loop if (ignored)
+                    // do while
                     zero,
                     // storage
                     one,
@@ -370,8 +371,7 @@ library AllStandardOps {
                 0,
                 // loop n
                 0,
-                // loop if
-                0,
+                OpDoWhile.doWhile.asUint256(),
                 OpStorage.storageRead.asUint256(),
                 OpDebug.debug.asUint256(),
                 OpERC20BalanceOf.balanceOf.asUint256(),

@@ -12,16 +12,13 @@ library OpStorage {
     using LibVMState for VMState;
 
     /// Stack the value in a storage slot.
-    function storageRead(VMState memory, uint256 operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function storageRead(
+        VMState memory,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         assembly ("memory-safe") {
-            mstore(
-                stackTop_,
-                sload(operand_)
-            )
+            mstore(stackTop_, sload(operand_))
         }
         return stackTop_.up();
     }
