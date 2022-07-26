@@ -4,9 +4,19 @@ pragma solidity ^0.8.15;
 import "../../../tier/libraries/TierReport.sol";
 import "../../LibStackTop.sol";
 import "../../LibVMState.sol";
+import "../../LibIntegrityState.sol";
 
 library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+    }
 
     // Stacks a report with updated times over tier range.
     // The start and end tier are taken from the low and high bits of

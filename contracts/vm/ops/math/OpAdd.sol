@@ -4,11 +4,21 @@ pragma solidity ^0.8.15;
 import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../LibVMState.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpAdd
 /// @notice Opcode for adding N numbers.
 library OpAdd {
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, operand_));
+    }
 
     function add(
         VMState memory,

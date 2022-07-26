@@ -2,10 +2,21 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../LibVMState.sol";
+import "../../../LibIntegrityState.sol";
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
 library OpEagerIf {
+    using LibIntegrityState for IntegrityState;
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, 3));
+    }
+
     /// Eager because BOTH x_ and y_ must be eagerly evaluated
     /// before EAGER_IF will select one of them. If both x_ and y_
     /// are cheap (e.g. constant values) then this may also be the

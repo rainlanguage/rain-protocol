@@ -3,11 +3,21 @@ pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
 import "../../LibVMState.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpSub
 /// @notice Opcode for subtracting N numbers.
 library OpSub {
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, operand_));
+    }
 
     function sub(
         VMState memory,

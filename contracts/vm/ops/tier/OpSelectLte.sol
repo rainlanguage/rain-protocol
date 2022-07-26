@@ -4,18 +4,24 @@ pragma solidity ^0.8.15;
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../LibStackTop.sol";
 import "../../LibVMState.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
+    using LibIntegrityState for IntegrityState;
 
-    function stackPops(uint256 operand_) internal pure returns (uint256) {
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         unchecked {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");
-            return reportsLength_;
+            return integrityState_.push(integrityState_.pop(stackTop_, reportsLength_));
         }
     }
 

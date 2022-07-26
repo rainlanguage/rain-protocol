@@ -21,17 +21,24 @@ library LibIntegrityState {
     using LibStackTop for StackTop;
     using Math for uint256;
 
+    modifier pushStackMaxTop(IntegrityState memory integrityState_, StackTop stackTop_) {
+        _;
+            if (StackTop.unwrap(stackTop_) > StackTop.unwrap(integrityState_.stackMaxTop)) {
+                integrityState_.stackMaxTop = stackTop_;
+            }
+    }
+
     function push(IntegrityState memory integrityState_, StackTop stackTop_)
         internal
         pure
+        pushStackMaxTop(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {
         stackTopAfter_ = stackTop_.up();
-        integrityState_.stackMaxTop = StackTop.wrap(
-            StackTop.unwrap(integrityState_.stackMaxTop).max(
-                StackTop.unwrap(stackTopAfter_)
-            )
-        );
+    }
+
+    function push(IntegrityState memory integrityState_, StackTop stackTop_, uint n_) internal pure pushStackMaxTop(integrityState_, stackTopAfter_) returns (StackTop stackTopAfter_) {
+        stackTopAfter_ = stackTop_.up(n_);
     }
 
     modifier popUnderflowCheck(

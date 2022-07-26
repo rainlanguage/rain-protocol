@@ -6,8 +6,7 @@ import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../LibVMState.sol";
-
-import "hardhat/console.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
@@ -15,11 +14,16 @@ library OpERC1155BalanceOfBatch {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
     using LibCast for uint256[];
+    using LibIntegrityState for IntegrityState;
 
-    function stackPops(uint256 operand_) internal pure returns (uint256) {
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         unchecked {
-            require(operand_ > 0, "0_OPERAND_ERC1155");
-            return (operand_ * 2) + 1;
+            require(operand_ > 0, "0_ERC1155_BATCH");
+        return integrityState_.push(integrityState_.pop(stackTop_, (2 * operand_) + 1));
         }
     }
 
