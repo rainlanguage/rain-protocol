@@ -16,6 +16,7 @@ contract AllStandardOpsTest is StandardVM {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibVMState for VMState;
+    using LibUint256Array for uint256;
 
     /// *** STORAGE OPCODES START ***
 
@@ -31,16 +32,22 @@ contract AllStandardOpsTest is StandardVM {
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
+    function _saveVMState(
+        StateConfig memory config_,
+        uint256[] memory finalStacks_
+    ) internal virtual override {
+        uint256 a_ = gasleft();
+        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder)
+            .buildStateBytes(self, config_, finalStacks_);
+        uint256 b_ = gasleft();
+        console.log("state build gas: %s", a_ - b_);
+        vmStatePointer = SSTORE2.write(stateBytes_);
+    }
+
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
-
-        _saveVMState(stateConfig_, boundss_);
+        _saveVMState(stateConfig_, MIN_FINAL_STACK_INDEX.arrayFrom());
     }
 
     function stackTop() external view returns (uint256) {
@@ -62,7 +69,7 @@ contract AllStandardOpsTest is StandardVM {
         // This is just being done to make testing easier than trying to read
         // results from events etc.
         _stack = state_.stackBottom.down().asUint256Array();
-        _stackIndex = state_.stackTopToIndex(stackTop_);
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
     }
 
     /// Runs `eval` and stores full state. Stores `context_` to be accessed
@@ -75,7 +82,7 @@ contract AllStandardOpsTest is StandardVM {
         // This is just being done to make testing easier than trying to read
         // results from events etc.
         _stack = state_.stackBottom.down().asUint256Array();
-        _stackIndex = state_.stackTopToIndex(stackTop_);
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
     }
 
     function storageOpcodesRange()

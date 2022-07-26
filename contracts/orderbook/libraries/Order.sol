@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../OrderBook.sol";
 import "../../vm/RainVM.sol";
 import "../../vm/VMStateBuilder.sol";
+import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;
 type OrderLiveness is uint256;
@@ -34,6 +35,8 @@ OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
 
 library LibOrder {
+    using LibUint256Array for uint256;
+
     function deriveTracking(bytes[] memory sources_)
         internal
         pure
@@ -89,11 +92,6 @@ library LibOrder {
         address vm_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
         return
             Order(
                 msg.sender,
@@ -103,7 +101,7 @@ library LibOrder {
                 VMStateBuilder(vmStateBuilder_).buildStateBytes(
                     vm_,
                     config_.vmStateConfig,
-                    boundss_
+                    MIN_FINAL_STACK_INDEX.arrayFrom()
                 )
             );
     }

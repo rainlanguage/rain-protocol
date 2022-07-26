@@ -216,4 +216,16 @@ library LibStackTop {
     function lt(StackTop a_, StackTop b_) internal pure returns (bool) {
         return StackTop.unwrap(a_) < StackTop.unwrap(b_);
     }
+
+    function toIndex(StackTop stackBottom_, StackTop stackTop_)
+        internal
+        pure
+        returns (uint256)
+    {
+        unchecked {
+            return
+                (StackTop.unwrap(stackTop_) - StackTop.unwrap(stackBottom_)) /
+                0x20;
+        }
+    }
 }

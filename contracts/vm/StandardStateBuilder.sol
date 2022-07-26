@@ -33,4 +33,33 @@ contract StandardStateBuilder is VMStateBuilder {
     {
         pushes_ = AllStandardOps.stackPushes(localStackPushes());
     }
+
+    function localIntegrityFunctionPointers()
+        internal
+        pure
+        virtual
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
+                memory localFnPtrs_
+        )
+    {}
+
+    /// @inheritdoc VMStateBuilder
+    function integrityFunctionPointers()
+        internal
+        view
+        virtual
+        override
+        returns (function(IntegrityState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
+                memory)
+    {
+        return
+            AllStandardOps.integrityFunctionPointers(
+                localIntegrityFunctionPointers()
+            );
+    }
 }

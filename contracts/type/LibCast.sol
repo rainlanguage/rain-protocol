@@ -34,11 +34,16 @@ library LibCast {
         }
     }
 
-    function asIntegrityFn(uint i_) internal pure returns (function (
-        IntegrityState memory,
-        uint256 ,
-        StackTop
-    ) internal view returns (StackTop) fn_) {
+    function asIntegrityFn(uint256 i_)
+        internal
+        pure
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
+                internal
+                view
+                returns (StackTop) fn_
+        )
+    {
         assembly ("memory-safe") {
             fn_ := i_
         }
@@ -92,6 +97,29 @@ library LibCast {
         }
     }
 
+    function asUint256(
+        function(IntegrityState memory, uint256, StackTop)
+            internal
+            view
+            returns (StackTop) fn_
+    ) internal pure returns (uint256 i_) {
+        assembly ("memory-safe") {
+            i_ := fn_
+        }
+    }
+
+    function asUint256Array(
+        function(IntegrityState memory, uint256, StackTop)
+            internal
+            view
+            returns (StackTop)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory is_) {
+        assembly ("memory-safe") {
+            is_ := fns_
+        }
+    }
+
     function asUint256(bool bool_) internal pure returns (uint256 i_) {
         assembly ("memory-safe") {
             i_ := bool_
@@ -130,6 +158,21 @@ library LibCast {
     {
         assembly ("memory-safe") {
             addresses_ := is_
+        }
+    }
+
+    function asIntegrityPointers(uint256[] memory is_)
+        internal
+        pure
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
+                memory fns_
+        )
+    {
+        assembly ("memory-safe") {
+            fns_ := is_
         }
     }
 }

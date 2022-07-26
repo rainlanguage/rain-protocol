@@ -6,11 +6,12 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierReport.sol";
-import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
+import {VMStateBuilder, StateConfig} from "../vm/VMStateBuilder.sol";
 import "../vm/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
+import "../array/LibUint256Array.sol";
 
 import "hardhat/console.sol";
 
@@ -53,6 +54,7 @@ contract EmissionsERC20 is
 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
+    using LibUint256Array for uint256;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -89,12 +91,7 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
-        _saveVMState(config_.vmStateConfig, boundss_);
+        _saveVMState(config_.vmStateConfig, MIN_FINAL_STACK_INDEX.arrayFrom());
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;

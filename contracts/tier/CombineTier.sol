@@ -49,16 +49,13 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         external
         initializer
     {
-        Bounds memory reportBounds_;
-        reportBounds_.entrypoint = REPORT_ENTRYPOINT;
-        reportBounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds memory reportForTierBounds_;
-        reportForTierBounds_.entrypoint = REPORT_FOR_TIER_ENTRYPOINT;
-        reportForTierBounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](2);
-        boundss_[0] = reportBounds_;
-        boundss_[1] = reportForTierBounds_;
-        _saveVMState(config_.sourceConfig, boundss_);
+        _saveVMState(
+            config_.sourceConfig,
+            LibUint256Array.arrayFrom(
+                MIN_FINAL_STACK_INDEX,
+                MIN_FINAL_STACK_INDEX
+            )
+        );
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {

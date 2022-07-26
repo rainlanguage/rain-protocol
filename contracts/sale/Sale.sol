@@ -265,17 +265,13 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        Bounds memory canLiveBounds_;
-        canLiveBounds_.entrypoint = CAN_LIVE_ENTRYPOINT;
-        canLiveBounds_.minFinalStackIndex = CAN_LIVE_MIN_FINAL_STACK_INDEX;
-        Bounds memory calculateBuyBounds_;
-        calculateBuyBounds_.entrypoint = CALCULATE_BUY_ENTRYPOINT;
-        calculateBuyBounds_
-            .minFinalStackIndex = CALCULATE_BUY_MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](2);
-        boundss_[0] = canLiveBounds_;
-        boundss_[1] = calculateBuyBounds_;
-        _saveVMState(config_.vmStateConfig, boundss_);
+        _saveVMState(
+            config_.vmStateConfig,
+            LibUint256Array.arrayFrom(
+                CAN_LIVE_MIN_FINAL_STACK_INDEX,
+                CALCULATE_BUY_MIN_FINAL_STACK_INDEX
+            )
+        );
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;

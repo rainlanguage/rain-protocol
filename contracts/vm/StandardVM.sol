@@ -19,17 +19,19 @@ contract StandardVM is RainVM {
         vmStateBuilder = vmStateBuilder_;
     }
 
-    function _saveVMState(StateConfig memory config_, Bounds[] memory boundss_)
-        internal
-    {
+    function _saveVMState(
+        StateConfig memory config_,
+        uint256[] memory finalStacks_
+    ) internal virtual {
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder)
-            .buildStateBytes(self, config_, boundss_);
+            .buildStateBytes(self, config_, finalStacks_);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
     function _loadVMState(uint256[] memory context_)
         internal
         view
+        virtual
         returns (VMState memory)
     {
         return SSTORE2.read(vmStatePointer).fromBytesPacked(context_);

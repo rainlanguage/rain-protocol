@@ -46,18 +46,6 @@ library LibVMState {
         view
         returns (StackTop);
 
-    function stackTopToIndex(VMState memory state_, StackTop stackTop_)
-        internal
-        pure
-        returns (uint256)
-    {
-        unchecked {
-            return
-                (StackTop.unwrap(stackTop_) -
-                    StackTop.unwrap(state_.stackBottom)) / 0x20;
-        }
-    }
-
     function debug(
         VMState memory state_,
         StackTop stackTop_,
@@ -71,7 +59,7 @@ library LibVMState {
                 .down()
                 .asUint256Array();
             console.log("~stack~");
-            console.log("idx: %s", state_.stackTopToIndex(stackTop_));
+            console.log("idx: %s", state_.stackBottom.toIndex(stackTop_));
             unchecked {
                 for (uint256 i_ = 0; i_ < stack_.length; i_++) {
                     console.log(i_, stack_[i_]);
@@ -79,7 +67,7 @@ library LibVMState {
             }
             console.log("~~~~~");
         } else if (debugStyle_ == DebugStyle.StackIndex) {
-            console.log(state_.stackTopToIndex(stackTop_));
+            console.log(state_.stackBottom.toIndex(stackTop_));
         }
     }
 

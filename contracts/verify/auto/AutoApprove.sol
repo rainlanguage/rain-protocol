@@ -17,6 +17,7 @@ uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract AutoApprove is VerifyCallback, StandardVM, Initializable {
     using LibStackTop for StackTop;
+    using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
     using LibStackTop for uint256[];
@@ -39,12 +40,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         external
         initializer
     {
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
-        _saveVMState(stateConfig_, boundss_);
+        _saveVMState(stateConfig_, MIN_FINAL_STACK_INDEX.arrayFrom());
         _transferOwnership(msg.sender);
 
         emit Initialize(msg.sender, stateConfig_);

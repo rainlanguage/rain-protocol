@@ -76,7 +76,14 @@ library AllStandardOps {
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
+    using LibCast for uint[];
     using LibPackBytes for bytes;
+    using LibCast for function(IntegrityState memory, uint256, StackTop)
+        view
+        returns (StackTop);
+    using LibCast for function(IntegrityState memory, uint256, StackTop)
+        view
+        returns (StackTop)[];
 
     /// An oddly specific conversion between a fixed and dynamic uint256 array.
     /// This is useful for the purpose of building metadata for bounds checks
@@ -358,6 +365,86 @@ library AllStandardOps {
                 ];
             pushes_ = pushesFixed_.asUint256Array();
             pushes_.extend(locals_);
+        }
+    }
+
+    function integrityTest(
+        IntegrityState memory,
+        uint256,
+        StackTop
+    ) internal view returns (StackTop) {
+        revert("UNIMPLEMENTED");
+    }
+
+    function integrityFunctionPointers(
+        function(IntegrityState memory, uint256, StackTop)
+            view
+            returns (StackTop)[]
+            memory locals_
+    )
+        internal
+        pure
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
+                memory
+        )
+    {
+        unchecked {
+            uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
+                ALL_STANDARD_OPS_LENGTH,
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                OpBlockNumber.integrity.asUint256(),
+                OpCaller.integrity.asUint256(),
+                OpThisAddress.integrity.asUint256(),
+                OpTimestamp.integrity.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256(),
+                integrityTest.asUint256()
+            ];
+            uint256[] memory pointers_ = pointersFixed_.asUint256Array();
+            pointers_.extend(locals_.asUint256Array());
+            return pointers_.asIntegrityPointers();
         }
     }
 
