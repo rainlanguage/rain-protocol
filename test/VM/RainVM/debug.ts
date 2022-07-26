@@ -31,8 +31,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StackIndex),
     ])];
@@ -48,8 +48,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.Stack),
     ])];
@@ -65,8 +65,8 @@ describe("RainVM debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StatePacked),
     ])];

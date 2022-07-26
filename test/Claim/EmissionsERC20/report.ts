@@ -43,7 +43,7 @@ describe("EmissionsERC20 Report Test", async function () {
         },
         vmStateConfig: {
           sources: [
-            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
           ],
           constants: [claimAmount],
         },
@@ -85,10 +85,10 @@ describe("EmissionsERC20 Report Test", async function () {
 
     const constants = [readWriteTier.address, Util.NEVER];
     const valTierAddr = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const valNever = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const valNever = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const emissionsERC20 = await emissionsDeploy(
       creator,
@@ -112,7 +112,7 @@ describe("EmissionsERC20 Report Test", async function () {
                 tierRange(Tier.ZERO, Tier.EIGHT)
               ),
               valTierAddr,
-              op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+              op(Opcode.CONTEXT),
               op(Opcode.ITIERV2_REPORT),
               op(Opcode.SATURATING_DIFF),
             ]),
@@ -168,7 +168,7 @@ describe("EmissionsERC20 Report Test", async function () {
             concat([
               // lastClaimReport
               op(Opcode.THIS_ADDRESS),
-              op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+              op(Opcode.CONTEXT),
               op(Opcode.ITIERV2_REPORT),
             ]),
           ],
@@ -204,12 +204,12 @@ describe("EmissionsERC20 Report Test", async function () {
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const valTierAddr = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const valAlways = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
-    const ctxClaimant = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
+    const ctxClaimant = op(Opcode.CONTEXT);
 
     // prettier-ignore
     const CURRENT_TIMESTAMP_AS_REPORT = () =>

@@ -4,7 +4,6 @@ import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
 export enum MemoryType {
   Stack,
   Constant,
-  Context,
 }
 
 export enum Debug {
@@ -51,7 +50,7 @@ export function op(
 }
 
 export function memoryOperand(type: number, offset: number): number {
-  return (offset << 2) + type;
+  return (offset << 1) + type;
 }
 
 /**

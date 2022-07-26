@@ -31,10 +31,10 @@ describe("RainVM unchecked math", async () => {
     const constants = [max_uint256.div(2), 2];
 
     const vHalfMaxUInt256 = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vTwo = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vTwo = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -59,10 +59,10 @@ describe("RainVM unchecked math", async () => {
     const constants = [max_uint256.div(2), 3];
 
     const vHalfMaxUInt256 = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vThree = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -86,8 +86,8 @@ describe("RainVM unchecked math", async () => {
   it("should panic when accumulator underflows with subtraction op", async () => {
     const constants = [0, 1];
 
-    const vZero = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vZero = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -112,10 +112,10 @@ describe("RainVM unchecked math", async () => {
     const constants = [max_uint256, 1];
 
     const vMaxUInt256 = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([

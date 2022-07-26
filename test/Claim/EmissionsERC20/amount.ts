@@ -45,7 +45,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
         },
         vmStateConfig: {
           sources: [
-            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
           ],
           constants: [claimAmount],
         },
@@ -86,7 +86,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
         },
         vmStateConfig: {
           sources: [
-            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
           ],
           constants: [claimAmount],
         },
@@ -162,10 +162,10 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
   //   // BEGIN global constants
 
-  //   const valTierAddrAddress = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-  //   const valBaseRewardPerTier = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-  //   const valBlocksPerYear = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-  //   const valAlways = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+  //   const valTierAddrAddress = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+  //   const valBaseRewardPerTier = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+  //   const valBlocksPerYear = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+  //   const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
   //   const valOne = op(Opcode.CONSTANT, 4);
 
   //   // END global constants
@@ -221,7 +221,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   //   const LAST_CLAIM_REPORT = () =>
   //     concat([
   //       op(Opcode.THIS_ADDRESS),
-  //       op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+  //       op(Opcode.CONTEXT)
   //       op(Opcode.ITIERV2_REPORT),
   //     ]);
 
@@ -229,7 +229,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   //   const TIER_REPORT = () =>
   //     concat([
   //       valTierAddrAddress,
-  //       op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+  //       op(Opcode.CONTEXT),
   //       op(Opcode.ITIERV2_REPORT),
   //     ]);
 
@@ -428,10 +428,10 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
   //   // BEGIN global constants
 
-  //   const valTierAddrAddress = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-  //   const valBaseRewardPerTier = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-  //   const valBlocksPerYear = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-  //   const valBNOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+  //   const valTierAddrAddress = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+  //   const valBaseRewardPerTier = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+  //   const valBlocksPerYear = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+  //   const valBNOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
   //   const valBNOneReward = op(Opcode.CONSTANT, 4);
   //   const valAlways = op(Opcode.CONSTANT, 5);
 
@@ -499,7 +499,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   //   const LAST_CLAIM_REPORT = () =>
   //     concat([
   //       op(Opcode.THIS_ADDRESS),
-  //       op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+  //       op(Opcode.CONTEXT),
   //       op(Opcode.ITIERV2_REPORT),
   //     ]);
 
@@ -507,7 +507,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
   //   const TIER_REPORT = () =>
   //     concat([
   //       valTierAddrAddress,
-  //       op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+  //       op(Opcode.CONTEXT),
   //       op(Opcode.ITIERV2_REPORT),
   //     ]);
 

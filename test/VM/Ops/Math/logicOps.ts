@@ -56,13 +56,13 @@ describe("RainVM logic ops", async function () {
 
   //   const constants = [report, reportMax];
 
-  //   const vReport = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-  //   const vReportMax = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+  //   const vReport = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+  //   const vReportMax = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
   //   // BEGIN zipmap args
 
-  //   const argReport = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-  //   const argReportMax = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+  //   const argReport = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+  //   const argReportMax = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
   //   // END zipmap args
 
@@ -127,10 +127,10 @@ describe("RainVM logic ops", async function () {
   it("should check whether any value in a list is non-zero", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -188,10 +188,10 @@ describe("RainVM logic ops", async function () {
   it("should check whether every value in a list is non-zero", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -249,10 +249,10 @@ describe("RainVM logic ops", async function () {
   it("should perform ternary 'eager if' operation on 3 values on the stack", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -317,8 +317,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
       op(Opcode.GREATER_THAN),
     ]);
 
@@ -334,8 +334,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
       op(Opcode.GREATER_THAN),
     ]);
 
@@ -355,8 +355,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
       op(Opcode.LESS_THAN),
     ]);
 
@@ -372,8 +372,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
       op(Opcode.LESS_THAN),
     ]);
 
@@ -395,8 +395,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)), // also 2
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // also 2
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -412,8 +412,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -429,8 +429,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source2 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)), // 1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
+      op(Opcode.CONTEXT), // 1
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -449,8 +449,8 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source3 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3)), // id
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)), // id
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // id
+      op(Opcode.CONTEXT), // id
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -473,7 +473,7 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.ISZERO),
     ]);
 
@@ -491,7 +491,7 @@ describe("RainVM logic ops", async function () {
 
     // prettier-ignore
     const source1 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ISZERO),
     ]);
 

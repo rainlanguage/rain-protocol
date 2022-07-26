@@ -22,7 +22,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
+  const ctxAccount = op(Opcode.CONTEXT);
 
   // prettier-ignore
   // return default report
@@ -39,7 +39,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
@@ -49,7 +49,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [NEVER],
@@ -64,11 +64,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
     // prettier-ignore
     const sourceReport = concat([
       op(Opcode.BLOCK_TIMESTAMP),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.CONTEXT),
           op(Opcode.ITIERV2_REPORT, 0),
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.CONTEXT),
           op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
@@ -117,11 +117,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
     // prettier-ignore
     const sourceReport = concat([
       op(Opcode.BLOCK_TIMESTAMP),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       op(
         Opcode.SELECT_LTE,

@@ -32,7 +32,7 @@ describe("EmissionsERC20 Delegated Claims Test", async function () {
         },
         vmStateConfig: {
           sources: [
-            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
           ],
           constants: [claimAmount],
         },
@@ -77,7 +77,7 @@ describe("EmissionsERC20 Delegated Claims Test", async function () {
         },
         vmStateConfig: {
           sources: [
-            concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
           ],
           constants: [claimAmount],
         },

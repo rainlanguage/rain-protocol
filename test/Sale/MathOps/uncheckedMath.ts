@@ -62,16 +62,16 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vHalfMaxUInt256 = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vTwo = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const vTwo = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+      op(Opcode.CONTEXT),
         vHalfMaxUInt256,
         vTwo,
       op(Opcode.EXP, 2)
@@ -144,16 +144,16 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vHalfMaxUInt256 = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const vThree = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+      op(Opcode.CONTEXT),
         vHalfMaxUInt256,
         vThree,
       op(Opcode.MUL, 2)
@@ -220,14 +220,14 @@ describe("Sale unchecked math", async function () {
 
     const constants = [0, 1, startBlock - 1, startBlock + saleDuration - 1];
 
-    const vZero = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const vZero = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+      op(Opcode.CONTEXT),
         vZero,
         vOne,
       op(Opcode.SUB, 2)
@@ -300,16 +300,16 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vMaxUInt256 = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vOne = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+      op(Opcode.CONTEXT),
         vMaxUInt256,
         vOne,
       op(Opcode.ADD, 2)

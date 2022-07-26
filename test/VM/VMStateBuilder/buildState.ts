@@ -35,8 +35,8 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 1
     // prettier-ignore
     const sources0 = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.ADD, 2),
     ])];
 
@@ -51,8 +51,8 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 2
     // prettier-ignore
     const sources1 = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ])];
 
     // should pass with stack height = min stack height
@@ -61,9 +61,9 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 3
     // prettier-ignore
     const sources2 = [concat([
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
   ])];
 
     // should pass with stack height > min stack height

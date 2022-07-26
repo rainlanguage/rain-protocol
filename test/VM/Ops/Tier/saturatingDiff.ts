@@ -35,8 +35,8 @@ describe("RainVM tier report saturating diff op", async function () {
       numArrayToReport([2, 0, 4, 0, 6, 0, 8, 0].reverse()),
     ];
 
-    const vReport0 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vReport1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vReport0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vReport1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -70,8 +70,8 @@ describe("RainVM tier report saturating diff op", async function () {
       numArrayToReport([2, 3, 4, 5, 6, 7, 8, 9].reverse()),
     ];
 
-    const vReport0 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vReport1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vReport0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vReport1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -102,8 +102,8 @@ describe("RainVM tier report saturating diff op", async function () {
       numArrayToReport([0, 1, 2, 3, 4, 5, 6, 7].reverse()),
     ];
 
-    const vReport0 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vReport1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vReport0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vReport1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([

@@ -50,13 +50,13 @@ describe("RainVM ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 total supply snapshot", async () => {
     const constants = [tokenERC20Snapshot.address];
-    const vTokenAddr = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+          op(Opcode.CONTEXT),
         op(Opcode.ERC20_SNAPSHOT_TOTAL_SUPPLY_AT)
       ]),
     ];
@@ -81,15 +81,15 @@ describe("RainVM ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 balance snapshot", async () => {
     const constants = [signer1.address, tokenERC20Snapshot.address];
-    const vSigner1 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vSigner1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
       concat([
           vTokenAddr,
           vSigner1,
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
+          op(Opcode.CONTEXT),
         op(Opcode.ERC20_SNAPSHOT_BALANCE_OF_AT)
       ]),
     ];

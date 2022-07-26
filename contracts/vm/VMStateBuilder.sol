@@ -238,6 +238,8 @@ abstract contract VMStateBuilder {
                     operand_ = op_ & 0xFF;
                     opcode_ = op_ >> 8;
                 }
+                // We index into the function pointers here to ensure that any
+                // opcodes that we don't have a pointer for will error.
                 stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
                     integrityState_,
                     operand_,

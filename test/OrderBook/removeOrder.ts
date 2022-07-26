@@ -56,10 +56,10 @@ describe("OrderBook remove order", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,

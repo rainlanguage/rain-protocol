@@ -30,7 +30,7 @@ describe("RainVM context", async function () {
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [];
     const sources = [
-      concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 3))]),
+      concat([op(Opcode.CONTEXT, 3)]),
     ];
 
     await logic.initialize({ sources, constants });
@@ -48,9 +48,9 @@ describe("RainVM context", async function () {
     const constants = [];
     const sources = [
       concat([
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0)),
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1)),
-        op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 2)),
+        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 1),
+        op(Opcode.CONTEXT, 2),
       ]),
     ];
 
@@ -77,7 +77,7 @@ describe("RainVM context", async function () {
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
     const constants = [];
     const sources = [
-      concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0))]),
+      concat([op(Opcode.CONTEXT)]),
     ];
 
     await logic.initialize({ sources, constants });

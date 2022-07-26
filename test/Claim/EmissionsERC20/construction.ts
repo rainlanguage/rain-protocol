@@ -28,7 +28,7 @@ describe("EmissionsERC20 construction", async () => {
       },
       vmStateConfig: {
         sources: [
-          concat([op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0))]),
+          concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
         ],
         constants: [0],
       },

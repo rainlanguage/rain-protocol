@@ -19,8 +19,8 @@ describe("CombineTier report time for tier script", async function () {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
         ],
         constants: [
           numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80]),

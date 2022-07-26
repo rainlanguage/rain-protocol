@@ -29,7 +29,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook tracking order funds cleared", async function () {
-  const cOrderHash = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 0));
+  const cOrderHash = op(Opcode.CONTEXT);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -76,9 +76,9 @@ describe("OrderBook tracking order funds cleared", async function () {
     const askBlock = await ethers.provider.getBlockNumber();
 
     const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vAskBlock = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v5 = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vAskBlock = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     // prettier-ignore
     const askSource = concat([
       // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
@@ -122,10 +122,10 @@ describe("OrderBook tracking order funds cleared", async function () {
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
     const vBidOutputMax = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,

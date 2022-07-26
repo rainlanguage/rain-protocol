@@ -34,7 +34,7 @@ import {
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1));
+  const cCounterparty = op(Opcode.CONTEXT, 1);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -91,16 +91,16 @@ describe("OrderBook counterparty in context", async function () {
       carol.address,
     ];
     const vAskOutputMax = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vAskOutputMaxIfNotMatch = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vAskPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const vExpectedCounterparty = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -142,10 +142,10 @@ describe("OrderBook counterparty in context", async function () {
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
     const vBidOutputMax = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -178,11 +178,11 @@ describe("OrderBook counterparty in context", async function () {
     const bidPriceCarol = fixedPointDiv(ONE, askPrice);
     const bidConstantsCarol = [max_uint256, bidPriceCarol];
     const vBidOutputMaxCarol = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vBidPriceCarol = op(
-      Opcode.MEMORY,
+      Opcode.STATE,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore

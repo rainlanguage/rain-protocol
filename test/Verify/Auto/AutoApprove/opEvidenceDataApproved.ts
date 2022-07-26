@@ -39,19 +39,19 @@ describe("AutoApprove evidence data approved op", async function () {
       sources: [
         concat([
             // has this evidence been used before?
-            op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1)),
+            op(Opcode.CONTEXT, 1),
             op(Opcode.EVIDENCE_DATA_APPROVED),
 
             // has it been 1 day since this evidence was last used for approval?
-            op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1)),
+            op(Opcode.CONTEXT, 1),
               op(Opcode.EVIDENCE_DATA_APPROVED),
                 op(Opcode.BLOCK_TIMESTAMP),
-                op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+                op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
               op(Opcode.SUB, 2),
             op(Opcode.LESS_THAN),
 
             // else, allow any new evidence
-            op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)),
+            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
 
           op(Opcode.EAGER_IF),
         ])],
@@ -137,10 +137,10 @@ describe("AutoApprove evidence data approved op", async function () {
       sources: [
         // approved ? deny : approve
         concat([
-          op(Opcode.MEMORY, memoryOperand(MemoryType.Context, 1)),
+          op(Opcode.CONTEXT, 1),
             op(Opcode.EVIDENCE_DATA_APPROVED),
-            op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 0)), // deny
-            op(Opcode.MEMORY, memoryOperand(MemoryType.Constant, 1)), // approve
+            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // deny
+            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // approve
           op(Opcode.EAGER_IF),
         ])],
       constants: [0, 1],
