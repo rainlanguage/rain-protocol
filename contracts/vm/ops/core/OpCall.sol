@@ -22,7 +22,11 @@ library OpCall {
         uint256 outputs_ = (operand_ >> 3) & 0x3;
         uint256 callSourceIndex_ = (operand_ >> 5) & 0x7;
         stackTop_ = stackTop_.down(inputs_);
-        StackTop stackTopAfter_ = state_.eval(state_, callSourceIndex_, stackTop_);
+        StackTop stackTopAfter_ = state_.eval(
+            state_,
+            callSourceIndex_,
+            stackTop_
+        );
         LibUint256Array.unsafeCopyValuesTo(
             StackTop.unwrap(stackTopAfter_.down(outputs_)),
             StackTop.unwrap(stackTop_),

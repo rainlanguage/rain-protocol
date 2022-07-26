@@ -154,12 +154,12 @@ library LibVMState {
                 .asUint256Array();
             // constants is first so we can literally use it on the other end
             uint256 indexes_ = constants_.length | // 8 bit constant length
-                    // 8 bit stack length
-                    (state_.stackBottom.peek() << 8) |
-                    // 8 bit ptr sources length
-                    (state_.ptrSources.length << 16) |
-                    // 16 bit eval ptr
-                    (state_.eval.asUint256() << 24);
+                // 8 bit stack length
+                (state_.stackBottom.peek() << 8) |
+                // 8 bit ptr sources length
+                (state_.ptrSources.length << 16) |
+                // 16 bit eval ptr
+                (state_.eval.asUint256() << 24);
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)

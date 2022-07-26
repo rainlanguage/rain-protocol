@@ -4,6 +4,8 @@ import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../sstore2/SSTORE2.sol";
 import "./LibStackTop.sol";
+import "./LibIntegrityState.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim.
@@ -44,7 +46,8 @@ struct Bounds {
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
 struct VmStructure {
-    uint16 storageOpcodesLength;
+    uint8 storageOpcodesPointer;
+    uint8 storageOpcodesLength;
     uint16 evalPtr;
     address packedFnPtrsAddress;
 }
@@ -55,6 +58,7 @@ struct FnPtrs {
 }
 
 contract VMStateBuilder {
+    using SafeCast for uint256;
     using Math for uint256;
     using LibVMState for VMState;
     using LibCast for uint256;
@@ -96,7 +100,8 @@ contract VMStateBuilder {
                 uint256 evalPtr_ = RainVM(vm_).evalPtr();
 
                 vmStructure_ = VmStructure(
-                    uint16(storageOpcodesRange_.length),
+                    storageOpcodesRange_.pointer.toUint8(),
+                    storageOpcodesRange_.length.toUint8(),
                     uint16(evalPtr_),
                     SSTORE2.write(packedFunctionPointers_)
                 );
@@ -120,19 +125,33 @@ contract VMStateBuilder {
             );
             uint256 stackLength_ = 0;
 
-            uint256[] memory stackPops_ = stackPops();
-            uint256[] memory stackPushes_ = stackPushes();
+            // uint256[] memory stackPops_ = stackPops();
+            // uint256[] memory stackPushes_ = stackPushes();
             for (uint256 b_ = 0; b_ < boundss_.length; b_++) {
-                boundss_[b_].storageLength = uint256(
-                    vmStructure_.storageOpcodesLength
-                );
+                // boundss_[b_].storageLength = uint256(
+                //     vmStructure_.storageOpcodesLength
+                // );
 
                 ensureIntegrity(
-                    stackPops_,
-                    stackPushes_,
-                    config_,
-                    boundss_[b_]
+                    IntegrityState(
+                        config_.sources,
+                        StorageOpcodesRange(
+                            uint(vmStructure_.storageOpcodesPointer),
+                            uint(vmStructure_.storageOpcodesLength)
+                        ),
+                        StackTop.wrap(0),
+                        StackTop.wrap(0)
+                    ),
+                    b_,
+                    StackTop.wrap(0)
                 );
+
+                // ensureIntegrity(
+                //     stackPops_,
+                //     stackPushes_,
+                //     config_,
+                //     boundss_[b_]
+                // );
                 stackLength_ = stackLength_.max(boundss_[b_].stackLength);
             }
 
@@ -192,10 +211,10 @@ contract VMStateBuilder {
                 } {
                     let sourceData_ := mload(inputCursor_)
                     let op_ := byte(30, sourceData_)
-                        op_ := and(
-                            mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
-                            0xFFFF
-                        )
+                    op_ := and(
+                        mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
+                        0xFFFF
+                    )
                     mstore(
                         outputCursor_,
                         or(
@@ -206,6 +225,50 @@ contract VMStateBuilder {
                 }
             }
             return ptrSource_;
+        }
+    }
+
+    function ensureIntegrity(
+        IntegrityState memory integrityState_,
+        uint256 sourceIndex_,
+        StackTop stackTop_
+    ) public view returns (StackTop) {
+        unchecked {
+            uint256 cursor_;
+            uint256 end_;
+            assembly ("memory-safe") {
+                cursor_ := mload(
+                    add(
+                        mload(integrityState_),
+                        add(0x20, mul(0x20, sourceIndex_))
+                    )
+                )
+                end_ := add(cursor_, mload(cursor_))
+            }
+            console.log(sourceIndex_, cursor_, end_);
+            console.logBytes(integrityState_.ptrSources[sourceIndex_]);
+
+            // Loop until complete.
+            while (cursor_ < end_) {
+                uint256 opcode_;
+                uint256 operand_;
+                cursor_ += 3;
+                {
+                    uint256 op_;
+                    assembly ("memory-safe") {
+                        op_ := mload(cursor_)
+                    }
+                    op_ &= 0xFFFFFF;
+                    operand_ = op_ & 0xFF;
+                    opcode_ = op_ >> 8;
+                }
+                stackTop_ = opcode_.asIntegrityFn()(
+                    integrityState_,
+                    sourceIndex_,
+                    stackTop_
+                );
+            }
+            return stackTop_;
         }
     }
 
@@ -235,74 +298,74 @@ contract VMStateBuilder {
 
                 // Additional integrity checks for core opcodes.
                 // if (opcode_ < RAIN_VM_OPS_LENGTH) {
-                    // if (opcode_ == OPCODE_MEMORY) {
-                    //     uint256 type_ = operand_ & 0x3;
-                    //     uint256 offset_ = operand_ >> 2;
-                    //     if (type_ == OPCODE_MEMORY_TYPE_STACK) {
-                    //         // trying to read past the current stack top.
-                    //         require(offset_ < bounds_.stackIndex, "OOB_STACK");
-                    //     } else if (type_ == OPCODE_MEMORY_TYPE_CONSTANT) {
-                    //         // trying to read past the end of the constants array.
-                    //         // note that it is possible for a script to reach into
-                    //         // arguments space after a zipmap has completed. While
-                    //         // this is almost certainly a critical bug for the
-                    //         // script it doesn't expose the ability to read past
-                    //         // the constants array in memory so we allow it here.
-                    //         require(
-                    //             offset_ < stateConfig_.constants.length,
-                    //             "OOB_CONSTANT"
-                    //         );
-                    //     } else if (type_ == OPCODE_MEMORY_TYPE_CONTEXT) {
-                    //         // @TODO
-                    //         // require(
-                    //         //     offset_ < bounds_.contextLength,
-                    //         //     "OOB_CONTEXT"
-                    //         // );
-                    //     } else {
-                    //         revert("OOB_TYPE");
-                    //     }
+                // if (opcode_ == OPCODE_MEMORY) {
+                //     uint256 type_ = operand_ & 0x3;
+                //     uint256 offset_ = operand_ >> 2;
+                //     if (type_ == OPCODE_MEMORY_TYPE_STACK) {
+                //         // trying to read past the current stack top.
+                //         require(offset_ < bounds_.stackIndex, "OOB_STACK");
+                //     } else if (type_ == OPCODE_MEMORY_TYPE_CONSTANT) {
+                //         // trying to read past the end of the constants array.
+                //         // note that it is possible for a script to reach into
+                //         // arguments space after a zipmap has completed. While
+                //         // this is almost certainly a critical bug for the
+                //         // script it doesn't expose the ability to read past
+                //         // the constants array in memory so we allow it here.
+                //         require(
+                //             offset_ < stateConfig_.constants.length,
+                //             "OOB_CONSTANT"
+                //         );
+                //     } else if (type_ == OPCODE_MEMORY_TYPE_CONTEXT) {
+                //         // @TODO
+                //         // require(
+                //         //     offset_ < bounds_.contextLength,
+                //         //     "OOB_CONTEXT"
+                //         // );
+                //     } else {
+                //         revert("OOB_TYPE");
+                //     }
 
-                    //     bounds_.stackIndex++;
-                    // }
+                //     bounds_.stackIndex++;
+                // }
 
-                    // else if (opcode_ == OPCODE_LOOP_N) {
-                    //     // @TODO
-                    //     uint256 n_ = operand_ & 0x0F;
-                    //     uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
-                    //     for (uint256 i_ = 0; i_ < n_; i_++) {
-                    //         ensureIntegrity(
-                    //             stackPops_,
-                    //             stackPushes_,
-                    //             stateConfig_,
-                    //             bounds_
-                    //         );
-                    //     }
-                    // }
-                    // @TODO
-                    // else if (opcode_ == OPCODE_STORAGE) {
-                    //     // trying to read past allowed storage slots.
-                    //     require(
-                    //         operand_ < bounds_.storageLength,
-                    //         "OOB_STORAGE"
-                    //     );
-                    //     bounds_.stackIndex++;
-                    // }
+                // else if (opcode_ == OPCODE_LOOP_N) {
+                //     // @TODO
+                //     uint256 n_ = operand_ & 0x0F;
+                //     uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
+                //     for (uint256 i_ = 0; i_ < n_; i_++) {
+                //         ensureIntegrity(
+                //             stackPops_,
+                //             stackPushes_,
+                //             stateConfig_,
+                //             bounds_
+                //         );
+                //     }
+                // }
+                // @TODO
+                // else if (opcode_ == OPCODE_STORAGE) {
+                //     // trying to read past allowed storage slots.
+                //     require(
+                //         operand_ < bounds_.storageLength,
+                //         "OOB_STORAGE"
+                //     );
+                //     bounds_.stackIndex++;
+                // }
                 // } else {
-                    // This will catch popping/reading from underflowing the
-                    // stack as it will show up as an overflow on the stack
-                    // length later (but not in this unchecked block).
-                    // OOB opcodes will be picked up here and error due to the
-                    // index being invalid.
-                    bounds_.stackIndex -= stackPops_[opcode_].asStackMoveFn()(
-                        operand_
-                    );
-                    bounds_.stackLength = bounds_.stackLength.max(
-                        bounds_.stackIndex
-                    );
+                // This will catch popping/reading from underflowing the
+                // stack as it will show up as an overflow on the stack
+                // length later (but not in this unchecked block).
+                // OOB opcodes will be picked up here and error due to the
+                // index being invalid.
+                bounds_.stackIndex -= stackPops_[opcode_].asStackMoveFn()(
+                    operand_
+                );
+                bounds_.stackLength = bounds_.stackLength.max(
+                    bounds_.stackIndex
+                );
 
-                    bounds_.stackIndex += stackPushes_[opcode_].asStackMoveFn()(
-                        operand_
-                    );
+                bounds_.stackIndex += stackPushes_[opcode_].asStackMoveFn()(
+                    operand_
+                );
                 // }
 
                 bounds_.stackLength = bounds_.stackLength.max(

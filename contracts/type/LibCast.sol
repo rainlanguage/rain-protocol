@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../vm/LibStackTop.sol";
 import "../vm/LibVMState.sol";
+import "../vm/LibIntegrityState.sol";
 
 /// @title Cast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
@@ -28,6 +29,16 @@ library LibCast {
                 returns (StackTop) fn_
         )
     {
+        assembly ("memory-safe") {
+            fn_ := i_
+        }
+    }
+
+    function asIntegrityFn(uint i_) internal pure returns (function (
+        IntegrityState memory,
+        uint256 ,
+        StackTop
+    ) internal view returns (StackTop) fn_) {
         assembly ("memory-safe") {
             fn_ := i_
         }
