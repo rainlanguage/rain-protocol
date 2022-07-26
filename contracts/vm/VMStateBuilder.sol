@@ -95,7 +95,6 @@ abstract contract VMStateBuilder {
                 StackTop.wrap(0),
                 StackTop.wrap(0)
             );
-            uint256 a_ = gasleft();
             for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
                 require(
                     finalStacks_[i_] <=
@@ -109,7 +108,6 @@ abstract contract VMStateBuilder {
                     "MIN_FINAL_STACK"
                 );
             }
-            uint256 b_ = gasleft();
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
@@ -130,7 +128,6 @@ abstract contract VMStateBuilder {
                 ptrSources_,
                 uint256(vmStructure_.evalPtr).asEvalFn()
             ).toBytesPacked();
-            console.log("ensure gas: %s", a_ - b_);
         }
     }
 
