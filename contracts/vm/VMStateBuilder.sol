@@ -117,15 +117,14 @@ abstract contract VMStateBuilder {
                 "STACK_UNDERFLOW"
             );
 
-            uint a_ = gasleft();
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
-            uint b_ = gasleft();
             // Dummy context is never written to the packed bytes.
             uint256[] memory context_ = new uint256[](0);
 
+            uint a_ = gasleft();
             stateBytes_ = VMState(
                 (
                     new uint256[](
@@ -139,6 +138,7 @@ abstract contract VMStateBuilder {
                 ptrSources_,
                 uint256(vmStructure_.evalPtr).asEvalFn()
             ).toBytesPacked();
+            uint b_ = gasleft();
             console.log("ensure gas: %s", a_ - b_);
         }
     }
