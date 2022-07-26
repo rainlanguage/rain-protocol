@@ -4,11 +4,21 @@ pragma solidity ^0.8.15;
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../../LibStackTop.sol";
 import "../../LibVMState.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpERC721BalanceOf
 /// @notice Opcode for getting the current erc721 balance of an account.
 library OpERC721BalanceOf {
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+    }
 
     // Stack the return of `balanceOf`.
     function balanceOf(
