@@ -24,11 +24,6 @@ struct VmStructure {
     address packedFnPtrsAddress;
 }
 
-struct FnPtrs {
-    uint256[] stackPops;
-    uint256[] stackPushes;
-}
-
 abstract contract VMStateBuilder {
     using SafeCast for uint256;
     using Math for uint256;
@@ -95,9 +90,12 @@ abstract contract VMStateBuilder {
                     uint256(vmStructure_.storageOpcodesPointer),
                     uint256(vmStructure_.storageOpcodesLength)
                 ),
+                config_.constants.length,
+                0,
                 StackTop.wrap(0),
                 StackTop.wrap(0)
             );
+            uint256 a_ = gasleft();
             for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
                 require(
                     finalStacks_[i_] <=
@@ -116,15 +114,13 @@ abstract contract VMStateBuilder {
                     StackTop.unwrap(integrityState_.stackMaxTop),
                 "STACK_UNDERFLOW"
             );
+            uint256 b_ = gasleft();
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
-            // Dummy context is never written to the packed bytes.
-            uint256[] memory context_ = new uint256[](0);
 
-            uint a_ = gasleft();
             stateBytes_ = VMState(
                 (
                     new uint256[](
@@ -134,11 +130,11 @@ abstract contract VMStateBuilder {
                     )
                 ).asStackTopUp(),
                 config_.constants.asStackTopUp(),
-                context_.asStackTopUp(),
+                // Dummy context is never written to the packed bytes.
+                new uint256[](0),
                 ptrSources_,
                 uint256(vmStructure_.evalPtr).asEvalFn()
             ).toBytesPacked();
-            uint b_ = gasleft();
             console.log("ensure gas: %s", a_ - b_);
         }
     }
@@ -203,10 +199,12 @@ abstract contract VMStateBuilder {
         internal
         view
         virtual
-        returns (function(IntegrityState memory, uint256, StackTop)
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
                 view
                 returns (StackTop)[]
-                memory);
+                memory
+        );
 
     function ensureIntegrity(
         IntegrityState memory integrityState_,
@@ -242,15 +240,11 @@ abstract contract VMStateBuilder {
                 }
                 stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
                     integrityState_,
-                    sourceIndex_,
+                    operand_,
                     stackTop_
                 );
             }
             return stackTop_;
         }
     }
-
-    function stackPops() public view virtual returns (uint256[] memory) {}
-
-    function stackPushes() public view virtual returns (uint256[] memory) {}
 }

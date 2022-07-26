@@ -5,12 +5,21 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../LibStackTop.sol";
 import "../../LibVMState.sol";
 import "../../../array/LibUint256Array.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpCall
 /// @notice Opcode for calling eval with a new scope.
 library OpCall {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
+
+    function integrity(
+        IntegrityState memory,
+        uint256,
+        StackTop
+    ) internal view returns (StackTop) {
+        revert("UNIMPLEMENTED");
+    }
 
     /// Call eval with a new scope.
     function call(

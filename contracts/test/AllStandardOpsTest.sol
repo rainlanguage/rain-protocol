@@ -32,18 +32,6 @@ contract AllStandardOpsTest is StandardVM {
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
-    function _saveVMState(
-        StateConfig memory config_,
-        uint256[] memory finalStacks_
-    ) internal virtual override {
-        uint256 a_ = gasleft();
-        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder)
-            .buildStateBytes(self, config_, finalStacks_);
-        uint256 b_ = gasleft();
-        console.log("state build gas: %s", a_ - b_);
-        vmStatePointer = SSTORE2.write(stateBytes_);
-    }
-
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {

@@ -8,41 +8,48 @@ import "../type/LibCast.sol";
 
 contract OrderBookStateBuilder is StandardStateBuilder {
     using LibCast for function(uint256) pure returns (uint256)[];
+    using LibIntegrityState for IntegrityState;
 
-    /// @inheritdoc StandardStateBuilder
-    function localStackPops()
-        internal
-        pure
-        virtual
-        override
-        returns (uint256[] memory)
-    {
-        function(uint256) pure returns (uint256)[] memory pops_ = new function(
-            uint256
-        ) pure returns (uint256)[](LOCAL_OPS_LENGTH);
-        // order funds cleared
-        pops_[0] = AllStandardOps.one;
-        // order counterparty funds cleared
-        pops_[1] = AllStandardOps.two;
-        return pops_.asUint256Array();
+    function integrityOrderFundsCleared(
+        IntegrityState memory integrityState_,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_));
     }
 
-    /// @inheritdoc StandardStateBuilder
-    function localStackPushes()
+    function integrityOrderCounterpartyFundsCleared(
+        IntegrityState memory integrityState_,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+    }
+
+    function localIntegrityFunctionPointers()
         internal
         pure
         virtual
         override
-        returns (uint256[] memory)
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
+                memory
+        )
     {
-        function(uint256) pure returns (uint256)[]
-            memory pushes_ = new function(uint256) pure returns (uint256)[](
-                LOCAL_OPS_LENGTH
-            );
-        // order funds cleared
-        pushes_[0] = AllStandardOps.one;
-        // order counterparty funds cleared
-        pushes_[1] = AllStandardOps.two;
-        return pushes_.asUint256Array();
+        function(IntegrityState memory, uint256, StackTop)
+            view
+            returns (StackTop)[]
+            memory localIntegrityFunctionPointers_ = new function(
+                IntegrityState memory,
+                uint256,
+                StackTop
+            ) view returns (StackTop)[](LOCAL_OPS_LENGTH);
+        localIntegrityFunctionPointers_[0] = integrityOrderFundsCleared;
+        localIntegrityFunctionPointers_[
+            1
+        ] = integrityOrderCounterpartyFundsCleared;
+        return localIntegrityFunctionPointers_;
     }
 }

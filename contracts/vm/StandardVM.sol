@@ -21,10 +21,10 @@ contract StandardVM is RainVM {
 
     function _saveVMState(
         StateConfig memory config_,
-        uint256[] memory finalStacks_
+        uint256[] memory finalMinStacks_
     ) internal virtual {
         bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder)
-            .buildStateBytes(self, config_, finalStacks_);
+            .buildStateBytes(self, config_, finalMinStacks_);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 

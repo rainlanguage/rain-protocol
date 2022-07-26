@@ -7,35 +7,37 @@ import "../../type/LibCast.sol";
 
 contract AutoApproveStateBuilder is StandardStateBuilder {
     using LibCast for function(uint256) pure returns (uint256)[];
+    using LibIntegrityState for IntegrityState;
 
-    /// @inheritdoc StandardStateBuilder
-    function localStackPops()
-        internal
-        pure
-        virtual
-        override
-        returns (uint256[] memory)
-    {
-        function(uint256) pure returns (uint256)[] memory pops_ = new function(
-            uint256
-        ) pure returns (uint256)[](1);
-        // approved evidence
-        pops_[0] = AllStandardOps.one;
-        return pops_.asUint256Array();
+    function integrityEvidenceDataApproved(
+        IntegrityState memory integrityState_,
+        uint256,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_));
     }
 
-    /// @inheritdoc StandardStateBuilder
-    function localStackPushes()
+    function localIntegrityFunctionPointers()
         internal
         pure
         virtual
         override
-        returns (uint256[] memory)
+        returns (
+            function(IntegrityState memory, uint256, StackTop)
+                view
+                returns (StackTop)[]
+                memory
+        )
     {
-        function(uint256) pure returns (uint256)[]
-            memory pushes_ = new function(uint256) pure returns (uint256)[](1);
-        // approved evidence
-        pushes_[0] = AllStandardOps.one;
-        return pushes_.asUint256Array();
+        function(IntegrityState memory, uint256, StackTop)
+            view
+            returns (StackTop)[]
+            memory localIntegrityFunctionPointers_ = new function(
+                IntegrityState memory,
+                uint256,
+                StackTop
+            ) view returns (StackTop)[](LOCAL_OPS_LENGTH);
+        localIntegrityFunctionPointers_[0] = integrityEvidenceDataApproved;
+        return localIntegrityFunctionPointers_;
     }
 }

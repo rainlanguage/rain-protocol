@@ -4,12 +4,31 @@ pragma solidity ^0.8.15;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../LibStackTop.sol";
 import "../../LibVMState.sol";
+import "../../LibIntegrityState.sol";
 
 /// @title OpStorage
 /// @notice Opcode for reading from storage.
 library OpStorage {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
+    using LibIntegrityState for IntegrityState;
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        uint256 operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        unchecked {
+            require(
+                operand_ >= integrityState_.storageOpcodesRange.pointer &&
+                    operand_ <
+                    integrityState_.storageOpcodesRange.pointer +
+                        integrityState_.storageOpcodesRange.length,
+                "OOB_STORAGE_READ"
+            );
+            return integrityState_.push(stackTop_);
+        }
+    }
 
     /// Stack the value in a storage slot.
     function storageRead(

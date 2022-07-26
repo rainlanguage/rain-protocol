@@ -19,7 +19,6 @@ library OpBlockNumber {
         return integrityState_.push(stackTop_);
     }
 
-
     function blockNumber(
         VMState memory,
         uint256,

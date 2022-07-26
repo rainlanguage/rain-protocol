@@ -32,7 +32,7 @@ enum DebugStyle {
 struct VMState {
     StackTop stackBottom;
     StackTop constantsBottom;
-    StackTop contextBottom;
+    uint256[] context;
     bytes[] ptrSources;
     function(VMState memory, uint256, StackTop) view returns (StackTop) eval;
 }
@@ -77,7 +77,7 @@ library LibVMState {
     ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
-            state_.contextBottom = context_.asStackTopUp();
+            state_.context = context_;
             uint256 indexes_;
             assembly ("memory-safe") {
                 // Load indexes from state bytes.
