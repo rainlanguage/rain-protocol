@@ -45,6 +45,7 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
+    rm -rf crytic-export
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -169,10 +170,7 @@ pkgs.stdenv.mkDerivation {
     solt-the-earth
     flush-all
     # Echidna config
-    # Do we need to add Crytic-compile and slither-analyzer? Or echidna pckg already added it?
     init-solc
-    # pkgs.solc
-    # pkgs.echidna
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
   ];
