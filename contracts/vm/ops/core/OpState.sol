@@ -20,7 +20,7 @@ library OpState {
         IntegrityState memory integrityState_,
         uint256 operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         uint256 type_ = operand_ & 0x1;
         uint256 offset_ = operand_ >> 1;
         if (type_ == OPCODE_MEMORY_TYPE_STACK) {

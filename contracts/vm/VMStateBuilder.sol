@@ -109,11 +109,6 @@ abstract contract VMStateBuilder {
                     "MIN_FINAL_STACK"
                 );
             }
-            require(
-                StackTop.unwrap(integrityState_.stackBottom) <=
-                    StackTop.unwrap(integrityState_.stackMaxTop),
-                "STACK_UNDERFLOW"
-            );
             uint256 b_ = gasleft();
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);

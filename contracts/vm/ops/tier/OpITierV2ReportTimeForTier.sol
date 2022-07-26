@@ -19,7 +19,10 @@ library OpITierV2ReportTimeForTier {
         StackTop stackTop_
     ) internal view returns (StackTop) {
         unchecked {
-            return integrityState_.push(integrityState_.pop(stackTop_, operand_ + 3));
+            return
+                integrityState_.push(
+                    integrityState_.pop(stackTop_, operand_ + 3)
+                );
         }
     }
 

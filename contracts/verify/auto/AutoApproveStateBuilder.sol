@@ -13,7 +13,7 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
         IntegrityState memory integrityState_,
         uint256,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_));
     }
 

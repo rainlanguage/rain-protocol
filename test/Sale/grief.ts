@@ -65,10 +65,7 @@ describe("Sale griefer", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([
-        op(Opcode.CONTEXT),
-        vBasePrice,
-      ]),
+      concat([op(Opcode.CONTEXT), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,

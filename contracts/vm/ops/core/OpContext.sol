@@ -17,7 +17,7 @@ library OpContext {
         IntegrityState memory integrityState_,
         uint256 operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         // Note that a script with context can error at runtime due to OOB reads
         // that we don't know about here.
         return integrityState_.push(stackTop_);

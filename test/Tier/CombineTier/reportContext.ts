@@ -23,9 +23,7 @@ describe("CombineTier report context", async function () {
   it("should support a program which simply returns the account", async () => {
     const signers = await ethers.getSigners();
 
-    const sourceReport = concat([
-      op(Opcode.CONTEXT),
-    ]);
+    const sourceReport = concat([op(Opcode.CONTEXT)]);
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,

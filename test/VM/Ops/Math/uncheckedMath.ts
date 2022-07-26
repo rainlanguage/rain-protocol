@@ -111,10 +111,7 @@ describe("RainVM unchecked math", async () => {
   it("should panic when accumulator overflows with addition op", async () => {
     const constants = [max_uint256, 1];
 
-    const vMaxUInt256 = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore

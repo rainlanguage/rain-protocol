@@ -167,10 +167,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vCarolPrice = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const vCarolPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const carolSource = concat([
       vCarolOutputMax,

@@ -31,10 +31,7 @@ describe("RainVM MathOps saturating math", async () => {
 
   it("should perform saturating multiplication", async () => {
     const constants = [max_uint256, 2];
-    const vMaxUInt256 = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal multiplication
@@ -136,10 +133,7 @@ describe("RainVM MathOps saturating math", async () => {
 
   it("should perform saturating addition", async () => {
     const constants = [max_uint256, 10];
-    const vMaxUInt256 = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const v10 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal addition

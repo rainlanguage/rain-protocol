@@ -299,10 +299,7 @@ describe("Sale unchecked math", async function () {
       startBlock + saleDuration - 1,
     ];
 
-    const vMaxUInt256 = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));

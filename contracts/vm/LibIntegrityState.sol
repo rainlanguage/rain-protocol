@@ -5,6 +5,8 @@ import "./RainVM.sol";
 import "./LibStackTop.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+import "hardhat/console.sol";
+
 struct IntegrityState {
     bytes[] sources;
     function(IntegrityState memory, uint256, StackTop)
@@ -21,24 +23,23 @@ library LibIntegrityState {
     using LibStackTop for StackTop;
     using Math for uint256;
 
-    modifier pushStackMaxTop(IntegrityState memory integrityState_, StackTop stackTop_) {
-        _;
-            if (StackTop.unwrap(stackTop_) > StackTop.unwrap(integrityState_.stackMaxTop)) {
+    function push(IntegrityState memory integrityState_, StackTop stackTop_)
+        internal
+        pure
+        returns (StackTop stackTopAfter_)
+    {
+        stackTopAfter_ = stackTop_.up();
+            if (StackTop.unwrap(stackTopAfter_) > StackTop.unwrap(integrityState_.stackMaxTop)) {
                 integrityState_.stackMaxTop = stackTop_;
             }
     }
 
-    function push(IntegrityState memory integrityState_, StackTop stackTop_)
-        internal
-        pure
-        pushStackMaxTop(integrityState_, stackTopAfter_)
-        returns (StackTop stackTopAfter_)
-    {
-        stackTopAfter_ = stackTop_.up();
-    }
-
-    function push(IntegrityState memory integrityState_, StackTop stackTop_, uint n_) internal pure pushStackMaxTop(integrityState_, stackTopAfter_) returns (StackTop stackTopAfter_) {
+    function push(IntegrityState memory integrityState_, StackTop stackTop_, uint n_) internal pure
+    returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up(n_);
+                    if (StackTop.unwrap(stackTopAfter_) > StackTop.unwrap(integrityState_.stackMaxTop)) {
+                integrityState_.stackMaxTop = stackTop_;
+            }
     }
 
     modifier popUnderflowCheck(
@@ -48,18 +49,18 @@ library LibIntegrityState {
         _;
         require(
             // Stack bottom may be non-zero so check we are above it.
-            StackTop.unwrap(stackTop_) >=
-                StackTop.unwrap(integrityState_.stackBottom) &&
+            (StackTop.unwrap(stackTop_) >=
+                StackTop.unwrap(integrityState_.stackBottom)) &&
                 // If we underflowed zero then we will be above the stack max top.
-                StackTop.unwrap(stackTop_) <
-                StackTop.unwrap(integrityState_.stackMaxTop),
+                (StackTop.unwrap(stackTop_) <
+                StackTop.unwrap(integrityState_.stackMaxTop)),
             "STACK_UNDERFLOW"
         );
     }
 
     function pop(IntegrityState memory integrityState_, StackTop stackTop_)
         internal
-        pure
+        view
         popUnderflowCheck(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {
@@ -72,7 +73,7 @@ library LibIntegrityState {
         uint256 n_
     )
         internal
-        pure
+        view
         popUnderflowCheck(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {

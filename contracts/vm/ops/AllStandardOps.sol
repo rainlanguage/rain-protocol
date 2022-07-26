@@ -83,6 +83,9 @@ library AllStandardOps {
         view
         returns (StackTop);
     using LibCast for function(IntegrityState memory, uint256, StackTop)
+        pure
+        returns (StackTop);
+    using LibCast for function(IntegrityState memory, uint256, StackTop)
         view
         returns (StackTop)[];
 
@@ -121,14 +124,6 @@ library AllStandardOps {
             dynamic_.length == ALL_STANDARD_OPS_LENGTH,
             "BAD_DYNAMIC_LENGTH"
         );
-    }
-
-    function integrityTest(
-        IntegrityState memory,
-        uint256,
-        StackTop
-    ) internal view returns (StackTop) {
-        revert("UNIMPLEMENTED");
     }
 
     function integrityFunctionPointers(

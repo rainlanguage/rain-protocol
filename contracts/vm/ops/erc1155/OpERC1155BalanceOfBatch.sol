@@ -23,7 +23,10 @@ library OpERC1155BalanceOfBatch {
     ) internal view returns (StackTop) {
         unchecked {
             require(operand_ > 0, "0_ERC1155_BATCH");
-        return integrityState_.push(integrityState_.pop(stackTop_, (2 * operand_) + 1));
+            return
+                integrityState_.push(
+                    integrityState_.pop(stackTop_, (2 * operand_) + 1)
+                );
         }
     }
 

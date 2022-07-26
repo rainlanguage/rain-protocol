@@ -21,7 +21,10 @@ library OpSelectLte {
         unchecked {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");
-            return integrityState_.push(integrityState_.pop(stackTop_, reportsLength_));
+            return
+                integrityState_.push(
+                    integrityState_.pop(stackTop_, reportsLength_)
+                );
         }
     }
 

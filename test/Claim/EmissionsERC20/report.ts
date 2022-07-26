@@ -84,10 +84,7 @@ describe("EmissionsERC20 Report Test", async function () {
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
     const constants = [readWriteTier.address, Util.NEVER];
-    const valTierAddr = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const valTierAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const valNever = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const emissionsERC20 = await emissionsDeploy(
@@ -203,10 +200,7 @@ describe("EmissionsERC20 Report Test", async function () {
 
     const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-    const valTierAddr = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const valTierAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const ctxClaimant = op(Opcode.CONTEXT);

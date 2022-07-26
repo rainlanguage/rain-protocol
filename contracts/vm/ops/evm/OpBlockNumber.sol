@@ -15,7 +15,7 @@ library OpBlockNumber {
         IntegrityState memory integrityState_,
         uint256,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         return integrityState_.push(stackTop_);
     }
 
