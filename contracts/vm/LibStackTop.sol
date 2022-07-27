@@ -19,7 +19,20 @@ type StackTop is uint256;
 /// typically the caller would have both the input stack top and the output
 /// stack top in scope after calling library functions.
 library LibStackTop {
-    /// Read the value immediately below the given stack top.
+    /// Reads the value above the stack top. If the stack top is the current
+    /// true stack top this is an out of bounds read. This is only useful if
+    /// the stack was first moved down and the value it moved past needs to be
+    /// read as part of the current operation.
+    /// @param stackTop_ Position to read past/above.
+    function peekUp(StackTop stackTop_) internal pure returns (uint256 a_) {
+        assembly ("memory-safe") {
+            a_ := mload(stackTop_)
+        }
+    }
+
+    /// Read the value immediately below the given stack top. Equivalent to
+    /// calling `pop` and discarding the `stackTopAfter_` value, so may be
+    /// less gas than setting and discarding a value.
     /// @param stackTop_ The stack top to read below.
     /// @return a_ The value that was read.
     function peek(StackTop stackTop_) internal pure returns (uint256 a_) {
@@ -28,19 +41,58 @@ library LibStackTop {
         }
     }
 
+    /// Reads 2 values below the given stack top.
+    /// The following statements are equivalent but A may use gas if the
+    /// compiler fails to inline some function calls.
+    /// A:
+    /// ```
+    /// (uint a_, uint b_) = stackTop_.peek2();
+    /// ```
+    /// B:
+    /// ```
+    /// uint b_;
+    /// (stackTop_, b_) = stackTop_.pop();
+    /// uint a_ = stackTop_.peek();
+    /// ```
+    /// @param stackTop_ The stack top to peek below.
+    function peek2(StackTop stackTop_)
+        internal
+        pure
+        returns (uint256 a_, uint256 b_)
+    {
+        assembly ("memory-safe") {
+            a_ := mload(sub(stackTop_, 0x40))
+            b_ := mload(sub(stackTop_, 0x20))
+        }
+    }
+
+
     /// Read the value immediately below the given stack top and return the
     /// stack top that points to the value that was read alongside the value.
+    /// The following are equivalent but A may be cheaper if the compiler
+    /// fails to inline some function calls:
+    /// A:
+    /// ```
+    /// uint a_;
+    /// (stackTop_, a_) = stackTop_.pop();
+    /// ```
+    /// B:
+    /// ```
+    /// stackTop_ = stackTop_.down();
+    /// uint a_ = stackTop_.peekUp();
+    /// ```
     /// @param stackTop_ The stack top to read below.
-    /// @return location_ The stack top that points to the value that was read.
+    /// @return stackTopAfter_ The stack top that points to the value that was
+    /// read.
     /// @return a_ The value that was read.
     function pop(StackTop stackTop_)
         internal
         pure
-        returns (StackTop location_, uint256 a_)
+        returns (StackTop stackTopAfter_, uint256 a_)
     {
         assembly ("memory-safe") {
-            location_ := sub(stackTop_, 0x20)
-            a_ := mload(location_)
+            stackTopAfter_ := sub(stackTop_, 0x20)
+            a_ := mload(stackTopAfter_)
         }
     }
 
@@ -58,7 +110,7 @@ library LibStackTop {
 
     /// Store a `uint256` at the stack top position and return the stack top
     /// above the written value. The following statements are equivalent in
-    /// functionality but `push` may be less gas if the compiler fails to inline
+    /// functionality but A may be less gas if the compiler fails to inline
     /// some function calls.
     /// A:
     /// ```
@@ -69,6 +121,9 @@ library LibStackTop {
     /// stackTop_.set(a_);
     /// stackTop_ = stackTop_.up();
     /// ```
+    /// @param stackTop_ The stack top to write at.
+    /// @param a_ The value to write.
+    /// @return The stack top above where `a_` was written to.
     function push(StackTop stackTop_, uint256 a_)
         internal
         pure
@@ -81,6 +136,35 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Store 8x `uint256` at the stack top position and return the stack top
+    /// above the written value. The following statements are equivalent in
+    /// functionality but A may be cheaper if the compiler fails to
+    /// inline some function calls.
+    /// A:
+    /// ```
+    /// stackTop_ = stackTop_.push(a_, b_, c_, d_, e_, f_, g_, h_);
+    /// ```
+    /// B:
+    /// ```
+    /// stackTop_ = stackTop_
+    ///   .push(a_)
+    ///   .push(b_)
+    ///   .push(c_)
+    ///   .push(d_)
+    ///   .push(e_)
+    ///   .push(f_)
+    ///   .push(g_)
+    ///   .push(h_);
+    /// @param stackTop_ The stack top to write at.
+    /// @param a_ The first value to write.
+    /// @param b_ The second value to write.
+    /// @param c_ The third value to write.
+    /// @param d_ The fourth value to write.
+    /// @param e_ The fifth value to write.
+    /// @param f_ The sixth value to write.
+    /// @param g_ The seventh value to write.
+    /// @param h_ The eighth value to write.
+    /// @return The stack top above where `h_` was written.
     function push(
         StackTop stackTop_,
         uint256 a_,
@@ -105,37 +189,6 @@ library LibStackTop {
         }
         return stackTop_;
     }
-
-    function peekUp(StackTop stackTop_) internal pure returns (uint256 a_) {
-        assembly ("memory-safe") {
-            a_ := mload(stackTop_)
-        }
-    }
-
-    function peekUp(StackTop stackTop_, uint256 n_)
-        internal
-        pure
-        returns (uint256 a_)
-    {
-        assembly ("memory-safe") {
-            a_ := mload(add(stackTop_, mul(0x20, n_)))
-        }
-    }
-
-
-
-    function peek2(StackTop stackTop_)
-        internal
-        pure
-        returns (uint256 a_, uint256 b_)
-    {
-        assembly ("memory-safe") {
-            a_ := mload(sub(stackTop_, 0x40))
-            b_ := mload(sub(stackTop_, 0x20))
-        }
-    }
-
-
 
     function popAndPeek(StackTop stackTop_)
         internal
