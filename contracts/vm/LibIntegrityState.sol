@@ -60,7 +60,7 @@ library LibIntegrityState {
 
     function pop(IntegrityState memory integrityState_, StackTop stackTop_)
         internal
-        view
+        pure
         popUnderflowCheck(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {
@@ -73,7 +73,7 @@ library LibIntegrityState {
         uint256 n_
     )
         internal
-        view
+        pure
         popUnderflowCheck(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {

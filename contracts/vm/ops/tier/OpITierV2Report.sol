@@ -17,7 +17,7 @@ library OpITierV2Report {
         IntegrityState memory integrityState_,
         uint256 operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         unchecked {
             return
                 integrityState_.push(

@@ -17,7 +17,7 @@ library OpSelectLte {
         IntegrityState memory integrityState_,
         uint256 operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         unchecked {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");

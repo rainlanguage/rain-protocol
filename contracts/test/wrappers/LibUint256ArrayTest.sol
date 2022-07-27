@@ -47,7 +47,7 @@ contract LibUint256ArrayTest {
         return outputs_;
     }
 
-    function unsafeCopyValuesToNewArray(uint256[] memory inputs_)
+    function copyToNewUint256Array(uint256[] memory inputs_)
         external
         pure
         returns (uint256[] memory)
@@ -57,17 +57,9 @@ contract LibUint256ArrayTest {
             inputCursor_ := add(inputs_, 0x20)
         }
         return
-            LibUint256Array.unsafeCopyValuesToNewArray(
+            LibUint256Array.copyToNewUint256Array(
                 inputCursor_,
                 inputs_.length
             );
-    }
-
-    function getUnchecked(uint256[] memory list_, uint256 i_)
-        external
-        pure
-        returns (uint256)
-    {
-        return LibUint256Array.getUnchecked(list_, i_);
     }
 }

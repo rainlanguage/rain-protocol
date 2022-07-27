@@ -15,7 +15,7 @@ library OpExp {
         IntegrityState memory integrityState_,
         uint256 operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_, operand_));
     }
 

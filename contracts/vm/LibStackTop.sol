@@ -1,9 +1,74 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+/// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
 
+/// @title LibStackTop
+/// @notice A `StackTop` is just a pointer to some memory. Ostensibly it is the
+/// top of some stack used by the `RainVM` so that means it can move "up" and
+/// "down" (increment and decrement) by `uint256` (32 bytes) increments. In
+/// general we're abusing that concept a bit to extend to things like the bottom
+/// of a stack or a hypothetical maximum stack or even treating an arbitrary
+/// `uint256[]` array as "a stack". In the future it's likely this lib and
+/// concept will be renamed to reflect that it is used much more generally than
+/// simply the top of some stack.
+/// All the functions in `LibStackTop` operate on memory to read/write what is
+/// referenced but the pointers and values themselves are typically input/output
+/// of the functions. I.e. the stack top itself is not being mutated in-place,
+/// typically the caller would have both the input stack top and the output
+/// stack top in scope after calling library functions.
 library LibStackTop {
+    /// Read the value immediately below the given stack top.
+    /// @param stackTop_ The stack top to read below.
+    /// @return a_ The value that was read.
+    function peek(StackTop stackTop_) internal pure returns (uint256 a_) {
+        assembly ("memory-safe") {
+            a_ := mload(sub(stackTop_, 0x20))
+        }
+    }
+
+    /// Read the value immediately below the given stack top and return the
+    /// stack top that points to the value that was read alongside the value.
+    /// @param stackTop_ The stack top to read below.
+    /// @return location_ The stack top that points to the value that was read.
+    /// @return a_ The value that was read.
+    function pop(StackTop stackTop_)
+        internal
+        pure
+        returns (StackTop location_, uint256 a_)
+    {
+        assembly ("memory-safe") {
+            location_ := sub(stackTop_, 0x20)
+            a_ := mload(location_)
+        }
+    }
+
+    /// Write a value at the stack top location. Typically not useful if the
+    /// given stack top is not subsequently moved past the written value , or
+    /// if the given stack top is actually located somewhere below the "true"
+    /// stack top.
+    /// @param stackTop_ The stack top to write the value at.
+    /// @param a_ The value to write.
+    function set(StackTop stackTop_, uint256 a_) internal pure {
+        assembly ("memory-safe") {
+            mstore(stackTop_, a_)
+        }
+    }
+
+    /// Store a `uint256` at the stack top position and return the stack top
+    /// above the written value. The following statements are equivalent in
+    /// functionality but `push` may be less gas if the compiler fails to inline
+    /// some function calls.
+    /// A:
+    /// ```
+    /// stackTop_ = stackTop_.push(a_);
+    /// ```
+    /// B:
+    /// ```
+    /// stackTop_.set(a_);
+    /// stackTop_ = stackTop_.up();
+    /// ```
     function push(StackTop stackTop_, uint256 a_)
         internal
         pure
@@ -57,11 +122,7 @@ library LibStackTop {
         }
     }
 
-    function peek(StackTop stackTop_) internal pure returns (uint256 a_) {
-        assembly ("memory-safe") {
-            a_ := mload(sub(stackTop_, 0x20))
-        }
-    }
+
 
     function peek2(StackTop stackTop_)
         internal
@@ -74,16 +135,7 @@ library LibStackTop {
         }
     }
 
-    function pop(StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop location_, uint256 a_)
-    {
-        assembly ("memory-safe") {
-            location_ := sub(stackTop_, 0x20)
-            a_ := mload(location_)
-        }
-    }
+
 
     function popAndPeek(StackTop stackTop_)
         internal
@@ -123,11 +175,7 @@ library LibStackTop {
         }
     }
 
-    function set(StackTop stackTop_, uint256 a_) internal pure {
-        assembly ("memory-safe") {
-            mstore(stackTop_, a_)
-        }
-    }
+
 
     function list(StackTop stackTop_, uint256 length_)
         internal

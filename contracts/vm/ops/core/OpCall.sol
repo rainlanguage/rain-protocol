@@ -17,7 +17,7 @@ library OpCall {
         IntegrityState memory,
         uint256,
         StackTop
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         revert("UNIMPLEMENTED");
     }
 

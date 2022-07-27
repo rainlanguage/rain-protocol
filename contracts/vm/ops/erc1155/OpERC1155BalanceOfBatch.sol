@@ -38,7 +38,7 @@ library OpERC1155BalanceOfBatch {
         StackTop stackTop_
     ) internal view returns (StackTop) {
         StackTop idsStart_ = stackTop_.down(operand_);
-        uint256[] memory ids_ = LibUint256Array.unsafeCopyValuesToNewArray(
+        uint256[] memory ids_ = LibUint256Array.copyToNewUint256Array(
             StackTop.unwrap(idsStart_),
             operand_
         );
