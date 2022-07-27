@@ -3,7 +3,7 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
-import { ReserveToken } from "../../typechain/ReserveToken";
+import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
 import { max_uint256, ONE, sixZeros } from "../../utils/constants/bigNumber";
@@ -17,7 +17,7 @@ import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake ITIERV2_REPORT Op", async function () {
   let stakeFactory: StakeFactory;
-  let token: ReserveToken;
+  let token: ReserveToken18;
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
 
@@ -59,7 +59,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
   it("should return a correct report using ITIERV2_REPORT when no token has been staked", async function () {
@@ -70,8 +70,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -103,8 +102,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -113,7 +111,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[0].div(2);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -142,8 +140,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -152,7 +149,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[0].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp = await getBlockTimestamp();
 
@@ -192,8 +189,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -202,7 +198,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[1].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp0 = await getBlockTimestamp();
 
@@ -236,7 +232,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount1 = THRESHOLDS[3].sub(depositAmount0);
     await token.transfer(alice.address, depositAmount1);
     await token.connect(alice).approve(stake.address, depositAmount1);
-    await stake.connect(alice).deposit(depositAmount1);
+    await stake.connect(alice).deposit(depositAmount1, alice.address);
 
     const depositTimestamp1 = await getBlockTimestamp();
 
@@ -275,8 +271,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -285,7 +280,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp = await getBlockTimestamp();
 
@@ -325,8 +320,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -335,7 +329,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const blockTime0_ = await getBlockTimestamp();
 
@@ -369,7 +363,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await timewarp(86400);
 
     const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
-    await stake.connect(alice).withdraw(withdrawAmount);
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -399,7 +393,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     );
 
     await token.connect(alice).approve(stake.address, withdrawAmount);
-    await stake.connect(alice).deposit(withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
 
     const blockTime1_ = await getBlockTimestamp();
 
@@ -439,8 +433,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -449,7 +442,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[0].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const blockTime0_ = await getBlockTimestamp();
 
@@ -483,7 +476,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await timewarp(86400);
 
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount);
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -507,7 +500,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     );
 
     await token.connect(alice).approve(stake.address, withdrawAmount);
-    await stake.connect(alice).deposit(withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
 
     const blockTime1_ = await getBlockTimestamp();
 
@@ -547,8 +540,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -557,7 +549,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const depositAmount0 = THRESHOLDS[3].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp0 = await getBlockTimestamp();
 

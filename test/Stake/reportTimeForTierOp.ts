@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken } from "../../typechain/ReserveToken";
+import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
 import { max_uint32, ONE, sixZeros } from "../../utils/constants/bigNumber";
@@ -17,7 +17,7 @@ import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;
-  let token: ReserveToken;
+  let token: ReserveToken18;
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
 
@@ -43,7 +43,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
   it("should return NEVER time using ITIERV2_REPORT_TIME_FOR_TIER if tier greater than context length", async () => {
@@ -54,8 +54,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -64,7 +63,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     // prettier-ignore
     // time0
@@ -250,8 +249,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -284,8 +282,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -294,7 +291,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const blockTime_ = await getBlockTimestamp(); // Expected blockTimeStamp after the deposit
 
@@ -338,8 +335,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -348,7 +344,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const blockTime0_ = await getBlockTimestamp();
 
@@ -386,7 +382,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const depositAmount1 = 10; // still exceeds 1st threshold, but less than 2nd threshold
     await token.transfer(alice.address, depositAmount1);
     await token.connect(alice).approve(stake.address, depositAmount1);
-    await stake.connect(alice).deposit(depositAmount1);
+    await stake.connect(alice).deposit(depositAmount1, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -408,7 +404,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .add(1); // exceeds 2nd threshold
     await token.transfer(alice.address, depositAmount2);
     await token.connect(alice).approve(stake.address, depositAmount2);
-    await stake.connect(alice).deposit(depositAmount2);
+    await stake.connect(alice).deposit(depositAmount2, alice.address);
 
     const blockTime1_ = await getBlockTimestamp();
 
@@ -442,8 +438,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -452,7 +447,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const depositAmount0 = THRESHOLDS[0].add(1); // exceeds 1st threshold
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const blockTime0_ = await getBlockTimestamp();
 
@@ -487,7 +482,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // Alice withdraws tokens
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount);
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
 
     await logic.connect(alice).run();
 
@@ -502,7 +497,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // Alice deposits again, exceeding threshold again
     await token.connect(alice).approve(stake.address, withdrawAmount);
-    await stake.connect(alice).deposit(withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
 
     const blockTime2_ = await getBlockTimestamp();
 
@@ -533,8 +528,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -543,7 +537,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1); // exceeds all thresholds
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
     const blockTime0_ = await getBlockTimestamp();
 
     // prettier-ignore
@@ -587,7 +581,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // Alice withdraws tokens
     const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
-    await stake.connect(alice).withdraw(withdrawAmount);
+    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -633,7 +627,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // Alice deposits again, exceeding all thresholds again
     await token.connect(alice).approve(stake.address, withdrawAmount);
-    await stake.connect(alice).deposit(withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
     const blockTime2_ = await getBlockTimestamp();
 
     await logic.initialize({
