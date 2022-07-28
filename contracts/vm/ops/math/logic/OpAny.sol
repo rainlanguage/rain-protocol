@@ -12,10 +12,13 @@ library OpAny {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, operand_));
+        return
+            integrityState_.push(
+                integrityState_.pop(stackTop_, Operand.unwrap(operand_))
+            );
     }
 
     // ANY
@@ -23,10 +26,10 @@ library OpAny {
     // operand_ id the length of items to check.
     function any(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        StackTop location_ = stackTop_.down(operand_);
+        StackTop location_ = stackTop_.down(Operand.unwrap(operand_));
         for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
             uint256 item_ = i_.peekUp();
             if (item_ > 0) {

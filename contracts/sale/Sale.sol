@@ -129,8 +129,8 @@ struct Receipt {
     uint256 price;
 }
 
-uint256 constant CAN_LIVE_ENTRYPOINT = 0;
-uint256 constant CALCULATE_BUY_ENTRYPOINT = 1;
+SourceIndex constant CAN_LIVE_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
 uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;

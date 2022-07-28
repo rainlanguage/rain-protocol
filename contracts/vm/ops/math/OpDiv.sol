@@ -11,25 +11,24 @@ library OpDiv {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _div(uint256 a_, uint256 b_) internal pure returns (uint256) {
+        return a_ / b_;
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, operand_));
+        return
+            integrityState_.applyFnN(stackTop_, _div, Operand.unwrap(operand_));
     }
 
     function div(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop stackTopAfter_) {
-        StackTop location_ = stackTop_.down(operand_);
-        uint256 accumulator_ = location_.peekUp();
-        stackTopAfter_ = location_.up();
-        for (StackTop i_ = stackTopAfter_; i_.lt(stackTop_); i_ = i_.up()) {
-            accumulator_ /= i_.peekUp();
-        }
-        location_.set(accumulator_);
+    ) internal view returns (StackTop stackTopAfter_) {
+        return stackTop_.applyFnN(_div, Operand.unwrap(operand_));
     }
 }

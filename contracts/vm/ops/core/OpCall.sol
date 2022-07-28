@@ -15,7 +15,7 @@ library OpCall {
 
     function integrity(
         IntegrityState memory,
-        uint256,
+        Operand,
         StackTop
     ) internal pure returns (StackTop) {
         revert("UNIMPLEMENTED");
@@ -24,12 +24,12 @@ library OpCall {
     /// Call eval with a new scope.
     function call(
         VMState memory state_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        uint256 inputs_ = operand_ & 0x7;
-        uint256 outputs_ = (operand_ >> 3) & 0x3;
-        uint256 callSourceIndex_ = (operand_ >> 5) & 0x7;
+        uint256 inputs_ = Operand.unwrap(operand_) & 0x7;
+        uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3;
+        SourceIndex callSourceIndex_ = SourceIndex.wrap((Operand.unwrap(operand_) >> 5) & 0x7);
         stackTop_ = stackTop_.down(inputs_);
         StackTop stackTopAfter_ = state_.eval(
             state_,

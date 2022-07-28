@@ -11,10 +11,11 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
 
     function integrityEvidenceDataApproved(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_));
+        function(uint) internal view returns (uint) fn_;
+        return integrityState_.applyFn(stackTop_, fn_);
     }
 
     function localIntegrityFunctionPointers()
@@ -23,18 +24,18 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
         virtual
         override
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory
         )
     {
-        function(IntegrityState memory, uint256, StackTop)
+        function(IntegrityState memory, Operand, StackTop)
             view
             returns (StackTop)[]
             memory localIntegrityFunctionPointers_ = new function(
                 IntegrityState memory,
-                uint256,
+                Operand,
                 StackTop
             ) view returns (StackTop)[](LOCAL_OPS_LENGTH);
         localIntegrityFunctionPointers_[0] = integrityEvidenceDataApproved;

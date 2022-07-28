@@ -12,29 +12,28 @@ library OpERC721OwnerOf {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _ownerOf(uint256 token_, uint256 id_)
+        internal
+        view
+        returns (uint256)
+    {
+        return uint256(uint160(IERC721(address(uint160(token_))).ownerOf(id_)));
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+    ) internal pure returns (StackTop) {
+        return integrityState_.applyFn(stackTop_, _ownerOf);
     }
 
     // Stack the return of `ownerOf`.
     function ownerOf(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 token_,
-            uint256 id_
-        ) = stackTop_.popAndPeek();
-        location_.set(
-            uint256(uint160(IERC721(address(uint160(token_))).ownerOf(id_)))
-        );
-        return stackTopAfter_;
+        return stackTop_.applyFn(_ownerOf);
     }
 }

@@ -15,11 +15,11 @@ library OpSelectLte {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
+            uint256 reportsLength_ = Operand.unwrap(operand_) & 0x1F; // & 00011111
             require(reportsLength_ > 0, "BAD_OPERAND");
             return
                 integrityState_.push(
@@ -37,13 +37,13 @@ library OpSelectLte {
     // as reports to compare against each other and the block number.
     function selectLte(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            uint256 logic_ = operand_ >> 7;
-            uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011
-            uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
+            uint256 logic_ = Operand.unwrap(operand_) >> 7;
+            uint256 mode_ = (Operand.unwrap(operand_) >> 5) & 0x3; // & 00000011
+            uint256 reportsLength_ = Operand.unwrap(operand_) & 0x1F; // & 00011111
             (uint256 time_, uint256[] memory reports_) = stackTop_.list(
                 reportsLength_
             );

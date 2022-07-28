@@ -11,7 +11,7 @@ library OpEagerIf {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_, 3));
@@ -23,7 +23,7 @@ library OpEagerIf {
     /// simplest and cheapest way to select one of them.
     function eagerIf(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         assembly ("memory-safe") {

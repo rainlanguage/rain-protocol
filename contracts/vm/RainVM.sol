@@ -8,6 +8,9 @@ import "./LibStackTop.sol";
 import "./LibVMState.sol";
 import "../array/LibUint256Array.sol";
 
+type SourceIndex is uint256;
+type Operand is uint256;
+
 struct StorageOpcodesRange {
     uint256 pointer;
     uint256 length;
@@ -80,6 +83,7 @@ abstract contract RainVM {
     using LibStackTop for uint256[];
     using LibStackTop for bytes;
     using LibStackTop for StackTop;
+    using LibCast for function(VMState memory, SourceIndex, StackTop) internal view returns (StackTop);
 
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesRange()
@@ -103,14 +107,8 @@ abstract contract RainVM {
         virtual
         returns (bytes memory ptrs_);
 
-    function evalPtr() external pure returns (uint256 ptr_) {
-        function(VMState memory, uint256, StackTop)
-            internal
-            view
-            returns (StackTop) eval_ = eval;
-        assembly ("memory-safe") {
-            ptr_ := eval_
-        }
+    function evalFunctionPointer() external pure returns (uint256) {
+        return eval.asUint256();
     }
 
     /// Evaluates a rain script.
@@ -127,7 +125,7 @@ abstract contract RainVM {
     /// opcode dispatch from the correct source in `sources`.
     function eval(
         VMState memory state_,
-        uint256 sourceIndex_,
+        SourceIndex sourceIndex_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         unchecked {
@@ -145,19 +143,21 @@ abstract contract RainVM {
 
             // Loop until complete.
             while (cursor_ < end_) {
-                uint256 opcode_;
-                uint256 operand_;
+                function(VMState memory, Operand, StackTop)
+                    internal
+                    view
+                    returns (StackTop) fn_;
+                Operand operand_;
                 cursor_ += 3;
                 {
                     uint256 op_;
                     assembly ("memory-safe") {
-                        op_ := mload(cursor_)
+                        op_ := and(mload(cursor_), 0xFFFFFF)
+                        operand_ := and(op_, 0xFF)
+                        fn_ := shr(8, op_)
                     }
-                    op_ &= 0xFFFFFF;
-                    operand_ = op_ & 0xFF;
-                    opcode_ = op_ >> 8;
                 }
-                stackTop_ = opcode_.asOpFn()(state_, operand_, stackTop_);
+                stackTop_ = fn_(state_, operand_, stackTop_);
             }
             return stackTop_;
         }

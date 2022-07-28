@@ -10,7 +10,7 @@ contract StandardStateBuilder is VMStateBuilder {
         pure
         virtual
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory localFnPtrs_
@@ -24,7 +24,7 @@ contract StandardStateBuilder is VMStateBuilder {
         virtual
         override
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory

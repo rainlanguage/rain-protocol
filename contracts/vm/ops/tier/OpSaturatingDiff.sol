@@ -12,10 +12,10 @@ library OpSaturatingDiff {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+        return integrityState_.applyFn(stackTop_, TierwiseCombine.saturatingSub);
     }
 
     // Stack the tierwise saturating subtraction of two reports.
@@ -24,18 +24,9 @@ library OpSaturatingDiff {
     // The older and newer report are taken from the stack.
     function saturatingDiff(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 newerReport_,
-            uint256 olderReport_
-        ) = stackTop_.popAndPeek();
-        location_.set(
-            TierwiseCombine.saturatingSub(newerReport_, olderReport_)
-        );
-        return stackTopAfter_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(TierwiseCombine.saturatingSub);
     }
 }

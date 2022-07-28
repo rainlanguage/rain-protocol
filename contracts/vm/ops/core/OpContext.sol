@@ -15,7 +15,7 @@ library OpContext {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         // Note that a script with context can error at runtime due to OOB reads
@@ -28,9 +28,9 @@ library OpContext {
     /// by the end user with arbitrary length.
     function context(
         VMState memory state_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return stackTop_.push(state_.context[operand_]);
+        return stackTop_.push(state_.context[Operand.unwrap(operand_)]);
     }
 }

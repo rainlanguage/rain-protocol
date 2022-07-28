@@ -13,39 +13,39 @@ library OpITierV2ReportTimeForTier {
     using LibStackTop for uint256[];
     using LibIntegrityState for IntegrityState;
 
+    function _reportTimeForTier(
+        uint256 tierContract_,
+        uint256 account_,
+        uint256 tier_,
+        uint256[] memory context_
+    ) internal view returns (uint256) {
+        return
+            ITierV2(address(uint160(tierContract_))).reportTimeForTier(
+                address(uint160(account_)),
+                tier_,
+                context_
+            );
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        unchecked {
-            return
-                integrityState_.push(
-                    integrityState_.pop(stackTop_, operand_ + 3)
-                );
-        }
+        return
+            integrityState_.applyFn(
+                stackTop_,
+                _reportTimeForTier,
+                Operand.unwrap(operand_)
+            );
     }
 
     // Stack the `reportTimeForTier` returned by an `ITierV2` contract.
     function reportTimeForTier(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        (uint256 tier_, uint256[] memory context_) = stackTop_.list(operand_);
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 tierContract_,
-            uint256 account_
-        ) = context_.asStackTop().popAndPeek();
-        location_.set(
-            ITierV2(address(uint160(tierContract_))).reportTimeForTier(
-                address(uint160(account_)),
-                tier_,
-                context_
-            )
-        );
-        return stackTopAfter_;
+        return stackTop_.applyFn(_reportTimeForTier, Operand.unwrap(operand_));
     }
 }

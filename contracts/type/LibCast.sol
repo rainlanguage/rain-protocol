@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../vm/LibStackTop.sol";
 import "../vm/LibVMState.sol";
 import "../vm/LibIntegrityState.sol";
+import "../vm/RainVM.sol";
 
 /// @title Cast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
@@ -20,11 +21,11 @@ library LibCast {
     /// Retype an integer to an opcode function pointer.
     /// @param i_ The integer to cast to an opcode function pointer.
     /// @return fn_ The opcode function pointer.
-    function asOpFn(uint256 i_)
+    function asOpFunctionPointer(uint256 i_)
         internal
         pure
         returns (
-            function(VMState memory, uint256, StackTop)
+            function(VMState memory, Operand, StackTop)
                 view
                 returns (StackTop) fn_
         )
@@ -34,11 +35,11 @@ library LibCast {
         }
     }
 
-    function asIntegrityFn(uint256 i_)
+    function asIntegrityFunctionPointer(uint256 i_)
         internal
         pure
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 internal
                 view
                 returns (StackTop) fn_
@@ -49,21 +50,11 @@ library LibCast {
         }
     }
 
-    function asStackMoveFn(uint256 i_)
-        internal
-        pure
-        returns (function(uint256) pure returns (uint256) fn_)
-    {
-        assembly ("memory-safe") {
-            fn_ := i_
-        }
-    }
-
-    function asEvalFn(uint256 i_)
+    function asEvalFunctionPointer(uint256 i_)
         internal
         pure
         returns (
-            function(VMState memory, uint256, StackTop)
+            function(VMState memory, SourceIndex, StackTop)
                 view
                 returns (StackTop) fn_
         )
@@ -98,7 +89,7 @@ library LibCast {
     }
 
     function asUint256(
-        function(IntegrityState memory, uint256, StackTop)
+        function(IntegrityState memory, Operand, StackTop)
             internal
             view
             returns (StackTop) fn_
@@ -109,7 +100,7 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(IntegrityState memory, uint256, StackTop)
+        function(IntegrityState memory, Operand, StackTop)
             internal
             view
             returns (StackTop)[]
@@ -127,7 +118,7 @@ library LibCast {
     }
 
     function asUint256(
-        function(VMState memory, uint256, StackTop) view returns (StackTop) fn_
+        function(VMState memory, SourceIndex, StackTop) view returns (StackTop) fn_
     ) internal pure returns (uint256 i_) {
         assembly ("memory-safe") {
             i_ := fn_
@@ -135,7 +126,7 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(VMState memory, uint256, StackTop) view returns (StackTop)[]
+        function(VMState memory, Operand, StackTop) view returns (StackTop)[]
             memory fns_
     ) internal pure returns (uint256[] memory is_) {
         assembly ("memory-safe") {
@@ -165,7 +156,7 @@ library LibCast {
         internal
         pure
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory fns_

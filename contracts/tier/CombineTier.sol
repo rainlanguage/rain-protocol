@@ -12,8 +12,8 @@ import "../vm/VMStateBuilder.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
-uint256 constant REPORT_ENTRYPOINT = 0;
-uint256 constant REPORT_FOR_TIER_ENTRYPOINT = 1;
+SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// All config used during initialization of a CombineTier.

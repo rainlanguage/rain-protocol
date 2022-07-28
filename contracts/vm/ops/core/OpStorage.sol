@@ -15,13 +15,13 @@ library OpStorage {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
             require(
-                operand_ >= integrityState_.storageOpcodesRange.pointer &&
-                    operand_ <
+                Operand.unwrap(operand_) >= integrityState_.storageOpcodesRange.pointer &&
+                    Operand.unwrap(operand_) <
                     integrityState_.storageOpcodesRange.pointer +
                         integrityState_.storageOpcodesRange.length,
                 "OOB_STORAGE_READ"
@@ -33,7 +33,7 @@ library OpStorage {
     /// Stack the value in a storage slot.
     function storageRead(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         assembly ("memory-safe") {

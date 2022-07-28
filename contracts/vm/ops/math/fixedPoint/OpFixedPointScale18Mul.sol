@@ -13,26 +13,27 @@ library OpFixedPointScale18Mul {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _scale18Mul(
+        Operand operand_,
+        uint256 a_,
+        uint256 b_
+    ) internal pure returns (uint256) {
+        return a_.scale18(Operand.unwrap(operand_)).fixedPointMul(b_);
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+    ) internal pure returns (StackTop) {
+        return integrityState_.applyFn(stackTop_, _scale18Mul);
     }
 
     function scale18Mul(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 a_,
-            uint256 b_
-        ) = stackTop_.popAndPeek();
-        location_.set(a_.scale18(operand_).fixedPointMul(b_));
-        return stackTopAfter_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_scale18Mul, operand_);
     }
 }

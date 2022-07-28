@@ -14,7 +14,7 @@ library OpLoopN {
 
     function integrity(
         IntegrityState memory,
-        uint256,
+        Operand,
         StackTop
     ) internal pure returns (StackTop) {
         revert("UNIMPLEMENTED");
@@ -23,11 +23,11 @@ library OpLoopN {
     /// Loop the stack `operand_` times.
     function loopN(
         VMState memory state_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        uint256 n_ = operand_ & 0x0F;
-        uint256 loopSourceIndex_ = (operand_ & 0xF0) >> 4;
+        uint256 n_ = Operand.unwrap(operand_) & 0x0F;
+        SourceIndex loopSourceIndex_ = SourceIndex.wrap((Operand.unwrap(operand_) & 0xF0) >> 4);
         for (uint256 i_ = 0; i_ <= n_; i_++) {
             stackTop_ = state_.eval(state_, loopSourceIndex_, stackTop_);
         }

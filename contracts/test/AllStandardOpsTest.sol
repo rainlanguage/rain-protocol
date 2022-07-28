@@ -5,7 +5,7 @@ import {StandardVM} from "../vm/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "../vm/VMStateBuilder.sol";
 
-uint256 constant ENTRYPOINT = 0;
+SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;

@@ -12,21 +12,23 @@ library OpIsZero {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _isZero(uint256 a_) internal pure returns (uint256) {
+        return (a_ == 0).asUint256();
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_));
+        return integrityState_.applyFn(stackTop_, _isZero);
     }
 
     function isZero(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        (StackTop location_, uint256 a_) = stackTop_.pop();
-        location_.set((a_ == 0).asUint256());
-        return stackTop_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_isZero);
     }
 }

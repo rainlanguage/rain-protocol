@@ -9,7 +9,7 @@ import "../../vm/StandardVM.sol";
 import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 
-uint256 constant ENTRYPOINT = 0;
+SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
@@ -84,14 +84,16 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         }
     }
 
+    function _evidenceDataApproved(uint evidenceData_) internal view returns (uint) {
+        return _approvedEvidenceData[evidenceData_];
+    }
+
     function opEvidenceDataApproved(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        (StackTop location_, uint256 evidenceData_) = stackTop_.pop();
-        location_.set(_approvedEvidenceData[evidenceData_]);
-        return stackTop_;
+        return stackTop_.applyFn(_evidenceDataApproved);
     }
 
     function localFnPtrs()
@@ -100,13 +102,13 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         virtual
         override
         returns (
-            function(VMState memory, uint256, StackTop)
+            function(VMState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(VMState memory, uint256, StackTop)
+        localFnPtrs_ = new function(VMState memory, Operand, StackTop)
             view
             returns (StackTop)[](1);
         localFnPtrs_[0] = opEvidenceDataApproved;

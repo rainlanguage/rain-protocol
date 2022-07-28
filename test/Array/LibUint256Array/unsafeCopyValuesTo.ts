@@ -28,7 +28,7 @@ describe("LibUint256Array unsafeCopyValuesTo tests", async function () {
   it("should unsafe copy array to a new array", async function () {
     const array = [1, 2, 3, 4];
 
-    const outputs_ = await libUint256Array.unsafeCopyValuesToNewArray(array);
+    const outputs_ = await libUint256Array.copyToNewUint256Array(array);
 
     assert(outputs_.length === array.length);
 

@@ -14,7 +14,7 @@ library OpDebug {
 
     function integrity(
         IntegrityState memory,
-        uint256,
+        Operand,
         StackTop
     ) internal view returns (StackTop) {
         // Debug doesn't modify the state.
@@ -23,10 +23,10 @@ library OpDebug {
     /// Debug the current state.
     function debug(
         VMState memory state_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        state_.debug(stackTop_, DebugStyle(operand_));
+        state_.debug(stackTop_, DebugStyle(Operand.unwrap(operand_)));
         return stackTop_;
     }
 }

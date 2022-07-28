@@ -28,7 +28,7 @@ struct Order {
     bytes vmState;
 }
 
-uint256 constant ENTRYPOINT = 0;
+SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 2;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);

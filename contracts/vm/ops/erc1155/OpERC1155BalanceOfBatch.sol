@@ -18,14 +18,17 @@ library OpERC1155BalanceOfBatch {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         unchecked {
-            require(operand_ > 0, "0_ERC1155_BATCH");
+            require(Operand.unwrap(operand_) > 0, "0_ERC1155_BATCH");
             return
                 integrityState_.push(
-                    integrityState_.pop(stackTop_, (2 * operand_) + 1)
+                    integrityState_.pop(
+                        stackTop_,
+                        (2 * Operand.unwrap(operand_)) + 1
+                    )
                 );
         }
     }
@@ -34,16 +37,16 @@ library OpERC1155BalanceOfBatch {
     // Operand will be the length
     function balanceOfBatch(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        StackTop idsStart_ = stackTop_.down(operand_);
+        StackTop idsStart_ = stackTop_.down(Operand.unwrap(operand_));
         uint256[] memory ids_ = LibUint256Array.copyToNewUint256Array(
             StackTop.unwrap(idsStart_),
-            operand_
+            Operand.unwrap(operand_)
         );
         (uint256 token_, uint256[] memory addresses_) = idsStart_.list(
-            operand_
+            Operand.unwrap(operand_)
         );
 
         uint256[] memory balances_ = IERC1155(address(uint160(token_)))
@@ -52,6 +55,6 @@ library OpERC1155BalanceOfBatch {
             balances_,
             StackTop.unwrap(addresses_.asStackTop())
         );
-        return addresses_.asStackTop().up(operand_);
+        return addresses_.asStackTop().up(Operand.unwrap(operand_));
     }
 }

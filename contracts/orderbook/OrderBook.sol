@@ -303,33 +303,28 @@ contract OrderBook is StandardVM {
         emit AfterClear(stateChange_);
     }
 
+    function _opOrderFundsCleared(uint orderHash_) internal view returns (uint) {
+        return clearedOrder[OrderHash.wrap(orderHash_)];
+    }
+
     function opOrderFundsCleared(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        (StackTop location_, uint256 orderHash_) = stackTop_.pop();
-        location_.set(clearedOrder[OrderHash.wrap(orderHash_)]);
-        return stackTop_;
+        return stackTop_.applyFn(_opOrderFundsCleared);
+    }
+
+    function _orderCounterpartyFundsCleared(uint orderHash_, uint counterparty_) internal view returns (uint) {
+        return clearedCounterparty[OrderHash.wrap(orderHash_)][address(uint160(counterparty_))];
     }
 
     function opOrderCounterpartyFundsCleared(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 orderHash_,
-            uint256 counterparty_
-        ) = stackTop_.popAndPeek();
-        location_.set(
-            clearedCounterparty[OrderHash.wrap(orderHash_)][
-                address(uint160(counterparty_))
-            ]
-        );
-        return stackTopAfter_;
+        return stackTop_.applyFn(_orderCounterpartyFundsCleared);
     }
 
     function localFnPtrs()
@@ -337,13 +332,13 @@ contract OrderBook is StandardVM {
         pure
         override
         returns (
-            function(VMState memory, uint256, StackTop)
+            function(VMState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(VMState memory, uint256, StackTop)
+        localFnPtrs_ = new function(VMState memory, Operand, StackTop)
             view
             returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;

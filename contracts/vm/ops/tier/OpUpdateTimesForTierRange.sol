@@ -10,12 +10,30 @@ library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _updateTimesForTierRange(
+        Operand operand_,
+        uint256 report_,
+        uint256 timestamp_
+    ) internal pure returns (uint256) {
+        return
+            TierReport.updateTimesForTierRange(
+                report_,
+                // start tier.
+                // 4 low bits.
+                Operand.unwrap(operand_) & 0x0f,
+                // end tier.
+                // 4 high bits.
+                (Operand.unwrap(operand_) >> 4) & 0x0f,
+                timestamp_
+            );
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+        return integrityState_.applyFn(stackTop_, _updateTimesForTierRange);
     }
 
     // Stacks a report with updated times over tier range.
@@ -25,27 +43,9 @@ library OpUpdateTimesForTierRange {
     // taken from the stack.
     function updateTimesForTierRange(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        uint256 startTier_ = operand_ & 0x0f; // & 00001111
-        uint256 endTier_ = (operand_ >> 4) & 0x0f; // & 00001111
-
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 report_,
-            uint256 timestamp_
-        ) = stackTop_.popAndPeek();
-
-        location_.set(
-            TierReport.updateTimesForTierRange(
-                report_,
-                startTier_,
-                endTier_,
-                timestamp_
-            )
-        );
-        return stackTopAfter_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_updateTimesForTierRange, operand_);
     }
 }

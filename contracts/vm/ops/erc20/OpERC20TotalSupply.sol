@@ -12,22 +12,24 @@ library OpERC20TotalSupply {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _totalSupply(uint256 token_) internal view returns (uint256) {
+        return IERC20(address(uint160(token_))).totalSupply();
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_));
+    ) internal pure returns (StackTop) {
+        return integrityState_.applyFn(stackTop_, _totalSupply);
     }
 
     // Stack the return of `totalSupply`.
     function totalSupply(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        (StackTop location_, uint256 token_) = stackTop_.pop();
-        location_.set(IERC20(address(uint160(token_))).totalSupply());
-        return stackTop_;
+        return stackTop_.applyFn(_totalSupply);
     }
 }

@@ -57,9 +57,6 @@ contract LibUint256ArrayTest {
             inputCursor_ := add(inputs_, 0x20)
         }
         return
-            LibUint256Array.copyToNewUint256Array(
-                inputCursor_,
-                inputs_.length
-            );
+            LibUint256Array.copyToNewUint256Array(inputCursor_, inputs_.length);
     }
 }

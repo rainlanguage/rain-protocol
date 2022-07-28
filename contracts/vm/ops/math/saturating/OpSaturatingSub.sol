@@ -15,27 +15,26 @@ library OpSaturatingSub {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, operand_));
+        return
+            integrityState_.applyFnN(
+                stackTop_,
+                SaturatingMath.saturatingSub,
+                Operand.unwrap(operand_)
+            );
     }
 
     function saturatingSub(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop stackTopAfter_) {
-        StackTop location_ = stackTop_.down(operand_);
-        uint256 accumulator_ = location_.peekUp();
-        stackTopAfter_ = location_.up();
-        for (
-            StackTop i_ = stackTopAfter_;
-            i_.lt(stackTop_) && (0 < accumulator_);
-            i_ = i_.up()
-        ) {
-            accumulator_ = accumulator_.saturatingSub(i_.peekUp());
-        }
-        location_.set(accumulator_);
+    ) internal view returns (StackTop stackTopAfter_) {
+        return
+            stackTop_.applyFnN(
+                SaturatingMath.saturatingSub,
+                Operand.unwrap(operand_)
+            );
     }
 }

@@ -14,15 +14,15 @@ library OpExplode32 {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_), 8);
     }
 
     function explode32(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         (StackTop location_, uint256 i_) = stackTop_.pop();

@@ -13,7 +13,7 @@ library OpTimestamp {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return integrityState_.push(stackTop_);
@@ -21,7 +21,7 @@ library OpTimestamp {
 
     function timestamp(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.push(block.timestamp);

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "./RainVM.sol";
+
 /// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
 
@@ -18,7 +20,17 @@ type StackTop is uint256;
 /// of the functions. I.e. the stack top itself is not being mutated in-place,
 /// typically the caller would have both the input stack top and the output
 /// stack top in scope after calling library functions.
+/// Most of the functions in this library are equivalent to each other via
+/// composition, i.e. everything could be achieved with just `up`, `down`,
+/// `pop`, `push`, `peek`. The reason there is so much duplication of logic is
+/// that the Solidity compiler seems to fail at inlining equivalent logic quite
+/// a lot sadly. There appears to be effort upstream towards improving the
+/// function inlining by the optimizer so we should expect a lot of this library
+/// to become redundant or even counterproductive in the future.
 library LibStackTop {
+    using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
+
     /// Reads the value above the stack top. If the stack top is the current
     /// true stack top this is an out of bounds read. This is only useful if
     /// the stack was first moved down and the value it moved past needs to be
@@ -65,7 +77,6 @@ library LibStackTop {
             b_ := mload(sub(stackTop_, 0x20))
         }
     }
-
 
     /// Read the value immediately below the given stack top and return the
     /// stack top that points to the value that was read alongside the value.
@@ -190,45 +201,147 @@ library LibStackTop {
         return stackTop_;
     }
 
-    function popAndPeek(StackTop stackTop_)
-        internal
-        pure
-        returns (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 a_,
-            uint256 b_
-        )
-    {
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256) internal view returns (uint256) fn_
+    ) internal view returns (StackTop) {
+        uint256 a_;
+        uint256 location_;
         assembly ("memory-safe") {
-            stackTopAfter_ := sub(stackTop_, 0x20)
-            location_ := sub(stackTopAfter_, 0x20)
+            location_ := sub(stackTop_, 0x20)
             a_ := mload(location_)
-            b_ := mload(stackTopAfter_)
+        }
+        a_ = fn_(a_);
+        assembly ("memory-safe") {
+            mstore(location_, a_)
+        }
+        return stackTop_;
+    }
+
+    function applyFn(
+        StackTop stackTop_,
+        function(Operand, uint256) internal view returns (uint256) fn_,
+        Operand operand_
+    ) internal view returns (StackTop) {
+        uint256 a_;
+        uint256 location_;
+        assembly ("memory-safe") {
+            location_ := sub(stackTop_, 0x20)
+            a_ := mload(location_)
+        }
+        a_ = fn_(operand_, a_);
+        assembly ("memory-safe") {
+            mstore(location_, a_)
+        }
+        return stackTop_;
+    }
+
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256, uint256) internal view returns (uint256) fn_
+    ) internal view returns (StackTop) {
+        uint256 a_;
+        uint256 b_;
+        uint256 location_;
+        assembly ("memory-safe") {
+            stackTop_ := sub(stackTop_, 0x20)
+            location_ := sub(stackTop_, 0x20)
+            a_ := mload(location_)
+            b_ := mload(stackTop_)
+        }
+        a_ = fn_(a_, b_);
+        assembly ("memory-safe") {
+            mstore(location_, a_)
+        }
+        return stackTop_;
+    }
+
+    function applyFnN(
+        StackTop stackTop_,
+        function(uint256, uint256) internal view returns (uint256) fn_,
+        uint256 n_
+    ) internal view returns (StackTop stackTopAfter_) {
+        stackTopAfter_ = stackTop_.down(n_);
+        while (stackTopAfter_.lt(stackTop_)) {
+            stackTop_ = stackTop_.applyFn(fn_);
         }
     }
 
-    function pop2AndPeek(StackTop stackTop_)
-        internal
-        pure
-        returns (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 a_,
-            uint256 b_,
-            uint256 c_
-        )
-    {
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256, uint256, uint256) internal view returns (uint256) fn_
+    ) internal view returns (StackTop) {
+        uint256 a_;
+        uint256 b_;
+        uint256 c_;
+        uint256 location_;
         assembly ("memory-safe") {
-            stackTopAfter_ := sub(stackTop_, 0x40)
-            location_ := sub(stackTopAfter_, 0x20)
+            stackTop_ := sub(stackTop_, 0x40)
+            location_ := sub(stackTop_, 0x20)
             a_ := mload(location_)
-            b_ := mload(stackTopAfter_)
-            c_ := mload(add(stackTopAfter_, 0x20))
+            b_ := mload(stackTop_)
+            c_ := mload(add(stackTop_, 0x20))
         }
+        a_ = fn_(a_, b_, c_);
+        assembly ("memory-safe") {
+            mstore(location_, a_)
+        }
+        return stackTop_;
     }
 
+    function applyFn(
+        StackTop stackTop_,
+        function(Operand, uint256, uint256) internal view returns (uint256) fn_,
+        Operand operand_
+    ) internal view returns (StackTop) {
+        uint256 a_;
+        uint256 b_;
+        uint256 location_;
+        assembly ("memory-safe") {
+            stackTop_ := sub(stackTop_, 0x20)
+            location_ := sub(stackTop_, 0x20)
+            a_ := mload(location_)
+            b_ := mload(stackTop_)
+        }
+        a_ = fn_(operand_, a_, b_);
+        assembly ("memory-safe") {
+            mstore(location_, a_)
+        }
+        return stackTop_;
+    }
 
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256, uint256, uint256[] memory)
+            internal
+            view
+            returns (uint256) fn_,
+        uint length_
+    ) internal view returns (StackTop stackTopAfter_) {
+        (uint256 b_, uint256[] memory tail_) = stackTop_.list(
+            length_
+        );
+        stackTopAfter_ = tail_.asStackTop();
+        (StackTop location_, uint256 a_) = stackTopAfter_.pop();
+        location_.set(fn_(a_, b_, tail_));
+    }
+
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256, uint256, uint256, uint256[] memory)
+            internal
+            view
+            returns (uint256) fn_,
+        uint length_
+    ) internal view returns (StackTop) {
+        (uint256 c_, uint256[] memory tail_) = stackTop_.list(
+            length_
+        );
+        (StackTop stackTopAfter_, uint256 b_) = tail_.asStackTop().pop();
+        uint256 a_ = stackTopAfter_.peek();
+        stackTopAfter_.down().set(fn_(a_, b_, c_, tail_));
+        return stackTopAfter_;
+    }
 
     function list(StackTop stackTop_, uint256 length_)
         internal

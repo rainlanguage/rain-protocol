@@ -13,21 +13,27 @@ library OpFixedPointScale18 {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
+    function _scale18(Operand operand_, uint256 a_)
+        internal
+        pure
+        returns (uint256)
+    {
+        return a_.scale18(Operand.unwrap(operand_));
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_));
+    ) internal pure returns (StackTop) {
+        return integrityState_.applyFn(stackTop_, _scale18);
     }
 
     function scale18(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        (StackTop location_, uint256 a_) = stackTop_.pop();
-        location_.set(a_.scale18(operand_));
-        return stackTop_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_scale18, operand_);
     }
 }

@@ -56,7 +56,7 @@ abstract contract VMStateBuilder {
                 StorageOpcodesRange memory storageOpcodesRange_ = RainVM(vm_)
                     .storageOpcodesRange();
 
-                uint256 evalPtr_ = RainVM(vm_).evalPtr();
+                uint256 evalPtr_ = RainVM(vm_).evalFunctionPointer();
 
                 vmStructure_ = VmStructure(
                     storageOpcodesRange_.pointer.toUint8(),
@@ -101,7 +101,7 @@ abstract contract VMStateBuilder {
                         StackTop.unwrap(
                             ensureIntegrity(
                                 integrityState_,
-                                i_,
+                                SourceIndex.wrap(i_),
                                 StackTop.wrap(0)
                             )
                         ),
@@ -126,7 +126,7 @@ abstract contract VMStateBuilder {
                 // Dummy context is never written to the packed bytes.
                 new uint256[](0),
                 ptrSources_,
-                uint256(vmStructure_.evalPtr).asEvalFn()
+                uint256(vmStructure_.evalPtr).asEvalFunctionPointer()
             ).toBytesPacked();
         }
     }
@@ -192,7 +192,7 @@ abstract contract VMStateBuilder {
         view
         virtual
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory
@@ -200,7 +200,7 @@ abstract contract VMStateBuilder {
 
     function ensureIntegrity(
         IntegrityState memory integrityState_,
-        uint256 sourceIndex_,
+        SourceIndex sourceIndex_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         unchecked {
@@ -219,16 +219,14 @@ abstract contract VMStateBuilder {
             // Loop until complete.
             while (cursor_ < end_) {
                 uint256 opcode_;
-                uint256 operand_;
+                Operand operand_;
                 cursor_ += 2;
                 {
-                    uint256 op_;
                     assembly ("memory-safe") {
-                        op_ := mload(cursor_)
+                        let op_ := and(mload(cursor_), 0xFFFF)
+                        operand_ := and(op_, 0xFF)
+                        opcode_ := shr(8, op_)
                     }
-                    op_ &= 0xFFFF;
-                    operand_ = op_ & 0xFF;
-                    opcode_ = op_ >> 8;
                 }
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.

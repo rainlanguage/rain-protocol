@@ -14,7 +14,7 @@ library OpDoWhile {
 
     function integrity(
         IntegrityState memory,
-        uint256,
+        Operand,
         StackTop
     ) internal pure returns (StackTop) {
         revert("UNIMPLEMENTED");
@@ -23,14 +23,14 @@ library OpDoWhile {
     /// Loop the stack while the stack top is true.
     function doWhile(
         VMState memory state_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         while (stackTop_.peek() > 0) {
             // eval is NOT allowed to change the stack top so we
             // ignore the return of eval. This is enforced by bounds
             // checks.
-            state_.eval(state_, operand_, stackTop_.down());
+            state_.eval(state_, SourceIndex.wrap(Operand.unwrap(operand_)), stackTop_.down());
         }
         return stackTop_.down();
     }

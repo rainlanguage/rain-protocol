@@ -12,10 +12,13 @@ library OpEvery {
 
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, operand_));
+        return
+            integrityState_.push(
+                integrityState_.pop(stackTop_, Operand.unwrap(operand_))
+            );
     }
 
     // EVERY
@@ -23,10 +26,10 @@ library OpEvery {
     // operand_ is the length of items to check.
     function every(
         VMState memory,
-        uint256 operand_,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        StackTop location_ = stackTop_.down(operand_);
+        StackTop location_ = stackTop_.down(Operand.unwrap(operand_));
         for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
             if (i_.peekUp() == 0) {
                 return location_.push(0);

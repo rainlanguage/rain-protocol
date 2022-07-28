@@ -34,7 +34,7 @@ struct VMState {
     StackTop constantsBottom;
     uint256[] context;
     bytes[] ptrSources;
-    function(VMState memory, uint256, StackTop) view returns (StackTop) eval;
+    function(VMState memory, SourceIndex, StackTop) view returns (StackTop) eval;
 }
 
 library LibVMState {
@@ -42,7 +42,7 @@ library LibVMState {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibCast for uint256;
-    using LibCast for function(VMState memory, uint256, StackTop)
+    using LibCast for function(VMState memory, SourceIndex, StackTop)
         view
         returns (StackTop);
 
@@ -124,7 +124,7 @@ library LibVMState {
                 ptrSources_ := ptrSourcesPtrs_
                 mstore(add(state_, 0x60), ptrSources_)
             }
-            state_.eval = ((indexes_ >> 24) & 0xFFFF).asEvalFn();
+            state_.eval = ((indexes_ >> 24) & 0xFFFF).asEvalFunctionPointer();
             return state_;
         }
     }

@@ -71,23 +71,32 @@ library AllStandardOps {
     using LibCast for function(VMState memory, uint256, StackTop)
         view
         returns (StackTop)[];
-    using AllStandardOps for function(uint256)
-        pure
-        returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1];
+
+    using AllStandardOps for function(IntegrityState memory, Operand, StackTop)
+        view
+        returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(VMState memory, Operand, StackTop)
+        view
+        returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
+
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
     using LibPackBytes for bytes;
-    using LibCast for function(IntegrityState memory, uint256, StackTop)
+    using LibCast for function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop);
-    using LibCast for function(IntegrityState memory, uint256, StackTop)
+    using LibCast for function(IntegrityState memory, Operand, StackTop)
         pure
         returns (StackTop);
-    using LibCast for function(IntegrityState memory, uint256, StackTop)
+    using LibCast for function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop)[];
+    using LibCast for function(VMState memory, Operand, StackTop)
+     view
+     returns (StackTop)[];
 
     /// An oddly specific conversion between a fixed and dynamic uint256 array.
     /// This is useful for the purpose of building metadata for bounds checks
@@ -100,7 +109,7 @@ library AllStandardOps {
     /// Specifically the size is fixed to match the number of standard ops.
     /// @param dynamic_ The dynamic uint array with length of the standard ops.
     function asUint256Array(
-        function(uint256) pure returns (uint256)[ALL_STANDARD_OPS_LENGTH + 1]
+        function(IntegrityState memory, Operand, StackTop) view returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -112,11 +121,12 @@ library AllStandardOps {
         );
     }
 
-    function asUint256Array(uint256[ALL_STANDARD_OPS_LENGTH + 1] memory fixed_)
-        internal
-        pure
-        returns (uint256[] memory dynamic_)
-    {
+    function asUint256Array(
+        function(VMState memory, Operand, StackTop)
+            view
+            returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+            memory fixed_
+    ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
             dynamic_ := fixed_
         }
@@ -127,7 +137,7 @@ library AllStandardOps {
     }
 
     function integrityFunctionPointers(
-        function(IntegrityState memory, uint256, StackTop)
+        function(IntegrityState memory, Operand, StackTop)
             view
             returns (StackTop)[]
             memory locals_
@@ -135,64 +145,67 @@ library AllStandardOps {
         internal
         pure
         returns (
-            function(IntegrityState memory, uint256, StackTop)
+            function(IntegrityState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory
         )
     {
         unchecked {
-            uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
-                ALL_STANDARD_OPS_LENGTH,
-                OpCall.integrity.asUint256(),
-                OpContext.integrity.asUint256(),
-                OpDebug.integrity.asUint256(),
-                OpDoWhile.integrity.asUint256(),
-                OpLoopN.integrity.asUint256(),
-                OpState.integrity.asUint256(),
-                OpStorage.integrity.asUint256(),
-                OpERC20BalanceOf.integrity.asUint256(),
-                OpERC20TotalSupply.integrity.asUint256(),
-                OpERC20SnapshotBalanceOfAt.integrity.asUint256(),
-                OpERC20SnapshotTotalSupplyAt.integrity.asUint256(),
-                OpERC721BalanceOf.integrity.asUint256(),
-                OpERC721OwnerOf.integrity.asUint256(),
-                OpERC1155BalanceOf.integrity.asUint256(),
-                OpERC1155BalanceOfBatch.integrity.asUint256(),
-                OpBlockNumber.integrity.asUint256(),
-                OpCaller.integrity.asUint256(),
-                OpThisAddress.integrity.asUint256(),
-                OpTimestamp.integrity.asUint256(),
-                OpExplode32.integrity.asUint256(),
-                OpFixedPointScale18.integrity.asUint256(),
-                OpFixedPointScale18Div.integrity.asUint256(),
-                OpFixedPointScale18Mul.integrity.asUint256(),
-                OpFixedPointScaleBy.integrity.asUint256(),
-                OpFixedPointScaleN.integrity.asUint256(),
-                OpAny.integrity.asUint256(),
-                OpEagerIf.integrity.asUint256(),
-                OpEqualTo.integrity.asUint256(),
-                OpEvery.integrity.asUint256(),
-                OpGreaterThan.integrity.asUint256(),
-                OpIsZero.integrity.asUint256(),
-                OpLessThan.integrity.asUint256(),
-                OpSaturatingAdd.integrity.asUint256(),
-                OpSaturatingMul.integrity.asUint256(),
-                OpSaturatingSub.integrity.asUint256(),
-                OpAdd.integrity.asUint256(),
-                OpDiv.integrity.asUint256(),
-                OpExp.integrity.asUint256(),
-                OpMax.integrity.asUint256(),
-                OpMin.integrity.asUint256(),
-                OpMod.integrity.asUint256(),
-                OpMul.integrity.asUint256(),
-                OpSub.integrity.asUint256(),
-                OpITierV2Report.integrity.asUint256(),
-                OpITierV2ReportTimeForTier.integrity.asUint256(),
-                OpSaturatingDiff.integrity.asUint256(),
-                OpSelectLte.integrity.asUint256(),
-                OpUpdateTimesForTierRange.integrity.asUint256()
-            ];
+            function(IntegrityState memory, Operand, StackTop)
+                view
+                returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+                memory pointersFixed_ = [
+                    ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    OpCall.integrity,
+                    OpContext.integrity,
+                    OpDebug.integrity,
+                    OpDoWhile.integrity,
+                    OpLoopN.integrity,
+                    OpState.integrity,
+                    OpStorage.integrity,
+                    OpERC20BalanceOf.integrity,
+                    OpERC20TotalSupply.integrity,
+                    OpERC20SnapshotBalanceOfAt.integrity,
+                    OpERC20SnapshotTotalSupplyAt.integrity,
+                    OpERC721BalanceOf.integrity,
+                    OpERC721OwnerOf.integrity,
+                    OpERC1155BalanceOf.integrity,
+                    OpERC1155BalanceOfBatch.integrity,
+                    OpBlockNumber.integrity,
+                    OpCaller.integrity,
+                    OpThisAddress.integrity,
+                    OpTimestamp.integrity,
+                    OpExplode32.integrity,
+                    OpFixedPointScale18.integrity,
+                    OpFixedPointScale18Div.integrity,
+                    OpFixedPointScale18Mul.integrity,
+                    OpFixedPointScaleBy.integrity,
+                    OpFixedPointScaleN.integrity,
+                    OpAny.integrity,
+                    OpEagerIf.integrity,
+                    OpEqualTo.integrity,
+                    OpEvery.integrity,
+                    OpGreaterThan.integrity,
+                    OpIsZero.integrity,
+                    OpLessThan.integrity,
+                    OpSaturatingAdd.integrity,
+                    OpSaturatingMul.integrity,
+                    OpSaturatingSub.integrity,
+                    OpAdd.integrity,
+                    OpDiv.integrity,
+                    OpExp.integrity,
+                    OpMax.integrity,
+                    OpMin.integrity,
+                    OpMod.integrity,
+                    OpMul.integrity,
+                    OpSub.integrity,
+                    OpITierV2Report.integrity,
+                    OpITierV2ReportTimeForTier.integrity,
+                    OpSaturatingDiff.integrity,
+                    OpSelectLte.integrity,
+                    OpUpdateTimesForTierRange.integrity
+                ];
             uint256[] memory pointers_ = pointersFixed_.asUint256Array();
             pointers_.extend(locals_.asUint256Array());
             return pointers_.asIntegrityPointers();
@@ -200,61 +213,64 @@ library AllStandardOps {
     }
 
     function packedFunctionPointers(
-        function(VMState memory, uint256, StackTop) view returns (StackTop)[]
+        function(VMState memory, Operand, StackTop) view returns (StackTop)[]
             memory locals_
     ) internal pure returns (bytes memory packedFunctionPointers_) {
         unchecked {
-            uint256[ALL_STANDARD_OPS_LENGTH + 1] memory pointersFixed_ = [
-                ALL_STANDARD_OPS_LENGTH,
-                OpCall.call.asUint256(),
-                OpContext.context.asUint256(),
-                OpDebug.debug.asUint256(),
-                OpDoWhile.doWhile.asUint256(),
-                OpLoopN.loopN.asUint256(),
-                OpState.state.asUint256(),
-                OpStorage.storageRead.asUint256(),
-                OpERC20BalanceOf.balanceOf.asUint256(),
-                OpERC20TotalSupply.totalSupply.asUint256(),
-                OpERC20SnapshotBalanceOfAt.balanceOfAt.asUint256(),
-                OpERC20SnapshotTotalSupplyAt.totalSupplyAt.asUint256(),
-                OpERC721BalanceOf.balanceOf.asUint256(),
-                OpERC721OwnerOf.ownerOf.asUint256(),
-                OpERC1155BalanceOf.balanceOf.asUint256(),
-                OpERC1155BalanceOfBatch.balanceOfBatch.asUint256(),
-                OpBlockNumber.blockNumber.asUint256(),
-                OpCaller.caller.asUint256(),
-                OpThisAddress.thisAddress.asUint256(),
-                OpTimestamp.timestamp.asUint256(),
-                OpExplode32.explode32.asUint256(),
-                OpFixedPointScale18.scale18.asUint256(),
-                OpFixedPointScale18Div.scale18Div.asUint256(),
-                OpFixedPointScale18Mul.scale18Mul.asUint256(),
-                OpFixedPointScaleBy.scaleBy.asUint256(),
-                OpFixedPointScaleN.scaleN.asUint256(),
-                OpAny.any.asUint256(),
-                OpEagerIf.eagerIf.asUint256(),
-                OpEqualTo.equalTo.asUint256(),
-                OpEvery.every.asUint256(),
-                OpGreaterThan.greaterThan.asUint256(),
-                OpIsZero.isZero.asUint256(),
-                OpLessThan.lessThan.asUint256(),
-                OpSaturatingAdd.saturatingAdd.asUint256(),
-                OpSaturatingMul.saturatingMul.asUint256(),
-                OpSaturatingSub.saturatingSub.asUint256(),
-                OpAdd.add.asUint256(),
-                OpDiv.div.asUint256(),
-                OpExp.exp.asUint256(),
-                OpMax.max.asUint256(),
-                OpMin.min.asUint256(),
-                OpMod.mod.asUint256(),
-                OpMul.mul.asUint256(),
-                OpSub.sub.asUint256(),
-                OpITierV2Report.report.asUint256(),
-                OpITierV2ReportTimeForTier.reportTimeForTier.asUint256(),
-                OpSaturatingDiff.saturatingDiff.asUint256(),
-                OpSelectLte.selectLte.asUint256(),
-                OpUpdateTimesForTierRange.updateTimesForTierRange.asUint256()
-            ];
+            function(VMState memory, Operand, StackTop)
+                view
+                returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+                memory pointersFixed_ = [
+                    ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    OpCall.call,
+                    OpContext.context,
+                    OpDebug.debug,
+                    OpDoWhile.doWhile,
+                    OpLoopN.loopN,
+                    OpState.state,
+                    OpStorage.storageRead,
+                    OpERC20BalanceOf.balanceOf,
+                    OpERC20TotalSupply.totalSupply,
+                    OpERC20SnapshotBalanceOfAt.balanceOfAt,
+                    OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
+                    OpERC721BalanceOf.balanceOf,
+                    OpERC721OwnerOf.ownerOf,
+                    OpERC1155BalanceOf.balanceOf,
+                    OpERC1155BalanceOfBatch.balanceOfBatch,
+                    OpBlockNumber.blockNumber,
+                    OpCaller.caller,
+                    OpThisAddress.thisAddress,
+                    OpTimestamp.timestamp,
+                    OpExplode32.explode32,
+                    OpFixedPointScale18.scale18,
+                    OpFixedPointScale18Div.scale18Div,
+                    OpFixedPointScale18Mul.scale18Mul,
+                    OpFixedPointScaleBy.scaleBy,
+                    OpFixedPointScaleN.scaleN,
+                    OpAny.any,
+                    OpEagerIf.eagerIf,
+                    OpEqualTo.equalTo,
+                    OpEvery.every,
+                    OpGreaterThan.greaterThan,
+                    OpIsZero.isZero,
+                    OpLessThan.lessThan,
+                    OpSaturatingAdd.saturatingAdd,
+                    OpSaturatingMul.saturatingMul,
+                    OpSaturatingSub.saturatingSub,
+                    OpAdd.add,
+                    OpDiv.div,
+                    OpExp.exp,
+                    OpMax.max,
+                    OpMin.min,
+                    OpMod.mod,
+                    OpMul.mul,
+                    OpSub.sub,
+                    OpITierV2Report.report,
+                    OpITierV2ReportTimeForTier.reportTimeForTier,
+                    OpSaturatingDiff.saturatingDiff,
+                    OpSelectLte.selectLte,
+                    OpUpdateTimesForTierRange.updateTimesForTierRange
+                ];
             uint256[] memory pointers_ = pointersFixed_.asUint256Array();
             pointers_.extend(locals_.asUint256Array());
             packedFunctionPointers_ = pointers_.toBytes();

@@ -12,26 +12,23 @@ library OpLessThan {
     using LibCast for bool;
     using LibIntegrityState for IntegrityState;
 
+    function _lessThan(uint256 a_, uint256 b_) internal pure returns (uint256) {
+        return (a_ < b_).asUint256();
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
-        uint256 operand_,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, 2));
+        return integrityState_.applyFn(stackTop_, _lessThan);
     }
 
     function lessThan(
         VMState memory,
-        uint256,
+        Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 a_,
-            uint256 b_
-        ) = stackTop_.popAndPeek();
-        location_.set((a_ < b_).asUint256());
-        return stackTopAfter_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_lessThan);
     }
 }
