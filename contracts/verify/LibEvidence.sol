@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 /// Structure of arbitrary evidence to support any action taken.
-/// Priviledged roles are expected to provide evidence just as applicants as an
+/// Privileged roles are expected to provide evidence just as applicants as an
 /// audit trail will be preserved permanently in the logs.
 /// @param account The account this evidence is relevant to.
 /// @param data Arbitrary bytes representing evidence. MAY be e.g. a reference
