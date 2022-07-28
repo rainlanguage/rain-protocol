@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import {StandardVM} from "../vm/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
@@ -22,7 +22,7 @@ contract AllStandardOpsTest is StandardVM {
 
     /// *** STORAGE OPCODES END ***
 
-    State private _state;
+    VMState private _state;
 
     constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
 
@@ -48,14 +48,17 @@ contract AllStandardOpsTest is StandardVM {
         return _state.stack;
     }
 
-    function state() external view returns (State memory) {
+    function state() external view returns (VMState memory) {
         return _state;
     }
 
     /// Runs `eval` and stores full state.
     function run() public {
-        State memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState();
+        uint256 a_ = gasleft();
         eval(new uint256[](0), state_, ENTRYPOINT);
+        uint256 b_ = gasleft();
+        console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
@@ -66,7 +69,7 @@ contract AllStandardOpsTest is StandardVM {
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
-        State memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState();
         eval(context_, state_, ENTRYPOINT);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
@@ -78,12 +81,15 @@ contract AllStandardOpsTest is StandardVM {
         public
         pure
         override
-        returns (StorageOpcodesRange memory)
+        returns (StorageOpcodesRange memory storageOpcodesRange_)
     {
         uint256 pointer_;
-        assembly {
+        assembly ("memory-safe") {
             pointer_ := _val0.slot
         }
-        return StorageOpcodesRange(pointer_, STORAGE_OPCODES_LENGTH);
+        storageOpcodesRange_ = StorageOpcodesRange(
+            pointer_,
+            STORAGE_OPCODES_LENGTH
+        );
     }
 }

@@ -2,7 +2,7 @@
   "recommendations": [
     "arrterian.nix-env-selector",
     "bbenoist.nix",
-    "simonsiefke.prettier-vscode",
+    "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
     "NomicFoundation.hardhat-solidity"
   ]

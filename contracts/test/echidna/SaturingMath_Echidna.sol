@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity 0.8.15;
 
 import {SaturatingMath} from "../../math/SaturatingMath.sol";
 
@@ -31,7 +31,7 @@ contract SaturingMath_Echidna {
     function echidna_saturatingSub() external returns (bool) {
         c = SaturatingMath.saturatingSub(a, b);
 
-        if ( a > b ) {
+        if (a > b) {
             return c <= a;
         } else {
             return c == 0;

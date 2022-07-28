@@ -1,32 +1,26 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+import "../../../LibStackTop.sol";
 
 /// @title OpEvery
 /// @notice Opcode to compare the top N stack values.
 library OpEvery {
+    using LibStackTop for StackTop;
+
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(uint256 operand_, uint256 stackTopLocation_)
+    function every(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly {
-            let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-            for {
-                let cursor_ := location_
-            } lt(cursor_, stackTopLocation_) {
-                cursor_ := add(cursor_, 0x20)
-            } {
-                // If anything is zero then EVERY is a failed check.
-                if iszero(mload(cursor_)) {
-                    mstore(location_, 0)
-                    break
-                }
+        StackTop location_ = stackTop_.down(operand_);
+        for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
+            if (i_.peekUp() == 0) {
+                return location_.push(0);
             }
-            stackTopLocation_ := add(location_, 0x20)
         }
-        return stackTopLocation_;
+        return location_.up();
     }
 }
