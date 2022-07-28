@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
@@ -142,7 +142,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibState for State;
+    using LibVMState for VMState;
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -314,13 +314,16 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         public
         pure
         override
-        returns (StorageOpcodesRange memory)
+        returns (StorageOpcodesRange memory storageOpcodesRange_)
     {
         uint256 slot_;
         assembly {
             slot_ := _remainingUnits.slot
         }
-        return StorageOpcodesRange(slot_, STORAGE_OPCODES_LENGTH);
+        storageOpcodesRange_ = StorageOpcodesRange(
+            slot_,
+            STORAGE_OPCODES_LENGTH
+        );
     }
 
     /// @inheritdoc ISale
@@ -346,7 +349,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
     /// evaluating the script.
-    function _canLive(State memory state_) internal view returns (bool) {
+    function _canLive(VMState memory state_) internal view returns (bool) {
         unchecked {
             if (_remainingUnits < 1) {
                 return false;
@@ -368,7 +371,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// the units and price. When `buy` executes the real purchase size will be
     /// the smaller of the target units and the returned maximum units. If this
     /// is below the buyer's minimum the buy will revert.
-    function _calculateBuy(State memory state_, uint256 targetUnits_)
+    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
         internal
         view
         returns (uint256, uint256)
@@ -496,7 +499,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
 
         // This state is loaded once and shared between 2x `_canLive` calls and
         // a `_calculateBuy` call.
-        State memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState();
 
         // Start or end the sale as required.
         if (_canLive(state_)) {

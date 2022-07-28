@@ -1,40 +1,30 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
+import "../../../LibStackTop.sol";
 
 /// @title OpSaturatingMul
 /// @notice Opcode for multiplying N numbers with saturating multiplication.
 library OpSaturatingMul {
     using SaturatingMath for uint256;
+    using LibStackTop for StackTop;
 
-    function saturatingMul(uint256 operand_, uint256 stackTopLocation_)
+    function saturatingMul(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop stackTopAfter_)
     {
-        uint256 location_;
-        uint256 accumulator_;
-        uint256 cursor_;
-        uint256 item_;
-        assembly {
-            location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-            accumulator_ := mload(location_)
-            cursor_ := add(location_, 0x20)
-        }
-        while (
-            cursor_ < stackTopLocation_ && accumulator_ < type(uint256).max
+        StackTop location_ = stackTop_.down(operand_);
+        uint256 accumulator_ = location_.peekUp();
+        stackTopAfter_ = location_.up();
+        for (
+            StackTop i_ = stackTopAfter_;
+            i_.lt(stackTop_) && accumulator_ < type(uint256).max;
+            i_ = i_.up()
         ) {
-            assembly {
-                item_ := mload(cursor_)
-                cursor_ := add(cursor_, 0x20)
-            }
-            accumulator_ = accumulator_.saturatingMul(item_);
+            accumulator_ = accumulator_.saturatingMul(i_.peekUp());
         }
-        assembly {
-            mstore(location_, accumulator_)
-            stackTopLocation_ := add(location_, 0x20)
-        }
-        return stackTopLocation_;
+        location_.set(accumulator_);
     }
 }

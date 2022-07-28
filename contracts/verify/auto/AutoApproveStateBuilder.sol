@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import "../../vm/StandardStateBuilder.sol";
 import "./AutoApprove.sol";
 
 contract AutoApproveStateBuilder is StandardStateBuilder {
-    using LibFnPtrs for bytes;
-
     /// @inheritdoc StandardStateBuilder
     function localStackPops()
         internal

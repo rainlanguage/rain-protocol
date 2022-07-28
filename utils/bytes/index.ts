@@ -4,6 +4,13 @@ import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
 /**
+ * Returns a random 32 byte number in hexstring format
+ */
+export function randomUint256(): string {
+  return ethers.utils.hexZeroPad(ethers.utils.randomBytes(32), 32);
+}
+
+/**
  * Pads leading zeroes of hex number to hex string length of 32 bytes
  * @param {BigNumber} hex
  */
@@ -17,6 +24,14 @@ export function zeroPad32(hex: BigNumber): string {
  */
 export function zeroPad4(hex: BigNumber): string {
   return ethers.utils.hexZeroPad(hex.toHexString(), 4);
+}
+
+/**
+ * Pads leading zeroes of hex number to hex string length of 2 bytes
+ * @param {BigNumber} hex
+ */
+export function zeroPad2(hex: BigNumber): string {
+  return ethers.utils.hexZeroPad(hex.toHexString(), 2);
 }
 
 export const paddedUInt256 = (report: BigNumber): string => {

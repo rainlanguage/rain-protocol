@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./TierReport.sol";
@@ -68,10 +68,10 @@ library TierwiseCombine {
     /// @param logic_ `LOGIC_EVERY` or `LOGIC_ANY`.
     /// @param mode_ `MODE_MIN`, `MODE_MAX` or `MODE_FIRST`.
     function selectLte(
-        uint256[] memory reports_,
-        uint256 blockNumber_,
         uint256 logic_,
-        uint256 mode_
+        uint256 mode_,
+        uint256 blockNumber_,
+        uint256[] memory reports_
     ) internal pure returns (uint256) {
         unchecked {
             uint256 ret_;

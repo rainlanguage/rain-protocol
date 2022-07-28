@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+import "../../../LibStackTop.sol";
+import "../../../../type/LibCast.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
 library OpIsZero {
-    function isZero(uint256, uint256 stackTopLocation_)
+    using LibCast for bool;
+    using LibStackTop for StackTop;
+
+    function isZero(uint256, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly {
-            // The index doesn't change for iszero as there is
-            // one input and output.
-            let location_ := sub(stackTopLocation_, 0x20)
-            mstore(location_, iszero(mload(location_)))
-        }
-        return stackTopLocation_;
+        (StackTop location_, uint256 a_) = stackTop_.peek();
+        location_.set((a_ == 0).asUint256());
+        return stackTop_;
     }
 }
