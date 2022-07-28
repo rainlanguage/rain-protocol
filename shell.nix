@@ -93,9 +93,11 @@ let
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
-    if [[ "$(solc-select use 0.8.10)" =~ "You need to install '0.8.10' prior to using it." ]]; then
-      solc-select install 0.8.10;
-      solc-select use 0.8.10;
+    # Change the version
+    solcVersion='0.8.10';
+    if [[ $(solc-select use $solcVersion) =~ "You need to install '$solcVersion' prior to using it." ]]; then
+      solc-select install $solcVersion;
+      solc-select use $solcVersion;
     fi
   '';
 
