@@ -111,7 +111,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
@@ -190,7 +190,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
@@ -264,7 +264,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator underflow did not panic"
     );
   });
@@ -343,7 +343,7 @@ describe("Sale unchecked math", async function () {
 
     await assertError(
       async () => await sale.calculateBuy(desiredUnits),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator overflow did not panic"
     );
   });

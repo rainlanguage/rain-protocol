@@ -47,7 +47,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
@@ -72,7 +72,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
@@ -97,7 +97,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator underflow did not panic"
     );
   });
@@ -122,7 +122,7 @@ describe("RainVM unchecked math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
