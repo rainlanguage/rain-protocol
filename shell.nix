@@ -45,7 +45,6 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
-    rm -rf crytic-export
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
