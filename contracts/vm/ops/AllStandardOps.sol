@@ -4,7 +4,6 @@ pragma solidity =0.8.15;
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
-import "../../bytes/LibPackBytes.sol";
 import "../runtime/RainVM.sol";
 import "./core/OpCall.sol";
 import "./core/OpContext.sol";
@@ -84,7 +83,6 @@ library AllStandardOps {
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
-    using LibPackBytes for bytes;
     using LibCast for function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop);
@@ -214,10 +212,10 @@ library AllStandardOps {
         }
     }
 
-    function packedFunctionPointers(
+    function opFunctionPointers(
         function(VMState memory, Operand, StackTop) view returns (StackTop)[]
             memory locals_
-    ) internal pure returns (bytes memory packedFunctionPointers_) {
+    ) internal pure returns (function(VMState memory, Operand, StackTop) view returns (StackTop)[] memory opFunctionPointers_) {
         unchecked {
             function(VMState memory, Operand, StackTop)
                 view
@@ -275,8 +273,7 @@ library AllStandardOps {
                 ];
             uint256[] memory pointers_ = pointersFixed_.asUint256Array();
             pointers_.extend(locals_.asUint256Array());
-            packedFunctionPointers_ = pointers_.toBytes();
-            packedFunctionPointers_.pack32To2();
+            opFunctionPointers_ = pointers_.asOpFunctionPointers();
         }
     }
 }

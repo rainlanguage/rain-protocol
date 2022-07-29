@@ -100,7 +100,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         return stackTop_.applyFn(_evidenceDataApproved);
     }
 
-    function localFnPtrs()
+    function localEvalFunctionPointers()
         internal
         pure
         virtual

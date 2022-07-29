@@ -115,11 +115,14 @@ abstract contract RainVM {
     /// the ONLY supported signature for opcodes. Pointers for the core opcodes
     /// must be provided in the packed pointers list but will be ignored at
     /// runtime.
-    function packedFunctionPointers()
-        public
+    function opFunctionPointers()
+        internal
         view
         virtual
-        returns (bytes memory ptrs_);
+        returns (function(VMState memory, Operand, StackTop)
+                    internal
+                    view
+                    returns (StackTop)[] memory);
 
     /// Given a list of packed function pointers and some opcode based source,
     /// return a source with all non-core opcodes replaced with the function
@@ -132,25 +135,27 @@ abstract contract RainVM {
     /// There is NO attempt to validate the packed fn pointers or the input
     /// source, other than to check the total length of each is even. The caller
     /// MUST ensure all integrity checks/requirements are met.
-    /// @param packedFnPtrs_ The function pointers packed as 2-bytes in a list
+    /// @param opFunctionPointers_ The function pointers packed as 2-bytes in a list
     /// in the same order/index as the relevant opcodes.
     /// @param source_ The 1-byte opcode based input source that is expected to
     /// be produced by end users.
-    function ptrSource(bytes memory packedFnPtrs_, bytes memory source_)
+    function ptrSource(function(VMState memory, Operand, StackTop)
+                    internal
+                    view
+                    returns (StackTop)[] memory opFunctionPointers_, bytes memory source_)
         internal
         pure
         returns (bytes memory)
     {
         unchecked {
             uint256 sourceLen_ = source_.length;
-            require(packedFnPtrs_.length % 2 == 0, "ODD_PACKED_PTRS");
             require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
 
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
             assembly ("memory-safe") {
                 for {
-                    let packedFnPtrsStart_ := add(2, packedFnPtrs_)
+                    let opFunctionPointersBottom_ := add(0x20, opFunctionPointers_)
                     let inputCursor_ := add(source_, 2)
                     let end_ := add(sourceLen_, inputCursor_)
                     let outputCursor_ := add(ptrSource_, 3)
@@ -161,7 +166,7 @@ abstract contract RainVM {
                     let sourceData_ := mload(inputCursor_)
                     let op_ := byte(30, sourceData_)
                     op_ := and(
-                        mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
+                        mload(add(opFunctionPointersBottom_, mul(op_, 0x20))),
                         0xFFFF
                     )
                     mstore(
@@ -194,10 +199,13 @@ abstract contract RainVM {
             );
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
-            bytes memory packedFunctionPointers_ = packedFunctionPointers();
+            function(VMState memory, Operand, StackTop)
+                    internal
+                    view
+                    returns (StackTop)[] memory opFunctionPointers_ = opFunctionPointers();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(
-                    packedFunctionPointers_,
+                    opFunctionPointers_,
                     config_.sources[i_]
                 );
             }

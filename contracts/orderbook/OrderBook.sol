@@ -337,7 +337,7 @@ contract OrderBook is StandardVM {
         return stackTop_.applyFn(_orderCounterpartyFundsCleared);
     }
 
-    function localFnPtrs()
+    function localEvalFunctionPointers()
         internal
         pure
         override
