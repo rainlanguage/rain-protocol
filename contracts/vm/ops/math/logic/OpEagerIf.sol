@@ -8,14 +8,18 @@ import "../../../integrity/LibIntegrityState.sol";
 /// @notice Opcode for selecting a value based on a condition.
 library OpEagerIf {
     using LibIntegrityState for IntegrityState;
+    using LibStackTop for StackTop;
+
+    function _eagerIf(uint a_, uint b_, uint c_) internal pure returns (uint) {
+        return a_ > 0 ? b_ : c_;
+    }
 
     function integrity(
         IntegrityState memory integrityState_,
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        function(uint256, uint256, uint256) internal view returns (uint256) fn_;
-        return integrityState_.applyFn(stackTop_, fn_);
+        return integrityState_.applyFn(stackTop_, _eagerIf);
     }
 
     /// Eager because BOTH x_ and y_ must be eagerly evaluated
@@ -26,17 +30,7 @@ library OpEagerIf {
         VMState memory,
         Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        assembly ("memory-safe") {
-            let location_ := sub(stackTop_, 0x60)
-            stackTop_ := add(location_, 0x20)
-            // false => use second value
-            // true => use first value
-            mstore(
-                location_,
-                mload(add(stackTop_, mul(0x20, iszero(mload(location_)))))
-            )
-        }
-        return stackTop_;
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_eagerIf);
     }
 }
