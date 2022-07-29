@@ -36,15 +36,13 @@ describe("VMStateBuilder buildState", async function () {
     // prettier-ignore
     const sources0 = [concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.ADD, 2),
     ])];
 
     // should fail with stack height < min stack height
     await assertError(
       async () =>
         await stackHeightTest.initialize({ sources: sources0, constants }),
-      "FINAL_STACK_INDEX",
+      "MIN_FINAL_STACK",
       "did not enforce minimum stack height after eval"
     );
 

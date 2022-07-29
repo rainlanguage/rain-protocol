@@ -11,6 +11,34 @@ contract LibUint256ArrayTest {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
 
+    function arrayFrom(uint256 a_) external pure returns (uint256[] memory) {
+        return LibUint256Array.arrayFrom(a_);
+    }
+
+    function arrayFrom(uint256 a_, uint256 b_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
+        return LibUint256Array.arrayFrom(a_, b_);
+    }
+
+    function arrayFrom(uint256 a_, uint256[] memory tail_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
+        return LibUint256Array.arrayFrom(a_, tail_);
+    }
+
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256[] memory tail_
+    ) external pure returns (uint256[] memory) {
+        return LibUint256Array.arrayFrom(a_, b_, tail_);
+    }
+
     function truncate(uint256[] memory array_, uint256 newLength_)
         external
         pure

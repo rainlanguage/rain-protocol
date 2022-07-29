@@ -6,7 +6,7 @@ import "../vm/StandardVM.sol";
 import "../vm/VMStateBuilder.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 
-uint256 constant ENTRYPOINT = 0;
+SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 2; // note this value
 
 /// @title StackHeightTest
