@@ -37,7 +37,7 @@ describe("RainVM context", async function () {
 
     await assertError(
       async () => await logic.runContext(data),
-      "CONTEXT_LENGTH",
+      "Array accessed at an out-of-bounds or negative index",
       "did not error when accessing memory outside of context memory range"
     );
   });

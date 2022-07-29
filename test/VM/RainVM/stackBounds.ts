@@ -110,7 +110,7 @@ describe("RainVM stack bounds", async function () {
 
     await assertError(
       async () => await logic.initialize({ sources, constants }),
-      "MAX_STACK",
+      "STACK_UNDERFLOW",
       "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });
@@ -134,7 +134,7 @@ describe("RainVM stack bounds", async function () {
 
     await assertError(
       async () => await logic.initialize({ sources, constants }),
-      "MAX_STACK",
+      "STACK_UNDERFLOW",
       "did not prevent bad RainVM script accessing stack index out of bounds"
     );
   });

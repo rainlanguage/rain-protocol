@@ -24,18 +24,22 @@ library LibIntegrityState {
     using LibStackTop for StackTop;
     using Math for uint256;
 
+    function syncStackMaxTop(IntegrityState memory integrityState_, StackTop stackTop_) internal pure {
+        if (
+            StackTop.unwrap(stackTop_) >
+            StackTop.unwrap(integrityState_.stackMaxTop)
+        ) {
+            integrityState_.stackMaxTop = stackTop_;
+        }
+    }
+
     function push(IntegrityState memory integrityState_, StackTop stackTop_)
         internal
         pure
         returns (StackTop stackTopAfter_)
     {
         stackTopAfter_ = stackTop_.up();
-        if (
-            StackTop.unwrap(stackTopAfter_) >
-            StackTop.unwrap(integrityState_.stackMaxTop)
-        ) {
-            integrityState_.stackMaxTop = stackTopAfter_;
-        }
+        integrityState_.syncStackMaxTop(stackTopAfter_);
     }
 
     function push(
@@ -44,19 +48,14 @@ library LibIntegrityState {
         uint256 n_
     ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up(n_);
-        if (
-            StackTop.unwrap(stackTopAfter_) >
-            StackTop.unwrap(integrityState_.stackMaxTop)
-        ) {
-            integrityState_.stackMaxTop = stackTopAfter_;
-        }
+        integrityState_.syncStackMaxTop(stackTopAfter_);
+
     }
 
-    modifier popUnderflowCheck(
+    function popUnderflowCheck(
         IntegrityState memory integrityState_,
         StackTop stackTop_
-    ) {
-        _;
+    ) internal pure {
         require(
             // Stack bottom may be non-zero so check we are above it.
             (StackTop.unwrap(stackTop_) >=
@@ -71,10 +70,10 @@ library LibIntegrityState {
     function pop(IntegrityState memory integrityState_, StackTop stackTop_)
         internal
         pure
-        popUnderflowCheck(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {
         stackTopAfter_ = stackTop_.down();
+        integrityState_.popUnderflowCheck(stackTopAfter_);
     }
 
     function pop(
@@ -84,10 +83,10 @@ library LibIntegrityState {
     )
         internal
         pure
-        popUnderflowCheck(integrityState_, stackTopAfter_)
         returns (StackTop stackTopAfter_)
     {
         stackTopAfter_ = stackTop_.down(n_);
+        integrityState_.popUnderflowCheck(stackTopAfter_);
     }
 
     function applyFnN(

@@ -97,14 +97,14 @@ abstract contract VMStateBuilder {
             );
             for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
                 require(
-                    finalStacks_[i_] <=
-                        StackTop.unwrap(
+                    finalStacks_[i_] <= integrityState_.stackBottom.toIndex(
                             ensureIntegrity(
                                 integrityState_,
                                 SourceIndex.wrap(i_),
                                 StackTop.wrap(0)
                             )
-                        ),
+                        )
+                        ,
                     "MIN_FINAL_STACK"
                 );
             }
