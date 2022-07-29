@@ -261,9 +261,27 @@ library LibStackTop {
         function(uint256, uint256) internal view returns (uint256) fn_,
         uint256 n_
     ) internal view returns (StackTop stackTopAfter_) {
-        stackTopAfter_ = stackTop_.down(n_);
-        while (stackTopAfter_.lt(stackTop_)) {
-            stackTop_ = stackTop_.applyFn(fn_);
+        unchecked {
+            uint256 bottom_;
+            uint256 cursor_;
+            uint256 a_;
+            uint256 b_;
+            assembly ("memory-safe") {
+                bottom_ := sub(stackTop_, mul(n_, 0x20))
+                a_ := mload(bottom_)
+                stackTopAfter_ := add(bottom_, 0x20)
+                cursor_ := stackTopAfter_
+            }
+            while (cursor_ < StackTop.unwrap(stackTop_)) {
+                assembly ("memory-safe") {
+                    b_ := mload(cursor_)
+                }
+                a_ = fn_(a_, b_);
+                cursor_ += 0x20;
+            }
+            assembly ("memory-safe") {
+                mstore(bottom_, a_)
+            }
         }
     }
 
@@ -316,11 +334,9 @@ library LibStackTop {
             internal
             view
             returns (uint256) fn_,
-        uint length_
+        uint256 length_
     ) internal view returns (StackTop stackTopAfter_) {
-        (uint256 b_, uint256[] memory tail_) = stackTop_.list(
-            length_
-        );
+        (uint256 b_, uint256[] memory tail_) = stackTop_.list(length_);
         stackTopAfter_ = tail_.asStackTop();
         (StackTop location_, uint256 a_) = stackTopAfter_.pop();
         location_.set(fn_(a_, b_, tail_));
@@ -332,11 +348,9 @@ library LibStackTop {
             internal
             view
             returns (uint256) fn_,
-        uint length_
+        uint256 length_
     ) internal view returns (StackTop) {
-        (uint256 c_, uint256[] memory tail_) = stackTop_.list(
-            length_
-        );
+        (uint256 c_, uint256[] memory tail_) = stackTop_.list(length_);
         (StackTop stackTopAfter_, uint256 b_) = tail_.asStackTop().pop();
         uint256 a_ = stackTopAfter_.peek();
         stackTopAfter_.down().set(fn_(a_, b_, c_, tail_));
@@ -425,10 +439,6 @@ library LibStackTop {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) - 0x20 * n_);
         }
-    }
-
-    function lt(StackTop a_, StackTop b_) internal pure returns (bool) {
-        return StackTop.unwrap(a_) < StackTop.unwrap(b_);
     }
 
     function toIndex(StackTop stackBottom_, StackTop stackTop_)

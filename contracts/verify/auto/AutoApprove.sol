@@ -84,7 +84,11 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
         }
     }
 
-    function _evidenceDataApproved(uint evidenceData_) internal view returns (uint) {
+    function _evidenceDataApproved(uint256 evidenceData_)
+        internal
+        view
+        returns (uint256)
+    {
         return _approvedEvidenceData[evidenceData_];
     }
 

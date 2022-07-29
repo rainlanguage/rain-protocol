@@ -18,7 +18,8 @@ library OpERC20SnapshotTotalSupplyAt {
         view
         returns (uint256)
     {
-        return ERC20Snapshot(address(uint160(token_))).totalSupplyAt(snapshotId_);
+        return
+            ERC20Snapshot(address(uint160(token_))).totalSupplyAt(snapshotId_);
     }
 
     function integrity(

@@ -34,7 +34,9 @@ struct VMState {
     StackTop constantsBottom;
     uint256[] context;
     bytes[] ptrSources;
-    function(VMState memory, SourceIndex, StackTop) view returns (StackTop) eval;
+    function(VMState memory, SourceIndex, StackTop)
+        view
+        returns (StackTop) eval;
 }
 
 library LibVMState {

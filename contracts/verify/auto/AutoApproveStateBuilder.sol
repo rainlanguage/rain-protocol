@@ -14,7 +14,7 @@ contract AutoApproveStateBuilder is StandardStateBuilder {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        function(uint) internal view returns (uint) fn_;
+        function(uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }
 

@@ -95,8 +95,8 @@ library AllStandardOps {
         view
         returns (StackTop)[];
     using LibCast for function(VMState memory, Operand, StackTop)
-     view
-     returns (StackTop)[];
+        view
+        returns (StackTop)[];
 
     /// An oddly specific conversion between a fixed and dynamic uint256 array.
     /// This is useful for the purpose of building metadata for bounds checks
@@ -109,7 +109,9 @@ library AllStandardOps {
     /// Specifically the size is fixed to match the number of standard ops.
     /// @param dynamic_ The dynamic uint array with length of the standard ops.
     function asUint256Array(
-        function(IntegrityState memory, Operand, StackTop) view returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+        function(IntegrityState memory, Operand, StackTop)
+            view
+            returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {

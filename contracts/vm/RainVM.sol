@@ -83,7 +83,10 @@ abstract contract RainVM {
     using LibStackTop for uint256[];
     using LibStackTop for bytes;
     using LibStackTop for StackTop;
-    using LibCast for function(VMState memory, SourceIndex, StackTop) internal view returns (StackTop);
+    using LibCast for function(VMState memory, SourceIndex, StackTop)
+        internal
+        view
+        returns (StackTop);
 
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesRange()

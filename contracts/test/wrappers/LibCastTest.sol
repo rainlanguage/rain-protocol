@@ -70,7 +70,7 @@ contract LibCastTest {
         external
         returns (uint256[] memory)
     {
-        for (uint i_ = 0; i_ < is_.length; i_++) {
+        for (uint256 i_ = 0; i_ < is_.length; i_++) {
             is_[i_] = LibCast.asUint256(LibCast.asEvalFunctionPointer(is_[i_]));
         }
         return is_;
@@ -80,7 +80,7 @@ contract LibCastTest {
         external
         returns (uint256[] memory)
     {
-        for (uint i_ = 0; i_ < is_.length; i_++) {
+        for (uint256 i_ = 0; i_ < is_.length; i_++) {
             is_[i_] = LibCast.asUint256(identity);
         }
         return is_;

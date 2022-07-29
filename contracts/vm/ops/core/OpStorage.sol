@@ -20,7 +20,8 @@ library OpStorage {
     ) internal pure returns (StackTop) {
         unchecked {
             require(
-                Operand.unwrap(operand_) >= integrityState_.storageOpcodesRange.pointer &&
+                Operand.unwrap(operand_) >=
+                    integrityState_.storageOpcodesRange.pointer &&
                     Operand.unwrap(operand_) <
                     integrityState_.storageOpcodesRange.pointer +
                         integrityState_.storageOpcodesRange.length,

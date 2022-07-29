@@ -29,13 +29,17 @@ library OpAny {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        StackTop location_ = stackTop_.down(Operand.unwrap(operand_));
-        for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
+        StackTop bottom_ = stackTop_.down(Operand.unwrap(operand_));
+        for (
+            StackTop i_ = bottom_;
+            StackTop.unwrap(i_) < StackTop.unwrap(stackTop_);
+            i_ = i_.up()
+        ) {
             uint256 item_ = i_.peekUp();
             if (item_ > 0) {
-                return location_.push(item_);
+                return bottom_.push(item_);
             }
         }
-        return location_.up();
+        return bottom_.up();
     }
 }

@@ -15,7 +15,8 @@ library OpSaturatingDiff {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, TierwiseCombine.saturatingSub);
+        return
+            integrityState_.applyFn(stackTop_, TierwiseCombine.saturatingSub);
     }
 
     // Stack the tierwise saturating subtraction of two reports.

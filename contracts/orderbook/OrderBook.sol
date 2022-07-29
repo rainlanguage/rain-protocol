@@ -303,7 +303,11 @@ contract OrderBook is StandardVM {
         emit AfterClear(stateChange_);
     }
 
-    function _opOrderFundsCleared(uint orderHash_) internal view returns (uint) {
+    function _opOrderFundsCleared(uint256 orderHash_)
+        internal
+        view
+        returns (uint256)
+    {
         return clearedOrder[OrderHash.wrap(orderHash_)];
     }
 
@@ -315,8 +319,14 @@ contract OrderBook is StandardVM {
         return stackTop_.applyFn(_opOrderFundsCleared);
     }
 
-    function _orderCounterpartyFundsCleared(uint orderHash_, uint counterparty_) internal view returns (uint) {
-        return clearedCounterparty[OrderHash.wrap(orderHash_)][address(uint160(counterparty_))];
+    function _orderCounterpartyFundsCleared(
+        uint256 orderHash_,
+        uint256 counterparty_
+    ) internal view returns (uint256) {
+        return
+            clearedCounterparty[OrderHash.wrap(orderHash_)][
+                address(uint160(counterparty_))
+            ];
     }
 
     function opOrderCounterpartyFundsCleared(

@@ -27,7 +27,9 @@ library OpLoopN {
         StackTop stackTop_
     ) internal view returns (StackTop) {
         uint256 n_ = Operand.unwrap(operand_) & 0x0F;
-        SourceIndex loopSourceIndex_ = SourceIndex.wrap((Operand.unwrap(operand_) & 0xF0) >> 4);
+        SourceIndex loopSourceIndex_ = SourceIndex.wrap(
+            (Operand.unwrap(operand_) & 0xF0) >> 4
+        );
         for (uint256 i_ = 0; i_ <= n_; i_++) {
             stackTop_ = state_.eval(state_, loopSourceIndex_, stackTop_);
         }

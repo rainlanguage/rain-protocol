@@ -118,7 +118,9 @@ library LibCast {
     }
 
     function asUint256(
-        function(VMState memory, SourceIndex, StackTop) view returns (StackTop) fn_
+        function(VMState memory, SourceIndex, StackTop)
+            view
+            returns (StackTop) fn_
     ) internal pure returns (uint256 i_) {
         assembly ("memory-safe") {
             i_ := fn_

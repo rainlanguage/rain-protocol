@@ -29,7 +29,9 @@ library OpCall {
     ) internal view returns (StackTop) {
         uint256 inputs_ = Operand.unwrap(operand_) & 0x7;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3;
-        SourceIndex callSourceIndex_ = SourceIndex.wrap((Operand.unwrap(operand_) >> 5) & 0x7);
+        SourceIndex callSourceIndex_ = SourceIndex.wrap(
+            (Operand.unwrap(operand_) >> 5) & 0x7
+        );
         stackTop_ = stackTop_.down(inputs_);
         StackTop stackTopAfter_ = state_.eval(
             state_,

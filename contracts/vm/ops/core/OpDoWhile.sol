@@ -30,7 +30,11 @@ library OpDoWhile {
             // eval is NOT allowed to change the stack top so we
             // ignore the return of eval. This is enforced by bounds
             // checks.
-            state_.eval(state_, SourceIndex.wrap(Operand.unwrap(operand_)), stackTop_.down());
+            state_.eval(
+                state_,
+                SourceIndex.wrap(Operand.unwrap(operand_)),
+                stackTop_.down()
+            );
         }
         return stackTop_.down();
     }

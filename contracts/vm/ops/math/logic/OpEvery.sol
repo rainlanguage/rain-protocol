@@ -15,10 +15,9 @@ library OpEvery {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        function(uint256[] memory) internal view returns (uint256) fn_;
         return
-            integrityState_.push(
-                integrityState_.pop(stackTop_, Operand.unwrap(operand_))
-            );
+            integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
     }
 
     // EVERY
@@ -29,12 +28,16 @@ library OpEvery {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        StackTop location_ = stackTop_.down(Operand.unwrap(operand_));
-        for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
+        StackTop bottom_ = stackTop_.down(Operand.unwrap(operand_));
+        for (
+            StackTop i_ = bottom_;
+            StackTop.unwrap(i_) < StackTop.unwrap(stackTop_);
+            i_ = i_.up()
+        ) {
             if (i_.peekUp() == 0) {
-                return location_.push(0);
+                return bottom_.push(0);
             }
         }
-        return location_.up();
+        return bottom_.up();
     }
 }
