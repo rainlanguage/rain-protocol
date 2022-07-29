@@ -215,7 +215,16 @@ library AllStandardOps {
     function opFunctionPointers(
         function(VMState memory, Operand, StackTop) view returns (StackTop)[]
             memory locals_
-    ) internal pure returns (function(VMState memory, Operand, StackTop) view returns (StackTop)[] memory opFunctionPointers_) {
+    )
+        internal
+        pure
+        returns (
+            function(VMState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory opFunctionPointers_
+        )
+    {
         unchecked {
             function(VMState memory, Operand, StackTop)
                 view

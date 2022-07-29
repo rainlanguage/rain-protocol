@@ -10,7 +10,11 @@ library OpEagerIf {
     using LibIntegrityState for IntegrityState;
     using LibStackTop for StackTop;
 
-    function _eagerIf(uint a_, uint b_, uint c_) internal pure returns (uint) {
+    function _eagerIf(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_
+    ) internal pure returns (uint256) {
         return a_ > 0 ? b_ : c_;
     }
 

@@ -199,7 +199,8 @@ contract OrderBook is StandardVM {
                 VMState memory vmState_;
                 {
                     vmState_ = a_.vmState.fromBytesPacked(
-                        EvalContext(aHash_, b_.owner).toContext()
+                        EvalContext(aHash_, b_.owner).toContext(),
+                        eval
                     );
                     (aOutputMax_, aPrice_) = eval(
                         vmState_,
@@ -210,7 +211,8 @@ contract OrderBook is StandardVM {
 
                 {
                     vmState_ = b_.vmState.fromBytesPacked(
-                        EvalContext(bHash_, a_.owner).toContext()
+                        EvalContext(bHash_, a_.owner).toContext(),
+                        eval
                     );
                     (bOutputMax_, bPrice_) = eval(
                         vmState_,

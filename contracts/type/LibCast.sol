@@ -35,9 +35,16 @@ library LibCast {
         }
     }
 
-    function asOpFunctionPointers(uint[] memory is_) internal pure returns (
-        function(VMState memory, Operand, StackTop) view returns (StackTop)[] memory fns_
-    ) {
+    function asOpFunctionPointers(uint256[] memory is_)
+        internal
+        pure
+        returns (
+            function(VMState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory fns_
+        )
+    {
         assembly ("memory-safe") {
             fns_ := is_
         }

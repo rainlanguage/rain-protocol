@@ -79,13 +79,11 @@ library LibVMState {
     }
 
     function toIndexes(
-        uint16 evalPointer_,
         uint8 ptrSourcesLength_,
         uint8 stackLength_,
         uint8 constantsLength_
     ) internal pure returns (uint256) {
         return
-            (uint256(evalPointer_) << 24) |
             (uint256(ptrSourcesLength_) << 16) |
             (uint256(stackLength_) << 8) |
             uint256(constantsLength_);
@@ -101,7 +99,6 @@ library LibVMState {
             uint256 constantsLength_
         )
     {
-        evalPointer_ = indexes_ >> 24;
         ptrSourcesLength_ = (indexes_ >> 16) & 0xFF;
         stackLength_ = (indexes_ >> 8) & 0xFF;
         constantsLength_ = indexes_ & 0xFF;
@@ -109,7 +106,12 @@ library LibVMState {
 
     function fromBytesPacked(
         bytes memory stateBytes_,
-        uint256[] memory context_
+        uint256[] memory context_,
+        function (
+        VMState memory ,
+        SourceIndex ,
+        StackTop
+    ) internal view returns (StackTop) eval_
     ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
@@ -159,8 +161,35 @@ library LibVMState {
                 ptrSources_ := ptrSourcesPtrs_
                 mstore(add(state_, 0x60), ptrSources_)
             }
-            state_.eval = evalPointer_.asEvalFunctionPointer();
+            state_.eval = eval_;
             return state_;
+        }
+    }
+
+    function toBytesPacked(
+        uint[] memory constants_,
+        bytes[] memory ptrSources_,
+        uint stackLength_
+    ) internal pure returns (bytes memory) {
+        unchecked {
+            uint indexes_ = toIndexes(
+                ptrSources_.length.toUint8(),
+                stackLength_.toUint8(),
+                constants_.length.toUint8()
+            );
+
+            bytes memory ret_ = bytes.concat(
+                bytes32(indexes_),
+                abi.encodePacked(constants_)
+            );
+            for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
+                ret_ = bytes.concat(
+                    ret_,
+                    bytes32(ptrSources_[i_].length),
+                    ptrSources_[i_]
+                );
+            }
+            return ret_;
         }
     }
 
@@ -169,31 +198,10 @@ library LibVMState {
         pure
         returns (bytes memory)
     {
-        unchecked {
-            // indexes + constants
-            uint256[] memory constants_ = state_
-                .constantsBottom
-                .down()
-                .asUint256Array();
-            // constants is first so we can literally use it on the other end
-            uint256 indexes_ = toIndexes(
-                state_.eval.asUint256().toUint16(),
-                state_.ptrSources.length.toUint8(),
-                state_.stackBottom.peek().toUint8(),
-                constants_.length.toUint8()
-            );
-            bytes memory ret_ = bytes.concat(
-                bytes32(indexes_),
-                abi.encodePacked(constants_)
-            );
-            for (uint256 i_ = 0; i_ < state_.ptrSources.length; i_++) {
-                ret_ = bytes.concat(
-                    ret_,
-                    bytes32(state_.ptrSources[i_].length),
-                    state_.ptrSources[i_]
-                );
-            }
-            return ret_;
-        }
+        return toBytesPacked(
+            state_.constantsBottom.down().asUint256Array(),
+            state_.ptrSources,
+            state_.stackBottom.peek()
+        );
     }
 }

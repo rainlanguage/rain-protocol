@@ -119,10 +119,13 @@ abstract contract RainVM {
         internal
         view
         virtual
-        returns (function(VMState memory, Operand, StackTop)
-                    internal
-                    view
-                    returns (StackTop)[] memory);
+        returns (
+            function(VMState memory, Operand, StackTop)
+                internal
+                view
+                returns (StackTop)[]
+                memory
+        );
 
     /// Given a list of packed function pointers and some opcode based source,
     /// return a source with all non-core opcodes replaced with the function
@@ -139,14 +142,14 @@ abstract contract RainVM {
     /// in the same order/index as the relevant opcodes.
     /// @param source_ The 1-byte opcode based input source that is expected to
     /// be produced by end users.
-    function ptrSource(function(VMState memory, Operand, StackTop)
-                    internal
-                    view
-                    returns (StackTop)[] memory opFunctionPointers_, bytes memory source_)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function ptrSource(
+        function(VMState memory, Operand, StackTop)
+            internal
+            view
+            returns (StackTop)[]
+            memory opFunctionPointers_,
+        bytes memory source_
+    ) internal pure returns (bytes memory) {
         unchecked {
             uint256 sourceLen_ = source_.length;
             require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
@@ -155,7 +158,10 @@ abstract contract RainVM {
 
             assembly ("memory-safe") {
                 for {
-                    let opFunctionPointersBottom_ := add(0x20, opFunctionPointers_)
+                    let opFunctionPointersBottom_ := add(
+                        0x20,
+                        opFunctionPointers_
+                    )
                     let inputCursor_ := add(source_, 2)
                     let end_ := add(sourceLen_, inputCursor_)
                     let outputCursor_ := add(ptrSource_, 3)
@@ -200,9 +206,10 @@ abstract contract RainVM {
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             function(VMState memory, Operand, StackTop)
-                    internal
-                    view
-                    returns (StackTop)[] memory opFunctionPointers_ = opFunctionPointers();
+                internal
+                view
+                returns (StackTop)[]
+                memory opFunctionPointers_ = opFunctionPointers();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 ptrSources_[i_] = ptrSource(
                     opFunctionPointers_,
@@ -210,14 +217,11 @@ abstract contract RainVM {
                 );
             }
 
-            stateBytes_ = VMState(
-                (new uint256[](stackLength_)).asStackTopUp(),
-                config_.constants.asStackTopUp(),
-                // Dummy context is never written to the packed bytes.
-                new uint256[](0),
+            stateBytes_ = LibVMState.toBytesPacked(
+                config_.constants,
                 ptrSources_,
-                eval
-            ).toBytesPacked();
+                stackLength_
+            );
         }
     }
 
