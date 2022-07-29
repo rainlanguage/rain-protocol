@@ -15,10 +15,8 @@ library OpAny {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return
-            integrityState_.push(
-                integrityState_.pop(stackTop_, Operand.unwrap(operand_))
-            );
+        function(uint[] memory) internal view returns (uint) fn_;
+        return integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
     }
 
     // ANY

@@ -15,9 +15,10 @@ library OpDebug {
     function integrity(
         IntegrityState memory,
         Operand,
-        StackTop
+        StackTop stackTop_
     ) internal view returns (StackTop) {
         // Debug doesn't modify the state.
+        return stackTop_;
     }
 
     /// Debug the current state.
@@ -26,7 +27,6 @@ library OpDebug {
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        state_.debug(stackTop_, DebugStyle(Operand.unwrap(operand_)));
-        return stackTop_;
+        return state_.debug(stackTop_, DebugStyle(Operand.unwrap(operand_)));
     }
 }

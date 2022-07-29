@@ -14,7 +14,8 @@ library OpEagerIf {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(integrityState_.pop(stackTop_, 3));
+        function(uint,uint,uint) internal view returns (uint) fn_;
+        return integrityState_.applyFn(stackTop_, fn_);
     }
 
     /// Eager because BOTH x_ and y_ must be eagerly evaluated

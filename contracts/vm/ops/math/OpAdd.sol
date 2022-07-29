@@ -26,10 +26,10 @@ library OpAdd {
     }
 
     function add(
-        VMState memory,
+        VMState memory state_,
         Operand operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    ) internal view returns (StackTop) {
         return stackTop_.applyFnN(_add, Operand.unwrap(operand_));
     }
 }

@@ -34,7 +34,7 @@ library LibIntegrityState {
             StackTop.unwrap(stackTopAfter_) >
             StackTop.unwrap(integrityState_.stackMaxTop)
         ) {
-            integrityState_.stackMaxTop = stackTop_;
+            integrityState_.stackMaxTop = stackTopAfter_;
         }
     }
 
@@ -48,7 +48,7 @@ library LibIntegrityState {
             StackTop.unwrap(stackTopAfter_) >
             StackTop.unwrap(integrityState_.stackMaxTop)
         ) {
-            integrityState_.stackMaxTop = stackTop_;
+            integrityState_.stackMaxTop = stackTopAfter_;
         }
     }
 

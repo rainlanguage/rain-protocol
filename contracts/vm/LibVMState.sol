@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "./LibStackTop.sol";
 import "../type/LibCast.sol";
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 enum DebugStyle {
     StatePacked,
@@ -40,9 +41,12 @@ struct VMState {
 }
 
 library LibVMState {
+    using SafeCast for uint256;
+
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
+    using LibStackTop for bytes;
     using LibCast for uint256;
     using LibCast for function(VMState memory, SourceIndex, StackTop)
         view
@@ -52,7 +56,7 @@ library LibVMState {
         VMState memory state_,
         StackTop stackTop_,
         DebugStyle debugStyle_
-    ) internal view {
+    ) internal view returns (StackTop) {
         if (debugStyle_ == DebugStyle.StatePacked) {
             console.logBytes(state_.toBytesPacked());
         } else if (debugStyle_ == DebugStyle.Stack) {
@@ -71,30 +75,60 @@ library LibVMState {
         } else if (debugStyle_ == DebugStyle.StackIndex) {
             console.log(state_.stackBottom.toIndex(stackTop_));
         }
+        return stackTop_;
+    }
+
+    function toIndexes(
+        uint16 evalPointer_,
+        uint8 ptrSourcesLength_,
+        uint8 stackLength_,
+        uint8 constantsLength_
+    ) internal view returns (uint256) {
+        return
+            (uint256(evalPointer_) << 24) |
+            (uint256(ptrSourcesLength_) << 16) |
+            (uint256(stackLength_) << 8) |
+            uint256(constantsLength_);
+    }
+
+    function fromIndexes(uint256 indexes_)
+        internal
+        view
+        returns (
+            uint256 evalPointer_,
+            uint256 ptrSourcesLength_,
+            uint256 stackLength_,
+            uint256 constantsLength_
+        )
+    {
+        evalPointer_ = indexes_ >> 24;
+        ptrSourcesLength_ = (indexes_ >> 16) & 0xFF;
+        stackLength_ = (indexes_ >> 8) & 0xFF;
+        constantsLength_ = indexes_ & 0xFF;
     }
 
     function fromBytesPacked(
         bytes memory stateBytes_,
         uint256[] memory context_
-    ) internal pure returns (VMState memory) {
+    ) internal view returns (VMState memory) {
         unchecked {
             VMState memory state_;
             state_.context = context_;
-            uint256 indexes_;
-            assembly ("memory-safe") {
-                // Load indexes from state bytes.
-                indexes_ := mload(add(stateBytes_, 0x20))
-                // mask out everything but the constants length from state
-                // bytes.
-                mstore(add(stateBytes_, 0x20), and(indexes_, 0xFF))
-                // point state constant bottom at state bytes, after length
-                mstore(add(state_, 0x20), add(stateBytes_, 0x40))
-            }
-            state_.stackBottom = (new uint256[]((indexes_ >> 8) & 0xFF))
+
+            state_.constantsBottom = stateBytes_.asStackTop().up(2);
+            uint256 indexes_ = state_.constantsBottom.peek();
+            (
+                uint256 evalPointer_,
+                uint256 ptrSourcesLength_,
+                uint256 stackLength_,
+                uint256 constantsLength_
+            ) = fromIndexes(indexes_);
+            state_.constantsBottom.down().set(constantsLength_);
+
+            state_.stackBottom = (new uint256[](stackLength_))
                 .asStackTopUp();
-            uint256 sourcesLen_ = (indexes_ >> 16) & 0xFF;
             bytes[] memory ptrSources_;
-            uint256[] memory ptrSourcesPtrs_ = new uint256[](sourcesLen_);
+            uint256[] memory ptrSourcesPtrs_ = new uint256[](ptrSourcesLength_);
 
             assembly ("memory-safe") {
                 let sourcesStart_ := add(
@@ -110,7 +144,7 @@ library LibVMState {
 
                 for {
                     let i_ := 0
-                } lt(i_, sourcesLen_) {
+                } lt(i_, ptrSourcesLength_) {
                     i_ := add(i_, 1)
                 } {
                     // sources_ is a dynamic array so it is a list of
@@ -126,14 +160,14 @@ library LibVMState {
                 ptrSources_ := ptrSourcesPtrs_
                 mstore(add(state_, 0x60), ptrSources_)
             }
-            state_.eval = ((indexes_ >> 24) & 0xFFFF).asEvalFunctionPointer();
+            state_.eval = evalPointer_.asEvalFunctionPointer();
             return state_;
         }
     }
 
     function toBytesPacked(VMState memory state_)
         internal
-        pure
+        view
         returns (bytes memory)
     {
         unchecked {
@@ -143,13 +177,12 @@ library LibVMState {
                 .down()
                 .asUint256Array();
             // constants is first so we can literally use it on the other end
-            uint256 indexes_ = constants_.length | // 8 bit constant length
-                // 8 bit stack length
-                (state_.stackBottom.peek() << 8) |
-                // 8 bit ptr sources length
-                (state_.ptrSources.length << 16) |
-                // 16 bit eval ptr
-                (state_.eval.asUint256() << 24);
+            uint256 indexes_ = toIndexes(
+                state_.eval.asUint256().toUint16(),
+                state_.ptrSources.length.toUint8(),
+                state_.stackBottom.peek().toUint8(),
+                constants_.length.toUint8()
+            );
             bytes memory ret_ = bytes.concat(
                 bytes32(indexes_),
                 abi.encodePacked(constants_)
