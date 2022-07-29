@@ -11,7 +11,7 @@ import type {
 
 export const deployGlobals = async () => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsStateBuilder"
+    "AllStandardOpsIntegrity"
   );
   const stateBuilder = await stateBuilderFactory.deploy();
   await stateBuilder.deployed();

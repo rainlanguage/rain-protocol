@@ -2,7 +2,7 @@ import { assert } from "chai";
 import type { BigNumber } from "ethers";
 import { concat, hexlify, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsIntegrity } from "../../../../typechain/AllStandardOpsIntegrity";
 import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import {
   AllStandardOps,
@@ -20,15 +20,15 @@ const Opcode = AllStandardOps;
 const isTruthy = (vmValue: BigNumber) => !vmValue.isZero();
 
 describe("RainVM logic ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let stateBuilder: AllStandardOpsIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+      "AllStandardOpsIntegrity"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

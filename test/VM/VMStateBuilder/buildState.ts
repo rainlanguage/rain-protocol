@@ -1,6 +1,6 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsIntegrity } from "../../../typechain/AllStandardOpsIntegrity";
 import { StackHeightTest } from "../../../typechain/StackHeightTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
@@ -8,15 +8,15 @@ import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
-describe("VMStateBuilder buildState", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+describe("RainVMIntegrity buildState", async function () {
+  let stateBuilder: AllStandardOpsIntegrity;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+      "AllStandardOpsIntegrity"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
     await stateBuilder.deployed();
   });
 

@@ -3,7 +3,7 @@ pragma solidity =0.8.15;
 
 import {StandardVM} from "../vm/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
-import "../vm/VMStateBuilder.sol";
+import "../vm/RainVMIntegrity.sol";
 
 SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;

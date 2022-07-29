@@ -17,7 +17,7 @@ export const combineTierDeploy = async (
   config: CombineTierConfigStruct
 ) => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsStateBuilder"
+    "AllStandardOpsIntegrity"
   );
   const stateBuilder = await stateBuilderFactory.deploy();
   await stateBuilder.deployed();

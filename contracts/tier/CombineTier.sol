@@ -8,7 +8,7 @@ import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../vm/VMStateBuilder.sol";
+import "../vm/RainVMIntegrity.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 

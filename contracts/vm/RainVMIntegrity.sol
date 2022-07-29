@@ -24,7 +24,7 @@ struct VmStructure {
     address packedFnPtrsAddress;
 }
 
-abstract contract VMStateBuilder {
+abstract contract RainVMIntegrity {
     using SafeCast for uint256;
     using Math for uint256;
     using LibVMState for VMState;

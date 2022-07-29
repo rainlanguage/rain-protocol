@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsIntegrity } from "../../../../typechain/AllStandardOpsIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { ReserveToken } from "../../../../typechain/ReserveToken";
 import { basicDeploy } from "../../../../utils/deploy/basic";
@@ -17,15 +17,15 @@ let signer1: SignerWithAddress;
 let tokenERC20: ReserveToken;
 
 describe("RainVM ERC20 ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let stateBuilder: AllStandardOpsIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+      "AllStandardOpsIntegrity"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

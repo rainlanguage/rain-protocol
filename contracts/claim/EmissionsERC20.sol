@@ -6,7 +6,7 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierReport.sol";
-import {VMStateBuilder, StateConfig} from "../vm/VMStateBuilder.sol";
+import {RainVMIntegrity, StateConfig} from "../vm/RainVMIntegrity.sol";
 import "../vm/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";

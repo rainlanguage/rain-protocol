@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
 import "../../vm/RainVM.sol";
-import "../../vm/VMStateBuilder.sol";
+import "../../vm/RainVMIntegrity.sol";
 import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;
@@ -98,7 +98,7 @@ library LibOrder {
                 config_.validInputs,
                 config_.validOutputs,
                 deriveTracking(config_.vmStateConfig.sources),
-                VMStateBuilder(vmStateBuilder_).buildStateBytes(
+                RainVMIntegrity(vmStateBuilder_).buildStateBytes(
                     vm_,
                     config_.vmStateConfig,
                     MIN_FINAL_STACK_INDEX.arrayFrom()

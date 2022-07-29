@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "./VMStateBuilder.sol";
+import "./RainVMIntegrity.sol";
 import "./ops/AllStandardOps.sol";
 
-contract StandardStateBuilder is VMStateBuilder {
+contract StandardIntegrity is RainVMIntegrity {
     function localIntegrityFunctionPointers()
         internal
         pure
@@ -17,7 +17,7 @@ contract StandardStateBuilder is VMStateBuilder {
         )
     {}
 
-    /// @inheritdoc VMStateBuilder
+    /// @inheritdoc RainVMIntegrity
     function integrityFunctionPointers()
         internal
         view

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../StandardStateBuilder.sol";
+import "../StandardIntegrity.sol";
 
-contract AllStandardOpsStateBuilder is StandardStateBuilder {}
+contract AllStandardOpsIntegrity is StandardIntegrity {}

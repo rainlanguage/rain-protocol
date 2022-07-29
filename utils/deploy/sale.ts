@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsIntegrity } from "../../typechain/AllStandardOpsIntegrity";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
@@ -64,10 +64,10 @@ export const saleDeploy = async (
 
 export const saleDependenciesDeploy = async () => {
   const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsStateBuilder"
+    "AllStandardOpsIntegrity"
   );
   const stateBuilder =
-    (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+    (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
   await stateBuilder.deployed();
 
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(

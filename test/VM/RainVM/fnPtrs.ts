@@ -2,22 +2,22 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { hexDataLength } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
+import { AllStandardOpsIntegrity } from "../../../typechain/AllStandardOpsIntegrity";
 import { StandardVM } from "../../../typechain/StandardVM";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
 
 describe("RainVM fnPtrs", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder,
+  let stateBuilder: AllStandardOpsIntegrity,
     standardVMFactory: ContractFactory;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+      "AllStandardOpsIntegrity"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
     await stateBuilder.deployed();
     standardVMFactory = await ethers.getContractFactory("StandardVM");
   });

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../vm/StandardStateBuilder.sol";
+import "../vm/StandardIntegrity.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "./OrderBook.sol";
 import "../type/LibCast.sol";
 
-contract OrderBookStateBuilder is StandardStateBuilder {
+contract OrderBookStateBuilder is StandardIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrityState for IntegrityState;
 

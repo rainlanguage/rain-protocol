@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../../vm/StandardStateBuilder.sol";
+import "../../vm/StandardIntegrity.sol";
 import "./AutoApprove.sol";
 import "../../type/LibCast.sol";
 
-contract AutoApproveStateBuilder is StandardStateBuilder {
+contract AutoApproveStateBuilder is StandardIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrityState for IntegrityState;
 

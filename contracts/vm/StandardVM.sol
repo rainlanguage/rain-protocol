@@ -3,7 +3,7 @@ pragma solidity =0.8.15;
 
 import "./LibVMState.sol";
 import "./RainVM.sol";
-import "./VMStateBuilder.sol";
+import "./RainVMIntegrity.sol";
 import "./ops/AllStandardOps.sol";
 
 contract StandardVM is RainVM {
@@ -23,7 +23,7 @@ contract StandardVM is RainVM {
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal virtual {
-        bytes memory stateBytes_ = VMStateBuilder(vmStateBuilder)
+        bytes memory stateBytes_ = RainVMIntegrity(vmStateBuilder)
             .buildStateBytes(self, config_, finalMinStacks_);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
