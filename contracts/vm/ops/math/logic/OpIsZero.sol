@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../LibStackTop.sol";
+import "../../../runtime/LibStackTop.sol";
 import "../../../../type/LibCast.sol";
-import "../../../LibVMState.sol";
-import "../../../LibIntegrityState.sol";
+import "../../../runtime/LibVMState.sol";
+import "../../../integrity/LibIntegrityState.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.

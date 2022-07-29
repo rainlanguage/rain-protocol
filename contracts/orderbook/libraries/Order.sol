@@ -2,8 +2,8 @@
 pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
-import "../../vm/RainVM.sol";
-import "../../vm/RainVMIntegrity.sol";
+import "../../vm/runtime/RainVM.sol";
+import "../../vm/integrity/RainVMIntegrity.sol";
 import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;
@@ -88,8 +88,10 @@ library LibOrder {
     }
 
     function fromOrderConfig(
-        address vmStateBuilder_,
-        address vm_,
+        IRainVMIntegrity vmIntegrity_,
+        function(IRainVMIntegrity, StateConfig memory, uint256[] memory)
+            internal
+            returns (bytes memory) buildStateBytes_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
         return
@@ -98,8 +100,8 @@ library LibOrder {
                 config_.validInputs,
                 config_.validOutputs,
                 deriveTracking(config_.vmStateConfig.sources),
-                RainVMIntegrity(vmStateBuilder_).buildStateBytes(
-                    vm_,
+                buildStateBytes_(
+                    vmIntegrity_,
                     config_.vmStateConfig,
                     MIN_FINAL_STACK_INDEX.arrayFrom()
                 )

@@ -1,17 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "./RainVM.sol";
-import "./LibStackTop.sol";
+import "../runtime/RainVM.sol";
+import "../runtime/LibStackTop.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-import "hardhat/console.sol";
-
 struct IntegrityState {
-    bytes[] sources;
-    function(IntegrityState memory, Operand, StackTop)
-        view
-        returns (StackTop)[] integrityFunctionPointers;
     StorageOpcodesRange storageOpcodesRange;
     uint256 constantsLength;
     uint256 contextLength;
@@ -24,7 +18,10 @@ library LibIntegrityState {
     using LibStackTop for StackTop;
     using Math for uint256;
 
-    function syncStackMaxTop(IntegrityState memory integrityState_, StackTop stackTop_) internal pure {
+    function syncStackMaxTop(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_
+    ) internal pure {
         if (
             StackTop.unwrap(stackTop_) >
             StackTop.unwrap(integrityState_.stackMaxTop)
@@ -49,7 +46,6 @@ library LibIntegrityState {
     ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up(n_);
         integrityState_.syncStackMaxTop(stackTopAfter_);
-
     }
 
     function popUnderflowCheck(
@@ -80,11 +76,7 @@ library LibIntegrityState {
         IntegrityState memory integrityState_,
         StackTop stackTop_,
         uint256 n_
-    )
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.down(n_);
         integrityState_.popUnderflowCheck(stackTopAfter_);
     }

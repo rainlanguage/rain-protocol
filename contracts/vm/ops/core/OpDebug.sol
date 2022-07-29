@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../LibStackTop.sol";
-import "../../LibVMState.sol";
-import "../../LibIntegrityState.sol";
+import "../../runtime/LibStackTop.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpDebug
 /// @notice Opcode for debugging state.
@@ -16,7 +16,7 @@ library OpDebug {
         IntegrityState memory,
         Operand,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         // Debug doesn't modify the state.
         return stackTop_;
     }

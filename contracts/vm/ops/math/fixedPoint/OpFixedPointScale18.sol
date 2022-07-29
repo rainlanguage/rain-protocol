@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
-import "../../../LibStackTop.sol";
-import "../../../LibVMState.sol";
-import "../../../LibIntegrityState.sol";
+import "../../../runtime/LibStackTop.sol";
+import "../../../runtime/LibVMState.sol";
+import "../../../integrity/LibIntegrityState.sol";
 
 /// @title OpFixedPointScale18
 /// @notice Opcode for scaling a number to 18 fixed point.

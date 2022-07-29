@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
-import "../../vm/StandardVM.sol";
+import "../../vm/runtime/StandardVM.sol";
 import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 

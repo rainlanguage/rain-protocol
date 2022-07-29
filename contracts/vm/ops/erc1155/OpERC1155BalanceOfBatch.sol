@@ -2,11 +2,11 @@
 pragma solidity ^0.8.15;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "../../LibStackTop.sol";
+import "../../runtime/LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
-import "../../LibVMState.sol";
-import "../../LibIntegrityState.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../LibStackTop.sol";
-import "../../../LibVMState.sol";
-import "../../../LibIntegrityState.sol";
+import "../../../runtime/LibStackTop.sol";
+import "../../../runtime/LibVMState.sol";
+import "../../../integrity/LibIntegrityState.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
@@ -15,8 +15,9 @@ library OpAny {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        function(uint[] memory) internal view returns (uint) fn_;
-        return integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
+        function(uint256[] memory) internal view returns (uint256) fn_;
+        return
+            integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
     }
 
     // ANY

@@ -5,7 +5,7 @@ import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibPackBytes.sol";
-import "../RainVM.sol";
+import "../runtime/RainVM.sol";
 import "./core/OpCall.sol";
 import "./core/OpContext.sol";
 import "./core/OpDebug.sol";

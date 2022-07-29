@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
-import "../../../LibStackTop.sol";
-import "../../../LibVMState.sol";
-import "../../../LibIntegrityState.sol";
+import "../../../runtime/LibStackTop.sol";
+import "../../../runtime/LibVMState.sol";
+import "../../../integrity/LibIntegrityState.sol";
 
 /// @title OpERC20SnapshotTotalSupplyAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.totalSupplyAt`.

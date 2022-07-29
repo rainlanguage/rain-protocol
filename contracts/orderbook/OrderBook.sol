@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../vm/StandardVM.sol";
-import "../vm/LibStackTop.sol";
+import "../vm/runtime/StandardVM.sol";
+import "../vm/runtime/LibStackTop.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -101,7 +101,7 @@ contract OrderBook is StandardVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -139,8 +139,8 @@ contract OrderBook is StandardVM {
 
     function addOrder(OrderConfig calldata orderConfig_) external {
         Order memory order_ = LibOrder.fromOrderConfig(
-            vmStateBuilder,
-            self,
+            IRainVMIntegrity(vmIntegrity),
+            buildStateBytes,
             orderConfig_
         );
         OrderHash orderHash_ = order_.hash();

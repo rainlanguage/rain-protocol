@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../LibStackTop.sol";
-import "../../LibVMState.sol";
-import "../../LibIntegrityState.sol";
+import "../../runtime/LibStackTop.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
@@ -42,7 +42,7 @@ library OpState {
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         unchecked {
             uint256 type_ = Operand.unwrap(operand_) & 0x1;
             uint256 offset_ = Operand.unwrap(operand_) >> 1;

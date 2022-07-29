@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "./LibStackTop.sol";
-import "../type/LibCast.sol";
+import "../../type/LibCast.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -83,7 +83,7 @@ library LibVMState {
         uint8 ptrSourcesLength_,
         uint8 stackLength_,
         uint8 constantsLength_
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         return
             (uint256(evalPointer_) << 24) |
             (uint256(ptrSourcesLength_) << 16) |
@@ -93,7 +93,7 @@ library LibVMState {
 
     function fromIndexes(uint256 indexes_)
         internal
-        view
+        pure
         returns (
             uint256 evalPointer_,
             uint256 ptrSourcesLength_,
@@ -110,7 +110,7 @@ library LibVMState {
     function fromBytesPacked(
         bytes memory stateBytes_,
         uint256[] memory context_
-    ) internal view returns (VMState memory) {
+    ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
             state_.context = context_;
@@ -125,8 +125,7 @@ library LibVMState {
             ) = fromIndexes(indexes_);
             state_.constantsBottom.down().set(constantsLength_);
 
-            state_.stackBottom = (new uint256[](stackLength_))
-                .asStackTopUp();
+            state_.stackBottom = (new uint256[](stackLength_)).asStackTopUp();
             bytes[] memory ptrSources_;
             uint256[] memory ptrSourcesPtrs_ = new uint256[](ptrSourcesLength_);
 
@@ -167,7 +166,7 @@ library LibVMState {
 
     function toBytesPacked(VMState memory state_)
         internal
-        view
+        pure
         returns (bytes memory)
     {
         unchecked {

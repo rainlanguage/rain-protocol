@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
-import "../../LibStackTop.sol";
-import "../../LibVMState.sol";
-import "../../LibIntegrityState.sol";
+import "../../runtime/LibStackTop.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../array/LibUint256Array.sol";
-import "../../vm/LibStackTop.sol";
+import "../../vm/runtime/LibStackTop.sol";
 
 /// @title LibUint256ArrayTest
 /// Thin wrapper around `LibUint256Array` library exposing methods for testing

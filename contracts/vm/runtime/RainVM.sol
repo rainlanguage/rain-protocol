@@ -2,11 +2,14 @@
 pragma solidity =0.8.15;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "../math/SaturatingMath.sol";
-import "../type/LibCast.sol";
+import "../../math/SaturatingMath.sol";
+import "../../type/LibCast.sol";
 import "./LibStackTop.sol";
 import "./LibVMState.sol";
-import "../array/LibUint256Array.sol";
+import "../../array/LibUint256Array.sol";
+import "../../sstore2/SSTORE2.sol";
+import "../integrity/IRainVMIntegrity.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 type SourceIndex is uint256;
 type Operand is uint256;
@@ -14,6 +17,14 @@ type Operand is uint256;
 struct StorageOpcodesRange {
     uint256 pointer;
     uint256 length;
+}
+
+/// Config required to build a new `State`.
+/// @param sources Sources verbatim.
+/// @param constants Constants verbatim.
+struct StateConfig {
+    bytes[] sources;
+    uint256[] constants;
 }
 
 /// @title RainVM
@@ -110,8 +121,96 @@ abstract contract RainVM {
         virtual
         returns (bytes memory ptrs_);
 
-    function evalFunctionPointer() external pure returns (uint256) {
-        return eval.asUint256();
+    /// Given a list of packed function pointers and some opcode based source,
+    /// return a source with all non-core opcodes replaced with the function
+    /// pointers provided. Every 1-byte opcode will be replaced with a 2-byte
+    /// function pointer so the output source will be 3/2 the length of the
+    /// input, after accounting for the operand which remains unchanged.
+    /// Non-core opcodes remain numeric as they have special handling and are
+    /// NOT compatible with the ptr/operand input system that all other ops
+    /// adhere to.
+    /// There is NO attempt to validate the packed fn pointers or the input
+    /// source, other than to check the total length of each is even. The caller
+    /// MUST ensure all integrity checks/requirements are met.
+    /// @param packedFnPtrs_ The function pointers packed as 2-bytes in a list
+    /// in the same order/index as the relevant opcodes.
+    /// @param source_ The 1-byte opcode based input source that is expected to
+    /// be produced by end users.
+    function ptrSource(bytes memory packedFnPtrs_, bytes memory source_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            uint256 sourceLen_ = source_.length;
+            require(packedFnPtrs_.length % 2 == 0, "ODD_PACKED_PTRS");
+            require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
+
+            bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
+
+            assembly ("memory-safe") {
+                for {
+                    let packedFnPtrsStart_ := add(2, packedFnPtrs_)
+                    let inputCursor_ := add(source_, 2)
+                    let end_ := add(sourceLen_, inputCursor_)
+                    let outputCursor_ := add(ptrSource_, 3)
+                } lt(inputCursor_, end_) {
+                    inputCursor_ := add(inputCursor_, 2)
+                    outputCursor_ := add(outputCursor_, 3)
+                } {
+                    let sourceData_ := mload(inputCursor_)
+                    let op_ := byte(30, sourceData_)
+                    op_ := and(
+                        mload(add(packedFnPtrsStart_, mul(op_, 0x2))),
+                        0xFFFF
+                    )
+                    mstore(
+                        outputCursor_,
+                        or(
+                            mload(outputCursor_),
+                            or(shl(8, op_), byte(31, sourceData_))
+                        )
+                    )
+                }
+            }
+            return ptrSource_;
+        }
+    }
+
+    /// Builds a new `State` bytes from `StateConfig`.
+    /// Empty stack and arguments with stack index 0.
+    /// @param config_ State config to build the new `State`.
+    function buildStateBytes(
+        IRainVMIntegrity vmIntegrity_,
+        StateConfig memory config_,
+        uint256[] memory finalStacks_
+    ) internal view returns (bytes memory stateBytes_) {
+        unchecked {
+            uint256 stackLength_ = vmIntegrity_.ensureIntegrity(
+                storageOpcodesRange(),
+                config_.sources,
+                config_.constants.length,
+                finalStacks_
+            );
+
+            bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
+            bytes memory packedFunctionPointers_ = packedFunctionPointers();
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+                ptrSources_[i_] = ptrSource(
+                    packedFunctionPointers_,
+                    config_.sources[i_]
+                );
+            }
+
+            stateBytes_ = VMState(
+                (new uint256[](stackLength_)).asStackTopUp(),
+                config_.constants.asStackTopUp(),
+                // Dummy context is never written to the packed bytes.
+                new uint256[](0),
+                ptrSources_,
+                eval
+            ).toBytesPacked();
+        }
     }
 
     /// Evaluates a rain script.

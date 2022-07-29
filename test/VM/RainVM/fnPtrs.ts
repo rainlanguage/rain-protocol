@@ -9,8 +9,7 @@ import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 const Opcode = AllStandardOps;
 
 describe("RainVM fnPtrs", async function () {
-  let stateBuilder: AllStandardOpsIntegrity,
-    standardVMFactory: ContractFactory;
+  let stateBuilder: AllStandardOpsIntegrity, standardVMFactory: ContractFactory;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(

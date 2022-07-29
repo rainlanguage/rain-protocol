@@ -3,30 +3,33 @@ pragma solidity =0.8.15;
 
 import "./LibVMState.sol";
 import "./RainVM.sol";
-import "./RainVMIntegrity.sol";
-import "./ops/AllStandardOps.sol";
+import "../integrity/RainVMIntegrity.sol";
+import "../ops/AllStandardOps.sol";
 
 contract StandardVM is RainVM {
     using LibVMState for bytes;
     address internal immutable self;
-    address internal immutable vmStateBuilder;
+    address internal immutable vmIntegrity;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address internal vmStatePointer;
 
-    constructor(address vmStateBuilder_) {
+    constructor(address vmIntegrity_) {
         self = address(this);
-        vmStateBuilder = vmStateBuilder_;
+        vmIntegrity = vmIntegrity_;
     }
 
     function _saveVMState(
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal virtual {
-        uint a_ = gasleft();
-        bytes memory stateBytes_ = RainVMIntegrity(vmStateBuilder)
-            .buildStateBytes(self, config_, finalMinStacks_);
-        uint b_ = gasleft();
+        uint256 a_ = gasleft();
+        bytes memory stateBytes_ = buildStateBytes(
+            IRainVMIntegrity(vmIntegrity),
+            config_,
+            finalMinStacks_
+        );
+        uint256 b_ = gasleft();
         console.log("build state bytes gas", a_ - b_);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }

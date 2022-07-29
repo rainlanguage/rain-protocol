@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../LibStackTop.sol";
+import "../../runtime/LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
-import "../../LibVMState.sol";
-import "../../LibIntegrityState.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpAdd
 /// @notice Opcode for adding N numbers.
@@ -26,7 +26,7 @@ library OpAdd {
     }
 
     function add(
-        VMState memory state_,
+        VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {StandardVM} from "../vm/StandardVM.sol";
+import {StandardVM} from "../vm/runtime/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
-import "../vm/RainVMIntegrity.sol";
+import "../vm/integrity/RainVMIntegrity.sol";
 
 SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;

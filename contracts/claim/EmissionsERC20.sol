@@ -6,14 +6,12 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierReport.sol";
-import {RainVMIntegrity, StateConfig} from "../vm/RainVMIntegrity.sol";
-import "../vm/StandardVM.sol";
+import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
+import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
 import "../array/LibUint256Array.sol";
-
-import "hardhat/console.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of

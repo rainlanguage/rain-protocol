@@ -2,8 +2,8 @@
 pragma solidity =0.8.15;
 
 import "../array/LibUint256Array.sol";
-import "../vm/StandardVM.sol";
-import "../vm/RainVMIntegrity.sol";
+import "../vm/runtime/StandardVM.sol";
+import "../vm/integrity/RainVMIntegrity.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 
 SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);

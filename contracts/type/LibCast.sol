@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../vm/LibStackTop.sol";
-import "../vm/LibVMState.sol";
-import "../vm/LibIntegrityState.sol";
-import "../vm/RainVM.sol";
+import "../vm/runtime/LibStackTop.sol";
+import "../vm/runtime/LibVMState.sol";
+import "../vm/integrity/LibIntegrityState.sol";
+import "../vm/runtime/RainVM.sol";
 
 /// @title Cast
 /// @notice Additional type casting logic that the Solidity compiler doesn't

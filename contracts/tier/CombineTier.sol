@@ -3,12 +3,12 @@ pragma solidity =0.8.15;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "../vm/StandardVM.sol";
+import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../vm/RainVMIntegrity.sol";
+import "../vm/integrity/RainVMIntegrity.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 

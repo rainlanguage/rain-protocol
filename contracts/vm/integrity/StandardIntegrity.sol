@@ -2,7 +2,7 @@
 pragma solidity =0.8.15;
 
 import "./RainVMIntegrity.sol";
-import "./ops/AllStandardOps.sol";
+import "../ops/AllStandardOps.sol";
 
 contract StandardIntegrity is RainVMIntegrity {
     function localIntegrityFunctionPointers()

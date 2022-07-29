@@ -2,10 +2,10 @@
 pragma solidity ^0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../LibStackTop.sol";
-import "../../LibVMState.sol";
+import "../../runtime/LibStackTop.sol";
+import "../../runtime/LibVMState.sol";
 import "../../../array/LibUint256Array.sol";
-import "../../LibIntegrityState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpCall
 /// @notice Opcode for calling eval with a new scope.

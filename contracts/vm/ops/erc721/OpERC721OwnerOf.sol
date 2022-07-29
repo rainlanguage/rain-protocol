@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "../../LibStackTop.sol";
-import "../../LibVMState.sol";
-import "../../LibIntegrityState.sol";
+import "../../runtime/LibStackTop.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpERC721OwnerOf
 /// @notice Opcode for getting the current erc721 owner of an account.
