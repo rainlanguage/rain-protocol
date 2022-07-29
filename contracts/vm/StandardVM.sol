@@ -23,8 +23,11 @@ contract StandardVM is RainVM {
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal virtual {
+        uint a_ = gasleft();
         bytes memory stateBytes_ = RainVMIntegrity(vmStateBuilder)
             .buildStateBytes(self, config_, finalMinStacks_);
+        uint b_ = gasleft();
+        console.log("build state bytes gas", a_ - b_);
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
