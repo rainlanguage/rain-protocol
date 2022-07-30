@@ -389,6 +389,12 @@ library LibStackTop {
         }
     }
 
+    function asBytes(StackTop stackTop_) internal pure returns (bytes memory bytes_) {
+        assembly ("memory-safe") {
+            bytes_ := stackTop_
+        }
+    }
+
     function asStackTopUp(uint256[] memory array_)
         internal
         pure
@@ -422,6 +428,12 @@ library LibStackTop {
     {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) + 0x20 * n_);
+        }
+    }
+
+    function upBytes(StackTop stackTop_, uint n_) internal pure returns (StackTop) {
+        unchecked {
+            return StackTop.wrap(StackTop.unwrap(stackTop_) + n_);
         }
     }
 

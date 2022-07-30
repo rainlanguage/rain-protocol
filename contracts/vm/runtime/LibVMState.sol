@@ -81,12 +81,10 @@ library LibVMState {
     }
 
     function toIndexes(
-        uint8 ptrSourcesLength_,
         uint8 stackLength_,
         uint8 constantsLength_
     ) internal pure returns (uint256) {
         return
-            (uint256(ptrSourcesLength_) << 16) |
             (uint256(stackLength_) << 8) |
             uint256(constantsLength_);
     }
@@ -95,13 +93,10 @@ library LibVMState {
         internal
         pure
         returns (
-            uint256 evalPointer_,
-            uint256 ptrSourcesLength_,
             uint256 stackLength_,
             uint256 constantsLength_
         )
     {
-        ptrSourcesLength_ = (indexes_ >> 16) & 0xFF;
         stackLength_ = (indexes_ >> 8) & 0xFF;
         constantsLength_ = indexes_ & 0xFF;
     }
@@ -113,56 +108,51 @@ library LibVMState {
             internal
             view
             returns (StackTop) eval_
-    ) internal pure returns (VMState memory) {
+    ) internal view returns (VMState memory) {
         unchecked {
             VMState memory state_;
-            state_.context = context_;
 
-            state_.constantsBottom = stateBytes_.asStackTop().up(2);
-            uint256 indexes_ = state_.constantsBottom.peek();
+            // Context and the eval pointer are provided by the caller so no
+            // processing is needed for these.
+            state_.context = context_;
+            state_.eval = eval_;
+
+            // Move cursor to where constants will be after we process the
+            // indexes.
+            StackTop cursor_ = stateBytes_.asStackTop();
+            StackTop end_ = cursor_.upBytes(cursor_.peekUp()).up();
+            cursor_ = cursor_.up();
+            uint256 indexes_ = cursor_.peekUp();
             (
-                uint256 evalPointer_,
-                uint256 ptrSourcesLength_,
                 uint256 stackLength_,
                 uint256 constantsLength_
             ) = fromIndexes(indexes_);
-            state_.constantsBottom.down().set(constantsLength_);
 
+            // Set the constants length to the correct value so it restores the
+            // valid uint[] for constants.
+            cursor_ = cursor_.push(constantsLength_);
+            state_.constantsBottom = cursor_;
+
+            // The stack is never stored in stack bytes so we allocate a new
+            // array for it with length as per the indexes and point the state
+            // at it.
             state_.stackBottom = (new uint256[](stackLength_)).asStackTopUp();
-            bytes[] memory ptrSources_;
-            uint256[] memory ptrSourcesPtrs_ = new uint256[](ptrSourcesLength_);
 
-            assembly ("memory-safe") {
-                let sourcesStart_ := add(
-                    stateBytes_,
-                    add(
-                        // 0x40 for constants and state array length
-                        0x40,
-                        // skip over length of constants
-                        mul(0x20, mload(add(stateBytes_, 0x20)))
-                    )
-                )
-                let cursor_ := sourcesStart_
-
-                for {
-                    let i_ := 0
-                } lt(i_, ptrSourcesLength_) {
-                    i_ := add(i_, 1)
-                } {
-                    // sources_ is a dynamic array so it is a list of
-                    // pointers that can be set literally to the cursor_
-                    mstore(
-                        add(ptrSourcesPtrs_, add(0x20, mul(i_, 0x20))),
-                        cursor_
-                    )
-                    // move the cursor by the length of the source in bytes
-                    cursor_ := add(cursor_, add(0x20, mload(cursor_)))
-                }
-                // point state at sources_ rather than clone in memory
-                ptrSources_ := ptrSourcesPtrs_
-                mstore(add(state_, 0x60), ptrSources_)
+            // Rehydrate the sources array.
+            cursor_ = cursor_.up(constantsLength_);
+            uint i_ = 0;
+            StackTop lengthCursor_ = cursor_;
+            uint sourcesLength_ = 0;
+            while (StackTop.unwrap(lengthCursor_) < StackTop.unwrap(end_)) {
+                lengthCursor_ = lengthCursor_.upBytes(lengthCursor_.peekUp()).up();
+                sourcesLength_++;
             }
-            state_.eval = eval_;
+            state_.ptrSources = new bytes[](sourcesLength_);
+            while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
+                state_.ptrSources[i_] = cursor_.asBytes();
+                cursor_ = cursor_.upBytes(cursor_.peekUp()).up();
+                i_++;
+            }
             return state_;
         }
     }
@@ -199,7 +189,6 @@ library LibVMState {
     ) internal view returns (bytes memory) {
         unchecked {
             uint256 indexes_ = toIndexes(
-                ptrSources_.length.toUint8(),
                 stackLength_.toUint8(),
                 constants_.length.toUint8()
             );
@@ -227,6 +216,8 @@ library LibVMState {
                     StackTop.unwrap(cursor_),
                     ptrSources_[i_].length
                 );
+                // Bit of a hack, just forcing the cursor to a new location
+                // works for bytes but isn't really in the spirit of StackTop.
                 cursor_ = StackTop.wrap(
                     StackTop.unwrap(cursor_) + ptrSources_[i_].length
                 );
