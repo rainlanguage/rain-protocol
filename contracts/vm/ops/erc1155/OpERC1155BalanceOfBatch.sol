@@ -12,7 +12,6 @@ import "../../integrity/LibIntegrityState.sol";
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
     using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
     using LibCast for uint256[];
     using LibIntegrityState for IntegrityState;
 

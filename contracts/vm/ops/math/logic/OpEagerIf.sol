@@ -12,18 +12,18 @@ library OpEagerIf {
 
     function _eagerIf(
         uint256 a_,
-        uint256 b_,
-        uint256 c_
-    ) internal pure returns (uint256) {
-        return a_ > 0 ? b_ : c_;
+        uint256[] memory bs_,
+        uint256[] memory cs_
+    ) internal pure returns (uint256[] memory) {
+        return a_ > 0 ? bs_ : cs_;
     }
 
     function integrity(
         IntegrityState memory integrityState_,
-        Operand,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _eagerIf);
+        return integrityState_.applyFn(stackTop_, _eagerIf, Operand.unwrap(operand_) + 1);
     }
 
     /// Eager because BOTH x_ and y_ must be eagerly evaluated
@@ -32,9 +32,11 @@ library OpEagerIf {
     /// simplest and cheapest way to select one of them.
     function eagerIf(
         VMState memory,
-        Operand,
+        Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_eagerIf);
+        unchecked {
+            return stackTop_.applyFn(_eagerIf, Operand.unwrap(operand_) + 1);
+        }
     }
 }
