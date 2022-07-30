@@ -2,6 +2,8 @@
 pragma solidity ^0.8.15;
 
 import "./RainVM.sol";
+import "../../array/LibUint256Array.sol";
+import "../../bytes/LibBytes.sol";
 
 /// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
@@ -30,6 +32,9 @@ type StackTop is uint256;
 library LibStackTop {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
+    using LibStackTop for bytes;
+    using LibUint256Array for uint256[];
+    using LibBytes for uint;
 
     /// Reads the value above the stack top. If the stack top is the current
     /// true stack top this is an out of bounds read. This is only useful if
@@ -145,6 +150,43 @@ library LibStackTop {
             stackTop_ := add(stackTop_, 0x20)
         }
         return stackTop_;
+    }
+
+    function push(StackTop stackTop_, uint256[] memory array_)
+        internal
+        pure
+        returns (StackTop)
+    {
+        array_.unsafeCopyValuesTo(StackTop.unwrap(stackTop_));
+        return stackTop_.up(array_.length);
+    }
+
+    function pushWithLength(StackTop stackTop_, uint256[] memory array_)
+        internal
+        pure
+        returns (StackTop)
+    {
+        return stackTop_.push(array_.length).push(array_);
+    }
+
+    function unalignedPush(StackTop stackTop_, bytes memory bytes_)
+        internal
+        pure
+        returns (StackTop)
+    {
+        StackTop.unwrap(bytes_.asStackTop().up()).unsafeCopyBytesTo(
+            StackTop.unwrap(stackTop_),
+            bytes_.length
+        );
+        return stackTop_.upBytes(bytes_.length);
+    }
+
+    function unalignedPushWithLength(StackTop stackTop_, bytes memory bytes_)
+        internal
+        pure
+        returns (StackTop)
+    {
+        return stackTop_.push(bytes_.length).unalignedPush(bytes_);
     }
 
     /// Store 8x `uint256` at the stack top position and return the stack top
@@ -389,7 +431,11 @@ library LibStackTop {
         }
     }
 
-    function asBytes(StackTop stackTop_) internal pure returns (bytes memory bytes_) {
+    function asBytes(StackTop stackTop_)
+        internal
+        pure
+        returns (bytes memory bytes_)
+    {
         assembly ("memory-safe") {
             bytes_ := stackTop_
         }
@@ -431,7 +477,11 @@ library LibStackTop {
         }
     }
 
-    function upBytes(StackTop stackTop_, uint n_) internal pure returns (StackTop) {
+    function upBytes(StackTop stackTop_, uint256 n_)
+        internal
+        pure
+        returns (StackTop)
+    {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) + n_);
         }

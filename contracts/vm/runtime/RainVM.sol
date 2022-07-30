@@ -218,9 +218,9 @@ abstract contract RainVM {
             }
 
             stateBytes_ = LibVMState.toBytesPacked(
+                stackLength_,
                 config_.constants,
-                ptrSources_,
-                stackLength_
+                ptrSources_
             );
         }
     }
