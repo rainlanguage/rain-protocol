@@ -89,13 +89,15 @@ let
 
   echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
     # By now, we will use the `echidna-test` file in the repo
-    find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})"'
+    find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})"' 
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
-    if [[ "$(solc-select use 0.8.15)" =~ "You need to install '0.8.15' prior to using it." ]]; then
-      solc-select install 0.8.15;
-      solc-select use 0.8.15;
+    # Change the version
+    solcVersion='0.8.15';
+    if [[ $(solc-select use $solcVersion) =~ "You need to install '$solcVersion' prior to using it." ]]; then
+      solc-select install $solcVersion;
+      solc-select use $solcVersion;
     fi
   '';
 
@@ -169,10 +171,7 @@ pkgs.stdenv.mkDerivation {
     solt-the-earth
     flush-all
     # Echidna config
-    # Do we need to add Crytic-compile and slither-analyzer? Or echidna pckg already added it?
     init-solc
-    # pkgs.solc
-    # pkgs.echidna
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
   ];
