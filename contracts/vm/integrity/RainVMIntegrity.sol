@@ -46,16 +46,11 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             _ensureIntegrity
         );
         for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
-            require(
-                finalStacks_[i_] <=
-                    integrityState_.stackBottom.toIndex(
-                        _ensureIntegrity(
-                            integrityState_,
-                            SourceIndex.wrap(i_),
-                            StackTop.wrap(0)
-                        )
-                    ),
-                "MIN_FINAL_STACK"
+            _ensureIntegrity(
+                integrityState_,
+                SourceIndex.wrap(i_),
+                StackTop.wrap(0),
+                finalStacks_[i_]
             );
         }
         return (
@@ -67,14 +62,15 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
     function _ensureIntegrity(
         IntegrityState memory integrityState_,
         SourceIndex sourceIndex_,
-        StackTop stackTop_
+        StackTop stackTop_,
+        uint256 minimumFinalStackIndex_
     ) internal view returns (StackTop) {
         unchecked {
             uint256 cursor_;
             uint256 end_;
             assembly ("memory-safe") {
                 cursor_ := mload(
-                    add(integrityState_, add(0x20, mul(0x20, sourceIndex_)))
+                    add(mload(integrityState_), add(0x20, mul(0x20, sourceIndex_)))
                 )
                 end_ := add(cursor_, mload(cursor_))
             }
@@ -99,6 +95,11 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
                     stackTop_
                 );
             }
+            require(
+                minimumFinalStackIndex_ <=
+                    integrityState_.stackBottom.toIndex(stackTop_),
+                "MIN_FINAL_STACK"
+            );
             return stackTop_;
         }
     }

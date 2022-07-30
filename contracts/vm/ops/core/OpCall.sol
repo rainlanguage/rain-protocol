@@ -10,6 +10,7 @@ import "../../integrity/LibIntegrityState.sol";
 /// @title OpCall
 /// @notice Opcode for calling eval with a new scope.
 library OpCall {
+    using LibIntegrityState for IntegrityState;
     using LibStackTop for StackTop;
     using LibVMState for VMState;
 
@@ -23,7 +24,21 @@ library OpCall {
         SourceIndex callSourceIndex_ = SourceIndex.wrap(
             (Operand.unwrap(operand_) >> 5) & 0x7 // 00000111
         );
-        return integrityState_.ensureIntegrity(integrityState_, callSourceIndex_, stackTop_);
+
+        // Enter the call scope.
+        StackTop stackBottom_ = integrityState_.stackBottom;
+        integrityState_.stackBottom = integrityState_.pop(stackTop_, inputs_);
+        integrityState_.ensureIntegrity(
+            integrityState_,
+            callSourceIndex_,
+            stackTop_,
+            outputs_
+        );
+
+        // Exit the call scope.
+        stackTop_ = integrityState_.push(integrityState_.stackBottom, outputs_);
+        integrityState_.stackBottom = stackBottom_;
+        return stackTop_;
     }
 
     /// Call eval with a new scope.

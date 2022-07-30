@@ -11,13 +11,28 @@ import "../../integrity/LibIntegrityState.sol";
 library OpLoopN {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
+    using LibIntegrityState for IntegrityState;
 
     function integrity(
-        IntegrityState memory,
-        Operand,
-        StackTop
-    ) internal pure returns (StackTop) {
-        revert("UNIMPLEMENTED");
+        IntegrityState memory integrityState_,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        unchecked {
+            uint n_ = Operand.unwrap(operand_) & 0x0F;
+            SourceIndex loopSourceIndex_ = SourceIndex.wrap(
+                (Operand.unwrap(operand_) & 0xF0) >> 4
+            );
+            for (uint i_ = 0; i_ <= n_; i_++) {
+                stackTop_ = integrityState_.ensureIntegrity(
+                    integrityState_,
+                    loopSourceIndex_,
+                    stackTop_,
+                    0
+                );
+            }
+            return stackTop_;
+        }
     }
 
     /// Loop the stack `operand_` times.

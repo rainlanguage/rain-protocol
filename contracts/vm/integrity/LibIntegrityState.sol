@@ -15,14 +15,11 @@ struct IntegrityState {
     StackTop stackMaxTop;
     uint256 scratch;
     function(IntegrityState memory, Operand, StackTop)
-            view
-            returns (StackTop)[]
-             integrityFunctionPointers;
-    function(
-        IntegrityState memory,
-        SourceIndex,
-        StackTop
-    ) internal view returns (StackTop) ensureIntegrity;
+        view
+        returns (StackTop)[] integrityFunctionPointers;
+    function(IntegrityState memory, SourceIndex, StackTop, uint256)
+        internal
+        view returns (StackTop) ensureIntegrity;
 }
 
 library LibIntegrityState {
