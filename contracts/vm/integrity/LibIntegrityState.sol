@@ -18,8 +18,6 @@ library LibIntegrityState {
     using LibStackTop for StackTop;
     using Math for uint256;
 
-    // function toInte
-
     function syncStackMaxTop(
         IntegrityState memory integrityState_,
         StackTop stackTop_
