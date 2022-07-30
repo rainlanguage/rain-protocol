@@ -16,21 +16,16 @@ library OpERC1155BalanceOfBatch {
     using LibCast for uint256[];
     using LibIntegrityState for IntegrityState;
 
+    function _balanceOfBatch(uint token_, uint[] memory accounts_, uint[] memory ids_) internal view returns (uint[] memory) {
+        return IERC1155(address(uint160(token_))).balanceOfBatch(accounts_.asAddresses(), ids_);
+    }
+
     function integrity(
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        unchecked {
-            require(Operand.unwrap(operand_) > 0, "0_ERC1155_BATCH");
-            return
-                integrityState_.push(
-                    integrityState_.pop(
-                        stackTop_,
-                        (2 * Operand.unwrap(operand_)) + 1
-                    )
-                );
-        }
+        return integrityState_.applyFn(stackTop_, _balanceOfBatch, Operand.unwrap(operand_));
     }
 
     // Stack the return of `balanceOfBatch`.
@@ -40,21 +35,6 @@ library OpERC1155BalanceOfBatch {
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        StackTop idsStart_ = stackTop_.down(Operand.unwrap(operand_));
-        uint256[] memory ids_ = LibUint256Array.copyToNewUint256Array(
-            StackTop.unwrap(idsStart_),
-            Operand.unwrap(operand_)
-        );
-        (uint256 token_, uint256[] memory addresses_) = idsStart_.list(
-            Operand.unwrap(operand_)
-        );
-
-        uint256[] memory balances_ = IERC1155(address(uint160(token_)))
-            .balanceOfBatch(addresses_.asAddresses(), ids_);
-        LibUint256Array.unsafeCopyValuesTo(
-            balances_,
-            StackTop.unwrap(addresses_.asStackTop())
-        );
-        return addresses_.asStackTop().up(Operand.unwrap(operand_));
+        return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
     }
 }

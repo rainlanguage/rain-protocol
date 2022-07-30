@@ -172,4 +172,18 @@ library LibIntegrityState {
                 );
         }
     }
+
+    function applyFn(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_,
+        function(uint, uint[] memory, uint[] memory) internal view returns (uint[] memory),
+        uint length_
+    ) internal pure returns (StackTop) {
+        unchecked {
+            return integrityState_.push(
+                integrityState_.pop(stackTop_, length_ * 2 + 1),
+                length_
+            );
+        }
+    }
 }

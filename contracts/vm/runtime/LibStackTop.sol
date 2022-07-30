@@ -399,6 +399,30 @@ library LibStackTop {
         return stackTopAfter_;
     }
 
+    function applyFn(
+        StackTop stackTop_,
+        function(uint, uint[] memory, uint[] memory) internal view returns (uint[] memory) fn_,
+        uint length_
+    ) internal view returns (StackTop) {
+        StackTop csStart_ = stackTop_.down(length_);
+        uint256[] memory cs_ = LibUint256Array.copyToNewUint256Array(
+            StackTop.unwrap(csStart_),
+            length_
+        );
+        (uint256 a_, uint256[] memory bs_) = csStart_.list(
+            length_
+        );
+
+        uint256[] memory results_ = fn_(a_, bs_, cs_);
+        require(results_.length == length_, "BAD_RESULT_LENGTH");
+        StackTop bottom_ = bs_.asStackTop();
+        LibUint256Array.unsafeCopyValuesTo(
+            results_,
+            StackTop.unwrap(bottom_)
+        );
+        return bottom_.up(length_);
+    }
+
     function list(StackTop stackTop_, uint256 length_)
         internal
         pure

@@ -90,7 +90,7 @@ library LibVMState {
             internal
             view
             returns (StackTop) eval_
-    ) internal view returns (VMState memory) {
+    ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
 
@@ -139,7 +139,7 @@ library LibVMState {
         uint256 stackLength_,
         uint256[] memory constants_,
         bytes[] memory ptrSources_
-    ) internal view returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         unchecked {
             bytes memory packedBytes_ = new bytes(
                 stackLength_.size() + constants_.size() + ptrSources_.size()
