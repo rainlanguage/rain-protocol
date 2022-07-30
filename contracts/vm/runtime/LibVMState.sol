@@ -122,7 +122,8 @@ library LibVMState {
             uint256 sourcesLength_ = 0;
             while (StackTop.unwrap(lengthCursor_) < StackTop.unwrap(end_)) {
                 lengthCursor_ = lengthCursor_
-                    .upBytes(lengthCursor_.peekUp()).up();
+                    .upBytes(lengthCursor_.peekUp())
+                    .up();
                 sourcesLength_++;
             }
             state_.ptrSources = new bytes[](sourcesLength_);

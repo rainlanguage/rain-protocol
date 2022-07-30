@@ -195,14 +195,15 @@ abstract contract RainVM {
         IRainVMIntegrity vmIntegrity_,
         StateConfig memory config_,
         uint256[] memory finalStacks_
-    ) internal view returns (bytes memory stateBytes_) {
+    ) internal view returns (bytes memory, uint256) {
         unchecked {
-            uint256 stackLength_ = vmIntegrity_.ensureIntegrity(
-                storageOpcodesRange(),
-                config_.sources,
-                config_.constants.length,
-                finalStacks_
-            );
+            (uint256 stackLength_, uint256 scratch_) = vmIntegrity_
+                .ensureIntegrity(
+                    storageOpcodesRange(),
+                    config_.sources,
+                    config_.constants.length,
+                    finalStacks_
+                );
 
             bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
             function(VMState memory, Operand, StackTop)
@@ -217,10 +218,13 @@ abstract contract RainVM {
                 );
             }
 
-            stateBytes_ = LibVMState.toBytesPacked(
-                stackLength_,
-                config_.constants,
-                ptrSources_
+            return (
+                LibVMState.toBytesPacked(
+                    stackLength_,
+                    config_.constants,
+                    ptrSources_
+                ),
+                scratch_
             );
         }
     }

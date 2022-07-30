@@ -34,7 +34,7 @@ library LibStackTop {
     using LibStackTop for uint256[];
     using LibStackTop for bytes;
     using LibUint256Array for uint256[];
-    using LibBytes for uint;
+    using LibBytes for uint256;
 
     /// Reads the value above the stack top. If the stack top is the current
     /// true stack top this is an out of bounds read. This is only useful if
@@ -401,25 +401,23 @@ library LibStackTop {
 
     function applyFn(
         StackTop stackTop_,
-        function(uint, uint[] memory, uint[] memory) internal view returns (uint[] memory) fn_,
-        uint length_
+        function(uint256, uint256[] memory, uint256[] memory)
+            internal
+            view
+            returns (uint256[] memory) fn_,
+        uint256 length_
     ) internal view returns (StackTop) {
         StackTop csStart_ = stackTop_.down(length_);
         uint256[] memory cs_ = LibUint256Array.copyToNewUint256Array(
             StackTop.unwrap(csStart_),
             length_
         );
-        (uint256 a_, uint256[] memory bs_) = csStart_.list(
-            length_
-        );
+        (uint256 a_, uint256[] memory bs_) = csStart_.list(length_);
 
         uint256[] memory results_ = fn_(a_, bs_, cs_);
         require(results_.length == length_, "BAD_RESULT_LENGTH");
         StackTop bottom_ = bs_.asStackTop();
-        LibUint256Array.unsafeCopyValuesTo(
-            results_,
-            StackTop.unwrap(bottom_)
-        );
+        LibUint256Array.unsafeCopyValuesTo(results_, StackTop.unwrap(bottom_));
         return bottom_.up(length_);
     }
 

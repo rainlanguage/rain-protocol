@@ -6,9 +6,9 @@ import "./LibIntegrityState.sol";
 
 interface IRainVMIntegrity {
     function ensureIntegrity(
-        StorageOpcodesRange memory storageOpcodesRange_,
-        bytes[] memory sources_,
-        uint256 constantsLength_,
-        uint256[] memory finalStacks_
-    ) external view returns (uint256);
+        StorageOpcodesRange memory storageOpcodesRange,
+        bytes[] memory sources,
+        uint256 constantsLength,
+        uint256[] memory finalStacks
+    ) external view returns (uint256 maximumStackHeight, uint256 scratch);
 }

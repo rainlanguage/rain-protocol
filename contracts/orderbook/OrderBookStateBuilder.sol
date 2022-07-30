@@ -15,6 +15,7 @@ contract OrderBookStateBuilder is StandardIntegrity {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        integrityState_.scratch |= TRACKING_MASK_CLEARED_ORDER;
         function(uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }
@@ -24,6 +25,7 @@ contract OrderBookStateBuilder is StandardIntegrity {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        integrityState_.scratch |= TRACKING_MASK_CLEARED_COUNTERPARTY;
         function(uint256, uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }

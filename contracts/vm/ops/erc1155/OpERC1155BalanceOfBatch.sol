@@ -16,8 +16,16 @@ library OpERC1155BalanceOfBatch {
     using LibCast for uint256[];
     using LibIntegrityState for IntegrityState;
 
-    function _balanceOfBatch(uint token_, uint[] memory accounts_, uint[] memory ids_) internal view returns (uint[] memory) {
-        return IERC1155(address(uint160(token_))).balanceOfBatch(accounts_.asAddresses(), ids_);
+    function _balanceOfBatch(
+        uint256 token_,
+        uint256[] memory accounts_,
+        uint256[] memory ids_
+    ) internal view returns (uint256[] memory) {
+        return
+            IERC1155(address(uint160(token_))).balanceOfBatch(
+                accounts_.asAddresses(),
+                ids_
+            );
     }
 
     function integrity(
@@ -25,7 +33,12 @@ library OpERC1155BalanceOfBatch {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _balanceOfBatch, Operand.unwrap(operand_));
+        return
+            integrityState_.applyFn(
+                stackTop_,
+                _balanceOfBatch,
+                Operand.unwrap(operand_)
+            );
     }
 
     // Stack the return of `balanceOfBatch`.

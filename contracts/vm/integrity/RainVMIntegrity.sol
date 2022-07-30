@@ -33,7 +33,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
         bytes[] memory sources_,
         uint256 constantsLength_,
         uint256[] memory finalStacks_
-    ) external view returns (uint256 stackLength_) {
+    ) external view returns (uint256 stackLength_, uint256 scratch_) {
         function(IntegrityState memory, Operand, StackTop)
             view
             returns (StackTop)[]
@@ -43,7 +43,8 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             constantsLength_,
             0,
             StackTop.wrap(0),
-            StackTop.wrap(0)
+            StackTop.wrap(0),
+            0
         );
         for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
             require(
@@ -60,7 +61,10 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
                 "MIN_FINAL_STACK"
             );
         }
-        return integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop);
+        return (
+            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop),
+            integrityState_.scratch
+        );
     }
 
     function _ensureIntegrity(

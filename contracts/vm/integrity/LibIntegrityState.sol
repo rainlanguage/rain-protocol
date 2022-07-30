@@ -11,6 +11,7 @@ struct IntegrityState {
     uint256 contextLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
+    uint256 scratch;
 }
 
 library LibIntegrityState {
@@ -176,14 +177,18 @@ library LibIntegrityState {
     function applyFn(
         IntegrityState memory integrityState_,
         StackTop stackTop_,
-        function(uint, uint[] memory, uint[] memory) internal view returns (uint[] memory),
-        uint length_
+        function(uint256, uint256[] memory, uint256[] memory)
+            internal
+            view
+            returns (uint256[] memory),
+        uint256 length_
     ) internal pure returns (StackTop) {
         unchecked {
-            return integrityState_.push(
-                integrityState_.pop(stackTop_, length_ * 2 + 1),
-                length_
-            );
+            return
+                integrityState_.push(
+                    integrityState_.pop(stackTop_, length_ * 2 + 1),
+                    length_
+                );
         }
     }
 }
