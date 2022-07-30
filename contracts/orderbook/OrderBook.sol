@@ -43,6 +43,7 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
+uint256 constant LOCAL_OPS_LENGTH = 2;
 uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
 uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
 uint256 constant TRACKING_MASK_ALL = TRACKING_MASK_CLEARED_ORDER |
