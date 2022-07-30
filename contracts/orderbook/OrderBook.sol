@@ -44,10 +44,8 @@ struct ClearStateChange {
 }
 
 uint256 constant LOCAL_OPS_LENGTH = 2;
-uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
-uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
-uint256 constant TRACKING_MASK_ALL = TRACKING_MASK_CLEARED_ORDER |
-    TRACKING_MASK_CLEARED_COUNTERPARTY;
+uint256 constant TRACKING_FLAG_CLEARED_ORDER = 0x1;
+uint256 constant TRACKING_FLAG_CLEARED_COUNTERPARTY = 0x2;
 
 library LibEvalContext {
     function toContext(EvalContext memory evalContext_)
@@ -253,10 +251,10 @@ contract OrderBook is StandardVM {
             vaults[a_.owner][a_.validOutputs[clearConfig_.aOutputIndex].token][
                 a_.validOutputs[clearConfig_.aOutputIndex].vaultId
             ] -= stateChange_.aOutput;
-            if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
+            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
                 clearedOrder[aHash_] += stateChange_.aOutput;
             }
-            if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_COUNTERPARTY)) {
+            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
                 // A counts funds paid to cover the bounty as cleared for B.
                 clearedCounterparty[aHash_][b_.owner] += stateChange_.aOutput;
             }
@@ -265,10 +263,10 @@ contract OrderBook is StandardVM {
             vaults[b_.owner][b_.validOutputs[clearConfig_.bOutputIndex].token][
                 b_.validOutputs[clearConfig_.bOutputIndex].vaultId
             ] -= stateChange_.bOutput;
-            if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
+            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
                 clearedOrder[bHash_] += stateChange_.bOutput;
             }
-            if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_COUNTERPARTY)) {
+            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
                 clearedCounterparty[bHash_][a_.owner] += stateChange_.bOutput;
             }
         }

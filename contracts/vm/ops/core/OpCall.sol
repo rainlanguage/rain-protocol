@@ -14,11 +14,16 @@ library OpCall {
     using LibVMState for VMState;
 
     function integrity(
-        IntegrityState memory,
-        Operand,
-        StackTop
-    ) internal pure returns (StackTop) {
-        revert("UNIMPLEMENTED");
+        IntegrityState memory integrityState_,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        uint256 inputs_ = Operand.unwrap(operand_) & 0x7; // 00000111
+        uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3; // 00000011
+        SourceIndex callSourceIndex_ = SourceIndex.wrap(
+            (Operand.unwrap(operand_) >> 5) & 0x7 // 00000111
+        );
+        return integrityState_.ensureIntegrity(integrityState_, callSourceIndex_, stackTop_);
     }
 
     /// Call eval with a new scope.
@@ -27,10 +32,10 @@ library OpCall {
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        uint256 inputs_ = Operand.unwrap(operand_) & 0x7;
-        uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3;
+        uint256 inputs_ = Operand.unwrap(operand_) & 0x7; // 00000111
+        uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3; // 00000011
         SourceIndex callSourceIndex_ = SourceIndex.wrap(
-            (Operand.unwrap(operand_) >> 5) & 0x7
+            (Operand.unwrap(operand_) >> 5) & 0x7 // 00000111
         );
         stackTop_ = stackTop_.down(inputs_);
         StackTop stackTopAfter_ = state_.eval(

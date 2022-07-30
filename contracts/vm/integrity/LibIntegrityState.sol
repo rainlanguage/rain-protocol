@@ -6,12 +6,23 @@ import "../runtime/LibStackTop.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 struct IntegrityState {
+    // Sources first as we read it in assembly.
+    bytes[] sources;
     StorageOpcodesRange storageOpcodesRange;
     uint256 constantsLength;
     uint256 contextLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
     uint256 scratch;
+    function(IntegrityState memory, Operand, StackTop)
+            view
+            returns (StackTop)[]
+             integrityFunctionPointers;
+    function(
+        IntegrityState memory,
+        SourceIndex,
+        StackTop
+    ) internal view returns (StackTop) ensureIntegrity;
 }
 
 library LibIntegrityState {

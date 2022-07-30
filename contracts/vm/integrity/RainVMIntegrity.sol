@@ -34,25 +34,22 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
         uint256 constantsLength_,
         uint256[] memory finalStacks_
     ) external view returns (uint256 stackLength_, uint256 scratch_) {
-        function(IntegrityState memory, Operand, StackTop)
-            view
-            returns (StackTop)[]
-            memory integrityFunctionPointers_ = integrityFunctionPointers();
         IntegrityState memory integrityState_ = IntegrityState(
+            sources_,
             storageOpcodesRange_,
             constantsLength_,
             0,
             StackTop.wrap(0),
             StackTop.wrap(0),
-            0
+            0,
+            integrityFunctionPointers(),
+            _ensureIntegrity
         );
         for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
             require(
                 finalStacks_[i_] <=
                     integrityState_.stackBottom.toIndex(
                         _ensureIntegrity(
-                            sources_,
-                            integrityFunctionPointers_,
                             integrityState_,
                             SourceIndex.wrap(i_),
                             StackTop.wrap(0)
@@ -68,11 +65,6 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
     }
 
     function _ensureIntegrity(
-        bytes[] memory sources_,
-        function(IntegrityState memory, Operand, StackTop)
-            view
-            returns (StackTop)[]
-            memory integrityFunctionPointers_,
         IntegrityState memory integrityState_,
         SourceIndex sourceIndex_,
         StackTop stackTop_
@@ -82,7 +74,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             uint256 end_;
             assembly ("memory-safe") {
                 cursor_ := mload(
-                    add(sources_, add(0x20, mul(0x20, sourceIndex_)))
+                    add(integrityState_, add(0x20, mul(0x20, sourceIndex_)))
                 )
                 end_ := add(cursor_, mload(cursor_))
             }
@@ -101,7 +93,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
                 }
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.
-                stackTop_ = integrityFunctionPointers_[opcode_](
+                stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
                     integrityState_,
                     operand_,
                     stackTop_
