@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "./LibStackTop.sol";
 import "../../type/LibCast.sol";
+import "../../array/LibUint256Array.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -43,6 +44,7 @@ struct VMState {
 library LibVMState {
     using SafeCast for uint256;
 
+    using LibUint256Array for uint256[];
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
@@ -107,11 +109,10 @@ library LibVMState {
     function fromBytesPacked(
         bytes memory stateBytes_,
         uint256[] memory context_,
-        function (
-        VMState memory ,
-        SourceIndex ,
-        StackTop
-    ) internal view returns (StackTop) eval_
+        function(VMState memory, SourceIndex, StackTop)
+            internal
+            view
+            returns (StackTop) eval_
     ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
@@ -166,42 +167,84 @@ library LibVMState {
         }
     }
 
+    function unsafeCopyBytes(
+        uint256 inputCursor_,
+        uint256 outputCursor_,
+        uint256 remaining_
+    ) internal pure {
+        assembly ("memory-safe") {
+            for {} iszero(lt(remaining_, 0x20)) {
+                remaining_ := sub(remaining_, 0x20)
+                inputCursor_ := add(inputCursor_, 0x20)
+                outputCursor_ := add(outputCursor_, 0x20)
+                } {
+                    mstore(outputCursor_, mload(inputCursor_))
+            }
+
+            if gt(remaining_, 0) {
+                let mask_ := shr(mul(remaining_, 8), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+                // preserve existing bytes
+                mstore(outputCursor_, or(
+                    // input
+                    and(mload(inputCursor_), not(mask_)),
+                    and(mload(outputCursor_), mask_)))
+            }
+        }
+    }
+
     function toBytesPacked(
-        uint[] memory constants_,
+        uint256[] memory constants_,
         bytes[] memory ptrSources_,
-        uint stackLength_
-    ) internal pure returns (bytes memory) {
+        uint256 stackLength_
+    ) internal view returns (bytes memory) {
         unchecked {
-            uint indexes_ = toIndexes(
+            uint256 indexes_ = toIndexes(
                 ptrSources_.length.toUint8(),
                 stackLength_.toUint8(),
                 constants_.length.toUint8()
             );
 
-            bytes memory ret_ = bytes.concat(
-                bytes32(indexes_),
-                abi.encodePacked(constants_)
-            );
+            uint256 packedBytesLength_ = 0x20 + (constants_.length * 0x20);
             for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
-                ret_ = bytes.concat(
-                    ret_,
-                    bytes32(ptrSources_[i_].length),
-                    ptrSources_[i_]
+                packedBytesLength_ += ptrSources_[i_].length + 0x20;
+            }
+
+            bytes memory packedBytes_ = new bytes(packedBytesLength_);
+            StackTop cursor_ = packedBytes_.asStackTop().up();
+
+            // First copy indexes
+            cursor_ = cursor_.push(indexes_);
+
+            // Then the constants
+            constants_.unsafeCopyValuesTo(StackTop.unwrap(cursor_));
+            cursor_ = cursor_.up(constants_.length);
+
+            // Last the sources.
+            for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
+                cursor_ = cursor_.push(ptrSources_[i_].length);
+                unsafeCopyBytes(
+                    StackTop.unwrap(ptrSources_[i_].asStackTop().up()),
+                    StackTop.unwrap(cursor_),
+                    ptrSources_[i_].length
+                );
+                cursor_ = StackTop.wrap(
+                    StackTop.unwrap(cursor_) + ptrSources_[i_].length
                 );
             }
-            return ret_;
+            return packedBytes_;
         }
     }
 
     function toBytesPacked(VMState memory state_)
         internal
-        pure
+        view
         returns (bytes memory)
     {
-        return toBytesPacked(
-            state_.constantsBottom.down().asUint256Array(),
-            state_.ptrSources,
-            state_.stackBottom.peek()
-        );
+        return
+            toBytesPacked(
+                state_.constantsBottom.down().asUint256Array(),
+                state_.ptrSources,
+                state_.stackBottom.peek()
+            );
     }
 }
