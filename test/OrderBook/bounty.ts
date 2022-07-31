@@ -207,10 +207,10 @@ describe("OrderBook bounty", async function () {
     // BOUNTY BOT CLEARS THE ORDER
 
     const clearConfig: ClearConfigStruct = {
-      aInputIndex: 0,
-      aOutputIndex: 0,
-      bInputIndex: 0,
-      bOutputIndex: 0,
+      aInputIOIndex: 0,
+      aOutputIOIndex: 0,
+      bInputIOIndex: 0,
+      bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
     };
