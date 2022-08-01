@@ -84,7 +84,6 @@ let
     npm install
     hardhat compile --force
     hardhat test
-    echidna-test
   '';
 
   echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
