@@ -82,21 +82,25 @@ describe("LibCast asUint256 tests", async function () {
     assert(!i_.isZero(), "did not point to a function");
   });
 
-  it("retypes array of eval functions to array of uint256 pointers", async function () {
-    const randomNums = [randomUint256(), randomUint256(), randomUint256()];
+  it("retypes array of `function(uint256) view returns (uint256)` to array of uint256 pointers", async function () {
+    const array = [0, 0, 0];
 
-    const is_ = await libCast.callStatic.asUint256Array_evalPtrs([
-      ...randomNums,
-    ]);
+    const is_ = await libCast.callStatic.asUint256Array_uint256([...array]);
     is_.forEach((i_) => {
       assert(!i_.isZero(), "did not point to a function");
     });
   });
 
-  it("retypes array of `function(uint256) view returns (uint256)` to array of uint256 pointers", async function () {
-    const array = [0, 0, 0];
+  it("retypes array of op functions to array of uint256 pointers", async function () {
+    const randomNums = [randomUint256(), randomUint256(), randomUint256()];
 
-    const is_ = await libCast.callStatic.asUint256Array_uint256([...array]);
+    const tx_ = await libCast.asUint256Array_opPtrs([...randomNums]);
+
+    const { data: memDumpBefore_ } = (await tx_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx_.wait()).events[1];
+    assert(memDumpBefore_ === memDumpAfter_, "cast corrupted memory");
+
+    const is_ = await libCast.callStatic.asUint256Array_opPtrs([...randomNums]);
     is_.forEach((i_) => {
       assert(!i_.isZero(), "did not point to a function");
     });

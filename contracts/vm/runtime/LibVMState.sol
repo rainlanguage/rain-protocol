@@ -163,7 +163,7 @@ library LibVMState {
 
     function toBytesPacked(VMState memory state_)
         internal
-        view
+        pure
         returns (bytes memory)
     {
         return
