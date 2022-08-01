@@ -43,19 +43,19 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-struct TakeOrder {
+struct TakeOrderConfig {
     Order order;
     uint inputIOIndex;
     uint outputIOIndex;
 }
 
-struct TakeOrders {
+struct TakeOrdersConfig {
     address output;
     address input;
     uint minimumInput;
     uint maximumInput;
     uint maximumIORatio;
-    TakeOrder[] orders;
+    TakeOrderConfig[] orders;
 }
 
 uint256 constant LOCAL_OPS_LENGTH = 2;
@@ -96,6 +96,7 @@ contract OrderBook is StandardVM {
     event OrderDead(address sender, Order config);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
+    event TakeOrder(address sender, TakeOrderConfig takeOrder, uint input, uint output);
 
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
@@ -169,6 +170,23 @@ contract OrderBook is StandardVM {
         }
     }
 
+    function _calculateOrderIO(Order memory order_, uint outputIOIndex_, address counterparty_) internal view returns (uint orderOutputMax_, uint orderIORatio_) {
+            VMState memory vmState_ = order_.vmState.fromBytesPacked(
+                EvalContext(order_.hash(), counterparty_).toContext(),
+                eval
+            );
+            (orderOutputMax_, orderIORatio_) = eval(
+                vmState_,
+                ENTRYPOINT,
+                vmState_.stackBottom
+            ).peek2();
+
+            // The order owner can't send more than the smaller of their vault
+            // balance or their per-order limit.
+            IO memory outputIO_ = order_.validOutputs[outputIOIndex_];
+            orderOutputMax_ = orderOutputMax_.min(vaults[order_.owner][outputIO_.token][outputIO_.vaultId]);
+    }
+
     function _recordVaultIO(Order memory order_, address counterparty_, uint inputIOIndex_, uint input_, uint outputIOIndex_, uint output_) internal {
         IO memory io_;
         if (input_ > 0) {
@@ -187,9 +205,9 @@ contract OrderBook is StandardVM {
         }
     }
 
-    function takeOrders(TakeOrders calldata takeOrders_) external returns (uint totalInput_, uint totalOutput_) {
+    function takeOrders(TakeOrdersConfig calldata takeOrders_) external returns (uint totalInput_, uint totalOutput_) {
         uint i_ = 0;
-        TakeOrder memory takeOrder_;
+        TakeOrderConfig memory takeOrder_;
         Order memory order_;
         uint remainingInput_ = takeOrders_.maximumInput;
         VMState memory vmState_;
@@ -198,15 +216,8 @@ contract OrderBook is StandardVM {
             order_ = takeOrder_.order;
             require(order_.validInputs[takeOrder_.inputIOIndex].token == takeOrders_.output, "TOKEN_MISMATCH");
             require(order_.validOutputs[takeOrder_.outputIOIndex].token == takeOrders_.input, "TOKEN_MISMATCH");
-            vmState_ = order_.vmState.fromBytesPacked(
-                EvalContext(order_.hash(), msg.sender).toContext(),
-                eval
-            );
-            (uint orderOutputMax_, uint orderIORatio_) = eval(
-                vmState_,
-                ENTRYPOINT,
-                vmState_.stackBottom
-            ).peek2();
+
+            (uint orderOutputMax_, uint orderIORatio_) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
 
             // Skip orders that are too expensive rather than revert as we have
             // no way of knowing if a specific order becomes too expensive
@@ -218,10 +229,12 @@ contract OrderBook is StandardVM {
 
             uint input_ = remainingInput_.min(orderOutputMax_);
             uint output_ = input_.fixedPointMul(orderIORatio_);
+
             remainingInput_ -= input_;
             totalOutput_ += output_;
 
             _recordVaultIO(order_, msg.sender, takeOrder_.inputIOIndex, output_, takeOrder_.outputIOIndex, input_);
+            emit TakeOrder(msg.sender, takeOrder_, input_, output_);
 
             unchecked {
                 i_++;
@@ -273,46 +286,8 @@ contract OrderBook is StandardVM {
             // VM execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            unchecked {
-                VMState memory vmState_;
-                {
-                    vmState_ = a_.vmState.fromBytesPacked(
-                        EvalContext(aHash_, b_.owner).toContext(),
-                        eval
-                    );
-                    (aOutputMax_, aIORatio_) = eval(
-                        vmState_,
-                        ENTRYPOINT,
-                        vmState_.stackBottom
-                    ).peek2();
-                }
-
-                {
-                    vmState_ = b_.vmState.fromBytesPacked(
-                        EvalContext(bHash_, a_.owner).toContext(),
-                        eval
-                    );
-                    (bOutputMax_, bIORatio_) = eval(
-                        vmState_,
-                        ENTRYPOINT,
-                        vmState_.stackBottom
-                    ).peek2();
-                }
-            }
-
-            // outputs are capped by the remaining funds in their output vault.
-            {
-                aOutputMax_ = aOutputMax_.min(
-                    vaults[a_.owner][
-                        a_.validOutputs[clearConfig_.aOutputIOIndex].token
-                    ][a_.validOutputs[clearConfig_.aOutputIOIndex].vaultId]
-                );
-                bOutputMax_ = bOutputMax_.min(
-                    vaults[b_.owner][
-                        b_.validOutputs[clearConfig_.bOutputIOIndex].token
-                    ][b_.validOutputs[clearConfig_.bOutputIOIndex].vaultId]
-                );
-            }
+            (aOutputMax_, aIORatio_) = _calculateOrderIO(a_, clearConfig_.aOutputIOIndex, b_.owner);
+            (bOutputMax_, bIORatio_) = _calculateOrderIO(b_, clearConfig_.bOutputIOIndex, a_.owner);
 
             stateChange_.aOutput = aOutputMax_.min(
                 bOutputMax_.fixedPointMul(bIORatio_)
