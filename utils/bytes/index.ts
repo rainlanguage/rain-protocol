@@ -11,34 +11,34 @@ export function randomUint256(): string {
 }
 
 /**
- * Pads leading zeroes of hex number to hex string length of 32 bytes
- * @param {BigNumber} hex
+ * Pads leading zeroes of BigNumber to hex string length of 32 bytes
+ * @param {BigNumber} num
  */
-export function zeroPad32(hex: BigNumber): string {
-  return ethers.utils.hexZeroPad(hex.toHexString(), 32);
+export function zeroPad32(num: BigNumber): string {
+  return ethers.utils.hexZeroPad(num.toHexString(), 32);
 }
 
 /**
- * Pads leading zeroes of hex number to hex string length of 4 bytes
- * @param {BigNumber} hex
+ * Pads leading zeroes of BigNumber to hex string length of 4 bytes
+ * @param {BigNumber} num
  */
-export function zeroPad4(hex: BigNumber): string {
-  return ethers.utils.hexZeroPad(hex.toHexString(), 4);
+export function zeroPad4(num: BigNumber): string {
+  return ethers.utils.hexZeroPad(num.toHexString(), 4);
 }
 
 /**
- * Pads leading zeroes of hex number to hex string length of 2 bytes
- * @param {BigNumber} hex
+ * Pads leading zeroes of BigNumber to hex string length of 2 bytes
+ * @param {BigNumber} num
  */
-export function zeroPad2(hex: BigNumber): string {
-  return ethers.utils.hexZeroPad(hex.toHexString(), 2);
+export function zeroPad2(num: BigNumber): string {
+  return ethers.utils.hexZeroPad(num.toHexString(), 2);
 }
 
-export const paddedUInt256 = (report: BigNumber): string => {
-  if (report.gt(max_uint256)) {
-    throw new Error(`${report} exceeds max uint256`);
+export const paddedUInt256 = (num: BigNumber): string => {
+  if (num.gt(max_uint256)) {
+    throw new Error(`${num} exceeds max uint256`);
   }
-  return "0x" + report.toHexString().substring(2).padStart(64, "0");
+  return "0x" + num.toHexString().substring(2).padStart(64, "0");
 };
 
 export const paddedUInt32 = (
