@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
 
-describe("LibStackTop peek tests", async function () {
+describe("LibStackTop uint array tests", async function () {
   let libStackTop: LibStackTopTest;
 
   before(async () => {
@@ -13,14 +13,22 @@ describe("LibStackTop peek tests", async function () {
   });
 
   it("should peek up", async function () {
-    const a_ = await libStackTop.callStatic.peekUp("0x0001000200030004");
+    const array0 = [10, 20, 30, 40, 50];
 
-    console.log({ a_ });
-  });
+    const a0_ = await libStackTop.callStatic["peekUp(uint256[])"](array0);
 
-  it("should peek", async function () {
-    const a_ = await libStackTop.callStatic.peek("0x0001000200030004");
+    assert(a0_.eq(array0.length));
 
-    console.log({ a_ });
+    const a1_ = await libStackTop.callStatic["peekUp(uint256[],uint256)"](
+      array0,
+      1
+    );
+
+    assert(
+      a1_.eq(array0[0]),
+      `wrong value
+      expected  ${array0[0]}
+      got       ${a1_}`
+    );
   });
 });

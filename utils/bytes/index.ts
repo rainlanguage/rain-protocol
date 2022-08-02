@@ -74,18 +74,18 @@ export const wrap8BitUInt = (integer: number) => {
   return integer;
 };
 
-export const array2BitUInts = (length) =>
+export const array2BitUInts = (length: number): number[] =>
   Array(length)
     .fill(0)
     // .map((_, i) => 3);
     .map((_, i) => wrap2BitUInt(i));
 
-export const array4BitUInts = (length) =>
+export const array4BitUInts = (length: number): number[] =>
   Array(length)
     .fill(0)
     .map((_, i) => wrap4BitUInt(i));
 
-export const array8BitUInts = (length) =>
+export const array8BitUInts = (length: number): number[] =>
   Array(length)
     .fill(0)
     .map((_, i) => wrap8BitUInt(i));
