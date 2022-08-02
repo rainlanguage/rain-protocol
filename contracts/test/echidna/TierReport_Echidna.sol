@@ -24,22 +24,10 @@ contract TierReport_Echidna {
     uint256 private _startTier;
     uint256 private _endTier;
 
-    // Helper function to replicate how the tiers are splitted
-    function splitReport(uint256 report_)
-        private
-        pure
-        returns (uint32[8] memory tiers_)
-    {
-        // The tiers are splitted by each 32bits from the report
-        for (uint256 i = 0; i < 8; i++) {
-            tiers_[i] = uint32(uint256(report_ >> (i * 32)));
-        }
-    }
-
     // Allow echidna to set report and separate the report into the 8 tier levels
     function setReport(uint256 report_) public {
         _report = report_;
-        _tiers = splitReport(report_);
+        _tiers = _splitReport(report_);
     }
 
     // Allow echidna to set a timestmap to evaluate
@@ -182,6 +170,18 @@ contract TierReport_Echidna {
         }
     }
 
+        // Helper function to replicate how the tiers are splitted
+    function _splitReport(uint256 report_)
+        private
+        pure
+        returns (uint32[8] memory tiers_)
+    {
+        // The tiers are splitted by each 32bits from the report
+        for (uint256 i = 0; i < 8; i++) {
+            tiers_[i] = uint32(uint256(report_ >> (i * 32)));
+        }
+    }
+
     function _checkTruncateTiersAbove(
         uint256 newReport_,
         uint256 originalReport_,
@@ -194,8 +194,8 @@ contract TierReport_Echidna {
         tierTarget_ -= 1;
 
         // Split the reports to compare each one
-        uint32[8] memory newTiers_ = splitReport(newReport_);
-        uint32[8] memory originalTiers_ = splitReport(originalReport_);
+        uint32[8] memory newTiers_ = _splitReport(newReport_);
+        uint32[8] memory originalTiers_ = _splitReport(originalReport_);
 
         for (uint256 i = 0; i < 8; i++) {
             if (i <= tierTarget_) {
@@ -229,8 +229,8 @@ contract TierReport_Echidna {
         }
 
         // Split the reports to compare each one
-        uint32[8] memory newTiers_ = splitReport(newReport_);
-        uint32[8] memory originalTiers_ = splitReport(originalReport_);
+        uint32[8] memory newTiers_ = _splitReport(newReport_);
+        uint32[8] memory originalTiers_ = _splitReport(originalReport_);
 
         for (uint256 i = 0; i < 8; i++) {
             if (i == tierTarget_) {
@@ -265,8 +265,8 @@ contract TierReport_Echidna {
         }
 
         // Split the reports to compare each one
-        uint32[8] memory newTiers_ = splitReport(newReport_);
-        uint32[8] memory originalTiers_ = splitReport(originalReport_);
+        uint32[8] memory newTiers_ = _splitReport(newReport_);
+        uint32[8] memory originalTiers_ = _splitReport(originalReport_);
 
         for (uint256 i = 0; i < 8; i++) {
             if (i >= startTier_ && i + 1 <= endTier_) {
