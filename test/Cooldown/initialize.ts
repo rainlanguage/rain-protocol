@@ -8,7 +8,7 @@ import {
   max_uint32,
 } from "../../utils";
 
-describe.only("Cooldown initialize test", async function () {
+describe("Cooldown initialize test", async function () {
   let cooldownTest: CooldownTest;
   let alice: SignerWithAddress;
 
