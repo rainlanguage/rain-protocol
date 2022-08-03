@@ -3,7 +3,6 @@ import { arrayify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
 import { range } from "../../../utils/range";
-import { assertError } from "../../../utils/test/assertError";
 
 describe("LibStackTop bytes tests", async function () {
   let libStackTop: LibStackTopTest;
@@ -33,7 +32,7 @@ describe("LibStackTop bytes tests", async function () {
         arrayify(a1_)[i_] === element_,
         `wrong value
         expected  ${element_}
-        got       ${a1_}`
+        got       ${arrayify(a1_)[i_]}`
       );
     });
   });
@@ -68,5 +67,67 @@ describe("LibStackTop bytes tests", async function () {
     );
 
     assert(arrayify(a2_)[0] === array0[32], "first byte in 2nd chunk is wrong");
+  });
+
+  it("should peek", async function () {
+    const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
+
+    const a0_ = await libStackTop.callStatic["peek(bytes)"](array0);
+
+    assert(a0_.isZero(), "memory should be out of bounds");
+
+    // get first 32 bytes
+    const a1_ = await libStackTop.callStatic["peek(bytes,uint256)"](array0, 1);
+
+    assert(a1_.eq(array0.length));
+
+    // get second 32 bytes
+    const a2_ = await libStackTop.callStatic["peek(bytes,uint256)"](array0, 2);
+
+    array0.forEach((element_, i_) => {
+      assert(
+        arrayify(a2_)[i_] === element_,
+        `wrong value
+        expected  ${element_}
+        got       ${arrayify(a2_)[i_]}`
+      );
+    });
+  });
+
+  it("should peek2", async function () {
+    const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
+
+    const [a_, b_] = await libStackTop.callStatic["peek2(bytes,uint256)"](
+      array0,
+      2 // shift up before calling `peek2`
+    );
+
+    assert(a_.eq(array0.length));
+
+    array0.forEach((element_, i_) => {
+      assert(
+        arrayify(b_)[i_] === element_,
+        `wrong value
+        expected  ${element_}
+        got       ${arrayify(b_)[i_]}`
+      );
+    });
+  });
+
+  it("should pop", async function () {
+    const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
+
+    const { stackTopAfter_, a_ } = await libStackTop.callStatic[
+      "pop(bytes,uint256)"
+    ](
+      array0,
+      1 // shift up past array size value before calling `pop`
+    );
+
+    assert(a_.eq(array0.length), "a_ should be the value that was read");
+    assert(
+      stackTopAfter_.eq(128), // in this case, pointer happens to start at the 4th byte
+      "stackTopAfter_ pointer should be defined (for the value that was read)"
+    );
   });
 });
