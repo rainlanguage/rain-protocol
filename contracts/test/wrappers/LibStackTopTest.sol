@@ -10,31 +10,27 @@ contract LibStackTopTest {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
 
-    function peekUp(bytes memory bytes_) external pure returns (uint256 a_) {
-        a_ = LibStackTop.peekUp(bytes_.asStackTop());
+    function peekUp(bytes memory bytes_) external pure returns (uint256) {
+        return bytes_.asStackTop().peekUp();
     }
 
     function peekUp(bytes memory bytes_, uint256 n_)
         external
         pure
-        returns (uint256 a_)
+        returns (uint256)
     {
-        a_ = LibStackTop.peekUp(bytes_.asStackTop().upBytes(n_));
+        return bytes_.asStackTop().upBytes(n_ * 0x20).peekUp();
     }
 
-    function peekUp(uint256[] memory array_)
-        external
-        pure
-        returns (uint256 a_)
-    {
-        a_ = LibStackTop.peekUp(array_.asStackTop());
+    function peekUp(uint256[] memory array_) external pure returns (uint256) {
+        return array_.asStackTop().peekUp();
     }
 
     function peekUp(uint256[] memory array_, uint256 n_)
         external
         pure
-        returns (uint256 a_)
+        returns (uint256)
     {
-        a_ = LibStackTop.peekUp(array_.asStackTop().up(n_));
+        return array_.asStackTop().up(n_).peekUp();
     }
 }
