@@ -130,4 +130,23 @@ describe("LibStackTop bytes tests", async function () {
       "stackTopAfter_ pointer should be defined (for the value that was read)"
     );
   });
+
+  it("should set", async function () {
+    const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
+    const value0 = 6;
+
+    // set a new array length
+    const bytes0_ = await libStackTop.callStatic["set(bytes,uint256,uint256)"](
+      array0,
+      value0,
+      0 // no shift up, we are writing over array size value
+    );
+
+    const newArray0_ = arrayify(bytes0_);
+
+    assert(newArray0_.length === value0);
+    for (let i = 0; i < value0; i++) {
+      assert(array0[i] === newArray0_[i]);
+    }
+  });
 });
