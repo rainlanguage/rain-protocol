@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import {Factory} from "../factory/Factory.sol";
 import {CombineTier, CombineTierConfig} from "./CombineTier.sol";
 

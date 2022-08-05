@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {IERC20MetadataUpgradeable as IERC20Metadata} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {ERC4626Upgradeable as ERC4626} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
@@ -15,7 +16,7 @@ import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
 
 struct StakeConfig {
-    IERC20MetadataUpgradeable asset;
+    IERC20Metadata asset;
     string name;
     string symbol;
 }
@@ -27,7 +28,7 @@ struct DepositRecord {
     uint224 amount;
 }
 
-contract Stake is ERC4626Upgradeable, TierV2, ReentrancyGuard {
+contract Stake is ERC4626, TierV2, ReentrancyGuard {
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -43,7 +44,7 @@ contract Stake is ERC4626Upgradeable, TierV2, ReentrancyGuard {
         emit Initialize(msg.sender, config_);
     }
 
-    /// @inheritdoc ERC4626Upgradeable
+    /// @inheritdoc ERC4626
     function _deposit(
         address caller_,
         address receiver_,
@@ -58,7 +59,7 @@ contract Stake is ERC4626Upgradeable, TierV2, ReentrancyGuard {
         _addSharesToStakingLedger(receiver_, shares_);
     }
 
-    /// @inheritdoc ERC4626Upgradeable
+    /// @inheritdoc ERC4626
     function _withdraw(
         address caller_,
         address receiver_,

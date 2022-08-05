@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
+import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
 
 /// @title ReserveTokenERC20Snapshot
 /// A test token that can be used as a reserve asset.
@@ -14,7 +14,8 @@ contract ReserveTokenERC20Snapshot is ERC20Snapshot {
     uint256 public constant TOTAL_SUPPLY = 10**(DECIMALS + 9);
 
     /// Define and mint the erc20 token.
-    constructor() ERC20("USD Classic", "USDCC") {
+    constructor() {
+        __ERC20_init("USD Classic", "USDCC");
         _mint(msg.sender, TOTAL_SUPPLY);
     }
 

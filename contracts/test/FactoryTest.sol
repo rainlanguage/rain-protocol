@@ -4,7 +4,7 @@ pragma solidity =0.8.15;
 import {Factory} from "../factory/Factory.sol";
 import "./FactoryChildTest.sol";
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title FactoryTest
 /// @notice Test factory for creating and deploying `FactoryChildTest` contracts.

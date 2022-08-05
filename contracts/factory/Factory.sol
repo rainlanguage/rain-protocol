@@ -2,7 +2,7 @@
 pragma solidity =0.8.15;
 
 import {IFactory} from "./IFactory.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 /// @title Factory
 /// @notice Base contract for deploying and registering child contracts.
