@@ -35,7 +35,7 @@ library LibCast {
         }
     }
 
-    function asOpFunctionPointers(uint256[] memory is_)
+    function asOpcodeFunctionPointers(uint256[] memory is_)
         internal
         pure
         returns (

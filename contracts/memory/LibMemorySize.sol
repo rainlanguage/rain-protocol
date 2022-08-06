@@ -19,16 +19,4 @@ library LibMemorySize {
             return 0x20 + bytes_.length;
         }
     }
-
-    function size(bytes[] memory bytess_)
-        internal
-        pure
-        returns (uint256 size_)
-    {
-        unchecked {
-            for (uint256 i_ = 0; i_ < bytess_.length; i_++) {
-                size_ += bytess_[i_].size();
-            }
-        }
-    }
 }

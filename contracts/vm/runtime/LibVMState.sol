@@ -6,7 +6,7 @@ import "../../type/LibCast.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 enum DebugStyle {
     StatePacked,
@@ -46,7 +46,7 @@ library LibVMState {
     using SafeCast for uint256;
     using LibMemorySize for uint256;
     using LibMemorySize for uint256[];
-    using LibMemorySize for bytes[];
+    using LibMemorySize for bytes;
     using LibUint256Array for uint256[];
     using LibVMState for VMState;
     using LibStackTop for uint256[];
@@ -56,6 +56,7 @@ library LibVMState {
     using LibCast for function(VMState memory, SourceIndex, StackTop)
         view
         returns (StackTop);
+    using LibCast for function(VMState memory, Operand, StackTop) view returns (StackTop)[];
 
     function debug(
         VMState memory state_,
@@ -136,15 +137,48 @@ library LibVMState {
         }
     }
 
+    function replaceSourceIndexesWithPointers(bytes memory source_, uint[] memory pointers_) internal pure {
+        assembly ("memory-safe") {
+            for {
+                let replaceMask_ := 0xFFFF
+                let preserveMask_ := not(replaceMask_)
+                let sourceLength_ := mload(source_)
+                let pointersBottom_ := add(pointers_, 0x20)
+                let cursor_ := add(source_, 2)
+                let end_ := add(source_, sourceLength_)
+            }
+            lt(cursor_, end_)
+            {
+                cursor_ := add(cursor_, 4)
+            }
+            {
+                let data_ := mload(cursor_)
+                mstore(cursor_, or(and(data_, preserveMask_), mload(
+                    add(
+                        pointersBottom_, 
+                        mul(and(data_, replaceMask_), 0x20)))))
+            }
+        }
+    }
+
     function toBytesPacked(
         uint256 stackLength_,
         uint256[] memory constants_,
-        bytes[] memory ptrSources_
+        bytes[] memory sources_,
+                    function(VMState memory, Operand, StackTop)
+                internal
+                view
+                returns (StackTop)[]
+                memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
-            bytes memory packedBytes_ = new bytes(
-                stackLength_.size() + constants_.size() + ptrSources_.size()
-            );
+            uint size_ = 0;
+            size_ += stackLength_.size();
+            size_ += constants_.size();
+            for (uint i_ = 0; i_ < sources_.length; i_++) {
+                size_ += sources_[i_].size();
+            }
+            bytes memory packedBytes_ = new bytes(size_);
             StackTop cursor_ = packedBytes_.asStackTop().up();
 
             // Copy stack length.
@@ -154,14 +188,21 @@ library LibVMState {
             cursor_ = cursor_.pushWithLength(constants_);
 
             // Last the sources.
-            for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
-                cursor_ = cursor_.unalignedPushWithLength(ptrSources_[i_]);
+            bytes memory source_;
+            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
+                source_ = sources_[i_];
+                replaceSourceIndexesWithPointers(source_, opcodeFunctionPointers_.asUint256Array());
+                cursor_ = cursor_.unalignedPushWithLength(source_);
             }
             return packedBytes_;
         }
     }
 
-    function toBytesPacked(VMState memory state_)
+    function toBytesPacked(VMState memory state_, function(VMState memory, Operand, StackTop)
+                internal
+                view
+                returns (StackTop)[]
+                memory opcodeFunctionPointers_)
         internal
         pure
         returns (bytes memory)
@@ -170,7 +211,8 @@ library LibVMState {
             toBytesPacked(
                 state_.stackBottom.peek(),
                 state_.constantsBottom.down().asUint256Array(),
-                state_.ptrSources
+                state_.ptrSources,
+                opcodeFunctionPointers_
             );
     }
 }

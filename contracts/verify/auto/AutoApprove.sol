@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
 import "../../vm/runtime/StandardVM.sol";
@@ -15,7 +13,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
-contract AutoApprove is VerifyCallback, StandardVM, Initializable {
+contract AutoApprove is VerifyCallback, StandardVM {
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];

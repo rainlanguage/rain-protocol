@@ -33,7 +33,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, StandardVM, Initializable {
+contract CombineTier is TierV2, StandardVM {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
     using LibUint256Array for uint256;

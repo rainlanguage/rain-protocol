@@ -49,7 +49,7 @@ contract LibCastTest {
         returns (uint256[] memory)
     {
         LibDebug.dumpMemory();
-        is_ = LibCast.asUint256Array(LibCast.asOpFunctionPointers(is_));
+        is_ = LibCast.asUint256Array(LibCast.asOpcodeFunctionPointers(is_));
         LibDebug.dumpMemory();
         return is_;
     }

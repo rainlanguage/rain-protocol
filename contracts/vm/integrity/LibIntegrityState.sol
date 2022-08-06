@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../runtime/RainVM.sol";
 import "../runtime/LibStackTop.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 struct IntegrityState {
     // Sources first as we read it in assembly.

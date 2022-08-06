@@ -46,7 +46,7 @@ export function op(
   code: number,
   erand: number | BytesLike | Hexable = 0
 ): Uint8Array {
-  return concat([bytify(code), bytify(erand)]);
+  return concat([bytify(code, 2), bytify(erand, 2)]);
 }
 
 export function memoryOperand(type: number, offset: number): number {

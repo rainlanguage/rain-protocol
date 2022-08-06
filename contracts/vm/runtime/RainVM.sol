@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../../math/SaturatingMath.sol";
 import "../../type/LibCast.sol";
 import "./LibStackTop.sol";
@@ -9,7 +9,7 @@ import "./LibVMState.sol";
 import "../../array/LibUint256Array.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../integrity/IRainVMIntegrity.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 type SourceIndex is uint256;
 type Operand is uint256;
@@ -115,7 +115,7 @@ abstract contract RainVM {
     /// the ONLY supported signature for opcodes. Pointers for the core opcodes
     /// must be provided in the packed pointers list but will be ignored at
     /// runtime.
-    function opFunctionPointers()
+    function opcodeFunctionPointers()
         internal
         view
         virtual
@@ -126,67 +126,6 @@ abstract contract RainVM {
                 returns (StackTop)[]
                 memory
         );
-
-    /// Given a list of packed function pointers and some opcode based source,
-    /// return a source with all non-core opcodes replaced with the function
-    /// pointers provided. Every 1-byte opcode will be replaced with a 2-byte
-    /// function pointer so the output source will be 3/2 the length of the
-    /// input, after accounting for the operand which remains unchanged.
-    /// Non-core opcodes remain numeric as they have special handling and are
-    /// NOT compatible with the ptr/operand input system that all other ops
-    /// adhere to.
-    /// There is NO attempt to validate the packed fn pointers or the input
-    /// source, other than to check the total length of each is even. The caller
-    /// MUST ensure all integrity checks/requirements are met.
-    /// @param opFunctionPointers_ The function pointers packed as 2-bytes in a list
-    /// in the same order/index as the relevant opcodes.
-    /// @param source_ The 1-byte opcode based input source that is expected to
-    /// be produced by end users.
-    function ptrSource(
-        function(VMState memory, Operand, StackTop)
-            internal
-            view
-            returns (StackTop)[]
-            memory opFunctionPointers_,
-        bytes memory source_
-    ) internal pure returns (bytes memory) {
-        unchecked {
-            uint256 sourceLen_ = source_.length;
-            require(sourceLen_ % 2 == 0, "ODD_SOURCE_LENGTH");
-
-            bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
-
-            assembly ("memory-safe") {
-                for {
-                    let opFunctionPointersBottom_ := add(
-                        0x20,
-                        opFunctionPointers_
-                    )
-                    let inputCursor_ := add(source_, 2)
-                    let end_ := add(sourceLen_, inputCursor_)
-                    let outputCursor_ := add(ptrSource_, 3)
-                } lt(inputCursor_, end_) {
-                    inputCursor_ := add(inputCursor_, 2)
-                    outputCursor_ := add(outputCursor_, 3)
-                } {
-                    let sourceData_ := mload(inputCursor_)
-                    let op_ := byte(30, sourceData_)
-                    op_ := and(
-                        mload(add(opFunctionPointersBottom_, mul(op_, 0x20))),
-                        0xFFFF
-                    )
-                    mstore(
-                        outputCursor_,
-                        or(
-                            mload(outputCursor_),
-                            or(shl(8, op_), byte(31, sourceData_))
-                        )
-                    )
-                }
-            }
-            return ptrSource_;
-        }
-    }
 
     /// Builds a new `State` bytes from `StateConfig`.
     /// Empty stack and arguments with stack index 0.
@@ -205,24 +144,12 @@ abstract contract RainVM {
                     finalStacks_
                 );
 
-            bytes[] memory ptrSources_ = new bytes[](config_.sources.length);
-            function(VMState memory, Operand, StackTop)
-                internal
-                view
-                returns (StackTop)[]
-                memory opFunctionPointers_ = opFunctionPointers();
-            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-                ptrSources_[i_] = ptrSource(
-                    opFunctionPointers_,
-                    config_.sources[i_]
-                );
-            }
-
             return (
                 LibVMState.toBytesPacked(
                     stackLength_,
                     config_.constants,
-                    ptrSources_
+                    config_.sources,
+                    opcodeFunctionPointers()
                 ),
                 scratch_
             );
@@ -266,13 +193,13 @@ abstract contract RainVM {
                     view
                     returns (StackTop) fn_;
                 Operand operand_;
-                cursor_ += 3;
+                cursor_ += 4;
                 {
                     uint256 op_;
                     assembly ("memory-safe") {
-                        op_ := and(mload(cursor_), 0xFFFFFF)
-                        operand_ := and(op_, 0xFF)
-                        fn_ := shr(8, op_)
+                        op_ := mload(cursor_)
+                        operand_ := and(op_, 0xFFFF)
+                        fn_ := and(shr(16, op_), 0xFFFF)
                     }
                 }
                 stackTop_ = fn_(state_, operand_, stackTop_);

@@ -9,7 +9,7 @@ import "../tier/libraries/TierReport.sol";
 import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
 import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
 import "../array/LibUint256Array.sol";
 
@@ -45,9 +45,8 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract EmissionsERC20 is
     TierV2,
-    Initializable,
     StandardVM,
-    ERC20Upgradeable,
+    ERC20,
     IClaim
 {
     using LibStackTop for uint256[];

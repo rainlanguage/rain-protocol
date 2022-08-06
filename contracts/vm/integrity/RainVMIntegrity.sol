@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 import "../runtime/RainVM.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../runtime/LibStackTop.sol";
 import "./LibIntegrityState.sol";
 import "./IRainVMIntegrity.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 abstract contract RainVMIntegrity is IRainVMIntegrity {
     using SafeCast for uint256;
@@ -79,12 +79,12 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             while (cursor_ < end_) {
                 uint256 opcode_;
                 Operand operand_;
-                cursor_ += 2;
+                cursor_ += 4;
                 {
                     assembly ("memory-safe") {
-                        let op_ := and(mload(cursor_), 0xFFFF)
-                        operand_ := and(op_, 0xFF)
-                        opcode_ := shr(8, op_)
+                        let op_ := mload(cursor_)
+                        operand_ := and(op_, 0xFFFF)
+                        opcode_ := and(shr(16, op_), 0xFFFF)
                     }
                 }
                 // We index into the function pointers here to ensure that any

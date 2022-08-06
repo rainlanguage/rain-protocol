@@ -4,8 +4,7 @@ pragma solidity =0.8.15;
 import {Factory} from "../../factory/Factory.sol";
 import "./AutoApprove.sol";
 
-import {ClonesUpgradeable as Clones
- from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title AutoApproveFactory
 /// @notice Factory for creating and deploying `AutoApprove` contracts.

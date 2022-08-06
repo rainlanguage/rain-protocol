@@ -136,6 +136,7 @@ in
 pkgs.stdenv.mkDerivation {
   name = "shell";
   buildInputs = [
+    pkgs.watch
     pkgs.nixpkgs-fmt
     pkgs.yarn
     pkgs.nodejs-16_x
