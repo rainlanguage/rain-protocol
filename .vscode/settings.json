@@ -1,4 +1,7 @@
 {
   "nixEnvSelector.suggestion": false,
-  "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
+  "solidity.compileUsingRemoteVersion": "v0.8.15+commit.e14f2714",
+  "solidity.compileUsingLocalVersion": "v0.8.15+commit.e14f2714",
+  "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix",
+  "editor.rulers": [80]
 }
