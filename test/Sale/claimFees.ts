@@ -31,6 +31,7 @@ describe("Sale claim fees", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize()
   });
 
   it("should prevent recipient claiming fees on failed raise, allowing buyers to refund their tokens", async function () {

@@ -44,6 +44,8 @@ describe("RainVM ERC721 ops", async function () {
       "ReserveTokenERC721",
       {}
     )) as ReserveTokenERC721;
+
+    await tokenERC721.initialize()
   });
 
   it("should return owner of specific ERC721 token", async () => {

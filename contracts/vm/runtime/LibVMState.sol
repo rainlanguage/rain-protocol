@@ -8,12 +8,6 @@ import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-enum DebugStyle {
-    StatePacked,
-    Stack,
-    StackIndex
-}
-
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -36,7 +30,7 @@ struct VMState {
     StackTop stackBottom;
     StackTop constantsBottom;
     uint256[] context;
-    bytes[] ptrSources;
+    bytes[] sources;
     function(VMState memory, SourceIndex, StackTop)
         view
         returns (StackTop) eval;
@@ -57,32 +51,6 @@ library LibVMState {
         view
         returns (StackTop);
     using LibCast for function(VMState memory, Operand, StackTop) view returns (StackTop)[];
-
-    function debug(
-        VMState memory state_,
-        StackTop stackTop_,
-        DebugStyle debugStyle_
-    ) internal view returns (StackTop) {
-        if (debugStyle_ == DebugStyle.StatePacked) {
-            console.logBytes(state_.toBytesPacked());
-        } else if (debugStyle_ == DebugStyle.Stack) {
-            uint256[] memory stack_ = state_
-                .stackBottom
-                .down()
-                .asUint256Array();
-            console.log("~stack~");
-            console.log("idx: %s", state_.stackBottom.toIndex(stackTop_));
-            unchecked {
-                for (uint256 i_ = 0; i_ < stack_.length; i_++) {
-                    console.log(i_, stack_[i_]);
-                }
-            }
-            console.log("~~~~~");
-        } else if (debugStyle_ == DebugStyle.StackIndex) {
-            console.log(state_.stackBottom.toIndex(stackTop_));
-        }
-        return stackTop_;
-    }
 
     function fromBytesPacked(
         bytes memory stateBytes_,
@@ -127,9 +95,9 @@ library LibVMState {
                     .up();
                 sourcesLength_++;
             }
-            state_.ptrSources = new bytes[](sourcesLength_);
+            state_.sources = new bytes[](sourcesLength_);
             while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
-                state_.ptrSources[i_] = cursor_.asBytes();
+                state_.sources[i_] = cursor_.asBytes();
                 cursor_ = cursor_.upBytes(cursor_.peekUp()).up();
                 i_++;
             }
@@ -196,23 +164,5 @@ library LibVMState {
             }
             return packedBytes_;
         }
-    }
-
-    function toBytesPacked(VMState memory state_, function(VMState memory, Operand, StackTop)
-                internal
-                view
-                returns (StackTop)[]
-                memory opcodeFunctionPointers_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            toBytesPacked(
-                state_.stackBottom.peek(),
-                state_.constantsBottom.down().asUint256Array(),
-                state_.ptrSources,
-                opcodeFunctionPointers_
-            );
     }
 }

@@ -25,6 +25,7 @@ describe("Stake deposit", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize()
   });
 
   it("should not process an invalid deposit", async function () {

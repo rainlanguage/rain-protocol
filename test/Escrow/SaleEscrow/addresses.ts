@@ -29,6 +29,7 @@ let reserve: ReserveToken,
 describe("SaleEscrow unchangeable addresses", async function () {
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize()
   });
 
   before(async () => {
@@ -135,7 +136,8 @@ describe("SaleEscrow unchangeable addresses", async function () {
     )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const reserve = (await tokenFactory.deploy()) as ReserveToken;
+    await reserve.initialize()
     const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();
@@ -183,7 +185,8 @@ describe("SaleEscrow unchangeable addresses", async function () {
     )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const reserve = (await tokenFactory.deploy()) as ReserveToken;
+    await reserve.initialize()
     const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();

@@ -22,6 +22,8 @@ describe("OrderBook vault deposit", async function () {
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await tokenA.initialize()
+    await tokenB.initialize()
   });
 
   before(async () => {

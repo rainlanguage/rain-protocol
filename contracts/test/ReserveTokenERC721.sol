@@ -11,7 +11,7 @@ contract ReserveTokenERC721 is ERC721, ERC721Burnable {
     uint256 public tokenCount;
 
     /// Define and mint a erc721 token.
-    constructor() {
+    function initialize() initializer external {
         __ERC721_init("Test NFT", "TNFT");
         tokenCount = 0;
         _mint(msg.sender, tokenCount);

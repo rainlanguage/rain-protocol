@@ -31,6 +31,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize()
   });
 
   it("should process 50 successive deposits and withdraws", async function () {

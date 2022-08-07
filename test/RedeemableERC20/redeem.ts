@@ -40,6 +40,8 @@ describe("RedeemableERC20 redeem test", async function () {
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as RedeemableERC20Reentrant;
 
+      await maliciousReserve.initialize()
+
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
       name: "RedeemableERC20",
@@ -113,6 +115,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize()
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -443,6 +446,8 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve1.initialize()
+    await reserve2.initialize()
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
@@ -550,6 +555,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize()
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -643,6 +649,8 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve1.initialize()
+    await reserve2.initialize()
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -858,6 +866,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize()
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

@@ -46,6 +46,7 @@ describe("RainVM ERC20 Snapshot ops", async function () {
       "ReserveTokenERC20Snapshot",
       {}
     )) as ReserveTokenERC20Snapshot;
+    await tokenERC20Snapshot.initialize()
   });
 
   it("should return ERC20 total supply snapshot", async () => {

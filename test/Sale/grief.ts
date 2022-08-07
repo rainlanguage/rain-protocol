@@ -28,6 +28,7 @@ describe("Sale griefer", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize()
   });
 
   it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {

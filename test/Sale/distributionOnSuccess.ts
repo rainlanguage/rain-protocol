@@ -28,6 +28,7 @@ describe("Sale distribution on successful sale", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize()
   });
 
   it("should transfer correct value to all stakeholders after successful sale (with forward address)", async () => {

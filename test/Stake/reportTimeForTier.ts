@@ -25,6 +25,7 @@ describe("Stake reportTimeForTier", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize()
   });
 
   it("should reset earliest time if user briefly fails to exceed all thresholds (e.g. user is not eligible for tier rewards if they had no stake for the period of time in which they were awarded)", async () => {
