@@ -2,11 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { CooldownTest } from "../../typechain/CooldownTest";
-import {
-  assertError,
-  getEventArgs,
-  max_uint32,
-} from "../../utils";
+import { assertError, getEventArgs, max_uint32 } from "../../utils";
 
 describe("Cooldown initialize test", async function () {
   let cooldownTest: CooldownTest;
@@ -83,7 +79,9 @@ describe("Cooldown initialize test", async function () {
   it("should emit CooldownInitialize event upon initialization", async function () {
     const cooldownDuration_ = ethers.BigNumber.from(10);
 
-    const initializeTx = await cooldownTest.connect(alice).initialize(cooldownDuration_);
+    const initializeTx = await cooldownTest
+      .connect(alice)
+      .initialize(cooldownDuration_);
     const { sender, cooldownDuration } = await getEventArgs(
       initializeTx,
       "CooldownInitialize",
