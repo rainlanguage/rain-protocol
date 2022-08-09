@@ -88,8 +88,6 @@ contract LibStackTopTest {
         return array_.asStackTop();
     }
 
-    /// peek returning value above stack top
-
     function peek(bytes memory bytes_) external returns (uint256 a_) {
         LibDebug.dumpMemory();
         a_ = bytes_.asStackTop().peek();
@@ -118,42 +116,6 @@ contract LibStackTopTest {
         LibDebug.dumpMemory();
         a_ = array_.asStackTop().up(n_).peek();
         LibDebug.dumpMemory();
-    }
-
-    /// peek returning original stack top
-
-    function peekStackTop(bytes memory bytes_) external returns (StackTop) {
-        LibDebug.dumpMemory();
-        bytes_.asStackTop().peek();
-        LibDebug.dumpMemory();
-        return bytes_.asStackTop();
-    }
-
-    function peekStackTop(bytes memory bytes_, uint256 n_)
-        external
-        returns (StackTop)
-    {
-        LibDebug.dumpMemory();
-        bytes_.asStackTop().up(n_).peek();
-        LibDebug.dumpMemory();
-        return bytes_.asStackTop();
-    }
-
-    function peekStackTop(uint256[] memory array_) external returns (StackTop) {
-        LibDebug.dumpMemory();
-        array_.asStackTop().peek();
-        LibDebug.dumpMemory();
-        return array_.asStackTop();
-    }
-
-    function peekStackTop(uint256[] memory array_, uint256 n_)
-        external
-        returns (StackTop)
-    {
-        LibDebug.dumpMemory();
-        array_.asStackTop().up(n_).peek();
-        LibDebug.dumpMemory();
-        return array_.asStackTop();
     }
 
     function peek2(bytes memory bytes_, uint256 n_)
@@ -196,20 +158,22 @@ contract LibStackTopTest {
         bytes memory bytes_,
         uint256 a_,
         uint256 n_
-    ) external {
+    ) external returns (StackTop) {
         LibDebug.dumpMemory();
         bytes_.asStackTop().up(n_).set(a_);
         LibDebug.dumpMemory();
+        return bytes_.asStackTop();
     }
 
     function set(
         uint256[] memory array_,
         uint256 a_,
         uint256 n_
-    ) external {
+    ) external returns (StackTop) {
         LibDebug.dumpMemory();
         array_.asStackTop().up(n_).set(a_);
         LibDebug.dumpMemory();
+        return array_.asStackTop();
     }
 
     function push(

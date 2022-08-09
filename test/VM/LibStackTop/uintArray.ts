@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
 
-describe("LibStackTop uint array tests", async function () {
+xdescribe("LibStackTop uint array tests", async function () {
   let libStackTop: LibStackTopTest;
 
   before(async () => {
