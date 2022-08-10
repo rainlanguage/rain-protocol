@@ -176,33 +176,30 @@ contract LibStackTopTest {
         return array_.asStackTop();
     }
 
-    function push(
-        uint256[] memory array_,
-        uint256 a_,
-        uint256 n_
-    ) external returns (StackTop stackTop_) {
+    function push(uint256[] memory array_, uint256 a_)
+        external
+        returns (StackTop stackTop_)
+    {
         LibDebug.dumpMemory();
-        stackTop_ = array_.asStackTop().up(n_).push(a_);
+        stackTop_ = array_.asStackTop().push(a_);
         LibDebug.dumpMemory();
     }
 
-    function push(
-        uint256[] memory array_,
-        uint256[] memory pushArray_,
-        uint256 n_
-    ) external returns (StackTop stackTop_) {
+    function push(uint256[] memory array_, uint256[] memory pushArray_)
+        external
+        returns (StackTop stackTop_)
+    {
         LibDebug.dumpMemory();
-        stackTop_ = array_.asStackTop().up(n_).push(pushArray_);
+        stackTop_ = array_.asStackTop().push(pushArray_);
         LibDebug.dumpMemory();
     }
 
     function pushWithLength(
         uint256[] memory array_,
-        uint256[] memory pushArray_,
-        uint256 n_
+        uint256[] memory pushArray_
     ) external returns (StackTop stackTop_) {
         LibDebug.dumpMemory();
-        stackTop_ = array_.asStackTop().up(n_).pushWithLength(pushArray_);
+        stackTop_ = array_.asStackTop().pushWithLength(pushArray_);
         LibDebug.dumpMemory();
     }
 
@@ -222,5 +219,25 @@ contract LibStackTopTest {
         LibDebug.dumpMemory();
         stackTop_ = bytes0_.asStackTop().unalignedPushWithLength(bytes1_);
         LibDebug.dumpMemory();
+    }
+
+    function asStackTop(bytes memory bytes_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = bytes_.asStackTop();
+        LibDebug.dumpMemory();
+    }
+
+    function asStackTopAsBytes(bytes memory bytes_)
+        external
+        returns (bytes memory bytes0_)
+    {
+        StackTop stackTop_ = bytes_.asStackTop();
+        LibDebug.dumpMemory();
+        bytes0_ = stackTop_.asBytes();
+        LibDebug.dumpMemory();
+        return bytes0_;
     }
 }
