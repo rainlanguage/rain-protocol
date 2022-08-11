@@ -152,6 +152,26 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Store a `uint256[]` at the stack top position and return the stack top
+    /// above the written values. The length of the array is NOT written to the
+    /// stack, ONLY the array values are copied to the stack. The following
+    /// statements are equivalent in functionality but A may be less gas if the
+    /// compiler fails to inline some function calls.
+    /// A:
+    /// ```
+    /// stackTop_ = stackTop_.push(array_);
+    /// ```
+    /// B:
+    /// ```
+    /// unchecked {
+    ///   for (uint i_ = 0; i_ < array_.length; i_++) {
+    ///     stackTop_ = stackTop_.push(array_[i_]);
+    ///   }
+    /// }
+    /// ```
+    /// @param stackTop_ The stack top to write at.
+    /// @param array_ The array of values to write.
+    /// @param The stack top above the array.
     function push(StackTop stackTop_, uint256[] memory array_)
         internal
         pure
@@ -161,6 +181,12 @@ library LibStackTop {
         return stackTop_.up(array_.length);
     }
 
+    /// Store a `uint256[]` at the stack top position and return the stack top
+    /// above the written values. The length of the array IS written to the
+    /// stack.
+    /// @param stackTop_ The stack top to write at.
+    /// @param array_ The array of values and length to write.
+    /// @return The stack top above the array.
     function pushWithLength(StackTop stackTop_, uint256[] memory array_)
         internal
         pure
@@ -169,6 +195,14 @@ library LibStackTop {
         return stackTop_.push(array_.length).push(array_);
     }
 
+    /// Store `bytes` at the stack top position and return the stack top above
+    /// the written bytes. The length of the bytes is NOT written to the stack,
+    /// ONLY the bytes are written. As `bytes` may be of arbitrary length, i.e.
+    /// it MAY NOT be a multiple of 32, the push is unaligned. The caller MUST
+    /// ensure that this is safe in context of subsequent reads and writes.
+    /// @param stackTop_ The stack top to write at.
+    /// @param bytes_ The bytes to write at the stack top.
+    /// @return The stack top above the written bytes.
     function unalignedPush(StackTop stackTop_, bytes memory bytes_)
         internal
         pure
@@ -181,6 +215,14 @@ library LibStackTop {
         return stackTop_.upBytes(bytes_.length);
     }
 
+    /// Store `bytes` at the stack top position and return the stack top above
+    /// the written bytes. The length of the bytes IS written to the stack in
+    /// addition to the bytes. As `bytes` may be of arbitrary length, i.e. it
+    /// MAY NOT be a multiple of 32, the push is unaligned. The caller MUST
+    /// ensure that this is safe in context of subsequent reads and writes.
+    /// @param stackTop_ The stack top to write at.
+    /// @param bytes_ The bytes to write with their length at the stack top.
+    /// @return The stack top above the written bytes.
     function unalignedPushWithLength(StackTop stackTop_, bytes memory bytes_)
         internal
         pure
@@ -243,6 +285,11 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256) internal view returns (uint256) fn_
@@ -260,6 +307,11 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(Operand, uint256) internal view returns (uint256) fn_,
@@ -278,6 +330,11 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256, uint256) internal view returns (uint256) fn_
@@ -298,6 +355,13 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Reduce a function N times, reading and writing inputs and the accumulated
+    /// result on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param n_ The number of times to apply fn_ to accumulate a final result.
+    /// @return The new stack top above the outputs of fn_.
     function applyFnN(
         StackTop stackTop_,
         function(uint256, uint256) internal view returns (uint256) fn_,
@@ -327,6 +391,11 @@ library LibStackTop {
         }
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256, uint256, uint256) internal view returns (uint256) fn_
@@ -349,6 +418,12 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param operand_ Operand is passed from the source instead of the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(Operand, uint256, uint256) internal view returns (uint256) fn_,
@@ -370,6 +445,12 @@ library LibStackTop {
         return stackTop_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param length_ The length of the array to pass to fn_ from the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256, uint256, uint256[] memory)
@@ -384,6 +465,12 @@ library LibStackTop {
         location_.set(fn_(a_, b_, tail_));
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param length_ The length of the array to pass to fn_ from the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256, uint256, uint256, uint256[] memory)
@@ -399,6 +486,12 @@ library LibStackTop {
         return stackTopAfter_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param length_ The length of the arrays to pass to fn_ from the stack.
+    /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256, uint256[] memory, uint256[] memory)
@@ -421,6 +514,22 @@ library LibStackTop {
         return bottom_.up(length_);
     }
 
+    /// Returns `length_` values from the stack as an array without allocating
+    /// new memory. As arrays always start with their length, this requires
+    /// writing the length value to the stack below the array values. The value
+    /// that is overwritten in the process is also returned so that data is not
+    /// lost. For example, imagine a stack `[ A B C D ]` and we list 2 values.
+    /// This will write the stack to look like `[ A 2 C D ]` and return both `B`
+    /// and a pointer to `2` represented as a `uint256[]`.
+    /// The returned array is ONLY valid for as long as the stack DOES NOT move
+    /// back into its memory. As soon as the stack moves up again and writes into
+    /// the array it will be corrupt. The caller MUST ensure that it does not
+    /// read from the returned array after it has been corrupted by subsequent
+    /// stack writes.
+    /// @param stackTop_ The stack top to read the values below into an array.
+    /// @param length_ The number of values to include in the returned array.
+    /// @return head_ The value that was overwritten with the length.
+    /// @return tail_ The array constructed from the stack memory.
     function list(StackTop stackTop_, uint256 length_)
         internal
         pure
@@ -433,6 +542,10 @@ library LibStackTop {
         }
     }
 
+    /// Cast a `uint256[]` array to a stack top. The stack top will point to the
+    /// length of the array, NOT its first value.
+    /// @param array_ The array to cast to a stack top.
+    /// @return The stack top that points to the length of the array.
     function asStackTop(uint256[] memory array_)
         internal
         pure
@@ -443,6 +556,15 @@ library LibStackTop {
         }
     }
 
+    /// Cast a stack top to an array. The value immediately above the stack top
+    /// will be treated as the length of the array, so the proceeding length
+    /// values will be the items of the array. The caller MUST ensure the values
+    /// above the stack top constitute a valid array. The retured array will be
+    /// corrupt if/when the stack subsequently moves into it and writes to those
+    /// memory locations. The caller MUST ensure that it does NOT read from the
+    /// returned array after the stack writes over it.
+    /// @param stackTop_ The stack top that will be cast to an array.
+    /// @return The array above the stack top.
     function asUint256Array(StackTop stackTop_)
         internal
         pure
@@ -453,6 +575,15 @@ library LibStackTop {
         }
     }
 
+    /// Cast a stack top to bytes. The value immediately above the stack top will
+    /// be treated as the length of the `bytes`, so the proceeding length bytes
+    /// will be the data of the `bytes`. The caller MUST ensure the length and
+    /// bytes above the stack top constitute valid `bytes` data. The returned
+    /// `bytes` will be corrupt if/when the stack subsequently moves into it and
+    /// writes to those memory locations. The caller MUST ensure that it does
+    /// NOT read from the returned bytes after the stack writes over it.
+    /// @param stackTop_ The stack top that will be cast to bytes.
+    /// @param The bytes above the stack top.
     function asBytes(StackTop stackTop_)
         internal
         pure
@@ -463,6 +594,10 @@ library LibStackTop {
         }
     }
 
+    /// Cast a `uint256[]` array to a stack top after its length. The stack top
+    /// will point to the first item of the array, NOT its length.
+    /// @param array_ The array to cast to a stack top.
+    /// @return The stack top that points to the first item of the array.
     function asStackTopUp(uint256[] memory array_)
         internal
         pure
@@ -473,6 +608,10 @@ library LibStackTop {
         }
     }
 
+    /// Cast `bytes` to a stack top. The stack top will point to the length of
+    /// the `bytes`, NOT the first byte.
+    /// @param bytes_ The `bytes` to cast to a stack top.
+    /// @return The stack top that points to the length of the bytes.
     function asStackTop(bytes memory bytes_)
         internal
         pure
@@ -483,12 +622,19 @@ library LibStackTop {
         }
     }
 
+    /// Returns the stack top 32 bytes above/past the passed stack top.
+    /// @param stackTop_ The stack top at the starting position.
+    /// @return The stack top 32 bytes above the passed stack top.
     function up(StackTop stackTop_) internal pure returns (StackTop) {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) + 0x20);
         }
     }
 
+    /// Returns the stack top `n_ * 32` bytes above/past the passed stack top.
+    /// @param stackTop_ The stack top at the starting position.
+    /// @param n_ The multiplier on the stack movement.
+    /// @return The stack top `n_ * 32` bytes above/past the passed stack top.
     function up(StackTop stackTop_, uint256 n_)
         internal
         pure
@@ -499,6 +645,13 @@ library LibStackTop {
         }
     }
 
+    /// Returns the stack top `n_` bytes above/past the passed stack top.
+    /// The returned stack top MAY NOT be aligned with the passed stack top for
+    /// subsequent 32 byte reads and writes. The caller MUST ensure that it is
+    /// safe to read and write data relative to the returned stack top.
+    /// @param stackTop_ The stack top at the starting position.
+    /// @param n_ The number of bytes to move.
+    /// @return The stack top `n_` bytes above/past the passed stack top.
     function upBytes(StackTop stackTop_, uint256 n_)
         internal
         pure
@@ -509,12 +662,19 @@ library LibStackTop {
         }
     }
 
+    /// Returns the stack top 32 bytes below/before the passed stack top.
+    /// @param stackTop_ The stack top at the starting position.
+    /// @return The stack top 32 bytes below/before the passed stack top.
     function down(StackTop stackTop_) internal pure returns (StackTop) {
         unchecked {
             return StackTop.wrap(StackTop.unwrap(stackTop_) - 0x20);
         }
     }
 
+    /// Returns the stack top `n_ * 32` bytes below/before the passed stack top.
+    /// @param stackTop_ The stack top at the starting position.
+    /// @param n_ The multiplier on the movement.
+    /// @return The stack top `n_ * 32` bytes below/before the passed stack top.
     function down(StackTop stackTop_, uint256 n_)
         internal
         pure
@@ -525,6 +685,16 @@ library LibStackTop {
         }
     }
 
+    /// Convert two stack top values to a single stack index. A stack index is
+    /// the distance in 32 byte increments between two stack positions. The
+    /// calculations assumes the two stack positions are aligned. The caller MUST
+    /// ensure the alignment of both values. The calculation is unchecked and MAY
+    /// underflow. The caller MUST ensure that the stack top is always above the
+    /// stack bottom.
+    /// @param stackBottom_ The lower of the two values.
+    /// @param stackTop_ The higher of the two values.
+    /// @return The stack index as 32 byte distance between the two stack
+    /// positions.
     function toIndex(StackTop stackBottom_, StackTop stackTop_)
         internal
         pure
