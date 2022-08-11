@@ -8,6 +8,10 @@ pragma solidity ^0.8.15;
 /// The convention "toX" is adopted from Rust to imply the additional costs and
 /// consumption of the source to produce the target.
 library LibConvert {
+    /// Convert an array of integers to `bytes` data. This requires modifying
+    /// the length in situ as the integer array length is measured in 32 byte
+    /// increments while the length of `bytes` is the literal number of bytes.
+    /// @return The integer array converted to `bytes` data.
     function toBytes(uint256[] memory is_)
         internal
         pure

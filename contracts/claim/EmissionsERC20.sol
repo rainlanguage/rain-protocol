@@ -28,6 +28,7 @@ struct EmissionsERC20Config {
 
 /// @dev Source index for VM eval.
 SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
+/// @dev The final stack MUST include at least this many values after eval.
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// @title EmissionsERC20
