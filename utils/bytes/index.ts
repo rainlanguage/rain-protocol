@@ -4,15 +4,6 @@ import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
 /**
- * Returns simple concatenatation of hex strings by removing hexadecimal prefix of b
- * @param a - left hex string
- * @param b - right hex string to append to `a`
- */
-export function hexConcat(a: string, b: string): string {
-  return a + b.slice(2);
-}
-
-/**
  * Returns a DataHexString representation of a slice of aBytesLike, from offset (in bytes) to endOffset (in bytes). If endOffset is omitted, the length of aBytesLike is used.
  * @see https://docs.ethers.io/v5/api/utils/bytes/#utils-hexDataSlice
  */
