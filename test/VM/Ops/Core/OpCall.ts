@@ -15,7 +15,7 @@ import {
 
 const Opcode = AllStandardOps;
 
-describe.only("CALL Opcode test", async function () {
+describe("CALL Opcode test", async function () {
   let stateBuilder: AllStandardOpsIntegrity;
   let logic: AllStandardOpsTest;
 
@@ -301,5 +301,5 @@ describe.only("CALL Opcode test", async function () {
       "Minimum Output integrity check failed"
     );
   });
-  
+
 });
