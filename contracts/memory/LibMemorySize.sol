@@ -16,8 +16,8 @@ library LibMemorySize {
         return 0x20;
     }
 
-    /// Reports the size of a `uint256[]` in bytes. Is the size of the length 
-    /// slot (32 bytes) plus the length of the array multiplied by 32 bytes per 
+    /// Reports the size of a `uint256[]` in bytes. Is the size of the length
+    /// slot (32 bytes) plus the length of the array multiplied by 32 bytes per
     /// item.
     /// @return The size of the array data including its length slot size.
     function size(uint256[] memory array_) internal pure returns (uint256) {
@@ -32,6 +32,24 @@ library LibMemorySize {
     function size(bytes memory bytes_) internal pure returns (uint256) {
         unchecked {
             return 0x20 + bytes_.length;
+        }
+    }
+
+    /// Reports the size of a `bytes[]` in bytes. Is the size of the length
+    /// slot (32 bytes) plus the length slot of each item (32 bytes each)
+    /// plus the bytes length of each item.
+    /// @return size_ The size of the `bytes[]` data including its length slot
+    /// size.
+    function size(bytes[] memory bytesArray_)
+        internal
+        pure
+        returns (uint256 size_)
+    {
+        unchecked {
+            size_ = 0x20;
+            for (uint256 i_ = 0; i_ < bytesArray_.length; i_++) {
+                size_ += bytesArray_[i_].size();
+            }
         }
     }
 }

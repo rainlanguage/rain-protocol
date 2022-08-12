@@ -38,7 +38,7 @@ library LibCast {
     /// Retype an array of integers to an array of opcode function pointers.
     /// @param is_ The array of integers to cast to an array of opcode fuction
     /// pointers.
-    /// @return fn_ The array of opcode function pointers.
+    /// @return fns_ The array of opcode function pointers.
     function asOpFunctionPointers(uint256[] memory is_)
         internal
         pure
@@ -74,7 +74,7 @@ library LibCast {
 
     /// Retype an integer to a pointer to the VM eval function.
     /// @param i_ The integer to cast to the eval function.
-    /// @return The eval function.
+    /// @return fn_ The eval function.
     function asEvalFunctionPointer(uint256 i_)
         internal
         pure

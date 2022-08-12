@@ -249,13 +249,33 @@ contract LibStackTopTest {
 
     function asStackTopAsBytes(bytes memory bytes_)
         external
-        returns (bytes memory bytes0_)
+        returns (bytes memory bytesCopy_)
     {
         StackTop stackTop_ = bytes_.asStackTop();
         LibDebug.dumpMemory();
-        bytes0_ = stackTop_.asBytes();
+        bytesCopy_ = stackTop_.asBytes();
         LibDebug.dumpMemory();
-        return bytes0_;
+        return bytesCopy_;
+    }
+
+    function asStackTop(uint256[] memory array_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+    }
+
+    function asStackTopAsUint256Array(uint256[] memory array_)
+        external
+        returns (uint256[] memory arrayCopy_)
+    {
+        StackTop stackTop_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+        arrayCopy_ = stackTop_.asUint256Array();
+        LibDebug.dumpMemory();
+        return arrayCopy_;
     }
 
     function list(uint256[] memory array_, uint256 length_)

@@ -171,7 +171,7 @@ library LibStackTop {
     /// ```
     /// @param stackTop_ The stack top to write at.
     /// @param array_ The array of values to write.
-    /// @param The stack top above the array.
+    /// @return The stack top above the array.
     function push(StackTop stackTop_, uint256[] memory array_)
         internal
         pure
@@ -361,7 +361,7 @@ library LibStackTop {
     /// @param stackTop_ The stack top to read and write to.
     /// @param fn_ The function to run on the stack.
     /// @param n_ The number of times to apply fn_ to accumulate a final result.
-    /// @return The new stack top above the outputs of fn_.
+    /// @return stackTopAfter_ The new stack top above the outputs of fn_.
     function applyFnN(
         StackTop stackTop_,
         function(uint256, uint256) internal view returns (uint256) fn_,
@@ -450,7 +450,7 @@ library LibStackTop {
     /// @param stackTop_ The stack top to read and write to.
     /// @param fn_ The function to run on the stack.
     /// @param length_ The length of the array to pass to fn_ from the stack.
-    /// @return The new stack top above the outputs of fn_.
+    /// @return stackTopAfter_ The new stack top above the outputs of fn_.
     function applyFn(
         StackTop stackTop_,
         function(uint256, uint256, uint256[] memory)
@@ -545,7 +545,7 @@ library LibStackTop {
     /// Cast a `uint256[]` array to a stack top. The stack top will point to the
     /// length of the array, NOT its first value.
     /// @param array_ The array to cast to a stack top.
-    /// @return The stack top that points to the length of the array.
+    /// @return stackTop_ The stack top that points to the length of the array.
     function asStackTop(uint256[] memory array_)
         internal
         pure
@@ -564,7 +564,7 @@ library LibStackTop {
     /// memory locations. The caller MUST ensure that it does NOT read from the
     /// returned array after the stack writes over it.
     /// @param stackTop_ The stack top that will be cast to an array.
-    /// @return The array above the stack top.
+    /// @return array_ The array above the stack top.
     function asUint256Array(StackTop stackTop_)
         internal
         pure
@@ -583,7 +583,7 @@ library LibStackTop {
     /// writes to those memory locations. The caller MUST ensure that it does
     /// NOT read from the returned bytes after the stack writes over it.
     /// @param stackTop_ The stack top that will be cast to bytes.
-    /// @param The bytes above the stack top.
+    /// @return bytes_ The bytes above the stack top.
     function asBytes(StackTop stackTop_)
         internal
         pure
@@ -597,7 +597,7 @@ library LibStackTop {
     /// Cast a `uint256[]` array to a stack top after its length. The stack top
     /// will point to the first item of the array, NOT its length.
     /// @param array_ The array to cast to a stack top.
-    /// @return The stack top that points to the first item of the array.
+    /// @return stackTop_ The stack top that points to the first item of the array.
     function asStackTopUp(uint256[] memory array_)
         internal
         pure
@@ -611,7 +611,7 @@ library LibStackTop {
     /// Cast `bytes` to a stack top. The stack top will point to the length of
     /// the `bytes`, NOT the first byte.
     /// @param bytes_ The `bytes` to cast to a stack top.
-    /// @return The stack top that points to the length of the bytes.
+    /// @return stackTop_ The stack top that points to the length of the bytes.
     function asStackTop(bytes memory bytes_)
         internal
         pure
