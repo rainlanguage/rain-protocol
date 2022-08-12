@@ -17,6 +17,10 @@ contract LibStackTopTest {
     using LibStackTop for StackTop;
     using LibStackTop for uint256;
 
+    function doubler(uint256 i_) internal pure returns (uint256) {
+        return i_ * 2;
+    }
+
     /// peekUp returning value above stack top
 
     function peekUp(bytes memory bytes_) external returns (uint256 a_) {
@@ -349,6 +353,15 @@ contract LibStackTopTest {
         stackTop_ = array1_.asStackTop();
         LibDebug.dumpMemory();
         index_ = stackBottom_.toIndex(stackTop_);
+        LibDebug.dumpMemory();
+    }
+
+    function applyFn(uint256[] memory array_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().applyFn(doubler);
         LibDebug.dumpMemory();
     }
 }
