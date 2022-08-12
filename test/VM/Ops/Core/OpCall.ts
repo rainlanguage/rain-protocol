@@ -10,7 +10,6 @@ import {
   MemoryType,
   callOperand,
   assertError,
-  compareStructs,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;
@@ -105,10 +104,6 @@ describe("CALL Opcode test", async function () {
       constants,
     });
 
-    // FAILING as
-    // StackTopAfter 0  not less than StackTopMax 0
-    // in popUnderflowCheck
-
     await logic.run();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
@@ -170,7 +165,6 @@ describe("CALL Opcode test", async function () {
         call1,
     ]);
 
-    // Failing at integrity check
     await assertError(
       async () =>
         await logic.initialize({
@@ -224,7 +218,6 @@ describe("CALL Opcode test", async function () {
         call1,
     ]);
 
-    // Failing at integrity check
     await assertError(
       async () =>
         await logic.initialize({
