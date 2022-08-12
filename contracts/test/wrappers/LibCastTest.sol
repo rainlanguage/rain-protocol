@@ -25,8 +25,8 @@ contract LibCastTest {
         LibDebug.dumpMemory();
     }
 
-    function identity(uint256 i_) internal pure returns (uint256) {
-        return i_;
+    function identity(uint256 a_) internal pure returns (uint256) {
+        return a_;
     }
 
     function asUint256_uint256() external returns (uint256 i_) {

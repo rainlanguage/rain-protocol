@@ -17,8 +17,8 @@ contract LibStackTopTest {
     using LibStackTop for StackTop;
     using LibStackTop for uint256;
 
-    function doubler(uint256 i_) internal pure returns (uint256) {
-        return i_ * 2;
+    function doubler(uint256 a_) internal pure returns (uint256) {
+        return a_ * 2;
     }
 
     /// peekUp returning value above stack top

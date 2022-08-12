@@ -23,8 +23,8 @@ describe("LibStackTop applyFn tests", async function () {
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
-    assert(memDumpBefore_ !== memDumpAfter_, "applyFn did not modify memory");
-
     console.log({ stackTop_, memDumpBefore_, memDumpAfter_ });
+
+    assert(memDumpBefore_ !== memDumpAfter_, "applyFn did not modify memory");
   });
 });
