@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AllStandardOpsIntegrity } from "../../../../typechain/AllStandardOpsIntegrity";
@@ -10,6 +10,7 @@ import {
   MemoryType,
   callOperand,
   assertError,
+  compareStructs,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;
@@ -81,6 +82,7 @@ describe.only("CALL Opcode test", async function () {
   it("should process the minimum number of input", async () => {
     const constants = [10, 2, 20];
     const minInput = 0;
+
     // CALL opcode which will take 0 input, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(minInput, 1, 1));
 
@@ -184,7 +186,7 @@ describe.only("CALL Opcode test", async function () {
     const constants = [2];
     let minOutput = 1;
 
-    // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
+    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(2, minOutput, 1));
     const source1 = concat([op(Opcode.MUL, 2)]);
 
@@ -210,7 +212,7 @@ describe.only("CALL Opcode test", async function () {
 
     // Surpassing the minimum outputs
     minOutput = 0;
-    // CALL opcode which will take 8 inputs, pass it to source at index 1, and return 1 output
+    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 0 output
     const call1 = op(Opcode.CALL, callOperand(2, minOutput, 1));
 
     const source2 = concat([op(Opcode.MUL, 2)]);
@@ -234,19 +236,23 @@ describe.only("CALL Opcode test", async function () {
     );
   });
 
-  it("should process the maximum number of output", async () => {
-    const constants = [2];
-    let maxOutput = 1;
+  it("should process the maximum number of output and fail beyond that", async () => {
+    const constants = [2, 10, 20];
+    let maxOutput = 3;
 
-    // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
+    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 3 outputs
     const call0 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
-    const source1 = concat([op(Opcode.MUL, 2)]);
+    const source1 = concat([
+      op(Opcode.MUL, 2),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+    ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        call0,
+        call0, // should end up adding 3 elements to the stack
     ]);
 
     await logic.initialize({
@@ -255,19 +261,27 @@ describe.only("CALL Opcode test", async function () {
     });
 
     await logic.run();
-    const result0 = await logic.stackTop();
-    const expectedResult0 = ethers.BigNumber.from("4");
-    assert(
-      result0.eq(expectedResult0),
-      `Invalid output, expected ${expectedResult0}, actual ${result0}`
-    );
+    const result0 = await logic.stack();
+
+    const expectedResult0 = [
+      ethers.BigNumber.from("4"),
+      ethers.BigNumber.from("10"),
+      ethers.BigNumber.from("20"),
+    ]
+    expect(result0).deep.equal(expectedResult0, `Invalid output, expected ${expectedResult0}, actual ${result0}`)
+
 
     // Surpassing the minimum outputs
-    maxOutput = 0;
-    // CALL opcode which will take 8 inputs, pass it to source at index 1, and return 1 output
+    maxOutput = 4; 
+    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 4 outputs
     const call1 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
 
-    const source2 = concat([op(Opcode.MUL, 2)]);
+    const source2 = concat([
+      op(Opcode.MUL, 2),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+    ]);
 
     // prettier-ignore
     const sourceMAIN1 = concat([
@@ -287,4 +301,5 @@ describe.only("CALL Opcode test", async function () {
       "Minimum Output integrity check failed"
     );
   });
+  
 });
