@@ -4,6 +4,14 @@ import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
 /**
+ * Returns a DataHexString representation of a slice of aBytesLike, from offset (in bytes) to endOffset (in bytes). If endOffset is omitted, the length of aBytesLike is used.
+ * @see https://docs.ethers.io/v5/api/utils/bytes/#utils-hexDataSlice
+ */
+export function readBytes(bytes: BytesLike, from: number, to?: number): string {
+  return ethers.utils.hexDataSlice(bytes, from, to != null ? to : null);
+}
+
+/**
  * Returns a random 32 byte number in hexstring format
  */
 export function randomUint256(): string {
@@ -14,7 +22,10 @@ export function randomUint256(): string {
  * Pads leading zeroes of BigNumber to hex string length of 32 bytes
  * @param {BigNumber} num
  */
-export function zeroPad32(num: BigNumber): string {
+export function zeroPad32(num: BigNumber | number): string {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
   return ethers.utils.hexZeroPad(num.toHexString(), 32);
 }
 
@@ -22,7 +33,10 @@ export function zeroPad32(num: BigNumber): string {
  * Pads leading zeroes of BigNumber to hex string length of 4 bytes
  * @param {BigNumber} num
  */
-export function zeroPad4(num: BigNumber): string {
+export function zeroPad4(num: BigNumber | number): string {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
   return ethers.utils.hexZeroPad(num.toHexString(), 4);
 }
 
@@ -30,11 +44,17 @@ export function zeroPad4(num: BigNumber): string {
  * Pads leading zeroes of BigNumber to hex string length of 2 bytes
  * @param {BigNumber} num
  */
-export function zeroPad2(num: BigNumber): string {
+export function zeroPad2(num: BigNumber | number): string {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
   return ethers.utils.hexZeroPad(num.toHexString(), 2);
 }
 
-export const paddedUInt256 = (num: BigNumber): string => {
+export const paddedUInt256 = (num: BigNumber | number): string => {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
   if (num.gt(max_uint256)) {
     throw new Error(`${num} exceeds max uint256`);
   }

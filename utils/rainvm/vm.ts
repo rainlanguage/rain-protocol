@@ -53,6 +53,14 @@ export function memoryOperand(type: number, offset: number): number {
   return (offset << 1) + type;
 }
 
+export function callOperand(
+  input: number,
+  output: number,
+  sourceIndex: number
+): number {
+  return (sourceIndex << 5) + (output << 3) + input;
+}
+
 /**
  * Constructs the operand for RainVM's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *

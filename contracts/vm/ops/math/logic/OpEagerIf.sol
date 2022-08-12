@@ -23,7 +23,12 @@ library OpEagerIf {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _eagerIf, Operand.unwrap(operand_) + 1);
+        return
+            integrityState_.applyFn(
+                stackTop_,
+                _eagerIf,
+                Operand.unwrap(operand_) + 1
+            );
     }
 
     /// Eager because BOTH x_ and y_ must be eagerly evaluated

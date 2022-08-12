@@ -1,6 +1,9 @@
 import { assert } from "chai";
+import { hexConcat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
+import { readBytes, zeroPad32 } from "../../../utils/bytes";
+import { Tuple } from "../../../utils/types";
 
 describe("LibStackTop uint array tests", async function () {
   let libStackTop: LibStackTopTest;
@@ -18,6 +21,31 @@ describe("LibStackTop uint array tests", async function () {
     const a0_ = await libStackTop.callStatic["peekUp(uint256[])"](array0);
 
     assert(a0_.eq(array0.length));
+
+    const stackTop0_ = await libStackTop.callStatic[
+      "peekUpStackTop(uint256[])"
+    ](array0);
+    const tx0_ = await libStackTop["peekUpStackTop(uint256[])"](array0);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "peekUp corrupted memory");
+
+    // read bytes starting from stack top to the end of allocated memory
+    const bytes0_ = readBytes(memDumpAfter_, stackTop0_.toNumber());
+
+    // bytes0_ should begin with array length as uint256
+    assert(readBytes(bytes0_, 0, 32) === zeroPad32(array0.length));
+
+    // then followed by array0.length 32-byte elements
+    array0.forEach((element_, i_) => {
+      assert(
+        zeroPad32(element_) === readBytes(bytes0_, 32 + 32 * i_, 64 + 32 * i_),
+        `wrong element
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(bytes0_, 32 + 32 * i_, 64 + 32 * i_)}`
+      );
+    });
 
     array0.forEach(async (element_, i_) => {
       const a_ = await libStackTop.callStatic["peekUp(uint256[],uint256)"](
@@ -38,6 +66,12 @@ describe("LibStackTop uint array tests", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
 
     const a0_ = await libStackTop.callStatic["peek(uint256[])"](array0);
+
+    const tx0_ = await libStackTop["peek(bytes)"](array0);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "peek corrupted memory");
 
     assert(a0_.isZero(), "memory should be out of bounds");
 
@@ -85,150 +119,380 @@ describe("LibStackTop uint array tests", async function () {
       1 // shift up past array size value before calling `pop`
     );
 
-    assert(a_.eq(array0.length), "a_ should be the value that was read");
+    const tx0_ = await libStackTop["pop(bytes,uint256)"](array0, 1);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "pop corrupted memory");
+
+    // read bytes starting from stackTopAfter_ to the end of allocated memory
+    const bytes0_ = readBytes(memDumpAfter_, stackTopAfter_.toNumber());
+
+    // stackTopAfter_ should point to the value, a_, that was read
     assert(
-      stackTopAfter_.eq(128), // in this case, pointer happens to start at the 4th byte
-      "stackTopAfter_ pointer should be defined (for the value that was read)"
+      readBytes(bytes0_, 0, 32) === zeroPad32(a_),
+      "stackTopAfter_ did not point to the value that was read"
     );
+
+    assert(a_.eq(array0.length), "a_ is not array length");
   });
 
   it("should set", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
     const value0 = 6;
 
-    // set a new value for position 0 in the array
-    const newArray0_ = await libStackTop.callStatic[
+    // set a new array length
+    const stackTop0_ = await libStackTop.callStatic[
       "set(uint256[],uint256,uint256)"
-    ](
+    ](array0, value0, 0);
+
+    const tx0_ = await libStackTop["set(uint256[],uint256,uint256)"](
       array0,
       value0,
-      1 // shift up past array size value
+      0 // no shift up, we are writing over array size value
     );
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
-    assert(newArray0_.length === array0.length);
-    assert(!newArray0_[0].eq(array0[0]));
-    assert(newArray0_[0].eq(value0));
-    for (let i = 1; i < array0.length; i++) {
-      newArray0_[i].eq(array0[i]);
-    }
+    assert(memDumpBefore_ !== memDumpAfter_, "set did not modify memory");
+
+    // read bytes starting from stack top to the end of allocated memory
+    const bytes0_ = readBytes(memDumpAfter_, stackTop0_.toNumber());
+
+    // bytes0_ should begin with new array length as uint256
+    assert(readBytes(bytes0_, 0, 32) !== zeroPad32(array0.length));
+    assert(readBytes(bytes0_, 0, 32) === zeroPad32(value0));
+
+    // then followed by array0.length 32-byte elements
+    array0.forEach((element_, i_) => {
+      assert(
+        zeroPad32(element_) === readBytes(bytes0_, 32 + 32 * i_, 64 + 32 * i_),
+        `wrong element
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(bytes0_, 32 + 32 * i_, 64 + 32 * i_)}`
+      );
+    });
   });
 
   it("should push a value", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
     const value0 = 6;
 
-    const newArray0_ = await libStackTop.callStatic[
-      "pushReturnOriginalStackTop(uint256[],uint256,uint256)"
-    ](
+    const stackTop0_ = await libStackTop.callStatic["push(uint256[],uint256)"](
       array0,
-      value0,
-      1 // shift up past array size value
+      value0
     );
 
-    assert(newArray0_.length === array0.length);
-    assert(!newArray0_[0].eq(array0[0]));
-    assert(newArray0_[0].eq(value0));
-    for (let i = 1; i < array0.length; i++) {
-      newArray0_[i].eq(array0[i]);
+    const tx0_ = await libStackTop["push(uint256[],uint256)"](array0, value0);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ !== memDumpAfter_, "push did not modify memory");
+
+    // read bytes starting from stack top to the end of allocated memory
+    const bytesBefore_ = readBytes(memDumpBefore_, stackTop0_.toNumber());
+    const bytesAfter_ = readBytes(memDumpAfter_, stackTop0_.toNumber());
+
+    // bytes starting from stack top position should be preserved
+    assert(bytesBefore_ === bytesAfter_, "push corrupted existing stack");
+
+    // push should write value below stack top, followed by the existing bytes
+    const pushedValue_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber() - 32, // writes over existing array length
+      stackTop0_.toNumber()
+    );
+    const existingArray_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber(),
+      stackTop0_.toNumber() + 32 * array0.length
+    );
+
+    assert(pushedValue_ === zeroPad32(value0), "did not write correct value0");
+
+    array0.forEach((element_, i_) => {
+      assert(
+        zeroPad32(element_) ===
+          readBytes(existingArray_, 32 * i_, 32 + 32 * i_),
+        `wrong array value
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(existingArray_, 32 * i_, 32 + 32 * i_)}`
+      );
+    });
+  });
+
+  it("should push an array", async function () {
+    const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
+    const values0 = [6, 7, 8];
+
+    const stackTop0_ = await libStackTop.callStatic[
+      "push(uint256[],uint256[])"
+    ](array0, values0);
+
+    const tx0_ = await libStackTop["push(uint256[],uint256[])"](
+      array0,
+      values0
+    );
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ !== memDumpAfter_, "push did not modify memory");
+
+    // read bytes starting from stack top to the end of allocated memory
+    const bytesBefore_ = readBytes(memDumpBefore_, stackTop0_.toNumber());
+    const bytesAfter_ = readBytes(memDumpAfter_, stackTop0_.toNumber());
+
+    // bytes starting from stack top position should be preserved
+    assert(bytesBefore_ === bytesAfter_, "push corrupted existing stack");
+
+    // push should write value below stack top, followed by the existing bytes
+    const pushedValues_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber() - 32 * values0.length, // writes over existing array length and values0.length-1 elements of existing array
+      stackTop0_.toNumber()
+    );
+    const existingArray_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber(),
+      stackTop0_.toNumber() + 32 * array0.length + 32
+    );
+
+    const expectedPushedValues = hexConcat(
+      values0.map((value) => zeroPad32(value))
+    );
+
+    assert(
+      pushedValues_ === expectedPushedValues,
+      "did not write correct value0"
+    );
+
+    for (let i_ = values0.length - 1; i_ < array0.length; i_++) {
+      const element_ = array0[i_];
+
+      const j_ = i_ - values0.length + 1;
+
+      assert(
+        zeroPad32(element_) ===
+          readBytes(existingArray_, 32 * j_, 32 + 32 * j_),
+        `wrong array value
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(existingArray_, 32 * j_, 32 + 32 * j_)}`
+      );
     }
   });
 
-  it("should push a value and return stack top above where value was written", async function () {
+  it("should push an array with length", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
-    const value0 = 6;
+    const values0 = [6, 7, 8];
 
-    const newArray0_ = await libStackTop.callStatic[
-      "push(uint256[],uint256,uint256)"
-    ](
+    const stackTop0_ = await libStackTop.callStatic[
+      "pushWithLength(uint256[],uint256[])"
+    ](array0, values0);
+
+    const tx0_ = await libStackTop["pushWithLength(uint256[],uint256[])"](
       array0,
-      value0,
-      1 // shift up past array size value
+      values0
+    );
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(
+      memDumpBefore_ !== memDumpAfter_,
+      "pushWithLength did not modify memory"
     );
 
-    // should return stack top above where value was written
-    assert(newArray0_.length === array0[1]); // first value treated as array length, in this case = 20
-    assert(newArray0_[0].eq(array0[2]));
-    assert(newArray0_[1].eq(array0[3]));
-    assert(newArray0_[2].eq(array0[4]));
-    assert(newArray0_[3].eq(array0[5]));
-    assert(newArray0_[4].eq(array0[6]));
-    assert(newArray0_[5].eq(array0[7]));
-  });
+    // read bytes starting from stack top to the end of allocated memory
+    const bytesBefore_ = readBytes(memDumpBefore_, stackTop0_.toNumber());
+    const bytesAfter_ = readBytes(memDumpAfter_, stackTop0_.toNumber());
 
-  it("should push an array of values", async function () {
-    const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
-    const values0 = [6, 7];
-
-    const newArray0_ = await libStackTop.callStatic[
-      "pushReturnOriginalStackTop(uint256[],uint256[],uint256)"
-    ](
-      array0,
-      values0,
-      1 // shift up past array size value
+    // bytes starting from stack top position should be preserved
+    assert(
+      bytesBefore_ === bytesAfter_,
+      "pushWithLength corrupted existing stack"
     );
 
-    assert(newArray0_.length === array0.length);
-    assert(!newArray0_[0].eq(array0[0]));
-    assert(!newArray0_[1].eq(array0[1]));
-    assert(newArray0_[0].eq(values0[0]));
-    assert(newArray0_[1].eq(values0[1]));
-    for (let i = 2; i < array0.length; i++) {
-      newArray0_[i].eq(array0[i]);
+    // pushWithLength should write value below stack top, followed by the existing bytes
+    const pushedLength_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber() - 32 - 32 * values0.length, // writes over existing array length
+      stackTop0_.toNumber() - 32 * values0.length
+    );
+    const pushedValues_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber() - 32 * values0.length, // writes over existing values0.length elements of existing array
+      stackTop0_.toNumber()
+    );
+    const existingArray_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber(),
+      stackTop0_.toNumber() + 32 * array0.length + 32
+    );
+
+    assert(pushedLength_ === zeroPad32(values0.length));
+
+    const expectedPushedValues = hexConcat(
+      values0.map((value) => zeroPad32(value))
+    );
+
+    assert(
+      pushedValues_ === expectedPushedValues,
+      "did not write correct values0"
+    );
+
+    for (let i_ = values0.length; i_ < array0.length; i_++) {
+      const element_ = array0[i_];
+
+      const j_ = i_ - values0.length;
+
+      assert(
+        zeroPad32(element_) ===
+          readBytes(existingArray_, 32 * j_, 32 + 32 * j_),
+        `wrong array value
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(existingArray_, 32 * j_, 32 + 32 * j_)}`
+      );
     }
   });
 
-  it("should push an array of values and return stack top above where values were written", async function () {
-    const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
-    const values0 = [6, 7];
+  it("should push 8 values at once", async function () {
+    const array0 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const values0: Tuple<number, 8> = [11, 12, 13, 14, 15, 16, 17, 18];
 
-    const newArray0_ = await libStackTop.callStatic[
-      "push(uint256[],uint256[],uint256)"
-    ](
-      array0,
-      values0,
-      1 // shift up past array size value
+    const stackTop0_ = await libStackTop.callStatic[
+      "push(uint256[],uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+    ](array0, ...values0);
+
+    const tx0_ = await libStackTop[
+      "push(uint256[],uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
+    ](array0, ...values0);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ !== memDumpAfter_, "push did not modify memory");
+
+    // read bytes starting from stack top to the end of allocated memory
+    const bytesBefore_ = readBytes(memDumpBefore_, stackTop0_.toNumber());
+    const bytesAfter_ = readBytes(memDumpAfter_, stackTop0_.toNumber());
+
+    // bytes starting from stack top position should be preserved
+    assert(bytesBefore_ === bytesAfter_, "push corrupted existing stack");
+
+    // push should write value below stack top, followed by the existing bytes
+    const pushedValues_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber() - 32 * values0.length, // writes over existing array length and values0.length-1 elements of existing array
+      stackTop0_.toNumber()
+    );
+    const existingArray_ = readBytes(
+      memDumpAfter_,
+      stackTop0_.toNumber(),
+      stackTop0_.toNumber() + 32 * array0.length + 32
     );
 
-    // should return stack top above where value was written
-    assert(newArray0_.length === array0[2]); // first value treated as array length, in this case = 30
-    assert(newArray0_[0].eq(array0[3]));
-    assert(newArray0_[1].eq(array0[4]));
-    assert(newArray0_[2].eq(array0[5]));
-    assert(newArray0_[3].eq(array0[6]));
-    assert(newArray0_[4].eq(array0[7]));
-  });
-
-  it("should push an array of values with length", async function () {
-    const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
-    const values0 = [6, 7];
-
-    const newArray0_ = await libStackTop.callStatic[
-      "pushWithLengthReturnOriginalStackTop(uint256[],uint256[],uint256)"
-    ](
-      array0,
-      values0,
-      0 // no shift
+    const expectedPushedValues = hexConcat(
+      values0.map((value) => zeroPad32(value))
     );
 
-    assert(newArray0_.length === values0.length);
-    for (let i = 0; i < values0.length; i++) {
-      assert(newArray0_[i].eq(values0[i]));
+    assert(
+      pushedValues_ === expectedPushedValues,
+      `did not write correct values0
+      expected  ${expectedPushedValues}
+      got       ${pushedValues_}`
+    );
+
+    for (let i_ = values0.length - 1; i_ < array0.length; i_++) {
+      const element_ = array0[i_];
+
+      const j_ = i_ - values0.length + 1;
+
+      assert(
+        zeroPad32(element_) ===
+          readBytes(existingArray_, 32 * j_, 32 + 32 * j_),
+        `wrong array value
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(existingArray_, 32 * j_, 32 + 32 * j_)}`
+      );
     }
   });
 
-  it("should push an array of values with length and return stack top above where values were written", async function () {
-    const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
-    const values0 = [6, 7];
+  it("should make a list from existing bytes by writing an array length", async () => {
+    const array0 = [10, 20, 30, 40, 50];
+    const length0 = 3;
 
-    const newArray0_ = await libStackTop.callStatic[
-      "pushWithLength(uint256[],uint256[],uint256)"
-    ](
-      array0,
-      values0,
-      0 // no shift
+    const { head_, tail_ } = await libStackTop.callStatic[
+      "list(uint256[],uint256)"
+    ](array0, length0);
+
+    const tx0_ = await libStackTop["list(uint256[],uint256)"](array0, length0);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ !== memDumpAfter_, "list did not modify memory");
+
+    assert(head_.eq(array0.length), "head was not original array length");
+
+    assert(tail_.length === length0, "tail was not new length");
+
+    tail_.forEach((value, i_) => {
+      assert(value.eq(array0[i_]), "wrong tail value");
+    });
+  });
+
+  it("should return uint256Array as stack top", async () => {
+    const array = [10, 20, 30, 40, 50, 0, 1, 2];
+
+    const stackTop0_ = await libStackTop.callStatic["asStackTop(uint256[])"](
+      array
     );
 
-    // should return stack top above where value was written
-    assert(newArray0_.length === array0[values0.length]); // first value treated as array length, in this case = 30
+    const tx0_ = await libStackTop["asStackTop(uint256[])"](array);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "asStackTop corrupted memory");
+
+    const bytes_ = readBytes(
+      memDumpBefore_,
+      stackTop0_.toNumber(),
+      stackTop0_.toNumber() + 32 + array.length * 32
+    );
+
+    // bytes_ should begin with array length as uint256
+    assert(readBytes(bytes_, 0, 32) === zeroPad32(array.length));
+
+    // then followed by array.length 32-byte elements
+    array.forEach((element_, i_) => {
+      assert(
+        zeroPad32(element_) === readBytes(bytes_, 32 + 32 * i_, 64 + 32 * i_),
+        `wrong element
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(bytes_, 32 + 32 * i_, 64 + 32 * i_)}`
+      );
+    });
+  });
+
+  it("should return stack top as uint256Array", async () => {
+    const array = [10, 20, 30, 40, 50, 0, 1, 2];
+
+    const array_ = await libStackTop.callStatic[
+      "asStackTopAsUint256Array(uint256[])"
+    ](array);
+
+    const tx0_ = await libStackTop["asStackTopAsUint256Array(uint256[])"](
+      array
+    );
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "asBytes corrupted memory");
+
+    array.forEach((element, i_) => {
+      assert(
+        element === Number(array_[i_]),
+        `wrong element
+        expected  ${element}
+        got       ${Number(array_[i_])}`
+      );
+    });
   });
 });
