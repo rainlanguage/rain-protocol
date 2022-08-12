@@ -437,4 +437,62 @@ describe("LibStackTop uint array tests", async function () {
       assert(value.eq(array0[i_]), "wrong tail value");
     });
   });
+
+  it("should return uint256Array as stack top", async () => {
+    const array = [10, 20, 30, 40, 50, 0, 1, 2];
+
+    const stackTop0_ = await libStackTop.callStatic["asStackTop(uint256[])"](
+      array
+    );
+
+    const tx0_ = await libStackTop["asStackTop(uint256[])"](array);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "asStackTop corrupted memory");
+
+    const bytes_ = readBytes(
+      memDumpBefore_,
+      stackTop0_.toNumber(),
+      stackTop0_.toNumber() + 32 + array.length * 32
+    );
+
+    // bytes_ should begin with array length as uint256
+    assert(readBytes(bytes_, 0, 32) === zeroPad32(array.length));
+
+    // then followed by array.length 32-byte elements
+    array.forEach((element_, i_) => {
+      assert(
+        zeroPad32(element_) === readBytes(bytes_, 32 + 32 * i_, 64 + 32 * i_),
+        `wrong element
+        expected  ${zeroPad32(element_)}
+        got       ${readBytes(bytes_, 32 + 32 * i_, 64 + 32 * i_)}`
+      );
+    });
+  });
+
+  it("should return stack top as uint256Array", async () => {
+    const array = [10, 20, 30, 40, 50, 0, 1, 2];
+
+    const array_ = await libStackTop.callStatic[
+      "asStackTopAsUint256Array(uint256[])"
+    ](array);
+
+    const tx0_ = await libStackTop["asStackTopAsUint256Array(uint256[])"](
+      array
+    );
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "asBytes corrupted memory");
+
+    array.forEach((element, i_) => {
+      assert(
+        element === Number(array_[i_]),
+        `wrong element
+        expected  ${element}
+        got       ${Number(array_[i_])}`
+      );
+    });
+  });
 });
