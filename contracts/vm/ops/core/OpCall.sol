@@ -17,7 +17,11 @@ import "../../integrity/LibIntegrityState.sol";
 /// underflow what they perceive as a fresh stack, and it ensures that we set the
 /// stack length long enough to cover all sub-executions as a single array in
 /// memory. At runtime we trust the integrity checks have allocated enough runway
-/// in the stack for all our recursive sub-calls so we
+/// in the stack for all our recursive sub-calls so we simply move the stack
+/// bottom in the state below the inputs during the call and move it back to
+/// where it was after the call. Notably this means that reading from the stack
+/// in the called source will 0 index from the first input, NOT the bottom of
+/// the calling stack.
 library OpCall {
     using LibIntegrityState for IntegrityState;
     using LibStackTop for StackTop;

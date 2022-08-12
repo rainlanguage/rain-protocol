@@ -31,6 +31,7 @@ library OpContext {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        // The indexing syntax here enforces OOB checks at runtime.
         return stackTop_.push(state_.context[Operand.unwrap(operand_)]);
     }
 }
