@@ -286,4 +286,69 @@ contract LibStackTopTest {
         (head_, tail_) = array_.asStackTopUp().up(length_).list(length_);
         LibDebug.dumpMemory();
     }
+
+    function up(uint256[] memory array_)
+        external
+        returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
+    {
+        stackTopBefore_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+        stackTopAfter_ = stackTopBefore_.up();
+        LibDebug.dumpMemory();
+    }
+
+    function up(uint256[] memory array_, uint256 n_)
+        external
+        returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
+    {
+        stackTopBefore_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+        stackTopAfter_ = stackTopBefore_.up(n_);
+        LibDebug.dumpMemory();
+    }
+
+    function upBytes(uint256[] memory array_, uint256 n_)
+        external
+        returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
+    {
+        stackTopBefore_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+        stackTopAfter_ = stackTopBefore_.upBytes(n_);
+        LibDebug.dumpMemory();
+    }
+
+    function down(uint256[] memory array_)
+        external
+        returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
+    {
+        stackTopBefore_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+        stackTopAfter_ = stackTopBefore_.down();
+        LibDebug.dumpMemory();
+    }
+
+    function down(uint256[] memory array_, uint256 n_)
+        external
+        returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
+    {
+        stackTopBefore_ = array_.asStackTop();
+        LibDebug.dumpMemory();
+        stackTopAfter_ = stackTopBefore_.down(n_);
+        LibDebug.dumpMemory();
+    }
+
+    function toIndex(uint256[] memory array0_, uint256[] memory array1_)
+        external
+        returns (
+            uint256 index_,
+            StackTop stackBottom_,
+            StackTop stackTop_
+        )
+    {
+        stackBottom_ = array0_.asStackTop();
+        stackTop_ = array1_.asStackTop();
+        LibDebug.dumpMemory();
+        index_ = stackBottom_.toIndex(stackTop_);
+        LibDebug.dumpMemory();
+    }
 }
