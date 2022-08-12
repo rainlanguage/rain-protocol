@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../vm/runtime/LibStackTop.sol";
 import "../../debug/LibDebug.sol";
+import "../../memory/LibMemorySize.sol";
 
 /// @title LibStackTopTest
 /// Test wrapper around `LibStackTop` library.
@@ -13,9 +14,13 @@ import "../../debug/LibDebug.sol";
 /// top is not at the bottom of the stack.
 contract LibStackTopTest {
     using LibStackTop for bytes;
+    using LibStackTop for uint256;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
-    using LibStackTop for uint256;
+    using LibMemorySize for bytes;
+    using LibMemorySize for bytes[];
+    using LibMemorySize for uint256;
+    using LibMemorySize for uint256[];
 
     function doubler(uint256 a_) internal pure returns (uint256) {
         return a_ * 2;
@@ -361,7 +366,9 @@ contract LibStackTopTest {
         returns (StackTop stackTop_)
     {
         LibDebug.dumpMemory();
-        stackTop_ = array_.asStackTop().applyFn(doubler);
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            doubler
+        );
         LibDebug.dumpMemory();
     }
 }
