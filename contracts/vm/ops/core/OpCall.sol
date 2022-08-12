@@ -93,7 +93,6 @@ library OpCall {
             callSourceIndex_,
             stackTop_
         );
-
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibUint256Array.unsafeCopyValuesTo(

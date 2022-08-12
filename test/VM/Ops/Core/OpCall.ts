@@ -37,8 +37,8 @@ describe.only("CALL Opcode test", async function () {
 
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
     // input = 3 bits [ 1-7 ]
-    // output = 2 bits [ 1-3] 
-    // sourceIndex = 3 bits [ 1-7 ] 
+    // output = 2 bits [ 1-3]
+    // sourceIndex = 3 bits [ 1-7 ]
 
     const callADD = op(Opcode.CALL, callOperand(2, 1, 1));
 
@@ -287,5 +287,4 @@ describe.only("CALL Opcode test", async function () {
       "Minimum Output integrity check failed"
     );
   });
-
 });

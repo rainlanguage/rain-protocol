@@ -53,8 +53,12 @@ export function memoryOperand(type: number, offset: number): number {
   return (offset << 1) + type;
 }
 
-export function callOperand(input: number, output: number, sourceIndex: number): number {
-  return (sourceIndex << 5) + (output << 3) + input
+export function callOperand(
+  input: number,
+  output: number,
+  sourceIndex: number
+): number {
+  return (sourceIndex << 5) + (output << 3) + input;
 }
 
 /**
