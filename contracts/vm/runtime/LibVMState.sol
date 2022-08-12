@@ -46,7 +46,7 @@ library LibVMState {
     using SafeCast for uint256;
     using LibMemorySize for uint256;
     using LibMemorySize for uint256[];
-    using LibMemorySize for bytes[];
+    using LibMemorySize for bytes;
     using LibUint256Array for uint256[];
     using LibVMState for VMState;
     using LibStackTop for uint256[];
@@ -142,9 +142,13 @@ library LibVMState {
         bytes[] memory ptrSources_
     ) internal pure returns (bytes memory) {
         unchecked {
-            bytes memory packedBytes_ = new bytes(
-                stackLength_.size() + constants_.size() + ptrSources_.size()
-            );
+            uint size_ = 0;
+            size_ += stackLength_.size();
+            size_ += constants_.size();
+            for (uint i_ = 0; i_ < ptrSources_.length; i_++) {
+                size_ += ptrSources_[i_].size();
+            }
+            bytes memory packedBytes_ = new bytes(size_);
             StackTop cursor_ = packedBytes_.asStackTop().up();
 
             // Copy stack length.

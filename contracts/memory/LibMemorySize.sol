@@ -8,7 +8,6 @@ pragma solidity ^0.8.15;
 /// separate to the struct. Length slots for dynamic data are included in the
 /// size and the size is always measured in bytes.
 library LibMemorySize {
-    using LibMemorySize for bytes;
 
     /// Reports the size of a `uint256` in bytes. Is always 32.
     /// @return 32.
@@ -32,24 +31,6 @@ library LibMemorySize {
     function size(bytes memory bytes_) internal pure returns (uint256) {
         unchecked {
             return 0x20 + bytes_.length;
-        }
-    }
-
-    /// Reports the size of a `bytes[]` in bytes. Is the size of the length
-    /// slot (32 bytes) plus the length slot of each item (32 bytes each)
-    /// plus the bytes length of each item.
-    /// @return size_ The size of the `bytes[]` data including its length slot
-    /// size.
-    function size(bytes[] memory bytesArray_)
-        internal
-        pure
-        returns (uint256 size_)
-    {
-        unchecked {
-            size_ = 0x20;
-            for (uint256 i_ = 0; i_ < bytesArray_.length; i_++) {
-                size_ += bytesArray_[i_].size();
-            }
         }
     }
 }
