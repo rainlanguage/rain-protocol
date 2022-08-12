@@ -142,10 +142,10 @@ library LibVMState {
         bytes[] memory ptrSources_
     ) internal pure returns (bytes memory) {
         unchecked {
-            uint size_ = 0;
+            uint256 size_ = 0;
             size_ += stackLength_.size();
             size_ += constants_.size();
-            for (uint i_ = 0; i_ < ptrSources_.length; i_++) {
+            for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
                 size_ += ptrSources_[i_].size();
             }
             bytes memory packedBytes_ = new bytes(size_);

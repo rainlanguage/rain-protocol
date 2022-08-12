@@ -8,7 +8,6 @@ pragma solidity ^0.8.15;
 /// separate to the struct. Length slots for dynamic data are included in the
 /// size and the size is always measured in bytes.
 library LibMemorySize {
-
     /// Reports the size of a `uint256` in bytes. Is always 32.
     /// @return 32.
     function size(uint256) internal pure returns (uint256) {
