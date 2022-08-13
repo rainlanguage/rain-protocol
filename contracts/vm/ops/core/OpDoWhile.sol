@@ -7,12 +7,29 @@ import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpWhile
-/// @notice Opcode for looping while the stack top is true.
+/// @notice Opcode for looping while the stack top is nonzero. As we pre-allocate
+/// all the memory for execution during integrity checks we have an apparent
+/// contradiction here. If we do not know how many times the loop will run then
+/// we cannot calculate the final stack height or intermediate pops and pushes.
+/// To solve this we simply enforce that the stack height MUST NOT change between
+/// loop iterations. Values MAY be popped and pushed to the stack within a single
+/// loop iteration but the final height must remain unchanged. The EVM itself
+/// gives a guard against infinite loops in the form of gas, so we do not need to
+/// solve for that ourselves. Unlike call, the looping construct does not build
+/// a new stack so the called source will be executing from the current stack
+/// position with full access to all stack data. Call and loop MAY be combined
+/// safely if a new stack is desired for each iteration.
 library OpDoWhile {
     using LibIntegrityState for IntegrityState;
     using LibStackTop for StackTop;
     using LibVMState for VMState;
 
+    /// VM integrity for do while.
+    /// The loop itself pops a single value from the stack to determine whether
+    /// it should run another iteration of the loop. The source called by the
+    /// loop must then put a value back on the stack in the same position to
+    /// either continue or break the loop. I.e. the net movement of the called
+    /// source must be a single push.
     function integrity(
         IntegrityState memory integrityState_,
         Operand operand_,

@@ -7,17 +7,19 @@ import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpDebug
-/// @notice Opcode for debugging state.
+/// @notice Opcode for debugging state. Uses the standard debugging logic from
+/// VMState.debug.
 library OpDebug {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
 
+    /// VM integrity for debug.
+    /// Debug doesn't modify the stack.
     function integrity(
         IntegrityState memory,
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        // Debug doesn't modify the state.
         return stackTop_;
     }
 
