@@ -37,7 +37,7 @@ library OpCall {
     /// @param integrityState_ The state of the current integrity check.
     /// @param operand_ The operand associated with this call.
     /// @param stackTop_ The current stack top within the integrity check.
-    /// @return The stack top after the call movements are applied.
+    /// @return stackTopAfter_ The stack top after the call movements are applied.
     function integrity(
         IntegrityState memory integrityState_,
         Operand operand_,
@@ -81,7 +81,7 @@ library OpCall {
     /// @param state_ The state of the current evaluation.
     /// @param operand_ The operand associated with this call.
     /// @param stackTop_ The current stack top within the evaluation.
-    /// @return The stack top after the call is evaluated.
+    /// @return stackTopAfter_ The stack top after the call is evaluated.
     function call(
         VMState memory state_,
         Operand operand_,
