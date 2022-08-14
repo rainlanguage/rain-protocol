@@ -52,35 +52,28 @@ describe("DO_WHILE Opcode test", async function () {
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
-      // op(Opcode.DEBUG, Debug.StackIndex),
-      // op(Opcode.DEBUG, Debug.Stack),
+      op(Opcode.DEBUG, Debug.Stack),
       op(Opcode.DO_WHILE, 1), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-      // op(Opcode.DEBUG, Debug.StackIndex),
-      // op(Opcode.DEBUG, Debug.Stack),
+      op(Opcode.DEBUG, Debug.Stack),
 
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          // op(Opcode.DEBUG, Debug.StackIndex),
-          // op(Opcode.DEBUG, Debug.Stack),
+          op(Opcode.DEBUG, Debug.Stack),
 
         op(Opcode.ADD, 2),
-        // op(Opcode.DEBUG, Debug.StackIndex),
-        // op(Opcode.DEBUG, Debug.Stack),
+        op(Opcode.DEBUG, Debug.Stack),
 
         op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        // op(Opcode.DEBUG, Debug.StackIndex),
-        // op(Opcode.DEBUG, Debug.Stack),
+        op(Opcode.DEBUG, Debug.Stack),
 
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-        // op(Opcode.DEBUG, Debug.StackIndex),
-        // op(Opcode.DEBUG, Debug.Stack),
+        op(Opcode.DEBUG, Debug.Stack),
         
       op(Opcode.LESS_THAN),
-      // op(Opcode.DEBUG, Debug.StackIndex),
-      // op(Opcode.DEBUG, Debug.Stack),
+      op(Opcode.DEBUG, Debug.Stack),
     ]);
 
     await logic.initialize({

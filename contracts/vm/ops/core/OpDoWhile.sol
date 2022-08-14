@@ -59,18 +59,18 @@ library OpDoWhile {
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        uint256 todo_;
-        (stackTop_, todo_) = stackTop_.pop();
-        while (todo_ > 0) {
+        uint256 do_;
+        (stackTop_, do_) = stackTop_.pop();
+        while (do_ > 0) {
             // eval is NOT allowed to change the stack top so we
             // ignore the return of eval. This is enforced by bounds
             // checks.
-            state_.eval(
+            stackTop_ = state_.eval(
                 state_,
                 SourceIndex.wrap(Operand.unwrap(operand_)),
                 stackTop_
             );
-            (stackTop_, todo_) = stackTop_.pop();
+            (stackTop_, do_) = stackTop_.pop();
         }
         return stackTop_;
     }

@@ -69,14 +69,14 @@ library LibVMState {
                 .stackBottom
                 .down()
                 .asUint256Array();
-            console.log("~stack~");
-            console.log("idx: %s", state_.stackBottom.toIndex(stackTop_));
+            console.log("~~~");
+            uint index_ = state_.stackBottom.toIndex(stackTop_);
             unchecked {
-                for (uint256 i_ = 0; i_ < stack_.length; i_++) {
+                for (uint256 i_ = 0; i_ < index_; i_++) {
                     console.log(i_, stack_[i_]);
                 }
             }
-            console.log("~~~~~");
+            console.log("***");
         } else if (debugStyle_ == DebugStyle.StackIndex) {
             console.log(state_.stackBottom.toIndex(stackTop_));
         }
