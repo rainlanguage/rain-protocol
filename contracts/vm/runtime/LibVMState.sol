@@ -10,8 +10,7 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 enum DebugStyle {
     StatePacked,
-    Stack,
-    StackIndex
+    Stack
 }
 
 /// Everything required to evaluate and track the state of a rain script.
@@ -77,8 +76,6 @@ library LibVMState {
                 }
             }
             console.log("***");
-        } else if (debugStyle_ == DebugStyle.StackIndex) {
-            console.log(state_.stackBottom.toIndex(stackTop_));
         }
         return stackTop_;
     }

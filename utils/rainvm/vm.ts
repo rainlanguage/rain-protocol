@@ -9,7 +9,6 @@ export enum MemoryType {
 export enum Debug {
   StatePacked,
   Stack,
-  StackIndex,
 }
 
 export enum selectLteLogic {

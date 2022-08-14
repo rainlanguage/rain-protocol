@@ -26,23 +26,6 @@ describe("RainVM debug op", async function () {
     )) as AllStandardOpsTest;
   });
 
-  it("should log stack index when DEBUG operand is set to DEBUG_STACK_INDEX", async () => {
-    const constants = [10, 20];
-
-    // prettier-ignore
-    const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-      op(Opcode.DEBUG, Debug.StackIndex),
-    ])];
-
-    await logic.initialize({ sources, constants });
-    await logic.run();
-
-    assert(true); // you have to check this log yourself
-  });
-
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
     const constants = [10, 20];
 

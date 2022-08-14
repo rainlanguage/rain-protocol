@@ -21,7 +21,7 @@ import {
 
 const Opcode = AllStandardOps;
 
-describe("DO_WHILE Opcode test", async function () {
+describe.only("DO_WHILE Opcode test", async function () {
   let stateBuilder: AllStandardOpsIntegrity;
   let logic: AllStandardOpsTest;
 
