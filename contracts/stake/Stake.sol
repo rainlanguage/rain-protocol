@@ -8,6 +8,7 @@ import {ERC4626Upgradeable as ERC4626} from "@openzeppelin/contracts-upgradeable
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import "../vm/runtime/StandardVM.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
@@ -28,7 +29,7 @@ struct DepositRecord {
     uint224 amount;
 }
 
-contract Stake is ERC4626, TierV2, ReentrancyGuard {
+contract Stake is ERC4626, TierV2, ReentrancyGuard, StandardVM {
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -36,6 +37,10 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     using Math for uint256;
 
     mapping(address => DepositRecord[]) public depositRecords;
+
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
+        _disableInitializers();
+    }
 
     function initialize(StakeConfig calldata config_) external initializer {
         require(address(config_.asset) != address(0), "0_ASSET");
