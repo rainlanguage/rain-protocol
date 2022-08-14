@@ -11,7 +11,6 @@ import {
   memoryOperand,
   MemoryType,
   callOperand,
-  assertError,
   getBlockTimestamp,
   Tier,
   basicDeploy,
@@ -20,7 +19,7 @@ import {
 
 const Opcode = AllStandardOps;
 
-describe("CALL Opcode test", async function () {
+describe.only("CALL Opcode test", async function () {
   let stateBuilder: AllStandardOpsIntegrity;
   let logic: AllStandardOpsTest;
 
@@ -121,7 +120,7 @@ describe("CALL Opcode test", async function () {
 
   it("should process the maximum number of inputs and fail beyond that", async () => {
     const constants = [2];
-    let maxInputs = 7;
+    const maxInputs = 7;
 
     // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(maxInputs, 1, 1));
@@ -151,40 +150,11 @@ describe("CALL Opcode test", async function () {
       result0.eq(expectedResult0),
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
-
-    // Surpassing the maximum inputs
-    maxInputs = 8;
-    // CALL opcode which will take 8 inputs, pass it to source at index 1, and return 1 output
-    const call1 = op(Opcode.CALL, callOperand(maxInputs, 1, 1));
-
-    const source2 = concat([op(Opcode.MUL, maxInputs)]);
-
-    // prettier-ignore
-    const sourceMAIN1 = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        call1,
-    ]);
-
-    await assertError(
-      async () =>
-        await logic.initialize({
-          sources: [sourceMAIN1, source2],
-          constants,
-        }),
-      "STACK_UNDERFLOW",
-      "Max Input integrity check failed"
-    );
   });
 
   it("should process the minimum number of output", async () => {
     const constants = [2];
-    let minOutput = 1;
+    const minOutput = 1;
 
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(2, minOutput, 1));
@@ -209,35 +179,12 @@ describe("CALL Opcode test", async function () {
       result0.eq(expectedResult0),
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
-
-    // Surpassing the minimum outputs
-    minOutput = 0;
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 0 output
-    const call1 = op(Opcode.CALL, callOperand(2, minOutput, 1));
-
-    const source2 = concat([op(Opcode.MUL, 2)]);
-
-    // prettier-ignore
-    const sourceMAIN1 = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        call1,
-    ]);
-
-    await assertError(
-      async () =>
-        await logic.initialize({
-          sources: [sourceMAIN1, source2],
-          constants,
-        }),
-      "MIN_FINAL_STACK",
-      "Minimum Output integrity check failed"
-    );
+  
   });
 
   it("should process the maximum number of output and fail beyond that", async () => {
     const constants = [2, 10, 20];
-    let maxOutput = 3;
+    const maxOutput = 3;
 
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 3 outputs
     const call0 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
@@ -270,36 +217,6 @@ describe("CALL Opcode test", async function () {
     expect(result0).deep.equal(
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
-    );
-
-    // Surpassing the minimum outputs
-    maxOutput = 4;
-    // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 4 outputs
-    const call1 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
-
-    const source2 = concat([
-      op(Opcode.MUL, 2),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-    ]);
-
-    // prettier-ignore
-    const sourceMAIN1 = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        call1,
-    ]);
-
-    // Failing at integrity check
-    await assertError(
-      async () =>
-        await logic.initialize({
-          sources: [sourceMAIN1, source2],
-          constants,
-        }),
-      "MIN_FINAL_STACK",
-      "Minimum Output integrity check failed"
     );
   });
 
