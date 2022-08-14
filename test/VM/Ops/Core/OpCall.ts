@@ -27,8 +27,7 @@ describe("CALL Opcode test", async function () {
     const stateBuilderFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
@@ -179,7 +178,6 @@ describe("CALL Opcode test", async function () {
       result0.eq(expectedResult0),
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
-  
   });
 
   it("should process the maximum number of output and fail beyond that", async () => {

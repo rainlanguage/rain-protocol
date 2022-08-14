@@ -104,7 +104,6 @@ library OpCall {
         // top above the inputs as the starting stack top. The final stack top
         // is where we will read outputs from below.
         StackTop stackTopEval_ = state_.eval(
-            state_,
             callSourceIndex_,
             stackTop_
         );

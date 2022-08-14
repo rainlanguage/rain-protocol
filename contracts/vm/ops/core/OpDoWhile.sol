@@ -66,7 +66,6 @@ library OpDoWhile {
             // ignore the return of eval. This is enforced by bounds
             // checks.
             state_.eval(
-                state_,
                 SourceIndex.wrap(Operand.unwrap(operand_)),
                 stackTop_
             );

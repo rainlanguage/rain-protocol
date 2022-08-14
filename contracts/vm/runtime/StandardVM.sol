@@ -31,13 +31,20 @@ contract StandardVM is RainVM {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
+    function _loadVMState() internal view returns (VMState memory) {
+        return _loadVMState(new uint[](0));
+    }
+
     function _loadVMState(uint256[] memory context_)
         internal
         view
         virtual
         returns (VMState memory)
     {
-        return SSTORE2.read(vmStatePointer).fromBytesPacked(context_, eval);
+        return
+            SSTORE2.read(vmStatePointer).fromBytesPacked(
+                context_
+            );
     }
 
     function localEvalFunctionPointers()

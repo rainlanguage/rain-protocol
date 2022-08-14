@@ -54,7 +54,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
-      vmStateBuilder: stateBuilder.address,
+      vmIntegrity: stateBuilder.address,
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});

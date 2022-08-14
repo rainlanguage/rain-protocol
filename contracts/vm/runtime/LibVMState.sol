@@ -36,10 +36,9 @@ struct VMState {
     StackTop constantsBottom;
     uint256[] context;
     bytes[] ptrSources;
-    function(VMState memory, SourceIndex, StackTop)
-        view
-        returns (StackTop) eval;
 }
+
+SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
 
 library LibVMState {
     using SafeCast for uint256;
@@ -69,7 +68,7 @@ library LibVMState {
                 .down()
                 .asUint256Array();
             console.log("~~~");
-            uint index_ = state_.stackBottom.toIndex(stackTop_);
+            uint256 index_ = state_.stackBottom.toIndex(stackTop_);
             unchecked {
                 for (uint256 i_ = 0; i_ < index_; i_++) {
                     console.log(i_, stack_[i_]);
@@ -82,11 +81,7 @@ library LibVMState {
 
     function fromBytesPacked(
         bytes memory stateBytes_,
-        uint256[] memory context_,
-        function(VMState memory, SourceIndex, StackTop)
-            internal
-            view
-            returns (StackTop) eval_
+        uint256[] memory context_
     ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
@@ -94,7 +89,6 @@ library LibVMState {
             // Context and the eval pointer are provided by the caller so no
             // processing is needed for these.
             state_.context = context_;
-            state_.eval = eval_;
 
             StackTop cursor_ = stateBytes_.asStackTop().up();
             // The end of processing is the end of the state bytes.
@@ -173,5 +167,80 @@ library LibVMState {
                 state_.constantsBottom.down().asUint256Array(),
                 state_.ptrSources
             );
+    }
+
+    /// Eval with sane defaults partially applied.
+    function eval(VMState memory state_) internal view returns (StackTop) {
+        return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);
+    }
+
+    /// Eval with sane defaults partially applied.
+    function eval(VMState memory state_, SourceIndex sourceIndex_)
+        internal
+        view
+        returns (StackTop)
+    {
+        return state_.eval(sourceIndex_, state_.stackBottom);
+    }
+
+    /// Eval with sane defaults partially applied.
+    function eval(VMState memory state_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
+        return state_.eval(DEFAULT_SOURCE_INDEX, stackTop_);
+    }
+
+    /// Evaluates a rain script.
+    /// The main workhorse of the rain VM, `eval` runs any core opcodes and
+    /// dispatches anything it is unaware of to the implementing contract.
+    /// For a script to be useful the implementing contract must override
+    /// `applyOp` and dispatch non-core opcodes to domain specific logic. This
+    /// could be mathematical operations for a calculator, tier reports for
+    /// a membership combinator, entitlements for a minting curve, etc.
+    ///
+    /// Everything required to coordinate the execution of a rain script to
+    /// completion is contained in the `State`. The context and source index
+    /// are provided so the caller can provide additional data and kickoff the
+    /// opcode dispatch from the correct source in `sources`.
+    function eval(
+        VMState memory state_,
+        SourceIndex sourceIndex_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        unchecked {
+            uint256 cursor_;
+            uint256 end_;
+            assembly ("memory-safe") {
+                cursor_ := mload(
+                    add(
+                        mload(add(state_, 0x60)),
+                        add(0x20, mul(0x20, sourceIndex_))
+                    )
+                )
+                end_ := add(cursor_, mload(cursor_))
+            }
+
+            // Loop until complete.
+            while (cursor_ < end_) {
+                function(VMState memory, Operand, StackTop)
+                    internal
+                    view
+                    returns (StackTop) fn_;
+                Operand operand_;
+                cursor_ += 3;
+                {
+                    uint256 op_;
+                    assembly ("memory-safe") {
+                        op_ := and(mload(cursor_), 0xFFFFFF)
+                        operand_ := and(op_, 0xFF)
+                        fn_ := shr(8, op_)
+                    }
+                }
+                stackTop_ = fn_(state_, operand_, stackTop_);
+            }
+            return stackTop_;
+        }
     }
 }

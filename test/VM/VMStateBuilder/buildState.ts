@@ -15,8 +15,7 @@ describe("RainVMIntegrity buildState", async function () {
     const stateBuilderFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
   });
 

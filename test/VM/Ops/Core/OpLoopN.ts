@@ -29,8 +29,7 @@ describe("LOOP_N Opcode test", async function () {
     const stateBuilderFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
@@ -73,5 +72,4 @@ describe("LOOP_N Opcode test", async function () {
     //   `Invalid output, expected ${expectedResult0}, actual ${result0}`
     // );
   });
-
 });

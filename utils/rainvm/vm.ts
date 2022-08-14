@@ -63,7 +63,6 @@ export function callOperand(
   outputSize: number,
   sourceIndex: number
 ): number {
-   
   if (sourceIndex < 0 || sourceIndex > 7) {
     throw new Error("Invalid sourceIndex");
   } else if (inputSize < 0 || inputSize > 7) {
@@ -80,11 +79,8 @@ export function callOperand(
  *
  * @param n - loop the source for n times (range 0-15)
  * @param sourceIndex - index of function source
-  */
-export function loopNOperand(
-  n: number,
-  sourceIndex: number
-): number {
+ */
+export function loopNOperand(n: number, sourceIndex: number): number {
   if (sourceIndex < 0 || sourceIndex > 15) {
     throw new Error("Invalid sourceIndex");
   } else if (n < 0 || n > 15) {

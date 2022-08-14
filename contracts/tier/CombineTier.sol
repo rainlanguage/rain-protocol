@@ -38,6 +38,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
     using LibStackTop for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
+    using LibVMState for VMState;
 
     event Initialize(address sender, CombineTierConfig config);
 
@@ -79,12 +80,10 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         override
         returns (uint256)
     {
-        unchecked {
-            VMState memory state_ = _loadVMState(
-                uint256(uint160(account_)).arrayFrom(context_)
-            );
-            return eval(state_, REPORT_ENTRYPOINT, state_.stackBottom).peek();
-        }
+        return
+            _loadVMState(uint256(uint160(account_)).arrayFrom(context_))
+                .eval(REPORT_ENTRYPOINT)
+                .peek();
     }
 
     /// @inheritdoc ITierV2
@@ -93,17 +92,13 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         uint256 tier_,
         uint256[] memory context_
     ) external view returns (uint256) {
-        unchecked {
-            VMState memory state_ = _loadVMState(
+        return
+            _loadVMState(
                 LibUint256Array.arrayFrom(
                     uint256(uint160(account_)),
                     tier_,
                     context_
                 )
-            );
-            return
-                eval(state_, REPORT_FOR_TIER_ENTRYPOINT, state_.stackBottom)
-                    .peek();
-        }
+            ).eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
     }
 }

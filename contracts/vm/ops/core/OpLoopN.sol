@@ -46,7 +46,7 @@ library OpLoopN {
             (Operand.unwrap(operand_) >> 4) & 0x0F
         );
         for (uint256 i_ = 0; i_ < n_; i_++) {
-            stackTop_ = state_.eval(state_, loopSourceIndex_, stackTop_);
+            stackTop_ = state_.eval(loopSourceIndex_, stackTop_);
         }
         return stackTop_;
     }

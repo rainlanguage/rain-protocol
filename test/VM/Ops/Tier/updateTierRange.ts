@@ -35,8 +35,7 @@ describe("RainVM update tier range op", async function () {
     const stateBuilderFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

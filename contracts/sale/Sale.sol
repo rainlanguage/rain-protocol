@@ -354,9 +354,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
                 return false;
             }
             state_.context = new uint256[](0);
-            return
-                eval(state_, CAN_LIVE_ENTRYPOINT, state_.stackBottom).peek() >
-                0;
+            return state_.eval(CAN_LIVE_ENTRYPOINT).peek() > 0;
         }
     }
 
@@ -400,8 +398,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         returns (uint256, uint256)
     {
         state_.context = targetUnits_.arrayFrom();
-        return
-            eval(state_, CALCULATE_BUY_ENTRYPOINT, state_.stackBottom).peek2();
+        return state_.eval(CALCULATE_BUY_ENTRYPOINT).peek2();
     }
 
     function calculateBuy(uint256 targetUnits_)
@@ -419,7 +416,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        require(_canLive(_loadVMState(new uint256[](0))), "NOT_LIVE");
+        require(_canLive(_loadVMState()), "NOT_LIVE");
         _start();
     }
 
@@ -429,7 +426,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        require(!_canLive(_loadVMState(new uint256[](0))), "LIVE");
+        require(!_canLive(_loadVMState()), "LIVE");
         _end();
     }
 

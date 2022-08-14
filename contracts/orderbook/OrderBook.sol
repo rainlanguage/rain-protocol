@@ -69,6 +69,7 @@ contract OrderBook is StandardVM {
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
+    using LibVMState for VMState;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -191,29 +192,24 @@ contract OrderBook is StandardVM {
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
             unchecked {
-                VMState memory vmState_;
                 {
-                    vmState_ = a_.vmState.fromBytesPacked(
-                        EvalContext(aHash_, b_.owner).toContext(),
-                        eval
-                    );
-                    (aOutputMax_, aPrice_) = eval(
-                        vmState_,
-                        ENTRYPOINT,
-                        vmState_.stackBottom
-                    ).peek2();
+                    (aOutputMax_, aPrice_) = a_
+                        .vmState
+                        .fromBytesPacked(
+                            EvalContext(aHash_, b_.owner).toContext()
+                        )
+                        .eval()
+                        .peek2();
                 }
 
                 {
-                    vmState_ = b_.vmState.fromBytesPacked(
-                        EvalContext(bHash_, a_.owner).toContext(),
-                        eval
-                    );
-                    (bOutputMax_, bPrice_) = eval(
-                        vmState_,
-                        ENTRYPOINT,
-                        vmState_.stackBottom
-                    ).peek2();
+                    (bOutputMax_, bPrice_) = b_
+                        .vmState
+                        .fromBytesPacked(
+                            EvalContext(bHash_, a_.owner).toContext()
+                        )
+                        .eval()
+                        .peek2();
                 }
             }
 

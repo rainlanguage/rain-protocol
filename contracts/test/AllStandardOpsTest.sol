@@ -5,7 +5,6 @@ import {StandardVM} from "../vm/runtime/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "../vm/integrity/RainVMIntegrity.sol";
 
-SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
@@ -48,9 +47,9 @@ contract AllStandardOpsTest is StandardVM {
 
     /// Runs `eval` and stores full state.
     function run() public {
-        VMState memory state_ = _loadVMState(new uint256[](0));
+        VMState memory state_ = _loadVMState();
         uint256 a_ = gasleft();
-        StackTop stackTop_ = eval(state_, ENTRYPOINT, state_.stackBottom);
+        StackTop stackTop_ = state_.eval();
         uint256 b_ = gasleft();
         console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
@@ -65,7 +64,7 @@ contract AllStandardOpsTest is StandardVM {
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
         VMState memory state_ = _loadVMState(context_);
-        StackTop stackTop_ = eval(state_, ENTRYPOINT, state_.stackBottom);
+        StackTop stackTop_ = state_.eval();
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.

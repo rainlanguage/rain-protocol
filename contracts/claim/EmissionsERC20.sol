@@ -26,8 +26,6 @@ struct EmissionsERC20Config {
     StateConfig vmStateConfig;
 }
 
-/// @dev Source index for VM eval.
-SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 /// @dev The final stack MUST include at least this many values after eval.
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
@@ -54,6 +52,7 @@ contract EmissionsERC20 is
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibVMState for VMState;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -128,10 +127,8 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        uint256[] memory context_ = new uint256[](1);
-        context_[0] = uint256(uint160(claimant_));
-        VMState memory state_ = _loadVMState(context_);
-        return eval(state_, ENTRYPOINT, state_.stackBottom).peek();
+        return
+            _loadVMState(uint256(uint160(claimant_)).arrayFrom()).eval().peek();
     }
 
     /// Processes the claim for `claimant_`.

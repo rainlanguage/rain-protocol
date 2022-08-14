@@ -9,7 +9,6 @@ import "../../vm/runtime/StandardVM.sol";
 import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 
-SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
@@ -63,7 +62,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
                     context_[1] = uint256(bytes32(evidences_[i_].data));
                     state_.context = context_;
                     if (
-                        eval(state_, ENTRYPOINT, state_.stackBottom).peek() > 0
+                        state_.eval().peek() > 0
                     ) {
                         _approvedEvidenceData[
                             uint256(bytes32(evidences_[i_].data))

@@ -6,7 +6,6 @@ import "../vm/runtime/StandardVM.sol";
 import "../vm/integrity/RainVMIntegrity.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 
-SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 2; // note this value
 
 /// @title StackHeightTest
