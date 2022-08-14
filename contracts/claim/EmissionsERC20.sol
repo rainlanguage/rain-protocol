@@ -26,9 +26,6 @@ struct EmissionsERC20Config {
     StateConfig vmStateConfig;
 }
 
-/// @dev The final stack MUST include at least this many values after eval.
-uint256 constant MIN_FINAL_STACK_INDEX = 1;
-
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
@@ -89,7 +86,7 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        _saveVMState(config_.vmStateConfig, MIN_FINAL_STACK_INDEX.arrayFrom());
+        _saveVMState(config_.vmStateConfig);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;

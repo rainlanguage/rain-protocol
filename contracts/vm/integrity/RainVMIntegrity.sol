@@ -16,6 +16,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
     using LibStackTop for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
+    using LibIntegrityState for IntegrityState;
 
     function integrityFunctionPointers()
         internal
@@ -42,12 +43,10 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             StackTop.wrap(0),
             StackTop.wrap(0),
             0,
-            integrityFunctionPointers(),
-            _ensureIntegrity
+            integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
-            _ensureIntegrity(
-                integrityState_,
+            integrityState_.ensureIntegrity(
                 SourceIndex.wrap(i_),
                 StackTop.wrap(0),
                 finalStacks_[i_]
@@ -57,53 +56,5 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop),
             integrityState_.scratch
         );
-    }
-
-    function _ensureIntegrity(
-        IntegrityState memory integrityState_,
-        SourceIndex sourceIndex_,
-        StackTop stackTop_,
-        uint256 minimumFinalStackIndex_
-    ) internal view returns (StackTop) {
-        unchecked {
-            uint256 cursor_;
-            uint256 end_;
-            assembly ("memory-safe") {
-                cursor_ := mload(
-                    add(
-                        mload(integrityState_),
-                        add(0x20, mul(0x20, sourceIndex_))
-                    )
-                )
-                end_ := add(cursor_, mload(cursor_))
-            }
-
-            // Loop until complete.
-            while (cursor_ < end_) {
-                uint256 opcode_;
-                Operand operand_;
-                cursor_ += 2;
-                {
-                    assembly ("memory-safe") {
-                        let op_ := and(mload(cursor_), 0xFFFF)
-                        operand_ := and(op_, 0xFF)
-                        opcode_ := shr(8, op_)
-                    }
-                }
-                // We index into the function pointers here to ensure that any
-                // opcodes that we don't have a pointer for will error.
-                stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
-                    integrityState_,
-                    operand_,
-                    stackTop_
-                );
-            }
-            require(
-                minimumFinalStackIndex_ <=
-                    integrityState_.stackBottom.toIndex(stackTop_),
-                "MIN_FINAL_STACK"
-            );
-            return stackTop_;
-        }
     }
 }

@@ -25,7 +25,6 @@ library OpLoopN {
             );
             for (uint256 i_ = 0; i_ <= n_; i_++) {
                 stackTop_ = integrityState_.ensureIntegrity(
-                    integrityState_,
                     loopSourceIndex_,
                     stackTop_,
                     0

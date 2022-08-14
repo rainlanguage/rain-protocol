@@ -59,7 +59,6 @@ library OpCall {
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
         integrityState_.ensureIntegrity(
-            integrityState_,
             callSourceIndex_,
             stackTop_,
             outputs_

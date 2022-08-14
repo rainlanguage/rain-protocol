@@ -40,7 +40,6 @@ library OpDoWhile {
             StackTop.unwrap(stackTop_) ==
                 StackTop.unwrap(
                     integrityState_.ensureIntegrity(
-                        integrityState_,
                         SourceIndex.wrap(Operand.unwrap(operand_)),
                         // The loop eval starts under the condition.
                         integrityState_.pop(stackTop_),

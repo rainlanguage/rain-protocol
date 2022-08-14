@@ -5,8 +5,6 @@ import {StandardVM} from "../vm/runtime/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "../vm/integrity/RainVMIntegrity.sol";
 
-uint256 constant MIN_FINAL_STACK_INDEX = 1;
-
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
 
 /// @title AllStandardOpsTest
@@ -34,7 +32,7 @@ contract AllStandardOpsTest is StandardVM {
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {
-        _saveVMState(stateConfig_, MIN_FINAL_STACK_INDEX.arrayFrom());
+        _saveVMState(stateConfig_);
     }
 
     function stackTop() external view returns (uint256) {

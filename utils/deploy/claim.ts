@@ -13,7 +13,7 @@ export interface ClaimFactories {
 
 export const claimFactoriesDeploy = async (): Promise<ClaimFactories> => {
   const integrityFactory = await ethers.getContractFactory(
-    "AllStandardOpsIntegrity"
+    "StandardIntegrity"
   );
   const integrity = await integrityFactory.deploy();
   await integrity.deployed();
