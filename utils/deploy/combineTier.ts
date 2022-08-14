@@ -16,15 +16,15 @@ export const combineTierDeploy = async (
   deployer: SignerWithAddress,
   config: CombineTierConfigStruct
 ) => {
-  const stateBuilderFactory = await ethers.getContractFactory(
+  const integrityFactory = await ethers.getContractFactory(
     "AllStandardOpsIntegrity"
   );
-  const stateBuilder = await stateBuilderFactory.deploy();
-  await stateBuilder.deployed();
+  const integrity = await integrityFactory.deploy();
+  await integrity.deployed();
 
   const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
   const factory = (await factoryFactory.deploy(
-    stateBuilder.address
+    integrity.address
   )) as CombineTierFactory;
   await factory.deployed();
 

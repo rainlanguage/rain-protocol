@@ -32,11 +32,11 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
+    const integrityFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    const stateBuilder = await stateBuilderFactory.deploy();
-    await stateBuilder.deployed();
+    const integrity = await integrityFactory.deploy();
+    await integrity.deployed();
 
     redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
@@ -54,7 +54,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
-      vmIntegrity: stateBuilder.address,
+      vmIntegrity: integrity.address,
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});

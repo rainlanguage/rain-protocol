@@ -12,7 +12,7 @@ import type {
   OrderLiveEvent,
   WithdrawConfigStruct,
 } from "../../../typechain/OrderBook";
-import { OrderBookStateBuilder } from "../../../typechain/OrderBookStateBuilder";
+import { OrderBookIntegrity } from "../../../typechain/OrderBookIntegrity";
 import { ReserveToken18 } from "../../../typechain/ReserveToken18";
 import {
   eighteenZeros,
@@ -35,7 +35,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
     tokenB: ReserveToken18,
-    stateBuilder: OrderBookStateBuilder;
+    integrity: OrderBookIntegrity;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -43,12 +43,12 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "OrderBookStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "OrderBookIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
-    await stateBuilder.deployed();
+    integrity =
+      (await integrityFactory.deploy()) as OrderBookIntegrity;
+    await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
@@ -62,7 +62,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const bountyBot = signers[4];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);

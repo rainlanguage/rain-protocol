@@ -63,12 +63,12 @@ export const saleDeploy = async (
 };
 
 export const saleDependenciesDeploy = async () => {
-  const stateBuilderFactory = await ethers.getContractFactory(
+  const integrityFactory = await ethers.getContractFactory(
     "AllStandardOpsIntegrity"
   );
-  const stateBuilder =
-    (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
-  await stateBuilder.deployed();
+  const integrity =
+    (await integrityFactory.deploy()) as AllStandardOpsIntegrity;
+  await integrity.deployed();
 
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory",
@@ -86,7 +86,7 @@ export const saleDependenciesDeploy = async () => {
     maximumSaleTimeout: 10000,
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    vmStateBuilder: stateBuilder.address,
+    vmIntegrity: integrity.address,
   };
   const saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
   const saleFactory = (await saleFactoryFactory.deploy(
@@ -128,6 +128,6 @@ export const saleDependenciesDeploy = async () => {
     saleFactoryFactory,
     saleFactory,
     saleProxy,
-    stateBuilder,
+    integrity,
   };
 };

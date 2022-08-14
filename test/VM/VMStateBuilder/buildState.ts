@@ -9,14 +9,14 @@ import { assertError } from "../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainVMIntegrity buildState", async function () {
-  let stateBuilder: StandardIntegrity;
+  let integrity: StandardIntegrity;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
+    const integrityFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
   });
 
   it("should enforce minimum stack height after eval", async () => {
@@ -26,7 +26,7 @@ describe("RainVMIntegrity buildState", async function () {
 
     // test contract expects stack height of 2
     const stackHeightTest = (await stackHeightTestFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as StackHeightTest;
 
     const constants = [1];

@@ -12,19 +12,19 @@ const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM MathOps saturating math", async () => {
-  let stateBuilder: StandardIntegrity;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
+    const integrityFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 

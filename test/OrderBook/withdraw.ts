@@ -8,7 +8,7 @@ import type {
   WithdrawConfigStruct,
   WithdrawEvent,
 } from "../../typechain/OrderBook";
-import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
+import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -18,19 +18,19 @@ import { compareStructs } from "../../utils/test/compareStructs";
 describe("OrderBook withdraw from vault", async function () {
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
-    stateBuilder: OrderBookStateBuilder;
+    integrity: OrderBookIntegrity;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "OrderBookStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "OrderBookIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
-    await stateBuilder.deployed();
+    integrity =
+      (await integrityFactory.deploy()) as OrderBookIntegrity;
+    await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
@@ -39,7 +39,7 @@ describe("OrderBook withdraw from vault", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
     const vaultId = ethers.BigNumber.from(1);
 
