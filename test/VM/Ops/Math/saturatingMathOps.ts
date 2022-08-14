@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { max_uint256 } from "../../../../utils/constants";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
@@ -12,15 +12,15 @@ const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM MathOps saturating math", async () => {
-  let stateBuilder: AllStandardOpsIntegrity;
+  let stateBuilder: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+      "StandardIntegrity"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
+      (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

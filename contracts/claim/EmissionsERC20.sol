@@ -75,7 +75,7 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
     }
 

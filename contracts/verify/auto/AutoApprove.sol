@@ -32,7 +32,7 @@ contract AutoApprove is VerifyCallback, StandardVM, Initializable {
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
     }
 

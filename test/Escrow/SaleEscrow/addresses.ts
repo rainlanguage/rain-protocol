@@ -33,7 +33,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+      "StandardIntegrity"
     );
     const stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();

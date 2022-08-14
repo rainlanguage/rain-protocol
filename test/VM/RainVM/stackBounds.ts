@@ -1,6 +1,6 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import {
@@ -13,15 +13,15 @@ import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 describe("RainVM stack bounds", async function () {
-  let stateBuilder: AllStandardOpsIntegrity;
+  let stateBuilder: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+      "StandardIntegrity"
     );
     stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
+      (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

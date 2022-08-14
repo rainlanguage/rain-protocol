@@ -22,7 +22,7 @@ let redeemableERC20FactoryFactory: ContractFactory,
 describe("SaleEscrow protection from draining", async function () {
   before(async () => {
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+      "StandardIntegrity"
     );
     const stateBuilder = await stateBuilderFactory.deploy();
     await stateBuilder.deployed();
