@@ -389,7 +389,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// Offchain users MAY call this directly or calculate the outcome
     /// themselves.
     function canLive() external view returns (bool) {
-        return _canLive(_loadVMState(new uint256[](0)));
+        return _canLive(_loadVMState());
     }
 
     function _calculateBuy(VMState memory state_, uint256 targetUnits_)
@@ -406,8 +406,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        VMState memory state_ = _loadVMState(new uint256[](0));
-        return _calculateBuy(state_, targetUnits_);
+        return _calculateBuy(_loadVMState(), targetUnits_);
     }
 
     /// Start the sale (move from pending to active).
@@ -477,7 +476,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
 
         // This state is loaded once and shared between 2x `_canLive` calls and
         // a `_calculateBuy` call.
-        VMState memory state_ = _loadVMState(new uint256[](0));
+        VMState memory state_ = _loadVMState();
 
         // Start or end the sale as required.
         if (_canLive(state_)) {
