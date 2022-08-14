@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.10;
 
 /// @title LibMemorySize
 /// @notice Reports the size in bytes of type data that represents contigious

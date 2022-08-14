@@ -37,10 +37,16 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
 
     mapping(address => DepositRecord[]) public depositRecords;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(StakeConfig calldata config_) external initializer {
         require(address(config_.asset) != address(0), "0_ASSET");
+        __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
+        __TierV2_init();
         emit Initialize(msg.sender, config_);
     }
 

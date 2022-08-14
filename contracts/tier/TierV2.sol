@@ -5,6 +5,10 @@ import {ERC165Upgradeable as ERC165 } from "@openzeppelin/contracts-upgradeable/
 import "./ITierV2.sol";
 
 abstract contract TierV2 is ITierV2, ERC165 {
+    function __TierV2_init() internal onlyInitializing {
+        __ERC165_init();
+    }
+
     function supportsInterface(bytes4 interfaceId_)
         public
         view

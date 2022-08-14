@@ -83,6 +83,7 @@ contract EmissionsERC20 is
         external
         initializer
     {
+        __TierV2_init();
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
         _mint(
             config_.erc20Config.distributor,

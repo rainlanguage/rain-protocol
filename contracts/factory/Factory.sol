@@ -2,7 +2,7 @@
 pragma solidity =0.8.15;
 
 import {IFactory} from "./IFactory.sol";
-import {ReentrancyGuardUpgradeable as ReentrancyGuard } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 /// @title Factory
 /// @notice Base contract for deploying and registering child contracts.
@@ -11,6 +11,15 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// never lie about deploying a child, unless `isChild` is overridden to do
     /// so.
     mapping(address => bool) private contracts;
+
+    constructor () {
+        // Technically `ReentrancyGuard` is initializable but allowing it to be
+        // initialized is a foot-gun as the status will be set to _NOT_ENTERED.
+        // This would allow re-entrant behaviour upon initialization of the
+        // `Factory` and is unnecessary as the reentrancy guard always restores
+        // _NOT_ENTERED after every call anyway.
+        _disableInitializers();
+    }
 
     /// Implements `IFactory`.
     ///

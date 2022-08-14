@@ -26,6 +26,7 @@ contract VerifyTier is TierV2 {
     /// Sets the `verify` contract.
     /// @param verify_ The contract to check to produce reports.
     function initialize(address verify_) external initializer {
+        __TierV2_init();
         require(verify_ != address(0), "0_ADDRESS");
         verify = Verify(verify_);
         emit Initialize(msg.sender, verify_);

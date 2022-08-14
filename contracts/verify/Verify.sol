@@ -252,6 +252,7 @@ contract Verify is AccessControl {
     /// @param config_ The config required to initialize the contract.
     function initialize(VerifyConfig memory config_) external initializer {
         require(config_.admin != address(0), "0_ACCOUNT");
+        __AccessControl_init();
 
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.

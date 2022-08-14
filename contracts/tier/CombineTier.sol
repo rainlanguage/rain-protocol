@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
@@ -49,6 +47,7 @@ contract CombineTier is TierV2, StandardVM {
         external
         initializer
     {
+        __TierV2_init();
         _saveVMState(
             config_.sourceConfig,
             LibUint256Array.arrayFrom(

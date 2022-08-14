@@ -31,6 +31,10 @@ contract ReadWriteTier is TierV2 {
     /// account => reports
     mapping(address => uint256) private reports;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
     function report(address account_, uint256[] calldata)

@@ -38,6 +38,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
         external
         initializer
     {
+        __VerifyCallback_init();
         _saveVMState(stateConfig_, MIN_FINAL_STACK_INDEX.arrayFrom());
         _transferOwnership(msg.sender);
 

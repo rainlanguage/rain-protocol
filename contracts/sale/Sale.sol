@@ -138,7 +138,7 @@ uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
+contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -251,6 +251,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         SaleConfig calldata config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
+        __ReentrancyGuard_init();
         initializeCooldown(config_.cooldownDuration);
 
         require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");
