@@ -221,5 +221,37 @@ describe("DO_WHILE Opcode test", async function () {
     );
   });
 
-  it("should be able to run correctly with new stack using CALL op");
+  it("should be able to run correctly with new stack using CALL op", async () => {
+    // [pairCounter, initValue, loopCounter, loopValue, minValue]
+    const constants = [0, 0, 1, 3, 20];
+
+    const callCheckValue = op(Opcode.CALL, callOperand(1, 1, 1));
+
+    const checkValue = concat([
+      // op(Opcode.DEBUG, Debug.Stack),
+        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+        // op(Opcode.DEBUG, Debug.Stack),
+      op(Opcode.LESS_THAN),
+    ]);
+
+
+    const source = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.DEBUG, Debug.Stack),
+      callCheckValue,
+      op(Opcode.DEBUG, Debug.Stack)
+    ]);
+
+    await logic.initialize({
+      sources: [source, checkValue],
+      constants,
+    });
+
+    await logic.run();
+    const result = await logic.stackTop();
+
+    console.log(result.toString());
+  });
 });
