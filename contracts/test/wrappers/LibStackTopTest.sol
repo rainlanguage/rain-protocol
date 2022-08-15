@@ -26,6 +26,70 @@ contract LibStackTopTest {
         return a_ * 2;
     }
 
+    function multiplier(Operand operand_, uint256 a_)
+        internal
+        pure
+        returns (uint256)
+    {
+        return a_ * Operand.unwrap(operand_);
+    }
+
+    function summer(uint256 a_, uint256 b_) internal pure returns (uint256) {
+        return a_ + b_;
+    }
+
+    function summer3(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_
+    ) internal pure returns (uint256) {
+        return a_ + b_ + c_;
+    }
+
+    function multiplier2(
+        Operand operand_,
+        uint256 a_,
+        uint256 b_
+    ) internal pure returns (uint256) {
+        return (a_ + b_) * Operand.unwrap(operand_);
+    }
+
+    function multiply2HeadsWithTailSum(
+        uint256 a_,
+        uint256 b_,
+        uint256[] memory tail_
+    ) internal pure returns (uint256) {
+        uint256 sum;
+        for (uint256 i_ = 0; i_ < tail_.length; i_++) {
+            sum += tail_[i_];
+        }
+        return (a_ + b_) * sum;
+    }
+
+    function multiply3HeadsWithTailSum(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_,
+        uint256[] memory tail_
+    ) internal pure returns (uint256) {
+        uint256 sum;
+        for (uint256 i_ = 0; i_ < tail_.length; i_++) {
+            sum += tail_[i_];
+        }
+        return (a_ + b_ + c_) * sum;
+    }
+
+    function addHeadToTailsProduct(
+        uint256 a_,
+        uint256[] memory bs_,
+        uint256[] memory cs_
+    ) internal pure returns (uint256[] memory results_) {
+        results_ = new uint256[](bs_.length);
+        for (uint256 i_ = 0; i_ < bs_.length; i_++) {
+            results_[i_] = bs_[i_] * cs_[i_] + a_;
+        }
+    }
+
     /// peekUp returning value above stack top
 
     function peekUp(bytes memory bytes_) external returns (uint256 a_) {
@@ -361,6 +425,7 @@ contract LibStackTopTest {
         LibDebug.dumpMemory();
     }
 
+    // function(uint256) internal view returns (uint256)
     function applyFn(uint256[] memory array_)
         external
         returns (StackTop stackTop_)
@@ -368,6 +433,108 @@ contract LibStackTopTest {
         LibDebug.dumpMemory();
         stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
             doubler
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(Operand, uint256) internal view returns (uint256)
+    function applyFn(uint256[] memory array_, uint256 operand_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            multiplier,
+            Operand.wrap(operand_)
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(uint256, uint256) internal view returns (uint256)
+    function applyFnSummer(uint256[] memory array_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            summer
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // loop of function(uint256, uint256) internal view returns (uint256)
+    function applyFnNSummer(uint256[] memory array_, uint256 n_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFnN(
+            summer,
+            n_
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(uint256, uint256, uint256) internal view returns (uint256)
+    function applyFn3Summer(uint256[] memory array_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            summer3
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(Operand, uint256, uint256) internal view returns (uint256)
+    function applyFn2Operand(uint256[] memory array_, uint256 operand_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            multiplier2,
+            Operand.wrap(operand_)
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(uint256, uint256, uint256[] memory) internal view returns (uint256)
+    function applyFn2Heads(uint256[] memory array_, uint256 length_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            multiply2HeadsWithTailSum,
+            length_
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(uint256, uint256,, uint256 uint256[] memory) internal view returns (uint256)
+    function applyFn3Heads(uint256[] memory array_, uint256 length_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            multiply3HeadsWithTailSum,
+            length_
+        );
+        LibDebug.dumpMemory();
+    }
+
+    // function(uint256, uint256[] memory, uint256[] memory) internal view returns (uint256[] memory)
+    function applyFn2Tails(uint256[] memory array_, uint256 length_)
+        external
+        returns (StackTop stackTop_)
+    {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20).applyFn(
+            addHeadToTailsProduct,
+            length_
         );
         LibDebug.dumpMemory();
     }
