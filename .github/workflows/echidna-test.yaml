@@ -1,0 +1,14 @@
+name: Echidna Fuzz tests
+on: [push, pull_request]
+jobs:
+  test:
+    if: ${{ contains(github.event.head_commit.message, '[fuzz]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - uses: cachix/install-nix-action@v13
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+      - run: nix-shell --run echidna-test

@@ -6,7 +6,7 @@ import "../vm/runtime/LibVMState.sol";
 import "../vm/integrity/LibIntegrityState.sol";
 import "../vm/runtime/RainVM.sol";
 
-/// @title Cast
+/// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
 /// give us by default. A type cast (vs. conversion) is considered one where the
 /// structure is unchanged by the cast. The cast does NOT (can't) check that the

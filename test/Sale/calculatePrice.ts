@@ -366,7 +366,7 @@ describe("Sale calculate price", async function () {
             distributionEndForwardingAddress: ethers.constants.AddressZero,
           }
         ),
-      "Array accessed at an out-of-bounds or negative index",
+      "Error",
       "did not prevent out of bounds opcode deploy"
     );
   });
