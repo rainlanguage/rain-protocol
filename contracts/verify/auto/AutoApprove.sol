@@ -7,9 +7,6 @@ import "../../vm/runtime/StandardVM.sol";
 import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 
-SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant MIN_FINAL_STACK_INDEX = 1;
-
 uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
@@ -30,7 +27,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
     }
 
@@ -39,7 +36,8 @@ contract AutoApprove is VerifyCallback, StandardVM {
         initializer
     {
         __VerifyCallback_init();
-        _saveVMState(stateConfig_, MIN_FINAL_STACK_INDEX.arrayFrom());
+        _saveVMState(stateConfig_);
+
         _transferOwnership(msg.sender);
 
         emit Initialize(msg.sender, stateConfig_);
@@ -54,7 +52,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[] memory context_ = new uint256[](2);
-            VMState memory state_ = _loadVMState(new uint256[](0));
+            VMState memory state_ = _loadVMState();
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
@@ -62,7 +60,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
                     context_[1] = uint256(bytes32(evidences_[i_].data));
                     state_.context = context_;
                     if (
-                        eval(state_, ENTRYPOINT, state_.stackBottom).peek() > 0
+                        state_.eval().peek() > 0
                     ) {
                         _approvedEvidenceData[
                             uint256(bytes32(evidences_[i_].data))

@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../typechain/StandardIntegrity";
 import { ReadWriteTier } from "../../typechain/ReadWriteTier";
 import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
 import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
@@ -63,12 +63,12 @@ export const saleDeploy = async (
 };
 
 export const saleDependenciesDeploy = async () => {
-  const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsIntegrity"
+  const integrityFactory = await ethers.getContractFactory(
+    "StandardIntegrity"
   );
-  const stateBuilder =
-    (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
-  await stateBuilder.deployed();
+  const integrity =
+    (await integrityFactory.deploy()) as StandardIntegrity;
+  await integrity.deployed();
 
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(
     "RedeemableERC20Factory",
@@ -86,7 +86,7 @@ export const saleDependenciesDeploy = async () => {
     maximumSaleTimeout: 10000,
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    vmStateBuilder: stateBuilder.address,
+    vmIntegrity: integrity.address,
   };
   const saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
   const saleFactory = (await saleFactoryFactory.deploy(
@@ -128,6 +128,6 @@ export const saleDependenciesDeploy = async () => {
     saleFactoryFactory,
     saleFactory,
     saleProxy,
-    stateBuilder,
+    integrity,
   };
 };

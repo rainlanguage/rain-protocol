@@ -1,20 +1,32 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../../vm/integrity/StandardIntegrity.sol";
-import "./AutoApprove.sol";
-import "../../type/LibCast.sol";
+import "../vm/integrity/StandardIntegrity.sol";
+import "../vm/ops/AllStandardOps.sol";
+import "./OrderBook.sol";
+import "../type/LibCast.sol";
 
-contract AutoApproveStateBuilder is StandardIntegrity {
+contract OrderBookIntegrity is StandardIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrityState for IntegrityState;
 
-    function integrityEvidenceDataApproved(
+    function integrityOrderFundsCleared(
         IntegrityState memory integrityState_,
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        integrityState_.scratch |= TRACKING_FLAG_CLEARED_ORDER;
         function(uint256) internal view returns (uint256) fn_;
+        return integrityState_.applyFn(stackTop_, fn_);
+    }
+
+    function integrityOrderCounterpartyFundsCleared(
+        IntegrityState memory integrityState_,
+        Operand,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
+        integrityState_.scratch |= TRACKING_FLAG_CLEARED_COUNTERPARTY;
+        function(uint256, uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }
 
@@ -38,7 +50,10 @@ contract AutoApproveStateBuilder is StandardIntegrity {
                 Operand,
                 StackTop
             ) view returns (StackTop)[](LOCAL_OPS_LENGTH);
-        localIntegrityFunctionPointers_[0] = integrityEvidenceDataApproved;
+        localIntegrityFunctionPointers_[0] = integrityOrderFundsCleared;
+        localIntegrityFunctionPointers_[
+            1
+        ] = integrityOrderCounterpartyFundsCleared;
         return localIntegrityFunctionPointers_;
     }
 }

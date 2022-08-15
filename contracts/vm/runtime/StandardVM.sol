@@ -6,8 +6,12 @@ import "./RainVM.sol";
 import "../integrity/RainVMIntegrity.sol";
 import "../ops/AllStandardOps.sol";
 
+uint constant DEFAULT_MIN_FINAL_STACK = 1;
+
 contract StandardVM is RainVM {
     using LibVMState for bytes;
+    using LibUint256Array for uint;
+
     address internal immutable self;
     address internal immutable vmIntegrity;
 
@@ -17,6 +21,14 @@ contract StandardVM is RainVM {
     constructor(address vmIntegrity_) {
         self = address(this);
         vmIntegrity = vmIntegrity_;
+    }
+
+    function _saveVMState(StateConfig memory config_) internal {
+        return _saveVMState(config_, DEFAULT_MIN_FINAL_STACK);
+    }
+
+    function _saveVMState(StateConfig memory config_, uint finalMinStack_) internal {
+        return _saveVMState(config_, finalMinStack_.arrayFrom());
     }
 
     function _saveVMState(
@@ -31,13 +43,20 @@ contract StandardVM is RainVM {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
+    function _loadVMState() internal view returns (VMState memory) {
+        return _loadVMState(new uint[](0));
+    }
+
     function _loadVMState(uint256[] memory context_)
         internal
         view
         virtual
         returns (VMState memory)
     {
-        return SSTORE2.read(vmStatePointer).fromBytesPacked(context_, eval);
+        return
+            SSTORE2.read(vmStatePointer).fromBytesPacked(
+                context_
+            );
     }
 
     function localEvalFunctionPointers()

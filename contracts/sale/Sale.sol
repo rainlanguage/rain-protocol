@@ -32,7 +32,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    address vmStateBuilder;
+    address vmIntegrity;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -237,7 +237,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_)
-        StandardVM(config_.vmStateBuilder)
+        StandardVM(config_.vmIntegrity)
     {
         _disableInitializers();
         maximumSaleTimeout = config_.maximumSaleTimeout;
@@ -355,9 +355,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
                 return false;
             }
             state_.context = new uint256[](0);
-            return
-                eval(state_, CAN_LIVE_ENTRYPOINT, state_.stackBottom).peek() >
-                0;
+            return state_.eval(CAN_LIVE_ENTRYPOINT).peek() > 0;
         }
     }
 
@@ -392,7 +390,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// Offchain users MAY call this directly or calculate the outcome
     /// themselves.
     function canLive() external view returns (bool) {
-        return _canLive(_loadVMState(new uint256[](0)));
+        return _canLive(_loadVMState());
     }
 
     function _calculateBuy(VMState memory state_, uint256 targetUnits_)
@@ -401,8 +399,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         returns (uint256, uint256)
     {
         state_.context = targetUnits_.arrayFrom();
-        return
-            eval(state_, CALCULATE_BUY_ENTRYPOINT, state_.stackBottom).peek2();
+        return state_.eval(CALCULATE_BUY_ENTRYPOINT).peek2();
     }
 
     function calculateBuy(uint256 targetUnits_)
@@ -410,8 +407,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        VMState memory state_ = _loadVMState(new uint256[](0));
-        return _calculateBuy(state_, targetUnits_);
+        return _calculateBuy(_loadVMState(), targetUnits_);
     }
 
     /// Start the sale (move from pending to active).
@@ -420,7 +416,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        require(_canLive(_loadVMState(new uint256[](0))), "NOT_LIVE");
+        require(_canLive(_loadVMState()), "NOT_LIVE");
         _start();
     }
 
@@ -430,7 +426,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        require(!_canLive(_loadVMState(new uint256[](0))), "LIVE");
+        require(!_canLive(_loadVMState()), "LIVE");
         _end();
     }
 
@@ -481,7 +477,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
 
         // This state is loaded once and shared between 2x `_canLive` calls and
         // a `_calculateBuy` call.
-        VMState memory state_ = _loadVMState(new uint256[](0));
+        VMState memory state_ = _loadVMState();
 
         // Start or end the sale as required.
         if (_canLive(state_)) {

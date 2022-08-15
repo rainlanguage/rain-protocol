@@ -1,6 +1,6 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
@@ -17,16 +17,16 @@ describe("TierV2 report op", async function () {
 
     const signer1 = signers[1];
 
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    const stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
-    await stateBuilder.deployed();
+    const integrity =
+      (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     // deploy a basic vm contract
     const logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
 
     const readWriteTierFactory = await ethers.getContractFactory(

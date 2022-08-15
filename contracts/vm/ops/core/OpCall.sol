@@ -27,6 +27,17 @@ library OpCall {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
 
+    /// VM integrity logic.
+    /// The basic movements on the outer stack are to pop the inputs and push the
+    /// outputs, but the called source doesn't have access to a separately
+    /// allocated region of memory. There's only a single shared memory
+    /// allocation for all executions and sub-executions, so we recursively run
+    /// integrity checks on the called source relative to the current stack
+    /// position.
+    /// @param integrityState_ The state of the current integrity check.
+    /// @param operand_ The operand associated with this call.
+    /// @param stackTop_ The current stack top within the integrity check.
+    /// @return stackTopAfter_ The stack top after the call movements are applied.
     function integrity(
         IntegrityState memory integrityState_,
         Operand operand_,
@@ -48,7 +59,6 @@ library OpCall {
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
         integrityState_.ensureIntegrity(
-            integrityState_,
             callSourceIndex_,
             stackTop_,
             outputs_
@@ -67,6 +77,10 @@ library OpCall {
     }
 
     /// Call eval with a new scope.
+    /// @param state_ The state of the current evaluation.
+    /// @param operand_ The operand associated with this call.
+    /// @param stackTop_ The current stack top within the evaluation.
+    /// @return stackTopAfter_ The stack top after the call is evaluated.
     function call(
         VMState memory state_,
         Operand operand_,
@@ -89,7 +103,6 @@ library OpCall {
         // top above the inputs as the starting stack top. The final stack top
         // is where we will read outputs from below.
         StackTop stackTopEval_ = state_.eval(
-            state_,
             callSourceIndex_,
             stackTop_
         );

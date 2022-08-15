@@ -8,6 +8,13 @@ import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
+enum DebugStyle {
+    Stack,
+    Constant,
+    Context,
+    Source
+}
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -30,11 +37,10 @@ struct VMState {
     StackTop stackBottom;
     StackTop constantsBottom;
     uint256[] context;
-    bytes[] sources;
-    function(VMState memory, SourceIndex, StackTop)
-        view
-        returns (StackTop) eval;
+    bytes[] compiledSources;
 }
+
+SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
 
 library LibVMState {
     using SafeCast for uint256;
@@ -52,13 +58,45 @@ library LibVMState {
         returns (StackTop);
     using LibCast for function(VMState memory, Operand, StackTop) view returns (StackTop)[];
 
+    /// Console log various aspects of the VM state.
+    /// Gas intensive and relies on hardhat console so not intended for
+    /// production but great for debugging rain scripts.
+    function debug(
+        VMState memory state_,
+        StackTop stackTop_,
+        DebugStyle debugStyle_
+    ) internal view returns (StackTop) {
+        if (debugStyle_ == DebugStyle.Source) {
+            for (uint i_ = 0; i_ < state_.compiledSources.length; i_++) {
+                console.logBytes(state_.compiledSources[i_]);
+            }
+        } else {
+            uint[] memory array_;
+            uint length_;
+            if (debugStyle_ == DebugStyle.Stack) {
+                array_ = state_
+                    .stackBottom
+                    .down()
+                    .asUint256Array();
+                length_ = state_.stackBottom.toIndex(stackTop_);
+            } else if (debugStyle_ == DebugStyle.Constant) {
+                array_ = state_.constantsBottom.down().asUint256Array();
+            } else {
+                array_ = state_.context;
+            }
+
+            console.log("~~~");
+            for (uint256 i_ = 0; i_ < length_; i_++) {
+                console.log(i_, array_[i_]);
+            }
+            console.log("***");
+        }
+        return stackTop_;
+    }
+
     function fromBytesPacked(
         bytes memory stateBytes_,
-        uint256[] memory context_,
-        function(VMState memory, SourceIndex, StackTop)
-            internal
-            view
-            returns (StackTop) eval_
+        uint256[] memory context_
     ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
@@ -66,7 +104,6 @@ library LibVMState {
             // Context and the eval pointer are provided by the caller so no
             // processing is needed for these.
             state_.context = context_;
-            state_.eval = eval_;
 
             StackTop cursor_ = stateBytes_.asStackTop().up();
             // The end of processing is the end of the state bytes.
@@ -95,9 +132,9 @@ library LibVMState {
                     .up();
                 sourcesLength_++;
             }
-            state_.sources = new bytes[](sourcesLength_);
+            state_.compiledSources = new bytes[](sourcesLength_);
             while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
-                state_.sources[i_] = cursor_.asBytes();
+                state_.compiledSources[i_] = cursor_.asBytes();
                 cursor_ = cursor_.upBytes(cursor_.peekUp()).up();
                 i_++;
             }
@@ -105,7 +142,16 @@ library LibVMState {
         }
     }
 
-    function replaceSourceIndexesWithPointers(bytes memory source_, uint[] memory pointers_) internal pure {
+    /// Given a source in opcodes compile to an equivalent source with real
+    /// function pointers for a given VM contract. The "compilation" involves
+    /// simply replacing the opcode with the pointer at the index of the opcode.
+    /// i.e. opcode 4 will be replaced with `pointers_[4]`.
+    /// Relies heavily on the integrity checks ensuring opcodes used are not OOB
+    /// and that the pointers provided are valid and in the correct order.
+    /// Hopefully it goes without saying that the list of pointers MUST NOT be
+    /// user defined, otherwise any source can be compiled with a completely
+    /// different mapping between opcodes and dispatched functions.
+    function compile(bytes memory source_, uint[] memory pointers_) internal pure {
         assembly ("memory-safe") {
             for {
                 let replaceMask_ := 0xFFFF
@@ -159,10 +205,85 @@ library LibVMState {
             bytes memory source_;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 source_ = sources_[i_];
-                replaceSourceIndexesWithPointers(source_, opcodeFunctionPointers_.asUint256Array());
+                compile(source_, opcodeFunctionPointers_.asUint256Array());
                 cursor_ = cursor_.unalignedPushWithLength(source_);
             }
             return packedBytes_;
+        }
+    }
+
+    /// Eval with sane defaults partially applied.
+    function eval(VMState memory state_) internal view returns (StackTop) {
+        return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);
+    }
+
+    /// Eval with sane defaults partially applied.
+    function eval(VMState memory state_, SourceIndex sourceIndex_)
+        internal
+        view
+        returns (StackTop)
+    {
+        return state_.eval(sourceIndex_, state_.stackBottom);
+    }
+
+    /// Eval with sane defaults partially applied.
+    function eval(VMState memory state_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
+        return state_.eval(DEFAULT_SOURCE_INDEX, stackTop_);
+    }
+
+    /// Evaluates a rain script.
+    /// The main workhorse of the rain VM, `eval` runs any core opcodes and
+    /// dispatches anything it is unaware of to the implementing contract.
+    /// For a script to be useful the implementing contract must override
+    /// `applyOp` and dispatch non-core opcodes to domain specific logic. This
+    /// could be mathematical operations for a calculator, tier reports for
+    /// a membership combinator, entitlements for a minting curve, etc.
+    ///
+    /// Everything required to coordinate the execution of a rain script to
+    /// completion is contained in the `State`. The context and source index
+    /// are provided so the caller can provide additional data and kickoff the
+    /// opcode dispatch from the correct source in `sources`.
+    function eval(
+        VMState memory state_,
+        SourceIndex sourceIndex_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        unchecked {
+            uint256 cursor_;
+            uint256 end_;
+            assembly ("memory-safe") {
+                cursor_ := mload(
+                    add(
+                        mload(add(state_, 0x60)),
+                        add(0x20, mul(0x20, sourceIndex_))
+                    )
+                )
+                end_ := add(cursor_, mload(cursor_))
+            }
+
+            // Loop until complete.
+            while (cursor_ < end_) {
+                function(VMState memory, Operand, StackTop)
+                    internal
+                    view
+                    returns (StackTop) fn_;
+                Operand operand_;
+                cursor_ += 4;
+                {
+                    uint256 op_;
+                    assembly ("memory-safe") {
+                        op_ := mload(cursor_)
+                        operand_ := and(op_, 0xFFFF)
+                        fn_ := and(shr(16, op_), 0xFFFF)
+                    }
+                }
+                stackTop_ = fn_(state_, operand_, stackTop_);
+            }
+            return stackTop_;
         }
     }
 }

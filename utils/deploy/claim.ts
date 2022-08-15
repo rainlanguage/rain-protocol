@@ -12,17 +12,17 @@ export interface ClaimFactories {
 }
 
 export const claimFactoriesDeploy = async (): Promise<ClaimFactories> => {
-  const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsIntegrity"
+  const integrityFactory = await ethers.getContractFactory(
+    "StandardIntegrity"
   );
-  const stateBuilder = await stateBuilderFactory.deploy();
-  await stateBuilder.deployed();
+  const integrity = await integrityFactory.deploy();
+  await integrity.deployed();
 
   const emissionsERC20FactoryFactory = await ethers.getContractFactory(
     "EmissionsERC20Factory"
   );
   const emissionsERC20Factory = (await emissionsERC20FactoryFactory.deploy(
-    stateBuilder.address
+    integrity.address
   )) as EmissionsERC20Factory;
   await emissionsERC20Factory.deployed();
 

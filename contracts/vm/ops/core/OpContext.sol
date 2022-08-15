@@ -7,12 +7,16 @@ import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpContext
-/// @notice Opcode for stacking from the context.
+/// @notice Opcode for stacking from the context. Context requires slightly
+/// different handling to `OpState` memory reads as it is working with data that
+/// is provided at runtime.
 library OpContext {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
     using LibIntegrityState for IntegrityState;
 
+    /// VM integrity logic.
+    /// Context pushes a single value to the stack from memory.
     function integrity(
         IntegrityState memory integrityState_,
         Operand,

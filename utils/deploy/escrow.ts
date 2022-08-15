@@ -10,11 +10,11 @@ import type {
 } from "../../typechain/SaleFactory";
 
 export const deployGlobals = async () => {
-  const stateBuilderFactory = await ethers.getContractFactory(
-    "AllStandardOpsIntegrity"
+  const integrityFactory = await ethers.getContractFactory(
+    "StandardIntegrity"
   );
-  const stateBuilder = await stateBuilderFactory.deploy();
-  await stateBuilder.deployed();
+  const integrity = await integrityFactory.deploy();
+  await integrity.deployed();
 
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
@@ -31,7 +31,7 @@ export const deployGlobals = async () => {
     maximumSaleTimeout: 1000,
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    vmStateBuilder: stateBuilder.address,
+    vmIntegrity: integrity.address,
   };
 
   const saleFactoryFactory = await ethers.getContractFactory("SaleFactory");

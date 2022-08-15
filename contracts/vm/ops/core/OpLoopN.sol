@@ -25,7 +25,6 @@ library OpLoopN {
             );
             for (uint256 i_ = 0; i_ <= n_; i_++) {
                 stackTop_ = integrityState_.ensureIntegrity(
-                    integrityState_,
                     loopSourceIndex_,
                     stackTop_,
                     0
@@ -43,10 +42,10 @@ library OpLoopN {
     ) internal view returns (StackTop) {
         uint256 n_ = Operand.unwrap(operand_) & 0x0F;
         SourceIndex loopSourceIndex_ = SourceIndex.wrap(
-            (Operand.unwrap(operand_) & 0xF0) >> 4
+            (Operand.unwrap(operand_) >> 4) & 0x0F
         );
-        for (uint256 i_ = 0; i_ <= n_; i_++) {
-            stackTop_ = state_.eval(state_, loopSourceIndex_, stackTop_);
+        for (uint256 i_ = 0; i_ < n_; i_++) {
+            stackTop_ = state_.eval(loopSourceIndex_, stackTop_);
         }
         return stackTop_;
     }
