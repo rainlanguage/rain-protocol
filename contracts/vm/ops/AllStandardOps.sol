@@ -238,7 +238,7 @@ library AllStandardOps {
                     OpLoopN.loopN,
                     OpState.state,
                     OpStorage.storageRead,
-                    OpERC20BalanceOf.balanceOf,
+                    OpERC20BalanceOf.intern,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
                     OpERC20SnapshotTotalSupplyAt.totalSupplyAt,

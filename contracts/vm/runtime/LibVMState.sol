@@ -5,6 +5,7 @@ import "./LibStackTop.sol";
 import "../../type/LibCast.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
+import "../external/IRainVMExternal.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
@@ -38,6 +39,7 @@ struct VMState {
     StackTop constantsBottom;
     uint256[] context;
     bytes[] compiledSources;
+    IRainVMExternal extern;
 }
 
 SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
