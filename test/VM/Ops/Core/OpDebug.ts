@@ -1,10 +1,16 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { Debug, op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
+import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import {
+  Debug,
+  op,
+  memoryOperand,
+  MemoryType,
+  callOperand,
+} from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -57,5 +63,35 @@ describe("RainVM debug op", async function () {
     await logic.run();
 
     assert(true); // you have to check this log yourself
+  });
+
+  it("should be able to log when is used within a source from CALL op", async () => {
+    // [pairCounter, initValue, loopCounter, loopValue, minValue]
+    const constants = [0, 1, 20];
+
+    const callCheckValue = op(Opcode.CALL, callOperand(1, 1, 1));
+
+    const checkValue = concat([
+      op(Opcode.DEBUG, Debug.Stack), // Should show the new stack
+        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.LESS_THAN),
+    ]);
+
+
+    const source = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
+      callCheckValue,
+      op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
+    ]);
+
+    await logic.initialize({
+      sources: [source, checkValue],
+      constants,
+    });
+
+    await logic.run();
   });
 });
