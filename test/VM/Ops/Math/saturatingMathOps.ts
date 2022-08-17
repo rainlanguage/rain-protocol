@@ -51,7 +51,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "normal multiplication overflow did not error"
     );
 
@@ -102,7 +102,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "normal subtraction overflow did not error"
     );
 
@@ -150,7 +150,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "normal addition overflow did not error"
     );
 

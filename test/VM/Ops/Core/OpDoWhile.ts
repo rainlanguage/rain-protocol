@@ -1,10 +1,8 @@
-import { assert, expect } from "chai";
+import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import { ReadWriteTier } from "../../../../typechain/ReadWriteTier";
-import { TierReportTest } from "../../../../typechain/TierReportTest";
 import {
   AllStandardOps,
   op,
@@ -12,11 +10,6 @@ import {
   MemoryType,
   callOperand,
   assertError,
-  getBlockTimestamp,
-  Tier,
-  basicDeploy,
-  timewarp,
-  Debug,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;
@@ -221,5 +214,73 @@ describe("DO_WHILE Opcode test", async function () {
     );
   });
 
-  it("should be able to run correctly with new stack using CALL op");
+  it("should be able to run correctly with new stack using CALL op", async () => {
+    const loopCounter = 0; // Init value to the loop counter
+    const initAcc = 0; // Init value to the accumulator
+    const addCounter = 1; // Increase the counter by one in every loop
+    const addAcc = 3; // Increase by three the accumulator in every loop
+    const minValue = 20; // Min required to finish the script
+
+    const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
+
+    const whileOP = op(Opcode.DO_WHILE, 1);
+    const callCheckAcc = op(Opcode.CALL, callOperand(1, 2, 2));
+    const callIncrease = op(Opcode.CALL, callOperand(2, 2, 3));
+
+    // The main source where flow the script
+    const sourceMAIN = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      callCheckAcc,
+      whileOP,
+    ]);
+
+    // Source WHILE to update the values (counter and the accumalator) and check the accumalor
+    const sourceWHILE = concat([callIncrease, callCheckAcc]);
+
+    // Source to check the accumalor (should be the stack top when called)
+    const sourceCHECK_ACC = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.LESS_THAN),
+    ]);
+
+    // Source to increase the counter and accumalator
+    const sourceIncrease = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.ADD, 2),
+      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.ADD, 2),
+    ]);
+
+    await logic.initialize({
+      sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
+      constants,
+    });
+
+    await logic.run();
+    const result = await logic.stack();
+
+    // Calculating the expected result
+    let expectedCounter = loopCounter;
+    let expectedAcc = initAcc;
+    while (expectedAcc < minValue) {
+      expectedCounter += addCounter;
+      expectedAcc += addAcc;
+    }
+
+    const expectedResult = [
+      ethers.BigNumber.from(expectedCounter),
+      ethers.BigNumber.from(expectedAcc),
+    ];
+
+    expectedResult.forEach((expectedStackValue, index) => {
+      assert(
+        expectedStackValue.eq(result[index]),
+        "did not iterated correctly using call"
+      );
+    });
+  });
 });

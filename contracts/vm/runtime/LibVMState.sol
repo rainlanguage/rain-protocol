@@ -48,6 +48,7 @@ library LibVMState {
     using LibMemorySize for uint256[];
     using LibMemorySize for bytes;
     using LibUint256Array for uint256[];
+    using LibUint256Array for uint;
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
@@ -74,17 +75,13 @@ library LibVMState {
             uint[] memory array_;
             uint length_;
             if (debugStyle_ == DebugStyle.Stack) {
-                array_ = state_
-                    .stackBottom
-                    .down()
-                    .asUint256Array();
                 length_ = state_.stackBottom.toIndex(stackTop_);
+                array_ = StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(length_);
             } else if (debugStyle_ == DebugStyle.Constant) {
                 array_ = state_.constantsBottom.down().asUint256Array();
             } else {
                 array_ = state_.context;
             }
-
             console.log("~~~");
             for (uint256 i_ = 0; i_ < length_; i_++) {
                 console.log(i_, array_[i_]);

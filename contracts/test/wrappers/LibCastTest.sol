@@ -87,4 +87,24 @@ contract LibCastTest {
         }
         return is_;
     }
+
+    function asAddresses(uint256[] memory is_)
+        external
+        pure
+        returns (address[] memory addresses_)
+    {
+        addresses_ = LibCast.asAddresses(is_);
+    }
+
+    function asOpFunctionPointers(uint256[] memory is_) external {
+        LibDebug.dumpMemory();
+        LibCast.asOpcodeFunctionPointers(is_);
+        LibDebug.dumpMemory();
+    }
+
+    function asIntegrityPointers(uint256[] memory is_) external {
+        LibDebug.dumpMemory();
+        LibCast.asIntegrityPointers(is_);
+        LibDebug.dumpMemory();
+    }
 }
