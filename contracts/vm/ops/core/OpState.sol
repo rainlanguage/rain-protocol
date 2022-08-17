@@ -31,7 +31,6 @@ library OpState {
                 "OOB_STACK_READ"
             );
         } else {
-            console.log(offset_, integrityState_.constantsLength, Operand.unwrap(operand_));
             require(
                 offset_ < integrityState_.constantsLength,
                 "OOB_CONSTANT_READ"

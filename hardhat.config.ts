@@ -21,7 +21,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 1000000000,
+            runs: 100,
             details: {
               peephole: true,
               inliner: true,
@@ -32,7 +32,7 @@ const config: HardhatUserConfig = {
               constantOptimizer: true,
             },
           },
-          // viaIR: true,
+          viaIR: true,
           metadata: {
             useLiteralContent: true,
           },

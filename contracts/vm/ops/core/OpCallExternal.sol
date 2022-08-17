@@ -19,6 +19,8 @@ library OpCallExternal {
     }
 
     function intern(VMState memory vmState_, Operand operand_, StackTop stackTop_) internal view returns (StackTop stackTopAfter_) {
+        // uint a_ = gasleft();
+
         uint opcode_ = Operand.unwrap(operand_) >> 8;
         uint inputs_ = Operand.unwrap(operand_) & 0x0F;
 
@@ -28,18 +30,16 @@ library OpCallExternal {
         // the perspective of Solidity. `head_` will be restored as it was once
         // the dispatch is complete.
         (uint head_, uint[] memory tail_) = stackTop_.list(inputs_);
-        uint a_ = gasleft();
         uint[] memory vals_ = vmState_.extern.dispatch(opcode_, tail_);
-        uint b_ = gasleft();
 
 {
             uint outputs_ = (Operand.unwrap(operand_) >> 4) & 0x0F;
-        console.log("gas", a_ - b_);
         require(vals_.length == outputs_, "BAD_OUTPUTS_LENGTH");
 }        
-
-
         stackTopAfter_ = stackTop_.down(inputs_).down().push(head_).push(vals_);
+        // uint b_ = gasleft();
+        // console.log("gas", a_ - b_);
+
     }
 
     function extern(
