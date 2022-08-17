@@ -77,6 +77,7 @@ library LibVMState {
             uint[] memory array_;
             uint length_;
             if (debugStyle_ == DebugStyle.Stack) {
+                console.log(StackTop.unwrap(stackTop_), StackTop.unwrap(state_.stackBottom));
                 length_ = state_.stackBottom.toIndex(stackTop_);
                 array_ = StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(length_);
             } else if (debugStyle_ == DebugStyle.Constant) {

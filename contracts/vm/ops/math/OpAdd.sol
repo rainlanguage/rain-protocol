@@ -6,6 +6,8 @@ import "../../../array/LibUint256Array.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
+import "hardhat/console.sol";
+
 /// @title OpAdd
 /// @notice Opcode for adding N numbers.
 library OpAdd {
@@ -35,11 +37,11 @@ library OpAdd {
     }
 
     function extern(
-        uint[] memory inputs_
-    ) internal pure returns (uint[] memory outputs_) {
-        uint accumulator_;
+        uint[] calldata inputs_
+    ) internal view returns (uint[] memory outputs_) {
+        uint accumulator_ = 0;
         for (uint i_ = 0; i_ < inputs_.length; i_++) {
-            _add(accumulator_, inputs_[i_]);
+            accumulator_ = _add(accumulator_, inputs_[i_]);
         }
         return accumulator_.arrayFrom();
     }

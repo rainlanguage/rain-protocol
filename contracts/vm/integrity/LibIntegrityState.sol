@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../runtime/RainVM.sol";
 import "../runtime/LibStackTop.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import "hardhat/console.sol";
 
 struct IntegrityState {
     // Sources first as we read it in assembly.
@@ -59,12 +60,14 @@ library LibIntegrityState {
             while (cursor_ < end_) {
                 uint256 opcode_;
                 Operand operand_;
+
                 cursor_ += 4;
                     assembly ("memory-safe") {
                         let op_ := mload(cursor_)
                         operand_ := and(op_, 0xFFFF)
                         opcode_ := and(shr(16, op_), 0xFFFF)
                     }
+
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.
                 stackTop_ = integrityState_.integrityFunctionPointers[opcode_](

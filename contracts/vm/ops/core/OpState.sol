@@ -6,6 +6,8 @@ import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
+import "hardhat/console.sol";
+
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
 
@@ -20,7 +22,7 @@ library OpState {
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
         uint256 type_ = Operand.unwrap(operand_) & 0x1;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPCODE_MEMORY_TYPE_STACK) {
@@ -29,6 +31,7 @@ library OpState {
                 "OOB_STACK_READ"
             );
         } else {
+            console.log(offset_, integrityState_.constantsLength, Operand.unwrap(operand_));
             require(
                 offset_ < integrityState_.constantsLength,
                 "OOB_CONSTANT_READ"

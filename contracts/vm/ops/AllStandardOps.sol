@@ -6,6 +6,7 @@ import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../runtime/RainVM.sol";
 import "./core/OpCall.sol";
+import "./core/OpCallExternal.sol";
 import "./core/OpContext.sol";
 import "./core/OpDebug.sol";
 import "./core/OpStorage.sol";
@@ -54,7 +55,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 48;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 49;
 
 /// @title AllStandardOps
 /// @notice RainVM opcode pack to expose all other packs.
@@ -158,6 +159,7 @@ library AllStandardOps {
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
                     OpCall.integrity,
+                    OpCallExternal.integrity,
                     OpContext.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
@@ -232,6 +234,7 @@ library AllStandardOps {
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
                     OpCall.call,
+                    OpCallExternal.intern,
                     OpContext.context,
                     OpDebug.debug,
                     OpDoWhile.doWhile,

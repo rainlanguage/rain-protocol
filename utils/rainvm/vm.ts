@@ -7,8 +7,10 @@ export enum MemoryType {
 }
 
 export enum Debug {
-  StatePacked,
   Stack,
+  Constant,
+  Context,
+  Source,
 }
 
 export enum selectLteLogic {

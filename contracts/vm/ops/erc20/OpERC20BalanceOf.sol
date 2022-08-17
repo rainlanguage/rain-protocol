@@ -42,7 +42,7 @@ library OpERC20BalanceOf {
     }
 
     function extern(
-        uint[] memory inputs_
+        uint[] calldata inputs_
     ) internal view returns (uint[] memory outputs_) {
         return _balanceOf(inputs_[0], inputs_[1]).arrayFrom();
     }

@@ -17,6 +17,7 @@ import {
   Tier,
   basicDeploy,
   timewarp,
+  Debug
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;
@@ -37,6 +38,7 @@ describe.only("CALL_EXTERNAL Opcode test", async function () {
     );
     const extern = (await externalFactory.deploy()) as RainVMExternal;
     await extern.deployed();
+    await extern.pointers();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
@@ -49,13 +51,22 @@ describe.only("CALL_EXTERNAL Opcode test", async function () {
     const constants = [1];
 
     // Source to add 2 numbers, input will be provided from another source
-    const sourceCONSTANT = concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]);
+    const sourceCONSTANT = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.DEBUG, Debug.Stack)
+    ]);
+
+    console.log(memoryOperand(MemoryType.Constant, 0))
+    console.log(sourceCONSTANT)
 
     // Source for calculating fibonacci sequence uptill 5
     // prettier-ignore
     const sourceMAIN = concat([
       op(Opcode.LOOP_N, loopNOperand(5, 1)),
       op(Opcode.CALL_EXTERNAL, callExternalOperand(5, 1, 1)),
+      op(Opcode.DEBUG, Debug.Stack),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.CALL_EXTERNAL, callExternalOperand(2, 1, 1)),
     ]);
 
     await logic.initialize({

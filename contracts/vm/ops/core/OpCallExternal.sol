@@ -21,16 +21,25 @@ library OpCallExternal {
     function intern(VMState memory vmState_, Operand operand_, StackTop stackTop_) internal view returns (StackTop stackTopAfter_) {
         uint opcode_ = Operand.unwrap(operand_) >> 8;
         uint inputs_ = Operand.unwrap(operand_) & 0x0F;
-        uint outputs_ = (Operand.unwrap(operand_) >> 4) & 0x0F;
+
         // Edge case is that we pull inputs right down to the bottom of the stack
         // in which case `head_` is the length slot of the stack itself. There is
         // no danger that we read outside the memory allocated to the stack from
         // the perspective of Solidity. `head_` will be restored as it was once
         // the dispatch is complete.
         (uint head_, uint[] memory tail_) = stackTop_.list(inputs_);
+        uint a_ = gasleft();
         uint[] memory vals_ = vmState_.extern.dispatch(opcode_, tail_);
+        uint b_ = gasleft();
+
+{
+            uint outputs_ = (Operand.unwrap(operand_) >> 4) & 0x0F;
+        console.log("gas", a_ - b_);
         require(vals_.length == outputs_, "BAD_OUTPUTS_LENGTH");
-        return stackTop_.down(inputs_).down().push(head_).push(vals_);
+}        
+
+
+        stackTopAfter_ = stackTop_.down(inputs_).down().push(head_).push(vals_);
     }
 
     function extern(
