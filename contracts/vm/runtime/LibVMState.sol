@@ -63,18 +63,16 @@ library LibVMState {
         if (debugStyle_ == DebugStyle.StatePacked) {
             console.logBytes(state_.toBytesPacked());
         } else if (debugStyle_ == DebugStyle.Stack) {
-            uint256[] memory stack_ = state_
-                .stackBottom
-                .down()
-                .asUint256Array();
-            console.log("~~~");
             uint256 index_ = state_.stackBottom.toIndex(stackTop_);
+            (uint head_, uint[] memory tail_) = stackTop_.list(index_);
+            console.log("~~~");
             unchecked {
                 for (uint256 i_ = 0; i_ < index_; i_++) {
-                    console.log(i_, stack_[i_]);
+                    console.log(i_, tail_[i_]);
                 }
             }
             console.log("***");
+            state_.stackBottom.down().set(head_);
         }
         return stackTop_;
     }
