@@ -133,7 +133,7 @@ describe("SaleEscrow protection from draining", async function () {
         await rTKNClaimEscrow
           .connect(signer2)
           .withdraw(sale1.address, reserve.address, await rTKN.totalSupply()),
-      "underflowed",
+      "Error",
       "didn't prevent signer 2 from withdrawing from sale1 what was already withdrawn"
     );
 

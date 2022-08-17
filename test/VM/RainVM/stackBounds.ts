@@ -36,7 +36,7 @@ describe("RainVM stack bounds", async function () {
 
     await assertError(
       async () => await logic.initialize({ sources, constants }),
-      "Array accessed at an out-of-bounds or negative index",
+      "Error",
       "did not error when script references out-of-bounds opcode"
     );
   });
