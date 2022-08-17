@@ -11,7 +11,7 @@ contract MinimalStandardVM is StandardVM {
         _saveVMState(config_);
     }
 
-    function eval() external pure {
+    function eval() external view {
         _loadVMState().eval();
     }
 }
