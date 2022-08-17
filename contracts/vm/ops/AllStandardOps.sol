@@ -266,7 +266,7 @@ library AllStandardOps {
                     OpSaturatingAdd.saturatingAdd,
                     OpSaturatingMul.saturatingMul,
                     OpSaturatingSub.saturatingSub,
-                    OpAdd.add,
+                    OpAdd.intern,
                     OpDiv.div,
                     OpExp.exp,
                     OpMax.max,

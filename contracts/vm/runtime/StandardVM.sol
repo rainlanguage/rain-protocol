@@ -14,13 +14,15 @@ contract StandardVM is RainVM {
 
     address internal immutable self;
     address internal immutable vmIntegrity;
+    address internal immutable vmExternal;
 
     /// Address of the immutable rain script deployed as a `VMState`.
     address internal vmStatePointer;
 
-    constructor(address vmIntegrity_) {
+    constructor(address vmIntegrity_, address vmExternal_) {
         self = address(this);
         vmIntegrity = vmIntegrity_;
+        vmExternal = vmExternal_;
     }
 
     function _saveVMState(StateConfig memory config_) internal {
@@ -55,6 +57,7 @@ contract StandardVM is RainVM {
     {
         return
             SSTORE2.read(vmStatePointer).fromBytesPacked(
+                vmExternal,
                 context_
             );
     }

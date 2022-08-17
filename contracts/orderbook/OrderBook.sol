@@ -97,7 +97,7 @@ contract OrderBook is StandardVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
+    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -155,6 +155,10 @@ contract OrderBook is StandardVM {
         }
     }
 
+    function evalOrder(Order memory order_, address counterparty_) internal view returns (uint, uint) {
+        return order_.vmState.fromBytesPacked(vmExternal, EvalContext(order_.hash(), counterparty_).toContext()).eval().peek2();
+    }
+
     function clear(
         Order memory a_,
         Order memory b_,
@@ -191,27 +195,8 @@ contract OrderBook is StandardVM {
             // VM execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            unchecked {
-                {
-                    (aOutputMax_, aPrice_) = a_
-                        .vmState
-                        .fromBytesPacked(
-                            EvalContext(aHash_, b_.owner).toContext()
-                        )
-                        .eval()
-                        .peek2();
-                }
-
-                {
-                    (bOutputMax_, bPrice_) = b_
-                        .vmState
-                        .fromBytesPacked(
-                            EvalContext(bHash_, a_.owner).toContext()
-                        )
-                        .eval()
-                        .peek2();
-                }
-            }
+            (aOutputMax_, aPrice_) = evalOrder(a_, b_.owner);
+            (bOutputMax_, bPrice_) = evalOrder(b_, a_.owner);
 
             // outputs are capped by the remaining funds in their output vault.
             {

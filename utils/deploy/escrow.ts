@@ -8,6 +8,7 @@ import type {
   SaleConstructorConfigStruct,
   SaleFactory,
 } from "../../typechain/SaleFactory";
+import { RainVMExternal } from "../../typechain/RainVMExternal";
 
 export const deployGlobals = async () => {
   const integrityFactory = await ethers.getContractFactory(
@@ -15,6 +16,12 @@ export const deployGlobals = async () => {
   );
   const integrity = await integrityFactory.deploy();
   await integrity.deployed();
+
+  const externalFactory = await ethers.getContractFactory(
+    "RainVMExternal"
+  );
+  const extern = (await externalFactory.deploy()) as RainVMExternal;
+  await extern.deployed();
 
   const tierFactory = await ethers.getContractFactory("ReadWriteTier");
   const readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
@@ -32,6 +39,7 @@ export const deployGlobals = async () => {
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
     vmIntegrity: integrity.address,
+    vmExternal: extern.address,
   };
 
   const saleFactoryFactory = await ethers.getContractFactory("SaleFactory");

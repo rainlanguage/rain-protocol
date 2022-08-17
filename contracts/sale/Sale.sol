@@ -33,6 +33,7 @@ struct SaleConstructorConfig {
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
     address vmIntegrity;
+    address vmExternal;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -237,7 +238,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_)
-        StandardVM(config_.vmIntegrity)
+        StandardVM(config_.vmIntegrity, config_.vmExternal)
     {
         _disableInitializers();
         maximumSaleTimeout = config_.maximumSaleTimeout;

@@ -98,10 +98,12 @@ library LibVMState {
 
     function fromBytesPacked(
         bytes memory stateBytes_,
+        address vmExternal_,
         uint256[] memory context_
     ) internal pure returns (VMState memory) {
         unchecked {
             VMState memory state_;
+            state_.extern = IRainVMExternal(vmExternal_);
 
             // Context and the eval pointer are provided by the caller so no
             // processing is needed for these.

@@ -11,6 +11,7 @@ import "../../integrity/LibIntegrityState.sol";
 library OpAdd {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
+    using LibUint256Array for uint;
 
     function _add(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_ + b_;
@@ -25,11 +26,21 @@ library OpAdd {
             integrityState_.applyFnN(stackTop_, _add, Operand.unwrap(operand_));
     }
 
-    function add(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFnN(_add, Operand.unwrap(operand_));
+    }
+
+    function extern(
+        uint[] memory inputs_
+    ) internal pure returns (uint[] memory outputs_) {
+        uint accumulator_;
+        for (uint i_ = 0; i_ < inputs_.length; i_++) {
+            _add(accumulator_, inputs_[i_]);
+        }
+        return accumulator_.arrayFrom();
     }
 }

@@ -11,6 +11,7 @@ import "../../integrity/LibIntegrityState.sol";
 library OpERC20BalanceOf {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
+    using LibUint256Array for uint;
 
     function _balanceOf(uint256 token_, uint256 account_)
         internal
@@ -41,9 +42,8 @@ library OpERC20BalanceOf {
     }
 
     function extern(
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_balanceOf);
+        uint[] memory inputs_
+    ) internal view returns (uint[] memory outputs_) {
+        return _balanceOf(inputs_[0], inputs_[1]).arrayFrom();
     }
 }

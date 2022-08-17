@@ -74,6 +74,14 @@ export function callOperand(
   return (sourceIndex << 5) + (outputSize << 3) + inputSize;
 }
 
+export function callExternalOperand(
+  inputSize: number,
+  outputSize: number,
+  sourceIndex: number
+): number {
+  return (sourceIndex << 8) + (outputSize << 4) + inputSize;
+}
+
 /**
  * Constructs the operand for RainVM's `LOOP_N` opcode by packing 2 numbers into a single byte.
  *

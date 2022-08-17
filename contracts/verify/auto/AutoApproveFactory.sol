@@ -14,8 +14,8 @@ contract AutoApproveFactory is Factory {
     address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmIntegrity_) {
-        address implementation_ = address(new AutoApprove(vmIntegrity_));
+    constructor(address vmIntegrity_, address vmExternal_) {
+        address implementation_ = address(new AutoApprove(vmIntegrity_, vmExternal_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

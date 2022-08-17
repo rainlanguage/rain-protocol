@@ -27,7 +27,7 @@ contract AllStandardOpsTest is StandardVM {
     uint256[] private _stack;
     uint256 private _stackIndex;
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
+    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
