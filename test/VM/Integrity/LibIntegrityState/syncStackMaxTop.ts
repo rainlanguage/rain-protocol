@@ -25,7 +25,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
     };
     const constantsLength = 0;
     const stackMaxTop = 0;
-    const integrityPointers = [];
     const stackTop = 1; // stackTop > stackMaxTop
 
     const newStackMaxTop_ = await libIntegrityState.callStatic.syncStackMaxTop(
@@ -33,7 +32,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
       storageOpcodesRange,
       constantsLength,
       stackMaxTop,
-      integrityPointers,
       stackTop
     );
 
@@ -42,7 +40,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
       storageOpcodesRange,
       constantsLength,
       stackMaxTop,
-      integrityPointers,
       stackTop
     );
 
@@ -69,7 +66,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
     };
     const constantsLength = 0;
     const stackMaxTop = 2;
-    const integrityPointers = [];
     const stackTop = 1; // stackTop < stackMaxTop
 
     const newStackMaxTop_ = await libIntegrityState.callStatic.syncStackMaxTop(
@@ -77,7 +73,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
       storageOpcodesRange,
       constantsLength,
       stackMaxTop,
-      integrityPointers,
       stackTop
     );
 
@@ -86,7 +81,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
       storageOpcodesRange,
       constantsLength,
       stackMaxTop,
-      integrityPointers,
       stackTop
     );
 
