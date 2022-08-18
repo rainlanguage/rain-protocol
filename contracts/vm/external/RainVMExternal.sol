@@ -24,10 +24,6 @@ contract RainVMExternal is IRainVMExternal {
                 0xFFFF
             )
         }
-        // uint a_ = gasleft();
-        // outputs_ = fn_(inputs_);
-        // uint b_ = gasleft();
-        // console.log("gas", a_ - b_);
         return fn_(inputs_);
     }
 
@@ -46,12 +42,4 @@ contract RainVMExternal is IRainVMExternal {
             pointerTo16Bits(OpAdd.extern)
         ));
     }
-
-    // function selfDestructIfPointersInvalid() external {
-    //     if (keccak256(bytes(pointers())) != keccak256(bytes(_pointers))) {
-    //         selfdestruct(payable(msg.sender));
-    //     } 
-    // }
-
-
 }
