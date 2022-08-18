@@ -5,7 +5,6 @@ import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import {
   op,
-  zipmapSize,
   memoryOperand,
   MemoryType,
 } from "../../../utils/rainvm/vm";

@@ -1,11 +1,11 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
-import { assertError } from "../../../utils/test/assertError";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
+import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import { op } from "../../../../utils/rainvm/vm";
+import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
@@ -40,7 +40,7 @@ describe("RainVM storage", async function () {
 
     await assertError(
       async () => await logic.initialize({ sources, constants }),
-      "", // there is at least an error
+      "OOB_STORAGE_READ", // there is at least an error
       "should error when attempting to read stored value outside STORAGE opcode range"
     );
   });

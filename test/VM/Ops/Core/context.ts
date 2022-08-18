@@ -1,11 +1,11 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
-import { assertError } from "../../../utils/test/assertError";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
+import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import { op} from "../../../../utils/rainvm/vm";
+import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
@@ -61,7 +61,6 @@ describe("RainVM context", async function () {
     const expected = data;
 
     expected.forEach((expectedValue, index) => {
-      console.log({ expectedValue, actualValue: result[index] });
       assert(
         result[index].eq(expectedValue),
         `wrong value was returned at index ${index}
