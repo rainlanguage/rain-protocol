@@ -17,6 +17,7 @@ export enum AllStandardOps {
   SENDER,
   THIS_ADDRESS,
   BLOCK_TIMESTAMP,
+  EXPLODE32,
   SCALE18,
   SCALE18_DIV,
   SCALE18_MUL,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 import "./RainVM.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "../sstore2/SSTORE2.sol";
@@ -42,46 +42,6 @@ struct Bounds {
 
 uint256 constant MAX_STACK_LENGTH = type(uint8).max;
 
-library LibFnPtrs {
-    /// Retype an integer to an opcode function pointer.
-    /// NO checks are performed to ensure the input is a valid function pointer.
-    /// The caller MUST ensure this is safe and correct to call.
-    /// @param i_ The integer to cast to an opcode function pointer.
-    /// @return fn_ The opcode function pointer.
-    function asOpFn(uint256 i_)
-        internal
-        pure
-        returns (function(uint256, uint256) view returns (uint256) fn_)
-    {
-        assembly {
-            fn_ := i_
-        }
-    }
-
-    /// Retype a stack move function pointer to an integer.
-    /// Provided the origin of the function pointer is solidity and NOT yul, the
-    /// returned integer will be valid to run if retyped back via yul. If the
-    /// origin of the function pointer is yul then we cannot guarantee anything
-    /// about the validity beyond the correctness of the yul code in question.
-    ///
-    /// Function pointers as integers are NOT portable across contracts as the
-    /// code in different contracts is different so function pointers will point
-    /// to a different, incompatible part of the code.
-    ///
-    /// Function pointers as integers lose the information about their signature
-    /// so MUST ONLY be called in an appropriate context once restored.
-    /// @param fn_ The stack move function pointer to integerify.
-    function asUint(function(uint256) view returns (uint256) fn_)
-        internal
-        pure
-        returns (uint256 i_)
-    {
-        assembly {
-            i_ := fn_
-        }
-    }
-}
-
 struct VmStructure {
     uint16 storageOpcodesLength;
     address packedFnPtrsAddress;
@@ -94,6 +54,8 @@ struct FnPtrs {
 
 contract VMStateBuilder {
     using Math for uint256;
+    using LibVMState for VMState;
+    using LibCast for uint256;
 
     /// @dev total hack to differentiate between stack move functions and values
     /// we assume that no function pointers are less than this so anything we
@@ -142,7 +104,7 @@ contract VMStateBuilder {
         address vm_,
         StateConfig memory config_,
         Bounds[] memory boundss_
-    ) external returns (bytes memory state_) {
+    ) external returns (bytes memory stateBytes_) {
         unchecked {
             VmStructure memory vmStructure_ = _vmStructure(vm_);
             bytes memory packedFnPtrs_ = SSTORE2.read(
@@ -183,15 +145,13 @@ contract VMStateBuilder {
                 ptrSources_[i_] = ptrSource(packedFnPtrs_, config_.sources[i_]);
             }
 
-            state_ = LibState.toBytesPacked(
-                State(
-                    0,
-                    new uint256[](stackLength_),
-                    ptrSources_,
-                    constants_,
-                    config_.constants.length
-                )
-            );
+            stateBytes_ = VMState(
+                0,
+                new uint256[](stackLength_),
+                ptrSources_,
+                constants_,
+                config_.constants.length
+            ).toBytesPacked();
         }
     }
 
@@ -223,17 +183,17 @@ contract VMStateBuilder {
             bytes memory ptrSource_ = new bytes((sourceLen_ * 3) / 2);
 
             uint256 nonCoreOpsStart_ = RAIN_VM_OPS_LENGTH - 1;
-            assembly {
+            assembly ("memory-safe") {
                 for {
                     let packedFnPtrsStart_ := add(2, packedFnPtrs_)
-                    let cursor_ := add(source_, 2)
-                    let end_ := add(sourceLen_, cursor_)
-                    let oCursor_ := add(ptrSource_, 3)
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 2)
-                    oCursor_ := add(oCursor_, 3)
+                    let inputCursor_ := add(source_, 2)
+                    let end_ := add(sourceLen_, inputCursor_)
+                    let outputCursor_ := add(ptrSource_, 3)
+                } lt(inputCursor_, end_) {
+                    inputCursor_ := add(inputCursor_, 2)
+                    outputCursor_ := add(outputCursor_, 3)
                 } {
-                    let sourceData_ := mload(cursor_)
+                    let sourceData_ := mload(inputCursor_)
                     let op_ := byte(30, sourceData_)
                     if gt(op_, nonCoreOpsStart_) {
                         op_ := and(
@@ -242,9 +202,9 @@ contract VMStateBuilder {
                         )
                     }
                     mstore(
-                        oCursor_,
+                        outputCursor_,
                         or(
-                            mload(oCursor_),
+                            mload(outputCursor_),
                             or(shl(8, op_), byte(31, sourceData_))
                         )
                     )
@@ -292,24 +252,22 @@ contract VMStateBuilder {
         unchecked {
             uint256 entrypoint_ = bounds_.entrypoint;
             require(stateConfig_.sources.length > entrypoint_, "MIN_SOURCES");
-            uint256 i_ = 0;
-            uint256 sourceLen_;
+            uint256 cursor_;
+            uint256 end_;
             uint256 opcode_;
             uint256 operand_;
-            uint256 sourceLocation_;
 
-            assembly {
-                sourceLocation_ := mload(
+            assembly ("memory-safe") {
+                cursor_ := mload(
                     add(mload(stateConfig_), add(0x20, mul(entrypoint_, 0x20)))
                 )
-
-                sourceLen_ := mload(sourceLocation_)
+                end_ := add(cursor_, mload(cursor_))
             }
 
-            while (i_ < sourceLen_) {
-                assembly {
-                    i_ := add(i_, 2)
-                    let op_ := mload(add(sourceLocation_, i_))
+            while (cursor_ < end_) {
+                assembly ("memory-safe") {
+                    cursor_ := add(cursor_, 2)
+                    let op_ := mload(cursor_)
                     opcode_ := byte(30, op_)
                     operand_ := byte(31, op_)
                 }
@@ -363,11 +321,7 @@ contract VMStateBuilder {
                     // If the pop is higher than the cutoff for static pop
                     // values run it and use the return instead.
                     if (pop_ > MOVE_POINTER_CUTOFF) {
-                        function(uint256) pure returns (uint256) popsFn_;
-                        assembly {
-                            popsFn_ := pop_
-                        }
-                        pop_ = popsFn_(operand_);
+                        pop_ = pop_.asStackMoveFn()(operand_);
                     }
                     // This will catch popping/reading from underflowing the
                     // stack as it will show up as an overflow on the stack
@@ -381,11 +335,7 @@ contract VMStateBuilder {
                     // If the push is higher than the cutoff for static push
                     // values run it and use the return instead.
                     if (push_ > MOVE_POINTER_CUTOFF) {
-                        function(uint256) pure returns (uint256) pushesFn_;
-                        assembly {
-                            pushesFn_ := push_
-                        }
-                        push_ = pushesFn_(operand_);
+                        push_ = push_.asStackMoveFn()(operand_);
                     }
                     bounds_.stackIndex += push_;
                 }

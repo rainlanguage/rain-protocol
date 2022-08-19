@@ -72,10 +72,8 @@ describe("OrderBook add order", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
-      inputToken: tokenA.address,
-      inputVaultId: aliceInputVault,
-      outputToken: tokenB.address,
-      outputVaultId: aliceOutputVault,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       vmStateConfig: {
         sources: [askSource],
         constants: askConstants,
@@ -107,10 +105,8 @@ describe("OrderBook add order", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
-      inputToken: tokenB.address,
-      inputVaultId: bobInputVault,
-      outputToken: tokenA.address,
-      outputVaultId: bobOutputVault,
+      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       vmStateConfig: {
         sources: [bidSource],
         constants: bidConstants,

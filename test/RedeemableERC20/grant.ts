@@ -128,8 +128,8 @@ describe("RedeemableERC20 grant test", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.FOUR;
 
-    await tier.setTier(alice.address, Tier.ONE, []);
-    await tier.setTier(bob.address, Tier.ONE, []);
+    await tier.setTier(alice.address, Tier.ONE);
+    await tier.setTier(bob.address, Tier.ONE);
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {

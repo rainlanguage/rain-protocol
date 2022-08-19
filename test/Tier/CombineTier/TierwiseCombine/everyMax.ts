@@ -56,13 +56,13 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
 
     // prettier-ignore
     const sourceReport = concat([
+      op(Opcode.BLOCK_TIMESTAMP),
             op(Opcode.CONSTANT, 0),
             op(Opcode.CONTEXT, 0),
           op(Opcode.ITIERV2_REPORT, 0),
             op(Opcode.CONSTANT, 1),
             op(Opcode.CONTEXT, 0),
           op(Opcode.ITIERV2_REPORT, 0),
-        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         selectLte(selectLteLogic.every, selectLteMode.max, 2)
@@ -109,13 +109,13 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
 
     // prettier-ignore
     const sourceReport = concat([
+      op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.CONSTANT, 1),
           op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
           op(Opcode.CONSTANT, 0),
           op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
-        op(Opcode.BLOCK_TIMESTAMP),
       op(
         Opcode.SELECT_LTE,
         selectLte(selectLteLogic.every, selectLteMode.max, 2)
@@ -134,25 +134,25 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[0].address, Tier.ONE);
+    await readWriteTierRight.setTier(signers[0].address, Tier.TWO);
+    await readWriteTierRight.setTier(signers[0].address, Tier.THREE);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR);
+    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE);
+    await readWriteTierRight.setTier(signers[0].address, Tier.SIX);
+    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT);
 
     const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address, [])

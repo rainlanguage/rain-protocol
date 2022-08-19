@@ -2,7 +2,6 @@ import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
 import { assert } from "chai";
 import { max_uint256 } from "../constants";
-import { roughTimestampEquals } from "../time";
 
 export const ALWAYS = 0;
 export const NEVER = max_uint256;
@@ -76,14 +75,13 @@ export function tierRange(startTier: number, endTier: number): number {
  */
 export function compareTierReports(
   expectedReport: string,
-  actualReport: string,
-  precision: number
+  actualReport: string
 ): void {
   tierReport(expectedReport).forEach((expectedTimestamp, index) => {
     const actualTimestamp = tierReport(actualReport)[index];
 
     assert(
-      roughTimestampEquals(expectedTimestamp, actualTimestamp, precision),
+      expectedTimestamp === actualTimestamp,
       `wrong timestamp in report slot ${index}
       expected  ${expectedTimestamp}
       got       ${actualTimestamp}`

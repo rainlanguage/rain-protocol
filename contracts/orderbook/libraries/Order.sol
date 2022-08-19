@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
 import "../../vm/RainVM.sol";
@@ -40,14 +40,14 @@ library LibOrder {
         returns (uint256 tracking_)
     {
         unchecked {
-            uint localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
-            uint localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
-            uint trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
-            uint trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
-            uint trackingMaskAll_ = TRACKING_MASK_ALL;
+            uint256 localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
+            uint256 localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
+            uint256 trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
+            uint256 trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
+            uint256 trackingMaskAll_ = TRACKING_MASK_ALL;
             for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 bytes memory source_ = sources_[i_];
-                assembly {
+                assembly ("memory-safe") {
                     let op_ := 0
                     for {
                         let cursor_ := add(source_, 1)
@@ -60,10 +60,16 @@ library LibOrder {
                             continue
                         }
                         if eq(op_, localOpClearedOrder_) {
-                            tracking_ := or(tracking_, trackingMaskClearedOrder_)
+                            tracking_ := or(
+                                tracking_,
+                                trackingMaskClearedOrder_
+                            )
                         }
                         if eq(op_, localOpClearedCounterparty_) {
-                            tracking_ := or(tracking_, trackingMaskClearedCounterparty_)
+                            tracking_ := or(
+                                tracking_,
+                                trackingMaskClearedCounterparty_
+                            )
                         }
                         if eq(tracking_, trackingMaskAll_) {
                             // break the outer loop by setting i_

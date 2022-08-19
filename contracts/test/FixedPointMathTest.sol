@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity 0.8.15;
 
 import {FixedPointMath} from "../math/FixedPointMath.sol";
 
 /// @title FixedPointMathTest
 /// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
 contract FixedPointMathTest {
+    using FixedPointMath for uint256;
+
     /// Wraps `FixedPointMath.scale18`.
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
     /// @param a_ Some fixed point decimal value.
@@ -16,7 +18,7 @@ contract FixedPointMathTest {
         pure
         returns (uint256)
     {
-        return FixedPointMath.scale18(a_, aDecimals_);
+        return a_.scale18(aDecimals_);
     }
 
     /// Wraps `FixedPointMath.scaleN`.
@@ -29,7 +31,7 @@ contract FixedPointMathTest {
         pure
         returns (uint256)
     {
-        return FixedPointMath.scaleN(a_, targetDecimals_);
+        return a_.scaleN(targetDecimals_);
     }
 
     /// Wraps `FixedPointMath.scaleBy`.
@@ -42,7 +44,7 @@ contract FixedPointMathTest {
         pure
         returns (uint256)
     {
-        return FixedPointMath.scaleBy(a_, scaleBy_);
+        return a_.scaleBy(scaleBy_);
     }
 
     /// Wraps `FixedPointMath.fixedPointMul`.
@@ -55,7 +57,7 @@ contract FixedPointMathTest {
         pure
         returns (uint256)
     {
-        return FixedPointMath.fixedPointMul(a_, b_);
+        return a_.fixedPointMul(b_);
     }
 
     /// Wraps `FixedPointMath.fixedPointDiv`.
@@ -69,6 +71,6 @@ contract FixedPointMathTest {
         pure
         returns (uint256)
     {
-        return FixedPointMath.fixedPointDiv(a_, b_);
+        return a_.fixedPointDiv(b_);
     }
 }

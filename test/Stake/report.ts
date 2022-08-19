@@ -1,19 +1,19 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReserveToken } from "../../typechain/ReserveToken";
+import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
 import { StakeFactory } from "../../typechain/StakeFactory";
-import { max_uint256, ONE, sixZeros } from "../../utils/constants/bigNumber";
+import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
-import { getBlockTimestamp } from "../../utils/hardhat";
+import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake report", async function () {
   let stakeFactory: StakeFactory;
-  let token: ReserveToken;
+  let token: ReserveToken18;
 
   before(async () => {
     const stakeFactoryFactory = await ethers.getContractFactory(
@@ -25,7 +25,189 @@ describe("Stake report", async function () {
   });
 
   beforeEach(async () => {
-    token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+  });
+
+  it("should return a correct report when staked tokens exceeded all thresholds until some were withdrawn, and then deposited again to exceed all thresholds", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    // Give Alice reserve tokens and deposit them
+    const depositAmount0 = THRESHOLDS[7].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
+
+    const blockTime0_ = await getBlockTimestamp();
+
+    const report0_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport0 = numArrayToReport([
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+    ]);
+
+    assert(
+      report0_.eq(expectedReport0),
+      `did not return correct stake report after first deposit
+      expected  ${hexlify(expectedReport0)}
+      got       ${hexlify(report0_)}`
+    );
+
+    await timewarp(86400);
+
+    const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
+
+    const report1_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport1 = numArrayToReport([
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report1_.eq(expectedReport1),
+      `did not return correct stake report after withdraw
+      expected  ${hexlify(expectedReport1)}
+      got       ${hexlify(report1_)}`
+    );
+
+    await token.connect(alice).approve(stake.address, withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
+
+    const blockTime1_ = await getBlockTimestamp();
+
+    const report2_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport2 = numArrayToReport([
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime0_,
+      blockTime1_,
+      blockTime1_,
+      blockTime1_,
+      blockTime1_,
+    ]);
+
+    assert(
+      report2_.eq(expectedReport2),
+      `did not return correct stake report after second deposit
+      expected  ${hexlify(expectedReport2)}
+      got       ${hexlify(report2_)}`
+    );
+  });
+
+  it("should return a correct report when staked tokens exceeded 1st threshold until some were withdrawn, and then deposited again to exceed 1st threshold", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    // Give Alice reserve tokens and deposit them
+    const depositAmount0 = THRESHOLDS[0].add(1);
+    await token.transfer(alice.address, depositAmount0);
+    await token.connect(alice).approve(stake.address, depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
+
+    const blockTime0_ = await getBlockTimestamp();
+
+    const report0_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport0 = numArrayToReport([
+      blockTime0_,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report0_.eq(expectedReport0),
+      `did not return correct stake report after first deposit
+      expected  ${hexlify(expectedReport0)}
+      got       ${hexlify(report0_)}`
+    );
+
+    await timewarp(86400);
+
+    const withdrawAmount = 100;
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
+
+    const report1_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport1 = numArrayToReport([
+      0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+      0xffffffff, 0xffffffff,
+    ]);
+
+    assert(
+      report1_.eq(expectedReport1),
+      `did not return correct stake report after withdraw
+      expected  ${hexlify(expectedReport1)}
+      got       ${hexlify(report1_)}`
+    );
+
+    await token.connect(alice).approve(stake.address, withdrawAmount);
+    await stake.connect(alice).deposit(withdrawAmount, alice.address);
+
+    const blockTime1_ = await getBlockTimestamp();
+
+    const report2_ = await stake.report(alice.address, THRESHOLDS);
+
+    const expectedReport2 = numArrayToReport([
+      blockTime1_,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+    ]);
+
+    assert(
+      report2_.eq(expectedReport2),
+      `did not return correct stake report after second deposit, where Tier ONE time should be blockTime1_ and not blockTime0_
+      expected  ${hexlify(expectedReport2)}
+      got       ${hexlify(report2_)}`
+    );
   });
 
   it("should return one-to-many reports i.e. when different lists of thresholds are checked against", async function () {
@@ -36,17 +218,16 @@ describe("Stake report", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[3].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp0 = await getBlockTimestamp();
 
@@ -82,14 +263,14 @@ describe("Stake report", async function () {
     assert(
       report0.eq(expected0),
       `did not return correct stake report0
-      expected  ${hexlify(expected0)}
-      got       ${hexlify(report0)}`
+        expected  ${hexlify(expected0)}
+        got       ${hexlify(report0)}`
     );
     assert(
       report1.eq(expected1),
       `did not return correct stake report1
-      expected  ${hexlify(expected1)}
-      got       ${hexlify(report1)}`
+        expected  ${hexlify(expected1)}
+        got       ${hexlify(report1)}`
     );
   });
 
@@ -101,23 +282,20 @@ describe("Stake report", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp = await getBlockTimestamp();
 
-    const thresholds = THRESHOLDS;
-
-    const report = await stake.report(alice.address, thresholds);
+    const report = await stake.report(alice.address, THRESHOLDS);
 
     const expected = numArrayToReport([
       depositTimestamp,
@@ -133,8 +311,8 @@ describe("Stake report", async function () {
     assert(
       report.eq(expected),
       `did not return correct stake report
-      expected  ${hexlify(expected)}
-      got       ${hexlify(report)}`
+        expected  ${hexlify(expected)}
+        got       ${hexlify(report)}`
     );
   });
 
@@ -146,24 +324,21 @@ describe("Stake report", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
     await stake.report(alice.address, []);
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[1].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp0 = await getBlockTimestamp();
 
-    const thresholds = THRESHOLDS;
-
-    const report0 = await stake.report(alice.address, thresholds);
+    const report0 = await stake.report(alice.address, THRESHOLDS);
 
     const expected0 = numArrayToReport([
       depositTimestamp0,
@@ -179,19 +354,19 @@ describe("Stake report", async function () {
     assert(
       report0.eq(expected0),
       `did not return correct stake report0
-      expected  ${hexlify(expected0)}
-      got       ${hexlify(report0)}`
+        expected  ${hexlify(expected0)}
+        got       ${hexlify(report0)}`
     );
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount1 = THRESHOLDS[3].sub(depositAmount0);
     await token.transfer(alice.address, depositAmount1);
     await token.connect(alice).approve(stake.address, depositAmount1);
-    await stake.connect(alice).deposit(depositAmount1);
+    await stake.connect(alice).deposit(depositAmount1, alice.address);
 
     const depositTimestamp1 = await getBlockTimestamp();
 
-    const report1 = await stake.report(alice.address, thresholds);
+    const report1 = await stake.report(alice.address, THRESHOLDS);
 
     const expected1 = numArrayToReport([
       depositTimestamp0,
@@ -207,8 +382,8 @@ describe("Stake report", async function () {
     assert(
       report1.eq(expected1),
       `did not return correct stake report1
-      expected  ${hexlify(expected1)}
-      got       ${hexlify(report1)}`
+        expected  ${hexlify(expected1)}
+        got       ${hexlify(report1)}`
     );
   });
 
@@ -220,23 +395,20 @@ describe("Stake report", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].add(1);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const depositTimestamp = await getBlockTimestamp();
 
-    const thresholds = THRESHOLDS;
-
-    const report = await stake.report(alice.address, thresholds);
+    const report = await stake.report(alice.address, THRESHOLDS);
 
     const expected = numArrayToReport([
       depositTimestamp,
@@ -252,8 +424,8 @@ describe("Stake report", async function () {
     assert(
       report.eq(expected),
       `did not return correct stake report
-      expected  ${hexlify(expected)}
-      got       ${hexlify(report)}`
+        expected  ${hexlify(expected)}
+        got       ${hexlify(report)}`
     );
   });
 
@@ -265,21 +437,18 @@ describe("Stake report", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    // Give Alice reserve tokens and desposit them
+    // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[0].div(2);
     await token.transfer(alice.address, depositAmount0);
     await token.connect(alice).approve(stake.address, depositAmount0);
-    await stake.connect(alice).deposit(depositAmount0);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
 
-    const thresholds = THRESHOLDS;
-
-    const report = await stake.report(alice.address, thresholds);
+    const report = await stake.report(alice.address, THRESHOLDS);
 
     // const expected = numArrayToReport([0, 0, 0, 0, 0, 0, 0, 0]);
     const expected = max_uint256;
@@ -287,8 +456,8 @@ describe("Stake report", async function () {
     assert(
       report.eq(expected),
       `did not return correct stake report
-      expected  ${hexlify(expected)}
-      got       ${hexlify(report)}`
+        expected  ${hexlify(expected)}
+        got       ${hexlify(report)}`
     );
   });
 
@@ -300,15 +469,12 @@ describe("Stake report", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      token: token.address,
-      initialRatio: ONE,
+      asset: token.address,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    const thresholds = THRESHOLDS;
-
-    const report = await stake.report(alice.address, thresholds);
+    const report = await stake.report(alice.address, THRESHOLDS);
 
     assert(report.eq(max_uint256), "did not return a NEVER report");
   });

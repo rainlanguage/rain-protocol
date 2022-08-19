@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.0;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ERC20Redeem is ERC20BurnableUpgradeable {
     using SafeERC20 for IERC20;
+    using Math for uint256;
 
     /// Anon has burned their tokens in exchange for some treasury assets.
     /// Emitted once per redeemed asset.
@@ -76,9 +78,10 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
         uint256 supply_ = IERC20(address(this)).totalSupply();
         uint256 amount_ = 0;
         for (uint256 i_ = 0; i_ < assetsLength_; i_++) {
-            amount_ =
-                (treasuryAssets_[i_].balanceOf(address(this)) * redeemAmount_) /
-                supply_;
+            amount_ = treasuryAssets_[i_].balanceOf(address(this)).mulDiv(
+                redeemAmount_,
+                supply_
+            );
             require(amount_ > 0, "ZERO_AMOUNT");
             emit Redeem(
                 msg.sender,

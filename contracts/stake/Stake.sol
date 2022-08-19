@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
@@ -14,105 +15,112 @@ import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
 
 struct StakeConfig {
-    address token;
-    uint256 initialRatio;
+    IERC20MetadataUpgradeable asset;
     string name;
     string symbol;
 }
 
 /// @param amount Largest value we can squeeze into a uint256 alongside a
 /// uint32.
-struct Deposit {
+struct DepositRecord {
     uint32 timestamp;
     uint224 amount;
 }
 
-contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
+contract Stake is ERC4626Upgradeable, TierV2, ReentrancyGuard {
     event Initialize(address sender, StakeConfig config);
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using FixedPointMath for uint256;
+    using Math for uint256;
 
-    IERC20 private token;
-    uint256 private initialRatio;
-
-    mapping(address => Deposit[]) private deposits;
+    mapping(address => DepositRecord[]) public depositRecords;
 
     function initialize(StakeConfig calldata config_) external initializer {
-        require(config_.token != address(0), "0_TOKEN");
-        require(config_.initialRatio > 0, "0_RATIO");
+        require(address(config_.asset) != address(0), "0_ASSET");
         __ERC20_init(config_.name, config_.symbol);
-        token = IERC20(config_.token);
-        initialRatio = config_.initialRatio;
+        __ERC4626_init(config_.asset);
         emit Initialize(msg.sender, config_);
     }
 
-    function deposit(uint256 amount_) external nonReentrant {
-        require(amount_ > 0, "0_AMOUNT");
+    /// @inheritdoc ERC4626Upgradeable
+    function _deposit(
+        address caller_,
+        address receiver_,
+        uint256 assets_,
+        uint256 shares_
+    ) internal virtual override nonReentrant {
+        require(receiver_ != address(0), "0_DEPOSIT_RECEIVER");
+        require(assets_ > 0, "0_DEPOSIT_ASSETS");
+        require(shares_ > 0, "0_DEPOSIT_SHARES");
+        // Deposit first then upgrade ledger.
+        super._deposit(caller_, receiver_, assets_, shares_);
+        _addSharesToStakingLedger(receiver_, shares_);
+    }
 
-        // MUST check token balance before receiving additional tokens.
-        uint256 tokenPoolSize_ = token.balanceOf(address(this));
-        // MUST use supply from before the mint.
-        uint256 supply_ = totalSupply();
+    /// @inheritdoc ERC4626Upgradeable
+    function _withdraw(
+        address caller_,
+        address receiver_,
+        address owner_,
+        uint256 assets_,
+        uint256 shares_
+    ) internal virtual override nonReentrant {
+        require(receiver_ != address(0), "0_WITHDRAW_RECEIVER");
+        require(owner_ != address(0), "0_WITHDRAW_OWNER");
+        require(assets_ > 0, "0_WITHDRAW_ASSETS");
+        require(shares_ > 0, "0_WITHDRAW_SHARES");
+        // Downgrade ledger first then send assets.
+        _removeSharesFromStakingLedger(owner_, shares_);
+        super._withdraw(caller_, receiver_, owner_, assets_, shares_);
+    }
 
-        // Pull tokens before minting BUT AFTER reading contract balance.
-        token.safeTransferFrom(msg.sender, address(this), amount_);
-
-        uint256 mintAmount_;
-        if (supply_ == 0) {
-            mintAmount_ = amount_.fixedPointMul(initialRatio);
-        } else {
-            mintAmount_ = (supply_ * amount_) / tokenPoolSize_;
-        }
-        require(mintAmount_ > 0, "0_MINT");
-        _mint(msg.sender, mintAmount_);
-
-        uint224 highwater_ = deposits[msg.sender].length > 0
-            ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
+    function _addSharesToStakingLedger(address owner_, uint256 shares_)
+        internal
+    {
+        uint256 len_ = depositRecords[owner_].length;
+        uint256 highwater_ = len_ > 0
+            ? depositRecords[owner_][len_ - 1].amount
             : 0;
-        deposits[msg.sender].push(
-            Deposit(uint32(block.timestamp), highwater_ + amount_.toUint224())
+        depositRecords[owner_].push(
+            DepositRecord(
+                uint32(block.timestamp),
+                (highwater_ + shares_).toUint224()
+            )
         );
     }
 
-    function withdraw(uint256 amount_) external nonReentrant {
-        require(amount_ > 0, "0_AMOUNT");
-
+    function _removeSharesFromStakingLedger(address owner_, uint256 shares_)
+        internal
+    {
         // MUST revert if length is 0 so we're guaranteed to have some amount
-        // for the old highwater. Users without deposits can't withdraw.
-        uint256 i_ = deposits[msg.sender].length - 1;
-        uint256 oldHighwater_ = uint256(deposits[msg.sender][i_].amount);
-        // MUST revert if withdraw amount exceeds highwater.
-        uint256 newHighwater_ = oldHighwater_ - amount_;
+        // for the old highwater. Users without deposits can't withdraw so there
+        // will be an overflow here.
+        uint256 i_ = depositRecords[owner_].length - 1;
+        uint256 oldHighwater_ = uint256(depositRecords[owner_][i_].amount);
+        // MUST revert if withdraw amount exceeds highwater. Overflow will
+        // ensure this.
+        uint256 newHighwater_ = oldHighwater_ - shares_;
+
+        uint256 high_ = 0;
+        if (newHighwater_ > 0) {
+            (high_, ) = _earliestTimeAtLeastThreshold(owner_, newHighwater_, 0);
+        }
 
         unchecked {
-            while (deposits[msg.sender][i_].amount > newHighwater_) {
-                delete deposits[msg.sender][i_];
-                if (i_ == 0) {
-                    break;
-                }
+            while (i_ > high_) {
+                depositRecords[owner_].pop();
                 i_--;
             }
         }
 
-        // If the newHighwater_ is not identical to the current top we write it
-        // as the new top.
-        uint256 cmpHighwater_ = deposits[msg.sender].length > 0
-            ? deposits[msg.sender][deposits[msg.sender].length - 1].amount
-            : 0;
-        if (newHighwater_ > cmpHighwater_) {
-            deposits[msg.sender].push(
-                Deposit(uint32(block.timestamp), newHighwater_.toUint224())
-            );
+        // For non-zero highwaters we preserve the timestamp on the new top
+        // deposit and only set the amount to the new highwater.
+        if (newHighwater_ > 0) {
+            depositRecords[owner_][high_].amount = newHighwater_.toUint224();
+        } else {
+            depositRecords[owner_].pop();
         }
-
-        // MUST calculate withdrawal amount against pre-burn supply.
-        uint256 supply_ = totalSupply();
-        _burn(msg.sender, amount_);
-        token.safeTransfer(
-            msg.sender,
-            (amount_ * token.balanceOf(address(this))) / supply_
-        );
     }
 
     /// @inheritdoc ITierV2
@@ -121,24 +129,22 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         view
         returns (uint256 report_)
     {
-        report_ = type(uint256).max;
-        if (context_.length > 0) {
-            uint256 t_ = 0;
-            Deposit memory deposit_;
-            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
-                deposit_ = deposits[account_][i_];
-                while (
-                    t_ < context_.length && deposit_.amount >= context_[t_]
-                ) {
-                    report_ = TierReport.updateTimeAtTier(
-                        report_,
-                        t_,
-                        deposit_.timestamp
+        unchecked {
+            report_ = type(uint256).max;
+            if (context_.length > 0) {
+                uint256 high_ = 0;
+                uint256 time_ = uint256(TierConstants.NEVER_TIME);
+                for (uint256 t_ = 0; t_ < context_.length; t_++) {
+                    uint256 threshold_ = context_[t_];
+                    (, time_) = _earliestTimeAtLeastThreshold(
+                        account_,
+                        threshold_,
+                        high_
                     );
-                    t_++;
-                }
-                if (t_ == context_.length) {
-                    break;
+                    if (time_ == uint256(TierConstants.NEVER_TIME)) {
+                        break;
+                    }
+                    report_ = TierReport.updateTimeAtTier(report_, t_, time_);
                 }
             }
         }
@@ -150,17 +156,41 @@ contract Stake is ERC20Upgradeable, TierV2, ReentrancyGuard {
         uint256 tier_,
         uint256[] calldata context_
     ) external view returns (uint256 time_) {
-        time_ = uint256(TierConstants.NEVER_TIME);
-        if (tier_ < context_.length) {
-            uint256 threshold_ = context_[tier_];
-            Deposit memory deposit_;
-            for (uint256 i_ = 0; i_ < deposits[account_].length; i_++) {
-                deposit_ = deposits[account_][i_];
-                if (deposit_.amount >= threshold_) {
-                    time_ = deposit_.timestamp;
-                    break;
+        if (tier_ == 0) {
+            time_ = TierConstants.ALWAYS;
+        } else if (tier_ <= context_.length) {
+            uint256 threshold_ = context_[tier_ - 1];
+            (, time_) = _earliestTimeAtLeastThreshold(account_, threshold_, 0);
+        } else {
+            time_ = uint256(TierConstants.NEVER_TIME);
+        }
+    }
+
+    /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Checkpoints.sol#L39
+    function _earliestTimeAtLeastThreshold(
+        address account_,
+        uint256 threshold_,
+        uint256 low_
+    ) internal view returns (uint256 high_, uint256 time_) {
+        unchecked {
+            uint256 len_ = depositRecords[account_].length;
+            high_ = len_;
+            uint256 mid_;
+            DepositRecord memory depositRecord_;
+            while (low_ < high_) {
+                mid_ = Math.average(low_, high_);
+                depositRecord_ = depositRecords[account_][mid_];
+                if (uint256(depositRecord_.amount) >= threshold_) {
+                    high_ = mid_;
+                } else {
+                    low_ = mid_ + 1;
                 }
             }
+            // At this point high_ and low_ are equal, but mid_ has not been
+            // updated to match, so high_ is what we return as-is.
+            time_ = high_ == len_
+                ? uint256(TierConstants.NEVER_TIME)
+                : depositRecords[account_][high_].timestamp;
         }
     }
 }

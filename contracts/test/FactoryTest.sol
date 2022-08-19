@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity =0.8.15;
 
 import {Factory} from "../factory/Factory.sol";
 import "./FactoryChildTest.sol";
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "hardhat/console.sol";
 
 /// @title FactoryTest
 /// @notice Test factory for creating and deploying `FactoryChildTest` contracts.

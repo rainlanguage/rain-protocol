@@ -86,6 +86,20 @@ let
     hardhat test
   '';
 
+  echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
+    # By now, we will use the `echidna-test` file in the repo
+    time find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})" --config echidnaConfig.yaml' 
+  '';
+
+  init-solc = pkgs.writeShellScriptBin "init-solc" ''
+    # Change the version
+    solcVersion='0.8.15';
+    if [[ $(solc-select use $solcVersion) =~ "You need to install '$solcVersion' prior to using it." ]]; then
+      solc-select install $solcVersion;
+      solc-select use $solcVersion;
+    fi
+  '';
+
   prepack = pkgs.writeShellScriptBin "prepack" ''
     set -euo pipefail
     shopt -s globstar
@@ -147,6 +161,7 @@ pkgs.stdenv.mkDerivation {
     prettier-check
     prettier-write
     security-check
+    echidna-test
     ci-test
     ci-lint
     cut-dist
@@ -154,11 +169,16 @@ pkgs.stdenv.mkDerivation {
     prepublish
     solt-the-earth
     flush-all
+    # Echidna config
+    init-solc
+    pkgs.python39Packages.solc-select
+    pkgs.python39Packages.crytic-compile
   ];
 
   shellHook = ''
     export PATH=$( npm bin ):$PATH
     # keep it fresh
     npm install
+    init-solc
   '';
 }

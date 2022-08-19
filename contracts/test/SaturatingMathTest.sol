@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.10;
+pragma solidity 0.8.15;
 
 import {SaturatingMath} from "../math/SaturatingMath.sol";
 
 /// @title SaturatingMathTest
 /// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
 contract SaturatingMathTest {
+    using SaturatingMath for uint256;
+
     /// Wraps `SaturatingMath.saturatingAdd`.
     /// Saturating addition.
     /// @param a_ First term.
@@ -17,7 +19,7 @@ contract SaturatingMathTest {
         returns (uint256)
     {
         unchecked {
-            return SaturatingMath.saturatingAdd(a_, b_);
+            return a_.saturatingAdd(b_);
         }
     }
 
@@ -32,7 +34,7 @@ contract SaturatingMathTest {
         returns (uint256)
     {
         unchecked {
-            return SaturatingMath.saturatingSub(a_, b_);
+            return a_.saturatingSub(b_);
         }
     }
 
@@ -47,7 +49,7 @@ contract SaturatingMathTest {
         returns (uint256)
     {
         unchecked {
-            return SaturatingMath.saturatingMul(a_, b_);
+            return a_.saturatingMul(b_);
         }
     }
 }

@@ -1,6 +1,4 @@
 {
   "nixEnvSelector.suggestion": false,
-  "solidity.compileUsingRemoteVersion": "v0.8.10+commit.fc410830",
-  "solidity.compileUsingLocalVersion": "v0.8.10+commit.fc410830",
   "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
 }

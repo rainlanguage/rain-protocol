@@ -39,8 +39,8 @@ describe("RedeemableERC20 transfer test", async function () {
     const minimumTier = Tier.ONE;
 
     // spokes above min tier
-    await tier.setTier(carolSpoke.address, Tier.THREE, []);
-    await tier.setTier(daveSpoke.address, Tier.THREE, []);
+    await tier.setTier(carolSpoke.address, Tier.THREE);
+    await tier.setTier(daveSpoke.address, Tier.THREE);
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -188,7 +188,7 @@ describe("RedeemableERC20 transfer test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.FOUR, []);
+    await tier.setTier(signer1.address, Tier.FOUR);
 
     const reserve = (await Util.basicDeploy(
       "ReserveToken",

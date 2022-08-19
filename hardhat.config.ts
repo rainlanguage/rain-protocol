@@ -17,11 +17,11 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.10",
+        version: "0.8.15",
         settings: {
           optimizer: {
             enabled: true,
-            runs: 100000,
+            runs: 10000000,
           },
           metadata: {
             useLiteralContent: true,

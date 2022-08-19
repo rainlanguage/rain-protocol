@@ -36,7 +36,7 @@ describe("TierV2 report op", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
     const setTierTimestamp = await getBlockTimestamp();
 
     // prettier-ignore
@@ -64,6 +64,6 @@ describe("TierV2 report op", async function () {
 
     const actualReport = paddedUInt256(result);
 
-    compareTierReports(expectedReport, actualReport, 0);
+    compareTierReports(expectedReport, actualReport);
   });
 });

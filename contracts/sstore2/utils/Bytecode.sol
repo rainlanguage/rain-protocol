@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 library Bytecode {
     error InvalidCodeAtRange(uint256 _size, uint256 _start, uint256 _end);
@@ -41,7 +41,7 @@ library Bytecode {
     @return size of the code on the given `_addr`
   */
     function codeSize(address _addr) internal view returns (uint256 size) {
-        assembly {
+        assembly ("memory-safe") {
             size := extcodesize(_addr)
         }
     }
@@ -73,7 +73,7 @@ library Bytecode {
 
             uint256 size = maxSize < reqSize ? maxSize : reqSize;
 
-            assembly {
+            assembly ("memory-safe") {
                 // allocate output byte array - this could also be done without
                 // assembly
                 // by using o_code = new bytes(size)

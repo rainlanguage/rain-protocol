@@ -1,19 +1,26 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+import "../../../LibStackTop.sol";
+import "../../../../type/LibCast.sol";
 
 /// @title OpEqualTo
 /// @notice Opcode to compare the top two stack values.
 library OpEqualTo {
-    function equalTo(uint256, uint256 stackTopLocation_)
+    using LibCast for bool;
+    using LibStackTop for StackTop;
+
+    function equalTo(uint256, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly {
-            stackTopLocation_ := sub(stackTopLocation_, 0x20)
-            let location_ := sub(stackTopLocation_, 0x20)
-            mstore(location_, eq(mload(location_), mload(stackTopLocation_)))
-        }
-        return stackTopLocation_;
+        (
+            StackTop location_,
+            StackTop stackTopAfter_,
+            uint256 a_,
+            uint256 b_
+        ) = stackTop_.popAndPeek();
+        location_.set((a_ == b_).asUint256());
+        return stackTopAfter_;
     }
 }
