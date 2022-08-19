@@ -9,19 +9,36 @@ import "../../debug/LibDebug.sol";
 contract LibVMStateTest {
     using LibVMState for VMState;
 
-    function debug(StackTop stackTop_, DebugStyle debugStyle_)
+    function debug(
+        StackTop stackTop_,
+        DebugStyle debugStyle_,
+        bytes[] memory sources_
+    ) external returns (StackTop stackTopAfter_) {
+        VMState memory state_ = VMState(
+            StackTop.wrap(0), // stackBottom,
+            StackTop.wrap(0), // constantsBottom,
+            new uint256[](0), // context,
+            sources_ // ptrSources
+        );
+
+        LibDebug.dumpMemory();
+        stackTopAfter_ = state_.debug(stackTop_, debugStyle_);
+        LibDebug.dumpMemory();
+    }
+
+    function toBytesPacked(bytes[] memory sources_)
         external
-        returns (StackTop stackTopAfter_)
+        returns (bytes memory bytesPacked_)
     {
         VMState memory state_ = VMState(
             StackTop.wrap(0), // stackBottom,
             StackTop.wrap(0), // constantsBottom,
             new uint256[](0), // context,
-            new bytes[](0) // ptrSources
+            sources_ // ptrSources
         );
 
         LibDebug.dumpMemory();
-        stackTopAfter_ = state_.debug(stackTop_, debugStyle_);
+        bytesPacked_ = state_.toBytesPacked();
         LibDebug.dumpMemory();
     }
 }

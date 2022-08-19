@@ -1,6 +1,9 @@
 import { assert } from "chai";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
+import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
+import { op } from "../../../utils/rainvm/vm";
 
 enum DebugStyle {
   StatePacked,
@@ -20,13 +23,20 @@ describe("LibVMState debug tests", async function () {
   it("should debug Stack", async () => {
     const stackTop = 32;
     const debugStyle = DebugStyle.Stack;
+    // prettier-ignore
+    const sources = [
+      concat([
+        op(Opcode.BLOCK_NUMBER)
+      ])
+    ];
 
     const stackTopAfter_ = await libStackTop.callStatic.debug(
       stackTop,
-      debugStyle
+      debugStyle,
+      sources
     );
 
-    const tx0_ = await libStackTop.debug(stackTop, debugStyle);
+    const tx0_ = await libStackTop.debug(stackTop, debugStyle, sources);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -38,13 +48,20 @@ describe("LibVMState debug tests", async function () {
   it("should debug StatePacked", async () => {
     const stackTop = 32;
     const debugStyle = DebugStyle.StatePacked;
+    // prettier-ignore
+    const sources = [
+      concat([
+        op(Opcode.BLOCK_NUMBER)
+      ])
+    ];
 
     const stackTopAfter_ = await libStackTop.callStatic.debug(
       stackTop,
-      debugStyle
+      debugStyle,
+      sources
     );
 
-    const tx0_ = await libStackTop.debug(stackTop, debugStyle);
+    const tx0_ = await libStackTop.debug(stackTop, debugStyle, sources);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 

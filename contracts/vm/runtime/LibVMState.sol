@@ -64,7 +64,7 @@ library LibVMState {
             console.logBytes(state_.toBytesPacked());
         } else if (debugStyle_ == DebugStyle.Stack) {
             uint256 index_ = state_.stackBottom.toIndex(stackTop_);
-            (uint head_, uint[] memory tail_) = stackTop_.list(index_);
+            (uint256 head_, uint256[] memory tail_) = stackTop_.list(index_);
             console.log("~~~");
             unchecked {
                 for (uint256 i_ = 0; i_ < index_; i_++) {
