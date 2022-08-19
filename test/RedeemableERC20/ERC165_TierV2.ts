@@ -4,7 +4,10 @@ import { ethers } from "hardhat";
 import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
 import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 import { CombineTier } from "../../typechain/CombineTier";
-import { InitializeEvent } from "../../typechain/RedeemableERC20";
+import {
+  ERC20ConfigStruct,
+  InitializeEvent,
+} from "../../typechain/RedeemableERC20";
 import type { ReserveToken } from "../../typechain/ReserveToken";
 import { StakeConfigStruct, StakeFactory } from "../../typechain/StakeFactory";
 import * as Util from "../../utils";
@@ -21,12 +24,13 @@ import {
   Tier,
 } from "../../utils";
 import { op } from "../../utils/rainvm/vm";
+import type { ERC20PulleeTest } from "../../typechain/ERC20PulleeTest";
 const Opcode = AllStandardOps;
 
 describe("RedeemableERC20 ERC165_TierV2 test", async function () {
-  let erc20Pullee;
-  let reserve;
-  let redeemableERC20Config;
+  let erc20Pullee: ERC20PulleeTest;
+  let reserve: ReserveToken;
+  let redeemableERC20Config: ERC20ConfigStruct;
   let stateBuilder: AllStandardOpsStateBuilder;
   let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
@@ -56,7 +60,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     const erc20PulleeFactory = await ethers.getContractFactory(
       "ERC20PulleeTest"
     );
-    erc20Pullee = await erc20PulleeFactory.deploy();
+    erc20Pullee = (await erc20PulleeFactory.deploy()) as ERC20PulleeTest;
     await erc20Pullee.deployed();
 
     reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken;
