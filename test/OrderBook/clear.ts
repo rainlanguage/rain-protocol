@@ -31,6 +31,8 @@ import {
   compareStructs,
 } from "../../utils/test/compareStructs";
 
+import orderbookAbi from "../../artifacts/contracts/orderbook/OrderBook.sol/OrderBook.json";
+
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook clear order", async function () {
@@ -53,6 +55,208 @@ describe("OrderBook clear order", async function () {
     await stateBuilder.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  });
+
+  it("should support multicall (single call)", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(1);
+    const bobOutputVault = ethers.BigNumber.from(2);
+    const bountyBotVaultA = ethers.BigNumber.from(1);
+    const bountyBotVaultB = ethers.BigNumber.from(2);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(Opcode.CONSTANT, 0);
+    const vAskPrice = op(Opcode.CONSTANT, 1);
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      vmStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { sender: askSender, config: askConfig } = (await getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(askSender === alice.address, "wrong sender");
+    compareStructs(askConfig, askOrderConfig);
+
+    // BID ORDER
+
+    const bidPrice = fixedPointDiv(ONE, askPrice);
+    const bidConstants = [max_uint256, bidPrice];
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
+      vmStateConfig: {
+        sources: [bidSource],
+        constants: bidConstants,
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(bob)
+      .addOrder(bidOrderConfig);
+
+    const { sender: bidSender, config: bidConfig } = (await getEventArgs(
+      txBidOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(bidSender === bob.address, "wrong sender");
+    compareStructs(bidConfig, bidOrderConfig);
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(bob)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === bob.address);
+    compareStructs(depositBobConfig, depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const clearConfig: ClearConfigStruct = {
+      aInputIndex: 0,
+      aOutputIndex: 0,
+      bInputIndex: 0,
+      bOutputIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
+    };
+
+    const orderBookInterface = new ethers.utils.Interface(orderbookAbi.abi);
+
+    const clearData = orderBookInterface.encodeFunctionData("clear", [
+      askOrderConfig,
+      bidOrderConfig,
+      clearConfig,
+    ]);
+
+    const txClearOrder = await orderBook
+      .connect(bountyBot)
+      .multicall([clearData]);
+
+    const {
+      sender: clearSender,
+      a_: clearA_,
+      b_: clearB_,
+      clearConfig: clearBountyConfig,
+    } = (await getEventArgs(
+      txClearOrder,
+      "Clear",
+      orderBook
+    )) as ClearEvent["args"];
+    const { stateChange: clearStateChange } = (await getEventArgs(
+      txClearOrder,
+      "AfterClear",
+      orderBook
+    )) as AfterClearEvent["args"];
+
+    const aOutputMaxExpected = amountA;
+    const bOutputMaxExpected = amountB;
+
+    const aOutputExpected = minBN(
+      aOutputMaxExpected,
+      fixedPointMul(bidPrice, amountA)
+    );
+    const bOutputExpected = minBN(
+      bOutputMaxExpected,
+      fixedPointMul(askPrice, amountB)
+    );
+
+    const expectedClearStateChange: ClearStateChangeStruct = {
+      aOutput: aOutputExpected,
+      bOutput: bOutputExpected,
+      aInput: fixedPointMul(askPrice, aOutputExpected),
+      bInput: fixedPointMul(bidPrice, bOutputExpected),
+    };
+
+    assert(clearSender === bountyBot.address);
+    compareSolStructs(clearA_, askConfig);
+    compareSolStructs(clearB_, bidConfig);
+    compareStructs(clearBountyConfig, clearConfig);
+    compareStructs(clearStateChange, expectedClearStateChange);
   });
 
   it("should enforce different owner for ask and bid orders", async function () {
