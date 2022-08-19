@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
@@ -29,8 +29,21 @@ describe("LibVMState bytesPacked tests", async function () {
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
-    assert(memDumpBefore_ === memDumpAfter_, "toBytesPacked corrupted memory");
+    assert(
+      memDumpBefore_ !== memDumpAfter_,
+      "toBytesPacked did not modify memory"
+    );
 
-    console.log({ bytesPacked_ });
+    assert(
+      bytesPacked_ ===
+        "0x0000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020f00"
+    );
+
+    assert(
+      bytesPacked_.slice(-6) ===
+        "02" + // source0 length
+          hexlify(Opcode.BLOCK_NUMBER).slice(2) + // opcode
+          "00" // operand
+    );
   });
 });
