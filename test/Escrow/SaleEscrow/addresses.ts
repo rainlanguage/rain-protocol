@@ -26,7 +26,7 @@ let reserve: ReserveToken,
   saleFactoryFactory: ContractFactory,
   saleFactory: SaleFactory;
 
-describe.only("SaleEscrow unchangeable addresses", async function () {
+describe("SaleEscrow unchangeable addresses", async function () {
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
   });
@@ -63,7 +63,7 @@ describe.only("SaleEscrow unchangeable addresses", async function () {
     )) as SaleFactory;
     await saleFactory.deployed();
   });
-  
+
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
