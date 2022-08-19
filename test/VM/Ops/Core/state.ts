@@ -14,7 +14,7 @@ import {
 
 const Opcode = AllStandardOps;
 
-describe.only("STATE Opcode test", async function () {
+describe("STATE Opcode test", async function () {
   let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
@@ -103,7 +103,7 @@ describe.only("STATE Opcode test", async function () {
       "Integrity check failed while reading an OOB stack value"
     );
   });
-  
+
   it("should fail when reading an OOB CONSTANT value", async () => {
     const constants = [1337];
     // prettier-ignore
@@ -122,7 +122,7 @@ describe.only("STATE Opcode test", async function () {
       "Integrity check failed while reading an OOB constant value"
     );
   });
-  
+
   it("should error when STACK operand references a STACK element that hasn't yet been evaluated", async () => {
     const constants = [10, 20, 30];
 
@@ -232,7 +232,6 @@ describe.only("STATE Opcode test", async function () {
     );
   });
 
-  
   it("should error when script references out-of-bounds opcode", async () => {
     const constants = [];
 

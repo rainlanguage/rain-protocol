@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op} from "../../../../utils/rainvm/vm";
+import { op } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;

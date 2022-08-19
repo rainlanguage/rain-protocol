@@ -20,8 +20,7 @@ describe("TierV2 report op", async function () {
     const integrityFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    const integrity =
-      (await integrityFactory.deploy()) as StandardIntegrity;
+    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
     await integrity.deployed();
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     // deploy a basic vm contract

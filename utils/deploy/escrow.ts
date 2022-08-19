@@ -10,9 +10,7 @@ import type {
 } from "../../typechain/SaleFactory";
 
 export const deployGlobals = async () => {
-  const integrityFactory = await ethers.getContractFactory(
-    "StandardIntegrity"
-  );
+  const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
   const integrity = await integrityFactory.deploy();
   await integrity.deployed();
 

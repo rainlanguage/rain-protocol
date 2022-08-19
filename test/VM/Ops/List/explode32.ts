@@ -3,10 +3,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import {
-  AllStandardOps,
-  op,
-} from "../../../../utils";
+import { AllStandardOps, op } from "../../../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -39,7 +36,11 @@ describe("EXPLODE32 Opcode test", async function () {
       constants: [],
     });
     // 0
-    await logic.runContext([ethers.BigNumber.from("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")]);
+    await logic.runContext([
+      ethers.BigNumber.from(
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ),
+    ]);
     const result0 = await logic.stack();
     const expectedResult0 = [
       ethers.BigNumber.from("0xffffffff"),
@@ -50,14 +51,18 @@ describe("EXPLODE32 Opcode test", async function () {
       ethers.BigNumber.from("0xffffffff"),
       ethers.BigNumber.from("0xffffffff"),
       ethers.BigNumber.from("0xffffffff"),
-    ]
+    ];
     expect(result0).deep.equal(
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
-    
+
     // 1
-    await logic.runContext([ethers.BigNumber.from("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff")]);
+    await logic.runContext([
+      ethers.BigNumber.from(
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ),
+    ]);
     const result1 = await logic.stack();
     const expectedResult1 = [
       ethers.BigNumber.from("0xffffffff"),
@@ -68,12 +73,12 @@ describe("EXPLODE32 Opcode test", async function () {
       ethers.BigNumber.from("0xffffffff"),
       ethers.BigNumber.from("0xffffffff"),
       ethers.BigNumber.from("0"),
-    ]
+    ];
     expect(result1).deep.equal(
       expectedResult1,
       `Invalid output, expected ${expectedResult1}, actual ${result1}`
     );
-    
+
     // 2
     await logic.runContext([ethers.BigNumber.from("0x0")]);
     const result2 = await logic.stack();
@@ -86,7 +91,7 @@ describe("EXPLODE32 Opcode test", async function () {
       ethers.BigNumber.from("0"),
       ethers.BigNumber.from("0"),
       ethers.BigNumber.from("0"),
-    ]
+    ];
     expect(result2).deep.equal(
       expectedResult2,
       `Invalid output, expected ${expectedResult2}, actual ${result2}`

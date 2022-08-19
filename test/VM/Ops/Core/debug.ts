@@ -68,6 +68,7 @@ describe("RainVM debug op", async function () {
   it("should be able to log when is used within a source from CALL op", async () => {
     const constants = [0, 1, 20];
 
+    // prettier-ignore
     const checkValue = concat([
       op(Opcode.DEBUG, Debug.Stack), // Should show the new stack
         op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
@@ -75,7 +76,7 @@ describe("RainVM debug op", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-
+    // prettier-ignore
     const source = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
