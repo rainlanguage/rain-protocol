@@ -24,13 +24,13 @@ describe("TierReport reportTimeForTier", async function () {
 
   it("should return the timestamp for a specified status according to a given report", async () => {
     // set status ONE
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE);
     const expectedTier1Timestamp = await getBlockTimestamp();
 
     await timewarp(10);
 
     // set status TWO
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO);
     const expectedTier2Block = await getBlockTimestamp();
 
     await timewarp(10);

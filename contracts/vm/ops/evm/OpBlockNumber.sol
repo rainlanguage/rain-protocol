@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+
+import "../../LibStackTop.sol";
 
 /// @title OpBlockNumber
 /// @notice Opcode for getting the current block number.
 library OpBlockNumber {
-    function blockNumber(uint256, uint256 stackTopLocation_)
+    using LibStackTop for StackTop;
+
+    function blockNumber(uint256, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly {
-            mstore(stackTopLocation_, number())
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
+        return stackTop_.push(block.number);
     }
 }

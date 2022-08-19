@@ -26,11 +26,11 @@ describe("TierReport tierAtTimeFromReport", async function () {
   it("should correctly return the highest achieved tier relative to a given report and block number", async () => {
     const initialTimestamp = await getBlockTimestamp();
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE);
 
     timewarp(10);
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO);
 
     timewarp(10);
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "./utils/Bytecode.sol";
 
@@ -27,7 +27,7 @@ library SSTORE2 {
         );
 
         // Deploy contract using create
-        assembly {
+        assembly ("memory-safe") {
             pointer := create(0, add(code, 32), mload(code))
         }
 

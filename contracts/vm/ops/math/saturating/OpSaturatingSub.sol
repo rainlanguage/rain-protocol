@@ -1,38 +1,30 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
+import "../../../LibStackTop.sol";
 
 /// @title OpSaturatingSub
 /// @notice Opcode for subtracting N numbers with saturating subtraction.
 library OpSaturatingSub {
     using SaturatingMath for uint256;
+    using LibStackTop for StackTop;
 
-    function saturatingSub(uint256 operand_, uint256 stackTopLocation_)
+    function saturatingSub(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop stackTopAfter_)
     {
-        uint256 location_;
-        uint256 accumulator_;
-        uint256 cursor_;
-        uint256 item_;
-        assembly {
-            location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-            accumulator_ := mload(location_)
-            cursor_ := add(location_, 0x20)
+        StackTop location_ = stackTop_.down(operand_);
+        uint256 accumulator_ = location_.peekUp();
+        stackTopAfter_ = location_.up();
+        for (
+            StackTop i_ = stackTopAfter_;
+            i_.lt(stackTop_) && (0 < accumulator_);
+            i_ = i_.up()
+        ) {
+            accumulator_ = accumulator_.saturatingSub(i_.peekUp());
         }
-        while (cursor_ < stackTopLocation_ && 0 < accumulator_) {
-            assembly {
-                item_ := mload(cursor_)
-                cursor_ := add(cursor_, 0x20)
-            }
-            accumulator_ = accumulator_.saturatingSub(item_);
-        }
-        assembly {
-            mstore(location_, accumulator_)
-            stackTopLocation_ := add(location_, 0x20)
-        }
-        return stackTopLocation_;
+        location_.set(accumulator_);
     }
 }

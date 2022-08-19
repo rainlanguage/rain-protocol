@@ -1,38 +1,24 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+
+import "../../LibStackTop.sol";
 
 /// @title OpMul
 /// @notice Opcode for multiplying N numbers.
 library OpMul {
-    function mul(uint256 operand_, uint256 stackTopLocation_)
+    using LibStackTop for StackTop;
+
+    function mul(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop stackTopAfter_)
     {
-        assembly {
-            let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-            let accumulator_ := mload(location_)
-            let item_
-            let intermediate_
-            for {
-                let cursor_ := add(location_, 0x20)
-            } lt(cursor_, stackTopLocation_) {
-                cursor_ := add(cursor_, 0x20)
-            } {
-                if gt(accumulator_, 0) {
-                    item_ := mload(cursor_)
-                    intermediate_ := mul(accumulator_, item_)
-                    // Adapted from Open Zeppelin safe math.
-                    if iszero(eq(div(intermediate_, accumulator_), item_)) {
-                        revert(0, 0)
-                    }
-                    accumulator_ := intermediate_
-                }
-            }
-            mstore(location_, accumulator_)
-            stackTopLocation_ := add(location_, 0x20)
+        StackTop location_ = stackTop_.down(operand_);
+        uint256 accumulator_ = location_.peekUp();
+        stackTopAfter_ = location_.up();
+        for (StackTop i_ = stackTopAfter_; i_.lt(stackTop_); i_ = i_.up()) {
+            accumulator_ *= i_.peekUp();
         }
-
-        return stackTopLocation_;
+        location_.set(accumulator_);
     }
 }

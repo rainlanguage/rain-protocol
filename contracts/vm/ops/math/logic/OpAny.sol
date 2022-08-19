@@ -1,35 +1,27 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+import "../../../LibStackTop.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
 library OpAny {
+    using LibStackTop for StackTop;
+
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(uint256 operand_, uint256 stackTopLocation_)
+    function any(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly {
-            let location_ := sub(stackTopLocation_, mul(operand_, 0x20))
-            for {
-                let cursor_ := location_
-            } lt(cursor_, stackTopLocation_) {
-                cursor_ := add(cursor_, 0x20)
-            } {
-                // If anything is NOT zero then ANY is a successful
-                // check and can short-circuit.
-                let item_ := mload(cursor_)
-                if iszero(iszero(item_)) {
-                    // Write the usable value to the top of the stack.
-                    mstore(location_, item_)
-                    break
-                }
+        StackTop location_ = stackTop_.down(operand_);
+        for (StackTop i_ = location_; i_.lt(stackTop_); i_ = i_.up()) {
+            uint256 item_ = i_.peekUp();
+            if (item_ > 0) {
+                return location_.push(item_);
             }
-            stackTopLocation_ := add(location_, 0x20)
         }
-        return stackTopLocation_;
+        return location_.up();
     }
 }

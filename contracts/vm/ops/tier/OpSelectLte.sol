@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
+import "../../LibStackTop.sol";
 
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
+    using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
+
     function stackPops(uint256 operand_) internal pure returns (uint256) {
         unchecked {
             uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
@@ -21,46 +25,22 @@ library OpSelectLte {
     // `mode_` is the 2 highest bits after `logic_`.
     // The other bits specify how many values to take from the stack
     // as reports to compare against each other and the block number.
-    function selectLte(uint256 operand_, uint256 stackTopLocation_)
+    function selectLte(uint256 operand_, StackTop stackTop_)
         internal
         pure
-        returns (uint256)
+        returns (StackTop)
     {
-        uint256 logic_ = operand_ >> 7;
-        uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011
-        uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
-
-        uint256 location_;
-        uint256[] memory reports_ = new uint256[](reportsLength_);
-        uint256 time_;
-        assembly {
-            location_ := sub(
-                stackTopLocation_,
-                mul(add(reportsLength_, 1), 0x20)
-            )
-            let maxCursor_ := add(location_, mul(reportsLength_, 0x20))
-            for {
-                let cursor_ := location_
-                let i_ := 0
-            } lt(cursor_, maxCursor_) {
-                cursor_ := add(cursor_, 0x20)
-                i_ := add(i_, 0x20)
-            } {
-                mstore(add(reports_, add(0x20, i_)), mload(cursor_))
-            }
-            time_ := mload(maxCursor_)
+        unchecked {
+            uint256 logic_ = operand_ >> 7;
+            uint256 mode_ = (operand_ >> 5) & 0x3; // & 00000011
+            uint256 reportsLength_ = operand_ & 0x1F; // & 00011111
+            (uint256 time_, uint256[] memory reports_) = stackTop_.list(
+                reportsLength_
+            );
+            return
+                reports_.asStackTop().push(
+                    TierwiseCombine.selectLte(logic_, mode_, time_, reports_)
+                );
         }
-
-        uint256 result_ = TierwiseCombine.selectLte(
-            reports_,
-            time_,
-            logic_,
-            mode_
-        );
-        assembly {
-            mstore(location_, result_)
-            stackTopLocation_ := add(location_, 0x20)
-        }
-        return stackTopLocation_;
     }
 }

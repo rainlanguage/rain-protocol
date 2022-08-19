@@ -231,9 +231,9 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     const TIERWISE_DIFF = () =>
       concat([
         CURRENT_BLOCK_AS_REPORT(),
+        op(Opcode.BLOCK_NUMBER),
         TIER_REPORT(),
         LAST_CLAIM_REPORT(),
-        op(Opcode.BLOCK_NUMBER),
         op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
@@ -286,7 +286,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     // const immutableSource = await emissionsERC20.source();
 
     // Has Platinum Tier
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
 
     const tierTimestamp = await getBlockTimestamp();
 
@@ -357,12 +357,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     claimAmount                                 ${claimAmount}
     `);
 
-    // assert(
-    //   claimAmount.eq(expectedClaimAmount),
-    //   `wrong claim calculation result
-    //   expected  ${expectedClaimAmount}
-    //   got       ${claimAmount}`
-    // );
     console.log(claimAmount, expectedClaimAmount);
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
@@ -515,9 +509,9 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     const TIERWISE_DIFF = () =>
       concat([
         CURRENT_TIMESTAMP_AS_REPORT(),
+        op(Opcode.BLOCK_TIMESTAMP),
         TIER_REPORT(),
         LAST_CLAIM_REPORT(),
-        op(Opcode.BLOCK_TIMESTAMP),
         op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
@@ -565,7 +559,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     );
 
     // Has Platinum Tier
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
 
     const tierTimestamp = await getBlockTimestamp();
 

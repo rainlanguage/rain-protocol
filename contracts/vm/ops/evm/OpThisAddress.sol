@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.10;
+pragma solidity ^0.8.15;
+
+import "../../LibStackTop.sol";
 
 /// @title OpThisAddress
 /// @notice Opcode for getting the address of the current contract.
 library OpThisAddress {
-    function thisAddress(uint256, uint256 stackTopLocation_)
+    using LibStackTop for StackTop;
+
+    function thisAddress(uint256, StackTop stackTop_)
         internal
         view
-        returns (uint256)
+        returns (StackTop)
     {
-        assembly {
-            mstore(stackTopLocation_, address())
-            stackTopLocation_ := add(stackTopLocation_, 0x20)
-        }
-        return stackTopLocation_;
+        return stackTop_.push(uint256(uint160(address(this))));
     }
 }

@@ -128,7 +128,7 @@ describe("RedeemableERC20 redeem test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(alice.address, Tier.FOUR, []);
+    await tier.setTier(alice.address, Tier.FOUR);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -457,8 +457,8 @@ describe("RedeemableERC20 redeem test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.FOUR, []);
-    await tier.setTier(signer2.address, Tier.FOUR, []);
+    await tier.setTier(signer1.address, Tier.FOUR);
+    await tier.setTier(signer2.address, Tier.FOUR);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve1.address,
@@ -567,9 +567,9 @@ describe("RedeemableERC20 redeem test", async function () {
     };
 
     // grant second signer GOLD status so they can receive transferred tokens
-    await tier.setTier(signers[1].address, Tier.FOUR, []);
+    await tier.setTier(signers[1].address, Tier.FOUR);
     // grant third signer SILVER status which is NOT enough to receive transfers
-    await tier.setTier(signers[2].address, Tier.THREE, []);
+    await tier.setTier(signers[2].address, Tier.THREE);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -659,8 +659,8 @@ describe("RedeemableERC20 redeem test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(signer1.address, Tier.FOUR, []);
-    await tier.setTier(signer2.address, Tier.FOUR, []);
+    await tier.setTier(signer1.address, Tier.FOUR);
+    await tier.setTier(signer2.address, Tier.FOUR);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve1.address,
@@ -873,7 +873,7 @@ describe("RedeemableERC20 redeem test", async function () {
       initialSupply: totalSupply,
     };
 
-    await tier.setTier(alice.address, Tier.FOUR, []);
+    await tier.setTier(alice.address, Tier.FOUR);
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
