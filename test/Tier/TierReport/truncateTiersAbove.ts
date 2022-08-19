@@ -22,9 +22,7 @@ describe("TierReport truncateTiersAbove", async function () {
   });
 
   it("should clear (set to 0xFF) all tiers above the given tier in the given report", async () => {
-    await readWriteTier
-      .connect(signer1)
-      .setTier(signer1.address, Tier.THREE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.THREE);
 
     const report = await readWriteTier.report(signer1.address, []);
 

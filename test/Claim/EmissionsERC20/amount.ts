@@ -286,7 +286,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     // const immutableSource = await emissionsERC20.source();
 
     // Has Platinum Tier
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
 
     const tierTimestamp = await getBlockTimestamp();
 
@@ -559,7 +559,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     );
 
     // Has Platinum Tier
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
 
     const tierTimestamp = await getBlockTimestamp();
 
