@@ -25,6 +25,7 @@ import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
 import { op } from "../../utils/rainvm/vm";
+import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
   compareStructs,
@@ -52,6 +53,165 @@ describe("OrderBook clear order", async function () {
     await stateBuilder.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+  });
+
+  it("should enforce different owner for ask and bid orders", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice1 = signers[1];
+    const alice2 = alice1; // 'Bob' is actually Alice in this case
+    const bountyBot = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy(
+      stateBuilder.address
+    )) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(1);
+    const bobOutputVault = ethers.BigNumber.from(2);
+    const bountyBotVaultA = ethers.BigNumber.from(1);
+    const bountyBotVaultB = ethers.BigNumber.from(2);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(Opcode.CONSTANT, 0);
+    const vAskPrice = op(Opcode.CONSTANT, 1);
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      vmStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice1)
+      .addOrder(askOrderConfig);
+
+    const { sender: askSender, config: askConfig } = (await getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(askSender === alice1.address, "wrong sender");
+    compareStructs(askConfig, askOrderConfig);
+
+    // BID ORDER
+
+    const bidPrice = fixedPointDiv(ONE, askPrice);
+    const bidConstants = [max_uint256, bidPrice];
+    const vBidOutputMax = op(Opcode.CONSTANT, 0);
+    const vBidPrice = op(Opcode.CONSTANT, 1);
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
+      vmStateConfig: {
+        sources: [bidSource],
+        constants: bidConstants,
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(alice2)
+      .addOrder(bidOrderConfig);
+
+    const { sender: bidSender, config: bidConfig } = (await getEventArgs(
+      txBidOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    assert(bidSender === alice2.address, "wrong sender");
+    compareStructs(bidConfig, bidOrderConfig);
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    await tokenB.transfer(alice1.address, amountB);
+    await tokenA.transfer(alice2.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice1)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(alice2)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice (alice1) deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice1)
+      .deposit(depositConfigStructAlice);
+    // Bob (alice2) deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(alice2)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice1.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === alice2.address);
+    compareStructs(depositBobConfig, depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const clearConfig: ClearConfigStruct = {
+      aInputIndex: 0,
+      aOutputIndex: 0,
+      bInputIndex: 0,
+      bOutputIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
+    };
+
+    const txClearOrder = orderBook
+      .connect(bountyBot)
+      .clear(askConfig, bidConfig, clearConfig);
+
+    await assertError(
+      async () => await txClearOrder,
+      "SAME_OWNER",
+      "did not revert with same owner for ask and bid orders"
+    );
   });
 
   it("should add ask and bid orders and clear the order", async function () {
