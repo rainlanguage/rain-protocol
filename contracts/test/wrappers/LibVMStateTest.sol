@@ -10,9 +10,10 @@ import "../../vm/runtime/LibStackTop.sol";
 contract LibVMStateTest {
     using LibVMState for VMState;
     using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
 
     function debug(
-        StackTop stackTop_,
+        uint stackIndex_,
         DebugStyle debugStyle_,
         bytes[] memory sources_
     ) external returns (StackTop stackTopAfter_) {
@@ -24,7 +25,7 @@ contract LibVMStateTest {
         );
 
         LibDebug.dumpMemory();
-        stackTopAfter_ = state_.debug(stackTop_, debugStyle_);
+        stackTopAfter_ = state_.debug(state_.stackBottom.up(stackIndex_), debugStyle_);
         LibDebug.dumpMemory();
     }
 

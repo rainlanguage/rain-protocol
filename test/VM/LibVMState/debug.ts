@@ -21,7 +21,7 @@ describe("LibVMState debug tests", async function () {
   });
 
   it("should debug Stack", async () => {
-    const stackTop = 32;
+    const stackIndex = 1;
     const debugStyle = DebugStyle.Stack;
     // prettier-ignore
     const sources = [
@@ -31,18 +31,14 @@ describe("LibVMState debug tests", async function () {
     ];
 
     const stackTopAfter_ = await libStackTop.callStatic.debug(
-      stackTop,
+      stackIndex,
       debugStyle,
       sources
     );
 
-    const tx0_ = await libStackTop.debug(stackTop, debugStyle, sources);
-    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
-    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
+    const tx0_ = await libStackTop.debug(stackIndex, debugStyle, sources);
 
-    assert(memDumpBefore_ === memDumpAfter_, "debug corrupted memory");
-
-    assert(stackTopAfter_.eq(stackTop), "stackTop should be unchanged");
+    assert(stackTopAfter_.eq(stackIndex), "stackTop should be unchanged");
   });
 
   it("should debug StatePacked", async () => {
@@ -62,10 +58,6 @@ describe("LibVMState debug tests", async function () {
     );
 
     const tx0_ = await libStackTop.debug(stackTop, debugStyle, sources);
-    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
-    const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
-
-    assert(memDumpBefore_ === memDumpAfter_, "debug corrupted memory");
 
     assert(stackTopAfter_.eq(stackTop), "stackTop should be unchanged");
   });
