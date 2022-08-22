@@ -320,11 +320,11 @@ describe("CALL Opcode test", async function () {
     )) as TierReportTest;
 
     // Setting Alice's Tier
-    await readWriteTier.connect(alice).setTier(alice.address, Tier.TWO, []);
+    await readWriteTier.connect(alice).setTier(alice.address, Tier.TWO);
     await timewarp(10);
 
     // Setting Bob's tier
-    await readWriteTier.connect(bob).setTier(bob.address, Tier.FOUR, []);
+    await readWriteTier.connect(bob).setTier(bob.address, Tier.FOUR);
     timewarp(10);
 
     // Setting Asset price
