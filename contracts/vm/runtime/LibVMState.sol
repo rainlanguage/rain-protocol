@@ -7,6 +7,7 @@ import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SourceIndex, Operand} from "./RainVM.sol";
 
 enum DebugStyle {
     StatePacked,

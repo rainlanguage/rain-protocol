@@ -6,9 +6,9 @@ import {SaturatingMath} from "../../math/SaturatingMath.sol";
 
 import {TierConstants} from "../../tier/libraries/TierConstants.sol";
 
-/// @title TierwiseCombine_Echidna
+/// @title TierwiseCombineEchidna
 /// Wrapper around the `TierwiseCombine` library for echidna fuzz testing.
-contract TierwiseCombine_Echidna {
+contract TierwiseCombineEchidna {
     // Values to test SaturingSub
     uint256 private _newerReport;
     uint256 private _olderReport;
@@ -44,7 +44,7 @@ contract TierwiseCombine_Echidna {
     }
 
     // SaturatingSub to be tested fuzzed with Echidna
-    function echidna_saturatingSub() external view returns (bool) {
+    function echidnaSaturatingSub() external view returns (bool) {
         uint256 result = TierwiseCombine.saturatingSub(
             _newerReport,
             _olderReport
@@ -60,17 +60,14 @@ contract TierwiseCombine_Echidna {
                 newerTiers[i],
                 olderTiers[i]
             );
-            require(
-                blockDiff == resultTiers[i],
-                "The saturing subtraction on this block is wrong"
-            );
+            require(blockDiff == resultTiers[i], "SAT_SUB_BLOCK"); // The saturing subtraction on this block is wrong
         }
 
         return true;
     }
 
     // SelectLte to be tested fuzzed with Echidna
-    function echidna_selectLte() external view returns (bool) {
+    function echidnaSelectLte() external view returns (bool) {
         uint256 newReport = TierwiseCombine.selectLte(
             _logic,
             _mode,

@@ -231,6 +231,7 @@ library AllStandardOps {
                 returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    // solhint-disable-next-line avoid-low-level-calls
                     OpCall.call,
                     OpContext.context,
                     OpDebug.debug,
