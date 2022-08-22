@@ -53,7 +53,7 @@ library OpDoWhile {
     }
 
     /// Loop the stack while the stack top is true.
-    function doWhile(
+    function intern(
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -64,12 +64,13 @@ library OpDoWhile {
             // eval is NOT allowed to change the stack top so we
             // ignore the return of eval. This is enforced by bounds
             // checks.
-            state_.eval(
-                SourceIndex.wrap(Operand.unwrap(operand_)),
-                stackTop_
-            );
+            state_.eval(SourceIndex.wrap(Operand.unwrap(operand_)), stackTop_);
             do_ = stackTop_.peekUp();
         }
         return stackTop_;
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

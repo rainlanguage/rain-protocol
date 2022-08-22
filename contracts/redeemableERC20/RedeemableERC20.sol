@@ -11,7 +11,7 @@ import {TierReport} from "../tier/libraries/TierReport.sol";
 
 import {Phased} from "../phased/Phased.sol";
 
-import {ERC165CheckerUpgradeable as ERC165Checker } from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
+import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 /// Everything required by the `RedeemableERC20` constructor.
 /// @param reserve Reserve token that the associated `Trust` or equivalent

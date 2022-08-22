@@ -19,11 +19,15 @@ library OpThisAddress {
         return integrityState_.push(stackTop_);
     }
 
-    function thisAddress(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.push(uint256(uint160(address(this))));
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

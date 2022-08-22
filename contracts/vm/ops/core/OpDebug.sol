@@ -6,8 +6,6 @@ import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
-
-
 /// @title OpDebug
 /// @notice Opcode for debugging state. Uses the standard debugging logic from
 /// VMState.debug.
@@ -29,7 +27,7 @@ library OpDebug {
     }
 
     /// Debug the current state.
-    function debug(
+    function intern(
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -39,5 +37,9 @@ library OpDebug {
         state_.debug(stackTop_, debugStyle_);
 
         return stackTop_;
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

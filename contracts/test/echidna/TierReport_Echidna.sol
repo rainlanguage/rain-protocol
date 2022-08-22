@@ -170,7 +170,7 @@ contract TierReport_Echidna {
         }
     }
 
-        // Helper function to replicate how the tiers are splitted
+    // Helper function to replicate how the tiers are splitted
     function _splitReport(uint256 report_)
         private
         pure

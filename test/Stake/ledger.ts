@@ -25,7 +25,7 @@ describe("Stake direct ledger analysis", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await token.initialize()
+    await token.initialize();
   });
 
   it("should correctly update `deposits` ledger in FILO order when multiple ledger entries are consumed by a single withdrawal", async () => {

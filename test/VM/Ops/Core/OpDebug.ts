@@ -70,11 +70,10 @@ describe("RainVM debug op", async function () {
 
     const checkValue = concat([
       op(Opcode.DEBUG, Debug.Stack), // Should show the new stack
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.LESS_THAN),
     ]);
-
 
     const source = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),

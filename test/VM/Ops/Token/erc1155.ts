@@ -45,7 +45,7 @@ describe("RainVM ERC1155 ops", async function () {
       "ReserveTokenERC1155",
       {}
     )) as ReserveTokenERC1155;
-    await tokenERC1155.initialize()
+    await tokenERC1155.initialize();
   });
 
   it("should return ERC1155 batch balance result for multiple signers", async () => {

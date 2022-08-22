@@ -180,7 +180,7 @@ describe("RedeemableERC20 constructor test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
-    await reserve.initialize()
+    await reserve.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

@@ -20,56 +20,6 @@ uint256 constant FP_ONE = 1e18;
 library FixedPointMath {
     using Math for uint256;
 
-    /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
-    /// @param a_ Some fixed point decimal value.
-    /// @param aDecimals_ The number of fixed decimals of `a_`.
-    /// @return `a_` scaled to match `DECIMALS`.
-    function scale18(uint256 a_, uint256 aDecimals_)
-        internal
-        pure
-        returns (uint256)
-    {
-        uint256 decimals_;
-        if (FP_DECIMALS == aDecimals_) {
-            return a_;
-        } else if (FP_DECIMALS > aDecimals_) {
-            unchecked {
-                decimals_ = FP_DECIMALS - aDecimals_;
-            }
-            return a_ * 10**decimals_;
-        } else {
-            unchecked {
-                decimals_ = aDecimals_ - FP_DECIMALS;
-            }
-            return a_ / 10**decimals_;
-        }
-    }
-
-    /// Scale a fixed point decimals of `DECIMALS` to some other scale.
-    /// @param a_ A `DECIMALS` fixed point decimals.
-    /// @param targetDecimals_ The new scale of `a_`.
-    /// @return `a_` rescaled from `DECIMALS` to `targetDecimals_`.
-    function scaleN(uint256 a_, uint256 targetDecimals_)
-        internal
-        pure
-        returns (uint256)
-    {
-        uint256 decimals_;
-        if (targetDecimals_ == FP_DECIMALS) {
-            return a_;
-        } else if (FP_DECIMALS > targetDecimals_) {
-            unchecked {
-                decimals_ = FP_DECIMALS - targetDecimals_;
-            }
-            return a_ / 10**decimals_;
-        } else {
-            unchecked {
-                decimals_ = targetDecimals_ - FP_DECIMALS;
-            }
-            return a_ * 10**decimals_;
-        }
-    }
-
     /// Scale a fixed point up or down by `scaleBy_` orders of magnitude.
     /// The caller MUST ensure the end result matches `DECIMALS` if other
     /// functions in this library are to work correctly.

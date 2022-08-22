@@ -15,19 +15,26 @@ library OpSaturatingDiff {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return
-            integrityState_.applyFn(stackTop_, TierwiseCombine.saturatingSub);
+        return integrityState_.apply(stackTop_, TierwiseCombine.saturatingSub);
     }
 
     // Stack the tierwise saturating subtraction of two reports.
     // If the older report is newer than newer report the result will
     // be `0`, else a tierwise diff in blocks will be obtained.
     // The older and newer report are taken from the stack.
-    function saturatingDiff(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(TierwiseCombine.saturatingSub);
+        return stackTop_.apply(TierwiseCombine.saturatingSub);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(TierwiseCombine.saturatingSub);
     }
 }

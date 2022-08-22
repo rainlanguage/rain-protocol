@@ -40,7 +40,7 @@ library OpState {
     }
 
     /// Stack a value from the state.
-    function state(
+    function intern(
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -61,5 +61,9 @@ library OpState {
             }
             return StackTop.wrap(StackTop.unwrap(stackTop_) + 0x20);
         }
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

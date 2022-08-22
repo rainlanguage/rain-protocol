@@ -21,14 +21,22 @@ library OpMax {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return
-            integrityState_.applyFnN(stackTop_, _max, Operand.unwrap(operand_));
+            integrityState_.applyN(stackTop_, _max, Operand.unwrap(operand_));
     }
 
-    function max(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop stackTopAfter_) {
-        return stackTop_.applyFnN(_max, Operand.unwrap(operand_));
+        return stackTop_.applyN(_max, Operand.unwrap(operand_));
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyN(_max);
     }
 }

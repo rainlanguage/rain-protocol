@@ -35,7 +35,7 @@ library OpEagerIf {
     /// before EAGER_IF will select one of them. If both x_ and y_
     /// are cheap (e.g. constant values) then this may also be the
     /// simplest and cheapest way to select one of them.
-    function eagerIf(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
@@ -43,5 +43,13 @@ library OpEagerIf {
         unchecked {
             return stackTop_.applyFn(_eagerIf, Operand.unwrap(operand_) + 1);
         }
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(_eagerIf);
     }
 }

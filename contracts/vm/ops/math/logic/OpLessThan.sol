@@ -21,7 +21,7 @@ library OpLessThan {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _lessThan);
+        return integrityState_.apply(stackTop_, _lessThan);
     }
 
     function lessThan(
@@ -29,6 +29,14 @@ library OpLessThan {
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_lessThan);
+        return stackTop_.apply(_lessThan);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(_lessThan);
     }
 }

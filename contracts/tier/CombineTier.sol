@@ -40,7 +40,9 @@ contract CombineTier is TierV2, StandardVM {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {
+    constructor(address vmIntegrity_, address vmExternal_)
+        StandardVM(vmIntegrity_, vmExternal_)
+    {
         _disableInitializers();
     }
 

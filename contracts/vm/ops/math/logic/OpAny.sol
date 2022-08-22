@@ -23,7 +23,7 @@ library OpAny {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
@@ -40,5 +40,9 @@ library OpAny {
             }
         }
         return bottom_.up();
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert UnsupportedDispatch();
     }
 }

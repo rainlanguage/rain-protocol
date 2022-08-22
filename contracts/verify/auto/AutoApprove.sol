@@ -27,7 +27,9 @@ contract AutoApprove is VerifyCallback, StandardVM {
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {
+    constructor(address vmIntegrity_, address vmExternal_)
+        StandardVM(vmIntegrity_, vmExternal_)
+    {
         _disableInitializers();
     }
 
@@ -59,9 +61,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
                     context_[0] = uint256(uint160(evidences_[i_].account));
                     context_[1] = uint256(bytes32(evidences_[i_].data));
                     state_.context = context_;
-                    if (
-                        state_.eval().peek() > 0
-                    ) {
+                    if (state_.eval().peek() > 0) {
                         _approvedEvidenceData[
                             uint256(bytes32(evidences_[i_].data))
                         ] = block.timestamp;

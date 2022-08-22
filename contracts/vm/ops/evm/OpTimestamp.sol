@@ -16,14 +16,18 @@ library OpTimestamp {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(stackTop_);
+        return integrityState_.apply(stackTop_, block.timestamp);
     }
 
-    function timestamp(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.push(block.timestamp);
+        return stackTop_.apply(block.timestamp);
+    }
+    
+    function extern(uint[] memory inputs_) internal view returns (uint[] memory) {
+        return inputs_.apply(block.timestamp)
     }
 }

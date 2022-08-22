@@ -5,15 +5,15 @@ import "../../runtime/LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
-
-import "hardhat/console.sol";
+import "../../external/LibExternalDispatch.sol";
 
 /// @title OpAdd
 /// @notice Opcode for adding N numbers.
 library OpAdd {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
-    using LibUint256Array for uint;
+    using LibExternalDispatch for uint256[];
+    using LibUint256Array for uint256;
 
     function _add(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_ + b_;
@@ -25,7 +25,7 @@ library OpAdd {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return
-            integrityState_.applyFnN(stackTop_, _add, Operand.unwrap(operand_));
+            integrityState_.applyN(stackTop_, _add, Operand.unwrap(operand_));
     }
 
     function intern(
@@ -33,16 +33,14 @@ library OpAdd {
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFnN(_add, Operand.unwrap(operand_));
+        return stackTop_.applyN(_add, Operand.unwrap(operand_));
     }
 
-    function extern(
-        uint[] calldata inputs_
-    ) internal view returns (uint[] memory outputs_) {
-        uint accumulator_ = 0;
-        for (uint i_ = 0; i_ < inputs_.length; i_++) {
-            accumulator_ = _add(accumulator_, inputs_[i_]);
-        }
-        return accumulator_.arrayFrom();
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory outputs_)
+    {
+        return inputs_.applyN(_add);
     }
 }

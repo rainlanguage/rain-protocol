@@ -31,19 +31,23 @@ library OpITierV2Report {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return
-            integrityState_.applyFn(
-                stackTop_,
-                _report,
-                Operand.unwrap(operand_)
-            );
+            integrityState_.apply(stackTop_, _report, Operand.unwrap(operand_));
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop stackTopAfter_) {
-        return stackTop_.applyFn(_report, Operand.unwrap(operand_));
+        return stackTop_.apply(_report, Operand.unwrap(operand_));
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(_report);
     }
 }

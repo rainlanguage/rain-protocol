@@ -13,7 +13,9 @@ uint256 constant MIN_FINAL_STACK_INDEX = 2;
 contract StackHeightTest is StandardVM {
     using LibUint256Array for uint256;
 
-    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {}
+    constructor(address vmIntegrity_, address vmExternal_)
+        StandardVM(vmIntegrity_, vmExternal_)
+    {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.

@@ -25,14 +25,22 @@ library OpGreaterThan {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _greaterThan);
+        return integrityState_.apply(stackTop_, _greaterThan);
     }
 
-    function greaterThan(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_greaterThan);
+        return stackTop_.apply(_greaterThan);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(_greaterThan);
     }
 }

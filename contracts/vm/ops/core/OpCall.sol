@@ -58,11 +58,7 @@ library OpCall {
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
-        integrityState_.ensureIntegrity(
-            callSourceIndex_,
-            stackTop_,
-            outputs_
-        );
+        integrityState_.ensureIntegrity(callSourceIndex_, stackTop_, outputs_);
 
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be
@@ -81,7 +77,7 @@ library OpCall {
     /// @param operand_ The operand associated with this call.
     /// @param stackTop_ The current stack top within the evaluation.
     /// @return stackTopAfter_ The stack top after the call is evaluated.
-    function call(
+    function intern(
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -102,10 +98,7 @@ library OpCall {
         // Eval the source from the operand on the current state using the stack
         // top above the inputs as the starting stack top. The final stack top
         // is where we will read outputs from below.
-        StackTop stackTopEval_ = state_.eval(
-            callSourceIndex_,
-            stackTop_
-        );
+        StackTop stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibUint256Array.unsafeCopyValuesTo(
@@ -119,5 +112,9 @@ library OpCall {
 
         // The outer stack bottom needs to be reinstated as it was before eval.
         state_.stackBottom = stackBottom_;
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

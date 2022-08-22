@@ -16,14 +16,22 @@ library OpBlockNumber {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.push(stackTop_);
+        return integrityState_.apply(stackTop_);
     }
 
-    function blockNumber(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.push(block.number);
+        return stackTop_.apply(block.number);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(block.number);
     }
 }

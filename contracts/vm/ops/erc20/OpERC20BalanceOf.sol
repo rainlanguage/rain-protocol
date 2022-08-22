@@ -5,13 +5,15 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
+import "../../external/LibExternalDispatch.sol";
 
 /// @title OpERC20BalanceOf
 /// @notice Opcode for ERC20 `balanceOf`.
 library OpERC20BalanceOf {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
-    using LibUint256Array for uint;
+    using LibUint256Array for uint256;
+    using LibExternalDispatch for uint256[];
 
     function _balanceOf(uint256 token_, uint256 account_)
         internal
@@ -41,9 +43,11 @@ library OpERC20BalanceOf {
         return stackTop_.applyFn(_balanceOf);
     }
 
-    function extern(
-        uint[] calldata inputs_
-    ) internal view returns (uint[] memory outputs_) {
-        return _balanceOf(inputs_[0], inputs_[1]).arrayFrom();
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_balanceOf);
     }
 }

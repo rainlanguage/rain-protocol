@@ -17,7 +17,7 @@ import {
   Tier,
   basicDeploy,
   timewarp,
-  Debug
+  Debug,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;
@@ -33,9 +33,7 @@ describe.only("CALL_EXTERNAL Opcode test", async function () {
     integrity = (await integrityFactory.deploy()) as StandardIntegrity;
     await integrity.deployed();
 
-    const externalFactory = await ethers.getContractFactory(
-      "RainVMExternal"
-    );
+    const externalFactory = await ethers.getContractFactory("RainVMExternal");
     const extern = (await externalFactory.deploy()) as RainVMExternal;
     await extern.deployed();
     await extern.pointers();
@@ -43,7 +41,7 @@ describe.only("CALL_EXTERNAL Opcode test", async function () {
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
       integrity.address,
-      extern.address,
+      extern.address
     )) as AllStandardOpsTest;
   });
 
@@ -53,11 +51,11 @@ describe.only("CALL_EXTERNAL Opcode test", async function () {
     // Source to add 2 numbers, input will be provided from another source
     const sourceCONSTANT = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.DEBUG, Debug.Stack)
+      op(Opcode.DEBUG, Debug.Stack),
     ]);
 
-    console.log(memoryOperand(MemoryType.Constant, 0))
-    console.log(sourceCONSTANT)
+    console.log(memoryOperand(MemoryType.Constant, 0));
+    console.log(sourceCONSTANT);
 
     // Source for calculating fibonacci sequence uptill 5
     // prettier-ignore
@@ -82,6 +80,4 @@ describe.only("CALL_EXTERNAL Opcode test", async function () {
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
     );
   });
-
-
 });

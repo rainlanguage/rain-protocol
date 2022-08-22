@@ -6,19 +6,19 @@ import "../../../runtime/LibStackTop.sol";
 import "../../../runtime/LibVMState.sol";
 import "../../../integrity/LibIntegrityState.sol";
 
-/// @title OpFixedPointScale18Mul
-/// @notice Opcode for performing scale 18 fixed point multiplication.
-library OpFixedPointScale18Mul {
+/// @title OpFixedPointDiv
+/// @notice Opcode performing 18 fixed point division.
+library OpFixedPointDiv {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _scale18Mul(
-        Operand operand_,
+    function _fixedPointDiv(
+        Operand,
         uint256 a_,
         uint256 b_
     ) internal pure returns (uint256) {
-        return a_.scale18(Operand.unwrap(operand_)).fixedPointMul(b_);
+        return a_.fixedPointDiv(b_);
     }
 
     function integrity(
@@ -26,14 +26,22 @@ library OpFixedPointScale18Mul {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _scale18Mul);
+        return integrityState_.apply(stackTop_, _fixedPointDiv);
     }
 
-    function scale18Mul(
+    function intern(
         VMState memory,
-        Operand operand_,
+        Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_scale18Mul, operand_);
+        return stackTop_.apply(_fixedPointDiv);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(_fixedPointDiv);
     }
 }

@@ -63,11 +63,8 @@ export const saleDeploy = async (
 };
 
 export const saleDependenciesDeploy = async () => {
-  const integrityFactory = await ethers.getContractFactory(
-    "StandardIntegrity"
-  );
-  const integrity =
-    (await integrityFactory.deploy()) as StandardIntegrity;
+  const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
+  const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
   await integrity.deployed();
 
   const redeemableERC20FactoryFactory = await ethers.getContractFactory(

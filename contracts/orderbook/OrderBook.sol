@@ -97,7 +97,9 @@ contract OrderBook is StandardVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {}
+    constructor(address vmIntegrity_, address vmExternal_)
+        StandardVM(vmIntegrity_, vmExternal_)
+    {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -155,8 +157,20 @@ contract OrderBook is StandardVM {
         }
     }
 
-    function evalOrder(Order memory order_, address counterparty_) internal view returns (uint, uint) {
-        return order_.vmState.fromBytesPacked(vmExternal, EvalContext(order_.hash(), counterparty_).toContext()).eval().peek2();
+    function evalOrder(Order memory order_, address counterparty_)
+        internal
+        view
+        returns (uint256, uint256)
+    {
+        return
+            order_
+                .vmState
+                .fromBytesPacked(
+                    vmExternal,
+                    EvalContext(order_.hash(), counterparty_).toContext()
+                )
+                .eval()
+                .peek2();
     }
 
     function clear(

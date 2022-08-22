@@ -33,11 +33,19 @@ library OpERC1155BalanceOf {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_balanceOf);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_balanceOf);
     }
 }

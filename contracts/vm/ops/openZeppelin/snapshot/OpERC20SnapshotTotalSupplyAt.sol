@@ -5,6 +5,7 @@ import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts
 import "../../../runtime/LibStackTop.sol";
 import "../../../runtime/LibVMState.sol";
 import "../../../integrity/LibIntegrityState.sol";
+import "../../../external/LibExternalDispatch.sol";
 
 /// @title OpERC20SnapshotTotalSupplyAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.totalSupplyAt`.
@@ -31,11 +32,19 @@ library OpERC20SnapshotTotalSupplyAt {
     }
 
     /// Stack `totalSupplyAt`.
-    function totalSupplyAt(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_totalSupplyAt);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_totalSupplyAt);
     }
 }

@@ -31,7 +31,7 @@ library OpStorage {
     }
 
     /// Stack the value in a storage slot.
-    function storageRead(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
@@ -40,5 +40,9 @@ library OpStorage {
             mstore(stackTop_, sload(operand_))
         }
         return stackTop_.up();
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

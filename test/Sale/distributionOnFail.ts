@@ -30,7 +30,7 @@ describe("Sale distribution on failed sale", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize()
+    await reserve.initialize();
   });
 
   it("should transfer correct value to all stakeholders after failed sale (with forward address)", async () => {

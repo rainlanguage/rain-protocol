@@ -20,7 +20,7 @@ library OpExplode32 {
         return integrityState_.push(integrityState_.pop(stackTop_), 8);
     }
 
-    function explode32(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
@@ -38,5 +38,9 @@ library OpExplode32 {
                 (i_ >> 0xC0) & mask_,
                 (i_ >> 0xE0) & mask_
             );
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

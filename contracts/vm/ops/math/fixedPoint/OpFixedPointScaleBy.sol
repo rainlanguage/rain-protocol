@@ -29,11 +29,15 @@ library OpFixedPointScaleBy {
         return integrityState_.applyFn(stackTop_, _scaleBy);
     }
 
-    function scaleBy(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_scaleBy, operand_);
+        return stackTop_.apply(_scaleBy, operand_);
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert UnsupportedDispatch();
     }
 }

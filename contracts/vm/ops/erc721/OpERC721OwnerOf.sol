@@ -5,6 +5,7 @@ import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable
 import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
+import "../../external/LibExternalDispatch.sol";
 
 /// @title OpERC721OwnerOf
 /// @notice Opcode for getting the current erc721 owner of an account.
@@ -29,11 +30,19 @@ library OpERC721OwnerOf {
     }
 
     // Stack the return of `ownerOf`.
-    function ownerOf(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_ownerOf);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_ownerOf);
     }
 }

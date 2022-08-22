@@ -33,7 +33,7 @@ library OpITierV2ReportTimeForTier {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return
-            integrityState_.applyFn(
+            integrityState_.apply(
                 stackTop_,
                 _reportTimeForTier,
                 Operand.unwrap(operand_)
@@ -41,11 +41,19 @@ library OpITierV2ReportTimeForTier {
     }
 
     // Stack the `reportTimeForTier` returned by an `ITierV2` contract.
-    function reportTimeForTier(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_reportTimeForTier, Operand.unwrap(operand_));
+        return stackTop_.apply(_reportTimeForTier, Operand.unwrap(operand_));
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.apply(_reportTimeForTier);
     }
 }

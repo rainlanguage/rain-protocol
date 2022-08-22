@@ -16,14 +16,13 @@ library OpEvery {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         function(uint256[] memory) internal view returns (uint256) fn_;
-        return
-            integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
+        return integrityState_.apply(stackTop_, fn_, Operand.unwrap(operand_));
     }
 
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
@@ -39,5 +38,9 @@ library OpEvery {
             }
         }
         return bottom_.up();
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert UnsupportedDispatch();
     }
 }

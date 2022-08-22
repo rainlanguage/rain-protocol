@@ -39,12 +39,7 @@ struct EmissionsERC20Config {
 /// claim and then diff it against the current block number.
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract EmissionsERC20 is
-    TierV2,
-    StandardVM,
-    ERC20,
-    IClaim
-{
+contract EmissionsERC20 is TierV2, StandardVM, ERC20, IClaim {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
@@ -70,7 +65,9 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmIntegrity_, address vmExternal_) StandardVM(vmIntegrity_, vmExternal_) {
+    constructor(address vmIntegrity_, address vmExternal_)
+        StandardVM(vmIntegrity_, vmExternal_)
+    {
         _disableInitializers();
     }
 

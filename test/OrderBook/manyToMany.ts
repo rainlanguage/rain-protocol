@@ -44,18 +44,17 @@ describe("OrderBook many-to-many", async function () {
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenC = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenD = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await tokenA.initialize()
-    await tokenB.initialize()
-    await tokenC.initialize()
-    await tokenD.initialize()
+    await tokenA.initialize();
+    await tokenB.initialize();
+    await tokenC.initialize();
+    await tokenD.initialize();
   });
 
   before(async () => {
     const integrityFactory = await ethers.getContractFactory(
       "OrderBookIntegrity"
     );
-    integrity =
-      (await integrityFactory.deploy()) as OrderBookIntegrity;
+    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
     await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});

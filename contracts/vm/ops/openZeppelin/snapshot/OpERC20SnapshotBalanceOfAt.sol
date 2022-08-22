@@ -5,6 +5,7 @@ import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts
 import "../../../runtime/LibStackTop.sol";
 import "../../../runtime/LibVMState.sol";
 import "../../../integrity/LibIntegrityState.sol";
+import "../../../external/LibExternalDispatch.sol";
 
 /// @title OpERC20SnapshotBalanceOfAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.balanceOfAt`.
@@ -17,8 +18,8 @@ library OpERC20SnapshotBalanceOfAt {
         uint256 token_,
         uint256 account_,
         uint256 snapshotId_
-    ) internal view returns (uint256) {
-        return
+    ) internal view returns (uint256 balace_) {
+        balance_ =
             ERC20Snapshot(address(uint160(token_))).balanceOfAt(
                 address(uint160(account_)),
                 snapshotId_
@@ -34,11 +35,19 @@ library OpERC20SnapshotBalanceOfAt {
     }
 
     /// Stack `balanceOfAt`.
-    function balanceOfAt(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_balanceOfAt);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_balanceOfAt);
     }
 }

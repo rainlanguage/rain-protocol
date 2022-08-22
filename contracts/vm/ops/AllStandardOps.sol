@@ -15,8 +15,8 @@ import "./core/OpLoopN.sol";
 import "./core/OpState.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
-import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
-import "./erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
+import "./openZeppelin/erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
+import "./openZeppelin/erc20/snapshot/OpERC20SnapshotTotalSupplyAt.sol";
 import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
 import "./erc1155/OpERC1155BalanceOf.sol";
@@ -26,11 +26,11 @@ import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
 import "./evm/OpTimestamp.sol";
 import "./list/OpExplode32.sol";
-import "./math/fixedPoint/OpFixedPointScale18.sol";
-import "./math/fixedPoint/OpFixedPointScale18Div.sol";
-import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
-import "./math/fixedPoint/OpFixedPointScaleBy.sol";
-import "./math/fixedPoint/OpFixedPointScaleN.sol";
+// import "./math/fixedPoint/OpFixedPointScale18.sol";
+import "./math/fixedPoint/OpFixedPointDiv.sol";
+import "./math/fixedPoint/OpFixedPointMul.sol";
+// import "./math/fixedPoint/OpFixedPointScaleBy.sol";
+// import "./math/fixedPoint/OpFixedPointScaleN.sol";
 import "./math/logic/OpAny.sol";
 import "./math/logic/OpEagerIf.sol";
 import "./math/logic/OpEqualTo.sol";
@@ -180,9 +180,9 @@ library AllStandardOps {
                     OpTimestamp.integrity,
                     OpExplode32.integrity,
                     // OpFixedPointScale18.integrity,
-                    // OpFixedPointScale18Div.integrity,
-                    // OpFixedPointScale18Mul.integrity,
-                    // OpFixedPointScaleBy.integrity,
+                    OpFixedPointDiv.integrity,
+                    OpFixedPointMul.integrity,
+                    OpFixedPointScaleBy.integrity,
                     // OpFixedPointScaleN.integrity,
                     OpAny.integrity,
                     OpEagerIf.integrity,
@@ -191,9 +191,9 @@ library AllStandardOps {
                     OpGreaterThan.integrity,
                     OpIsZero.integrity,
                     OpLessThan.integrity,
-                    // OpSaturatingAdd.integrity,
-                    // OpSaturatingMul.integrity,
-                    // OpSaturatingSub.integrity,
+                    OpSaturatingAdd.integrity,
+                    OpSaturatingMul.integrity,
+                    OpSaturatingSub.integrity,
                     OpAdd.integrity,
                     OpDiv.integrity,
                     OpExp.integrity,
@@ -233,14 +233,14 @@ library AllStandardOps {
                 returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
-                    OpCall.call,
+                    OpCall.intern,
                     OpCallExternal.intern,
-                    OpContext.context,
+                    OpContext.intern,
                     // OpDebug.debug,
-                    OpDoWhile.doWhile,
-                    OpLoopN.loopN,
-                    OpState.state,
-                    OpStorage.storageRead,
+                    OpDoWhile.intern,
+                    OpLoopN.intern,
+                    OpState.intern,
+                    OpStorage.intern,
                     // OpERC20BalanceOf.intern,
                     // OpERC20TotalSupply.totalSupply,
                     // OpERC20SnapshotBalanceOfAt.balanceOfAt,
@@ -249,34 +249,34 @@ library AllStandardOps {
                     // OpERC721OwnerOf.ownerOf,
                     // OpERC1155BalanceOf.balanceOf,
                     // OpERC1155BalanceOfBatch.balanceOfBatch,
-                    OpBlockNumber.blockNumber,
-                    OpCaller.caller,
-                    OpThisAddress.thisAddress,
-                    OpTimestamp.timestamp,
-                    OpExplode32.explode32,
+                    OpBlockNumber.intern,
+                    OpCaller.intern,
+                    OpThisAddress.intern,
+                    OpTimestamp.intern,
+                    OpExplode32.intern,
                     // OpFixedPointScale18.scale18,
-                    // OpFixedPointScale18Div.scale18Div,
-                    // OpFixedPointScale18Mul.scale18Mul,
-                    // OpFixedPointScaleBy.scaleBy,
+                    OpFixedPointDiv.intern,
+                    OpFixedPointMul.intern,
+                    OpFixedPointScaleBy.intern,
                     // OpFixedPointScaleN.scaleN,
-                    OpAny.any,
-                    OpEagerIf.eagerIf,
-                    OpEqualTo.equalTo,
-                    OpEvery.every,
-                    OpGreaterThan.greaterThan,
-                    OpIsZero.isZero,
-                    OpLessThan.lessThan,
-                    // OpSaturatingAdd.saturatingAdd,
-                    // OpSaturatingMul.saturatingMul,
-                    // OpSaturatingSub.saturatingSub,
+                    OpAny.intern,
+                    OpEagerIf.intern,
+                    OpEqualTo.intern,
+                    OpEvery.intern,
+                    OpGreaterThan.intern,
+                    OpIsZero.intern,
+                    OpLessThan.intern,
+                    OpSaturatingAdd.intern,
+                    OpSaturatingMul.intern,
+                    OpSaturatingSub.intern,
                     OpAdd.intern,
-                    OpDiv.div,
-                    OpExp.exp,
-                    OpMax.max,
-                    OpMin.min,
-                    OpMod.mod,
-                    OpMul.mul,
-                    OpSub.sub
+                    OpDiv.intern,
+                    OpExp.intern,
+                    OpMax.intern,
+                    OpMin.intern,
+                    OpMod.intern,
+                    OpMul.intern,
+                    OpSub.intern
                     // OpITierV2Report.report,
                     // OpITierV2ReportTimeForTier.reportTimeForTier,
                     // OpSaturatingDiff.saturatingDiff,

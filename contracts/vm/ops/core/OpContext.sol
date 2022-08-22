@@ -30,12 +30,16 @@ library OpContext {
     /// Stack a value from the context WITH OOB checks from solidity.
     /// The bounds checks are done at runtime because context MAY be provided
     /// by the end user with arbitrary length.
-    function context(
+    function intern(
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         // The indexing syntax here enforces OOB checks at runtime.
         return stackTop_.push(state_.context[Operand.unwrap(operand_)]);
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

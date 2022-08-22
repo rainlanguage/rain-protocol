@@ -11,15 +11,11 @@ import type {
 import { RainVMExternal } from "../../typechain/RainVMExternal";
 
 export const deployGlobals = async () => {
-  const integrityFactory = await ethers.getContractFactory(
-    "StandardIntegrity"
-  );
+  const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
   const integrity = await integrityFactory.deploy();
   await integrity.deployed();
 
-  const externalFactory = await ethers.getContractFactory(
-    "RainVMExternal"
-  );
+  const externalFactory = await ethers.getContractFactory("RainVMExternal");
   const extern = (await externalFactory.deploy()) as RainVMExternal;
   await extern.deployed();
 

@@ -50,7 +50,7 @@ library LibVMState {
     using LibMemorySize for uint256[];
     using LibMemorySize for bytes;
     using LibUint256Array for uint256[];
-    using LibUint256Array for uint;
+    using LibUint256Array for uint256;
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
@@ -59,7 +59,9 @@ library LibVMState {
     using LibCast for function(VMState memory, SourceIndex, StackTop)
         view
         returns (StackTop);
-    using LibCast for function(VMState memory, Operand, StackTop) view returns (StackTop)[];
+    using LibCast for function(VMState memory, Operand, StackTop)
+        view
+        returns (StackTop)[];
 
     /// Console log various aspects of the VM state.
     /// Gas intensive and relies on hardhat console so not intended for
@@ -70,16 +72,21 @@ library LibVMState {
         DebugStyle debugStyle_
     ) internal view returns (StackTop) {
         if (debugStyle_ == DebugStyle.Source) {
-            for (uint i_ = 0; i_ < state_.compiledSources.length; i_++) {
+            for (uint256 i_ = 0; i_ < state_.compiledSources.length; i_++) {
                 console.logBytes(state_.compiledSources[i_]);
             }
         } else {
-            uint[] memory array_;
-            uint length_;
+            uint256[] memory array_;
+            uint256 length_;
             if (debugStyle_ == DebugStyle.Stack) {
-                console.log(StackTop.unwrap(stackTop_), StackTop.unwrap(state_.stackBottom));
+                console.log(
+                    StackTop.unwrap(stackTop_),
+                    StackTop.unwrap(state_.stackBottom)
+                );
                 length_ = state_.stackBottom.toIndex(stackTop_);
-                array_ = StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(length_);
+                array_ = StackTop
+                    .unwrap(stackTop_.down(length_))
+                    .copyToNewUint256Array(length_);
             } else if (debugStyle_ == DebugStyle.Constant) {
                 array_ = state_.constantsBottom.down().asUint256Array();
             } else {
@@ -153,7 +160,10 @@ library LibVMState {
     /// Hopefully it goes without saying that the list of pointers MUST NOT be
     /// user defined, otherwise any source can be compiled with a completely
     /// different mapping between opcodes and dispatched functions.
-    function compile(bytes memory source_, uint[] memory pointers_) internal pure {
+    function compile(bytes memory source_, uint256[] memory pointers_)
+        internal
+        pure
+    {
         assembly ("memory-safe") {
             for {
                 let replaceMask_ := 0xFFFF
@@ -162,17 +172,22 @@ library LibVMState {
                 let pointersBottom_ := add(pointers_, 0x20)
                 let cursor_ := add(source_, 2)
                 let end_ := add(source_, sourceLength_)
-            }
-            lt(cursor_, end_)
-            {
+            } lt(cursor_, end_) {
                 cursor_ := add(cursor_, 4)
-            }
-            {
+            } {
                 let data_ := mload(cursor_)
-                mstore(cursor_, or(and(data_, preserveMask_), mload(
-                    add(
-                        pointersBottom_, 
-                        mul(and(data_, replaceMask_), 0x20)))))
+                mstore(
+                    cursor_,
+                    or(
+                        and(data_, preserveMask_),
+                        mload(
+                            add(
+                                pointersBottom_,
+                                mul(and(data_, replaceMask_), 0x20)
+                            )
+                        )
+                    )
+                )
             }
         }
     }
@@ -181,17 +196,17 @@ library LibVMState {
         uint256 stackLength_,
         uint256[] memory constants_,
         bytes[] memory sources_,
-                    function(VMState memory, Operand, StackTop)
-                internal
-                view
-                returns (StackTop)[]
-                memory opcodeFunctionPointers_
+        function(VMState memory, Operand, StackTop)
+            internal
+            view
+            returns (StackTop)[]
+            memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
-            uint size_ = 0;
+            uint256 size_ = 0;
             size_ += stackLength_.size();
             size_ += constants_.size();
-            for (uint i_ = 0; i_ < sources_.length; i_++) {
+            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
                 size_ += sources_[i_].size();
             }
             bytes memory packedBytes_ = new bytes(size_);

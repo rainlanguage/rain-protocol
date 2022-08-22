@@ -5,6 +5,7 @@ import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable
 import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
+import "../../external/LibExternalDispatch.sol";
 
 /// @title OpERC721BalanceOf
 /// @notice Opcode for getting the current erc721 balance of an account.
@@ -32,11 +33,19 @@ library OpERC721BalanceOf {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_balanceOf);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_balanceOf);
     }
 }

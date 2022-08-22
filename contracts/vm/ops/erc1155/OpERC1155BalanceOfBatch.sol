@@ -7,6 +7,7 @@ import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
+import "../../external/LibExternalDispatch.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
@@ -42,11 +43,19 @@ library OpERC1155BalanceOfBatch {
 
     // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function balanceOfBatch(
+    function intern(
         VMState memory,
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_balanceOfBatch);
     }
 }

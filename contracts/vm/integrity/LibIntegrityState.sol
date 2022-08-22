@@ -62,11 +62,11 @@ library LibIntegrityState {
                 Operand operand_;
 
                 cursor_ += 4;
-                    assembly ("memory-safe") {
-                        let op_ := mload(cursor_)
-                        operand_ := and(op_, 0xFFFF)
-                        opcode_ := and(shr(16, op_), 0xFFFF)
-                    }
+                assembly ("memory-safe") {
+                    let op_ := mload(cursor_)
+                    operand_ := and(op_, 0xFFFF)
+                    opcode_ := and(shr(16, op_), 0xFFFF)
+                }
 
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.

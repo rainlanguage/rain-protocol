@@ -35,7 +35,7 @@ library OpLoopN {
     }
 
     /// Loop the stack `operand_` times.
-    function loopN(
+    function intern(
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -48,5 +48,9 @@ library OpLoopN {
             stackTop_ = state_.eval(loopSourceIndex_, stackTop_);
         }
         return stackTop_;
+    }
+
+    function extern(uint256[] memory) internal view returns (uint256[] memory) {
+        revert IRainVMExternal.UnsupportedDispatch();
     }
 }

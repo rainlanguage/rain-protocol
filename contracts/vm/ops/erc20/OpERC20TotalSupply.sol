@@ -5,6 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
+import "../../external/LibExternalDispatch.sol";
 
 /// @title OpERC20TotalSupply
 /// @notice Opcode for ERC20 `totalSupply`.
@@ -25,11 +26,19 @@ library OpERC20TotalSupply {
     }
 
     // Stack the return of `totalSupply`.
-    function totalSupply(
+    function intern(
         VMState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
         return stackTop_.applyFn(_totalSupply);
+    }
+
+    function extern(uint256[] memory inputs_)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return inputs_.applyFn(_totalSupply);
     }
 }
