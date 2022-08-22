@@ -1,8 +1,22 @@
 import { assert } from "chai";
+import { BigNumber } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
+import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import * as Util from "../../../utils";
-import { memoryOperand, MemoryType, op } from "../../../utils";
+import {
+  eighteenZeros,
+  getBlockTimestamp,
+  memoryOperand,
+  MemoryType,
+  op,
+  paddedUInt256,
+  paddedUInt32,
+  sixZeros,
+  Tier,
+  tierRange,
+  timewarp,
+} from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 
@@ -86,7 +100,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
         hexlify([...Buffer.from("Custom claim message")])
       );
   });
-  
+
   it("should calculate correct emissions amount (if division is performed on final result)", async function () {
     const signers = await ethers.getSigners();
     const creator = signers[0];
@@ -148,18 +162,30 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // BEGIN global constants
 
-    const valTierAddrAddress = op(Opcode.CONSTANT, 0);
-    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
-    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
-    const valAlways = op(Opcode.CONSTANT, 3);
-    const valOne = op(Opcode.CONSTANT, 4);
+    const valTierAddrAddress = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valBaseRewardPerTier = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const valBlocksPerYear = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const valOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const argDuration = op(Opcode.CONSTANT, 5);
-    const argBaseReward = op(Opcode.CONSTANT, 6);
+    const argDuration = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const argBaseReward = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 6)
+    );
 
     // END zipmap args
 
@@ -414,19 +440,34 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // BEGIN global constants
 
-    const valTierAddrAddress = op(Opcode.CONSTANT, 0);
-    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
-    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
-    const valBNOne = op(Opcode.CONSTANT, 3);
-    const valBNOneReward = op(Opcode.CONSTANT, 4);
-    const valAlways = op(Opcode.CONSTANT, 5);
+    const valTierAddrAddress = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valBaseRewardPerTier = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const valBlocksPerYear = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const valBNOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const valBNOneReward = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 4)
+    );
+    const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const valDuration = op(Opcode.CONSTANT, 6);
-    const valBaseReward = op(Opcode.CONSTANT, 7);
+    const valDuration = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const valBaseReward = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 7)
+    );
 
     // END zipmap args
 
