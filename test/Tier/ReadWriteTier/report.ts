@@ -23,7 +23,7 @@ describe("ReadWriteTier report", async function () {
     let i = 0;
     for (const tier of TIERS) {
       if (tier) {
-        await readWriteTier.setTier(signers[0].address, tier, []);
+        await readWriteTier.setTier(signers[0].address, tier);
         expected[i] = await getBlockTimestamp();
         expectedReport = numArrayToReport(expected);
         i++;
@@ -47,10 +47,10 @@ describe("ReadWriteTier report", async function () {
   it("will be possible to know the previous tier from the current tier", async function () {
     const [signers, readWriteTier] = await deployReadWriteTier();
     // change the tier to one
-    await readWriteTier.setTier(signers[0].address, 1, []);
+    await readWriteTier.setTier(signers[0].address, 1);
     const previousTimestamp = await getBlockTimestamp();
     // change the tier to three
-    await readWriteTier.setTier(signers[0].address, 3, []);
+    await readWriteTier.setTier(signers[0].address, 3);
     // check with the contract
     const status = await readWriteTier.report(signers[0].address, []);
     const report = tierReport(status.toString());

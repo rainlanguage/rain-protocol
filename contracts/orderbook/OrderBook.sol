@@ -163,6 +163,7 @@ contract OrderBook is StandardVM {
         OrderHash aHash_ = a_.hash();
         OrderHash bHash_ = b_.hash();
         {
+            require(a_.owner != b_.owner, "SAME_OWNER");
             require(
                 a_.validOutputs[clearConfig_.aOutputIndex].token ==
                     b_.validInputs[clearConfig_.bInputIndex].token,
