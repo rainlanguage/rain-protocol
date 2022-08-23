@@ -8,7 +8,7 @@ library LibExternalDispatch {
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
 
-    error UnsupportedDispatch();
+    // error UnsupportedDispatch();
 
     function applyFn(
         uint256[] memory inputs_,

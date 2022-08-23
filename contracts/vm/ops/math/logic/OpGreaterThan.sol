@@ -15,32 +15,34 @@ library OpGreaterThan {
     function _greaterThan(uint256 a_, uint256 b_)
         internal
         pure
-        returns (uint256)
+        returns (uint256 c_)
     {
-        return (a_ > b_).asUint256();
+        assembly ("memory-safe") {
+            c_ := gt(a_, b_)
+        }
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.apply(stackTop_, _greaterThan);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.apply(stackTop_, _greaterThan);
+    // }
 
-    function intern(
-        VMState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.apply(_greaterThan);
-    }
+    // function intern(
+    //     VMState memory,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.apply(_greaterThan);
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.apply(_greaterThan);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.apply(_greaterThan);
+    // }
 }

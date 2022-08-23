@@ -27,7 +27,7 @@ library OpThisAddress {
         return stackTop_.push(uint256(uint160(address(this))));
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert IRainVMExternal.UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert IRainVMExternal.UnsupportedDispatch();
+    // }
 }

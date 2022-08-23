@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 import "../../../runtime/LibStackTop.sol";
 import "../../../runtime/LibVMState.sol";
 import "../../../integrity/LibIntegrityState.sol";
+import "../../../external/LibExternalDispatch.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
@@ -42,7 +43,7 @@ library OpAny {
         return bottom_.up();
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert UnsupportedDispatch();
+    // }
 }

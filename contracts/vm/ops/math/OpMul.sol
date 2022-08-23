@@ -15,28 +15,28 @@ library OpMul {
         return a_ * b_;
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return
-            integrityState_.applyN(stackTop_, _mul, Operand.unwrap(operand_));
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return
+    //         integrityState_.applyN(stackTop_, _mul, Operand.unwrap(operand_));
+    // }
 
-    function intern(
-        VMState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
-        return stackTop_.applyN(_mul, Operand.unwrap(operand_));
-    }
+    // function intern(
+    //     VMState memory,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop stackTopAfter_) {
+    //     return stackTop_.applyN(_mul, Operand.unwrap(operand_));
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.applyN(_mul);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyN(_mul);
+    // }
 }

@@ -49,7 +49,7 @@ library OpCallExternal {
         // console.log("gas", a_ - b_);
     }
 
-    function extern(Operand, StackTop) internal pure returns (StackTop) {
-        revert IRainVMExternal.UnsupportedDispatch();
-    }
+    // function extern(Operand, StackTop) internal pure returns (StackTop) {
+    //     revert IRainVMExternal.UnsupportedDispatch();
+    // }
 }

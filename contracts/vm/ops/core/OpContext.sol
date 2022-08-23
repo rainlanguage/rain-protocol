@@ -39,7 +39,7 @@ library OpContext {
         return stackTop_.push(state_.context[Operand.unwrap(operand_)]);
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert IRainVMExternal.UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert IRainVMExternal.UnsupportedDispatch();
+    // }
 }

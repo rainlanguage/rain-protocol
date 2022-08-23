@@ -54,7 +54,7 @@ library OpSelectLte {
         }
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert UnsupportedDispatch();
+    // }
 }

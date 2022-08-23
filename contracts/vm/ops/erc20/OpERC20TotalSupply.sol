@@ -17,28 +17,28 @@ library OpERC20TotalSupply {
         return IERC20(address(uint160(token_))).totalSupply();
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _totalSupply);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.applyFn(stackTop_, _totalSupply);
+    // }
 
-    // Stack the return of `totalSupply`.
-    function intern(
-        VMState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_totalSupply);
-    }
+    // // Stack the return of `totalSupply`.
+    // function intern(
+    //     VMState memory,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.applyFn(_totalSupply);
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.applyFn(_totalSupply);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyFn(_totalSupply);
+    // }
 }

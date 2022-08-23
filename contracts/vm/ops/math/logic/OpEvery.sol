@@ -16,7 +16,7 @@ library OpEvery {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         function(uint256[] memory) internal view returns (uint256) fn_;
-        return integrityState_.apply(stackTop_, fn_, Operand.unwrap(operand_));
+        return integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
     }
 
     // EVERY
@@ -40,7 +40,7 @@ library OpEvery {
         return bottom_.up();
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert UnsupportedDispatch();
+    // }
 }

@@ -24,28 +24,28 @@ library OpERC721BalanceOf {
             );
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _balanceOf);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.applyFn(stackTop_, _balanceOf);
+    // }
 
-    // Stack the return of `balanceOf`.
-    function intern(
-        VMState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_balanceOf);
-    }
+    // // Stack the return of `balanceOf`.
+    // function intern(
+    //     VMState memory,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.applyFn(_balanceOf);
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.applyFn(_balanceOf);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyFn(_balanceOf);
+    // }
 }

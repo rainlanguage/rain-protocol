@@ -28,28 +28,28 @@ library OpUpdateTimesForTierRange {
             );
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _updateTimesForTierRange);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.applyFn(stackTop_, _updateTimesForTierRange);
+    // }
 
-    // Stacks a report with updated times over tier range.
-    // The start and end tier are taken from the low and high bits of
-    // the `operand_` respectively.
-    // The report to update and timestamp to update to are both
-    // taken from the stack.
-    function intern(
-        VMState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_updateTimesForTierRange, operand_);
-    }
+    // // Stacks a report with updated times over tier range.
+    // // The start and end tier are taken from the low and high bits of
+    // // the `operand_` respectively.
+    // // The report to update and timestamp to update to are both
+    // // taken from the stack.
+    // function intern(
+    //     VMState memory,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.applyFn(_updateTimesForTierRange, operand_);
+    // }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert UnsupportedDispatch();
+    // }
 }

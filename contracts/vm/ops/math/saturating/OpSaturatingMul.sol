@@ -13,36 +13,36 @@ library OpSaturatingMul {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return
-            integrityState_.applyN(
-                stackTop_,
-                SaturatingMath.saturatingMul,
-                Operand.unwrap(operand_)
-            );
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return
+    //         integrityState_.applyN(
+    //             stackTop_,
+    //             SaturatingMath.saturatingMul,
+    //             Operand.unwrap(operand_)
+    //         );
+    // }
 
-    function intern(
-        VMState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
-        return
-            stackTop_.applyN(
-                SaturatingMath.saturatingMul,
-                Operand.unwrap(operand_)
-            );
-    }
+    // function intern(
+    //     VMState memory,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop stackTopAfter_) {
+    //     return
+    //         stackTop_.applyN(
+    //             SaturatingMath.saturatingMul,
+    //             Operand.unwrap(operand_)
+    //         );
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.applyN(SaturatingMath.saturatingMul);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyN(SaturatingMath.saturatingMul);
+    // }
 }

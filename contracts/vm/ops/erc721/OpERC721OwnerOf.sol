@@ -21,28 +21,28 @@ library OpERC721OwnerOf {
         return uint256(uint160(IERC721(address(uint160(token_))).ownerOf(id_)));
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _ownerOf);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.applyFn(stackTop_, _ownerOf);
+    // }
 
-    // Stack the return of `ownerOf`.
-    function intern(
-        VMState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_ownerOf);
-    }
+    // // Stack the return of `ownerOf`.
+    // function intern(
+    //     VMState memory,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.applyFn(_ownerOf);
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.applyFn(_ownerOf);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyFn(_ownerOf);
+    // }
 }

@@ -40,7 +40,7 @@ library OpExplode32 {
             );
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert IRainVMExternal.UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert IRainVMExternal.UnsupportedDispatch();
+    // }
 }

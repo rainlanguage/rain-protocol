@@ -18,38 +18,38 @@ library OpEagerIf {
         return a_ > 0 ? bs_ : cs_;
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return
-            integrityState_.applyFn(
-                stackTop_,
-                _eagerIf,
-                Operand.unwrap(operand_) + 1
-            );
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return
+    //         integrityState_.applyFn(
+    //             stackTop_,
+    //             _eagerIf,
+    //             Operand.unwrap(operand_) + 1
+    //         );
+    // }
 
-    /// Eager because BOTH x_ and y_ must be eagerly evaluated
-    /// before EAGER_IF will select one of them. If both x_ and y_
-    /// are cheap (e.g. constant values) then this may also be the
-    /// simplest and cheapest way to select one of them.
-    function intern(
-        VMState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        unchecked {
-            return stackTop_.applyFn(_eagerIf, Operand.unwrap(operand_) + 1);
-        }
-    }
+    // /// Eager because BOTH x_ and y_ must be eagerly evaluated
+    // /// before EAGER_IF will select one of them. If both x_ and y_
+    // /// are cheap (e.g. constant values) then this may also be the
+    // /// simplest and cheapest way to select one of them.
+    // function intern(
+    //     VMState memory,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     unchecked {
+    //         return stackTop_.applyFn(_eagerIf, Operand.unwrap(operand_) + 1);
+    //     }
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.apply(_eagerIf);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyFn(_eagerIf);
+    // }
 }

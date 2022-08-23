@@ -12,31 +12,33 @@ library OpIsZero {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _isZero(uint256 a_) internal pure returns (uint256) {
-        return (a_ == 0).asUint256();
+    function _isZero(uint256 a_) internal pure returns (uint256 b_) {
+        assembly ("memory-safe") {
+            b_ := iszero(a_)
+        }
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.apply(stackTop_, _isZero);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.apply(stackTop_, _isZero);
+    // }
 
-    function intern(
-        VMState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.apply(_isZero);
-    }
+    // function intern(
+    //     VMState memory,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.apply(_isZero);
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.apply(_isZero);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.apply(_isZero);
+    // }
 }

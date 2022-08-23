@@ -28,34 +28,34 @@ library OpERC1155BalanceOfBatch {
             );
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return
-            integrityState_.applyFn(
-                stackTop_,
-                _balanceOfBatch,
-                Operand.unwrap(operand_)
-            );
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return
+    //         integrityState_.applyFn(
+    //             stackTop_,
+    //             _balanceOfBatch,
+    //             Operand.unwrap(operand_)
+    //         );
+    // }
 
-    // Stack the return of `balanceOfBatch`.
-    // Operand will be the length
-    function intern(
-        VMState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
-    }
+    // // Stack the return of `balanceOfBatch`.
+    // // Operand will be the length
+    // function intern(
+    //     VMState memory,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
+    // }
 
-    function extern(uint256[] memory inputs_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
-        return inputs_.applyFn(_balanceOfBatch);
-    }
+    // function extern(uint256[] memory inputs_)
+    //     internal
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return inputs_.applyFn(_balanceOfBatch);
+    // }
 }

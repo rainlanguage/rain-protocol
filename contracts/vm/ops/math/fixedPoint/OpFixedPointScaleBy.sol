@@ -21,23 +21,23 @@ library OpFixedPointScaleBy {
         return a_.scaleBy(int8(uint8(Operand.unwrap(operand_))));
     }
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _scaleBy);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.applyFn(stackTop_, _scaleBy);
+    // }
 
-    function intern(
-        VMState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.apply(_scaleBy, operand_);
-    }
+    // function intern(
+    //     VMState memory,
+    //     Operand operand_,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.apply(_scaleBy, operand_);
+    // }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert UnsupportedDispatch();
+    // }
 }

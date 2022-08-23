@@ -141,6 +141,12 @@ library LibIntegrityState {
         return stackTop_;
     }
 
+    function integrityApplicator(function() internal view returns (uint) fn_) internal view returns (function(IntegrityState memory, Operand, StackTop)
+                view
+                returns (StackTop)) {
+                    
+                }
+
     function applyFnN(
         IntegrityState memory integrityState_,
         StackTop stackTop_,

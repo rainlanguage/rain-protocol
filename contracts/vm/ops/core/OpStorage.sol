@@ -42,7 +42,7 @@ library OpStorage {
         return stackTop_.up();
     }
 
-    function extern(uint256[] memory) internal view returns (uint256[] memory) {
-        revert IRainVMExternal.UnsupportedDispatch();
-    }
+    // function extern(uint256[] memory) internal view returns (uint256[] memory) {
+    //     revert IRainVMExternal.UnsupportedDispatch();
+    // }
 }

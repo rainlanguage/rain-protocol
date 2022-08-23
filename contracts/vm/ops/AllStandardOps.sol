@@ -29,7 +29,7 @@ import "./list/OpExplode32.sol";
 // import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointDiv.sol";
 import "./math/fixedPoint/OpFixedPointMul.sol";
-// import "./math/fixedPoint/OpFixedPointScaleBy.sol";
+import "./math/fixedPoint/OpFixedPointScaleBy.sol";
 // import "./math/fixedPoint/OpFixedPointScaleN.sol";
 import "./math/logic/OpAny.sol";
 import "./math/logic/OpEagerIf.sol";
@@ -174,7 +174,8 @@ library AllStandardOps {
                     // OpERC721OwnerOf.integrity,
                     // OpERC1155BalanceOf.integrity,
                     // OpERC1155BalanceOfBatch.integrity,
-                    OpBlockNumber.integrity,
+                    OpBlockNumber._blockNumber.integrityApplicator(),
+                    // OpBlockNumber.integrity,
                     OpCaller.integrity,
                     OpThisAddress.integrity,
                     OpTimestamp.integrity,

@@ -11,23 +11,27 @@ library OpTimestamp {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function integrity(
-        IntegrityState memory integrityState_,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.apply(stackTop_, block.timestamp);
+    function _blockTimestamp() internal view returns (uint) {
+        return block.timestamp;
     }
 
-    function intern(
-        VMState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.apply(block.timestamp);
-    }
+    // function integrity(
+    //     IntegrityState memory integrityState_,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal pure returns (StackTop) {
+    //     return integrityState_.apply(stackTop_, block.timestamp);
+    // }
+
+    // function intern(
+    //     VMState memory,
+    //     Operand,
+    //     StackTop stackTop_
+    // ) internal view returns (StackTop) {
+    //     return stackTop_.apply(block.timestamp);
+    // }
     
-    function extern(uint[] memory inputs_) internal view returns (uint[] memory) {
-        return inputs_.apply(block.timestamp)
-    }
+    // function extern(uint[] memory inputs_) internal view returns (uint[] memory) {
+    //     return inputs_.apply(block.timestamp)
+    // }
 }
