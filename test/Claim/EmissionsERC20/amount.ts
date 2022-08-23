@@ -5,7 +5,6 @@ import { ethers } from "hardhat";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import * as Util from "../../../utils";
 import {
-  Debug,
   eighteenZeros,
   getBlockTimestamp,
   loopNOperand,
