@@ -2,75 +2,109 @@
 pragma solidity ^0.8.15;
 
 import "../../type/LibCast.sol";
-import "../MemoryDump.sol";
+import "../../debug/LibDebug.sol";
 
 /// @title LibCastTest
 /// Thin wrapper around `LibCast` library exposing functions for testing
 contract LibCastTest {
-    using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(uint256) view returns (uint256);
-    using LibCast for function(uint256, StackTop) view returns (StackTop);
-    using LibCast for function(uint256, StackTop) view returns (StackTop)[];
-    using LibCast for uint256[];
-    using LibCast for bool;
-
-    function asOpFn(uint256 i_) external {
-        MemoryDump.dumpMemory();
-        LibCast.asOpFn(i_);
-        MemoryDump.dumpMemory();
+    function asOpFunctionPointer(uint256 i_) external {
+        LibDebug.dumpMemory();
+        LibCast.asOpFunctionPointer(i_);
+        LibDebug.dumpMemory();
     }
 
-    function asStackMoveFn(uint256 i_) external {
-        MemoryDump.dumpMemory();
-        LibCast.asStackMoveFn(i_);
-        MemoryDump.dumpMemory();
+    function asIntegrityFunctionPointer(uint256 i_) external {
+        LibDebug.dumpMemory();
+        LibCast.asIntegrityFunctionPointer(i_);
+        LibDebug.dumpMemory();
     }
 
-    function stackMoveFnAsUint256(uint256 i_) external returns (uint256) {
-        MemoryDump.dumpMemory();
-        i_ = LibCast.asStackMoveFn(i_).asUint256();
-        MemoryDump.dumpMemory();
-        return i_;
+    function asEvalFunctionPointer(uint256 i_) external {
+        LibDebug.dumpMemory();
+        LibCast.asEvalFunctionPointer(i_);
+        LibDebug.dumpMemory();
     }
 
-    function boolAsUint256(bool bool_) external returns (uint256 i_) {
-        MemoryDump.dumpMemory();
-        i_ = bool_.asUint256();
-        MemoryDump.dumpMemory();
+    function identity(uint256 a_) internal pure returns (uint256) {
+        return a_;
     }
 
-    function opFnAsUint256(uint256 i_) external returns (uint256) {
-        MemoryDump.dumpMemory();
-        i_ = LibCast.asOpFn(i_).asUint256();
-        MemoryDump.dumpMemory();
-        return i_;
+    function asUint256Uint256() external returns (uint256 i_) {
+        LibDebug.dumpMemory();
+        i_ = LibCast.asUint256(identity);
+        LibDebug.dumpMemory();
     }
 
-    function opFnsAsUint256Array(uint256[] memory is_)
+    function asUint256IntPtr(uint256[] memory is_)
+        external
+        returns (uint256 i_)
+    {
+        LibDebug.dumpMemory();
+        i_ = LibCast.asUint256(LibCast.asIntegrityPointers(is_)[0]);
+        LibDebug.dumpMemory();
+    }
+
+    function asUint256ArrayOpPtrs(uint256[] memory is_)
         external
         returns (uint256[] memory)
     {
-        function(uint256, StackTop) view returns (StackTop)[]
-            memory fns_ = new function(uint256, StackTop)
-                view
-                returns (StackTop)[](is_.length);
+        LibDebug.dumpMemory();
+        is_ = LibCast.asUint256Array(LibCast.asOpFunctionPointers(is_));
+        LibDebug.dumpMemory();
+        return is_;
+    }
 
-        for (uint i_ = 0; i_ < is_.length; i_++) {
-            fns_[i_] = LibCast.asOpFn(is_[i_]);
+    function asUint256ArrayIntPtrs(uint256[] memory is_)
+        external
+        returns (uint256[] memory)
+    {
+        LibDebug.dumpMemory();
+        is_ = LibCast.asUint256Array(LibCast.asIntegrityPointers(is_));
+        LibDebug.dumpMemory();
+        return is_;
+    }
+
+    function asUint256Bool(bool bool_) external returns (uint256 i_) {
+        LibDebug.dumpMemory();
+        i_ = LibCast.asUint256(bool_);
+        LibDebug.dumpMemory();
+    }
+
+    function asUint256EvalPtr(uint256 i_) external returns (uint256) {
+        LibDebug.dumpMemory();
+        i_ = LibCast.asUint256(LibCast.asEvalFunctionPointer(i_));
+        LibDebug.dumpMemory();
+        return i_;
+    }
+
+    function asUint256ArrayUint256(uint256[] memory is_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
+        for (uint256 i_ = 0; i_ < is_.length; i_++) {
+            is_[i_] = LibCast.asUint256(identity);
         }
-
-        MemoryDump.dumpMemory();
-        is_ = fns_.asUint256Array();
-        MemoryDump.dumpMemory();
         return is_;
     }
 
     function asAddresses(uint256[] memory is_)
         external
+        pure
         returns (address[] memory addresses_)
     {
-        MemoryDump.dumpMemory();
-        addresses_ = is_.asAddresses();
-        MemoryDump.dumpMemory();
+        addresses_ = LibCast.asAddresses(is_);
+    }
+
+    function asOpFunctionPointers(uint256[] memory is_) external {
+        LibDebug.dumpMemory();
+        LibCast.asOpFunctionPointers(is_);
+        LibDebug.dumpMemory();
+    }
+
+    function asIntegrityPointers(uint256[] memory is_) external {
+        LibDebug.dumpMemory();
+        LibCast.asIntegrityPointers(is_);
+        LibDebug.dumpMemory();
     }
 }

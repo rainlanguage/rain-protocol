@@ -2,48 +2,51 @@
 pragma solidity ^0.8.15;
 
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "../../LibStackTop.sol";
+import "../../runtime/LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
-
-import "hardhat/console.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
     using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
     using LibCast for uint256[];
+    using LibIntegrityState for IntegrityState;
 
-    function stackPops(uint256 operand_) internal pure returns (uint256) {
-        unchecked {
-            require(operand_ > 0, "0_OPERAND_ERC1155");
-            return (operand_ * 2) + 1;
-        }
+    function _balanceOfBatch(
+        uint256 token_,
+        uint256[] memory accounts_,
+        uint256[] memory ids_
+    ) internal view returns (uint256[] memory) {
+        return
+            IERC1155(address(uint160(token_))).balanceOfBatch(
+                accounts_.asAddresses(),
+                ids_
+            );
+    }
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
+        return
+            integrityState_.applyFn(
+                stackTop_,
+                _balanceOfBatch,
+                Operand.unwrap(operand_)
+            );
     }
 
     // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function balanceOfBatch(uint256 operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
-        StackTop idsStart_ = stackTop_.down(operand_);
-        uint256[] memory ids_ = LibUint256Array.unsafeCopyValuesToNewArray(
-            StackTop.unwrap(idsStart_),
-            operand_
-        );
-        (uint256 token_, uint256[] memory addresses_) = idsStart_.list(
-            operand_
-        );
-
-        uint256[] memory balances_ = IERC1155(address(uint160(token_)))
-            .balanceOfBatch(addresses_.asAddresses(), ids_);
-        LibUint256Array.unsafeCopyValuesTo(
-            balances_,
-            StackTop.unwrap(addresses_.asStackTop())
-        );
-        return addresses_.asStackTop().up(operand_);
+    function balanceOfBatch(
+        VMState memory,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
     }
 }

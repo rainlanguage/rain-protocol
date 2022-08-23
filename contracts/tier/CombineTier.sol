@@ -3,17 +3,17 @@ pragma solidity =0.8.15;
 
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "../vm/StandardVM.sol";
+import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../vm/VMStateBuilder.sol";
+import "../vm/integrity/RainVMIntegrity.sol";
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
-uint256 constant REPORT_ENTRYPOINT = 0;
-uint256 constant REPORT_FOR_TIER_ENTRYPOINT = 1;
+SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// All config used during initialization of a CombineTier.
@@ -34,9 +34,15 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2, StandardVM, Initializable {
+    using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
+    using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
+    using LibVMState for VMState;
+
     event Initialize(address sender, CombineTierConfig config);
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
     }
 
@@ -44,16 +50,13 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         external
         initializer
     {
-        Bounds memory reportBounds_;
-        reportBounds_.entrypoint = REPORT_ENTRYPOINT;
-        reportBounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds memory reportForTierBounds_;
-        reportForTierBounds_.entrypoint = REPORT_FOR_TIER_ENTRYPOINT;
-        reportForTierBounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](2);
-        boundss_[0] = reportBounds_;
-        boundss_[1] = reportForTierBounds_;
-        _saveVMState(config_.sourceConfig, boundss_);
+        _saveVMState(
+            config_.sourceConfig,
+            LibUint256Array.arrayFrom(
+                MIN_FINAL_STACK_INDEX,
+                MIN_FINAL_STACK_INDEX
+            )
+        );
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
@@ -75,36 +78,27 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         view
         virtual
         override
-        returns (uint256 report_)
+        returns (uint256)
     {
-        unchecked {
-            VMState memory state_ = _loadVMState();
-            uint256[] memory evalContext_ = new uint256[](context_.length + 1);
-            evalContext_[0] = uint256(uint160(account_));
-            for (uint256 i_ = 0; i_ < context_.length; i_++) {
-                evalContext_[i_ + 1] = context_[i_];
-            }
-            eval(evalContext_, state_, REPORT_ENTRYPOINT);
-            report_ = state_.stack[state_.stackIndex - 1];
-        }
+        return
+            _loadVMState(uint256(uint160(account_)).arrayFrom(context_))
+                .eval(REPORT_ENTRYPOINT)
+                .peek();
     }
 
     /// @inheritdoc ITierV2
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] calldata context_
-    ) external view returns (uint256 time_) {
-        unchecked {
-            VMState memory state_ = _loadVMState();
-            uint256[] memory evalContext_ = new uint256[](context_.length + 2);
-            evalContext_[0] = uint256(uint160(account_));
-            evalContext_[1] = tier_;
-            for (uint256 i_ = 0; i_ < context_.length; i_++) {
-                evalContext_[i_ + 2] = context_[i_];
-            }
-            eval(evalContext_, state_, REPORT_FOR_TIER_ENTRYPOINT);
-            time_ = state_.stack[state_.stackIndex - 1];
-        }
+        uint256[] memory context_
+    ) external view returns (uint256) {
+        return
+            _loadVMState(
+                LibUint256Array.arrayFrom(
+                    uint256(uint160(account_)),
+                    tier_,
+                    context_
+                )
+            ).eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
     }
 }

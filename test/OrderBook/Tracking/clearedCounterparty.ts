@@ -12,7 +12,7 @@ import type {
   OrderLiveEvent,
   WithdrawConfigStruct,
 } from "../../../typechain/OrderBook";
-import { OrderBookStateBuilder } from "../../../typechain/OrderBookStateBuilder";
+import { OrderBookIntegrity } from "../../../typechain/OrderBookIntegrity";
 import { ReserveToken18 } from "../../../typechain/ReserveToken18";
 import {
   eighteenZeros,
@@ -23,19 +23,19 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { fixedPointDiv } from "../../../utils/math";
 import { OrderBookOpcode } from "../../../utils/rainvm/ops/orderBookOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook tracking counterparty funds cleared", async function () {
-  const cOrderHash = op(Opcode.CONTEXT, 0);
+  const cOrderHash = op(Opcode.CONTEXT);
   const cCounterparty = op(Opcode.CONTEXT, 1);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
     tokenB: ReserveToken18,
-    stateBuilder: OrderBookStateBuilder;
+    integrity: OrderBookIntegrity;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -43,12 +43,11 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "OrderBookStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "OrderBookIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
+    await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
@@ -62,7 +61,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const bountyBot = signers[4];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
@@ -80,9 +79,9 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const askBlock = await ethers.provider.getBlockNumber();
 
     const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.CONSTANT, 0);
-    const vAskBlock = op(Opcode.CONSTANT, 1);
-    const v5 = op(Opcode.CONSTANT, 2);
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vAskBlock = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     // prettier-ignore
     const askSource = concat([
       // outputMax = (currentBlock - askBlock) * 5 - bidderCleared
@@ -126,8 +125,11 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const bidOutputMax = max_uint256;
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [bidOutputMax, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -160,8 +162,11 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const carolOutputMax = max_uint256;
     const carolPrice = fixedPointDiv(ONE, askPrice);
     const carolConstants = [carolOutputMax, carolPrice];
-    const vCarolOutputMax = op(Opcode.CONSTANT, 0);
-    const vCarolPrice = op(Opcode.CONSTANT, 1);
+    const vCarolOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vCarolPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const carolSource = concat([
       vCarolOutputMax,

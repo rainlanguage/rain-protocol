@@ -14,7 +14,7 @@ import {
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
 import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove afterAdd", async function () {
@@ -38,8 +38,8 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 1),
-            op(Opcode.CONSTANT, 0),
+          op(Opcode.CONTEXT, 1),
+            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
       ],
@@ -101,8 +101,8 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 1),
-            op(Opcode.CONSTANT, 0),
+          op(Opcode.CONTEXT, 1),
+            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
       ],
@@ -167,8 +167,8 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 1),
-            op(Opcode.CONSTANT, 0),
+          op(Opcode.CONTEXT, 1),
+            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
       ],
@@ -225,7 +225,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const stateConfig: StateConfigStruct = {
-      sources: [op(Opcode.CONSTANT, 0)],
+      sources: [op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
 
@@ -274,7 +274,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const stateConfig: StateConfigStruct = {
-      sources: [op(Opcode.CONSTANT, 0)],
+      sources: [op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 

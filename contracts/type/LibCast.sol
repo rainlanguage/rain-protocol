@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../vm/LibStackTop.sol";
+import "../vm/runtime/LibStackTop.sol";
+import "../vm/runtime/LibVMState.sol";
+import "../vm/integrity/LibIntegrityState.sol";
+import "../vm/runtime/RainVM.sol";
 
 /// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
@@ -18,20 +21,68 @@ library LibCast {
     /// Retype an integer to an opcode function pointer.
     /// @param i_ The integer to cast to an opcode function pointer.
     /// @return fn_ The opcode function pointer.
-    function asOpFn(uint256 i_)
+    function asOpFunctionPointer(uint256 i_)
         internal
         pure
-        returns (function(uint256, StackTop) view returns (StackTop) fn_)
+        returns (
+            function(VMState memory, Operand, StackTop)
+                view
+                returns (StackTop) fn_
+        )
     {
         assembly ("memory-safe") {
             fn_ := i_
         }
     }
 
-    function asStackMoveFn(uint256 i_)
+    /// Retype an array of integers to an array of opcode function pointers.
+    /// @param is_ The array of integers to cast to an array of opcode fuction
+    /// pointers.
+    /// @return fns_ The array of opcode function pointers.
+    function asOpFunctionPointers(uint256[] memory is_)
         internal
         pure
-        returns (function(uint256) pure returns (uint256) fn_)
+        returns (
+            function(VMState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory fns_
+        )
+    {
+        assembly ("memory-safe") {
+            fns_ := is_
+        }
+    }
+
+    /// Retype an integer to an integrity function pointer.
+    /// @param i_ The integer to cast to an integrity function pointer.
+    /// @return fn_ The integrity function pointer.
+    function asIntegrityFunctionPointer(uint256 i_)
+        internal
+        pure
+        returns (
+            function(IntegrityState memory, Operand, StackTop)
+                internal
+                view
+                returns (StackTop) fn_
+        )
+    {
+        assembly ("memory-safe") {
+            fn_ := i_
+        }
+    }
+
+    /// Retype an integer to a pointer to the VM eval function.
+    /// @param i_ The integer to cast to the eval function.
+    /// @return fn_ The eval function.
+    function asEvalFunctionPointer(uint256 i_)
+        internal
+        pure
+        returns (
+            function(VMState memory, SourceIndex, StackTop)
+                view
+                returns (StackTop) fn_
+        )
     {
         assembly ("memory-safe") {
             fn_ := i_
@@ -62,24 +113,56 @@ library LibCast {
         }
     }
 
-    function asUint256(bool bool_) internal pure returns (uint256 i_) {
-        assembly ("memory-safe") {
-            i_ := bool_
-        }
-    }
-
-    function asUint256(function(uint256, StackTop) view returns (StackTop) fn_)
-        internal
-        pure
-        returns (uint256 i_)
-    {
+    function asUint256(
+        function(IntegrityState memory, Operand, StackTop)
+            internal
+            view
+            returns (StackTop) fn_
+    ) internal pure returns (uint256 i_) {
         assembly ("memory-safe") {
             i_ := fn_
         }
     }
 
     function asUint256Array(
-        function(uint256, StackTop) view returns (StackTop)[] memory fns_
+        function(IntegrityState memory, Operand, StackTop)
+            internal
+            view
+            returns (StackTop)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory is_) {
+        assembly ("memory-safe") {
+            is_ := fns_
+        }
+    }
+
+    function asUint256(bool bool_) internal pure returns (uint256 i_) {
+        assembly ("memory-safe") {
+            i_ := bool_
+        }
+    }
+
+    function asUint256(
+        function(VMState memory, SourceIndex, StackTop)
+            view
+            returns (StackTop) fn_
+    ) internal pure returns (uint256 i_) {
+        assembly ("memory-safe") {
+            i_ := fn_
+        }
+    }
+
+    function asUint256Array(
+        function(VMState memory, Operand, StackTop) view returns (StackTop)[]
+            memory fns_
+    ) internal pure returns (uint256[] memory is_) {
+        assembly ("memory-safe") {
+            is_ := fns_
+        }
+    }
+
+    function asUint256Array(
+        function(uint256) pure returns (uint256)[] memory fns_
     ) internal pure returns (uint256[] memory is_) {
         assembly ("memory-safe") {
             is_ := fns_
@@ -93,6 +176,21 @@ library LibCast {
     {
         assembly ("memory-safe") {
             addresses_ := is_
+        }
+    }
+
+    function asIntegrityPointers(uint256[] memory is_)
+        internal
+        pure
+        returns (
+            function(IntegrityState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory fns_
+        )
+    {
+        assembly ("memory-safe") {
+            fns_ := is_
         }
     }
 }

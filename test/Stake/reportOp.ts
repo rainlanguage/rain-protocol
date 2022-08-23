@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { StakeConfigStruct } from "../../typechain/Stake";
@@ -12,28 +12,28 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake ITIERV2_REPORT Op", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let stateBuilder: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   // Passing context data in constants
   // prettier-ignore
   const source = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1), // context
-      op(Opcode.CONSTANT, 2),
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
     op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
   ]);
 
@@ -46,10 +46,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await stakeFactory.deployed();
 
     const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
+    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
@@ -77,7 +76,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.SENDER), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
@@ -363,7 +362,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await timewarp(86400);
 
     const withdrawAmount = ethers.BigNumber.from(4000 + sixZeros);
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -476,7 +477,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await timewarp(86400);
 
     const withdrawAmount = 100;
-    await stake.connect(alice).withdraw(withdrawAmount, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(withdrawAmount, alice.address, alice.address);
 
     await logic.initialize({
       sources: [source],
@@ -561,16 +564,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // Passing context data in constants
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.CONSTANT, 0), // ITierV2 contract
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.SENDER), // address
-        op(Opcode.CONSTANT, 1), // context
-        op(Opcode.CONSTANT, 2),
-        op(Opcode.CONSTANT, 3),
-        op(Opcode.CONSTANT, 4),
-        op(Opcode.CONSTANT, 5),
-        op(Opcode.CONSTANT, 6),
-        op(Opcode.CONSTANT, 7),
-        op(Opcode.CONSTANT, 8),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
       op(Opcode.ITIERV2_REPORT, thresholds0.length),
     ]);
 
@@ -585,16 +588,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // Passing context data in constants
     const source1 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.SENDER), // address
-      op(Opcode.CONSTANT, 1),
-      op(Opcode.CONSTANT, 2),
-      op(Opcode.CONSTANT, 3),
-      op(Opcode.CONSTANT, 4),
-      op(Opcode.CONSTANT, 5),
-      op(Opcode.CONSTANT, 6),
-      op(Opcode.CONSTANT, 7),
-      op(Opcode.CONSTANT, 8),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
       op(Opcode.ITIERV2_REPORT, thresholds1.length),
     ]);
 

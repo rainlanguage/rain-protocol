@@ -6,13 +6,12 @@ import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./IClaim.sol";
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierReport.sol";
-import {VMStateBuilder, StateConfig, Bounds} from "../vm/VMStateBuilder.sol";
-import "../vm/StandardVM.sol";
+import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
+import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
-
-import "hardhat/console.sol";
+import "../array/LibUint256Array.sol";
 
 /// Constructor config.
 /// @param allowDelegatedClaims True if accounts can call `claim` on behalf of
@@ -26,10 +25,6 @@ struct EmissionsERC20Config {
     ERC20Config erc20Config;
     StateConfig vmStateConfig;
 }
-
-/// @dev Source index for VM eval.
-uint256 constant ENTRYPOINT = 0;
-uint256 constant MIN_FINAL_STACK_INDEX = 1;
 
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -51,6 +46,11 @@ contract EmissionsERC20 is
     ERC20Upgradeable,
     IClaim
 {
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
+    using LibUint256Array for uint256;
+    using LibVMState for VMState;
+
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
@@ -71,7 +71,7 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
     }
 
@@ -86,12 +86,7 @@ contract EmissionsERC20 is
             config_.erc20Config.initialSupply
         );
 
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
-        _saveVMState(config_.vmStateConfig, boundss_);
+        _saveVMState(config_.vmStateConfig);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -129,11 +124,8 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        VMState memory state_ = _loadVMState();
-        uint256[] memory context_ = new uint256[](1);
-        context_[0] = uint256(uint160(claimant_));
-        eval(context_, state_, ENTRYPOINT);
-        return state_.stack[state_.stackIndex - 1];
+        return
+            _loadVMState(uint256(uint160(claimant_)).arrayFrom()).eval().peek();
     }
 
     /// Processes the claim for `claimant_`.

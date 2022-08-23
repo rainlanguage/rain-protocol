@@ -1,29 +1,28 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { eighteenZeros, ONE, sixZeros } from "../../../../utils/constants";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, MemoryType, memoryOperand } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
 describe("RainVM fixed point math ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
@@ -32,7 +31,7 @@ describe("RainVM fixed point math ops", async function () {
     const n = 0xfc; // -4
 
     const constants = [value1];
-    const v1 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -61,7 +60,7 @@ describe("RainVM fixed point math ops", async function () {
     const n = 0x04; // 4
 
     const constants = [value1];
-    const v1 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -90,7 +89,7 @@ describe("RainVM fixed point math ops", async function () {
     const n = 20;
 
     const constants = [value1];
-    const v1 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -118,7 +117,7 @@ describe("RainVM fixed point math ops", async function () {
     const n = 6;
 
     const constants = [value1];
-    const v1 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -147,8 +146,8 @@ describe("RainVM fixed point math ops", async function () {
     const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -179,8 +178,8 @@ describe("RainVM fixed point math ops", async function () {
     const value2 = ONE.mul(2);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -210,7 +209,7 @@ describe("RainVM fixed point math ops", async function () {
     const value = 1;
 
     const constants = [value];
-    const v1 = op(Opcode.CONSTANT, 0);
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [

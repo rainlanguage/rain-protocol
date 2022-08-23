@@ -13,7 +13,7 @@ import type {
   OrderConfigStruct,
   OrderLiveEvent,
 } from "../../typechain/OrderBook";
-import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
+import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import {
   eighteenZeros,
@@ -24,7 +24,7 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
@@ -39,7 +39,7 @@ describe("OrderBook counterparty in context", async function () {
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
     tokenB: ReserveToken18,
-    stateBuilder: OrderBookStateBuilder;
+    integrity: OrderBookIntegrity;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -47,12 +47,11 @@ describe("OrderBook counterparty in context", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "OrderBookStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "OrderBookIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
+    await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
@@ -66,7 +65,7 @@ describe("OrderBook counterparty in context", async function () {
     const bountyBot = signers[4];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
@@ -90,10 +89,19 @@ describe("OrderBook counterparty in context", async function () {
       askPrice,
       carol.address,
     ];
-    const vAskOutputMax = op(Opcode.CONSTANT, 0);
-    const vAskOutputMaxIfNotMatch = op(Opcode.CONSTANT, 1);
-    const vAskPrice = op(Opcode.CONSTANT, 2);
-    const vExpectedCounterparty = op(Opcode.CONSTANT, 3);
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskOutputMaxIfNotMatch = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vExpectedCounterparty = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 3)
+    );
 
     // prettier-ignore
     const askSource = concat([
@@ -132,8 +140,11 @@ describe("OrderBook counterparty in context", async function () {
 
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -165,8 +176,14 @@ describe("OrderBook counterparty in context", async function () {
 
     const bidPriceCarol = fixedPointDiv(ONE, askPrice);
     const bidConstantsCarol = [max_uint256, bidPriceCarol];
-    const vBidOutputMaxCarol = op(Opcode.CONSTANT, 0);
-    const vBidPriceCarol = op(Opcode.CONSTANT, 1);
+    const vBidOutputMaxCarol = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPriceCarol = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const bidSourceCarol = concat([
       vBidOutputMaxCarol,

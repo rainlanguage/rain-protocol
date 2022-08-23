@@ -1,11 +1,14 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
 
+export enum MemoryType {
+  Stack,
+  Constant,
+}
+
 export enum Debug {
-  StateAbi,
   StatePacked,
   Stack,
-  StackIndex,
 }
 
 export enum selectLteLogic {
@@ -43,6 +46,48 @@ export function op(
   erand: number | BytesLike | Hexable = 0
 ): Uint8Array {
   return concat([bytify(code), bytify(erand)]);
+}
+
+export function memoryOperand(type: number, offset: number): number {
+  return (offset << 1) + type;
+}
+/**
+ * Constructs the operand for RainVM's `CALL` opcode by packing 3 numbers into a single byte.
+ *
+ * @param inputSize - number of inputs being passed to the source (range 0-7)
+ * @param outputSize - number of output returned by the source (range 1-3)
+ * @param sourceIndex - index of function source
+ */
+export function callOperand(
+  inputSize: number,
+  outputSize: number,
+  sourceIndex: number
+): number {
+  if (sourceIndex < 0 || sourceIndex > 7) {
+    throw new Error("Invalid sourceIndex");
+  } else if (inputSize < 0 || inputSize > 7) {
+    throw new Error("Invalid inputSize");
+  } else if (outputSize < 1 || outputSize > 3) {
+    throw new Error("Invalid outputSize");
+  }
+
+  return (sourceIndex << 5) + (outputSize << 3) + inputSize;
+}
+
+/**
+ * Constructs the operand for RainVM's `LOOP_N` opcode by packing 2 numbers into a single byte.
+ *
+ * @param n - loop the source for n times (range 0-15)
+ * @param sourceIndex - index of function source
+ */
+export function loopNOperand(n: number, sourceIndex: number): number {
+  if (sourceIndex < 0 || sourceIndex > 15) {
+    throw new Error("Invalid sourceIndex");
+  } else if (n < 0 || n > 15) {
+    throw new Error("Invalid n");
+  }
+
+  return (sourceIndex << 4) + n;
 }
 
 /**

@@ -12,7 +12,7 @@ import type {
   OrderConfigStruct,
   OrderLiveEvent,
 } from "../../typechain/OrderBook";
-import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
+import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import {
   eighteenZeros,
@@ -23,7 +23,7 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import {
   compareSolStructs,
   compareStructs,
@@ -37,7 +37,7 @@ describe("OrderBook many-to-many", async function () {
     tokenB: ReserveToken18,
     tokenC: ReserveToken18,
     tokenD: ReserveToken18,
-    stateBuilder: OrderBookStateBuilder;
+    integrity: OrderBookIntegrity;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -47,12 +47,11 @@ describe("OrderBook many-to-many", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "OrderBookStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "OrderBookIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
+    await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
@@ -65,7 +64,7 @@ describe("OrderBook many-to-many", async function () {
     const bountyBot = signers[3];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
@@ -79,8 +78,11 @@ describe("OrderBook many-to-many", async function () {
 
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(Opcode.CONSTANT, 0);
-    const vAskPrice = op(Opcode.CONSTANT, 1);
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -118,8 +120,11 @@ describe("OrderBook many-to-many", async function () {
 
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -328,7 +333,7 @@ describe("OrderBook many-to-many", async function () {
     const bob = signers[2];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceVaultA = ethers.BigNumber.from(1);
@@ -340,8 +345,11 @@ describe("OrderBook many-to-many", async function () {
 
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(Opcode.CONSTANT, 0);
-    const vAskPrice = op(Opcode.CONSTANT, 1);
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -379,8 +387,11 @@ describe("OrderBook many-to-many", async function () {
 
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,

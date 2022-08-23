@@ -32,11 +32,11 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    const stateBuilder = await stateBuilderFactory.deploy();
-    await stateBuilder.deployed();
+    const integrity = await integrityFactory.deploy();
+    await integrity.deployed();
 
     redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
@@ -54,7 +54,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
-      vmStateBuilder: stateBuilder.address,
+      vmIntegrity: integrity.address,
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
@@ -125,102 +125,6 @@ describe("SaleEscrow unchangeable addresses", async function () {
     );
   });
 
-  it("should prevent 'malicious' sale contract from modifying fail status", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
-
-    const saleEscrowWrapper = (await basicDeploy(
-      "SaleEscrowWrapper",
-      {}
-    )) as SaleEscrowWrapper;
-
-    const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
-    const rTKN = (await tokenFactory.deploy()) as IERC20;
-
-    await reserve.deployed();
-    await rTKN.deployed();
-
-    await sale.setReserve(reserve.address);
-    await sale.setToken(rTKN.address);
-    await sale.setSaleStatus(SaleStatus.Pending);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus0: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    await sale.setSaleStatus(SaleStatus.Active);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus1: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    await sale.setSaleStatus(SaleStatus.Fail);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus2: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    await sale.setSaleStatus(SaleStatus.Success);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus3: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    assert(saleEscrowStatus0 === EscrowStatus.Pending);
-    assert(saleEscrowStatus1 === EscrowStatus.Pending);
-    assert(saleEscrowStatus2 === EscrowStatus.Fail);
-    assert(saleEscrowStatus3 === EscrowStatus.Fail);
-  });
-
-  it("should prevent 'malicious' sale contract from modifying success status", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
-
-    const saleEscrowWrapper = (await basicDeploy(
-      "SaleEscrowWrapper",
-      {}
-    )) as SaleEscrowWrapper;
-
-    const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
-    const rTKN = (await tokenFactory.deploy()) as IERC20;
-
-    await reserve.deployed();
-    await rTKN.deployed();
-
-    await sale.setReserve(reserve.address);
-    await sale.setToken(rTKN.address);
-    await sale.setSaleStatus(SaleStatus.Pending);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus0: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    await sale.setSaleStatus(SaleStatus.Active);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus1: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    await sale.setSaleStatus(SaleStatus.Success);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus2: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    await sale.setSaleStatus(SaleStatus.Fail);
-
-    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
-    const saleEscrowStatus3: EscrowStatus =
-      await saleEscrowWrapper.getEscrowStatus(sale.address);
-
-    assert(saleEscrowStatus0 === EscrowStatus.Pending);
-    assert(saleEscrowStatus1 === EscrowStatus.Pending);
-    assert(saleEscrowStatus2 === EscrowStatus.Success);
-    assert(saleEscrowStatus3 === EscrowStatus.Success);
-  });
-
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale = (await saleFactory.deploy()) as MockISale;
@@ -279,6 +183,126 @@ describe("SaleEscrow unchangeable addresses", async function () {
     assert(
       saleEscrowToken0 === saleEscrowToken1,
       "sale escrow wrongly updated token address"
+    );
+  });
+
+  it("should prevent 'malicious' sale contract from modifying fail status", async function () {
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as MockISale;
+
+    const saleEscrowWrapper = (await basicDeploy(
+      "SaleEscrowWrapper",
+      {}
+    )) as SaleEscrowWrapper;
+
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as IERC20;
+
+    await reserve.deployed();
+    await rTKN.deployed();
+
+    await sale.setReserve(reserve.address);
+    await sale.setToken(rTKN.address);
+    await sale.setSaleStatus(SaleStatus.Pending);
+
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus0: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus0 === EscrowStatus.Pending,
+      "wrong escrow status: not Pending"
+    );
+
+    await sale.setSaleStatus(SaleStatus.Active);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus1: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus1 === EscrowStatus.Pending,
+      "wrong escrow status: not Pending"
+    );
+
+    await sale.setSaleStatus(SaleStatus.Fail);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus2: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus2 === EscrowStatus.Fail,
+      "wrong escrow status: not Failed"
+    );
+
+    await sale.setSaleStatus(SaleStatus.Success);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus3: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus3 === EscrowStatus.Fail,
+      "wrong escrow status: not Failed"
+    );
+  });
+
+  it("should prevent 'malicious' sale contract from modifying success status", async function () {
+    const saleFactory = await ethers.getContractFactory("MockISale");
+    const sale = (await saleFactory.deploy()) as MockISale;
+
+    const saleEscrowWrapper = (await basicDeploy(
+      "SaleEscrowWrapper",
+      {}
+    )) as SaleEscrowWrapper;
+
+    const tokenFactory = await ethers.getContractFactory("ReserveToken");
+    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as IERC20;
+
+    await reserve.deployed();
+    await rTKN.deployed();
+
+    await sale.setReserve(reserve.address);
+    await sale.setToken(rTKN.address);
+    await sale.setSaleStatus(SaleStatus.Pending);
+
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus0: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus0 === EscrowStatus.Pending,
+      "wrong escrow status: not Pending"
+    );
+
+    await sale.setSaleStatus(SaleStatus.Active);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus1: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus1 === EscrowStatus.Pending,
+      "wrong escrow status: not Pending"
+    );
+
+    await sale.setSaleStatus(SaleStatus.Success);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus2: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus2 === EscrowStatus.Success,
+      "wrong escrow status: not Success"
+    );
+
+    await sale.setSaleStatus(SaleStatus.Fail);
+    await saleEscrowWrapper.fetchEscrowStatus(sale.address);
+    const saleEscrowStatus3: EscrowStatus =
+      await saleEscrowWrapper.getEscrowStatus(sale.address);
+
+    assert(
+      saleEscrowStatus3 === EscrowStatus.Success,
+      "wrong escrow status: not Success"
     );
   });
 });

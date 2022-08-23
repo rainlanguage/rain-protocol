@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {StandardVM} from "../vm/StandardVM.sol";
+import {StandardVM} from "../vm/runtime/StandardVM.sol";
 import "../vm/ops/AllStandardOps.sol";
-import "../vm/VMStateBuilder.sol";
-
-uint256 constant ENTRYPOINT = 0;
-uint256 constant MIN_FINAL_STACK_INDEX = 1;
+import "../vm/integrity/RainVMIntegrity.sol";
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
 
 /// @title AllStandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
 contract AllStandardOpsTest is StandardVM {
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
+    using LibVMState for VMState;
+    using LibUint256Array for uint256;
+
     /// *** STORAGE OPCODES START ***
 
     uint256 private _val0 = 0;
@@ -22,59 +24,50 @@ contract AllStandardOpsTest is StandardVM {
 
     /// *** STORAGE OPCODES END ***
 
-    VMState private _state;
+    uint256[] private _stack;
+    uint256 private _stackIndex;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
     function initialize(StateConfig calldata stateConfig_) external {
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
-
-        _saveVMState(stateConfig_, boundss_);
+        _saveVMState(stateConfig_);
     }
 
-    /// Wraps `runState` and returns top of stack.
-    /// @return top of `runState` stack.
     function stackTop() external view returns (uint256) {
-        return _state.stack[_state.stackIndex - 1];
+        return _stack[_stackIndex - 1];
     }
 
     function stack() external view returns (uint256[] memory) {
-        return _state.stack;
-    }
-
-    function state() external view returns (VMState memory) {
-        return _state;
+        return _stack;
     }
 
     /// Runs `eval` and stores full state.
     function run() public {
         VMState memory state_ = _loadVMState();
         uint256 a_ = gasleft();
-        eval(new uint256[](0), state_, ENTRYPOINT);
+        StackTop stackTop_ = state_.eval();
         uint256 b_ = gasleft();
         console.log("eval", a_ - b_);
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
-        _state = state_;
+        _stack = state_.stackBottom.down().asUint256Array();
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
     }
 
     /// Runs `eval` and stores full state. Stores `context_` to be accessed
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[] memory context_) public {
-        VMState memory state_ = _loadVMState();
-        eval(context_, state_, ENTRYPOINT);
+        VMState memory state_ = _loadVMState(context_);
+        StackTop stackTop_ = state_.eval();
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read
         // results from events etc.
-        _state = state_;
+        _stack = state_.stackBottom.down().asUint256Array();
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
     }
 
     function storageOpcodesRange()
