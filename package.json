@@ -46,7 +46,7 @@
     "typechain": "^6.0.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts-upgradeable": "=4.7.2"
+    "@openzeppelin/contracts-upgradeable": "=4.7.3"
   },
   "overrides": {
     "solhint": {

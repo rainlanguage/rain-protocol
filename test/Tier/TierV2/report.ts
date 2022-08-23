@@ -20,8 +20,7 @@ describe("TierV2 report op", async function () {
     const integrityFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    const integrity =
-      (await integrityFactory.deploy()) as StandardIntegrity;
+    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
     await integrity.deployed();
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     // deploy a basic vm contract
@@ -36,7 +35,7 @@ describe("TierV2 report op", async function () {
       (await readWriteTierFactory.deploy()) as ReadWriteTier;
     await readWriteTier.deployed();
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
     const setTierTimestamp = await getBlockTimestamp();
 
     // prettier-ignore

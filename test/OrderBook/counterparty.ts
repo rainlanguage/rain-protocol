@@ -52,8 +52,7 @@ describe("OrderBook counterparty in context", async function () {
     const integrityFactory = await ethers.getContractFactory(
       "OrderBookIntegrity"
     );
-    integrity =
-      (await integrityFactory.deploy()) as OrderBookIntegrity;
+    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
     await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});

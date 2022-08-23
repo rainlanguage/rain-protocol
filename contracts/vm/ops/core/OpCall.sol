@@ -58,11 +58,7 @@ library OpCall {
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
-        integrityState_.ensureIntegrity(
-            callSourceIndex_,
-            stackTop_,
-            outputs_
-        );
+        integrityState_.ensureIntegrity(callSourceIndex_, stackTop_, outputs_);
 
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be
@@ -102,10 +98,7 @@ library OpCall {
         // Eval the source from the operand on the current state using the stack
         // top above the inputs as the starting stack top. The final stack top
         // is where we will read outputs from below.
-        StackTop stackTopEval_ = state_.eval(
-            callSourceIndex_,
-            stackTop_
-        );
+        StackTop stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibUint256Array.unsafeCopyValuesTo(

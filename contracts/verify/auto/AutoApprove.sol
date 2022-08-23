@@ -59,9 +59,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
                     context_[0] = uint256(uint160(evidences_[i_].account));
                     context_[1] = uint256(bytes32(evidences_[i_].data));
                     state_.context = context_;
-                    if (
-                        state_.eval().peek() > 0
-                    ) {
+                    if (state_.eval().peek() > 0) {
                         _approvedEvidenceData[
                             uint256(bytes32(evidences_[i_].data))
                         ] = block.timestamp;

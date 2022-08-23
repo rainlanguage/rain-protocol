@@ -29,45 +29,35 @@ describe("TierReport updateReportWithTierAtTime", async function () {
       ethers.BigNumber.from(initialTimestamp)
     ).slice(2);
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE);
 
     await timewarp(1);
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO);
 
     await timewarp(1);
 
-    await readWriteTier
-      .connect(signer1)
-      .setTier(signer1.address, Tier.THREE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.THREE);
 
     await timewarp(1);
 
-    await readWriteTier
-      .connect(signer1)
-      .setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.FOUR);
 
     await timewarp(1);
 
-    await readWriteTier
-      .connect(signer1)
-      .setTier(signer1.address, Tier.FIVE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.FIVE);
 
     await timewarp(1);
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SIX, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SIX);
 
     await timewarp(1);
 
-    await readWriteTier
-      .connect(signer1)
-      .setTier(signer1.address, Tier.SEVEN, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.SEVEN);
 
     await timewarp(1);
 
-    await readWriteTier
-      .connect(signer1)
-      .setTier(signer1.address, Tier.EIGHT, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.EIGHT);
 
     await timewarp(1);
 

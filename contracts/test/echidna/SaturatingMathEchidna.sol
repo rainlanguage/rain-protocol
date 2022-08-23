@@ -3,12 +3,12 @@ pragma solidity 0.8.15;
 
 import {SaturatingMath} from "../../math/SaturatingMath.sol";
 
-/// @title SaturingMath_Echidna
+/// @title SaturingMathEchidna
 /// Wrapper around the `SaturatingMath` library for echidna fuzz testing.
-contract SaturingMath_Echidna {
-    uint256 a;
-    uint256 b;
-    uint256 c;
+contract SaturatingMathEchidna {
+    uint256 public a;
+    uint256 public b;
+    uint256 public c;
 
     /// Allow echidna add any value
     /// @param _a First term.
@@ -18,7 +18,7 @@ contract SaturingMath_Echidna {
         b = _b;
     }
 
-    function echidna_saturatingAdd() external returns (bool) {
+    function echidnaSaturatingAdd() external returns (bool) {
         c = SaturatingMath.saturatingAdd(a, b);
 
         if (a >= b) {
@@ -28,7 +28,7 @@ contract SaturingMath_Echidna {
         }
     }
 
-    function echidna_saturatingSub() external returns (bool) {
+    function echidnaSaturatingSub() external returns (bool) {
         c = SaturatingMath.saturatingSub(a, b);
 
         if (a > b) {
@@ -38,7 +38,7 @@ contract SaturingMath_Echidna {
         }
     }
 
-    function echidna_saturatingMul() external returns (bool) {
+    function echidnaSaturatingMul() external returns (bool) {
         c = SaturatingMath.saturatingMul(a, b);
 
         if (a == 0 || b == 0) {

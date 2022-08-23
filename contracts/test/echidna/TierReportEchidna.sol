@@ -4,9 +4,9 @@ pragma solidity =0.8.15;
 import {TierReport} from "../../tier/libraries/TierReport.sol";
 import {TierConstants} from "../../tier/libraries/TierConstants.sol";
 
-/// @title TierReport_Echidna
+/// @title TierReportEchidna
 /// Wrapper around the `TierReport` library for echidna fuzz testing.
-contract TierReport_Echidna {
+contract TierReportEchidna {
     // Arbitrary report setted by Echidna
     uint256 private _report;
     // Tiers levels from the report setted by Echidna
@@ -58,7 +58,7 @@ contract TierReport_Echidna {
 
     // Maxtier to be reverted with invalid tiers - Test fuzzed with Echidna
     // The functions with the modifier (like reportTimeForTier) should rever with invalid tiers
-    function echidna_revert_maxTier() external view returns (bool) {
+    function echidnaRevertMaxTier() external view returns (bool) {
         // Get the timestamp from library with values on storage
         uint256 timestampObtained = TierReport.reportTimeForTier(
             _report,
@@ -73,7 +73,7 @@ contract TierReport_Echidna {
     }
 
     // TierAtTimeFromReport to be tested fuzzed with Echidna
-    function echidna_tierAtTimeFromReport() external view returns (bool) {
+    function echidnaTierAtTimeFromReport() external view returns (bool) {
         // Get the tier from library with values on storage
         uint256 tierObtained = TierReport.tierAtTimeFromReport(
             _report,
@@ -94,7 +94,7 @@ contract TierReport_Echidna {
     // ReportTimeForTier to be tested fuzzed with Echidna
     // The tier should be a valid valu [0-8] to represetn a tier.
     // If desired tier does not fit(major to 8), reportTimeForTier should revert. Check `echidna_revert_reportTimeForTier`.
-    function echidna_reportTimeForTier() external view returns (bool) {
+    function echidnaReportTimeForTier() external view returns (bool) {
         // Get the timestamp from library with values on storage
         uint256 timestampObtained = TierReport.reportTimeForTier(
             _report,
@@ -107,7 +107,7 @@ contract TierReport_Echidna {
     }
 
     // TruncateTiersAbove to be tested fuzzed with Echidna
-    function echidna_truncateTiersAbove() external view returns (bool) {
+    function echidnaTruncateTiersAbove() external view returns (bool) {
         // Get the truncated from library with values on storage
         uint256 truncatedReport = TierReport.truncateTiersAbove(_report, _tier);
 
@@ -115,7 +115,7 @@ contract TierReport_Echidna {
     }
 
     // UpdateTimeAtTier to be tested fuzzed with Echidna
-    function echidna_updateTimeAtTier() external view returns (bool) {
+    function echidnaUpdateTimeAtTier() external view returns (bool) {
         // Get the new report from library with values on storage
         uint256 newReport = TierReport.updateTimeAtTier(
             _report,
@@ -127,7 +127,7 @@ contract TierReport_Echidna {
     }
 
     // UpdateTimesForTierRange to be tested fuzzed with Echidna
-    function echidna_updateTimesForTierRange() external view returns (bool) {
+    function echidnaUpdateTimesForTierRange() external view returns (bool) {
         // Get the new report from library with values on storage
         uint256 newReport = TierReport.updateTimesForTierRange(
             _report,
@@ -147,7 +147,7 @@ contract TierReport_Echidna {
     }
 
     // UpdateReportWithTierAtTime to be tested fuzzed with Echidna
-    function echidna_updateReportWithTierAtTime() external view returns (bool) {
+    function echidnaUpdateReportWithTierAtTime() external view returns (bool) {
         // Get the new report from library with values on storage
         uint256 newReport = TierReport.updateReportWithTierAtTime(
             _report,
@@ -170,7 +170,7 @@ contract TierReport_Echidna {
         }
     }
 
-        // Helper function to replicate how the tiers are splitted
+    // Helper function to replicate how the tiers are splitted
     function _splitReport(uint256 report_)
         private
         pure
@@ -202,13 +202,13 @@ contract TierReport_Echidna {
                 // From the desired tier and below it should be the same
                 require(
                     newTiers_[i] == originalTiers_[i],
-                    "The level was modified wrongly"
+                    "LEVEL_MODIFIED" // The level was modified wrongly
                 );
             } else {
                 // Above the desited tier should change to NEVER_TIME (0xffffffff)
                 require(
                     newTiers_[i] == TierConstants.NEVER_TIME,
-                    "The level was not modified to 0xffffffff"
+                    "LEVEL_NEVER" // The level was not modified to 0xffffffff
                 );
             }
         }
@@ -236,12 +236,12 @@ contract TierReport_Echidna {
             if (i == tierTarget_) {
                 require(
                     newTiers_[i] == timestamp_,
-                    "The tier was not correctly updated with the time"
+                    "TIER_TIME" // The tier was not correctly updated with the time
                 );
             } else {
                 require(
                     newTiers_[i] == originalTiers_[i],
-                    "The report was wrongly changed"
+                    "REPORT_CHANGE" // The report was wrongly changed
                 );
             }
         }
@@ -272,12 +272,12 @@ contract TierReport_Echidna {
             if (i >= startTier_ && i + 1 <= endTier_) {
                 require(
                     newTiers_[i] == timestamp_,
-                    "The tier was not correctly updated with the time"
+                    "TIER_TIME" // The tier was not correctly updated with the time
                 );
             } else {
                 require(
                     newTiers_[i] == originalTiers_[i],
-                    "The report was wrongly changed"
+                    "REPORT_CHANGE" // The report was wrongly changed
                 );
             }
         }

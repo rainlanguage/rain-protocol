@@ -29,13 +29,13 @@ contract LibCastTest {
         return a_;
     }
 
-    function asUint256_uint256() external returns (uint256 i_) {
+    function asUint256Uint256() external returns (uint256 i_) {
         LibDebug.dumpMemory();
         i_ = LibCast.asUint256(identity);
         LibDebug.dumpMemory();
     }
 
-    function asUint256_intPtr(uint256[] memory is_)
+    function asUint256IntPtr(uint256[] memory is_)
         external
         returns (uint256 i_)
     {
@@ -44,7 +44,7 @@ contract LibCastTest {
         LibDebug.dumpMemory();
     }
 
-    function asUint256Array_opPtrs(uint256[] memory is_)
+    function asUint256ArrayOpPtrs(uint256[] memory is_)
         external
         returns (uint256[] memory)
     {
@@ -54,7 +54,7 @@ contract LibCastTest {
         return is_;
     }
 
-    function asUint256Array_intPtrs(uint256[] memory is_)
+    function asUint256ArrayIntPtrs(uint256[] memory is_)
         external
         returns (uint256[] memory)
     {
@@ -64,20 +64,20 @@ contract LibCastTest {
         return is_;
     }
 
-    function asUint256_bool(bool bool_) external returns (uint256 i_) {
+    function asUint256Bool(bool bool_) external returns (uint256 i_) {
         LibDebug.dumpMemory();
         i_ = LibCast.asUint256(bool_);
         LibDebug.dumpMemory();
     }
 
-    function asUint256_evalPtr(uint256 i_) external returns (uint256) {
+    function asUint256EvalPtr(uint256 i_) external returns (uint256) {
         LibDebug.dumpMemory();
         i_ = LibCast.asUint256(LibCast.asEvalFunctionPointer(i_));
         LibDebug.dumpMemory();
         return i_;
     }
 
-    function asUint256Array_uint256(uint256[] memory is_)
+    function asUint256ArrayUint256(uint256[] memory is_)
         external
         pure
         returns (uint256[] memory)

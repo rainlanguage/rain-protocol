@@ -67,7 +67,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     const TIERWISE_DIFF = () =>
       concat([
           CURRENT_TIMESTAMP_AS_REPORT(),
-          op(Opcode.BLOCK_TIMESTAMP),
+            op(Opcode.BLOCK_TIMESTAMP),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
@@ -92,7 +92,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       }
     );
 
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
     const tierTimestampFour = await getBlockTimestamp();
 
     await timewarp(5);
@@ -120,7 +120,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
     const claimTimestamp0 = await getBlockTimestamp();
 
-    await readWriteTier.setTier(claimant.address, Tier.THREE, []);
+    await readWriteTier.setTier(claimant.address, Tier.THREE);
 
     await timewarp(5);
 
@@ -169,7 +169,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     );
     const vAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
-    await readWriteTier.setTier(claimant.address, Tier.TWO, []);
+    await readWriteTier.setTier(claimant.address, Tier.TWO);
 
     const tierTimestamp = await getBlockTimestamp();
 
@@ -236,7 +236,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     );
 
     // should do nothing
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
 
     await timewarp(5);
 
@@ -265,7 +265,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     const claimTimestamp0 = await getBlockTimestamp();
 
     // should do nothing
-    await readWriteTier.setTier(claimant.address, Tier.SIX, []);
+    await readWriteTier.setTier(claimant.address, Tier.SIX);
 
     await timewarp(5);
 
@@ -363,7 +363,7 @@ describe("EmissionsERC20 Tier Test", async function () {
       }
     );
 
-    await readWriteTier.setTier(claimant.address, Tier.FOUR, []);
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
     const tierTimestampFour = await getBlockTimestamp();
 
     await timewarp(5);
@@ -391,7 +391,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
     const claimTimestamp0 = await getBlockTimestamp();
 
-    await readWriteTier.setTier(claimant.address, Tier.FIVE, []);
+    await readWriteTier.setTier(claimant.address, Tier.FIVE);
     const tierTimestampFive = await getBlockTimestamp();
 
     await timewarp(5);

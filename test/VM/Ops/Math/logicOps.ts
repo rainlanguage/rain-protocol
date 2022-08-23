@@ -1,18 +1,14 @@
 import { assert } from "chai";
 import type { BigNumber } from "ethers";
-import { concat, hexlify, hexZeroPad } from "ethers/lib/utils";
+import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import {
   AllStandardOps,
-  max_uint256,
-  op,
-  paddedUInt256,
-  paddedUInt32,
-  zipmapSize,
   memoryOperand,
   MemoryType,
+  op,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;

@@ -64,10 +64,7 @@ library OpDoWhile {
             // eval is NOT allowed to change the stack top so we
             // ignore the return of eval. This is enforced by bounds
             // checks.
-            state_.eval(
-                SourceIndex.wrap(Operand.unwrap(operand_)),
-                stackTop_
-            );
+            state_.eval(SourceIndex.wrap(Operand.unwrap(operand_)), stackTop_);
             do_ = stackTop_.peekUp();
         }
         return stackTop_;

@@ -71,7 +71,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    // await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    // await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     await assertError(
       async () =>
@@ -139,7 +139,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     await assertError(
       async () =>
@@ -215,7 +215,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     const txCreateChild = await factoryCurator
       .connect(signer1)

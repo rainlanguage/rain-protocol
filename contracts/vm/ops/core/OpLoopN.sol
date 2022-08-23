@@ -23,7 +23,7 @@ library OpLoopN {
             SourceIndex loopSourceIndex_ = SourceIndex.wrap(
                 (Operand.unwrap(operand_) & 0xF0) >> 4
             );
-            for (uint256 i_ = 0; i_ <= n_; i_++) {
+            for (uint256 i_ = 0; i_ < n_; i_++) {
                 stackTop_ = integrityState_.ensureIntegrity(
                     loopSourceIndex_,
                     stackTop_,
