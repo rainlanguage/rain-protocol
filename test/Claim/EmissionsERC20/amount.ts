@@ -103,7 +103,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       );
   });
 
-  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
+  xit("should calculate correct emissions amount (if division is performed on final result)", async function () {
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -389,7 +389,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     console.log(await emissionsERC20.balanceOf(claimant.address));
   });
 
-  it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
+  xit("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -610,8 +610,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // 123
     const claimDuration = claimTimestamp - tierTimestamp;
-
-    console.log({ claimDuration });
 
     // 123000000000000000000
     const claimDurationBN = BigNumber.from(claimDuration + eighteenZeros);
