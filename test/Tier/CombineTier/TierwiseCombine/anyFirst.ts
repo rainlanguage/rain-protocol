@@ -111,10 +111,10 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
-          vFuture,
-          vAlways,
-          vNever,
+        op(Opcode.BLOCK_TIMESTAMP),
+        vFuture,
+        vAlways,
+        vNever,
       op(
         Opcode.SELECT_LTE,
         selectLte(selectLteLogic.any, selectLteMode.first, 3)
@@ -180,13 +180,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.CONTEXT),
-          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT, 0),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.CONTEXT),
-          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
         selectLte(selectLteLogic.any, selectLteMode.first, 2)
@@ -233,12 +233,12 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.CONTEXT),
+        op(Opcode.BLOCK_TIMESTAMP),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.CONTEXT),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       op(
         Opcode.SELECT_LTE,

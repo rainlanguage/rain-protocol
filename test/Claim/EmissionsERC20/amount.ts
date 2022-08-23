@@ -164,6 +164,14 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // BEGIN global constants
 
+    const constants = [
+      readWriteTier.address,
+      BASE_REWARD_PER_TIER,
+      BLOCKS_PER_YEAR,
+      Util.ALWAYS,
+      Util.ONE,
+    ];
+
     const valTierAddrAddress = op(
       Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
@@ -183,11 +191,8 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // BEGIN zipmap args
 
-    const argDuration = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const argBaseReward = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 6)
-    );
+    const argDuration = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 5));
+    const argBaseReward = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 6));
 
     // END zipmap args
 
@@ -196,35 +201,35 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     // prettier-ignore
     const PROGRESS = () =>
       concat([
-        argDuration,
-        valBlocksPerYear,
-        op(Opcode.SCALE18_DIV, 0),
-        valOne,
+            argDuration,
+            valBlocksPerYear,
+          op(Opcode.SCALE18_DIV, 0),
+          valOne,
         op(Opcode.MIN, 2),
       ]);
 
     // prettier-ignore
     const MULTIPLIER = () =>
       concat([
-        PROGRESS(),
-        valOne,
+          PROGRESS(),
+          valOne,
         op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
     const FN = () =>
       concat([
-        MULTIPLIER(),
-        argBaseReward,
-        argDuration,
+          MULTIPLIER(),
+          argBaseReward,
+          argDuration,
         op(Opcode.MUL, 3),
       ]);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-        valAlways,
-        op(Opcode.BLOCK_NUMBER),
+          valAlways,
+          op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
@@ -234,55 +239,47 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-        op(Opcode.THIS_ADDRESS),
-        op(Opcode.CONTEXT),
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-        valTierAddrAddress,
-        op(Opcode.CONTEXT),
+          valTierAddrAddress,
+          op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-        CURRENT_BLOCK_AS_REPORT(),
-        op(Opcode.BLOCK_NUMBER),
-        TIER_REPORT(),
-        LAST_CLAIM_REPORT(),
-        op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+          CURRENT_BLOCK_AS_REPORT(),
+            op(Opcode.BLOCK_NUMBER),
+            TIER_REPORT(),
+            LAST_CLAIM_REPORT(),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
 
     // prettier-ignore
     const SOURCE = () =>
       concat([
-        TIERWISE_DIFF(),
-        valBaseRewardPerTier,
-        op(Opcode.EXPLODE32),
-        op(Opcode.LOOP_N, loopNOperand(3, 1)), // Looping FN 3 times
-        op(Opcode.DEBUG, Debug.Stack),
-        // op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)), 
-        op(Opcode.ADD, 8),
-        // base reward is 6 decimals so we scale back down to 18.
-        // we do this outside the zipmap loop to save gas.
+                TIERWISE_DIFF(),
+              op(Opcode.EXPLODE32),
+                valBaseRewardPerTier,
+              op(Opcode.EXPLODE32),
+            op(Opcode.LOOP_N, loopNOperand(3, 1)), // Looping FN 3 times
+            // op(Opcode.DEBUG, Debug.Stack),
+          // op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
+          op(Opcode.ADD, 8),
+          // base reward is 6 decimals so we scale back down to 18.
+          // we do this outside the zipmap loop to save gas.
         op(Opcode.SCALE18, 24),
       ]);
 
     // END Source snippets
-
-    const constants = [
-      // FN(),
-      readWriteTier.address,
-      BASE_REWARD_PER_TIER,
-      BLOCKS_PER_YEAR,
-      Util.ALWAYS,
-      Util.ONE,
-    ];
 
     console.log("source", SOURCE(), FN());
     console.log("constants", constants);
@@ -380,313 +377,319 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     claimAmount                                 ${claimAmount}
     `);
 
-    console.log(claimAmount, expectedClaimAmount);
+    assert(
+      claimAmount.eq(expectedClaimAmount),
+      `wrong claim calculation result
+      expected  ${expectedClaimAmount}
+      got       ${claimAmount}`
+    );
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
 
     console.log(await emissionsERC20.balanceOf(claimant.address));
   });
 
-  // it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
-  //   const signers = await ethers.getSigners();
-  //   const creator = signers[0];
-  //   const claimant = signers[1];
+  it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
+    const signers = await ethers.getSigners();
+    const creator = signers[0];
+    const claimant = signers[1];
 
-  //   const readWriteTierFactory = await ethers.getContractFactory(
-  //     "ReadWriteTier"
-  //   );
-  //   const readWriteTier =
-  //     (await readWriteTierFactory.deploy()) as ReadWriteTier;
-  //   await readWriteTier.deployed();
+    const readWriteTierFactory = await ethers.getContractFactory(
+      "ReadWriteTier"
+    );
+    const readWriteTier =
+      (await readWriteTierFactory.deploy()) as ReadWriteTier;
+    await readWriteTier.deployed();
 
-  //   const { emissionsERC20Factory } = await claimFactoriesDeploy();
+    const { emissionsERC20Factory } = await claimFactoriesDeploy();
 
-  //   const BN_ONE = BigNumber.from("1" + eighteenZeros);
+    const BN_ONE = BigNumber.from("1" + eighteenZeros);
 
-  //   // We're using uints, so we need to scale reward per block up to get out of the decimal places, but a precision of 18 zeros is too much to fit within a uint32 (since we store block rewards per tier in a report-like format). Six zeros should be enough.
-  //   const BN_ONE_REWARD = BigNumber.from("1" + sixZeros);
+    // We're using uints, so we need to scale reward per block up to get out of the decimal places, but a precision of 18 zeros is too much to fit within a uint32 (since we store block rewards per tier in a report-like format). Six zeros should be enough.
+    const BN_ONE_REWARD = BigNumber.from("1" + sixZeros);
 
-  //   // 2 seconds per block
-  //   const BLOCKS_PER_YEAR = 43200 * 365.25;
+    // 2 seconds per block
+    const BLOCKS_PER_YEAR = 43200 * 365.25;
 
-  //   const BLOCKS_PER_MONTH = Math.floor(BLOCKS_PER_YEAR / 12);
+    const BLOCKS_PER_MONTH = Math.floor(BLOCKS_PER_YEAR / 12);
 
-  //   const MONTHLY_REWARD_BRNZ = BigNumber.from(100).mul(BN_ONE_REWARD);
+    const MONTHLY_REWARD_BRNZ = BigNumber.from(100).mul(BN_ONE_REWARD);
 
-  //   const MONTHLY_REWARD_SILV = BigNumber.from(200)
-  //     .mul(BN_ONE_REWARD)
-  //     .sub(MONTHLY_REWARD_BRNZ);
+    const MONTHLY_REWARD_SILV = BigNumber.from(200)
+      .mul(BN_ONE_REWARD)
+      .sub(MONTHLY_REWARD_BRNZ);
 
-  //   const MONTHLY_REWARD_GOLD = BigNumber.from(500)
-  //     .mul(BN_ONE_REWARD)
-  //     .sub(MONTHLY_REWARD_SILV.add(MONTHLY_REWARD_BRNZ));
+    const MONTHLY_REWARD_GOLD = BigNumber.from(500)
+      .mul(BN_ONE_REWARD)
+      .sub(MONTHLY_REWARD_SILV.add(MONTHLY_REWARD_BRNZ));
 
-  //   const MONTHLY_REWARD_PLAT = BigNumber.from(1000)
-  //     .mul(BN_ONE_REWARD)
-  //     .sub(
-  //       MONTHLY_REWARD_GOLD.add(MONTHLY_REWARD_SILV).add(MONTHLY_REWARD_BRNZ)
-  //     );
+    const MONTHLY_REWARD_PLAT = BigNumber.from(1000)
+      .mul(BN_ONE_REWARD)
+      .sub(
+        MONTHLY_REWARD_GOLD.add(MONTHLY_REWARD_SILV).add(MONTHLY_REWARD_BRNZ)
+      );
 
-  //   const REWARD_PER_BLOCK_BRNZ = MONTHLY_REWARD_BRNZ.div(BLOCKS_PER_MONTH);
-  //   const REWARD_PER_BLOCK_SILV = MONTHLY_REWARD_SILV.div(BLOCKS_PER_MONTH);
-  //   const REWARD_PER_BLOCK_GOLD = MONTHLY_REWARD_GOLD.div(BLOCKS_PER_MONTH);
-  //   const REWARD_PER_BLOCK_PLAT = MONTHLY_REWARD_PLAT.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_BRNZ = MONTHLY_REWARD_BRNZ.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_SILV = MONTHLY_REWARD_SILV.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_GOLD = MONTHLY_REWARD_GOLD.div(BLOCKS_PER_MONTH);
+    const REWARD_PER_BLOCK_PLAT = MONTHLY_REWARD_PLAT.div(BLOCKS_PER_MONTH);
 
-  //   const BASE_REWARD_PER_TIER = paddedUInt256(
-  //     ethers.BigNumber.from(
-  //       "0x" +
-  //         paddedUInt32(0).repeat(4) +
-  //         paddedUInt32(REWARD_PER_BLOCK_PLAT) +
-  //         paddedUInt32(REWARD_PER_BLOCK_GOLD) +
-  //         paddedUInt32(REWARD_PER_BLOCK_SILV) +
-  //         paddedUInt32(REWARD_PER_BLOCK_BRNZ)
-  //     )
-  //   );
+    const BASE_REWARD_PER_TIER = paddedUInt256(
+      ethers.BigNumber.from(
+        "0x" +
+          paddedUInt32(0).repeat(4) +
+          paddedUInt32(REWARD_PER_BLOCK_PLAT) +
+          paddedUInt32(REWARD_PER_BLOCK_GOLD) +
+          paddedUInt32(REWARD_PER_BLOCK_SILV) +
+          paddedUInt32(REWARD_PER_BLOCK_BRNZ)
+      )
+    );
 
-  //   // BEGIN global constants
+    // BEGIN global constants
 
-  //   const valTierAddrAddress = op(
-  //     Opcode.STATE,
-  //     memoryOperand(MemoryType.Constant, 0)
-  //   );
-  //   const valBaseRewardPerTier = op(
-  //     Opcode.STATE,
-  //     memoryOperand(MemoryType.Constant, 1)
-  //   );
-  //   const valBlocksPerYear = op(
-  //     Opcode.STATE,
-  //     memoryOperand(MemoryType.Constant, 2)
-  //   );
-  //   const valBNOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-  //   const valBNOneReward = op(
-  //     Opcode.STATE,
-  //     memoryOperand(MemoryType.Constant, 4)
-  //   );
-  //   const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const constants = [
+      readWriteTier.address,
+      BASE_REWARD_PER_TIER,
+      BLOCKS_PER_YEAR,
+      BN_ONE,
+      BN_ONE_REWARD,
+      Util.ALWAYS,
+    ];
 
-  //   // END global constants
+    const valTierAddrAddress = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valBaseRewardPerTier = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const valBlocksPerYear = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const valBNOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const valBNOneReward = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 4)
+    );
+    const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
-  //   // BEGIN zipmap args
+    // END global constants
 
-  //   const valDuration = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-  //   const valBaseReward = op(
-  //     Opcode.STATE,
-  //     memoryOperand(MemoryType.Constant, 7)
-  //   );
+    // BEGIN zipmap args
 
-  //   // END zipmap args
+    const argDuration = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 6));
+    const argBaseReward = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 7));
 
-  //   // BEGIN Source snippets
+    // END zipmap args
 
-  //   // prettier-ignore
-  //   const REWARD = () =>
-  //     concat([
-  //       valDuration,
-  //       valBaseReward,
-  //       op(Opcode.MUL, 2),
-  //     ]);
+    // BEGIN Source snippets
 
-  //   // prettier-ignore
-  //   const PROGRESS = () =>
-  //     concat([
-  //       valBNOne,
-  //       valDuration,
-  //       valBNOne,
-  //       op(Opcode.MUL, 2),
-  //       valBlocksPerYear,
-  //       op(Opcode.DIV, 2),
-  //       op(Opcode.MIN, 2),
-  //     ]);
+    // prettier-ignore
+    const REWARD = () =>
+      concat([
+          argDuration,
+          argBaseReward,
+        op(Opcode.MUL, 2),
+      ]);
 
-  //   // prettier-ignore
-  //   const MULTIPLIER = () =>
-  //     concat([
-  //       PROGRESS(),
-  //       valBNOne,
-  //       op(Opcode.ADD, 2),
-  //     ]);
+    // prettier-ignore
+    const PROGRESS = () =>
+      concat([
+          valBNOne,
+              argDuration,
+              valBNOne,
+            op(Opcode.MUL, 2),
+            valBlocksPerYear,
+          op(Opcode.DIV, 2),
+        op(Opcode.MIN, 2),
+      ]);
 
-  //   // prettier-ignore
-  //   const FN = () =>
-  //     concat([
-  //       REWARD(),
-  //       MULTIPLIER(),
-  //       op(Opcode.MUL, 2),
-  //       valBNOneReward, // scale EACH tier result down by reward per block scaler
-  //       op(Opcode.DIV, 2),
-  //     ]);
+    // prettier-ignore
+    const MULTIPLIER = () =>
+      concat([
+          PROGRESS(),
+          valBNOne,
+        op(Opcode.ADD, 2),
+      ]);
 
-  //   // prettier-ignore
-  //   const CURRENT_TIMESTAMP_AS_REPORT = () =>
-  //     concat([
-  //       valAlways,
-  //       op(Opcode.BLOCK_TIMESTAMP),
-  //       op(
-  //         Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
-  //         tierRange(Tier.ZERO, Tier.EIGHT)
-  //       ),
-  //     ]);
+    // prettier-ignore
+    const FN = () =>
+      concat([
+            REWARD(),
+            MULTIPLIER(),
+          op(Opcode.MUL, 2),
+          valBNOneReward, // scale EACH tier result down by reward per block scaler
+        op(Opcode.DIV, 2),
+      ]);
 
-  //   // prettier-ignore
-  //   const LAST_CLAIM_REPORT = () =>
-  //     concat([
-  //       op(Opcode.THIS_ADDRESS),
-  //       op(Opcode.CONTEXT),
-  //       op(Opcode.ITIERV2_REPORT),
-  //     ]);
+    // prettier-ignore
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
+      concat([
+          valAlways,
+          op(Opcode.BLOCK_TIMESTAMP),
+        op(
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
+          tierRange(Tier.ZERO, Tier.EIGHT)
+        ),
+      ]);
 
-  //   // prettier-ignore
-  //   const TIER_REPORT = () =>
-  //     concat([
-  //       valTierAddrAddress,
-  //       op(Opcode.CONTEXT),
-  //       op(Opcode.ITIERV2_REPORT),
-  //     ]);
+    // prettier-ignore
+    const LAST_CLAIM_REPORT = () =>
+      concat([
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT),
+      ]);
 
-  //   // prettier-ignore
-  //   const TIERWISE_DIFF = () =>
-  //     concat([
-  //       CURRENT_TIMESTAMP_AS_REPORT(),
-  //       op(Opcode.BLOCK_TIMESTAMP),
-  //       TIER_REPORT(),
-  //       LAST_CLAIM_REPORT(),
-  //       op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
-  //       op(Opcode.SATURATING_DIFF),
-  //     ]);
+    // prettier-ignore
+    const TIER_REPORT = () =>
+      concat([
+          valTierAddrAddress,
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT),
+      ]);
 
-  //   // prettier-ignore
-  //   const SOURCE = () =>
-  //     concat([
-  //       TIERWISE_DIFF(),
-  //       valBaseRewardPerTier,
-  //       op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
-  //       op(Opcode.ADD, 8),
-  //     ]);
+    // prettier-ignore
+    const TIERWISE_DIFF = () =>
+      concat([
+          CURRENT_TIMESTAMP_AS_REPORT(),
+            op(Opcode.BLOCK_TIMESTAMP),
+            TIER_REPORT(),
+            LAST_CLAIM_REPORT(),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+        op(Opcode.SATURATING_DIFF),
+      ]);
 
-  //   // END Source snippets
+    // prettier-ignore
+    const SOURCE = () =>
+      concat([
+              TIERWISE_DIFF(),
+            op(Opcode.EXPLODE32),
+              valBaseRewardPerTier,
+            op(Opcode.EXPLODE32),
+          op(Opcode.LOOP_N, loopNOperand(3, 1)), // Looping FN 3 times
+        op(Opcode.ADD, 8),
+      ]);
 
-  //   const constants = [
-  //     readWriteTier.address,
-  //     BASE_REWARD_PER_TIER,
-  //     BLOCKS_PER_YEAR,
-  //     BN_ONE,
-  //     BN_ONE_REWARD,
-  //     Util.ALWAYS,
-  //   ];
+    // END Source snippets
 
-  //   console.log("source", SOURCE());
-  //   console.log("constants", constants);
-  //   console.log("source length", SOURCE().length);
+    console.log("source", SOURCE(), FN());
+    console.log("constants", constants);
+    console.log("source length", SOURCE().length);
 
-  //   const emissionsERC20 = await emissionsDeploy(
-  //     creator,
-  //     emissionsERC20Factory,
-  //     {
-  //       allowDelegatedClaims: false,
-  //       erc20Config: {
-  //         name: "Emissions",
-  //         symbol: "EMS",
-  //         distributor: signers[0].address,
-  //         initialSupply: 0,
-  //       },
-  //       vmStateConfig: {
-  //         sources: [SOURCE(), FN()],
-  //         constants,
-  //       },
-  //     }
-  //   );
+    const emissionsERC20 = await emissionsDeploy(
+      creator,
+      emissionsERC20Factory,
+      {
+        allowDelegatedClaims: false,
+        erc20Config: {
+          name: "Emissions",
+          symbol: "EMS",
+          distributor: signers[0].address,
+          initialSupply: 0,
+        },
+        vmStateConfig: {
+          sources: [SOURCE(), FN()],
+          constants,
+        },
+      }
+    );
 
-  //   // Has Platinum Tier
-  //   await readWriteTier.setTier(claimant.address, Tier.FOUR);
+    // Has Platinum Tier
+    await readWriteTier.setTier(claimant.address, Tier.FOUR);
 
-  //   const tierTimestamp = await getBlockTimestamp();
+    const tierTimestamp = await getBlockTimestamp();
 
-  //   const expectedClaimDuration = 123;
+    const expectedClaimDuration = 123;
 
-  //   await timewarp(expectedClaimDuration);
+    await timewarp(expectedClaimDuration);
 
-  //   const claimTimestamp = await getBlockTimestamp();
+    const claimTimestamp = await getBlockTimestamp();
 
-  //   // 123
-  //   const claimDuration = claimTimestamp - tierTimestamp;
+    // 123
+    const claimDuration = claimTimestamp - tierTimestamp;
 
-  //   // 123000000000000000000
-  //   const claimDurationBN = BigNumber.from(claimDuration + eighteenZeros);
+    console.log({ claimDuration });
 
-  //   // 7795269602251
-  //   const fractionalClaimDurationBN = claimDurationBN.div(BLOCKS_PER_YEAR);
+    // 123000000000000000000
+    const claimDurationBN = BigNumber.from(claimDuration + eighteenZeros);
 
-  //   // account for saturation, no extra bonus beyond 1 year
-  //   // 7795269602251
-  //   const fractionalClaimDurationRemoveExcessBN = fractionalClaimDurationBN.lt(
-  //     BN_ONE
-  //   )
-  //     ? fractionalClaimDurationBN
-  //     : BN_ONE;
+    // 7795269602251
+    const fractionalClaimDurationBN = claimDurationBN.div(BLOCKS_PER_YEAR);
 
-  //   // 1501369863013698630
-  //   const fractionalClaimDurationRemoveExcessAddOneBN =
-  //     fractionalClaimDurationRemoveExcessBN.add(BN_ONE);
+    // account for saturation, no extra bonus beyond 1 year
+    // 7795269602251
+    const fractionalClaimDurationRemoveExcessBN = fractionalClaimDurationBN.lt(
+      BN_ONE
+    )
+      ? fractionalClaimDurationBN
+      : BN_ONE;
 
-  //   // 9348
-  //   const baseRewardByDurationBronze = REWARD_PER_BLOCK_BRNZ.mul(claimDuration);
+    // 1501369863013698630
+    const fractionalClaimDurationRemoveExcessAddOneBN =
+      fractionalClaimDurationRemoveExcessBN.add(BN_ONE);
 
-  //   // 9348
-  //   const baseRewardByDurationSilver = REWARD_PER_BLOCK_SILV.mul(claimDuration);
+    // 9348
+    const baseRewardByDurationBronze = REWARD_PER_BLOCK_BRNZ.mul(claimDuration);
 
-  //   // 28044
-  //   const baseRewardByDurationGold = REWARD_PER_BLOCK_GOLD.mul(claimDuration);
+    // 9348
+    const baseRewardByDurationSilver = REWARD_PER_BLOCK_SILV.mul(claimDuration);
 
-  //   // 46740
-  //   const baseRewardByDurationPlatinum =
-  //     REWARD_PER_BLOCK_PLAT.mul(claimDuration);
+    // 28044
+    const baseRewardByDurationGold = REWARD_PER_BLOCK_GOLD.mul(claimDuration);
 
-  //   // 93480
-  //   const sumBaseRewardByDuration = baseRewardByDurationPlatinum
-  //     .add(baseRewardByDurationGold)
-  //     .add(baseRewardByDurationSilver)
-  //     .add(baseRewardByDurationBronze);
+    // 46740
+    const baseRewardByDurationPlatinum =
+      REWARD_PER_BLOCK_PLAT.mul(claimDuration);
 
-  //   const expectedClaimAmountPlat = fractionalClaimDurationRemoveExcessAddOneBN
-  //     .mul(baseRewardByDurationPlatinum)
-  //     .div(BN_ONE_REWARD);
-  //   const expectedClaimAmountGold = fractionalClaimDurationRemoveExcessAddOneBN
-  //     .mul(baseRewardByDurationGold)
-  //     .div(BN_ONE_REWARD);
-  //   const expectedClaimAmountSilv = fractionalClaimDurationRemoveExcessAddOneBN
-  //     .mul(baseRewardByDurationSilver)
-  //     .div(BN_ONE_REWARD);
-  //   const expectedClaimAmountBrnz = fractionalClaimDurationRemoveExcessAddOneBN
-  //     .mul(baseRewardByDurationBronze)
-  //     .div(BN_ONE_REWARD);
+    // 93480
+    const sumBaseRewardByDuration = baseRewardByDurationPlatinum
+      .add(baseRewardByDurationGold)
+      .add(baseRewardByDurationSilver)
+      .add(baseRewardByDurationBronze);
 
-  //   // 93480728701802416
-  //   const expectedClaimAmount = expectedClaimAmountPlat
-  //     .add(expectedClaimAmountGold)
-  //     .add(expectedClaimAmountSilv)
-  //     .add(expectedClaimAmountBrnz);
+    const expectedClaimAmountPlat = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationPlatinum)
+      .div(BN_ONE_REWARD);
+    const expectedClaimAmountGold = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationGold)
+      .div(BN_ONE_REWARD);
+    const expectedClaimAmountSilv = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationSilver)
+      .div(BN_ONE_REWARD);
+    const expectedClaimAmountBrnz = fractionalClaimDurationRemoveExcessAddOneBN
+      .mul(baseRewardByDurationBronze)
+      .div(BN_ONE_REWARD);
 
-  //   const claimAmount = await emissionsERC20.calculateClaim(claimant.address);
+    // 93480728701802416
+    const expectedClaimAmount = expectedClaimAmountPlat
+      .add(expectedClaimAmountGold)
+      .add(expectedClaimAmountSilv)
+      .add(expectedClaimAmountBrnz);
 
-  //   console.log(`expectations:
-  //   claimDuration                               ${claimDuration}
-  //   claimDurationBN                             ${claimDurationBN}
-  //   fractionalClaimDurationBN                   ${fractionalClaimDurationBN}
-  //   baseRewardByDurationBronze                  ${baseRewardByDurationBronze}
-  //   baseRewardByDurationSilver                  ${baseRewardByDurationSilver}
-  //   baseRewardByDurationGold                    ${baseRewardByDurationGold}
-  //   baseRewardByDurationPlatinum                ${baseRewardByDurationPlatinum}
-  //   sumBaseRewardByDuration                     ${sumBaseRewardByDuration}
-  //   fractionalClaimDurationRemoveExcessAddOneBN ${fractionalClaimDurationRemoveExcessAddOneBN}
-  //   expectedClaimAmount                         ${expectedClaimAmount}
-  //   claimAmount                                 ${claimAmount}
-  //   `);
+    const claimAmount = await emissionsERC20.calculateClaim(claimant.address);
 
-  //   assert(
-  //     claimAmount.eq(expectedClaimAmount),
-  //     `wrong claim calculation result
-  //     expected  ${expectedClaimAmount}
-  //     got       ${claimAmount}`
-  //   );
-  // });
+    console.log(`expectations:
+    claimDuration                               ${claimDuration}
+    claimDurationBN                             ${claimDurationBN}
+    fractionalClaimDurationBN                   ${fractionalClaimDurationBN}
+    baseRewardByDurationBronze                  ${baseRewardByDurationBronze}
+    baseRewardByDurationSilver                  ${baseRewardByDurationSilver}
+    baseRewardByDurationGold                    ${baseRewardByDurationGold}
+    baseRewardByDurationPlatinum                ${baseRewardByDurationPlatinum}
+    sumBaseRewardByDuration                     ${sumBaseRewardByDuration}
+    fractionalClaimDurationRemoveExcessAddOneBN ${fractionalClaimDurationRemoveExcessAddOneBN}
+    expectedClaimAmount                         ${expectedClaimAmount}
+    claimAmount                                 ${claimAmount}
+    `);
+
+    assert(
+      claimAmount.eq(expectedClaimAmount),
+      `wrong claim calculation result
+      expected  ${expectedClaimAmount}
+      got       ${claimAmount}`
+    );
+  });
 });

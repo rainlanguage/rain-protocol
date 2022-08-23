@@ -67,7 +67,7 @@ describe("EmissionsERC20 Tier Test", async function () {
     const TIERWISE_DIFF = () =>
       concat([
           CURRENT_TIMESTAMP_AS_REPORT(),
-          op(Opcode.BLOCK_TIMESTAMP),
+            op(Opcode.BLOCK_TIMESTAMP),
             TIER_REPORT(),
             LAST_CLAIM_REPORT(),
           op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.every, Util.selectLteMode.max, 2)),
