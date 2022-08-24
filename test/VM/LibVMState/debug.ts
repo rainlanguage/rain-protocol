@@ -5,11 +5,13 @@ import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 
 enum DebugStyle {
-  StatePacked,
   Stack,
+  Constant,
+  Context,
+  Source,
 }
 
-xdescribe("LibVMState debug tests", async function () {
+describe("LibVMState debug tests", async function () {
   let libStackTop: LibVMStateTest;
 
   before(async () => {
@@ -22,23 +24,6 @@ xdescribe("LibVMState debug tests", async function () {
   it("should debug Stack", async () => {
     const stackIndex = 0;
     const debugStyle = DebugStyle.Stack;
-    // prettier-ignore
-    const sources = [
-      concat([
-        op(Opcode.BLOCK_NUMBER)
-      ])
-    ];
-
-    const _stackTopAfter_ = await libStackTop.callStatic.debug(
-      stackIndex,
-      debugStyle,
-      sources
-    );
-  });
-
-  it("should debug StatePacked", async () => {
-    const stackIndex = 0;
-    const debugStyle = DebugStyle.StatePacked;
     // prettier-ignore
     const sources = [
       concat([

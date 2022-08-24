@@ -4,14 +4,19 @@ pragma solidity ^0.8.15;
 import "../../vm/runtime/LibVMState.sol";
 import "../../vm/runtime/LibStackTop.sol";
 import "../../vm/ops/AllStandardOps.sol";
+import "../../type/LibCast.sol";
 
 /// @title LibVMStateTest
 /// Test wrapper around `LibVMState` library.
 contract LibVMStateTest is RainVM {
     using LibVMState for VMState;
     using LibVMState for bytes;
+    using LibVMState for bytes[];
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
+    using LibCast for function(VMState memory, Operand, StackTop)
+        view
+        returns (StackTop)[];
 
     function localEvalFunctionPointers()
         internal
@@ -26,7 +31,7 @@ contract LibVMStateTest is RainVM {
     {}
 
     /// @inheritdoc RainVM
-    function opFunctionPointers()
+    function opcodeFunctionPointers()
         internal
         view
         virtual
@@ -38,7 +43,8 @@ contract LibVMStateTest is RainVM {
                 memory
         )
     {
-        return AllStandardOps.opFunctionPointers(localEvalFunctionPointers());
+        return
+            AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
     }
 
     function debug(
@@ -50,7 +56,7 @@ contract LibVMStateTest is RainVM {
             (new uint256[](5)).asStackTopUp(), // stackBottom,
             (new uint256[](3)).asStackTopUp(), // constantsBottom,
             new uint256[](0), // context,
-            sources_ // ptrSources
+            sources_ // compiledSources
         );
 
         stackTopAfter_ = state_.debug(
@@ -59,29 +65,34 @@ contract LibVMStateTest is RainVM {
         );
     }
 
-    function fromBytesPacked(bytes[] memory ptrSources_)
-        external
-        pure
+    function fromBytesPacked(bytes[] memory sources_)
+        public
+        view
         returns (VMState memory state_)
     {
         uint256[] memory context_ = new uint256[](5);
-        bytes memory bytesPacked_ = toBytesPacked(ptrSources_);
+        bytes memory bytesPacked_ = toBytesPacked(sources_);
         state_ = bytesPacked_.fromBytesPacked(context_);
     }
 
-    function toBytesPacked(bytes[] memory ptrSources_)
+    function toBytesPacked(bytes[] memory sources_)
         public
-        pure
+        view
         returns (bytes memory bytesPacked_)
     {
         VMState memory state_ = VMState(
             (new uint256[](5)).asStackTopUp(), // stackBottom,
             (new uint256[](3)).asStackTopUp(), // constantsBottom,
             new uint256[](0), // context,
-            ptrSources_ // ptrSources
+            sources_ // compiledSources
         );
 
-        bytesPacked_ = state_.toBytesPacked();
+        bytesPacked_ = LibVMState.toBytesPacked(
+            state_.stackBottom.peek(),
+            state_.constantsBottom.down().asUint256Array(),
+            state_.compiledSources,
+            opcodeFunctionPointers()
+        );
     }
 
     function eval(bytes[] memory sources_)
@@ -89,17 +100,8 @@ contract LibVMStateTest is RainVM {
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        bytes[] memory ptrSources_ = new bytes[](sources_.length);
-        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-            ptrSources_[i_] = ptrSource(opFunctionPointers(), sources_[i_]);
-        }
-
-        VMState memory state_ = VMState(
-            (new uint256[](5)).asStackTopUp(), // stackBottom,
-            (new uint256[](3)).asStackTopUp(), // constantsBottom,
-            new uint256[](0), // context,
-            ptrSources_ // ptrSources
-        );
+        // FIXME: Packing and unpacking back to VMState just to compile the sources.
+        VMState memory state_ = fromBytesPacked(sources_);
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval();
@@ -110,17 +112,8 @@ contract LibVMStateTest is RainVM {
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        bytes[] memory ptrSources_ = new bytes[](sources_.length);
-        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-            ptrSources_[i_] = ptrSource(opFunctionPointers(), sources_[i_]);
-        }
-
-        VMState memory state_ = VMState(
-            (new uint256[](5)).asStackTopUp(), // stackBottom,
-            (new uint256[](3)).asStackTopUp(), // constantsBottom,
-            new uint256[](0), // context,
-            ptrSources_ // ptrSources
-        );
+        // FIXME: Packing and unpacking back to VMState just to compile the sources.
+        VMState memory state_ = fromBytesPacked(sources_);
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval(sourceIndex_);
@@ -131,17 +124,8 @@ contract LibVMStateTest is RainVM {
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        bytes[] memory ptrSources_ = new bytes[](sources_.length);
-        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-            ptrSources_[i_] = ptrSource(opFunctionPointers(), sources_[i_]);
-        }
-
-        VMState memory state_ = VMState(
-            (new uint256[](5)).asStackTopUp(), // stackBottom,
-            (new uint256[](3)).asStackTopUp(), // constantsBottom,
-            new uint256[](0), // context,
-            ptrSources_ // ptrSources
-        );
+        // FIXME: Packing and unpacking back to VMState just to compile the sources.
+        VMState memory state_ = fromBytesPacked(sources_);
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval(state_.stackBottom); // just use normal stackBottom for testing
@@ -152,17 +136,8 @@ contract LibVMStateTest is RainVM {
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        bytes[] memory ptrSources_ = new bytes[](sources_.length);
-        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-            ptrSources_[i_] = ptrSource(opFunctionPointers(), sources_[i_]);
-        }
-
-        VMState memory state_ = VMState(
-            (new uint256[](5)).asStackTopUp(), // stackBottom,
-            (new uint256[](3)).asStackTopUp(), // constantsBottom,
-            new uint256[](0), // context,
-            ptrSources_ // ptrSources
-        );
+        // FIXME: Packing and unpacking back to VMState just to compile the sources.
+        VMState memory state_ = fromBytesPacked(sources_);
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval(sourceIndex_, state_.stackBottom); // just use normal stackBottom for testing
