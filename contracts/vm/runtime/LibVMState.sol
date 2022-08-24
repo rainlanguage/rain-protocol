@@ -16,6 +16,14 @@ enum DebugStyle {
     Source
 }
 
+/// Config required to build a new `State`.
+/// @param sources Sources verbatim.
+/// @param constants Constants verbatim.
+struct StateConfig {
+    bytes[] sources;
+    uint256[] constants;
+}
+
 /// Everything required to evaluate and track the state of a rain script.
 /// As this is a struct it will be in memory when passed to `RainVM` and so
 /// will be modified by reference internally. This is important for gas
@@ -92,8 +100,8 @@ library LibVMState {
         return stackTop_;
     }
 
-    function fromBytesPacked(
-        bytes memory stateBytes_,
+    function deserialize(
+        bytes memory serialized_,
         uint256[] memory context_
     ) internal pure returns (VMState memory) {
         unchecked {
@@ -103,7 +111,7 @@ library LibVMState {
             // processing is needed for these.
             state_.context = context_;
 
-            StackTop cursor_ = stateBytes_.asStackTop().up();
+            StackTop cursor_ = serialized_.asStackTop().up();
             // The end of processing is the end of the state bytes.
             StackTop end_ = cursor_.upBytes(cursor_.peek());
 
@@ -173,10 +181,9 @@ library LibVMState {
         }
     }
 
-    function toBytesPacked(
+    function serialize(
+        StateConfig memory config_,
         uint256 stackLength_,
-        uint256[] memory constants_,
-        bytes[] memory sources_,
                     function(VMState memory, Operand, StackTop)
                 internal
                 view
@@ -186,27 +193,27 @@ library LibVMState {
         unchecked {
             uint size_ = 0;
             size_ += stackLength_.size();
-            size_ += constants_.size();
-            for (uint i_ = 0; i_ < sources_.length; i_++) {
-                size_ += sources_[i_].size();
+            size_ += config_.constants.size();
+            for (uint i_ = 0; i_ < config_.sources.length; i_++) {
+                size_ += config_.sources[i_].size();
             }
-            bytes memory packedBytes_ = new bytes(size_);
-            StackTop cursor_ = packedBytes_.asStackTop().up();
+            bytes memory serialized_ = new bytes(size_);
+            StackTop cursor_ = serialized_.asStackTop().up();
 
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
 
             // Then the constants.
-            cursor_ = cursor_.pushWithLength(constants_);
+            cursor_ = cursor_.pushWithLength(config_.constants);
 
             // Last the sources.
             bytes memory source_;
-            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-                source_ = sources_[i_];
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+                source_ = config_.sources[i_];
                 compile(source_, opcodeFunctionPointers_.asUint256Array());
                 cursor_ = cursor_.unalignedPushWithLength(source_);
             }
-            return packedBytes_;
+            return serialized_;
         }
     }
 

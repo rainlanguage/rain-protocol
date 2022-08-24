@@ -19,14 +19,6 @@ struct StorageOpcodesRange {
     uint256 length;
 }
 
-/// Config required to build a new `State`.
-/// @param sources Sources verbatim.
-/// @param constants Constants verbatim.
-struct StateConfig {
-    bytes[] sources;
-    uint256[] constants;
-}
-
 /// @title RainVM
 /// @notice micro VM for implementing and executing custom contract DSLs.
 /// Libraries and contracts map opcodes to `view` functionality then RainVM
@@ -98,6 +90,7 @@ abstract contract RainVM {
         internal
         view
         returns (StackTop);
+    using LibVMState for StateConfig;
 
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesRange()
@@ -145,10 +138,8 @@ abstract contract RainVM {
                 );
 
             return (
-                LibVMState.toBytesPacked(
+                config_.serialize(
                     stackLength_,
-                    config_.constants,
-                    config_.sources,
                     opcodeFunctionPointers()
                 ),
                 scratch_

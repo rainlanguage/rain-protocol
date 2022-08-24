@@ -71,14 +71,14 @@ contract LibVMStateTest is RainVM {
         returns (VMState memory state_)
     {
         uint256[] memory context_ = new uint256[](5);
-        bytes memory bytesPacked_ = toBytesPacked(sources_);
-        state_ = bytesPacked_.fromBytesPacked(context_);
+        bytes memory serialized_ = serialize(sources_);
+        state_ = serialized_.deserialize(context_);
     }
 
-    function toBytesPacked(bytes[] memory sources_)
+    function serialize(bytes[] memory sources_)
         public
         view
-        returns (bytes memory bytesPacked_)
+        returns (bytes memory serialized_)
     {
         VMState memory state_ = VMState(
             (new uint256[](5)).asStackTopUp(), // stackBottom,
@@ -87,7 +87,7 @@ contract LibVMStateTest is RainVM {
             sources_ // compiledSources
         );
 
-        bytesPacked_ = LibVMState.toBytesPacked(
+        serialized_ = LibVMState.serialize(
             state_.stackBottom.peek(),
             state_.constantsBottom.down().asUint256Array(),
             state_.compiledSources,

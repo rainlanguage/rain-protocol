@@ -55,7 +55,7 @@ contract StandardVM is RainVM {
         virtual
         returns (VMState memory)
     {
-        return SSTORE2.read(vmStatePointer).fromBytesPacked(context_);
+        return SSTORE2.read(vmStatePointer).deserialize(context_);
     }
 
     function localEvalFunctionPointers()

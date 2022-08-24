@@ -196,7 +196,7 @@ contract OrderBook is StandardVM {
                 {
                     (aOutputMax_, aPrice_) = a_
                         .vmState
-                        .fromBytesPacked(
+                        .deserialize(
                             EvalContext(aHash_, b_.owner).toContext()
                         )
                         .eval()
@@ -206,7 +206,7 @@ contract OrderBook is StandardVM {
                 {
                     (bOutputMax_, bPrice_) = b_
                         .vmState
-                        .fromBytesPacked(
+                        .deserialize(
                             EvalContext(bHash_, a_.owner).toContext()
                         )
                         .eval()
