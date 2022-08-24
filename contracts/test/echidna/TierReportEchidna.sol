@@ -58,7 +58,8 @@ contract TierReportEchidna {
 
     // Maxtier to be reverted with invalid tiers - Test fuzzed with Echidna
     // The functions with the modifier (like reportTimeForTier) should rever with invalid tiers
-    function echidnaRevertMaxTier() external view returns (bool) {
+    // solhint-disable-next-line func-name-mixedcase
+    function echidnarevert_MaxTier() external view returns (bool) {
         // Get the timestamp from library with values on storage
         uint256 timestampObtained = TierReport.reportTimeForTier(
             _report,
