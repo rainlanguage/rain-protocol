@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
 import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
@@ -30,8 +30,8 @@ describe("LibVMState debug tests", async function () {
     )) as LibVMStateTest;
   });
 
-  xit("should debug Stack", async () => {
-    const debugStyle = DebugStyle.Stack;
+  it("should debug Constants", async () => {
+    const debugStyle = DebugStyle.Constant;
     // prettier-ignore
     const sources = [
       concat([
@@ -42,30 +42,20 @@ describe("LibVMState debug tests", async function () {
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
+    const context = [3, 5, 7, 9, 11];
     const stackIndex = 0;
 
-    const serialized_ = await libVMState.callStatic.serialize({
-      sources,
-      constants,
-    });
+    console.log({ constants });
 
     const { stackTopBefore_, stackTopAfter_ } =
       await libVMState.callStatic.debug(
         { sources, constants },
         debugStyle,
-        stackIndex
+        stackIndex,
+        context
       );
 
     assert(stackTopAfter_.eq(stackTopBefore_));
-
-    console.log({
-      serialized_,
-      sources,
-      constants,
-      stackIndex,
-      stackTopBefore_,
-      stackTopAfter_,
-    });
   });
 
   it("should debug Source", async () => {
@@ -80,6 +70,7 @@ describe("LibVMState debug tests", async function () {
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
+    const context = [3, 5, 7, 9, 11];
     const stackIndex = 0;
 
     const serialized_ = await libVMState.callStatic.serialize({
@@ -87,19 +78,16 @@ describe("LibVMState debug tests", async function () {
       constants,
     });
 
+    console.log({ serialized_ });
+
     const { stackTopBefore_, stackTopAfter_ } =
       await libVMState.callStatic.debug(
         { sources, constants },
         debugStyle,
-        stackIndex
+        stackIndex,
+        context
       );
 
     assert(stackTopAfter_.eq(stackTopBefore_));
-
-    console.log({
-      serialized_,
-      sources,
-      constants,
-    });
   });
 });

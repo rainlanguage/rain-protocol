@@ -57,17 +57,14 @@ contract LibVMStateTest is RainVM {
     function debug(
         StateConfig memory config_,
         DebugStyle debugStyle_,
-        uint256 stackIndex_
+        uint256 stackIndex_,
+        uint256[] memory context_
     )
         external
         view
         returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
     {
-        VMState memory deserialized_ = serDeserialize(
-            config_,
-            new uint256[](0) // context
-        );
-
+        VMState memory deserialized_ = serDeserialize(config_, context_);
         stackTopBefore_ = deserialized_.stackBottom.up(stackIndex_);
         stackTopAfter_ = deserialized_.debug(stackTopBefore_, debugStyle_);
     }

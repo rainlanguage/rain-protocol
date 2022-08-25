@@ -39,7 +39,7 @@ export function bytify(
 /**
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode
- * @param erand - the operand, currently limited to 1 byte (defaults to 0)
+ * @param erand - the operand, currently limited to 2 bytes (defaults to 0)
  */
 export function op(
   code: number,
