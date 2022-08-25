@@ -1,1 +1,2 @@
 testMode: "assertion"
+stopOnFail: true

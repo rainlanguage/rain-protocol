@@ -1,1 +1,4 @@
 testMode: "property"
+cryticArgs: ["--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/"]
+stopOnFail: true
+prefix: "echidna"
