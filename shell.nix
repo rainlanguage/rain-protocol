@@ -88,7 +88,10 @@ let
 
   echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
     # By now, we will use the `echidna-test` file in the repo
-    time find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})" --config echidnaConfig.yaml' 
+
+    # TODO: Improve with FOR to handle better the configuration
+    
+    find contracts/test/echidna -name '*.sol' | xargs -i sh -c 'path_="{}"; ./echidna-test $path_ --contract "$(basename -s .sol $path_)" --config ''${path_%%.*}.yaml'
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
