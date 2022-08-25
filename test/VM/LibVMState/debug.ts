@@ -1,6 +1,8 @@
+import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 
@@ -12,29 +14,92 @@ enum DebugStyle {
 }
 
 describe("LibVMState debug tests", async function () {
-  let libStackTop: LibVMStateTest;
+  let libVMState: LibVMStateTest;
 
   before(async () => {
-    const libStackTopFactory = await ethers.getContractFactory(
-      "LibVMStateTest"
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    libStackTop = (await libStackTopFactory.deploy()) as LibVMStateTest;
+    const vmIntegrity =
+      (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    await vmIntegrity.deployed();
+
+    const libVMStateFactory = await ethers.getContractFactory("LibVMStateTest");
+    libVMState = (await libVMStateFactory.deploy(
+      vmIntegrity.address
+    )) as LibVMStateTest;
   });
 
-  it("should debug Stack", async () => {
-    const stackIndex = 0;
+  xit("should debug Stack", async () => {
     const debugStyle = DebugStyle.Stack;
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.BLOCK_NUMBER)
+        op(Opcode.BLOCK_NUMBER, 0),
+      ]),
+      concat([
+        op(Opcode.SENDER, 0),
       ])
     ];
+    const constants = [2, 4, 6, 8, 10];
+    const stackIndex = 0;
 
-    const _stackTopAfter_ = await libStackTop.callStatic.debug(
+    const serialized_ = await libVMState.callStatic.serialize({
+      sources,
+      constants,
+    });
+
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libVMState.callStatic.debug(
+        { sources, constants },
+        debugStyle,
+        stackIndex
+      );
+
+    assert(stackTopAfter_.eq(stackTopBefore_));
+
+    console.log({
+      serialized_,
+      sources,
+      constants,
       stackIndex,
-      debugStyle,
-      sources
-    );
+      stackTopBefore_,
+      stackTopAfter_,
+    });
+  });
+
+  it("should debug Source", async () => {
+    const debugStyle = DebugStyle.Source;
+    // prettier-ignore
+    const sources = [
+      concat([
+        op(Opcode.BLOCK_NUMBER, 0),
+      ]),
+      concat([
+        op(Opcode.SENDER, 0),
+      ])
+    ];
+    const constants = [2, 4, 6, 8, 10];
+    const stackIndex = 0;
+
+    const serialized_ = await libVMState.callStatic.serialize({
+      sources,
+      constants,
+    });
+
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libVMState.callStatic.debug(
+        { sources, constants },
+        debugStyle,
+        stackIndex
+      );
+
+    assert(stackTopAfter_.eq(stackTopBefore_));
+
+    console.log({
+      serialized_,
+      sources,
+      constants,
+    });
   });
 });

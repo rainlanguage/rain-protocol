@@ -5,18 +5,25 @@ import "../../vm/runtime/LibVMState.sol";
 import "../../vm/runtime/LibStackTop.sol";
 import "../../vm/ops/AllStandardOps.sol";
 import "../../type/LibCast.sol";
+import "../../array/LibUint256Array.sol";
+
+uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
 
 /// @title LibVMStateTest
 /// Test wrapper around `LibVMState` library.
 contract LibVMStateTest is RainVM {
     using LibVMState for VMState;
     using LibVMState for bytes;
-    using LibVMState for bytes[];
+    using LibVMState for StateConfig;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
-    using LibCast for function(VMState memory, Operand, StackTop)
-        view
-        returns (StackTop)[];
+    using LibUint256Array for uint256;
+
+    address internal immutable vmIntegrity;
+
+    constructor(address vmIntegrity_) {
+        vmIntegrity = vmIntegrity_;
+    }
 
     function localEvalFunctionPointers()
         internal
@@ -48,96 +55,98 @@ contract LibVMStateTest is RainVM {
     }
 
     function debug(
-        uint256 stackIndex_,
+        StateConfig memory config_,
         DebugStyle debugStyle_,
-        bytes[] memory sources_
-    ) external view returns (StackTop stackTopAfter_) {
-        VMState memory state_ = VMState(
-            (new uint256[](5)).asStackTopUp(), // stackBottom,
-            (new uint256[](3)).asStackTopUp(), // constantsBottom,
-            new uint256[](0), // context,
-            sources_ // compiledSources
+        uint256 stackIndex_
+    )
+        external
+        view
+        returns (StackTop stackTopBefore_, StackTop stackTopAfter_)
+    {
+        VMState memory deserialized_ = serDeserialize(
+            config_,
+            new uint256[](0) // context
         );
 
-        stackTopAfter_ = state_.debug(
-            state_.stackBottom.up(stackIndex_),
-            debugStyle_
-        );
+        stackTopBefore_ = deserialized_.stackBottom.up(stackIndex_);
+        stackTopAfter_ = deserialized_.debug(stackTopBefore_, debugStyle_);
     }
 
-    function fromBytesPacked(bytes[] memory sources_)
-        public
-        view
-        returns (VMState memory state_)
-    {
-        uint256[] memory context_ = new uint256[](5);
-        bytes memory serialized_ = serialize(sources_);
+    function serDeserialize(
+        StateConfig memory config_,
+        uint256[] memory context_
+    ) public view returns (VMState memory state_) {
+        bytes memory serialized_ = serialize(config_);
         state_ = serialized_.deserialize(context_);
     }
 
-    function serialize(bytes[] memory sources_)
+    function serialize(StateConfig memory config_)
         public
         view
         returns (bytes memory serialized_)
     {
-        VMState memory state_ = VMState(
-            (new uint256[](5)).asStackTopUp(), // stackBottom,
-            (new uint256[](3)).asStackTopUp(), // constantsBottom,
-            new uint256[](0), // context,
-            sources_ // compiledSources
-        );
+        (uint256 stackLength_, ) = IRainVMIntegrity(vmIntegrity)
+            .ensureIntegrity(
+                storageOpcodesRange(),
+                config_.sources,
+                config_.constants.length,
+                DEFAULT_MIN_FINAL_STACK.arrayFrom()
+            );
 
-        serialized_ = LibVMState.serialize(
-            state_.stackBottom.peek(),
-            state_.constantsBottom.down().asUint256Array(),
-            state_.compiledSources,
-            opcodeFunctionPointers()
-        );
+        serialized_ = config_.serialize(stackLength_, opcodeFunctionPointers());
     }
 
-    function eval(bytes[] memory sources_)
+    function eval(StateConfig memory config_)
         external
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        // FIXME: Packing and unpacking back to VMState just to compile the sources.
-        VMState memory state_ = fromBytesPacked(sources_);
+        VMState memory state_ = serDeserialize(
+            config_,
+            new uint256[](0) // context
+        );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval();
     }
 
-    function eval(bytes[] memory sources_, SourceIndex sourceIndex_)
+    function eval(StateConfig memory config_, SourceIndex sourceIndex_)
         external
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        // FIXME: Packing and unpacking back to VMState just to compile the sources.
-        VMState memory state_ = fromBytesPacked(sources_);
+        VMState memory state_ = serDeserialize(
+            config_,
+            new uint256[](0) // context
+        );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval(sourceIndex_);
     }
 
-    function evalStackTop(bytes[] memory sources_)
+    function evalStackTop(StateConfig memory config_)
         external
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        // FIXME: Packing and unpacking back to VMState just to compile the sources.
-        VMState memory state_ = fromBytesPacked(sources_);
+        VMState memory state_ = serDeserialize(
+            config_,
+            new uint256[](0) // context
+        );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval(state_.stackBottom); // just use normal stackBottom for testing
     }
 
-    function evalStackTop(bytes[] memory sources_, SourceIndex sourceIndex_)
+    function evalStackTop(StateConfig memory config_, SourceIndex sourceIndex_)
         external
         view
         returns (StackTop stackTopAfter_, uint256 stackBottom_)
     {
-        // FIXME: Packing and unpacking back to VMState just to compile the sources.
-        VMState memory state_ = fromBytesPacked(sources_);
+        VMState memory state_ = serDeserialize(
+            config_,
+            new uint256[](0) // context
+        );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
         stackTopAfter_ = state_.eval(sourceIndex_, state_.stackBottom); // just use normal stackBottom for testing
