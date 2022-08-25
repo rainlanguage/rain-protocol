@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import { IERC20Upgradeable as IERC20 } from "../../../typechain/IERC20Upgradeable";
 import { MockISale } from "../../../typechain/MockISale";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { RedeemableERC20ClaimEscrow } from "../../../typechain/RedeemableERC20ClaimEscrow";
@@ -69,13 +68,13 @@ describe("SaleEscrow protection from draining", async function () {
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
     const reserve = (await tokenFactory.deploy()) as ReserveToken;
-    const rTKN = (await tokenFactory.deploy()) as IERC20;
+    const rTKN = (await tokenFactory.deploy()) as ReserveToken;
 
     await reserve.deployed();
     await rTKN.deployed();
-
+    
     await reserve.initialize();
-
+    await rTKN.initialize();
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale1 = (await saleFactory.deploy()) as MockISale;
     const sale2 = (await saleFactory.deploy()) as MockISale;

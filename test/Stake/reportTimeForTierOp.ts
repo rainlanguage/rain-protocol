@@ -43,6 +43,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should return NEVER time using ITIERV2_REPORT_TIME_FOR_TIER if tier greater than context length", async () => {
