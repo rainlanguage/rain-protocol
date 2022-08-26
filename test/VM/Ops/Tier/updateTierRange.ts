@@ -1,10 +1,10 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
 import { NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
@@ -28,20 +28,19 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
 }
 
 describe("RainVM update tier range op", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
@@ -52,11 +51,11 @@ describe("RainVM update tier range op", async function () {
 
     const constants0 = [block, NEVER];
 
-    const vBlock = op(Opcode.CONSTANT, 0);
+    const vBlock = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.CONSTANT, 1),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
         vBlock,
       op(
         Opcode.UPDATE_TIMES_FOR_TIER_RANGE,

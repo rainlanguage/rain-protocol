@@ -25,6 +25,7 @@ describe("Stake deposit", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should not process an invalid deposit", async function () {
@@ -345,17 +346,13 @@ describe("Stake deposit", async function () {
     const alice = signers[2];
 
     // Transfer tokens from the deployer to the alice with the instances
-    const amountToTransfer = ethers.BigNumber.from('50000000');
+    const amountToTransfer = ethers.BigNumber.from("50000000");
     await token.connect(deployer).approve(deployer.address, amountToTransfer);
 
     //await token.connect(alice);
-    await token.transferFrom(
-      deployer.address,
-      alice.address,
-      amountToTransfer
-    );
+    await token.transferFrom(deployer.address, alice.address, amountToTransfer);
 
-    const tokenBalanceAlice = await token.balanceOf(alice.address)
+    const tokenBalanceAlice = await token.balanceOf(alice.address);
 
     assert(
       tokenBalanceAlice.eq(amountToTransfer),
@@ -381,11 +378,12 @@ describe("Stake deposit", async function () {
       "stake contract token balance is not zero before any deposits"
     );
 
-    await token.connect(alice).approve(stake.address, ethers.constants.MaxUint256);
+    await token
+      .connect(alice)
+      .approve(stake.address, ethers.constants.MaxUint256);
     const depositUnits = ethers.BigNumber.from("20000000");
-    // alice depositing 
+    // alice depositing
     await stake.deposit(depositUnits, alice.address);
-
 
     const stTokenTotalSupply1 = await stake.totalSupply();
     const tokenBalanceStake1 = await token.balanceOf(stake.address);
@@ -410,14 +408,14 @@ describe("Stake deposit", async function () {
     );
 
     // alice withdrawing half of her shares
-    const shares = await stake.balanceOf(alice.address)
-    await stake.withdraw(shares.div(2), alice.address, alice.address)
+    const shares = await stake.balanceOf(alice.address);
+    await stake.withdraw(shares.div(2), alice.address, alice.address);
 
     const stTokenTotalSupply2 = await stake.totalSupply();
     const tokenBalanceStake2 = await token.balanceOf(stake.address);
     const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
-    const tokenBalanceAlice1 = await token.balanceOf(alice.address) 
-      
+    const tokenBalanceAlice1 = await token.balanceOf(alice.address);
+
     assert(
       stTokenTotalSupply2.eq(stTokenTotalSupply1.div(2)),
       "stToken has not burned correct units"

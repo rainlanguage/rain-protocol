@@ -14,7 +14,7 @@ import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op } from "../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
 import { assertError } from "../../utils/test/assertError";
 import { SaleStorage, Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
@@ -32,6 +32,7 @@ describe("Sale buy", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should correctly generate receipts", async function () {
@@ -57,9 +58,9 @@ describe("Sale buy", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
@@ -192,10 +193,10 @@ describe("Sale buy", async function () {
       startBlock + saleDuration - 1,
       maxUnits,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
-    const vMaxUnits = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vMaxUnits = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       // prettier-ignore
@@ -294,9 +295,9 @@ describe("Sale buy", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
@@ -307,6 +308,7 @@ describe("Sale buy", async function () {
     );
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as SaleReentrant;
+    await maliciousReserve.initialize();
     // If cooldown could be set to zero, reentrant buy calls would be possible.
     await assertError(
       async () =>
@@ -429,9 +431,9 @@ describe("Sale buy", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
@@ -532,9 +534,9 @@ describe("Sale buy", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
@@ -614,10 +616,13 @@ describe("Sale buy", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vReserveDivisor = op(Opcode.CONSTANT, 1);
-    const vStart = op(Opcode.CONSTANT, 2);
-    const vEnd = op(Opcode.CONSTANT, 3);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vReserveDivisor = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([

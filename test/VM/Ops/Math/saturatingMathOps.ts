@@ -1,38 +1,37 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { max_uint256 } from "../../../../utils/constants";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM MathOps saturating math", async () => {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
   it("should perform saturating multiplication", async () => {
     const constants = [max_uint256, 2];
-    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
+    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal multiplication
     // prettier-ignore
@@ -82,8 +81,8 @@ describe("RainVM MathOps saturating math", async () => {
 
   it("should perform saturating subtraction", async () => {
     const constants = [10, 20];
-    const v10 = op(Opcode.CONSTANT, 0);
-    const v20 = op(Opcode.CONSTANT, 1);
+    const v10 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v20 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal subtraction
     // prettier-ignore
@@ -133,8 +132,8 @@ describe("RainVM MathOps saturating math", async () => {
 
   it("should perform saturating addition", async () => {
     const constants = [max_uint256, 10];
-    const vMaxUInt256 = op(Opcode.CONSTANT, 0);
-    const v10 = op(Opcode.CONSTANT, 1);
+    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v10 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal addition
     // prettier-ignore

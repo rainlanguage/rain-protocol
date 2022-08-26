@@ -9,6 +9,10 @@ import {TierConstants} from "../../tier/libraries/TierConstants.sol";
 ///
 /// Very simple TierV2 implementation for testing.
 contract TierV2Test is TierV2 {
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
     function report(address, uint256[] memory)

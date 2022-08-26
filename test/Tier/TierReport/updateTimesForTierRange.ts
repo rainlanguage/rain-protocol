@@ -25,7 +25,7 @@ describe("TierReport updateTimesForTierRange", async function () {
   it("should set all tiers within a min/max tier range to the specified timestamp in a given report", async () => {
     const initialTime = await getBlockTimestamp();
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO);
 
     const report = await readWriteTier.report(signer1.address, []);
 

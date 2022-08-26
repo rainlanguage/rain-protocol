@@ -1,24 +1,34 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../LibStackTop.sol";
+import "../../runtime/LibStackTop.sol";
+import "../../runtime/LibVMState.sol";
+import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpSub
 /// @notice Opcode for subtracting N numbers.
 library OpSub {
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
 
-    function sub(uint256 operand_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
-        StackTop location_ = stackTop_.down(operand_);
-        uint256 accumulator_ = location_.peekUp();
-        stackTopAfter_ = location_.up();
-        for (StackTop i_ = stackTopAfter_; i_.lt(stackTop_); i_ = i_.up()) {
-            accumulator_ -= i_.peekUp();
-        }
-        location_.set(accumulator_);
+    function _sub(uint256 a_, uint256 b_) internal pure returns (uint256) {
+        return a_ - b_;
+    }
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
+        return
+            integrityState_.applyFnN(stackTop_, _sub, Operand.unwrap(operand_));
+    }
+
+    function sub(
+        VMState memory,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop stackTopAfter_) {
+        return stackTop_.applyFnN(_sub, Operand.unwrap(operand_));
     }
 }

@@ -11,7 +11,7 @@ import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
 import { createEmptyBlock } from "../../../utils/hardhat";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 import { Phase } from "../../../utils/types/redeemableERC20";
 import { Status } from "../../../utils/types/sale";
@@ -30,6 +30,7 @@ describe("Sale redeemableERC20 token", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should configure tier correctly", async () => {
@@ -56,9 +57,9 @@ describe("Sale redeemableERC20 token", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
@@ -118,7 +119,7 @@ describe("Sale redeemableERC20 token", async function () {
       "MIN_TIER",
       "singer1 bought units from Sale without meeting minimum tier requirement"
     );
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
     // buy all units
     await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,
@@ -168,9 +169,9 @@ describe("Sale redeemableERC20 token", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),
@@ -266,9 +267,9 @@ describe("Sale redeemableERC20 token", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.CONSTANT, 0);
-    const vStart = op(Opcode.CONSTANT, 1);
-    const vEnd = op(Opcode.CONSTANT, 2);
+    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT), vBasePrice]),

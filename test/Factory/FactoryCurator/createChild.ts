@@ -21,6 +21,8 @@ import {
 } from "../../../typechain/StakeFactory";
 import {
   combineTierDeploy,
+  memoryOperand,
+  MemoryType,
   op,
   Opcode,
   stakeDeploy,
@@ -45,6 +47,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -84,7 +87,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    // await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    // await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     await assertError(
       async () =>
@@ -112,6 +115,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -151,7 +155,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     await assertError(
       async () =>
@@ -187,6 +191,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -226,7 +231,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     const txCreateChild = await factoryCurator
       .connect(signer1)
@@ -422,10 +427,10 @@ describe("FactoryCurator createChild", async function () {
     // CombineTier
     // prettier-ignore
     const sourceReportStake0 = concat([
-      op(Opcode.CONSTANT, 0), // ITierV2 contract stake0
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
       op(Opcode.CONTEXT, 0), // address
       op(Opcode.CONTEXT, 1), // TIER
-      op(Opcode.CONTEXT, 2), // THRESHOLD 
+      op(Opcode.CONTEXT, 2), // THRESHOLD
       op(Opcode.CONTEXT, 3),
       op(Opcode.CONTEXT, 4),
       op(Opcode.CONTEXT, 5),
@@ -438,10 +443,10 @@ describe("FactoryCurator createChild", async function () {
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-      op(Opcode.CONSTANT, 1), // ITierV2 contract stake1
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
       op(Opcode.CONTEXT, 0), // address
       op(Opcode.CONTEXT, 1), // TIER
-      op(Opcode.CONTEXT, 2), // THRESHOLD 
+      op(Opcode.CONTEXT, 2), // THRESHOLD
       op(Opcode.CONTEXT, 3),
       op(Opcode.CONTEXT, 4),
       op(Opcode.CONTEXT, 5),
@@ -463,15 +468,15 @@ describe("FactoryCurator createChild", async function () {
     // prettier-ignore
     const sourceMain = concat([
           sourceReportStake0, // stake0 report
-          op(Opcode.CONSTANT, 2), // max_uint32
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // max_uint32
         op(Opcode.LESS_THAN),
           sourceReportStake1, // stake1 report
-          op(Opcode.CONSTANT, 2), // max_uint32
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // max_uint32
         op(Opcode.LESS_THAN),
       op(Opcode.EVERY, 2), // Condition
       sourceReportStake0, // TRUE
-      op(Opcode.CONSTANT, 2), // FALSE
-    op(Opcode.EAGER_IF)    
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // FALSE
+    op(Opcode.EAGER_IF)
   ]);
 
     const combineTierMain = (await combineTierDeploy(deployer, {

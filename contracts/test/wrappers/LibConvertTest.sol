@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../type/LibConvert.sol";
-import "../MemoryDump.sol";
+import "../../debug/LibDebug.sol";
 
 /// @title LibConvertTest
 /// Thin wrapper around `LibConvert` library exposing functions for testing
@@ -11,8 +11,8 @@ contract LibConvertTest {
         external
         returns (bytes memory bytes_)
     {
-        MemoryDump.dumpMemory();
+        LibDebug.dumpMemory();
         bytes_ = LibConvert.toBytes(is_);
-        MemoryDump.dumpMemory();
+        LibDebug.dumpMemory();
     }
 }
