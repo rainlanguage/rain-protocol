@@ -172,7 +172,7 @@ contract OrderBook is StandardVM {
     }
 
     function _calculateOrderIO(Order memory order_, uint outputIOIndex_, address counterparty_) internal view returns (uint orderOutputMax_, uint orderIORatio_) {
-            VMState memory vmState_ = order_.vmState.fromBytesPacked(
+            VMState memory vmState_ = order_.vmState.deserialize(
                 EvalContext(order_.hash(), counterparty_).toContext()
             );
             (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
@@ -206,7 +206,6 @@ contract OrderBook is StandardVM {
         TakeOrderConfig memory takeOrder_;
         Order memory order_;
         uint remainingInput_ = takeOrders_.maximumInput;
-        VMState memory vmState_;
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
