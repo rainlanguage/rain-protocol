@@ -36,6 +36,52 @@ library LibIntegrityState {
         }
     }
 
+    function ensureIntegrity(
+        IntegrityState memory integrityState_,
+        SourceIndex sourceIndex_,
+        StackTop stackTop_,
+        uint256 minimumFinalStackIndex_
+    ) internal view returns (StackTop) {
+        unchecked {
+            uint256 cursor_;
+            uint256 end_;
+            assembly ("memory-safe") {
+                cursor_ := mload(
+                    add(
+                        mload(integrityState_),
+                        add(0x20, mul(0x20, sourceIndex_))
+                    )
+                )
+                end_ := add(cursor_, mload(cursor_))
+            }
+
+            // Loop until complete.
+            while (cursor_ < end_) {
+                uint256 opcode_;
+                Operand operand_;
+                cursor_ += 4;
+                assembly ("memory-safe") {
+                    let op_ := mload(cursor_)
+                    operand_ := and(op_, 0xFFFF)
+                    opcode_ := and(shr(16, op_), 0xFFFF)
+                }
+                // We index into the function pointers here to ensure that any
+                // opcodes that we don't have a pointer for will error.
+                stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
+                    integrityState_,
+                    operand_,
+                    stackTop_
+                );
+            }
+            require(
+                minimumFinalStackIndex_ <=
+                    integrityState_.stackBottom.toIndex(stackTop_),
+                "MIN_FINAL_STACK"
+            );
+            return stackTop_;
+        }
+    }
+
     function push(IntegrityState memory integrityState_, StackTop stackTop_)
         internal
         pure
@@ -62,7 +108,9 @@ library LibIntegrityState {
             // Stack bottom may be non-zero so check we are above it.
             (StackTop.unwrap(stackTop_) >=
                 StackTop.unwrap(integrityState_.stackBottom)) &&
-                // If we underflowed zero then we will be above the stack max top.
+                // If we underflowed zero then we will be above the stack max
+                // top. Assumes that at least 1 item was popped so we can do a
+                // strict inequality check here.
                 (StackTop.unwrap(stackTop_) <
                     StackTop.unwrap(integrityState_.stackMaxTop)),
             "STACK_UNDERFLOW"
@@ -82,9 +130,12 @@ library LibIntegrityState {
         IntegrityState memory integrityState_,
         StackTop stackTop_,
         uint256 n_
-    ) internal pure returns (StackTop stackTopAfter_) {
-        stackTopAfter_ = stackTop_.down(n_);
-        integrityState_.popUnderflowCheck(stackTopAfter_);
+    ) internal pure returns (StackTop) {
+        if (n_ > 0) {
+            stackTop_ = stackTop_.down(n_);
+            integrityState_.popUnderflowCheck(stackTop_);
+        }
+        return stackTop_;
     }
 
     function applyFnN(
