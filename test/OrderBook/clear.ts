@@ -66,7 +66,7 @@ describe("OrderBook clear order", async function () {
     const bountyBot = signers[3];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
@@ -80,8 +80,11 @@ describe("OrderBook clear order", async function () {
 
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(Opcode.CONSTANT, 0);
-    const vAskPrice = op(Opcode.CONSTANT, 1);
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -113,8 +116,11 @@ describe("OrderBook clear order", async function () {
 
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(Opcode.CONSTANT, 0);
-    const vBidPrice = op(Opcode.CONSTANT, 1);
+    const vBidOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
