@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
 import { CombineTier } from "../../typechain/CombineTier";
 import {
@@ -23,7 +23,7 @@ import {
   stakeDeploy,
   Tier,
 } from "../../utils";
-import { op } from "../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import type { ERC20PulleeTest } from "../../typechain/ERC20PulleeTest";
 const Opcode = AllStandardOps;
 
@@ -31,22 +31,21 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let reserve: ReserveToken;
   let redeemableERC20Config: ERC20ConfigStruct;
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     // LogicFactory
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
 
     // StakeFactory
@@ -90,7 +89,10 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     const tier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [0],
       },
     })) as CombineTier;
@@ -171,7 +173,9 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
         initialSupply: 0,
       },
       vmStateConfig: {
-        sources: [concat([op(Opcode.CONSTANT)])],
+        sources: [
+          concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
+        ],
         constants: [0],
       },
     };

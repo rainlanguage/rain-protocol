@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import type {
   CombineTier,
@@ -23,6 +23,8 @@ import {
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import {
+  memoryOperand,
+  MemoryType,
   op,
   selectLte,
   selectLteLogic,
@@ -34,22 +36,21 @@ import { ALWAYS } from "../../../utils/tier";
 const Opcode = AllStandardOps;
 
 describe("CombineTier ERC165 Test", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     // LogicFactory
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
 
     // StakeFactory
@@ -78,7 +79,10 @@ describe("CombineTier ERC165 Test", async function () {
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
@@ -87,7 +91,7 @@ describe("CombineTier ERC165 Test", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.CONSTANT, 0),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -129,7 +133,7 @@ describe("CombineTier ERC165 Test", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.CONSTANT, 0),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -170,7 +174,9 @@ describe("CombineTier ERC165 Test", async function () {
         initialSupply: 0,
       },
       vmStateConfig: {
-        sources: [concat([op(Opcode.CONSTANT)])],
+        sources: [
+          concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
+        ],
         constants: [0],
       },
     };
@@ -185,7 +191,7 @@ describe("CombineTier ERC165 Test", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.CONSTANT, 0),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -225,7 +231,9 @@ describe("CombineTier ERC165 Test", async function () {
         initialSupply: 0,
       },
       vmStateConfig: {
-        sources: [concat([op(Opcode.CONSTANT)])],
+        sources: [
+          concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
+        ],
         constants: [0],
       },
     };
@@ -239,7 +247,10 @@ describe("CombineTier ERC165 Test", async function () {
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
@@ -265,21 +276,21 @@ describe("CombineTier ERC165 Test", async function () {
 
     // prettier-ignore
     const sourceReportEmissions = concat([
-        op(Opcode.CONSTANT, 0),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceReportCombineTier = concat([
-        op(Opcode.CONSTANT, 1),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceReportStake = concat([
-        op(Opcode.CONSTANT, 2),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -326,7 +337,7 @@ describe("CombineTier ERC165 Test", async function () {
 
     // prettier-ignore
     const dummyReportSource = concat([
-        op(Opcode.CONSTANT, 0),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -356,7 +367,9 @@ describe("CombineTier ERC165 Test", async function () {
         initialSupply: 0,
       },
       vmStateConfig: {
-        sources: [concat([op(Opcode.CONSTANT)])],
+        sources: [
+          concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
+        ],
         constants: [0],
       },
     };
@@ -370,7 +383,10 @@ describe("CombineTier ERC165 Test", async function () {
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
@@ -390,28 +406,28 @@ describe("CombineTier ERC165 Test", async function () {
 
     // prettier-ignore
     const sourceReportEmissions = concat([
-        op(Opcode.CONSTANT, 0),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceReportCombineTier = concat([
-        op(Opcode.CONSTANT, 1),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceReportStake = concat([
-        op(Opcode.CONSTANT, 2),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceLogic = concat([
-        op(Opcode.CONSTANT, 3),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
         op(Opcode.CONTEXT, 0),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
