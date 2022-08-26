@@ -88,11 +88,6 @@ let
 
   echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
     # By now, we will use the `echidna-test` file in the repo
-
-    # TODO: Improve with FOR to handle better the configuration
-    
-    # find contracts/test/echidna -name '*.sol' | xargs -i sh -c 'path_="{}"; ./echidna-test $path_ --contract "$(basename -s .sol $path_)" --config ''${path_%%.*}.yaml'
-
     for file in $(find contracts/echidna -name '*.sol')
     do
         configFile=''${file%%.*}.yaml
