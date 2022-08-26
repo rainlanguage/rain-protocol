@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20BurnableUpgradeable as ERC20Burnable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 
 /// @title ReserveToken
 /// A test token that can be used as a reserve asset.
@@ -19,7 +19,8 @@ contract ReserveToken is ERC20, ERC20Burnable {
     uint256 public constant TOTAL_SUPPLY = 10**(DECIMALS + 9);
 
     /// Define and mint the erc20 token.
-    constructor() ERC20("USD Classic", "USDCC") {
+    function initialize() external initializer {
+        __ERC20_init("USD Classic", "USDCC");
         _mint(msg.sender, TOTAL_SUPPLY);
     }
 

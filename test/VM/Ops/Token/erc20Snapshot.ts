@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import {
   ReserveTokenERC20Snapshot,
@@ -11,7 +11,7 @@ import {
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { getEventArgs } from "../../../../utils/events";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -21,20 +21,19 @@ let signer1: SignerWithAddress;
 let tokenERC20Snapshot: ReserveTokenERC20Snapshot;
 
 describe("RainVM ERC20 Snapshot ops", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
@@ -46,11 +45,12 @@ describe("RainVM ERC20 Snapshot ops", async function () {
       "ReserveTokenERC20Snapshot",
       {}
     )) as ReserveTokenERC20Snapshot;
+    await tokenERC20Snapshot.initialize();
   });
 
   it("should return ERC20 total supply snapshot", async () => {
     const constants = [tokenERC20Snapshot.address];
-    const vTokenAddr = op(Opcode.CONSTANT, 0);
+    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -81,8 +81,8 @@ describe("RainVM ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 balance snapshot", async () => {
     const constants = [signer1.address, tokenERC20Snapshot.address];
-    const vSigner1 = op(Opcode.CONSTANT, 0);
-    const vTokenAddr = op(Opcode.CONSTANT, 1);
+    const vSigner1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [

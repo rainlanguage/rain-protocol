@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../array/LibUint256Array.sol";
-import "../../vm/LibStackTop.sol";
+import "../../vm/runtime/LibStackTop.sol";
 
 /// @title LibUint256ArrayTest
 /// Thin wrapper around `LibUint256Array` library exposing methods for testing
@@ -10,6 +10,34 @@ contract LibUint256ArrayTest {
     using LibUint256Array for uint256[];
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
+
+    function arrayFrom(uint256 a_) external pure returns (uint256[] memory) {
+        return LibUint256Array.arrayFrom(a_);
+    }
+
+    function arrayFrom(uint256 a_, uint256 b_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
+        return LibUint256Array.arrayFrom(a_, b_);
+    }
+
+    function arrayFrom(uint256 a_, uint256[] memory tail_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
+        return LibUint256Array.arrayFrom(a_, tail_);
+    }
+
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256[] memory tail_
+    ) external pure returns (uint256[] memory) {
+        return LibUint256Array.arrayFrom(a_, b_, tail_);
+    }
 
     function truncate(uint256[] memory array_, uint256 newLength_)
         external
@@ -47,7 +75,7 @@ contract LibUint256ArrayTest {
         return outputs_;
     }
 
-    function unsafeCopyValuesToNewArray(uint256[] memory inputs_)
+    function copyToNewUint256Array(uint256[] memory inputs_)
         external
         pure
         returns (uint256[] memory)
@@ -56,18 +84,7 @@ contract LibUint256ArrayTest {
         assembly ("memory-safe") {
             inputCursor_ := add(inputs_, 0x20)
         }
-        return LibUint256Array.unsafeCopyValuesToNewArray(
-            inputCursor_, inputs_.length
-        );
-    }
-
-    function getUnchecked(uint256[] memory list_, uint256 i_)
-        external
-        pure
-        returns (uint256)
-    {
-        return LibUint256Array.getUnchecked(
-            list_, i_
-        );
+        return
+            LibUint256Array.copyToNewUint256Array(inputCursor_, inputs_.length);
     }
 }

@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierV2 report time for tier op", async function () {
@@ -15,16 +15,15 @@ describe("TierV2 report time for tier op", async function () {
 
     const signer1 = signers[1];
 
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    const stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     // deploy a basic vm contract
     const logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
 
     const readWriteTierFactory = await ethers.getContractFactory(
@@ -39,9 +38,9 @@ describe("TierV2 report time for tier op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.CONSTANT, 0), // ITierV2 contract
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.SENDER), // account
-        op(Opcode.CONSTANT, 1), // tier
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // tier
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 

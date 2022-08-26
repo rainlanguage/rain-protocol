@@ -1,26 +1,34 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../LibStackTop.sol";
+import "../../../runtime/LibStackTop.sol";
 import "../../../../type/LibCast.sol";
+import "../../../runtime/LibVMState.sol";
+import "../../../integrity/LibIntegrityState.sol";
 
 /// @title OpEqualTo
 /// @notice Opcode to compare the top two stack values.
 library OpEqualTo {
     using LibCast for bool;
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
 
-    function equalTo(uint256, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop)
-    {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 a_,
-            uint256 b_
-        ) = stackTop_.popAndPeek();
-        location_.set((a_ == b_).asUint256());
-        return stackTopAfter_;
+    function _equalTo(uint256 a_, uint256 b_) internal pure returns (uint256) {
+        return (a_ == b_).asUint256();
+    }
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        Operand,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
+        return integrityState_.applyFn(stackTop_, _equalTo);
+    }
+
+    function equalTo(
+        VMState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_equalTo);
     }
 }

@@ -10,7 +10,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier report context", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxAccount = op(Opcode.CONTEXT);
 
   // prettier-ignore
   // return default report
@@ -23,7 +23,7 @@ describe("CombineTier report context", async function () {
   it("should support a program which simply returns the account", async () => {
     const signers = await ethers.getSigners();
 
-    const sourceReport = concat([op(Opcode.CONTEXT, 0)]);
+    const sourceReport = concat([op(Opcode.CONTEXT)]);
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,

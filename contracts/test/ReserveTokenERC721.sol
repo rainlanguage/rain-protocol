@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC721Burnable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {ERC721BurnableUpgradeable as ERC721Burnable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 
 /// @title ReserveTokenERC721
 // Extremely basic ERC721 implementation for testing purposes.
@@ -11,7 +11,8 @@ contract ReserveTokenERC721 is ERC721, ERC721Burnable {
     uint256 public tokenCount;
 
     /// Define and mint a erc721 token.
-    constructor() ERC721("Test NFT", "TNFT") {
+    function initialize() external initializer {
+        __ERC721_init("Test NFT", "TNFT");
         tokenCount = 0;
         _mint(msg.sender, tokenCount);
     }

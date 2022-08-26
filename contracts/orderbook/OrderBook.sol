@@ -3,10 +3,12 @@ pragma solidity =0.8.15;
 
 import "../vm/StandardVM.sol";
 import "../vm/LibStackTop.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Multicall.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "../vm/runtime/StandardVM.sol";
+import "../vm/runtime/LibStackTop.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/Multicall.sol";
 import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "./libraries/Order.sol";
@@ -44,14 +46,9 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-uint256 constant LOCAL_OP_CLEARED_ORDER = ALL_STANDARD_OPS_LENGTH;
-uint256 constant LOCAL_OP_CLEARED_COUNTERPARTY = LOCAL_OP_CLEARED_ORDER + 1;
 uint256 constant LOCAL_OPS_LENGTH = 2;
-
-uint256 constant TRACKING_MASK_CLEARED_ORDER = 0x1;
-uint256 constant TRACKING_MASK_CLEARED_COUNTERPARTY = 0x2;
-uint256 constant TRACKING_MASK_ALL = TRACKING_MASK_CLEARED_ORDER |
-    TRACKING_MASK_CLEARED_COUNTERPARTY;
+uint256 constant TRACKING_FLAG_CLEARED_ORDER = 0x1;
+uint256 constant TRACKING_FLAG_CLEARED_COUNTERPARTY = 0x2;
 
 library LibEvalContext {
     function toContext(EvalContext memory evalContext_)
@@ -68,12 +65,14 @@ library LibEvalContext {
 contract OrderBook is Multicall, StandardVM {
     using LibVMState for bytes;
     using LibStackTop for StackTop;
+    using LibStackTop for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
+    using LibVMState for VMState;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -101,7 +100,7 @@ contract OrderBook is Multicall, StandardVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {}
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -139,8 +138,8 @@ contract OrderBook is Multicall, StandardVM {
 
     function addOrder(OrderConfig calldata orderConfig_) external {
         Order memory order_ = LibOrder.fromOrderConfig(
-            vmStateBuilder,
-            self,
+            IRainVMIntegrity(vmIntegrity),
+            buildStateBytes,
             orderConfig_
         );
         OrderHash orderHash_ = order_.hash();
@@ -197,27 +196,20 @@ contract OrderBook is Multicall, StandardVM {
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
             unchecked {
-                VMState memory vmState_;
                 {
-                    vmState_ = a_.vmState.fromBytesPacked();
-                    eval(
-                        EvalContext(aHash_, b_.owner).toContext(),
-                        vmState_,
-                        ENTRYPOINT
-                    );
-                    aPrice_ = vmState_.stack[vmState_.stackIndex - 1];
-                    aOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
+                    (aOutputMax_, aPrice_) = a_
+                        .vmState
+                        .deserialize(EvalContext(aHash_, b_.owner).toContext())
+                        .eval()
+                        .peek2();
                 }
 
                 {
-                    vmState_ = b_.vmState.fromBytesPacked();
-                    eval(
-                        EvalContext(bHash_, a_.owner).toContext(),
-                        vmState_,
-                        ENTRYPOINT
-                    );
-                    bPrice_ = vmState_.stack[vmState_.stackIndex - 1];
-                    bOutputMax_ = vmState_.stack[vmState_.stackIndex - 2];
+                    (bOutputMax_, bPrice_) = b_
+                        .vmState
+                        .deserialize(EvalContext(bHash_, a_.owner).toContext())
+                        .eval()
+                        .peek2();
                 }
             }
 
@@ -255,10 +247,10 @@ contract OrderBook is Multicall, StandardVM {
             vaults[a_.owner][a_.validOutputs[clearConfig_.aOutputIndex].token][
                 a_.validOutputs[clearConfig_.aOutputIndex].vaultId
             ] -= stateChange_.aOutput;
-            if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
+            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
                 clearedOrder[aHash_] += stateChange_.aOutput;
             }
-            if (_isTracked(a_.tracking, TRACKING_MASK_CLEARED_COUNTERPARTY)) {
+            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
                 // A counts funds paid to cover the bounty as cleared for B.
                 clearedCounterparty[aHash_][b_.owner] += stateChange_.aOutput;
             }
@@ -267,10 +259,10 @@ contract OrderBook is Multicall, StandardVM {
             vaults[b_.owner][b_.validOutputs[clearConfig_.bOutputIndex].token][
                 b_.validOutputs[clearConfig_.bOutputIndex].vaultId
             ] -= stateChange_.bOutput;
-            if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_ORDER)) {
+            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
                 clearedOrder[bHash_] += stateChange_.bOutput;
             }
-            if (_isTracked(b_.tracking, TRACKING_MASK_CLEARED_COUNTERPARTY)) {
+            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
                 clearedCounterparty[bHash_][a_.owner] += stateChange_.bOutput;
             }
         }
@@ -304,45 +296,52 @@ contract OrderBook is Multicall, StandardVM {
         emit AfterClear(stateChange_);
     }
 
-    function opOrderFundsCleared(uint256, StackTop stackTop_)
+    function _opOrderFundsCleared(uint256 orderHash_)
         internal
         view
-        returns (StackTop)
+        returns (uint256)
     {
-        (StackTop location_, uint256 orderHash_) = stackTop_.peek();
-        location_.set(clearedOrder[OrderHash.wrap(orderHash_)]);
-        return stackTop_;
+        return clearedOrder[OrderHash.wrap(orderHash_)];
     }
 
-    function opOrderCounterpartyFundsCleared(uint256, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 orderHash_,
-            uint256 counterparty_
-        ) = stackTop_.popAndPeek();
-        location_.set(
+    function opOrderFundsCleared(
+        VMState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_opOrderFundsCleared);
+    }
+
+    function _orderCounterpartyFundsCleared(
+        uint256 orderHash_,
+        uint256 counterparty_
+    ) internal view returns (uint256) {
+        return
             clearedCounterparty[OrderHash.wrap(orderHash_)][
                 address(uint160(counterparty_))
-            ]
-        );
-        return stackTopAfter_;
+            ];
     }
 
-    function localFnPtrs()
+    function opOrderCounterpartyFundsCleared(
+        VMState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_orderCounterpartyFundsCleared);
+    }
+
+    function localEvalFunctionPointers()
         internal
         pure
         override
         returns (
-            function(uint256, StackTop) view returns (StackTop)[]
+            function(VMState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(uint256, StackTop)
+        localFnPtrs_ = new function(VMState memory, Operand, StackTop)
             view
             returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;

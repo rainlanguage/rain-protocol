@@ -4,7 +4,7 @@ pragma solidity =0.8.15;
 import {Factory} from "../factory/Factory.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "./RedeemableERC20.sol";
 import {ITierV2} from "../tier/ITierV2.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title RedeemableERC20Factory
 /// @notice Factory for deploying and registering `RedeemableERC20` contracts.

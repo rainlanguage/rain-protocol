@@ -2,11 +2,14 @@ import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import * as Util from "../../../utils";
 import {
   eighteenZeros,
   getBlockTimestamp,
+  loopNOperand,
+  memoryOperand,
+  MemoryType,
   op,
   paddedUInt256,
   paddedUInt32,
@@ -42,7 +45,9 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.CONSTANT)])],
+          sources: [
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
+          ],
           constants: [claimAmount],
         },
       }
@@ -81,7 +86,9 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
           initialSupply: 0,
         },
         vmStateConfig: {
-          sources: [concat([op(Opcode.CONSTANT)])],
+          sources: [
+            concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
+          ],
           constants: [claimAmount],
         },
       }
@@ -95,7 +102,7 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       );
   });
 
-  it("should calculate correct emissions amount (if division is performed on final result)", async function () {
+  xit("should calculate correct emissions amount (if division is performed on final result)", async function () {
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -156,18 +163,35 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // BEGIN global constants
 
-    const valTierAddrAddress = op(Opcode.CONSTANT, 0);
-    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
-    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
-    const valAlways = op(Opcode.CONSTANT, 3);
-    const valOne = op(Opcode.CONSTANT, 4);
+    const constants = [
+      readWriteTier.address,
+      BASE_REWARD_PER_TIER,
+      BLOCKS_PER_YEAR,
+      Util.ALWAYS,
+      Util.ONE,
+    ];
+
+    const valTierAddrAddress = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valBaseRewardPerTier = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const valBlocksPerYear = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const valOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     // END global constants
 
     // BEGIN zipmap args
 
-    const argDuration = op(Opcode.CONSTANT, 5);
-    const argBaseReward = op(Opcode.CONSTANT, 6);
+    const argDuration = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 5));
+    const argBaseReward = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 6));
 
     // END zipmap args
 
@@ -176,35 +200,35 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     // prettier-ignore
     const PROGRESS = () =>
       concat([
-        argDuration,
-        valBlocksPerYear,
-        op(Opcode.SCALE18_DIV, 0),
-        valOne,
+            argDuration,
+            valBlocksPerYear,
+          op(Opcode.SCALE18_DIV, 0),
+          valOne,
         op(Opcode.MIN, 2),
       ]);
 
     // prettier-ignore
     const MULTIPLIER = () =>
       concat([
-        PROGRESS(),
-        valOne,
+          PROGRESS(),
+          valOne,
         op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
     const FN = () =>
       concat([
-        MULTIPLIER(),
-        argBaseReward,
-        argDuration,
+          MULTIPLIER(),
+          argBaseReward,
+          argDuration,
         op(Opcode.MUL, 3),
       ]);
 
     // prettier-ignore
     const CURRENT_BLOCK_AS_REPORT = () =>
       concat([
-        valAlways,
-        op(Opcode.BLOCK_NUMBER),
+          valAlways,
+          op(Opcode.BLOCK_NUMBER),
         op(
           Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
           tierRange(Tier.ZERO, Tier.EIGHT)
@@ -214,52 +238,47 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     // prettier-ignore
     const LAST_CLAIM_REPORT = () =>
       concat([
-        op(Opcode.THIS_ADDRESS),
-        op(Opcode.CONTEXT),
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIER_REPORT = () =>
       concat([
-        valTierAddrAddress,
-        op(Opcode.CONTEXT),
+          valTierAddrAddress,
+          op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       ]);
 
     // prettier-ignore
     const TIERWISE_DIFF = () =>
       concat([
-        CURRENT_BLOCK_AS_REPORT(),
-        op(Opcode.BLOCK_NUMBER),
-        TIER_REPORT(),
-        LAST_CLAIM_REPORT(),
-        op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+          CURRENT_BLOCK_AS_REPORT(),
+            op(Opcode.BLOCK_NUMBER),
+            TIER_REPORT(),
+            LAST_CLAIM_REPORT(),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
         op(Opcode.SATURATING_DIFF),
       ]);
 
     // prettier-ignore
     const SOURCE = () =>
       concat([
-        TIERWISE_DIFF(),
-        valBaseRewardPerTier,
-        op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
-        op(Opcode.ADD, 8),
-        // base reward is 6 decimals so we scale back down to 18.
-        // we do this outside the zipmap loop to save gas.
+                TIERWISE_DIFF(),
+              op(Opcode.EXPLODE32),
+                valBaseRewardPerTier,
+              op(Opcode.EXPLODE32),
+            op(Opcode.LOOP_N, loopNOperand(3, 1)), // Looping FN 3 times
+            // op(Opcode.DEBUG, Debug.Stack),
+          // op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
+          op(Opcode.ADD, 8),
+          // base reward is 6 decimals so we scale back down to 18.
+          // we do this outside the zipmap loop to save gas.
         op(Opcode.SCALE18, 24),
       ]);
 
     // END Source snippets
-
-    const constants = [
-      // FN(),
-      readWriteTier.address,
-      BASE_REWARD_PER_TIER,
-      BLOCKS_PER_YEAR,
-      Util.ALWAYS,
-      Util.ONE,
-    ];
 
     console.log("source", SOURCE(), FN());
     console.log("constants", constants);
@@ -357,14 +376,19 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
     claimAmount                                 ${claimAmount}
     `);
 
-    console.log(claimAmount, expectedClaimAmount);
+    assert(
+      claimAmount.eq(expectedClaimAmount),
+      `wrong claim calculation result
+      expected  ${expectedClaimAmount}
+      got       ${claimAmount}`
+    );
 
     await emissionsERC20.connect(claimant).claim(claimant.address, []);
 
     console.log(await emissionsERC20.balanceOf(claimant.address));
   });
 
-  it("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
+  xit("should calculate correct emissions amount (if division is performed on each result per tier)", async function () {
     const signers = await ethers.getSigners();
     const creator = signers[0];
     const claimant = signers[1];
@@ -422,111 +446,6 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
 
     // BEGIN global constants
 
-    const valTierAddrAddress = op(Opcode.CONSTANT, 0);
-    const valBaseRewardPerTier = op(Opcode.CONSTANT, 1);
-    const valBlocksPerYear = op(Opcode.CONSTANT, 2);
-    const valBNOne = op(Opcode.CONSTANT, 3);
-    const valBNOneReward = op(Opcode.CONSTANT, 4);
-    const valAlways = op(Opcode.CONSTANT, 5);
-
-    // END global constants
-
-    // BEGIN zipmap args
-
-    const valDuration = op(Opcode.CONSTANT, 6);
-    const valBaseReward = op(Opcode.CONSTANT, 7);
-
-    // END zipmap args
-
-    // BEGIN Source snippets
-
-    // prettier-ignore
-    const REWARD = () =>
-      concat([
-        valDuration,
-        valBaseReward,
-        op(Opcode.MUL, 2),
-      ]);
-
-    // prettier-ignore
-    const PROGRESS = () =>
-      concat([
-        valBNOne,
-        valDuration,
-        valBNOne,
-        op(Opcode.MUL, 2),
-        valBlocksPerYear,
-        op(Opcode.DIV, 2),
-        op(Opcode.MIN, 2),
-      ]);
-
-    // prettier-ignore
-    const MULTIPLIER = () =>
-      concat([
-        PROGRESS(),
-        valBNOne,
-        op(Opcode.ADD, 2),
-      ]);
-
-    // prettier-ignore
-    const FN = () =>
-      concat([
-        REWARD(),
-        MULTIPLIER(),
-        op(Opcode.MUL, 2),
-        valBNOneReward, // scale EACH tier result down by reward per block scaler
-        op(Opcode.DIV, 2),
-      ]);
-
-    // prettier-ignore
-    const CURRENT_TIMESTAMP_AS_REPORT = () =>
-      concat([
-        valAlways,
-        op(Opcode.BLOCK_TIMESTAMP),
-        op(
-          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
-          tierRange(Tier.ZERO, Tier.EIGHT)
-        ),
-      ]);
-
-    // prettier-ignore
-    const LAST_CLAIM_REPORT = () =>
-      concat([
-        op(Opcode.THIS_ADDRESS),
-        op(Opcode.CONTEXT),
-        op(Opcode.ITIERV2_REPORT),
-      ]);
-
-    // prettier-ignore
-    const TIER_REPORT = () =>
-      concat([
-        valTierAddrAddress,
-        op(Opcode.CONTEXT),
-        op(Opcode.ITIERV2_REPORT),
-      ]);
-
-    // prettier-ignore
-    const TIERWISE_DIFF = () =>
-      concat([
-        CURRENT_TIMESTAMP_AS_REPORT(),
-        op(Opcode.BLOCK_TIMESTAMP),
-        TIER_REPORT(),
-        LAST_CLAIM_REPORT(),
-        op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
-        op(Opcode.SATURATING_DIFF),
-      ]);
-
-    // prettier-ignore
-    const SOURCE = () =>
-      concat([
-        TIERWISE_DIFF(),
-        valBaseRewardPerTier,
-        op(Opcode.ZIPMAP, Util.zipmapSize(1, 3, 1)),
-        op(Opcode.ADD, 8),
-      ]);
-
-    // END Source snippets
-
     const constants = [
       readWriteTier.address,
       BASE_REWARD_PER_TIER,
@@ -536,7 +455,126 @@ describe("EmissionsERC20 Claim Amount Test", async function () {
       Util.ALWAYS,
     ];
 
-    console.log("source", SOURCE());
+    const valTierAddrAddress = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const valBaseRewardPerTier = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const valBlocksPerYear = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const valBNOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const valBNOneReward = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 4)
+    );
+    const valAlways = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
+    // END global constants
+
+    // BEGIN zipmap args
+
+    const argDuration = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 6));
+    const argBaseReward = op(Opcode.STATE, memoryOperand(MemoryType.Stack, 7));
+
+    // END zipmap args
+
+    // BEGIN Source snippets
+
+    // prettier-ignore
+    const REWARD = () =>
+      concat([
+          argDuration,
+          argBaseReward,
+        op(Opcode.MUL, 2),
+      ]);
+
+    // prettier-ignore
+    const PROGRESS = () =>
+      concat([
+          valBNOne,
+              argDuration,
+              valBNOne,
+            op(Opcode.MUL, 2),
+            valBlocksPerYear,
+          op(Opcode.DIV, 2),
+        op(Opcode.MIN, 2),
+      ]);
+
+    // prettier-ignore
+    const MULTIPLIER = () =>
+      concat([
+          PROGRESS(),
+          valBNOne,
+        op(Opcode.ADD, 2),
+      ]);
+
+    // prettier-ignore
+    const FN = () =>
+      concat([
+            REWARD(),
+            MULTIPLIER(),
+          op(Opcode.MUL, 2),
+          valBNOneReward, // scale EACH tier result down by reward per block scaler
+        op(Opcode.DIV, 2),
+      ]);
+
+    // prettier-ignore
+    const CURRENT_TIMESTAMP_AS_REPORT = () =>
+      concat([
+          valAlways,
+          op(Opcode.BLOCK_TIMESTAMP),
+        op(
+          Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
+          tierRange(Tier.ZERO, Tier.EIGHT)
+        ),
+      ]);
+
+    // prettier-ignore
+    const LAST_CLAIM_REPORT = () =>
+      concat([
+          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT),
+      ]);
+
+    // prettier-ignore
+    const TIER_REPORT = () =>
+      concat([
+          valTierAddrAddress,
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT),
+      ]);
+
+    // prettier-ignore
+    const TIERWISE_DIFF = () =>
+      concat([
+          CURRENT_TIMESTAMP_AS_REPORT(),
+            op(Opcode.BLOCK_TIMESTAMP),
+            TIER_REPORT(),
+            LAST_CLAIM_REPORT(),
+          op(Opcode.SELECT_LTE, Util.selectLte(Util.selectLteLogic.any, Util.selectLteMode.max, 2)),
+        op(Opcode.SATURATING_DIFF),
+      ]);
+
+    // prettier-ignore
+    const SOURCE = () =>
+      concat([
+              TIERWISE_DIFF(),
+            op(Opcode.EXPLODE32),
+              valBaseRewardPerTier,
+            op(Opcode.EXPLODE32),
+          op(Opcode.LOOP_N, loopNOperand(3, 1)), // Looping FN 3 times
+        op(Opcode.ADD, 8),
+      ]);
+
+    // END Source snippets
+
+    console.log("source", SOURCE(), FN());
     console.log("constants", constants);
     console.log("source length", SOURCE().length);
 
