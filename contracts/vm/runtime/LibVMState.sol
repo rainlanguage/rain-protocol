@@ -92,8 +92,10 @@ library LibVMState {
                     .copyToNewUint256Array(length_);
             } else if (debugStyle_ == DebugStyle.Constant) {
                 array_ = state_.constantsBottom.down().asUint256Array();
+                length_ = array_.length;
             } else {
                 array_ = state_.context;
+                length_ = array_.length;
             }
             console.log("~~~");
             for (uint256 i_ = 0; i_ < length_; i_++) {

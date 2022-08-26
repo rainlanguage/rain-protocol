@@ -38,7 +38,10 @@ describe("LibVMState debug tests", async function () {
         op(Opcode.BLOCK_NUMBER, 0),
       ]),
       concat([
+        op(Opcode.BLOCK_NUMBER, 0),
         op(Opcode.SENDER, 0),
+        op(Opcode.THIS_ADDRESS, 0),
+        op(Opcode.BLOCK_TIMESTAMP, 0),
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
@@ -65,9 +68,6 @@ describe("LibVMState debug tests", async function () {
     const sources = [
       concat([
         op(Opcode.BLOCK_NUMBER, 0),
-      ]),
-      concat([
-        op(Opcode.SENDER, 0),
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
@@ -96,9 +96,6 @@ describe("LibVMState debug tests", async function () {
     const sources = [
       concat([
         op(Opcode.BLOCK_NUMBER, 0),
-      ]),
-      concat([
-        op(Opcode.SENDER, 0),
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
@@ -129,7 +126,10 @@ describe("LibVMState debug tests", async function () {
         op(Opcode.BLOCK_NUMBER, 0),
       ]),
       concat([
+        op(Opcode.BLOCK_NUMBER, 0),
         op(Opcode.SENDER, 0),
+        op(Opcode.THIS_ADDRESS, 0),
+        op(Opcode.BLOCK_TIMESTAMP, 0),
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
