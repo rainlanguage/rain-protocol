@@ -12,7 +12,7 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// so.
     mapping(address => bool) private contracts;
 
-    constructor () {
+    constructor() {
         // Technically `ReentrancyGuard` is initializable but allowing it to be
         // initialized is a foot-gun as the status will be set to _NOT_ENTERED.
         // This would allow re-entrant behaviour upon initialization of the

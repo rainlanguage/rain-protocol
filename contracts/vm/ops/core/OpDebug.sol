@@ -6,8 +6,6 @@ import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
-
-
 /// @title OpDebug
 /// @notice Opcode for debugging state. Uses the standard debugging logic from
 /// VMState.debug.

@@ -19,7 +19,7 @@ contract ReserveToken18 is ERC20, ERC20Burnable {
     uint256 public constant TOTAL_SUPPLY = 10**(DECIMALS + 9);
 
     /// Define and mint the erc20 token.
-    function initialize() initializer external {
+    function initialize() external initializer {
         __ERC20_init("USD Classic", "USDCC");
         _mint(msg.sender, TOTAL_SUPPLY);
     }

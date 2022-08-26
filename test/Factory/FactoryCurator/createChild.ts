@@ -31,7 +31,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize()
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -99,7 +99,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize()
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -175,7 +175,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize()
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 

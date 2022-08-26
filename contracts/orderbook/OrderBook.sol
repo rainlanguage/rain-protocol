@@ -196,9 +196,7 @@ contract OrderBook is StandardVM {
                 {
                     (aOutputMax_, aPrice_) = a_
                         .vmState
-                        .deserialize(
-                            EvalContext(aHash_, b_.owner).toContext()
-                        )
+                        .deserialize(EvalContext(aHash_, b_.owner).toContext())
                         .eval()
                         .peek2();
                 }
@@ -206,9 +204,7 @@ contract OrderBook is StandardVM {
                 {
                     (bOutputMax_, bPrice_) = b_
                         .vmState
-                        .deserialize(
-                            EvalContext(bHash_, a_.owner).toContext()
-                        )
+                        .deserialize(EvalContext(bHash_, a_.owner).toContext())
                         .eval()
                         .peek2();
                 }

@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
 import { StandardIntegrity } from "../../../typechain/StandardIntegrity";

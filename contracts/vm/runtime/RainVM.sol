@@ -138,10 +138,7 @@ abstract contract RainVM {
                 );
 
             return (
-                config_.serialize(
-                    stackLength_,
-                    opcodeFunctionPointers()
-                ),
+                config_.serialize(stackLength_, opcodeFunctionPointers()),
                 scratch_
             );
         }

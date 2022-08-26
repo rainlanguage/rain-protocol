@@ -83,6 +83,7 @@ contract StandardVM is RainVM {
                 memory
         )
     {
-        return AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
+        return
+            AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
     }
 }

@@ -26,7 +26,7 @@ describe("Stake report", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await token.initialize()
+    await token.initialize();
   });
 
   it("should return a correct report when staked tokens exceeded all thresholds until some were withdrawn, and then deposited again to exceed all thresholds", async function () {

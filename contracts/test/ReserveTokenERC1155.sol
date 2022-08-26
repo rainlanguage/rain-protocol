@@ -16,7 +16,7 @@ contract ReserveTokenERC1155 is ERC1155, ERC1155Burnable {
     uint256 public tokenCount;
 
     /// Define and mint a erc1155 token.
-    function initialize() initializer external {
+    function initialize() external initializer {
         __ERC1155_init("");
         tokenCount = 0;
         _mint(msg.sender, tokenCount, TOTAL_SUPPLY, "");

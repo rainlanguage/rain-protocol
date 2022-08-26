@@ -30,7 +30,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
   beforeEach(async () => {
     // some other token to put into the escrow
     reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize()
+    await reserve.initialize();
     const redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
       {}

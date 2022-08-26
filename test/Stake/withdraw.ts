@@ -26,7 +26,7 @@ describe("Stake withdraw", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await token.initialize()
+    await token.initialize();
   });
 
   it("should not process an invalid withdraw", async function () {

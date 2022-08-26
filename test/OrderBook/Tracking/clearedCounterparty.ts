@@ -40,8 +40,8 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await tokenA.initialize()
-    await tokenB.initialize()
+    await tokenA.initialize();
+    await tokenB.initialize();
   });
 
   before(async () => {

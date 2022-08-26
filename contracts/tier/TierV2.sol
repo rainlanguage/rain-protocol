@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
-import {ERC165Upgradeable as ERC165 } from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "./ITierV2.sol";
 
 abstract contract TierV2 is ITierV2, ERC165 {
+    // solhint-disable-next-line func-name-mixedcase
     function __TierV2_init() internal onlyInitializing {
         __ERC165_init();
     }

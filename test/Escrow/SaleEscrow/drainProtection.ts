@@ -72,7 +72,7 @@ describe("SaleEscrow protection from draining", async function () {
 
     await reserve.deployed();
     await rTKN.deployed();
-    
+
     await reserve.initialize();
     await rTKN.initialize();
     const saleFactory = await ethers.getContractFactory("MockISale");

@@ -44,10 +44,10 @@ describe("OrderBook many-to-many", async function () {
     tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenC = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     tokenD = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    await tokenA.initialize()
-    await tokenB.initialize()
-    await tokenC.initialize()
-    await tokenD.initialize()
+    await tokenA.initialize();
+    await tokenB.initialize();
+    await tokenC.initialize();
+    await tokenD.initialize();
   });
 
   before(async () => {
