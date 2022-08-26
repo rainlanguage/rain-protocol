@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity 0.8.15;
 
-import {SaturatingMath} from "../../../math/SaturatingMath.sol";
+import {SaturatingMath} from "../../math/SaturatingMath.sol";
 
 /// @title SaturingMathEchidna
 /// Wrapper around the `SaturatingMath` library for echidna fuzz testing.

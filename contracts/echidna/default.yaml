@@ -1,0 +1,4 @@
+testMode: "assertion"
+cryticArgs: ["--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/"]
+stopOnFail: true
+testLimit: 20000

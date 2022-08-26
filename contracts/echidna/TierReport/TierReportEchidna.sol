@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {TierReport} from "../../../tier/libraries/TierReport.sol";
-import {TierConstants} from "../../../tier/libraries/TierConstants.sol";
-import {TierReportTest} from "../../../test/wrappers/TierReportTest.sol";
+import {TierReport} from "../../tier/libraries/TierReport.sol";
+import {TierConstants} from "../../tier/libraries/TierConstants.sol";
+import {TierReportTest} from "../../test/wrappers/TierReportTest.sol";
 
 /// @title TierReportEchidna
 /// Wrapper around the `TierReport` library for echidna fuzz testing.

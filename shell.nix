@@ -91,7 +91,14 @@ let
 
     # TODO: Improve with FOR to handle better the configuration
     
-    find contracts/test/echidna -name '*.sol' | xargs -i sh -c 'path_="{}"; ./echidna-test $path_ --contract "$(basename -s .sol $path_)" --config ''${path_%%.*}.yaml'
+    # find contracts/test/echidna -name '*.sol' | xargs -i sh -c 'path_="{}"; ./echidna-test $path_ --contract "$(basename -s .sol $path_)" --config ''${path_%%.*}.yaml'
+
+    for file in $(find contracts/echidna -name '*.sol')
+    do
+        configFile=''${file%%.*}.yaml
+        if ! [ -e $configFile ]; then configFile=contracts/echidna/default.yaml; fi;
+        ./echidna-test $file --contract "$(basename -s .sol $file)" --config $configFile
+    done
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
