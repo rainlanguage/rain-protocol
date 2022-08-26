@@ -26,6 +26,7 @@ describe("Stake withdraw", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should not process an invalid withdraw", async function () {
@@ -360,6 +361,5 @@ describe("Stake withdraw", async function () {
     // Alice withdraws all stake tokens
     const depositsAlice2_ = await getDeposits(stake, alice.address);
     assert(depositsAlice2_.length === 0);
-
   });
 });

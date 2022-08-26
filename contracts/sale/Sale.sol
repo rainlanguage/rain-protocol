@@ -4,19 +4,19 @@ pragma solidity =0.8.15;
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
-import "../vm/StandardVM.sol";
+import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
-import "../vm/VMStateBuilder.sol";
+import "../vm/integrity/RainVMIntegrity.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -32,7 +32,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    address vmStateBuilder;
+    address vmIntegrity;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -129,20 +129,23 @@ struct Receipt {
     uint256 price;
 }
 
-uint256 constant CAN_LIVE_ENTRYPOINT = 0;
-uint256 constant CALCULATE_PRICE_ENTRYPOINT = 1;
+SourceIndex constant CAN_LIVE_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
-uint256 constant CALCULATE_PRICE_MIN_FINAL_STACK_INDEX = 2;
+uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
 
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
+contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
     using LibVMState for VMState;
+    using LibStackTop for uint256[];
+    using LibStackTop for StackTop;
+    using LibUint256Array for uint256;
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -234,7 +237,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_)
-        StandardVM(config_.vmStateBuilder)
+        StandardVM(config_.vmIntegrity)
     {
         _disableInitializers();
         maximumSaleTimeout = config_.maximumSaleTimeout;
@@ -248,6 +251,7 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         SaleConfig calldata config_,
         SaleRedeemableERC20Config memory saleRedeemableERC20Config_
     ) external initializer {
+        __ReentrancyGuard_init();
         initializeCooldown(config_.cooldownDuration);
 
         require(config_.saleTimeout <= maximumSaleTimeout, "MAX_TIMEOUT");
@@ -262,17 +266,13 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        Bounds memory canLiveBounds_;
-        canLiveBounds_.entrypoint = CAN_LIVE_ENTRYPOINT;
-        canLiveBounds_.minFinalStackIndex = CAN_LIVE_MIN_FINAL_STACK_INDEX;
-        Bounds memory calculatePriceBounds_;
-        calculatePriceBounds_.entrypoint = CALCULATE_PRICE_ENTRYPOINT;
-        calculatePriceBounds_
-            .minFinalStackIndex = CALCULATE_PRICE_MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](2);
-        boundss_[0] = canLiveBounds_;
-        boundss_[1] = calculatePriceBounds_;
-        _saveVMState(config_.vmStateConfig, boundss_);
+        _saveVMState(
+            config_.vmStateConfig,
+            LibUint256Array.arrayFrom(
+                CAN_LIVE_MIN_FINAL_STACK_INDEX,
+                CALCULATE_BUY_MIN_FINAL_STACK_INDEX
+            )
+        );
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;
@@ -354,39 +354,8 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
-            eval(new uint256[](0), state_, CAN_LIVE_ENTRYPOINT);
-            bool canLive_ = state_.stack[state_.stackIndex - 1] > 0;
-            state_.reset();
-            return canLive_;
-        }
-    }
-
-    /// Calculates the current reserve price quoted for 1 unit of rTKN.
-    /// Used internally to process `buy`.
-    /// @param targetUnits_ Amount of rTKN to quote a price and units for, will
-    /// be available to the price script from OPCODE_CURRENT_BUY_UNITS. When
-    /// `buy` executes the target units will be the smaller of the remaining
-    /// stock and the desired units set by the caller.
-    /// @return (maxUnits, price) The top two items on the stack are used for
-    /// the units and price. When `buy` executes the real purchase size will be
-    /// the smaller of the target units and the returned maximum units. If this
-    /// is below the buyer's minimum the buy will revert.
-    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
-        internal
-        view
-        returns (uint256, uint256)
-    {
-        unchecked {
-            uint256[] memory context_ = new uint256[](1);
-            context_[0] = targetUnits_;
-            eval(context_, state_, CALCULATE_PRICE_ENTRYPOINT);
-
-            (uint256 maxUnits_, uint256 price_) = (
-                state_.stack[state_.stackIndex - 2],
-                state_.stack[state_.stackIndex - 1]
-            );
-            state_.reset();
-            return (maxUnits_, price_);
+            state_.context = new uint256[](0);
+            return state_.eval(CAN_LIVE_ENTRYPOINT).peek() > 0;
         }
     }
 
@@ -422,6 +391,15 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// themselves.
     function canLive() external view returns (bool) {
         return _canLive(_loadVMState());
+    }
+
+    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
+        internal
+        view
+        returns (uint256, uint256)
+    {
+        state_.context = targetUnits_.arrayFrom();
+        return state_.eval(CALCULATE_BUY_ENTRYPOINT).peek2();
     }
 
     function calculateBuy(uint256 targetUnits_)
@@ -517,7 +495,6 @@ contract Sale is Initializable, Cooldown, StandardVM, ISale, ReentrancyGuard {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
         uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
-
         (uint256 maxUnits_, uint256 price_) = _calculateBuy(
             state_,
             targetUnits_

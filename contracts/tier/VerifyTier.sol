@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 import "./TierV2.sol";
 import "../verify/libraries/VerifyConstants.sol";
 import {State, Verify} from "../verify/Verify.sol";
@@ -13,7 +11,7 @@ import "./libraries/TierReport.sol";
 /// @dev A contract that is `VerifyTier` expects to derive tiers from the time
 /// the account was approved by the underlying `Verify` contract. The approval
 /// timestamps defer to `State.since` returned from `Verify.state`.
-contract VerifyTier is TierV2, Initializable {
+contract VerifyTier is TierV2 {
     /// Result of initializing.
     /// @param sender `msg.sender` that initialized the contract.
     /// @param verify The `Verify` contract checked for reports.
@@ -28,6 +26,7 @@ contract VerifyTier is TierV2, Initializable {
     /// Sets the `verify` contract.
     /// @param verify_ The contract to check to produce reports.
     function initialize(address verify_) external initializer {
+        __TierV2_init();
         require(verify_ != address(0), "0_ADDRESS");
         verify = Verify(verify_);
         emit Initialize(msg.sender, verify_);

@@ -45,6 +45,7 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
+    rm -rf crytic-export
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -88,7 +89,7 @@ let
 
   echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
     # By now, we will use the `echidna-test` file in the repo
-    time find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})" --config echidnaConfig.yaml' 
+    time find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})" --config echidnaConfig.yaml'
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
@@ -150,6 +151,7 @@ in
 pkgs.stdenv.mkDerivation {
   name = "shell";
   buildInputs = [
+    pkgs.watch
     pkgs.nixpkgs-fmt
     pkgs.yarn
     pkgs.nodejs-16_x

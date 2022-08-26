@@ -4,6 +4,14 @@ import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
 /**
+ * Returns a DataHexString representation of a slice of aBytesLike, from offset (in bytes) to endOffset (in bytes). If endOffset is omitted, the length of aBytesLike is used.
+ * @see https://docs.ethers.io/v5/api/utils/bytes/#utils-hexDataSlice
+ */
+export function readBytes(bytes: BytesLike, from: number, to?: number): string {
+  return ethers.utils.hexDataSlice(bytes, from, to != null ? to : null);
+}
+
+/**
  * Returns a random 32 byte number in hexstring format
  */
 export function randomUint256(): string {
@@ -11,34 +19,46 @@ export function randomUint256(): string {
 }
 
 /**
- * Pads leading zeroes of hex number to hex string length of 32 bytes
- * @param {BigNumber} hex
+ * Pads leading zeroes of BigNumber to hex string length of 32 bytes
+ * @param {BigNumber} num
  */
-export function zeroPad32(hex: BigNumber): string {
-  return ethers.utils.hexZeroPad(hex.toHexString(), 32);
-}
-
-/**
- * Pads leading zeroes of hex number to hex string length of 4 bytes
- * @param {BigNumber} hex
- */
-export function zeroPad4(hex: BigNumber): string {
-  return ethers.utils.hexZeroPad(hex.toHexString(), 4);
-}
-
-/**
- * Pads leading zeroes of hex number to hex string length of 2 bytes
- * @param {BigNumber} hex
- */
-export function zeroPad2(hex: BigNumber): string {
-  return ethers.utils.hexZeroPad(hex.toHexString(), 2);
-}
-
-export const paddedUInt256 = (report: BigNumber): string => {
-  if (report.gt(max_uint256)) {
-    throw new Error(`${report} exceeds max uint256`);
+export function zeroPad32(num: BigNumber | number): string {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
   }
-  return "0x" + report.toHexString().substring(2).padStart(64, "0");
+  return ethers.utils.hexZeroPad(num.toHexString(), 32);
+}
+
+/**
+ * Pads leading zeroes of BigNumber to hex string length of 4 bytes
+ * @param {BigNumber} num
+ */
+export function zeroPad4(num: BigNumber | number): string {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
+  return ethers.utils.hexZeroPad(num.toHexString(), 4);
+}
+
+/**
+ * Pads leading zeroes of BigNumber to hex string length of 2 bytes
+ * @param {BigNumber} num
+ */
+export function zeroPad2(num: BigNumber | number): string {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
+  return ethers.utils.hexZeroPad(num.toHexString(), 2);
+}
+
+export const paddedUInt256 = (num: BigNumber | number): string => {
+  if (typeof num === "number") {
+    num = ethers.BigNumber.from(num);
+  }
+  if (num.gt(max_uint256)) {
+    throw new Error(`${num} exceeds max uint256`);
+  }
+  return "0x" + num.toHexString().substring(2).padStart(64, "0");
 };
 
 export const paddedUInt32 = (
@@ -74,18 +94,18 @@ export const wrap8BitUInt = (integer: number) => {
   return integer;
 };
 
-export const array2BitUInts = (length) =>
+export const array2BitUInts = (length: number): number[] =>
   Array(length)
     .fill(0)
     // .map((_, i) => 3);
     .map((_, i) => wrap2BitUInt(i));
 
-export const array4BitUInts = (length) =>
+export const array4BitUInts = (length: number): number[] =>
   Array(length)
     .fill(0)
     .map((_, i) => wrap4BitUInt(i));
 
-export const array8BitUInts = (length) =>
+export const array8BitUInts = (length: number): number[] =>
   Array(length)
     .fill(0)
     .map((_, i) => wrap8BitUInt(i));

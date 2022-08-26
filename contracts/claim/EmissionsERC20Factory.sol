@@ -3,7 +3,7 @@ pragma solidity =0.8.15;
 
 import {Factory} from "../factory/Factory.sol";
 import {EmissionsERC20, EmissionsERC20Config} from "./EmissionsERC20.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title EmissionsERC20Factory
 /// @notice Factory for deploying and registering `EmissionsERC20` contracts.
@@ -13,8 +13,8 @@ contract EmissionsERC20Factory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmStateBuilder_) {
-        address implementation_ = address(new EmissionsERC20(vmStateBuilder_));
+    constructor(address vmIntegrity_) {
+        address implementation_ = address(new EmissionsERC20(vmIntegrity_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

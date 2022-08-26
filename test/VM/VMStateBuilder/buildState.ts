@@ -1,23 +1,22 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { StackHeightTest } from "../../../typechain/StackHeightTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
-describe("VMStateBuilder buildState", async function () {
-  let stateBuilder: AllStandardOpsStateBuilder;
+describe("RainVMIntegrity buildState", async function () {
+  let integrity: StandardIntegrity;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
   });
 
   it("should enforce minimum stack height after eval", async () => {
@@ -27,7 +26,7 @@ describe("VMStateBuilder buildState", async function () {
 
     // test contract expects stack height of 2
     const stackHeightTest = (await stackHeightTestFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as StackHeightTest;
 
     const constants = [1];
@@ -35,24 +34,22 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 1
     // prettier-ignore
     const sources0 = [concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONSTANT, 0),
-      op(Opcode.ADD, 2),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ])];
 
     // should fail with stack height < min stack height
     await assertError(
       async () =>
         await stackHeightTest.initialize({ sources: sources0, constants }),
-      "FINAL_STACK_INDEX",
+      "MIN_FINAL_STACK",
       "did not enforce minimum stack height after eval"
     );
 
     // final stack height = 2
     // prettier-ignore
     const sources1 = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ])];
 
     // should pass with stack height = min stack height
@@ -61,9 +58,9 @@ describe("VMStateBuilder buildState", async function () {
     // final stack height = 3
     // prettier-ignore
     const sources2 = [concat([
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
-      op(Opcode.CONSTANT, 0),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
   ])];
 
     // should pass with stack height > min stack height

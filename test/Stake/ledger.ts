@@ -25,6 +25,7 @@ describe("Stake direct ledger analysis", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should correctly update `deposits` ledger in FILO order when multiple ledger entries are consumed by a single withdrawal", async () => {
@@ -307,7 +308,7 @@ describe("Stake direct ledger analysis", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
     const depositsAlice2_ = await getDeposits(stake, alice.address);
-   
+
     const expectedAliceLength2 = 0;
     assert(
       depositsAlice2_.length === expectedAliceLength2,

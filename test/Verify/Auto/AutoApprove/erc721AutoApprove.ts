@@ -15,7 +15,7 @@ import {
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
 import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;
@@ -41,8 +41,8 @@ describe("AutoApprove ERC721 ownership", async function () {
     const aprAdmin = signers[3];
     const signer1 = signers[4];
 
-    const vTokenAddr = op(Opcode.CONSTANT, 0);
-    const cAccount = op(Opcode.CONTEXT, 0);
+    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const cAccount = op(Opcode.CONTEXT);
     const cNftId = op(Opcode.CONTEXT, 1);
 
     const stateConfig: StateConfigStruct = {

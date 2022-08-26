@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
 /// @title ReserveTokenTest
 /// An example token that can be used as a reserve asset.
@@ -14,7 +14,8 @@ contract ReserveTokenTest is ERC20 {
     /// Test against frozen assets, for example USDC can do this.
     mapping(address => bool) public freezables;
 
-    constructor() ERC20("USD Classic", "USDCC") {
+    constructor() {
+        __ERC20_init("USD Classic", "USDCC");
         _mint(msg.sender, INITIAL_MINT * 10**18);
     }
 
