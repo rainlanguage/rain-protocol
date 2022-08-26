@@ -36,6 +36,7 @@ describe("Sale calculate price", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {
@@ -366,7 +367,7 @@ describe("Sale calculate price", async function () {
             distributionEndForwardingAddress: ethers.constants.AddressZero,
           }
         ),
-      "Array accessed at an out-of-bounds or negative index",
+      "Error",
       "did not prevent out of bounds opcode deploy"
     );
   });

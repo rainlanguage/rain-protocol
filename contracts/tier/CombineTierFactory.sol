@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import {Factory} from "../factory/Factory.sol";
 import {CombineTier, CombineTierConfig} from "./CombineTier.sol";
 
@@ -13,8 +13,8 @@ contract CombineTierFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmStateBuilder_) {
-        address implementation_ = address(new CombineTier(vmStateBuilder_));
+    constructor(address vmIntegrity_) {
+        address implementation_ = address(new CombineTier(vmIntegrity_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

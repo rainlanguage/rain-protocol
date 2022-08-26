@@ -9,7 +9,7 @@ import "../tier/libraries/TierReport.sol";
 import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
 import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../sstore2/SSTORE2.sol";
 import "../array/LibUint256Array.sol";
 
@@ -26,10 +26,6 @@ struct EmissionsERC20Config {
     StateConfig vmStateConfig;
 }
 
-/// @dev Source index for VM eval.
-SourceIndex constant ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant MIN_FINAL_STACK_INDEX = 1;
-
 /// @title EmissionsERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
 /// expressed as a rainVM script and the `claim` function is world-callable.
@@ -43,16 +39,11 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// claim and then diff it against the current block number.
 /// See `test/Claim/EmissionsERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract EmissionsERC20 is
-    TierV2,
-    Initializable,
-    StandardVM,
-    ERC20Upgradeable,
-    IClaim
-{
+contract EmissionsERC20 is TierV2, StandardVM, ERC20, IClaim {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibVMState for VMState;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -74,7 +65,7 @@ contract EmissionsERC20 is
     /// diffed against the upstream report from a tier based emission scheme.
     mapping(address => uint256) private reports;
 
-    constructor(address vmStateBuilder_) StandardVM(vmStateBuilder_) {
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
     }
 
@@ -83,13 +74,14 @@ contract EmissionsERC20 is
         external
         initializer
     {
+        __TierV2_init();
         __ERC20_init(config_.erc20Config.name, config_.erc20Config.symbol);
         _mint(
             config_.erc20Config.distributor,
             config_.erc20Config.initialSupply
         );
 
-        _saveVMState(config_.vmStateConfig, MIN_FINAL_STACK_INDEX.arrayFrom());
+        _saveVMState(config_.vmStateConfig);
 
         /// Log some deploy state for use by claim/opcodes.
         allowDelegatedClaims = config_.allowDelegatedClaims;
@@ -127,10 +119,8 @@ contract EmissionsERC20 is
     /// `claimant_`.
     /// @param claimant_ Address to calculate current claim for.
     function calculateClaim(address claimant_) public view returns (uint256) {
-        uint256[] memory context_ = new uint256[](1);
-        context_[0] = uint256(uint160(claimant_));
-        VMState memory state_ = _loadVMState(context_);
-        return eval(state_, ENTRYPOINT, state_.stackBottom).peek();
+        return
+            _loadVMState(uint256(uint160(claimant_)).arrayFrom()).eval().peek();
     }
 
     /// Processes the claim for `claimant_`.

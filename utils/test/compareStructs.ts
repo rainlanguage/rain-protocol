@@ -109,7 +109,10 @@ const testStructs = (
           condition,
           `wrong value for property: '${key}'
           expected  ${expectedValue}
-          got       ${actualValue}`
+          got       ${actualValue}
+          -
+          key       ${key}
+          object    ${solObj}`
         );
       }
     }
@@ -143,7 +146,10 @@ const testSolStructs = (
         condition,
         `wrong value for property: '${key}'
         expected  ${expectedValue}
-        got       ${actualValue}`
+        got       ${actualValue}
+        -
+        key       ${key}
+        object    ${solActualObj}`
       );
     }
   });

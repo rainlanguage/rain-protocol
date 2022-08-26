@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { max_uint256 } from "../../../../utils/constants";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
@@ -12,20 +12,19 @@ const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainVM MathOps saturating math", async () => {
-  let stateBuilder: AllStandardOpsIntegrity;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
@@ -52,7 +51,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "normal multiplication overflow did not error"
     );
 
@@ -103,7 +102,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "normal subtraction overflow did not error"
     );
 
@@ -151,7 +150,7 @@ describe("RainVM MathOps saturating math", async () => {
 
     await assertError(
       async () => await logic.run(),
-      "Arithmetic operation underflowed or overflowed",
+      "Error",
       "normal addition overflow did not error"
     );
 

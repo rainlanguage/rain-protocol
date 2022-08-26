@@ -30,6 +30,7 @@ describe("Sale redeemableERC20 token", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should configure tier correctly", async () => {
@@ -118,7 +119,7 @@ describe("Sale redeemableERC20 token", async function () {
       "MIN_TIER",
       "singer1 bought units from Sale without meeting minimum tier requirement"
     );
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
     // buy all units
     await sale.connect(signer1).buy({
       feeRecipient: feeRecipient.address,

@@ -8,7 +8,7 @@ import type {
   OrderDeadEvent,
   OrderLiveEvent,
 } from "../../typechain/OrderBook";
-import { OrderBookStateBuilder } from "../../typechain/OrderBookStateBuilder";
+import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
 import { ReserveToken18 } from "../../typechain/ReserveToken18";
 import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -23,7 +23,7 @@ describe("OrderBook remove order", async function () {
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
     tokenB: ReserveToken18,
-    stateBuilder: OrderBookStateBuilder;
+    integrity: OrderBookIntegrity;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -31,12 +31,11 @@ describe("OrderBook remove order", async function () {
   });
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "OrderBookStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "OrderBookIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as OrderBookStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
+    await integrity.deployed();
 
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
@@ -47,7 +46,7 @@ describe("OrderBook remove order", async function () {
     const alice = signers[1];
 
     const orderBook = (await orderBookFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);

@@ -31,6 +31,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -70,7 +71,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    // await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    // await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     await assertError(
       async () =>
@@ -98,6 +99,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -137,7 +139,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     await assertError(
       async () =>
@@ -173,6 +175,7 @@ describe("FactoryCurator createChild", async function () {
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
     const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -212,7 +215,7 @@ describe("FactoryCurator createChild", async function () {
 
     await reserve.connect(signer1).approve(factoryCurator.address, FEE);
 
-    await readWriteTier.setTier(signer1.address, Tier.FOUR, []);
+    await readWriteTier.setTier(signer1.address, Tier.FOUR);
 
     const txCreateChild = await factoryCurator
       .connect(signer1)

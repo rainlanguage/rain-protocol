@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Snapshot.sol";
+import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
 import "../../../runtime/LibStackTop.sol";
 import "../../../runtime/LibVMState.sol";
 import "../../../integrity/LibIntegrityState.sol";

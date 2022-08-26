@@ -2,9 +2,8 @@
 pragma solidity =0.8.15;
 
 import "./IVerifyCallback.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlUpgradeable as AccessControl} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "./libraries/VerifyConstants.sol";
 import "./LibEvidence.sol";
 import "../array/LibUint256Array.sol";
@@ -45,7 +44,7 @@ struct VerifyConfig {
 ///
 /// For example, I can simply say "I am the queen of England" and what
 /// onchain mechanism could possibly check, let alone stop me?
-/// The same problem exists in any situation where some priviledge or right is
+/// The same problem exists in any situation where some privilege or right is
 /// associated with identity. Consider passports, driver's licenses,
 /// celebrity status, age, health, accredited investor, social media account,
 /// etc. etc.
@@ -159,7 +158,7 @@ struct VerifyConfig {
 /// rights after establishing a more granular and appropriate set of accounts
 /// with each specific role.
 ///
-/// There is no requirement that any of the priviledged accounts with roles are
+/// There is no requirement that any of the privileged accounts with roles are
 /// a single-key EOA, they may be multisig accounts or even a DAO with formal
 /// governance processes mediated by a smart contract.
 ///
@@ -173,7 +172,7 @@ struct VerifyConfig {
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
-contract Verify is AccessControl, Initializable {
+contract Verify is AccessControl {
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
 
@@ -253,6 +252,7 @@ contract Verify is AccessControl, Initializable {
     /// @param config_ The config required to initialize the contract.
     function initialize(VerifyConfig memory config_) external initializer {
         require(config_.admin != address(0), "0_ACCOUNT");
+        __AccessControl_init();
 
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.
@@ -274,7 +274,7 @@ contract Verify is AccessControl, Initializable {
         // It is ALSO RECOMMENDED that each of the sub-`X_ADMIN` roles revokes
         // their admin rights once sufficient approvers/removers/banners have
         // been assigned, if possible. Admins can instantly/atomically assign
-        // and revoke admin priviledges from each other, so a compromised key
+        // and revoke admin privileges from each other, so a compromised key
         // can irreperably damage a `Verify` contract instance.
         _grantRole(APPROVER_ADMIN, config_.admin);
         _grantRole(REMOVER_ADMIN, config_.admin);

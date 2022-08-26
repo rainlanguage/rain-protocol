@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { ReserveTokenERC721 } from "../../../../typechain/ReserveTokenERC721";
 import { basicDeploy } from "../../../../utils/deploy/basic";
@@ -18,20 +18,19 @@ let signer1: SignerWithAddress;
 let tokenERC721: ReserveTokenERC721;
 
 describe("RainVM ERC721 ops", async function () {
-  let stateBuilder: AllStandardOpsIntegrity;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
@@ -44,6 +43,8 @@ describe("RainVM ERC721 ops", async function () {
       "ReserveTokenERC721",
       {}
     )) as ReserveTokenERC721;
+
+    await tokenERC721.initialize();
   });
 
   it("should return owner of specific ERC721 token", async () => {

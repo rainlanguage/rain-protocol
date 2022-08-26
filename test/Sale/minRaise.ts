@@ -40,6 +40,7 @@ describe("Sale minimum raise", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {

@@ -4,7 +4,7 @@ pragma solidity =0.8.15;
 import {Factory} from "../../factory/Factory.sol";
 import "./AutoApprove.sol";
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title AutoApproveFactory
 /// @notice Factory for creating and deploying `AutoApprove` contracts.
@@ -14,8 +14,8 @@ contract AutoApproveFactory is Factory {
     address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmStateBuilder_) {
-        address implementation_ = address(new AutoApprove(vmStateBuilder_));
+    constructor(address vmIntegrity_) {
+        address implementation_ = address(new AutoApprove(vmIntegrity_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "./TierReport.sol";
 import "../../math/SaturatingMath.sol";
 

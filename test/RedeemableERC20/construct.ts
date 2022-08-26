@@ -180,6 +180,7 @@ describe("RedeemableERC20 constructor test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -187,7 +188,7 @@ describe("RedeemableERC20 constructor test", async function () {
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     // Set owner to COPPER status, lower than minimum status of DIAMOND
-    await tier.setTier(erc20Pullee.address, Tier.ONE, []);
+    await tier.setTier(erc20Pullee.address, Tier.ONE);
 
     const minimumTier = Tier.SIX;
 

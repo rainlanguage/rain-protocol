@@ -70,10 +70,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             uint256 end_;
             assembly ("memory-safe") {
                 cursor_ := mload(
-                    add(
-                        mload(integrityState_),
-                        add(0x20, mul(0x20, sourceIndex_))
-                    )
+                    add(mload(integrityState_), add(0x20, mul(0x20, sourceIndex_)))
                 )
                 end_ := add(cursor_, mload(cursor_))
             }

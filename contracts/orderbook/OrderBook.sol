@@ -3,9 +3,9 @@ pragma solidity =0.8.15;
 
 import "../vm/runtime/StandardVM.sol";
 import "../vm/runtime/LibStackTop.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "./libraries/Order.sol";
@@ -84,6 +84,7 @@ contract OrderBook is StandardVM {
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
+    using LibVMState for VMState;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -258,6 +259,7 @@ contract OrderBook is StandardVM {
         OrderHash aHash_ = a_.hash();
         OrderHash bHash_ = b_.hash();
         {
+            require(a_.owner != b_.owner, "SAME_OWNER");
             require(
                 a_.validOutputs[clearConfig_.aOutputIOIndex].token ==
                     b_.validInputs[clearConfig_.bInputIOIndex].token,

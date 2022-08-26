@@ -1,6 +1,6 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsIntegrity } from "../../../typechain/AllStandardOpsIntegrity";
+import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { StackHeightTest } from "../../../typechain/StackHeightTest";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
@@ -9,15 +9,14 @@ import { assertError } from "../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainVMIntegrity buildState", async function () {
-  let stateBuilder: AllStandardOpsIntegrity;
+  let integrity: StandardIntegrity;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsIntegrity"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsIntegrity;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
   });
 
   it("should enforce minimum stack height after eval", async () => {
@@ -27,7 +26,7 @@ describe("RainVMIntegrity buildState", async function () {
 
     // test contract expects stack height of 2
     const stackHeightTest = (await stackHeightTestFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as StackHeightTest;
 
     const constants = [1];

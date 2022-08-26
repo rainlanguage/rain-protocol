@@ -6,7 +6,7 @@ import "../vm/runtime/LibVMState.sol";
 import "../vm/integrity/LibIntegrityState.sol";
 import "../vm/runtime/RainVM.sol";
 
-/// @title Cast
+/// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
 /// give us by default. A type cast (vs. conversion) is considered one where the
 /// structure is unchanged by the cast. The cast does NOT (can't) check that the
@@ -35,7 +35,11 @@ library LibCast {
         }
     }
 
-    function asOpFunctionPointers(uint256[] memory is_)
+    /// Retype an array of integers to an array of opcode function pointers.
+    /// @param is_ The array of integers to cast to an array of opcode fuction
+    /// pointers.
+    /// @return fns_ The array of opcode function pointers.
+    function asOpcodeFunctionPointers(uint256[] memory is_)
         internal
         pure
         returns (
@@ -50,6 +54,9 @@ library LibCast {
         }
     }
 
+    /// Retype an integer to an integrity function pointer.
+    /// @param i_ The integer to cast to an integrity function pointer.
+    /// @return fn_ The integrity function pointer.
     function asIntegrityFunctionPointer(uint256 i_)
         internal
         pure
@@ -65,6 +72,9 @@ library LibCast {
         }
     }
 
+    /// Retype an integer to a pointer to the VM eval function.
+    /// @param i_ The integer to cast to the eval function.
+    /// @return fn_ The eval function.
     function asEvalFunctionPointer(uint256 i_)
         internal
         pure

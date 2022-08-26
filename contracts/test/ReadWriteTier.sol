@@ -19,21 +19,23 @@ contract ReadWriteTier is TierV2 {
     /// @param account The account changing tier.
     /// @param startTier The previous tier the account held.
     /// @param endTier The newly acquired tier the account now holds.
-    /// @param context The associated context for the tier change.
     event TierChange(
         address sender,
         address account,
         uint256 startTier,
-        uint256 endTier,
-        uint256[] context
+        uint256 endTier
     );
 
     /// account => reports
     mapping(address => uint256) private reports;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
-    function report(address account_, uint256[] calldata)
+    function report(address account_, uint256[] memory)
         public
         view
         virtual
@@ -51,25 +53,25 @@ contract ReadWriteTier is TierV2 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] calldata context_
+        uint256[] memory
     ) external view returns (uint256) {
-        return TierReport.reportTimeForTier(report(account_, context_), tier_);
+        return
+            TierReport.reportTimeForTier(
+                report(account_, new uint256[](0)),
+                tier_
+            );
     }
 
     /// Errors if the user attempts to return to the ZERO tier.
     /// Updates the report from `report` using default `TierReport` logic.
     /// Emits `TierChange` event.
-    function setTier(
-        address account_,
-        uint256 endTier_,
-        uint256[] calldata context_
-    ) external {
+    function setTier(address account_, uint256 endTier_) external {
         // The user must move to at least tier 1.
         // The tier 0 status is reserved for users that have never
         // interacted with the contract.
         require(endTier_ > 0, "SET_ZERO_TIER");
 
-        uint256 report_ = report(account_, context_);
+        uint256 report_ = report(account_, new uint256[](0));
 
         uint256 startTier_ = TierReport.tierAtTimeFromReport(
             report_,
@@ -83,7 +85,7 @@ contract ReadWriteTier is TierV2 {
             block.timestamp
         );
 
-        emit TierChange(msg.sender, account_, startTier_, endTier_, context_);
+        emit TierChange(msg.sender, account_, startTier_, endTier_);
     }
 
     /// Re-export TierReport utilities

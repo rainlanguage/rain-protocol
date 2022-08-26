@@ -1,0 +1,5 @@
+testLimit: 20000
+seqLen: 50
+cryticArgs: ["--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/"]
+stopOnFail: true
+prefix: "echidna"

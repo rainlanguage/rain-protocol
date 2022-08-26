@@ -31,6 +31,7 @@ describe("Sale refund", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should prevent refunding with modified receipt", async function () {
@@ -131,12 +132,12 @@ describe("Sale refund", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, units: receipt.units.add(1) }),
-      "reverted with panic code 0x11",
+      "Error",
       "wrongly allowed accepted receipt with modified units for refund request"
     );
     await assertError(
       async () => await sale.connect(signer1).refund({ ...receipt, fee: 0 }),
-      "reverted with panic code 0x11",
+      "Error",
       "wrongly allowed accepted receipt with modified fee for refund request"
     );
     await assertError(
@@ -144,7 +145,7 @@ describe("Sale refund", async function () {
         await sale
           .connect(signer1)
           .refund({ ...receipt, price: receipt.price.mul(2) }),
-      "reverted with panic code 0x11",
+      "Error",
       "wrongly allowed accepted receipt with modified price for refund request"
     );
   });
@@ -261,12 +262,12 @@ describe("Sale refund", async function () {
     await token.connect(signer2).approve(sale.address, receipt1.units);
     await assertError(
       async () => await sale.connect(signer1).refund(receipt2),
-      "reverted with panic code 0x11",
+      "Error",
       "wrongly allowed signer1 to use signer2's receipt for refund"
     );
     await assertError(
       async () => await sale.connect(signer2).refund(receipt1),
-      "reverted with panic code 0x11",
+      "Error",
       "wrongly allowed signer2 to use signer1's receipt for refund"
     );
   });
@@ -367,7 +368,7 @@ describe("Sale refund", async function () {
     await sale.connect(signer1).refund(receipt);
     await assertError(
       async () => await sale.connect(signer1).refund(receipt),
-      "reverted with panic code 0x11",
+      "Error",
       "wrongly allowed same receipt to be used twice for refund"
     );
   });

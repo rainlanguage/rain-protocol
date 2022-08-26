@@ -19,4 +19,15 @@ describe("LibCast asOpFunctionPointer tests", async function () {
 
     assert(memDumpBefore_ === memDumpAfter_, "cast corrupted memory");
   });
+
+  it("retypes an array of integers to opcode function pointers without corrupting memory", async function () {
+    const randomNums = [randomUint256(), randomUint256(), randomUint256()];
+
+    const tx_ = await libCast.asOpFunctionPointers([...randomNums]);
+
+    const { data: memDumpBefore_ } = (await tx_.wait()).events[0];
+    const { data: memDumpAfter_ } = (await tx_.wait()).events[1];
+
+    assert(memDumpBefore_ === memDumpAfter_, "cast corrupted memory");
+  });
 });

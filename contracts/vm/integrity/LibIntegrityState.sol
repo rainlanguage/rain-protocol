@@ -19,8 +19,7 @@ struct IntegrityState {
         returns (StackTop)[] integrityFunctionPointers;
     function(IntegrityState memory, SourceIndex, StackTop, uint256)
         internal
-        view
-        returns (StackTop) ensureIntegrity;
+        view returns (StackTop) ensureIntegrity;
 }
 
 library LibIntegrityState {

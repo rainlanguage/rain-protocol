@@ -134,7 +134,7 @@ give clues.
 
 Documentation can be found [here](https://docs.rainprotocol.xyz/).
 
-### Run tests
+### Run hardhat tests
 
 Run `hardhat test` from inside the nix shell.
 
@@ -142,6 +142,13 @@ Run `hardhat test` from inside the nix shell.
 
 Inside the nix-shell run `security-check` which will run slither as an
 automated security scanner.
+
+### Run echidna tests
+
+Echidna is a powerful tool designed for fuzzing/property-based testing of Ethereum smarts contracts.
+Read more about Echidna [here](https://github.com/crytic/echidna).
+
+Run `echidna-test` from inside the nix shell. Echidna will start fuzzing the contracts as declared in `contracts/test/echidna`.
 
 ### Build and serve documentation site
 

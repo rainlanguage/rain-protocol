@@ -1,23 +1,28 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibVMState.sol";
 import "../../integrity/LibIntegrityState.sol";
 
 /// @title OpDebug
-/// @notice Opcode for debugging state.
+/// @notice Opcode for debugging state. Uses the standard debugging logic from
+/// VMState.debug.
 library OpDebug {
     using LibStackTop for StackTop;
     using LibVMState for VMState;
 
+    /// VM integrity for debug.
+    /// Debug doesn't modify the stack.
     function integrity(
         IntegrityState memory,
-        Operand,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        // Debug doesn't modify the state.
+        // Try to build a debug style from the operand to ensure we can enumerate
+        // it.
+        DebugStyle(Operand.unwrap(operand_));
         return stackTop_;
     }
 
@@ -27,6 +32,10 @@ library OpDebug {
         Operand operand_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        return state_.debug(stackTop_, DebugStyle(Operand.unwrap(operand_)));
+        DebugStyle debugStyle_ = DebugStyle(Operand.unwrap(operand_));
+
+        state_.debug(stackTop_, debugStyle_);
+
+        return stackTop_;
     }
 }

@@ -32,6 +32,7 @@ describe("Sale buy", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should correctly generate receipts", async function () {
@@ -307,6 +308,7 @@ describe("Sale buy", async function () {
     );
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as SaleReentrant;
+    await maliciousReserve.initialize();
     // If cooldown could be set to zero, reentrant buy calls would be possible.
     await assertError(
       async () =>
