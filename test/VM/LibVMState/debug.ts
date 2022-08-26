@@ -30,6 +30,29 @@ describe("LibVMState debug tests", async function () {
     )) as LibVMStateTest;
   });
 
+  it("should debug Stack", async () => {
+    const debugStyle = DebugStyle.Stack;
+    // prettier-ignore
+    const sources = [
+      concat([
+        op(Opcode.BLOCK_NUMBER, 0),
+      ]),
+      concat([
+        op(Opcode.SENDER, 0),
+      ])
+    ];
+    const constants = [2, 4, 6, 8, 10];
+    const context = [3, 5, 7, 9, 11];
+
+    const { stackTop_, stackTopAfter_ } = await libVMState.callStatic.debug(
+      { sources, constants },
+      context,
+      debugStyle
+    );
+
+    assert(stackTopAfter_.eq(stackTop_));
+  });
+
   it("should debug Constants", async () => {
     const debugStyle = DebugStyle.Constant;
     // prettier-ignore
@@ -43,19 +66,41 @@ describe("LibVMState debug tests", async function () {
     ];
     const constants = [2, 4, 6, 8, 10];
     const context = [3, 5, 7, 9, 11];
-    const stackIndex = 0;
 
     console.log({ constants });
 
-    const { stackTopBefore_, stackTopAfter_ } =
-      await libVMState.callStatic.debug(
-        { sources, constants },
-        debugStyle,
-        stackIndex,
-        context
-      );
+    const { stackTop_, stackTopAfter_ } = await libVMState.callStatic.debug(
+      { sources, constants },
+      context,
+      debugStyle
+    );
 
-    assert(stackTopAfter_.eq(stackTopBefore_));
+    assert(stackTopAfter_.eq(stackTop_));
+  });
+
+  it("should debug Context", async () => {
+    const debugStyle = DebugStyle.Context;
+    // prettier-ignore
+    const sources = [
+      concat([
+        op(Opcode.BLOCK_NUMBER, 0),
+      ]),
+      concat([
+        op(Opcode.SENDER, 0),
+      ])
+    ];
+    const constants = [2, 4, 6, 8, 10];
+    const context = [3, 5, 7, 9, 11];
+
+    console.log({ context });
+
+    const { stackTop_, stackTopAfter_ } = await libVMState.callStatic.debug(
+      { sources, constants },
+      context,
+      debugStyle
+    );
+
+    assert(stackTopAfter_.eq(stackTop_));
   });
 
   it("should debug Source", async () => {
@@ -71,7 +116,6 @@ describe("LibVMState debug tests", async function () {
     ];
     const constants = [2, 4, 6, 8, 10];
     const context = [3, 5, 7, 9, 11];
-    const stackIndex = 0;
 
     const serialized_ = await libVMState.callStatic.serialize({
       sources,
@@ -80,14 +124,12 @@ describe("LibVMState debug tests", async function () {
 
     console.log({ serialized_ });
 
-    const { stackTopBefore_, stackTopAfter_ } =
-      await libVMState.callStatic.debug(
-        { sources, constants },
-        debugStyle,
-        stackIndex,
-        context
-      );
+    const { stackTop_, stackTopAfter_ } = await libVMState.callStatic.debug(
+      { sources, constants },
+      context,
+      debugStyle
+    );
 
-    assert(stackTopAfter_.eq(stackTopBefore_));
+    assert(stackTopAfter_.eq(stackTop_));
   });
 });
