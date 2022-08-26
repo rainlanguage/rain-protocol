@@ -1,13 +1,13 @@
 import { concat } from "ethers/lib/utils";
 import { Opcode } from "./ops/allStandardOps";
-import { op } from "./vm";
+import { op, MemoryType, memoryOperand } from "./vm";
 
 export const afterBlockNumberSource = (constant: number): Uint8Array => {
   // prettier-ignore
   return concat([
     // (BLOCK_NUMBER blockNumberSub1 gt)
       op(Opcode.BLOCK_NUMBER),
-      op(Opcode.CONSTANT, constant),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, constant)),
     op(Opcode.GREATER_THAN),
   ]);
 };

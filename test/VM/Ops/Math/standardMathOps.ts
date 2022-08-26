@@ -1,40 +1,39 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsStateBuilder } from "../../../../typechain/AllStandardOpsStateBuilder";
+import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
 import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
 describe("RainVM MathOps standard math", async () => {
-  let stateBuilder: AllStandardOpsStateBuilder;
+  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    stateBuilder =
-      (await stateBuilderFactory.deploy()) as AllStandardOpsStateBuilder;
-    await stateBuilder.deployed();
+    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
+    await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
     logic = (await logicFactory.deploy(
-      stateBuilder.address
+      integrity.address
     )) as AllStandardOpsTest;
   });
 
   it("should perform a calculation using the block number as a value", async () => {
     const constants = [1, 2, 3, 4, 6];
 
-    const one = op(Opcode.CONSTANT, 0);
-    const two = op(Opcode.CONSTANT, 1);
-    const three = op(Opcode.CONSTANT, 2);
-    const four = op(Opcode.CONSTANT, 3);
-    const six = op(Opcode.CONSTANT, 4);
+    const one = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const two = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const three = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const four = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const six = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     // prettier-ignore
     const sources = [
@@ -97,9 +96,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op on sequence of numbers", async () => {
     const constants = [7, 4, 2];
-    const v7 = op(Opcode.CONSTANT, 0);
-    const v4 = op(Opcode.CONSTANT, 1);
-    const v2 = op(Opcode.CONSTANT, 2);
+    const v7 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -127,8 +126,8 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (zero rem)", async () => {
     const constants = [9, 3];
-    const v9 = op(Opcode.CONSTANT, 0);
-    const v3 = op(Opcode.CONSTANT, 1);
+    const v9 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -155,8 +154,8 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (non-zero rem)", async () => {
     const constants = [5, 2];
-    const v5 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
+    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -183,9 +182,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should perform exponentiation on a sequence of numbers", async () => {
     const constants = [2, 4, 3];
-    const v2 = op(Opcode.CONSTANT, 0);
-    const v4 = op(Opcode.CONSTANT, 1);
-    const v3 = op(Opcode.CONSTANT, 2);
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -213,8 +212,8 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should perform exponentiation correctly", async () => {
     const constants = [2, 4];
-    const v2 = op(Opcode.CONSTANT, 0);
-    const v4 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -241,9 +240,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should return the maximum of a sequence of numbers", async () => {
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.CONSTANT, 0);
-    const v11 = op(Opcode.CONSTANT, 1);
-    const v22 = op(Opcode.CONSTANT, 2);
+    const v33 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v11 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v22 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source = concat([
@@ -264,9 +263,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should return the minimum of a sequence of numbers", async () => {
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.CONSTANT, 0);
-    const v11 = op(Opcode.CONSTANT, 1);
-    const v22 = op(Opcode.CONSTANT, 2);
+    const v33 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v11 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v22 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source = concat([
@@ -287,8 +286,8 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should calculate a mathematical expression (division, product, summation)", async () => {
     const constants = [2, 3];
-    const v2 = op(Opcode.CONSTANT, 0);
-    const v3 = op(Opcode.CONSTANT, 1);
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -321,9 +320,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
     const constants = [3, 2, 13];
-    const v3 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v13 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v13 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -351,9 +350,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should divide an initial number by the product of a sequence of numbers", async () => {
     const constants = [3, 2, 12];
-    const v3 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v12 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v12 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -381,9 +380,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should multiply a sequence of numbers together", async () => {
     const constants = [5, 4, 3];
-    const v5 = op(Opcode.CONSTANT, 0);
-    const v4 = op(Opcode.CONSTANT, 1);
-    const v3 = op(Opcode.CONSTANT, 2);
+    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -411,9 +410,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should subtract a sequence of numbers from an initial number", async () => {
     const constants = [3, 2, 10];
-    const v3 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v10 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v10 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -441,9 +440,9 @@ describe("RainVM MathOps standard math", async () => {
 
   it("should add a sequence of numbers together", async () => {
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.CONSTANT, 0);
-    const v2 = op(Opcode.CONSTANT, 1);
-    const v1 = op(Opcode.CONSTANT, 2);
+    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [

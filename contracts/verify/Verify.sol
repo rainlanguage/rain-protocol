@@ -2,9 +2,8 @@
 pragma solidity =0.8.15;
 
 import "./IVerifyCallback.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlUpgradeable as AccessControl} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "./libraries/VerifyConstants.sol";
 import "./LibEvidence.sol";
 import "../array/LibUint256Array.sol";
@@ -173,7 +172,7 @@ struct VerifyConfig {
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
-contract Verify is AccessControl, Initializable {
+contract Verify is AccessControl {
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
 
@@ -253,6 +252,7 @@ contract Verify is AccessControl, Initializable {
     /// @param config_ The config required to initialize the contract.
     function initialize(VerifyConfig memory config_) external initializer {
         require(config_.admin != address(0), "0_ACCOUNT");
+        __AccessControl_init();
 
         // `APPROVER_ADMIN` can admin each other in addition to
         // `APPROVER` addresses underneath.

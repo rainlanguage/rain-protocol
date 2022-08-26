@@ -12,6 +12,8 @@ import {
   selectLte,
   selectLteLogic,
   selectLteMode,
+  memoryOperand,
+  MemoryType,
 } from "../../../../utils/rainvm/vm";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
@@ -20,7 +22,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'any' logic and 'first' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxAccount = op(Opcode.CONTEXT);
 
   // prettier-ignore
   // return default report
@@ -43,7 +45,10 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     const futureTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [
           numArrayToReport([
             timestamp0,
@@ -61,14 +66,20 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [NEVER],
       },
     })) as CombineTier;
@@ -81,29 +92,29 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const vFuture = concat([
-        op(Opcode.CONSTANT, 0),
-        op(Opcode.CONTEXT, 0),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.CONTEXT),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vAlways = concat([
-        op(Opcode.CONSTANT, 1),
-        op(Opcode.CONTEXT, 0),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.CONTEXT),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vNever = concat([
-        op(Opcode.CONSTANT, 2),
-        op(Opcode.CONTEXT, 0),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.CONTEXT),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
     // prettier-ignore
     const sourceReport = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
-          vFuture,
-          vAlways,
-          vNever,
+        op(Opcode.BLOCK_TIMESTAMP),
+        vFuture,
+        vAlways,
+        vNever,
       op(
         Opcode.SELECT_LTE,
         selectLte(selectLteLogic.any, selectLteMode.first, 3)
@@ -144,14 +155,20 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [ALWAYS],
       },
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), sourceReportTimeForTierDefault],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          sourceReportTimeForTierDefault,
+        ],
         constants: [NEVER],
       },
     })) as CombineTier;
@@ -163,13 +180,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
-            op(Opcode.CONSTANT, 0),
-            op(Opcode.CONTEXT, 0),
-          op(Opcode.ITIERV2_REPORT, 0),
-            op(Opcode.CONSTANT, 1),
-            op(Opcode.CONTEXT, 0),
-          op(Opcode.ITIERV2_REPORT, 0),
+        op(Opcode.BLOCK_TIMESTAMP),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT, 0),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.CONTEXT),
+        op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
         selectLte(selectLteLogic.any, selectLteMode.first, 2)
@@ -216,11 +233,11 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // prettier-ignore
     const sourceReport = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.CONSTANT, 1),
+        op(Opcode.BLOCK_TIMESTAMP),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
-          op(Opcode.CONSTANT, 0),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.CONTEXT),
         op(Opcode.ITIERV2_REPORT),
       op(
@@ -241,25 +258,25 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     // Set some tiers
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierRight.setTier(signers[0].address, Tier.ONE);
+    await readWriteTierRight.setTier(signers[0].address, Tier.TWO);
+    await readWriteTierRight.setTier(signers[0].address, Tier.THREE);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE, []);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.ONE);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.TWO);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.THREE);
 
     // ReadWriteTierLeft
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX, []);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.FOUR);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.FIVE);
+    await readWriteTierLeft.setTier(signers[0].address, Tier.SIX);
 
     // ReadWriteTierRight
-    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.SIX, []);
-    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT, []);
+    await readWriteTierRight.setTier(signers[0].address, Tier.FOUR);
+    await readWriteTierRight.setTier(signers[0].address, Tier.FIVE);
+    await readWriteTierRight.setTier(signers[0].address, Tier.SIX);
+    await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT);
 
     const rightReport = paddedUInt256(
       await readWriteTierRight.report(signers[0].address, [])
