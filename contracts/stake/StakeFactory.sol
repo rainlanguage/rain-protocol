@@ -3,7 +3,7 @@ pragma solidity =0.8.15;
 
 import {Factory} from "../factory/Factory.sol";
 import {Stake, StakeConfig} from "./Stake.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title StakeFactory
 /// @notice Factory for deploying and registering `Stake` contracts.

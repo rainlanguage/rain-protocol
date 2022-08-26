@@ -2,9 +2,9 @@
 pragma solidity =0.8.15;
 
 import {RedeemableERC20} from "../redeemableERC20/RedeemableERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./SaleEscrow.sol";
 
 /// Escrow contract for ERC20 tokens to be deposited and withdrawn against
@@ -455,14 +455,10 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
 
         RedeemableERC20 redeemable_ = RedeemableERC20(token(sale_));
 
-        uint256 amount_ = // 3 ways will be 33 tokens each, leaving 1 TKN as escrow dust, // all get a share rounded down by integer division. 100 split // as at the time deposit was made. If nobody burns they will // prorata share of `msg.sender`'s current balance vs. supply // Underflow MUST error here (should not be possible).
-            // for example. If someone burns before withdrawing they will
-            // receive less, so 0/33/33 from 100 with 34 TKN as escrow
-            // dust, for example.
-            (totalDeposited_ - withdrawn_).mulDiv(
-                redeemable_.balanceOf(msg.sender),
-                supply_
-            );
+        uint256 amount_ = (totalDeposited_ - withdrawn_).mulDiv( // dust, for example. // receive less, so 0/33/33 from 100 with 34 TKN as escrow // for example. If someone burns before withdrawing they will // 3 ways will be 33 tokens each, leaving 1 TKN as escrow dust, // all get a share rounded down by integer division. 100 split // as at the time deposit was made. If nobody burns they will // prorata share of `msg.sender`'s current balance vs. supply // Underflow MUST error here (should not be possible).
+            redeemable_.balanceOf(msg.sender),
+            supply_
+        );
 
         // Guard against outputs exceeding inputs.
         // For example a malicious `Trust` could report a `redeemable_` token

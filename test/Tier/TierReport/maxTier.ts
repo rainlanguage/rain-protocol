@@ -25,11 +25,11 @@ describe("TierReport maxTier", async function () {
   it("should enforce maxTier for all TierReport logic", async () => {
     const initialBlock = await ethers.provider.getBlockNumber();
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.ONE);
 
     await timewarp(10);
 
-    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO, []);
+    await readWriteTier.connect(signer1).setTier(signer1.address, Tier.TWO);
 
     await timewarp(10);
 

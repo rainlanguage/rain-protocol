@@ -4,7 +4,7 @@ pragma solidity =0.8.15;
 import {Factory} from "../factory/Factory.sol";
 import {VerifyTier} from "./VerifyTier.sol";
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
+import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title VerifyTierFactory
 /// @notice Factory for creating and deploying `VerifyTier` contracts.

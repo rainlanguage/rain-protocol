@@ -12,7 +12,7 @@ contract LibEvidenceTest {
         uint256[] memory refs_ = new uint256[](evidences_.length);
         uint256 refsIndex_ = 0;
 
-        for (uint i_ = 0; i_ < evidences_.length; i_++) {
+        for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             LibEvidence._updateEvidenceRef(refs_, evidences_[i_], refsIndex_);
             refsIndex_++;
         }

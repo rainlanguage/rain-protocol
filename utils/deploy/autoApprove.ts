@@ -13,15 +13,15 @@ import { zeroAddress } from "../constants";
 import { getEventArgs } from "../events";
 
 export const autoApproveFactoryDeploy = async () => {
-  const stateBuilderFactory = await ethers.getContractFactory(
-    "AutoApproveStateBuilder"
+  const integrityFactory = await ethers.getContractFactory(
+    "AutoApproveIntegrity"
   );
-  const stateBuilder = await stateBuilderFactory.deploy();
-  await stateBuilder.deployed();
+  const integrity = await integrityFactory.deploy();
+  await integrity.deployed();
 
   const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
   const autoApproveFactory = (await factoryFactory.deploy(
-    stateBuilder.address
+    integrity.address
   )) as AutoApproveFactory;
   await autoApproveFactory.deployed();
 

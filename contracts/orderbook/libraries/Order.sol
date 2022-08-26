@@ -2,8 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
-import "../../vm/RainVM.sol";
-import "../../vm/VMStateBuilder.sol";
+import "../../vm/runtime/RainVM.sol";
+import "../../vm/integrity/RainVMIntegrity.sol";
+import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;
 type OrderLiveness is uint256;
@@ -16,7 +17,7 @@ struct OrderConfig {
 
 struct IO {
     address token;
-    uint vaultId;
+    uint256 vaultId;
 }
 
 struct Order {
@@ -27,84 +28,33 @@ struct Order {
     bytes vmState;
 }
 
-uint256 constant ENTRYPOINT = 0;
 uint256 constant MIN_FINAL_STACK_INDEX = 2;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
 OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
 
 library LibOrder {
-    function deriveTracking(bytes[] memory sources_)
-        internal
-        pure
-        returns (uint256 tracking_)
-    {
-        unchecked {
-            uint256 localOpClearedOrder_ = LOCAL_OP_CLEARED_ORDER;
-            uint256 localOpClearedCounterparty_ = LOCAL_OP_CLEARED_COUNTERPARTY;
-            uint256 trackingMaskClearedOrder_ = TRACKING_MASK_CLEARED_ORDER;
-            uint256 trackingMaskClearedCounterparty_ = TRACKING_MASK_CLEARED_COUNTERPARTY;
-            uint256 trackingMaskAll_ = TRACKING_MASK_ALL;
-            for (uint256 i_ = 0; i_ < sources_.length; i_++) {
-                bytes memory source_ = sources_[i_];
-                assembly ("memory-safe") {
-                    let op_ := 0
-                    for {
-                        let cursor_ := add(source_, 1)
-                        let end_ := add(cursor_, mload(source_))
-                    } lt(cursor_, end_) {
-                        cursor_ := add(cursor_, 2)
-                    } {
-                        op_ := byte(31, mload(cursor_))
-                        if lt(op_, localOpClearedOrder_) {
-                            continue
-                        }
-                        if eq(op_, localOpClearedOrder_) {
-                            tracking_ := or(
-                                tracking_,
-                                trackingMaskClearedOrder_
-                            )
-                        }
-                        if eq(op_, localOpClearedCounterparty_) {
-                            tracking_ := or(
-                                tracking_,
-                                trackingMaskClearedCounterparty_
-                            )
-                        }
-                        if eq(tracking_, trackingMaskAll_) {
-                            // break the outer loop by setting i_
-                            // to sources length.
-                            i_ := mload(sources_)
-                            // break the inner loop.
-                            break
-                        }
-                    }
-                }
-            }
-        }
-    }
+    using LibUint256Array for uint256;
 
     function fromOrderConfig(
-        address vmStateBuilder_,
-        address vm_,
+        IRainVMIntegrity vmIntegrity_,
+        function(IRainVMIntegrity, StateConfig memory, uint256[] memory)
+            internal
+            returns (bytes memory, uint256) buildStateBytes_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
-        Bounds memory bounds_;
-        bounds_.entrypoint = ENTRYPOINT;
-        bounds_.minFinalStackIndex = MIN_FINAL_STACK_INDEX;
-        Bounds[] memory boundss_ = new Bounds[](1);
-        boundss_[0] = bounds_;
+        (bytes memory stateBytes_, uint256 scratch_) = buildStateBytes_(
+            vmIntegrity_,
+            config_.vmStateConfig,
+            MIN_FINAL_STACK_INDEX.arrayFrom()
+        );
         return
             Order(
                 msg.sender,
                 config_.validInputs,
                 config_.validOutputs,
-                deriveTracking(config_.vmStateConfig.sources),
-                VMStateBuilder(vmStateBuilder_).buildState(
-                    vm_,
-                    config_.vmStateConfig,
-                    boundss_
-                )
+                scratch_,
+                stateBytes_
             );
     }
 

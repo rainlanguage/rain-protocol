@@ -1,11 +1,11 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import { IERC20 } from "../../../typechain/IERC20";
 import { MockISale } from "../../../typechain/MockISale";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import { RedeemableERC20ClaimEscrow } from "../../../typechain/RedeemableERC20ClaimEscrow";
 import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
+import { ReserveToken } from "../../../typechain/ReserveToken";
 import { SaleConstructorConfigStruct } from "../../../typechain/Sale";
 import { SaleFactory } from "../../../typechain/SaleFactory";
 import { assertError } from "../../../utils/test/assertError";
@@ -21,11 +21,11 @@ let redeemableERC20FactoryFactory: ContractFactory,
 
 describe("SaleEscrow protection from draining", async function () {
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "AllStandardOpsStateBuilder"
+    const integrityFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    const stateBuilder = await stateBuilderFactory.deploy();
-    await stateBuilder.deployed();
+    const integrity = await integrityFactory.deploy();
+    await integrity.deployed();
 
     redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
@@ -43,7 +43,7 @@ describe("SaleEscrow protection from draining", async function () {
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
-      vmStateBuilder: stateBuilder.address,
+      vmIntegrity: integrity.address,
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
@@ -67,12 +67,14 @@ describe("SaleEscrow protection from draining", async function () {
       (await rTKNClaimEscrowFactory.deploy()) as RedeemableERC20ClaimEscrow;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
-    const rTKN = (await tokenFactory.deploy()) as IERC20;
+    const reserve = (await tokenFactory.deploy()) as ReserveToken;
+    const rTKN = (await tokenFactory.deploy()) as ReserveToken;
 
     await reserve.deployed();
     await rTKN.deployed();
 
+    await reserve.initialize();
+    await rTKN.initialize();
     const saleFactory = await ethers.getContractFactory("MockISale");
     const sale1 = (await saleFactory.deploy()) as MockISale;
     const sale2 = (await saleFactory.deploy()) as MockISale;

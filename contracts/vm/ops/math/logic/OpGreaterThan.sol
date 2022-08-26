@@ -1,26 +1,38 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../LibStackTop.sol";
+import "../../../runtime/LibStackTop.sol";
 import "../../../../type/LibCast.sol";
+import "../../../runtime/LibVMState.sol";
+import "../../../integrity/LibIntegrityState.sol";
 
 /// @title OpGreaterThan
 /// @notice Opcode to compare the top two stack values.
 library OpGreaterThan {
     using LibCast for bool;
     using LibStackTop for StackTop;
+    using LibIntegrityState for IntegrityState;
 
-    function greaterThan(uint256, StackTop stackTop_)
+    function _greaterThan(uint256 a_, uint256 b_)
         internal
         pure
-        returns (StackTop)
+        returns (uint256)
     {
-        (
-            StackTop location_,
-            StackTop stackTopAfter_,
-            uint256 a_,
-            uint256 b_
-        ) = stackTop_.popAndPeek();
-        location_.set((a_ > b_).asUint256());
-        return stackTopAfter_;
+        return (a_ > b_).asUint256();
+    }
+
+    function integrity(
+        IntegrityState memory integrityState_,
+        Operand,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
+        return integrityState_.applyFn(stackTop_, _greaterThan);
+    }
+
+    function greaterThan(
+        VMState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
+        return stackTop_.applyFn(_greaterThan);
     }
 }

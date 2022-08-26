@@ -14,7 +14,7 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
@@ -76,7 +76,10 @@ describe("CombineTier report time for tier script", async function () {
     const combineTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
       sourceConfig: {
-        sources: [op(Opcode.CONSTANT, 0), op(Opcode.CONSTANT, 1)],
+        sources: [
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        ],
         constants: [
           numArrayToReport([10, 20, 30, 40, 50, 60, 70, 80]),
           CONST_REPORT_TIME_FOR_TIER, // just return a constant value
