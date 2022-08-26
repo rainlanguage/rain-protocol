@@ -57,18 +57,11 @@ contract LibVMStateTest is RainVM {
     function debug(
         StateConfig memory config_,
         uint256[] memory context_,
-        DebugStyle debugStyle_
+        DebugStyle debugStyle_,
+        SourceIndex sourceIndex_
     ) external view returns (StackTop stackTop_, StackTop stackTopAfter_) {
-        (uint256 stackLength_, ) = IRainVMIntegrity(vmIntegrity)
-            .ensureIntegrity(
-                storageOpcodesRange(),
-                config_.sources,
-                config_.constants.length,
-                DEFAULT_MIN_FINAL_STACK.arrayFrom()
-            );
-
         VMState memory deserialized_ = serDeserialize(config_, context_);
-        stackTop_ = deserialized_.stackBottom.down(stackLength_); // FIXME: How to get stackTop?
+        stackTop_ = deserialized_.eval(sourceIndex_);
         stackTopAfter_ = deserialized_.debug(stackTop_, debugStyle_);
     }
 
