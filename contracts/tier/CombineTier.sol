@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
 import "../vm/runtime/StandardVM.sol";
 import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
@@ -10,7 +8,7 @@ import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../vm/integrity/RainVMIntegrity.sol";
 
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -33,7 +31,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the rain script will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, StandardVM, Initializable {
+contract CombineTier is TierV2, StandardVM {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
     using LibUint256Array for uint256;
@@ -50,6 +48,7 @@ contract CombineTier is TierV2, StandardVM, Initializable {
         external
         initializer
     {
+        __TierV2_init();
         _saveVMState(
             config_.sourceConfig,
             LibUint256Array.arrayFrom(

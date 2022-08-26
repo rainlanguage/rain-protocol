@@ -59,6 +59,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should return a correct report using ITIERV2_REPORT when no token has been staked", async function () {

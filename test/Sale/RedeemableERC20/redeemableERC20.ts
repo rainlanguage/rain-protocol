@@ -30,6 +30,7 @@ describe("Sale redeemableERC20 token", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should configure tier correctly", async () => {

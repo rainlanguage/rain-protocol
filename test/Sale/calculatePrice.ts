@@ -36,6 +36,7 @@ describe("Sale calculate price", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {

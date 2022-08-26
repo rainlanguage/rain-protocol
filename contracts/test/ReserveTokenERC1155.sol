@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import {ERC1155Burnable} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
+import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import {ERC1155BurnableUpgradeable as ERC1155Burnable} from "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 
 /// @title ReserveTokenERC1155
 // Extremely basic ERC1155 implementation for testing purposes.
@@ -16,7 +16,8 @@ contract ReserveTokenERC1155 is ERC1155, ERC1155Burnable {
     uint256 public tokenCount;
 
     /// Define and mint a erc1155 token.
-    constructor() ERC1155("") {
+    function initialize() external initializer {
+        __ERC1155_init("");
         tokenCount = 0;
         _mint(msg.sender, tokenCount, TOTAL_SUPPLY, "");
     }

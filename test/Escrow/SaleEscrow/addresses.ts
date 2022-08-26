@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import { IERC20 } from "../../../typechain/IERC20";
+import { IERC20Upgradeable as IERC20 } from "../../../typechain/IERC20Upgradeable";
 import { MockISale } from "../../../typechain/MockISale";
 import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
 import type { RedeemableERC20 } from "../../../typechain/RedeemableERC20";
@@ -29,6 +29,7 @@ let reserve: ReserveToken,
 describe("SaleEscrow unchangeable addresses", async function () {
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   before(async () => {
@@ -135,7 +136,8 @@ describe("SaleEscrow unchangeable addresses", async function () {
     )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const reserve = (await tokenFactory.deploy()) as ReserveToken;
+    await reserve.initialize();
     const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();
@@ -196,7 +198,8 @@ describe("SaleEscrow unchangeable addresses", async function () {
     )) as SaleEscrowWrapper;
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
-    const reserve = (await tokenFactory.deploy()) as IERC20;
+    const reserve = (await tokenFactory.deploy()) as ReserveToken;
+    await reserve.initialize();
     const rTKN = (await tokenFactory.deploy()) as IERC20;
 
     await reserve.deployed();

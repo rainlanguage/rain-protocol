@@ -212,7 +212,7 @@ library AllStandardOps {
         }
     }
 
-    function opFunctionPointers(
+    function opcodeFunctionPointers(
         function(VMState memory, Operand, StackTop) view returns (StackTop)[]
             memory locals_
     )
@@ -222,7 +222,7 @@ library AllStandardOps {
             function(VMState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
-                memory opFunctionPointers_
+                memory opcodeFunctionPointers_
         )
     {
         unchecked {
@@ -283,7 +283,7 @@ library AllStandardOps {
                 ];
             uint256[] memory pointers_ = pointersFixed_.asUint256Array();
             pointers_.extend(locals_.asUint256Array());
-            opFunctionPointers_ = pointers_.asOpFunctionPointers();
+            opcodeFunctionPointers_ = pointers_.asOpcodeFunctionPointers();
         }
     }
 }

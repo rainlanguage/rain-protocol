@@ -6,12 +6,22 @@ import "../../type/LibCast.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {SourceIndex, Operand} from "./RainVM.sol";
 
 enum DebugStyle {
-    StatePacked,
-    Stack
+    Stack,
+    Constant,
+    Context,
+    Source
+}
+
+/// Config required to build a new `State`.
+/// @param sources Sources verbatim.
+/// @param constants Constants verbatim.
+struct StateConfig {
+    bytes[] sources;
+    uint256[] constants;
 }
 
 /// Everything required to evaluate and track the state of a rain script.
@@ -36,7 +46,7 @@ struct VMState {
     StackTop stackBottom;
     StackTop constantsBottom;
     uint256[] context;
-    bytes[] ptrSources;
+    bytes[] compiledSources;
 }
 
 SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
@@ -47,6 +57,7 @@ library LibVMState {
     using LibMemorySize for uint256[];
     using LibMemorySize for bytes;
     using LibUint256Array for uint256[];
+    using LibUint256Array for uint256;
     using LibVMState for VMState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
@@ -55,33 +66,51 @@ library LibVMState {
     using LibCast for function(VMState memory, SourceIndex, StackTop)
         view
         returns (StackTop);
+    using LibCast for function(VMState memory, Operand, StackTop)
+        view
+        returns (StackTop)[];
 
+    /// Console log various aspects of the VM state.
+    /// Gas intensive and relies on hardhat console so not intended for
+    /// production but great for debugging rain scripts.
     function debug(
         VMState memory state_,
         StackTop stackTop_,
         DebugStyle debugStyle_
     ) internal view returns (StackTop) {
-        if (debugStyle_ == DebugStyle.StatePacked) {
-            console.logBytes(state_.toBytesPacked());
-        } else if (debugStyle_ == DebugStyle.Stack) {
-            uint256 index_ = state_.stackBottom.toIndex(stackTop_);
-            (uint256 head_, uint256[] memory tail_) = stackTop_.list(index_);
+        if (debugStyle_ == DebugStyle.Source) {
+            for (uint256 i_ = 0; i_ < state_.compiledSources.length; i_++) {
+                console.logBytes(state_.compiledSources[i_]);
+            }
+        } else {
+            uint256[] memory array_;
+            uint256 length_;
+            if (debugStyle_ == DebugStyle.Stack) {
+                length_ = state_.stackBottom.toIndex(stackTop_);
+                array_ = StackTop
+                    .unwrap(stackTop_.down(length_))
+                    .copyToNewUint256Array(length_);
+            } else if (debugStyle_ == DebugStyle.Constant) {
+                array_ = state_.constantsBottom.down().asUint256Array();
+                length_ = array_.length;
+            } else {
+                array_ = state_.context;
+                length_ = array_.length;
+            }
             console.log("~~~");
-            unchecked {
-                for (uint256 i_ = 0; i_ < index_; i_++) {
-                    console.log(i_, tail_[i_]);
-                }
+            for (uint256 i_ = 0; i_ < length_; i_++) {
+                console.log(i_, array_[i_]);
             }
             console.log("***");
-            state_.stackBottom.down().set(head_);
         }
         return stackTop_;
     }
 
-    function fromBytesPacked(
-        bytes memory stateBytes_,
-        uint256[] memory context_
-    ) internal pure returns (VMState memory) {
+    function deserialize(bytes memory serialized_, uint256[] memory context_)
+        internal
+        pure
+        returns (VMState memory)
+    {
         unchecked {
             VMState memory state_;
 
@@ -89,7 +118,7 @@ library LibVMState {
             // processing is needed for these.
             state_.context = context_;
 
-            StackTop cursor_ = stateBytes_.asStackTop().up();
+            StackTop cursor_ = serialized_.asStackTop().up();
             // The end of processing is the end of the state bytes.
             StackTop end_ = cursor_.upBytes(cursor_.peek());
 
@@ -116,9 +145,9 @@ library LibVMState {
                     .up();
                 sourcesLength_++;
             }
-            state_.ptrSources = new bytes[](sourcesLength_);
+            state_.compiledSources = new bytes[](sourcesLength_);
             while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
-                state_.ptrSources[i_] = cursor_.asBytes();
+                state_.compiledSources[i_] = cursor_.asBytes();
                 cursor_ = cursor_.upBytes(cursor_.peekUp()).up();
                 i_++;
             }
@@ -126,46 +155,81 @@ library LibVMState {
         }
     }
 
-    function toBytesPacked(
+    /// Given a source in opcodes compile to an equivalent source with real
+    /// function pointers for a given VM contract. The "compilation" involves
+    /// simply replacing the opcode with the pointer at the index of the opcode.
+    /// i.e. opcode 4 will be replaced with `pointers_[4]`.
+    /// Relies heavily on the integrity checks ensuring opcodes used are not OOB
+    /// and that the pointers provided are valid and in the correct order.
+    /// Hopefully it goes without saying that the list of pointers MUST NOT be
+    /// user defined, otherwise any source can be compiled with a completely
+    /// different mapping between opcodes and dispatched functions.
+    function compile(bytes memory source_, uint256[] memory pointers_)
+        internal
+        pure
+    {
+        assembly ("memory-safe") {
+            for {
+                let replaceMask_ := 0xFFFF
+                let preserveMask_ := not(replaceMask_)
+                let sourceLength_ := mload(source_)
+                let pointersBottom_ := add(pointers_, 0x20)
+                let cursor_ := add(source_, 2)
+                let end_ := add(source_, sourceLength_)
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 4)
+            } {
+                let data_ := mload(cursor_)
+                mstore(
+                    cursor_,
+                    or(
+                        and(data_, preserveMask_),
+                        mload(
+                            add(
+                                pointersBottom_,
+                                mul(and(data_, replaceMask_), 0x20)
+                            )
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    function serialize(
+        StateConfig memory config_,
         uint256 stackLength_,
-        uint256[] memory constants_,
-        bytes[] memory ptrSources_
+        function(VMState memory, Operand, StackTop)
+            internal
+            view
+            returns (StackTop)[]
+            memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
             size_ += stackLength_.size();
-            size_ += constants_.size();
-            for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
-                size_ += ptrSources_[i_].size();
+            size_ += config_.constants.size();
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+                size_ += config_.sources[i_].size();
             }
-            bytes memory packedBytes_ = new bytes(size_);
-            StackTop cursor_ = packedBytes_.asStackTop().up();
+            bytes memory serialized_ = new bytes(size_);
+            StackTop cursor_ = serialized_.asStackTop().up();
 
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
 
             // Then the constants.
-            cursor_ = cursor_.pushWithLength(constants_);
+            cursor_ = cursor_.pushWithLength(config_.constants);
 
             // Last the sources.
-            for (uint256 i_ = 0; i_ < ptrSources_.length; i_++) {
-                cursor_ = cursor_.unalignedPushWithLength(ptrSources_[i_]);
+            bytes memory source_;
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+                source_ = config_.sources[i_];
+                compile(source_, opcodeFunctionPointers_.asUint256Array());
+                cursor_ = cursor_.unalignedPushWithLength(source_);
             }
-            return packedBytes_;
+            return serialized_;
         }
-    }
-
-    function toBytesPacked(VMState memory state_)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return
-            toBytesPacked(
-                state_.stackBottom.peek(),
-                state_.constantsBottom.down().asUint256Array(),
-                state_.ptrSources
-            );
     }
 
     /// Eval with sane defaults partially applied.
@@ -228,13 +292,13 @@ library LibVMState {
                     view
                     returns (StackTop) fn_;
                 Operand operand_;
-                cursor_ += 3;
+                cursor_ += 4;
                 {
                     uint256 op_;
                     assembly ("memory-safe") {
-                        op_ := and(mload(cursor_), 0xFFFFFF)
-                        operand_ := and(op_, 0xFF)
-                        fn_ := shr(8, op_)
+                        op_ := mload(cursor_)
+                        operand_ := and(op_, 0xFFFF)
+                        fn_ := and(shr(16, op_), 0xFFFF)
                     }
                 }
                 stackTop_ = fn_(state_, operand_, stackTop_);

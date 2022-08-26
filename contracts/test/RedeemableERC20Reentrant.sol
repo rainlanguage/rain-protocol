@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import {ReserveToken} from "./ReserveToken.sol";
 import {RedeemableERC20} from "../redeemableERC20/RedeemableERC20.sol";
@@ -11,9 +11,6 @@ import {RedeemableERC20} from "../redeemableERC20/RedeemableERC20.sol";
 /// The calls MUST fail when driven by the test harness.
 contract RedeemableERC20Reentrant is ReserveToken {
     RedeemableERC20 private redeemableERC20;
-
-    /// Configures the contract to attempt to reenter.
-    constructor() ReserveToken() {}
 
     /// Set the contract to attempt to reenter.
     /// @param redeemableERC20_ RedeemableERC20 contract to reeenter.

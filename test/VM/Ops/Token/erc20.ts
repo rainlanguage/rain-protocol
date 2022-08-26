@@ -38,6 +38,7 @@ describe("RainVM ERC20 ops", async function () {
     signer1 = signers[1];
 
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await tokenERC20.initialize();
   });
 
   it("should return ERC20 total supply", async () => {

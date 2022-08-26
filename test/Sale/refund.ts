@@ -31,6 +31,7 @@ describe("Sale refund", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should prevent refunding with modified receipt", async function () {

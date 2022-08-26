@@ -22,6 +22,7 @@ describe("OrderBook withdraw from vault", async function () {
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await tokenA.initialize();
   });
 
   before(async () => {
