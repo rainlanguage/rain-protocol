@@ -173,14 +173,9 @@ contract OrderBook is StandardVM {
 
     function _calculateOrderIO(Order memory order_, uint outputIOIndex_, address counterparty_) internal view returns (uint orderOutputMax_, uint orderIORatio_) {
             VMState memory vmState_ = order_.vmState.fromBytesPacked(
-                EvalContext(order_.hash(), counterparty_).toContext(),
-                eval
+                EvalContext(order_.hash(), counterparty_).toContext()
             );
-            (orderOutputMax_, orderIORatio_) = eval(
-                vmState_,
-                ENTRYPOINT,
-                vmState_.stackBottom
-            ).peek2();
+            (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
 
             // The order owner can't send more than the smaller of their vault
             // balance or their per-order limit.

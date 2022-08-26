@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 import "../runtime/RainVM.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../runtime/LibStackTop.sol";
 import "./LibIntegrityState.sol";
 import "./IRainVMIntegrity.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 abstract contract RainVMIntegrity is IRainVMIntegrity {
     using SafeCast for uint256;
@@ -42,8 +42,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             StackTop.wrap(0),
             StackTop.wrap(0),
             0,
-            integrityFunctionPointers(),
-            _ensureIntegrity
+            integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
             _ensureIntegrity(
