@@ -112,6 +112,32 @@ library LibStackTop {
         }
     }
 
+    function consumeSentinel(StackTop stackTop_, StackTop stackBottom_, uint sentinel_, uint stepSize_) internal pure returns (StackTop, uint[] memory) {
+        uint[] memory array_;
+        assembly ("memory-safe") {
+            let sentinelLocation_ := 0
+            let length_ := 0
+            for {
+                stackTop_ := sub(stackTop_, 0x20)
+            } gt(stackTop_, stackBottom_) {
+                stackTop_ := sub(stackTop_, mul(stepSize_, 0x20))
+                length_ := add(length_, stepSize_)
+            } {
+                if eq(sentinel_, mload(stackTop_)) {
+                    sentinelLocation_ := stackTop_
+                    break
+                }
+            }
+            // Sentinel MUST exist in the stack if consumer expects it to there.
+            if iszero(sentinelLocation_) {
+                revert(0, 0)
+            }
+            mstore(sentinelLocation_, length_)
+            array_ := sentinelLocation_
+        }
+        return (stackTop_, array_);
+    }
+
     /// Write a value at the stack top location. Typically not useful if the
     /// given stack top is not subsequently moved past the written value , or
     /// if the given stack top is actually located somewhere below the "true"

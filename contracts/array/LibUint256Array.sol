@@ -37,6 +37,17 @@ library LibUint256Array {
         return array_;
     }
 
+    function arrayFrom(uint a_, uint b_, uint c_, uint d_) internal pure returns (uint[] memory) {
+        uint[] memory array_ = new uint[](4);
+        assembly ("memory-safe") {
+            mstore(add(array_, 0x20), a_)
+            mstore(add(array_, 0x40), b_)
+            mstore(add(array_, 0x60), c_)
+            mstore(add(array_, 0x80), d_)
+        }
+        return array_;
+    }
+
     /// Building arrays from literal components is a common task that introduces
     /// boilerplate that is either inefficient or error prone.
     /// @param a_ The head of the new array.
