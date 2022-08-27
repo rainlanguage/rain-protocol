@@ -26,10 +26,7 @@ contract FlowERC20Factory is Factory {
         override
         returns (address)
     {
-        FlowERC20Config memory config_ = abi.decode(
-            data_,
-            (FlowERC20Config)
-        );
+        FlowERC20Config memory config_ = abi.decode(data_, (FlowERC20Config));
         address clone_ = Clones.clone(implementation);
         FlowERC20(clone_).initialize(config_);
         return clone_;

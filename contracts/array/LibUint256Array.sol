@@ -37,8 +37,13 @@ library LibUint256Array {
         return array_;
     }
 
-    function arrayFrom(uint a_, uint b_, uint c_, uint d_) internal pure returns (uint[] memory) {
-        uint[] memory array_ = new uint[](4);
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_,
+        uint256 d_
+    ) internal pure returns (uint256[] memory) {
+        uint256[] memory array_ = new uint256[](4);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
             mstore(add(array_, 0x40), b_)

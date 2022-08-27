@@ -112,8 +112,13 @@ library LibStackTop {
         }
     }
 
-    function consumeSentinel(StackTop stackTop_, StackTop stackBottom_, uint sentinel_, uint stepSize_) internal pure returns (StackTop, uint[] memory) {
-        uint[] memory array_;
+    function consumeSentinel(
+        StackTop stackTop_,
+        StackTop stackBottom_,
+        uint256 sentinel_,
+        uint256 stepSize_
+    ) internal pure returns (StackTop, uint256[] memory) {
+        uint256[] memory array_;
         assembly ("memory-safe") {
             let sentinelLocation_ := 0
             let length_ := 0
