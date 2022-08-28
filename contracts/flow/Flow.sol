@@ -32,7 +32,7 @@ contract Flow is ReentrancyGuard, FlowVM {
         flowIO_ = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 
-    function flow(SourceIndex flow_, uint id_) external returns (FlowIO memory flowIO_) {
+    function flow(SourceIndex flow_, uint id_) external nonReentrant returns (FlowIO memory flowIO_) {
         (VMState memory state_, StackTop stackTop_) = flowStack(CAN_FLOW_ENTRYPOINT, flow_, id_);
         flowIO_ = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
         registerFlowTime(state_, flow_, id_);

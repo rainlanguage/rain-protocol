@@ -79,7 +79,7 @@ contract FlowVM is Initializable, StandardVM {
     {
         localFnPtrs_ = new function(VMState memory, Operand, StackTop)
             view
-            returns (StackTop)[](1);
+            returns (StackTop)[](LOCAL_OPS_LENGTH);
         localFnPtrs_[0] = opFlowTime;
     }
 }
