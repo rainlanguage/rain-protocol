@@ -9,6 +9,8 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "../math/FixedPointMath.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "./libraries/Order.sol";
+import "../idempotent/LibIdempotentFlag.sol";
+import "./OrderBookIntegrity.sol";
 
 struct DepositConfig {
     address token;
@@ -41,11 +43,11 @@ struct ClearStateChange {
     uint256 bOutput;
     uint256 aInput;
     uint256 bInput;
+    IdempotentFlag aFlag;
+    IdempotentFlag bFlag;
 }
 
 uint256 constant LOCAL_OPS_LENGTH = 2;
-uint256 constant TRACKING_FLAG_CLEARED_ORDER = 0x1;
-uint256 constant TRACKING_FLAG_CLEARED_COUNTERPARTY = 0x2;
 
 library LibEvalContext {
     function toContext(EvalContext memory evalContext_)
@@ -70,6 +72,7 @@ contract OrderBook is StandardVM {
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
     using LibVMState for VMState;
+    using LibIdempotentFlag for IdempotentFlag;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -160,8 +163,6 @@ contract OrderBook is StandardVM {
         Order memory b_,
         ClearConfig calldata clearConfig_
     ) external {
-        OrderHash aHash_ = a_.hash();
-        OrderHash bHash_ = b_.hash();
         {
             require(a_.owner != b_.owner, "SAME_OWNER");
             require(
@@ -174,8 +175,8 @@ contract OrderBook is StandardVM {
                     a_.validInputs[clearConfig_.aInputIndex].token,
                 "TOKEN_MISMATCH"
             );
-            require(orders[aHash_].isLive(), "A_NOT_LIVE");
-            require(orders[bHash_].isLive(), "B_NOT_LIVE");
+            require(orders[a_.hash()].isLive(), "A_NOT_LIVE");
+            require(orders[b_.hash()].isLive(), "B_NOT_LIVE");
         }
 
         ClearStateChange memory stateChange_;
@@ -194,18 +195,16 @@ contract OrderBook is StandardVM {
 
             unchecked {
                 {
-                    (aOutputMax_, aPrice_) = a_
-                        .vmState
-                        .deserialize(EvalContext(aHash_, b_.owner).toContext())
-                        .eval()
+                    VMState memory state_ = a_.vmState.deserialize(EvalContext(a_.hash(), b_.owner).toContext());
+                    stateChange_.aFlag = IdempotentFlag.wrap(state_.scratch);
+                    (aOutputMax_, aPrice_) = state_.eval()
                         .peek2();
                 }
 
                 {
-                    (bOutputMax_, bPrice_) = b_
-                        .vmState
-                        .deserialize(EvalContext(bHash_, a_.owner).toContext())
-                        .eval()
+                    VMState memory state_ = b_.vmState.deserialize(EvalContext(b_.hash(), a_.owner).toContext());
+                    stateChange_.bFlag = IdempotentFlag.wrap(state_.scratch);
+                    (bOutputMax_, bPrice_) = state_.eval()
                         .peek2();
                 }
             }
@@ -244,23 +243,23 @@ contract OrderBook is StandardVM {
             vaults[a_.owner][a_.validOutputs[clearConfig_.aOutputIndex].token][
                 a_.validOutputs[clearConfig_.aOutputIndex].vaultId
             ] -= stateChange_.aOutput;
-            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
-                clearedOrder[aHash_] += stateChange_.aOutput;
+            if (stateChange_.aFlag.get(FLAG_INDEX_CLEARED_ORDER)) {
+                clearedOrder[a_.hash()] += stateChange_.aOutput;
             }
-            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
+            if (stateChange_.aFlag.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
                 // A counts funds paid to cover the bounty as cleared for B.
-                clearedCounterparty[aHash_][b_.owner] += stateChange_.aOutput;
+                clearedCounterparty[a_.hash()][b_.owner] += stateChange_.aOutput;
             }
         }
         if (stateChange_.bOutput > 0) {
             vaults[b_.owner][b_.validOutputs[clearConfig_.bOutputIndex].token][
                 b_.validOutputs[clearConfig_.bOutputIndex].vaultId
             ] -= stateChange_.bOutput;
-            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
-                clearedOrder[bHash_] += stateChange_.bOutput;
+            if (stateChange_.bFlag.get(FLAG_INDEX_CLEARED_ORDER)) {
+                clearedOrder[b_.hash()] += stateChange_.bOutput;
             }
-            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
-                clearedCounterparty[bHash_][a_.owner] += stateChange_.bOutput;
+            if (stateChange_.bFlag.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
+                clearedCounterparty[b_.hash()][a_.owner] += stateChange_.bOutput;
             }
         }
         if (stateChange_.aInput > 0) {

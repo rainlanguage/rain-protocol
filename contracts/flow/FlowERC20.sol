@@ -9,7 +9,6 @@ import "../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./libraries/LibFlow.sol";
 import "../math/FixedPointMath.sol";
-import "../timepoints/Timepoints.sol";
 
 /// Constructor config.
 /// @param Constructor config for the ERC20 token minted according to flow
@@ -56,10 +55,6 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
-
-    /// Each claim is modelled as a report so that the claim report can be
-    /// diffed against the upstream report from a tier based emission scheme.
-    mapping(uint256 => Timepoint[]) private flowStates;
 
     constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
         _disableInitializers();
@@ -195,43 +190,5 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
                 spender_,
                 rebaseInput(_loadVMState(), subtractedValue_)
             );
-    }
-
-    function previewFlow(SourceIndex flow_, uint256 id_)
-        public
-        view
-        returns (FlowERC20IO memory flowERC20IO_)
-    {
-        require(
-            SourceIndex.unwrap(flow_) > SourceIndex.unwrap(CAN_FLOW_ENDPOINT),
-            "FLOW_OOB"
-        );
-        VMState memory state_ = _loadVMState(
-            LibUint256Array.arrayFrom(SourceIndex.unwrap(flow_), id_)
-        );
-        require(
-            SourceIndex.unwrap(flow_) < state_.compiledSources.length,
-            "FLOW_OOB"
-        );
-        require(state_.eval(CAN_FLOW_ENDPOINT).peek() > 0, "CANT_FLOW");
-        StackTop stackTop_ = state_.eval(flow_);
-        (stackTop_, flowERC20IO_.mint) = stackTop_.pop();
-        (stackTop_, flowERC20IO_.burn) = stackTop_.pop();
-        flowERC20IO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
-    }
-
-    function flow(SourceIndex flow_, uint256 id_)
-        external
-        returns (FlowERC20IO memory)
-    {
-        FlowERC20IO memory flowERC20IO_ = previewFlow(flow_, id_);
-        if (flowERC20IO_.mint > 0) {
-            _mint(msg.sender, flowERC20IO_.mint);
-        }
-        if (flowERC20IO_.burn > 0) {
-            _burn(msg.sender, flowERC20IO_.burn);
-        }
-        LibFlow.flow(flowERC20IO_.flow, address(this), msg.sender);
-        return flowERC20IO_;
     }
 }

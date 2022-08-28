@@ -10,5 +10,5 @@ interface IRainVMIntegrity {
         bytes[] memory sources,
         uint256 constantsLength,
         uint256[] memory finalStacks
-    ) external view returns (uint256 maximumStackHeight, uint256 scratch);
+    ) external view returns (uint256 scratch, uint256 maximumStackHeight);
 }

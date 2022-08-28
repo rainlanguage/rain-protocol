@@ -43,6 +43,7 @@ struct StateConfig {
 /// @param arguments `ZIPMAP` populates arguments which can be copied to the
 /// stack by `VAL`.
 struct VMState {
+    uint256 scratch;
     StackTop stackBottom;
     StackTop constantsBottom;
     uint256[] context;
@@ -122,6 +123,9 @@ library LibVMState {
             // The end of processing is the end of the state bytes.
             StackTop end_ = cursor_.upBytes(cursor_.peek());
 
+            cursor_ = cursor_.up();
+            state_.scratch = cursor_.peek();
+
             // Read the stack length and build a stack.
             cursor_ = cursor_.up();
             uint256 stackLength_ = cursor_.peek();
@@ -198,6 +202,7 @@ library LibVMState {
 
     function serialize(
         StateConfig memory config_,
+        uint scratch_,
         uint256 stackLength_,
         function(VMState memory, Operand, StackTop)
             internal
@@ -207,6 +212,7 @@ library LibVMState {
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
+            size_ += scratch_.size();
             size_ += stackLength_.size();
             size_ += config_.constants.size();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
@@ -214,6 +220,9 @@ library LibVMState {
             }
             bytes memory serialized_ = new bytes(size_);
             StackTop cursor_ = serialized_.asStackTop().up();
+
+            // Copy scratch.
+            cursor_ = cursor_.push(scratch_);
 
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);

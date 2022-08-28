@@ -127,7 +127,7 @@ abstract contract RainVM {
         IRainVMIntegrity vmIntegrity_,
         StateConfig memory config_,
         uint256[] memory finalStacks_
-    ) internal view returns (bytes memory, uint256) {
+    ) internal view returns (bytes memory) {
         unchecked {
             (uint256 stackLength_, uint256 scratch_) = vmIntegrity_
                 .ensureIntegrity(
@@ -137,10 +137,13 @@ abstract contract RainVM {
                     finalStacks_
                 );
 
-            return (
-                config_.serialize(stackLength_, opcodeFunctionPointers()),
-                scratch_
-            );
+            return
+                config_.serialize(
+                                        scratch_,
+                    stackLength_,
+
+                    opcodeFunctionPointers()
+                );
         }
     }
 }

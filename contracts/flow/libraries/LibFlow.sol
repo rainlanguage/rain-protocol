@@ -6,6 +6,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
+import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 // We want a sentinel with the following properties:
 // - Won't collide with token amounts (| with very large number)
@@ -36,6 +37,8 @@ struct ERC1155IO {
 }
 
 struct FlowIO {
+    uint256 inputNative;
+    uint256 outputNative;
     ERC20IO[] inputs20;
     ERC20IO[] outputs20;
     ERC721IO[] inputs721;
@@ -45,6 +48,7 @@ struct FlowIO {
 }
 
 library LibFlow {
+    using Address for address payable;
     using SafeERC20 for IERC20;
     using LibStackTop for StackTop;
 
@@ -55,6 +59,8 @@ library LibFlow {
     {
         FlowIO memory flowIO_;
         uint256[] memory tempArray_;
+        (stackTop_, flowIO_.inputNative) = stackTop_.pop();
+        (stackTop_, flowIO_.outputNative) = stackTop_.pop();
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             FLOW_SENTINEL,
@@ -115,9 +121,13 @@ library LibFlow {
     function flow(
         FlowIO memory flowIO_,
         address me_,
-        address you_
-    ) internal {
+        address payable you_
+    ) internal returns (FlowIO memory) {
         unchecked {
+            require(flowIO_.inputNative >= msg.value, "INSUFFICIENT_VALUE");
+            you_.sendValue(
+                flowIO_.outputNative + flowIO_.inputNative - msg.value
+            );
             if (flowIO_.inputs20.length > 0) {
                 for (uint256 i_ = 0; i_ < flowIO_.inputs20.length; i_++) {
                     IERC20(flowIO_.inputs20[i_].token).safeTransferFrom(
@@ -180,6 +190,7 @@ library LibFlow {
                     );
                 }
             }
+            return flowIO_;
         }
     }
 }

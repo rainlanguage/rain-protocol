@@ -5,17 +5,22 @@ import "../vm/integrity/StandardIntegrity.sol";
 import "../vm/ops/AllStandardOps.sol";
 import "./OrderBook.sol";
 import "../type/LibCast.sol";
+import "../idempotent/LibIdempotentFlag.sol";
+
+uint constant FLAG_INDEX_CLEARED_ORDER = 0;
+uint constant FLAG_INDEX_CLEARED_COUNTERPARTY = 1;
 
 contract OrderBookIntegrity is StandardIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrityState for IntegrityState;
+    using LibIdempotentFlag for IdempotentFlag;
 
     function integrityOrderFundsCleared(
         IntegrityState memory integrityState_,
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        integrityState_.scratch |= TRACKING_FLAG_CLEARED_ORDER;
+        integrityState_.scratch = IdempotentFlag.unwrap(IdempotentFlag.wrap(integrityState_.scratch).set(FLAG_INDEX_CLEARED_ORDER));
         function(uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }
@@ -25,7 +30,7 @@ contract OrderBookIntegrity is StandardIntegrity {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        integrityState_.scratch |= TRACKING_FLAG_CLEARED_COUNTERPARTY;
+        integrityState_.scratch = IdempotentFlag.unwrap(IdempotentFlag.wrap(integrityState_.scratch).set(FLAG_INDEX_CLEARED_COUNTERPARTY));
         function(uint256, uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }

@@ -37,7 +37,7 @@ contract StandardVM is RainVM {
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal virtual {
-        (bytes memory stateBytes_, ) = buildStateBytes(
+        bytes memory stateBytes_ = buildStateBytes(
             IRainVMIntegrity(vmIntegrity),
             config_,
             finalMinStacks_
