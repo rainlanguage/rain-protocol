@@ -1,19 +1,19 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { NoticeBoard } from "../../../typechain/NoticeBoard";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { SaleFactory } from "../../../typechain/SaleFactory";
-import { zeroAddress } from "../../../utils/constants/address";
-import { ONE, RESERVE_ONE } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
-import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
-import { Tier } from "../../../utils/types/tier";
+import { NoticeBoard } from "../../typechain/NoticeBoard";
+import { ReadWriteTier } from "../../typechain/ReadWriteTier";
+import { ReserveToken } from "../../typechain/ReserveToken";
+import { SaleFactory } from "../../typechain/SaleFactory";
+import { zeroAddress } from "../../utils/constants/address";
+import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import { basicDeploy } from "../../utils/deploy/basic";
+import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import { getEventArgs } from "../../utils/events";
+import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
+import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
 
