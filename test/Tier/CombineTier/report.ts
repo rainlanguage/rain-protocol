@@ -53,6 +53,7 @@ describe("CombineTier default report", async function () {
     bob = signers[2];
 
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    tokenERC20.initialize();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
