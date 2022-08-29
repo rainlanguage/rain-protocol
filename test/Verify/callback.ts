@@ -6,9 +6,9 @@ import type {
   BanEvent,
   RemoveEvent,
   Verify,
-} from "../../typechain/Verify";
-import type { VerifyCallbackTest } from "../../typechain/VerifyCallbackTest";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+} from "../../typechain";
+import type { VerifyCallbackTest } from "../../typechain";
+import { VerifyFactory } from "../../typechain";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { verifyDeploy } from "../../utils/deploy/verify";
 import { getEvents } from "../../utils/events";

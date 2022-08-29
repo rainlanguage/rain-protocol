@@ -1,10 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../typechain/ReserveToken";
-import { BuyEvent, RefundEvent } from "../../typechain/Sale";
-import { SaleFactory } from "../../typechain/SaleFactory";
+import { ReadWriteTier } from "../../typechain";
+import { ReserveToken } from "../../typechain";
+import { BuyEvent, RefundEvent } from "../../typechain";
+import { SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";

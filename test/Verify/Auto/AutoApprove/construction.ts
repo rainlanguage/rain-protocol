@@ -1,10 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import {
-  InitializeEvent,
-  StateConfigStruct,
-} from "../../../../typechain/AutoApprove";
-import { AutoApproveFactory } from "../../../../typechain/AutoApproveFactory";
+import { InitializeEvent, StateConfigStruct } from "../../../../typechain";
+import { AutoApproveFactory } from "../../../../typechain";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,

@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type {
   LibIntegrityStateTest,
   StorageOpcodesRangeStruct,
-} from "../../../../typechain/LibIntegrityStateTest";
+} from "../../../../typechain";
 import { Opcode } from "../../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";

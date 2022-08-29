@@ -1,8 +1,8 @@
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
-import { ReportOMeter } from "../../typechain/ReportOMeter";
+import { ReserveToken18 } from "../../typechain";
+import { StakeConfigStruct } from "../../typechain";
+import { StakeFactory } from "../../typechain";
+import { ReportOMeter } from "../../typechain";
 import { sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";

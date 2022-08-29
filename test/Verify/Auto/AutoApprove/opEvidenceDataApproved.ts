@@ -1,8 +1,8 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StateConfigStruct } from "../../../../typechain/AutoApprove";
-import { AutoApproveFactory } from "../../../../typechain/AutoApproveFactory";
-import { ApproveEvent } from "../../../../typechain/Verify";
+import { StateConfigStruct } from "../../../../typechain";
+import { AutoApproveFactory } from "../../../../typechain";
+import { ApproveEvent } from "../../../../typechain";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,

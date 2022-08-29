@@ -2,13 +2,13 @@ import type {
   CurationConfigStruct,
   FactoryCurator,
   RegisterCurationEvent,
-} from "../../../typechain/FactoryCurator";
-import type { FactoryTest } from "../../../typechain/FactoryTest";
+} from "../../../typechain";
+import type { FactoryTest } from "../../../typechain";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { ethers } from "hardhat";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { ReserveToken } from "../../../typechain";
+import { ReadWriteTier } from "../../../typechain";
 import { Tier } from "../../../utils/types/tier";
 import { assert } from "chai";
 import { compareStructs } from "../../../utils/test/compareStructs";

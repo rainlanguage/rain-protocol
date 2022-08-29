@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CombineTier } from "../../../../typechain/CombineTier";
-import type { ReadWriteTier } from "../../../../typechain/ReadWriteTier";
+import type { CombineTier } from "../../../../typechain";
+import type { ReadWriteTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
 import { getBlockTimestamp, timewarp } from "../../../../utils/hardhat";

@@ -1,10 +1,8 @@
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type { VerifyTier } from "../../typechain/VerifyTier";
-import type {
-  ImplementationEvent as ImplementationEventVerifyTierFactory,
-  VerifyTierFactory,
-} from "../../typechain/VerifyTierFactory";
+import type { VerifyTier } from "../../typechain";
+import type { VerifyTierFactory } from "../../typechain";
+import { ImplementationEvent as ImplementationEventVerifyTierFactory } from "../../typechain/contracts/tier/VerifyTierFactory";
 import { zeroAddress } from "../constants";
 import { getEventArgs } from "../events";
 

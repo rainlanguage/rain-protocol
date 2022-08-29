@@ -1,9 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { StandardIntegrity } from "../../../typechain";
+import { AllStandardOpsTest } from "../../../typechain";
+import { ReadWriteTier } from "../../../typechain";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
 import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";

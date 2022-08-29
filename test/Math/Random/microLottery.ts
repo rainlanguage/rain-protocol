@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { Contract } from "ethers";
-import type { RandomTest } from "../../../typechain/RandomTest";
+import type { RandomTest } from "../../../typechain";
 import { assertError } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { prettyPrintMatrix } from "../../../utils/output/log";

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import type { ReadWriteTier } from "../../../typechain";
 import * as Util from "../../../utils";
 import {
   getBlockTimestamp,

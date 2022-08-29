@@ -12,9 +12,9 @@ import type {
   OrderBook,
   OrderConfigStruct,
   OrderLiveEvent,
-} from "../../typechain/OrderBook";
-import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
+} from "../../typechain";
+import { OrderBookIntegrity } from "../../typechain";
+import { ReserveToken18 } from "../../typechain";
 import {
   eighteenZeros,
   max_uint256,

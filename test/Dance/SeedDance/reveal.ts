@@ -2,12 +2,8 @@ import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify, keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { LibSeedTest } from "../../../typechain/LibSeedTest";
-import type {
-  RevealEvent,
-  SeedDanceTest,
-  TimeBoundStruct,
-} from "../../../typechain/SeedDanceTest";
+import { LibSeedTest } from "../../../typechain";
+import type { SeedDanceTest } from "../../../typechain";
 import { assertError, kurtosis } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
@@ -16,6 +12,10 @@ import {
   getBlockTimestamp,
   timewarp,
 } from "../../../utils/hardhat";
+import {
+  RevealEvent,
+  TimeBoundStruct,
+} from "../../../typechain/contracts/dance/SeedDance";
 
 describe("SeedDance reveal", async function () {
   let seedDance: SeedDanceTest;

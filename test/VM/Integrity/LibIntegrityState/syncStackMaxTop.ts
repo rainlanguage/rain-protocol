@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import type {
   LibIntegrityStateTest,
   StorageOpcodesRangeStruct,
-} from "../../../../typechain/LibIntegrityStateTest";
+} from "../../../../typechain";
 
 describe("LibIntegrityState syncStackMaxTop tests", async function () {
   let libIntegrityState: LibIntegrityStateTest;

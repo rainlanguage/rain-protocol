@@ -7,9 +7,9 @@ import type {
   OrderBook,
   WithdrawConfigStruct,
   WithdrawEvent,
-} from "../../typechain/OrderBook";
-import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
+} from "../../typechain";
+import { OrderBookIntegrity } from "../../typechain";
+import { ReserveToken18 } from "../../typechain";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";

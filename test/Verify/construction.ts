@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { InitializeEvent, Verify } from "../../typechain/Verify";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+import type { InitializeEvent, Verify } from "../../typechain";
+import { VerifyFactory } from "../../typechain";
 import {
   APPROVER,
   APPROVER_ADMIN,

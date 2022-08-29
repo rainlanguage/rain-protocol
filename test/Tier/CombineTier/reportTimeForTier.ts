@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { CombineTier } from "../../../typechain/CombineTier";
+import type { CombineTier } from "../../../typechain";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";

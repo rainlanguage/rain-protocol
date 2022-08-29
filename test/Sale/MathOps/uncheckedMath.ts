@@ -1,9 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { SaleFactory } from "../../../typechain/SaleFactory";
+import { ReadWriteTier } from "../../../typechain";
+import { ReserveToken } from "../../../typechain";
+import { SaleFactory } from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,

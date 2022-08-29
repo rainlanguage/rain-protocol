@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibMemorySizeTest } from "../../../typechain/LibMemorySizeTest";
+import type { LibMemorySizeTest } from "../../../typechain";
 import { randomUint256 } from "../../../utils/bytes";
 
 describe("LibMemorySize uint256 tests", async function () {

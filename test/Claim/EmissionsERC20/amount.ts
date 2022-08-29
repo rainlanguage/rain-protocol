@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { ReadWriteTier } from "../../../typechain";
 import * as Util from "../../../utils";
 import {
   eighteenZeros,

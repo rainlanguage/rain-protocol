@@ -1,11 +1,8 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  InitializeEvent,
-  TreasuryAssetEvent,
-} from "../../typechain/RedeemableERC20";
-import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { ReadWriteTier } from "../../typechain";
+import type { InitializeEvent, TreasuryAssetEvent } from "../../typechain";
+import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
 import { Tier } from "../../utils";
 

@@ -1,8 +1,8 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { StandardIntegrity } from "../../../../typechain";
+import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   AllStandardOps,
   op,
@@ -218,11 +218,11 @@ describe("LOOP_N Opcode test", async function () {
               op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // 32
               op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
             op(Opcode.MUL, 2), // 32 * LEVEL
-          op(Opcode.EXP, 2), // 2 ** (32 * LEVEL) 
+          op(Opcode.EXP, 2), // 2 ** (32 * LEVEL)
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
         op(Opcode.MUL, 2),
 
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE        
+        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.ADD, 2),
     ]);
 
@@ -232,15 +232,15 @@ describe("LOOP_N Opcode test", async function () {
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
         op(Opcode.ADD, 2),
 
-          // Right Shifting                           
+          // Right Shifting
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
         op(Opcode.CALL, callOperand(3, 1, 3)),
 
           // Decrementing the LEVEL
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL          
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT         
+          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
         op(Opcode.SATURATING_SUB, 2), // LEVEL - 1
     ]);
 
@@ -254,7 +254,7 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // Initial Value
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.LOOP_N, loopNOperand(n, 1)), 
+      op(Opcode.LOOP_N, loopNOperand(n, 1)),
         op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32),
     ]);
@@ -314,11 +314,11 @@ describe("LOOP_N Opcode test", async function () {
               op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // 32
               op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
             op(Opcode.MUL, 2), // 32 * LEVEL
-          op(Opcode.EXP, 2), // 2 ** (32 * LEVEL) 
+          op(Opcode.EXP, 2), // 2 ** (32 * LEVEL)
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
         op(Opcode.MUL, 2),
 
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE        
+        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.ADD, 2),
     ]);
 
@@ -328,15 +328,15 @@ describe("LOOP_N Opcode test", async function () {
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
         op(Opcode.ADD, 2),
 
-          // Right Shifting                           
+          // Right Shifting
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
           op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
         op(Opcode.CALL, callOperand(3, 1, 3)),
 
           // Decrementing the LEVEL
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL          
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT         
+          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
         op(Opcode.SATURATING_SUB, 2), // LEVEL - 1
     ]);
 
@@ -352,10 +352,10 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // Initial Value
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.LOOP_N, loopNOperand(n, 1)), 
+      op(Opcode.LOOP_N, loopNOperand(n, 1)),
         op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32), // EXPLODING the Value
-      op(Opcode.LOOP_N, loopNOperand(7, 4)), 
+      op(Opcode.LOOP_N, loopNOperand(7, 4)),
     ]);
 
     await logic.initialize({
@@ -396,11 +396,11 @@ describe("LOOP_N Opcode test", async function () {
     // prettier-ignore
     const sourceADD = concat([
          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-         op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES 
+         op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
-    const sourceMAIN = concat([    
+    const sourceMAIN = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
       op(Opcode.LOOP_N, loopNOperand(n, 1))
@@ -431,11 +431,11 @@ describe("LOOP_N Opcode test", async function () {
     // prettier-ignore
     const sourceADD = concat([
          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-         op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES 
+         op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
-    const sourceMAIN = concat([    
+    const sourceMAIN = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
       op(Opcode.LOOP_N, loopNOperand(n, 1))

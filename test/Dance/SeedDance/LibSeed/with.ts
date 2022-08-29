@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { hexlify, randomBytes } from "ethers/lib/utils";
-import type { LibSeedTest } from "../../../../typechain/LibSeedTest";
+import type { LibSeedTest } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 
 describe("SeedDance LibSeed with", async function () {

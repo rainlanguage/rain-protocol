@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibUint256ArrayTest } from "../../../typechain/LibUint256ArrayTest";
+import type { LibUint256ArrayTest } from "../../../typechain";
 import { assertError } from "../../../utils/test/assertError";
 
 describe("LibUint256Array truncate tests", async function () {

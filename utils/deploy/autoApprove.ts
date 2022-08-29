@@ -1,14 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type {
-  AutoApprove,
-  StateConfigStruct,
-} from "../../typechain/AutoApprove";
+import type { AutoApprove, StateConfigStruct } from "../../typechain";
 import type {
   AutoApproveFactory,
   ImplementationEvent as ImplementationEventAutoApproveFactory,
-} from "../../typechain/AutoApproveFactory";
+} from "../../typechain";
 import { zeroAddress } from "../constants";
 import { getEventArgs } from "../events";
 

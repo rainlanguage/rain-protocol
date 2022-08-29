@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { InitializeEvent } from "../../../typechain/EmissionsERC20";
+import { InitializeEvent } from "../../../typechain/contracts/claim/EmissionsERC20";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 import { getEventArgs } from "../../../utils/events";

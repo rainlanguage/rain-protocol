@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibUint256ArrayTest } from "../../../typechain/LibUint256ArrayTest";
+import type { LibUint256ArrayTest } from "../../../typechain";
 
 describe("LibUint256Array unsafeCopyValuesTo tests", async function () {
   let libUint256Array: LibUint256ArrayTest;

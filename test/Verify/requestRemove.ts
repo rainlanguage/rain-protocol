@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { RequestRemoveEvent, Verify } from "../../typechain/Verify";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+import type { RequestRemoveEvent, Verify } from "../../typechain";
+import { VerifyFactory } from "../../typechain";
 import { verifyDeploy } from "../../utils/deploy/verify";
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";

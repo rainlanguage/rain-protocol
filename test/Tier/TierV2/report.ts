@@ -1,8 +1,8 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import { StandardIntegrity } from "../../../typechain";
+import { AllStandardOpsTest } from "../../../typechain";
+import { ReadWriteTier } from "../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
 import { getBlockTimestamp } from "../../../utils/hardhat";

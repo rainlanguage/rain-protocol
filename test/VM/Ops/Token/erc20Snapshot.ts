@@ -2,12 +2,12 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import { StandardIntegrity } from "../../../../typechain";
+import { AllStandardOpsTest } from "../../../../typechain";
 import {
   ReserveTokenERC20Snapshot,
   SnapshotEvent,
-} from "../../../../typechain/ReserveTokenERC20Snapshot";
+} from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { getEventArgs } from "../../../../utils/events";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
