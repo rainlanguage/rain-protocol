@@ -45,16 +45,16 @@ struct ClearStateChange {
 
 struct TakeOrderConfig {
     Order order;
-    uint inputIOIndex;
-    uint outputIOIndex;
+    uint256 inputIOIndex;
+    uint256 outputIOIndex;
 }
 
 struct TakeOrdersConfig {
     address output;
     address input;
-    uint minimumInput;
-    uint maximumInput;
-    uint maximumIORatio;
+    uint256 minimumInput;
+    uint256 maximumInput;
+    uint256 maximumIORatio;
     TakeOrderConfig[] orders;
 }
 
@@ -97,7 +97,12 @@ contract OrderBook is StandardVM {
     event OrderDead(address sender, Order config);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
-    event TakeOrder(address sender, TakeOrderConfig takeOrder, uint input, uint output);
+    event TakeOrder(
+        address sender,
+        TakeOrderConfig takeOrder,
+        uint256 input,
+        uint256 output
+    );
 
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
@@ -171,19 +176,32 @@ contract OrderBook is StandardVM {
         }
     }
 
-    function _calculateOrderIO(Order memory order_, uint outputIOIndex_, address counterparty_) internal view returns (uint orderOutputMax_, uint orderIORatio_) {
-            VMState memory vmState_ = order_.vmState.deserialize(
-                EvalContext(order_.hash(), counterparty_).toContext()
-            );
-            (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
+    function _calculateOrderIO(
+        Order memory order_,
+        uint256 outputIOIndex_,
+        address counterparty_
+    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_) {
+        VMState memory vmState_ = order_.vmState.deserialize(
+            EvalContext(order_.hash(), counterparty_).toContext()
+        );
+        (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
 
-            // The order owner can't send more than the smaller of their vault
-            // balance or their per-order limit.
-            IO memory outputIO_ = order_.validOutputs[outputIOIndex_];
-            orderOutputMax_ = orderOutputMax_.min(vaults[order_.owner][outputIO_.token][outputIO_.vaultId]);
+        // The order owner can't send more than the smaller of their vault
+        // balance or their per-order limit.
+        IO memory outputIO_ = order_.validOutputs[outputIOIndex_];
+        orderOutputMax_ = orderOutputMax_.min(
+            vaults[order_.owner][outputIO_.token][outputIO_.vaultId]
+        );
     }
 
-    function _recordVaultIO(Order memory order_, address counterparty_, uint inputIOIndex_, uint input_, uint outputIOIndex_, uint output_) internal {
+    function _recordVaultIO(
+        Order memory order_,
+        address counterparty_,
+        uint256 inputIOIndex_,
+        uint256 input_,
+        uint256 outputIOIndex_,
+        uint256 output_
+    ) internal {
         IO memory io_;
         if (input_ > 0) {
             io_ = order_.validInputs[inputIOIndex_];
@@ -195,40 +213,66 @@ contract OrderBook is StandardVM {
             if (_isTracked(order_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
                 clearedOrder[order_.hash()] += output_;
             }
-            if (_isTracked(order_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
+            if (
+                _isTracked(order_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)
+            ) {
                 clearedCounterparty[order_.hash()][counterparty_] += output_;
             }
         }
     }
 
-    function takeOrders(TakeOrdersConfig calldata takeOrders_) external returns (uint totalInput_, uint totalOutput_) {
-        uint i_ = 0;
+    function takeOrders(TakeOrdersConfig calldata takeOrders_)
+        external
+        returns (uint256 totalInput_, uint256 totalOutput_)
+    {
+        uint256 i_ = 0;
         TakeOrderConfig memory takeOrder_;
         Order memory order_;
-        uint remainingInput_ = takeOrders_.maximumInput;
+        uint256 remainingInput_ = takeOrders_.maximumInput;
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
-            require(order_.validInputs[takeOrder_.inputIOIndex].token == takeOrders_.output, "TOKEN_MISMATCH");
-            require(order_.validOutputs[takeOrder_.outputIOIndex].token == takeOrders_.input, "TOKEN_MISMATCH");
+            require(
+                order_.validInputs[takeOrder_.inputIOIndex].token ==
+                    takeOrders_.output,
+                "TOKEN_MISMATCH"
+            );
+            require(
+                order_.validOutputs[takeOrder_.outputIOIndex].token ==
+                    takeOrders_.input,
+                "TOKEN_MISMATCH"
+            );
 
-            (uint orderOutputMax_, uint orderIORatio_) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
+            (
+                uint256 orderOutputMax_,
+                uint256 orderIORatio_
+            ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
 
             // Skip orders that are too expensive rather than revert as we have
             // no way of knowing if a specific order becomes too expensive
             // between submitting to mempool and execution, but other orders may
             // be valid so we want to take advantage of those if possible.
-            if (orderIORatio_ > takeOrders_.maximumIORatio || orderOutputMax_ == 0) {
+            if (
+                orderIORatio_ > takeOrders_.maximumIORatio ||
+                orderOutputMax_ == 0
+            ) {
                 continue;
             }
 
-            uint input_ = remainingInput_.min(orderOutputMax_);
-            uint output_ = input_.fixedPointMul(orderIORatio_);
+            uint256 input_ = remainingInput_.min(orderOutputMax_);
+            uint256 output_ = input_.fixedPointMul(orderIORatio_);
 
             remainingInput_ -= input_;
             totalOutput_ += output_;
 
-            _recordVaultIO(order_, msg.sender, takeOrder_.inputIOIndex, output_, takeOrder_.outputIOIndex, input_);
+            _recordVaultIO(
+                order_,
+                msg.sender,
+                takeOrder_.inputIOIndex,
+                output_,
+                takeOrder_.outputIOIndex,
+                input_
+            );
             emit TakeOrder(msg.sender, takeOrder_, input_, output_);
 
             unchecked {
@@ -282,8 +326,16 @@ contract OrderBook is StandardVM {
             // VM execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            (aOutputMax_, aIORatio_) = _calculateOrderIO(a_, clearConfig_.aOutputIOIndex, b_.owner);
-            (bOutputMax_, bIORatio_) = _calculateOrderIO(b_, clearConfig_.bOutputIOIndex, a_.owner);
+            (aOutputMax_, aIORatio_) = _calculateOrderIO(
+                a_,
+                clearConfig_.aOutputIOIndex,
+                b_.owner
+            );
+            (bOutputMax_, bIORatio_) = _calculateOrderIO(
+                b_,
+                clearConfig_.bOutputIOIndex,
+                a_.owner
+            );
 
             stateChange_.aOutput = aOutputMax_.min(
                 bOutputMax_.fixedPointMul(bIORatio_)
@@ -301,8 +353,22 @@ contract OrderBook is StandardVM {
             stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bIORatio_);
         }
 
-        _recordVaultIO(a_, b_.owner, clearConfig_.aInputIOIndex, stateChange_.aInput, clearConfig_.aOutputIOIndex, stateChange_.aOutput);
-        _recordVaultIO(b_, a_.owner, clearConfig_.bInputIOIndex, stateChange_.bInput, clearConfig_.bOutputIOIndex, stateChange_.bOutput);
+        _recordVaultIO(
+            a_,
+            b_.owner,
+            clearConfig_.aInputIOIndex,
+            stateChange_.aInput,
+            clearConfig_.aOutputIOIndex,
+            stateChange_.aOutput
+        );
+        _recordVaultIO(
+            b_,
+            a_.owner,
+            clearConfig_.bInputIOIndex,
+            stateChange_.bInput,
+            clearConfig_.bOutputIOIndex,
+            stateChange_.bOutput
+        );
 
         {
             // At least one of these will overflow due to negative bounties if

@@ -38,12 +38,14 @@ library OpDoWhile {
         // Check that an iteration of the loop ends where it starts.
         require(
             StackTop.unwrap(stackTop_) ==
-                StackTop.unwrap(integrityState_.ensureIntegrity(
-                    SourceIndex.wrap(Operand.unwrap(operand_)),
-                    // The loop eval starts under the condition.
-                    integrityState_.pop(stackTop_),
-                    0
-                )),
+                StackTop.unwrap(
+                    integrityState_.ensureIntegrity(
+                        SourceIndex.wrap(Operand.unwrap(operand_)),
+                        // The loop eval starts under the condition.
+                        integrityState_.pop(stackTop_),
+                        0
+                    )
+                ),
             "LOOP_SHIFT"
         );
         // Final position is under condition.
