@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat, defaultAbiCoder, hexlify } from "ethers/lib/utils";
+import { concat, defaultAbiCoder } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import { CombineTier } from "../../../typechain/CombineTier";
 import type {
