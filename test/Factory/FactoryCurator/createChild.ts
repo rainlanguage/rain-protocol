@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat, defaultAbiCoder } from "ethers/lib/utils";
+import { concat, defaultAbiCoder, hexlify } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import { CombineTier } from "../../../typechain/CombineTier";
 import type {
@@ -27,6 +27,7 @@ import {
   Opcode,
   stakeDeploy,
   THRESHOLDS,
+  THRESHOLDS_18,
   timewarp,
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
@@ -273,8 +274,12 @@ describe("FactoryCurator createChild", async function () {
     const alice = signers[2];
     const deployer = signers[3];
 
-    // Reserve token
-    const token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    // Stake expect 18 decimal asset
+    const reserve18 = (await basicDeploy(
+      "ReserveToken18",
+      {}
+    )) as ReserveToken18;
+    await reserve18.initialize();
 
     // Stake contract
     const stakeFactoryFactory = await ethers.getContractFactory(
@@ -286,23 +291,19 @@ describe("FactoryCurator createChild", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: reserve18.address,
     };
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
-    const depositAmount0 = THRESHOLDS[1].add(1); // exceeds all thresholds
-    await token.transfer(alice.address, depositAmount0);
-    await token.connect(alice).approve(stake.address, depositAmount0);
+    const depositAmount0 = THRESHOLDS_18[1].add(1);
+    await reserve18.transfer(alice.address, depositAmount0);
+    await reserve18.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    // Reserve token
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.transfer(alice.address, FEE);
 
     const factoryCurator = (await basicDeploy(
       "FactoryCurator",
@@ -313,13 +314,13 @@ describe("FactoryCurator createChild", async function () {
       factory: factoryTest.address,
       curator: curator.address,
       feeConfig: {
-        token: reserve.address,
+        token: reserve18.address,
         amount: FEE,
       },
       tierConfig: {
         tierContract: stake.address,
         minimumTier: Tier.FOUR, // Setting minimum Tier to 4
-        context: THRESHOLDS,
+        context: THRESHOLDS_18,
       },
     };
 
@@ -333,7 +334,8 @@ describe("FactoryCurator createChild", async function () {
 
     const childValue = 123;
 
-    await reserve.connect(alice).approve(factoryCurator.address, FEE);
+    await reserve18.transfer(alice.address, FEE);
+    await reserve18.connect(alice).approve(factoryCurator.address, FEE);
 
     await assertError(
       async () =>
@@ -348,15 +350,15 @@ describe("FactoryCurator createChild", async function () {
       "did not revert when user failed to meet tier requirement"
     );
 
-    // Alice adds more staking tokens which lets her achieve Tier 4
-    const depositAmount1 = THRESHOLDS[4].add(1); // exceeds all thresholds
-    await token.transfer(alice.address, depositAmount1);
-    await token.connect(alice).approve(stake.address, depositAmount1);
+    // Alice deposits more reserve tokens which lets her achieve Tier 4
+    const depositAmount1 = THRESHOLDS_18[4].add(1); // exceeds all thresholds
+    await reserve18.transfer(alice.address, depositAmount1);
+    await reserve18.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
     // Transferring and Approving Fee
-    await reserve.transfer(alice.address, FEE);
-    await reserve.connect(alice).approve(factoryCurator.address, FEE);
+    await reserve18.transfer(alice.address, FEE);
+    await reserve18.connect(alice).approve(factoryCurator.address, FEE);
 
     // Creating child
     const txCreateChild = await factoryCurator
@@ -400,7 +402,8 @@ describe("FactoryCurator createChild", async function () {
     const deployer = signers[3];
 
     // Reserve token
-    const token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
 
     // Stake contract
     const stakeFactoryFactory = await ethers.getContractFactory(
@@ -412,7 +415,7 @@ describe("FactoryCurator createChild", async function () {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: reserve.address,
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -420,8 +423,8 @@ describe("FactoryCurator createChild", async function () {
 
     // Give Alice reserve tokens and deposit them // Tier being set : 1
     const depositAmount0 = THRESHOLDS[4].add(1); // exceeds all thresholds
-    await token.transfer(alice.address, depositAmount0);
-    await token.connect(alice).approve(stake0.address, depositAmount0);
+    await reserve.transfer(alice.address, depositAmount0);
+    await reserve.connect(alice).approve(stake0.address, depositAmount0);
     await stake0.connect(alice).deposit(depositAmount0, alice.address);
 
     // CombineTier
@@ -491,10 +494,6 @@ describe("FactoryCurator createChild", async function () {
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
-    // Reserve token
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.transfer(alice.address, FEE);
-
     const factoryCurator = (await basicDeploy(
       "FactoryCurator",
       {}
@@ -524,6 +523,7 @@ describe("FactoryCurator createChild", async function () {
 
     const childValue = 123;
 
+    await reserve.transfer(alice.address, FEE);
     await reserve.connect(alice).approve(factoryCurator.address, FEE);
 
     await assertError(
@@ -543,8 +543,8 @@ describe("FactoryCurator createChild", async function () {
     // This will return a valid report for alice
     await timewarp(10000);
     const depositAmount1 = THRESHOLDS[4].add(1);
-    await token.transfer(alice.address, depositAmount1);
-    await token.connect(alice).approve(stake1.address, depositAmount1);
+    await reserve.transfer(alice.address, depositAmount1);
+    await reserve.connect(alice).approve(stake1.address, depositAmount1);
     await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     // Transferring and Approving Fee
