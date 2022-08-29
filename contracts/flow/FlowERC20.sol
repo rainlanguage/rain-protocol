@@ -78,7 +78,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         return state_.eval(REBASE_RATIO_ENTRYPOINT).peek();
     }
 
-    function rebaseInput(uint256 ratio_, uint256 input_)
+    function _rebaseInput(uint256 ratio_, uint256 input_)
         internal
         pure
         returns (uint256)
@@ -88,22 +88,22 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
 
     /// User input needs to be divided by the ratio to compensate for the
     /// multiples calculated upon output.
-    function rebaseInput(VMState memory state_, uint256 input_)
+    function _rebaseInput(VMState memory state_, uint256 input_)
         internal
         view
         returns (uint256)
     {
-        return rebaseInput(_rebaseRatio(state_), input_);
+        return _rebaseInput(_rebaseRatio(state_), input_);
     }
 
     /// Internal data needs to be multiplied by the ratio as it is output.
     /// Inputs will be divided by the ratio when accepted.
-    function rebaseOutput(uint256 output_) internal view returns (uint256) {
+    function _rebaseOutput(uint256 output_) internal view returns (uint256) {
         return output_.fixedPointMul(_rebaseRatio(_loadVMState()));
     }
 
     function totalSupply() public view virtual override returns (uint256) {
-        return rebaseOutput(super.totalSupply());
+        return _rebaseOutput(super.totalSupply());
     }
 
     function balanceOf(address account_)
@@ -113,16 +113,16 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         override
         returns (uint256)
     {
-        return rebaseOutput(super.balanceOf(account_));
+        return _rebaseOutput(super.balanceOf(account_));
     }
 
-    function transferPreflight(
+    function _transferPreflight(
         address from_,
         address to_,
         uint256 amount_
     ) internal view returns (uint256 amountRebased_) {
         VMState memory state_ = _loadVMState();
-        amountRebased_ = rebaseInput(state_, amount_);
+        amountRebased_ = _rebaseInput(state_, amount_);
         state_.context = LibUint256Array.arrayFrom(
             uint256(uint160(from_)),
             uint256(uint160(to_)),
@@ -141,7 +141,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         override
         returns (bool)
     {
-        return super.transfer(to_, transferPreflight(msg.sender, to_, amount_));
+        return super.transfer(to_, _transferPreflight(msg.sender, to_, amount_));
     }
 
     function transferFrom(
@@ -153,7 +153,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
             super.transferFrom(
                 from_,
                 to_,
-                rebaseInput(_loadVMState(), amount_)
+                _rebaseInput(_loadVMState(), amount_)
             );
     }
 
@@ -164,7 +164,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         override
         returns (uint256)
     {
-        return rebaseOutput(super.allowance(owner_, spender_));
+        return _rebaseOutput(super.allowance(owner_, spender_));
     }
 
     function approve(address spender_, uint256 amount_)
@@ -173,7 +173,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         override
         returns (bool)
     {
-        return super.approve(spender_, rebaseInput(_loadVMState(), amount_));
+        return super.approve(spender_, _rebaseInput(_loadVMState(), amount_));
     }
 
     function increaseAllowance(address spender_, uint256 addedValue_)
@@ -185,7 +185,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         return
             super.increaseAllowance(
                 spender_,
-                rebaseInput(_loadVMState(), addedValue_)
+                _rebaseInput(_loadVMState(), addedValue_)
             );
     }
 
@@ -198,7 +198,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         return
             super.decreaseAllowance(
                 spender_,
-                rebaseInput(_loadVMState(), subtractedValue_)
+                _rebaseInput(_loadVMState(), subtractedValue_)
             );
     }
 
@@ -212,8 +212,8 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         (stackTop_, flowIO_.burn) = stackTop_.pop();
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
         uint256 rebaseRatio_ = _rebaseRatio(state_);
-        flowIO_.mint = rebaseInput(rebaseRatio_, flowIO_.mint);
-        flowIO_.burn = rebaseInput(rebaseRatio_, flowIO_.burn);
+        flowIO_.mint = _rebaseInput(rebaseRatio_, flowIO_.mint);
+        flowIO_.burn = _rebaseInput(rebaseRatio_, flowIO_.burn);
         return flowIO_;
     }
 
