@@ -9,6 +9,8 @@ import "../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./libraries/LibFlow.sol";
 import "../math/FixedPointMath.sol";
+import "../idempotent/LibIdempotentFlag.sol";
+import "./FlowVM.sol";
 
 /// Constructor config.
 /// @param Constructor config for the ERC20 token minted according to flow
@@ -27,9 +29,9 @@ struct FlowERC20IO {
     FlowIO flow;
 }
 
-SourceIndex constant REBASE_RATIO_ENDPOINT = SourceIndex.wrap(0);
-SourceIndex constant CAN_TRANSFER_ENDPOINT = SourceIndex.wrap(1);
-SourceIndex constant CAN_FLOW_ENDPOINT = SourceIndex.wrap(2);
+SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(2);
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -44,7 +46,7 @@ SourceIndex constant CAN_FLOW_ENDPOINT = SourceIndex.wrap(2);
 /// claim and then diff it against the current block number.
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
+contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
@@ -56,7 +58,7 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
+    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {
         _disableInitializers();
     }
 
@@ -73,7 +75,15 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
         view
         returns (uint256)
     {
-        return state_.eval(REBASE_RATIO_ENDPOINT).peek();
+        return state_.eval(REBASE_RATIO_ENTRYPOINT).peek();
+    }
+
+    function rebaseInput(uint256 ratio_, uint256 input_)
+        internal
+        pure
+        returns (uint256)
+    {
+        return input_.fixedPointDiv(ratio_);
     }
 
     /// User input needs to be divided by the ratio to compensate for the
@@ -83,7 +93,7 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
         view
         returns (uint256)
     {
-        return input_.fixedPointDiv(_rebaseRatio(state_));
+        return rebaseInput(_rebaseRatio(state_), input_);
     }
 
     /// Internal data needs to be multiplied by the ratio as it is output.
@@ -120,7 +130,7 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
             amountRebased_
         );
         require(
-            state_.eval(CAN_TRANSFER_ENDPOINT).peek() > 0,
+            state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
             "INVALID_TRANSFER"
         );
     }
@@ -190,5 +200,43 @@ contract FlowERC20 is ReentrancyGuard, StandardVM, ERC20 {
                 spender_,
                 rebaseInput(_loadVMState(), subtractedValue_)
             );
+    }
+
+    function _previewFlow(
+        VMState memory state_,
+        SourceIndex flow_,
+        uint256 id_
+    ) internal view returns (FlowERC20IO memory flowIO_) {
+        StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
+        (stackTop_, flowIO_.mint) = stackTop_.pop();
+        (stackTop_, flowIO_.burn) = stackTop_.pop();
+        flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
+        uint256 rebaseRatio_ = _rebaseRatio(state_);
+        flowIO_.mint = rebaseInput(rebaseRatio_, flowIO_.mint);
+        flowIO_.burn = rebaseInput(rebaseRatio_, flowIO_.burn);
+        return flowIO_;
+    }
+
+    function previewFlow(SourceIndex flow_, uint256 id_)
+        external
+        view
+        virtual
+        returns (FlowERC20IO memory flowIO_)
+    {
+        flowIO_ = _previewFlow(_loadVMState(), flow_, id_);
+    }
+
+    function flow(SourceIndex flow_, uint256 id_)
+        external
+        virtual
+        nonReentrant
+        returns (FlowERC20IO memory flowIO_)
+    {
+        VMState memory state_ = _loadVMState();
+        flowIO_ = _previewFlow(state_, flow_, id_);
+        registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
+        _mint(msg.sender, flowIO_.mint);
+        _burn(msg.sender, flowIO_.burn);
+        LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
     }
 }

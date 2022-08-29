@@ -15,37 +15,44 @@ contract FlowVM is Initializable, StandardVM {
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
-
-    }
+    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function __FlowVM_init(StateConfig calldata config_) internal onlyInitializing {
+    function __FlowVM_init(StateConfig calldata config_)
+        internal
+        onlyInitializing
+    {
         _saveVMState(config_);
     }
 
     function flowStack(
+        VMState memory state_,
         SourceIndex canFlow_,
         SourceIndex flow_,
         uint256 id_
-    ) internal view returns (VMState memory, StackTop) {
+    ) internal view returns (StackTop) {
         require(
             SourceIndex.unwrap(flow_) > SourceIndex.unwrap(canFlow_),
             "FLOW_OOB"
         );
-        VMState memory state_ = _loadVMState(
-            LibUint256Array.arrayFrom(SourceIndex.unwrap(flow_), id_)
+        state_.context = LibUint256Array.arrayFrom(
+            SourceIndex.unwrap(flow_),
+            id_
         );
         require(
             SourceIndex.unwrap(flow_) < state_.compiledSources.length,
             "FLOW_OOB"
         );
         require(state_.eval(canFlow_).peek() > 0, "CANT_FLOW");
-        return (state_, state_.eval(flow_));
+        return state_.eval(flow_);
     }
 
-    function registerFlowTime(VMState memory state_, SourceIndex flow_, uint id_) internal {
-        if (IdempotentFlag.wrap(state_.scratch).get(FLAG_INDEX_FLOW_TIME)) {
+    function registerFlowTime(
+        IdempotentFlag flag_,
+        SourceIndex flow_,
+        uint256 id_
+    ) internal {
+        if (flag_.get(FLAG_INDEX_FLOW_TIME)) {
             _flows[flow_][id_] = block.timestamp;
         }
     }

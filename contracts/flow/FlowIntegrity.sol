@@ -5,7 +5,7 @@ import "../vm/ops/AllStandardOps.sol";
 import "../type/LibCast.sol";
 import "../idempotent/LibIdempotentFlag.sol";
 uint256 constant FLAG_INDEX_FLOW_TIME = 0;
-uint constant LOCAL_OPS_LENGTH = 1;
+uint256 constant LOCAL_OPS_LENGTH = 1;
 
 contract OrderBookIntegrity is StandardIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
@@ -17,8 +17,12 @@ contract OrderBookIntegrity is StandardIntegrity {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        integrityState_.scratch = IdempotentFlag.unwrap(IdempotentFlag.wrap(integrityState_.scratch).set(FLAG_INDEX_FLOW_TIME));
-        function(uint, uint) internal view returns (uint) fn_;
+        integrityState_.scratch = IdempotentFlag.unwrap(
+            IdempotentFlag.wrap(integrityState_.scratch).set(
+                FLAG_INDEX_FLOW_TIME
+            )
+        );
+        function(uint256, uint256) internal view returns (uint256) fn_;
         return integrityState_.applyFn(stackTop_, fn_);
     }
 

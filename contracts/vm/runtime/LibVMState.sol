@@ -202,7 +202,7 @@ library LibVMState {
 
     function serialize(
         StateConfig memory config_,
-        uint scratch_,
+        uint256 scratch_,
         uint256 stackLength_,
         function(VMState memory, Operand, StackTop)
             internal

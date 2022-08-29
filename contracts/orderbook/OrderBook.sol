@@ -195,17 +195,19 @@ contract OrderBook is StandardVM {
 
             unchecked {
                 {
-                    VMState memory state_ = a_.vmState.deserialize(EvalContext(a_.hash(), b_.owner).toContext());
+                    VMState memory state_ = a_.vmState.deserialize(
+                        EvalContext(a_.hash(), b_.owner).toContext()
+                    );
                     stateChange_.aFlag = IdempotentFlag.wrap(state_.scratch);
-                    (aOutputMax_, aPrice_) = state_.eval()
-                        .peek2();
+                    (aOutputMax_, aPrice_) = state_.eval().peek2();
                 }
 
                 {
-                    VMState memory state_ = b_.vmState.deserialize(EvalContext(b_.hash(), a_.owner).toContext());
+                    VMState memory state_ = b_.vmState.deserialize(
+                        EvalContext(b_.hash(), a_.owner).toContext()
+                    );
                     stateChange_.bFlag = IdempotentFlag.wrap(state_.scratch);
-                    (bOutputMax_, bPrice_) = state_.eval()
-                        .peek2();
+                    (bOutputMax_, bPrice_) = state_.eval().peek2();
                 }
             }
 
@@ -248,7 +250,8 @@ contract OrderBook is StandardVM {
             }
             if (stateChange_.aFlag.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
                 // A counts funds paid to cover the bounty as cleared for B.
-                clearedCounterparty[a_.hash()][b_.owner] += stateChange_.aOutput;
+                clearedCounterparty[a_.hash()][b_.owner] += stateChange_
+                    .aOutput;
             }
         }
         if (stateChange_.bOutput > 0) {
@@ -259,7 +262,8 @@ contract OrderBook is StandardVM {
                 clearedOrder[b_.hash()] += stateChange_.bOutput;
             }
             if (stateChange_.bFlag.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
-                clearedCounterparty[b_.hash()][a_.owner] += stateChange_.bOutput;
+                clearedCounterparty[b_.hash()][a_.owner] += stateChange_
+                    .bOutput;
             }
         }
         if (stateChange_.aInput > 0) {
