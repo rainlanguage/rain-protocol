@@ -684,4 +684,30 @@ describe("SeedDance reveal", async function () {
       "canRevealUntil does not have a fair random distribution"
     );
   });
+
+  it("should fail to reveal sharedSeed_ if seed dance never started", async () => {
+    const signers = await ethers.getSigners();
+
+    const signer1 = signers[1];
+
+    const commitmentSecret = randomBytes(32);
+    const commitment1 = keccak256(commitmentSecret);
+
+    // Committing the secret
+    await seedDance.connect(signer1).commit(commitment1);
+
+    const timeBound: TimeBoundStruct = {
+      baseDuration: 60,
+      maxExtraTime: 1, // we always lose a second, so need minimum of `1`
+    };
+
+    // revealing the secret before the seedDance was started
+    await assertError(
+      async () => {
+        await seedDance.connect(signer1).reveal(timeBound, commitmentSecret);
+      },
+      "CANT_REVEAL",
+      "Secret was revealed even before the seedDance was started"
+    );
+  });
 });
