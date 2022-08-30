@@ -2,8 +2,11 @@ import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify, keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { LibSeedTest } from "../../../typechain";
-import type { SeedDanceTest } from "../../../typechain";
+import type { LibSeedTest, SeedDanceTest } from "../../../typechain";
+import {
+  RevealEvent,
+  TimeBoundStructOutput,
+} from "../../../typechain/contracts/dance/SeedDance";
 import { assertError, kurtosis, Struct } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
@@ -12,10 +15,6 @@ import {
   getBlockTimestamp,
   timewarp,
 } from "../../../utils/hardhat";
-import {
-  RevealEvent,
-  TimeBoundStructOutput,
-} from "../../../typechain/contracts/dance/SeedDance";
 
 describe("SeedDance reveal", async function () {
   let seedDance: SeedDanceTest;
@@ -682,6 +681,32 @@ describe("SeedDance reveal", async function () {
     assert(
       extraTimeKurtosis < 0,
       "canRevealUntil does not have a fair random distribution"
+    );
+  });
+
+  it("should fail to reveal sharedSeed_ if seed dance never started", async () => {
+    const signers = await ethers.getSigners();
+
+    const signer1 = signers[1];
+
+    const commitmentSecret = randomBytes(32);
+    const commitment1 = keccak256(commitmentSecret);
+
+    // Committing the secret
+    await seedDance.connect(signer1).commit(commitment1);
+
+    const timeBound: Struct<TimeBoundStructOutput> = {
+      baseDuration: 60,
+      maxExtraTime: 1, // we always lose a second, so need minimum of `1`
+    };
+
+    // revealing the secret before the seedDance was started
+    await assertError(
+      async () => {
+        await seedDance.connect(signer1).reveal(timeBound, commitmentSecret);
+      },
+      "CANT_REVEAL",
+      "Secret was revealed even before the seedDance was started"
     );
   });
 });
