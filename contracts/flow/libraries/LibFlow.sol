@@ -7,18 +7,14 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "../../sentinel/LibSentinel.sol";
 
 // We want a sentinel with the following properties:
 // - Won't collide with token amounts (| with very large number)
 // - Won't collide with token addresses
 // - Won't collide with common values like type(uint).max and type(uint).min
 // - Won't collide with other sentinels from unrelated contexts
-uint256 constant FLOW_SENTINEL = uint256(
-    keccak256("RAIN_FLOW_SENTINEL") |
-        bytes32(
-            0xF000000000000000000000000000000000000000000000000000000000000000
-        )
-);
+uint256 constant RAIN_FLOW_SENTINEL = uint(keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS);
 
 struct ERC20IO {
     address token;
@@ -63,7 +59,7 @@ library LibFlow {
         (stackTop_, flowIO_.outputNative) = stackTop_.pop();
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
-            FLOW_SENTINEL,
+            RAIN_FLOW_SENTINEL,
             2
         );
         assembly ("memory-safe") {
@@ -72,7 +68,7 @@ library LibFlow {
         }
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
-            FLOW_SENTINEL,
+            RAIN_FLOW_SENTINEL,
             2
         );
         assembly ("memory-safe") {
@@ -81,7 +77,7 @@ library LibFlow {
         }
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
-            FLOW_SENTINEL,
+            RAIN_FLOW_SENTINEL,
             2
         );
         assembly ("memory-safe") {
@@ -90,7 +86,7 @@ library LibFlow {
         }
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
-            FLOW_SENTINEL,
+            RAIN_FLOW_SENTINEL,
             2
         );
         assembly ("memory-safe") {
@@ -99,7 +95,7 @@ library LibFlow {
         }
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
-            FLOW_SENTINEL,
+            RAIN_FLOW_SENTINEL,
             3
         );
         assembly ("memory-safe") {
@@ -108,7 +104,7 @@ library LibFlow {
         }
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
-            FLOW_SENTINEL,
+            RAIN_FLOW_SENTINEL,
             3
         );
         assembly ("memory-safe") {
