@@ -1,9 +1,8 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StateConfigStruct } from "../../../../typechain/AutoApprove";
-import { AutoApproveFactory } from "../../../../typechain/AutoApproveFactory";
-import { ReserveTokenERC721 } from "../../../../typechain/ReserveTokenERC721";
-import { ApproveEvent } from "../../../../typechain/Verify";
+import { AutoApproveFactory, ReserveTokenERC721 } from "../../../../typechain";
+import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -15,7 +14,7 @@ import {
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
 import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;

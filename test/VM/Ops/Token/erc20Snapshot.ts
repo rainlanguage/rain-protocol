@@ -2,16 +2,16 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import {
+import type {
+  AllStandardOpsTest,
   ReserveTokenERC20Snapshot,
-  SnapshotEvent,
-} from "../../../../typechain/ReserveTokenERC20Snapshot";
+  StandardIntegrity,
+} from "../../../../typechain";
+import { SnapshotEvent } from "../../../../typechain/contracts/test/ReserveTokenERC20Snapshot";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { getEventArgs } from "../../../../utils/events";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 

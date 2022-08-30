@@ -1,15 +1,11 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
-import { CombineTier } from "../../typechain/CombineTier";
-import {
-  ERC20ConfigStruct,
-  InitializeEvent,
-} from "../../typechain/RedeemableERC20";
-import type { ReserveToken } from "../../typechain/ReserveToken";
-import { StakeConfigStruct, StakeFactory } from "../../typechain/StakeFactory";
+import { StandardIntegrity } from "../../typechain";
+import { AllStandardOpsTest } from "../../typechain";
+import { CombineTier } from "../../typechain";
+import type { ReserveToken } from "../../typechain";
+import { StakeFactory } from "../../typechain";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
@@ -24,7 +20,12 @@ import {
   Tier,
 } from "../../utils";
 import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
-import type { ERC20PulleeTest } from "../../typechain/ERC20PulleeTest";
+import type { ERC20PulleeTest } from "../../typechain";
+import {
+  ERC20ConfigStruct,
+  InitializeEvent,
+} from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 const Opcode = AllStandardOps;
 
 describe("RedeemableERC20 ERC165_TierV2 test", async function () {

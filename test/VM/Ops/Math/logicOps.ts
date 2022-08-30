@@ -2,8 +2,10 @@ import { assert } from "chai";
 import type { BigNumber } from "ethers";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
+import type {
+  AllStandardOpsTest,
+  StandardIntegrity,
+} from "../../../../typechain";
 import {
   AllStandardOps,
   memoryOperand,

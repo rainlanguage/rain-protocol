@@ -2,7 +2,7 @@ import { assert } from "chai";
 import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 
-import type { FixedPointMathTest } from "../../../typechain/FixedPointMathTest";
+import type { FixedPointMathTest } from "../../../typechain";
 import { eighteenZeros, ONE } from "../../../utils";
 
 let fixedPointMathTestFactory: ContractFactory;

@@ -1,24 +1,22 @@
 import { assert } from "chai";
 import { concat, defaultAbiCoder } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
-import { CombineTier } from "../../../typechain/CombineTier";
 import type {
   FactoryChildTest,
-  InitializeEvent,
-} from "../../../typechain/FactoryChildTest";
-import type {
-  CurationConfigStruct,
   FactoryCurator,
-  RegisterCurationEvent,
-} from "../../../typechain/FactoryCurator";
-import type { FactoryTest } from "../../../typechain/FactoryTest";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { ReserveToken18 } from "../../../typechain/ReserveToken18";
-import {
-  StakeConfigStruct,
+  FactoryTest,
+  CombineTier,
+  ReadWriteTier,
+  ReserveToken,
+  ReserveToken18,
   StakeFactory,
-} from "../../../typechain/StakeFactory";
+} from "../../../typechain";
+import {
+  CurationConfigStruct,
+  RegisterCurationEvent,
+} from "../../../typechain/contracts/factory/FactoryCurator";
+import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import { InitializeEvent } from "../../../typechain/contracts/test/FactoryChildTest";
 import {
   combineTierDeploy,
   memoryOperand,

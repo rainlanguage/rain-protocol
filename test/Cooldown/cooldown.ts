@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { CooldownTest } from "../../typechain/CooldownTest";
+import type { CooldownTest } from "../../typechain";
 import {
   assertError,
   getBlockTimestamp,

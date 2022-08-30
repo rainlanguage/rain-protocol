@@ -1,14 +1,13 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
+import type { Verify, VerifyCallbackTest } from "../../typechain";
+import { VerifyFactory } from "../../typechain";
+import {
   ApproveEvent,
   BanEvent,
   RemoveEvent,
-  Verify,
-} from "../../typechain/Verify";
-import type { VerifyCallbackTest } from "../../typechain/VerifyCallbackTest";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+} from "../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { verifyDeploy } from "../../utils/deploy/verify";
 import { getEvents } from "../../utils/events";

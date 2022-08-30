@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { Stake } from "../../typechain/Stake";
+import { Stake } from "../../typechain";
 
 interface Deposit {
   timestamp: number;

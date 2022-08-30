@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { CooldownTest } from "../../typechain/CooldownTest";
+import type { CooldownTest } from "../../typechain";
 import { assertError, getEventArgs, max_uint32 } from "../../utils";
 
 describe("Cooldown initialize test", async function () {

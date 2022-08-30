@@ -2,13 +2,15 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../typechain/AllStandardOpsTest";
-import type { CombineTier } from "../../../typechain/CombineTier";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { StakeConfigStruct } from "../../../typechain/Stake";
-import { StakeFactory } from "../../../typechain/StakeFactory";
+import {
+  AllStandardOpsTest,
+  CombineTier,
+  ReadWriteTier,
+  ReserveToken,
+  StakeFactory,
+  StandardIntegrity,
+} from "../../../typechain";
+import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import {
   getBlockTimestamp,
   max_uint256,
@@ -20,7 +22,7 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;

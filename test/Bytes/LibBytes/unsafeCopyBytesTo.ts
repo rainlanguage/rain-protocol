@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibBytesTest } from "../../../typechain/LibBytesTest";
+import type { LibBytesTest } from "../../../typechain";
 import { readBytes } from "../../../utils/bytes";
 
 describe("LibBytes unsafeCopyBytesTo tests", async function () {

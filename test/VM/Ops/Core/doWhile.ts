@@ -1,15 +1,17 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import type {
+  AllStandardOpsTest,
+  StandardIntegrity,
+} from "../../../../typechain";
 import {
   AllStandardOps,
-  op,
+  assertError,
+  callOperand,
   memoryOperand,
   MemoryType,
-  callOperand,
-  assertError,
+  op,
 } from "../../../../utils";
 
 const Opcode = AllStandardOps;

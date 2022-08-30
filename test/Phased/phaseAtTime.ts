@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import type { PhasedTest } from "../../typechain/PhasedTest";
+import type { PhasedTest } from "../../typechain";
 import * as Util from "../../utils";
 import { Phase } from "../../utils/types/phased";
 

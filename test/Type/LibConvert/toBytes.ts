@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibConvertTest } from "../../../typechain/LibConvertTest";
+import type { LibConvertTest } from "../../../typechain";
 
 describe("LibConvert toBytes tests", async function () {
   let libConvert: LibConvertTest;

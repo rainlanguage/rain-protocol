@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
+import { ReserveToken18, StakeFactory } from "../../typechain";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { getBlockTimestamp, timewarp, zeroAddress } from "../../utils";
 import { eighteenZeros, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";

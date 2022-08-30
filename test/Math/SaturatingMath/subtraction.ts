@@ -2,7 +2,7 @@ import { assert } from "chai";
 import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 
-import type { SaturatingMathTest } from "../../../typechain/SaturatingMathTest";
+import type { SaturatingMathTest } from "../../../typechain";
 
 let saturatingMathTestFactory: ContractFactory;
 

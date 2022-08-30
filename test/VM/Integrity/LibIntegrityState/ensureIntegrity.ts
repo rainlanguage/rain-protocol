@@ -1,10 +1,8 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  LibIntegrityStateTest,
-  StorageOpcodesRangeStruct,
-} from "../../../../typechain/LibIntegrityStateTest";
+import type { LibIntegrityStateTest } from "../../../../typechain";
+import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/vm/runtime/RainVM";
 import { Opcode } from "../../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
