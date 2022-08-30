@@ -5,8 +5,6 @@ import type {
   FactoryChildTest,
   FactoryCurator,
   FactoryTest,
-} from "../../../typechain";
-import {
   CombineTier,
   ReadWriteTier,
   ReserveToken,

@@ -1,8 +1,8 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
-import {
+import type {
+  AllStandardOpsTest,
   ReadWriteTier,
   StandardIntegrity,
   TierReportTest,

@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import type { OrderBook } from "../../typechain";
-import { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
 import {
   DepositConfigStruct,
   DepositEvent,

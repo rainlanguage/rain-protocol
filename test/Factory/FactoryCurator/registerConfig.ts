@@ -1,7 +1,11 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { FactoryCurator, FactoryTest } from "../../../typechain";
-import { ReadWriteTier, ReserveToken } from "../../../typechain";
+import type {
+  FactoryCurator,
+  FactoryTest,
+  ReadWriteTier,
+  ReserveToken,
+} from "../../../typechain";
 import {
   CurationConfigStruct,
   RegisterCurationEvent,

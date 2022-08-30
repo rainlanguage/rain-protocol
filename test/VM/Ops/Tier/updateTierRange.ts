@@ -1,6 +1,9 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AllStandardOpsTest, StandardIntegrity } from "../../../../typechain";
+import type {
+  AllStandardOpsTest,
+  StandardIntegrity,
+} from "../../../../typechain";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
