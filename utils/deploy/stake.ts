@@ -1,8 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { Stake } from "../../typechain";
-import { StakeFactory } from "../../typechain";
+import { Stake, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { getEventArgs } from "../events";
 

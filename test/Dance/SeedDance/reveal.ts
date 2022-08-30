@@ -4,7 +4,7 @@ import { hexlify, keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { LibSeedTest } from "../../../typechain";
 import type { SeedDanceTest } from "../../../typechain";
-import { assertError, kurtosis } from "../../../utils";
+import { assertError, kurtosis, Struct } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import {
@@ -14,7 +14,7 @@ import {
 } from "../../../utils/hardhat";
 import {
   RevealEvent,
-  TimeBoundStruct,
+  TimeBoundStructOutput,
 } from "../../../typechain/contracts/dance/SeedDance";
 
 describe("SeedDance reveal", async function () {
@@ -35,7 +35,7 @@ describe("SeedDance reveal", async function () {
 
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
@@ -69,7 +69,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer2).commit(commitment2);
     await seedDance.connect(signer3).commit(commitment3);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 1000000, // high number to reduce flakiness where canRevealUntil timestamps overlap, just so we can test that we are, in fact, getting a random spread of timestamps
     };
@@ -142,7 +142,7 @@ describe("SeedDance reveal", async function () {
 
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 100, // we always lose a second, so need minimum of `1`
     };
@@ -175,7 +175,7 @@ describe("SeedDance reveal", async function () {
 
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
@@ -208,7 +208,7 @@ describe("SeedDance reveal", async function () {
 
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 100, // we always lose a second, so need minimum of `1`
     };
@@ -243,7 +243,7 @@ describe("SeedDance reveal", async function () {
     // Committing the secret
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
@@ -305,7 +305,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer2).commit(commitment2);
     await seedDance.connect(signer3).commit(commitment3);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
@@ -431,7 +431,7 @@ describe("SeedDance reveal", async function () {
     // Committing the secret
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
@@ -491,7 +491,7 @@ describe("SeedDance reveal", async function () {
     // Committing the secret
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 3600,
       maxExtraTime: 3600,
     };
@@ -523,7 +523,7 @@ describe("SeedDance reveal", async function () {
     // Committing the secret
     await seedDance.connect(signer1).commit(commitment1);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 3600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
@@ -564,7 +564,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer2).commit(commitment2);
     await seedDance.connect(signer3).commit(commitment3);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: 10,
     };
@@ -644,7 +644,7 @@ describe("SeedDance reveal", async function () {
     const MAX_EXTRATIME = 10000;
     const initialSeed = randomBytes(32);
 
-    const timeBound: TimeBoundStruct = {
+    const timeBound: Struct<TimeBoundStructOutput> = {
       baseDuration: 60,
       maxExtraTime: MAX_EXTRATIME,
     };

@@ -1,16 +1,15 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain";
-import { AllStandardOpsTest } from "../../../../typechain";
+import { AllStandardOpsTest, StandardIntegrity } from "../../../../typechain";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
 import {
+  callOperand,
   Debug,
-  op,
+  loopNOperand,
   memoryOperand,
   MemoryType,
-  callOperand,
-  loopNOperand,
+  op,
 } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;

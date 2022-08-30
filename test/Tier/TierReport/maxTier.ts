@@ -1,7 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../../typechain";
-import { TierReportTest } from "../../../typechain";
+import { ReadWriteTier, TierReportTest } from "../../../typechain";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { timewarp } from "../../../utils/hardhat";
 import { assertError } from "../../../utils/test/assertError";

@@ -1,15 +1,14 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import type {
+import type { OrderBook } from "../../typechain";
+import { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import {
   DepositConfigStruct,
   DepositEvent,
-  OrderBook,
   WithdrawConfigStruct,
   WithdrawEvent,
-} from "../../typechain";
-import { OrderBookIntegrity } from "../../typechain";
-import { ReserveToken18 } from "../../typechain";
+} from "../../typechain/contracts/orderbook/OrderBook";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";

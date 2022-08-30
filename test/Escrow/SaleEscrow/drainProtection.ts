@@ -6,8 +6,8 @@ import { ReadWriteTier } from "../../../typechain";
 import { RedeemableERC20ClaimEscrow } from "../../../typechain";
 import { RedeemableERC20Factory } from "../../../typechain";
 import { ReserveToken } from "../../../typechain";
-import { SaleConstructorConfigStruct } from "../../../typechain";
 import { SaleFactory } from "../../../typechain";
+import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
 import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
 

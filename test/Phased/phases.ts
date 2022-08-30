@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { PhasedTest, PhaseScheduledEvent } from "../../typechain";
+import type { PhasedTest } from "../../typechain";
+import { PhaseScheduledEvent } from "../../typechain/contracts/phased/Phased";
 import * as Util from "../../utils";
 import { getBlockTimestamp, max_uint32, timewarp } from "../../utils";
 import { Phase, PhaseTimes } from "../../utils/types/phased";

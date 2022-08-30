@@ -1,7 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { artifacts, ethers } from "hardhat";
-import { EmissionsERC20 } from "../../typechain";
-import { EmissionsERC20Factory } from "../../typechain";
+import { EmissionsERC20, EmissionsERC20Factory } from "../../typechain";
 import { EmissionsERC20ConfigStruct } from "../../typechain/contracts/claim/EmissionsERC20";
 import { getEventArgs } from "../events";
 

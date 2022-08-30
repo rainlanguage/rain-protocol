@@ -1,13 +1,15 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain";
-import { AllStandardOpsTest } from "../../../typechain";
-import { ReadWriteTier } from "../../../typechain";
+import {
+  AllStandardOpsTest,
+  ReadWriteTier,
+  StandardIntegrity,
+} from "../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { compareTierReports } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 

@@ -1,8 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type { RedeemableERC20 } from "../../typechain";
-import type { RedeemableERC20Factory } from "../../typechain";
+import type { RedeemableERC20, RedeemableERC20Factory } from "../../typechain";
 import { RedeemableERC20ConfigStruct } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import { ImplementationEvent as ImplementationEventRedeemableERC20Factory } from "../../typechain/contracts/redeemableERC20/RedeemableERC20Factory";
 import { zeroAddress } from "../constants";

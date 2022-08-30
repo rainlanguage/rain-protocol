@@ -7,7 +7,6 @@ import { ReadWriteTier } from "../../../typechain";
 import type { RedeemableERC20 } from "../../../typechain";
 import { RedeemableERC20Factory } from "../../../typechain";
 import { ReserveToken } from "../../../typechain";
-import { SaleConstructorConfigStruct } from "../../../typechain";
 import { SaleEscrowWrapper } from "../../../typechain";
 import { SaleFactory } from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
@@ -16,6 +15,7 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20";
 import { Status } from "../../../utils/types/sale";
 import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
+import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
 
 let reserve: ReserveToken,
   redeemableERC20FactoryFactory: ContractFactory,

@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { InitializeEvent, StateConfigStruct } from "../../../../typechain";
 import { AutoApproveFactory } from "../../../../typechain";
+import {
+  InitializeEvent,
+  StateConfigStruct,
+} from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -12,7 +15,7 @@ import {
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
 import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {

@@ -1,12 +1,14 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain";
-import { AllStandardOpsTest } from "../../../typechain";
-import { ReadWriteTier } from "../../../typechain";
+import {
+  AllStandardOpsTest,
+  ReadWriteTier,
+  StandardIntegrity,
+} from "../../../typechain";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierV2 report time for tier op", async function () {

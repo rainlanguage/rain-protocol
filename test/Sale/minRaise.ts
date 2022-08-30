@@ -4,13 +4,13 @@ import { ethers } from "hardhat";
 import { ReadWriteTier } from "../../typechain";
 import { RedeemableERC20Factory } from "../../typechain";
 import { ReserveToken } from "../../typechain";
+import { SaleFactory } from "../../typechain";
 import {
   BuyEvent,
   EndEvent,
   InitializeEvent,
   StartEvent,
-} from "../../typechain";
-import { SaleFactory } from "../../typechain";
+} from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";

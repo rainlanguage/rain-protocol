@@ -1,17 +1,15 @@
-import type {
+import { assert } from "chai";
+import { ethers } from "hardhat";
+import type { FactoryCurator, FactoryTest } from "../../../typechain";
+import { ReadWriteTier, ReserveToken } from "../../../typechain";
+import {
   CurationConfigStruct,
-  FactoryCurator,
   RegisterCurationEvent,
-} from "../../../typechain";
-import type { FactoryTest } from "../../../typechain";
+} from "../../../typechain/contracts/factory/FactoryCurator";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
-import { ethers } from "hardhat";
-import { ReserveToken } from "../../../typechain";
-import { ReadWriteTier } from "../../../typechain";
-import { Tier } from "../../../utils/types/tier";
-import { assert } from "chai";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator registerConfig", async function () {
   it("should emit event when config is registered", async () => {

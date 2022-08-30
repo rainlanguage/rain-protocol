@@ -1,9 +1,8 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { Verify } from "../../../typechain";
+import type { Verify, VerifyTier } from "../../../typechain";
 import { VerifyFactory } from "../../../typechain";
-import type { VerifyTier } from "../../../typechain";
 import * as Util from "../../../utils";
 import { getBlockTimestamp } from "../../../utils";
 

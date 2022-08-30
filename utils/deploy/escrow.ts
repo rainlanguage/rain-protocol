@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain";
-import type { RedeemableERC20ClaimEscrow } from "../../typechain";
-import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain";
-import { RedeemableERC20Factory } from "../../typechain";
-import type { SaleFactory } from "../../typechain";
+import type {
+  ReadWriteTier,
+  RedeemableERC20ClaimEscrow,
+  SaleFactory,
+} from "../../typechain";
+import {
+  RedeemableERC20ClaimEscrowWrapper,
+  RedeemableERC20Factory,
+} from "../../typechain";
 import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
 
 export const deployGlobals = async () => {

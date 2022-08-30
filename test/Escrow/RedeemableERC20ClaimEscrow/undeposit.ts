@@ -1,16 +1,14 @@
 import { assert } from "chai";
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { MockISale } from "../../../typechain";
-import type { ReadWriteTier } from "../../../typechain";
-import type { RedeemableERC20 } from "../../../typechain";
 import type {
+  ReadWriteTier,
+  RedeemableERC20,
   RedeemableERC20ClaimEscrow,
-  UndepositEvent,
+  ReserveToken,
 } from "../../../typechain";
-import { RedeemableERC20Factory } from "../../../typechain";
-import type { ReserveToken } from "../../../typechain";
-import {} from "../../../typechain";
+import { MockISale, RedeemableERC20Factory } from "../../../typechain";
+import { UndepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
 import { getEventArgs } from "../../../utils";
 import { deployGlobals } from "../../../utils/deploy/escrow";

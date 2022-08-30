@@ -6,14 +6,14 @@ import * as Util from "../../../utils";
 import {
   compareTierReports,
   getBlockTimestamp,
+  memoryOperand,
+  MemoryType,
   op,
   paddedUInt256,
   paddedUInt32,
   Tier,
   tierRange,
   timewarp,
-  memoryOperand,
-  MemoryType,
 } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";

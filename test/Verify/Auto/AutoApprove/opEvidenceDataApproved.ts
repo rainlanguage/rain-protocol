@@ -1,8 +1,8 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StateConfigStruct } from "../../../../typechain";
 import { AutoApproveFactory } from "../../../../typechain";
-import { ApproveEvent } from "../../../../typechain";
+import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
@@ -14,7 +14,7 @@ import {
 import { getEventArgs } from "../../../../utils/events";
 import { timewarp } from "../../../../utils/hardhat";
 import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove evidence data approved op", async function () {

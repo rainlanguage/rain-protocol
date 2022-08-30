@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 

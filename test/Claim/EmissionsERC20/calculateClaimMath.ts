@@ -4,7 +4,7 @@ import { max_uint256 } from "../../../utils/constants";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;

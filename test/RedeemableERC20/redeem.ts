@@ -1,12 +1,15 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { ReadWriteTier } from "../../typechain";
-import type { PhaseScheduledEvent, RedeemEvent } from "../../typechain";
 import { RedeemableERC20Reentrant } from "../../typechain";
 import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
 import { getBlockTimestamp, Tier } from "../../utils";
 import { Phase } from "../../utils/types/redeemableERC20";
+import {
+  PhaseScheduledEvent,
+  RedeemEvent,
+} from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 
 describe("RedeemableERC20 redeem test", async function () {
   it("should guard against reentrancy if a treasury asset is malicious", async function () {

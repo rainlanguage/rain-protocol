@@ -1,12 +1,12 @@
 import { ethers } from "hardhat";
 import { ReserveToken18 } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain";
 import { StakeFactory } from "../../typechain";
 import { ReportOMeter } from "../../typechain";
 import { sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { assert } from "chai";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 
 describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;

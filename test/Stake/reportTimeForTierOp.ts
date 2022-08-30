@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { ReserveToken18 } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain";
 import { StakeFactory } from "../../typechain";
 import { max_uint32, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
@@ -14,6 +13,7 @@ import { AllStandardOpsTest } from "../../typechain";
 import { concat } from "ethers/lib/utils";
 import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;

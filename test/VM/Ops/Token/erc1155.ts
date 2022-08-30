@@ -2,12 +2,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain";
-import { AllStandardOpsTest } from "../../../../typechain";
-import { ReserveTokenERC1155 } from "../../../../typechain";
+import {
+  AllStandardOpsTest,
+  ReserveTokenERC1155,
+  StandardIntegrity,
+} from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 

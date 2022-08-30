@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { SeedDanceTest, StartEvent } from "../../../typechain";
+import type { SeedDanceTest } from "../../../typechain";
+import { StartEvent } from "../../../typechain/contracts/dance/SeedDance";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";

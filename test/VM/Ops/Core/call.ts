@@ -1,19 +1,21 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain";
 import type { AllStandardOpsTest } from "../../../../typechain";
-import { ReadWriteTier } from "../../../../typechain";
-import { TierReportTest } from "../../../../typechain";
+import {
+  ReadWriteTier,
+  StandardIntegrity,
+  TierReportTest,
+} from "../../../../typechain";
 import {
   AllStandardOps,
-  op,
-  memoryOperand,
-  MemoryType,
+  basicDeploy,
   callOperand,
   getBlockTimestamp,
+  memoryOperand,
+  MemoryType,
+  op,
   Tier,
-  basicDeploy,
   timewarp,
 } from "../../../../utils";
 

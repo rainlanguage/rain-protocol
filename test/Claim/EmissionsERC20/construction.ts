@@ -6,7 +6,7 @@ import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;

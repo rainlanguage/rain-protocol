@@ -1,11 +1,15 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain";
-import { AllStandardOpsTest } from "../../../typechain";
-import type { CombineTier, InitializeEvent } from "../../../typechain";
-import { ReserveToken } from "../../../typechain";
-import { StakeConfigStruct, StakeFactory } from "../../../typechain";
+import type { CombineTier } from "../../../typechain";
+import {
+  AllStandardOpsTest,
+  ReserveToken,
+  StakeFactory,
+  StandardIntegrity,
+} from "../../../typechain";
+import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import { InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
 import {
   basicDeploy,
   claimFactoriesDeploy,
