@@ -3,33 +3,25 @@ import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  AfterClearEvent,
-  ClearConfigStruct,
-  ClearEvent,
-  ClearStateChangeStruct,
+  OrderBook,
+  OrderBookIntegrity,
+  ReserveToken18,
+} from "../../typechain";
+import {
   DepositConfigStruct,
   DepositEvent,
-  OrderBook,
   OrderConfigStruct,
   OrderLiveEvent,
-} from "../../typechain/OrderBook";
-import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import {
-  eighteenZeros,
-  max_uint256,
-  ONE,
-} from "../../utils/constants/bigNumber";
+  TakeOrderConfigStruct,
+  TakeOrderEvent,
+  TakeOrdersConfigStruct,
+} from "../../typechain/contracts/orderbook/OrderBook";
+import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
-import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
-import { assertError } from "../../utils/test/assertError";
-import {
-  compareSolStructs,
-  compareStructs,
-} from "../../utils/test/compareStructs";
+import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
 
@@ -68,8 +60,6 @@ describe("OrderBook take orders", async function () {
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
 
     // ASK ORDER
 
@@ -137,5 +127,33 @@ describe("OrderBook take orders", async function () {
 
     assert(depositAliceSender === alice.address);
     compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    // Bob takes order with direct wallet transfer
+    const takeOrderConfigStruct0: TakeOrderConfigStruct = {
+      order: askConfig,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct0: TakeOrdersConfigStruct = {
+      output: tokenB.address,
+      input: tokenA.address,
+      minimumInput: 0,
+      maximumInput: max_uint256,
+      maximumIORatio: max_uint256,
+      orders: [takeOrderConfigStruct0],
+    };
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct0);
+
+    const { sender, takeOrder, input, output } = (await getEventArgs(
+      txTakeOrders,
+      "TakeOrder",
+      orderBook
+    )) as TakeOrderEvent["args"];
+
+    console.log({ sender, takeOrder, input, output });
   });
 });
