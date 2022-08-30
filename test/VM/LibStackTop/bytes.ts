@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { arrayify, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
+import type { LibStackTopTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
 import { range } from "../../../utils/range";
 

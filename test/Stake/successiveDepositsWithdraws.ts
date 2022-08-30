@@ -1,12 +1,12 @@
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
-import { ReportOMeter } from "../../typechain/ReportOMeter";
+import { ReserveToken18 } from "../../typechain";
+import { StakeFactory } from "../../typechain";
+import { ReportOMeter } from "../../typechain";
 import { sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { assert } from "chai";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 
 describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
@@ -31,6 +31,7 @@ describe("Stake many successive deposits and withdraws", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should process 50 successive deposits and withdraws", async function () {

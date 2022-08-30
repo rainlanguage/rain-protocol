@@ -1,9 +1,8 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
-import { StackHeightTest } from "../../../typechain/StackHeightTest";
+import { StackHeightTest, StandardIntegrity } from "../../../typechain";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;

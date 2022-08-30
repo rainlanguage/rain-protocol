@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { TierChangeEvent } from "../../../typechain/ReadWriteTier";
+import { TierChangeEvent } from "../../../typechain/contracts/test/ReadWriteTier";
 import { max_uint256 } from "../../../utils/constants";
 import {
   TIERS,

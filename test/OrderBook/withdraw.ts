@@ -1,15 +1,14 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import type {
+import type { OrderBook } from "../../typechain";
+import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import {
   DepositConfigStruct,
   DepositEvent,
-  OrderBook,
   WithdrawConfigStruct,
   WithdrawEvent,
-} from "../../typechain/OrderBook";
-import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
+} from "../../typechain/contracts/orderbook/OrderBook";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
@@ -22,6 +21,7 @@ describe("OrderBook withdraw from vault", async function () {
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await tokenA.initialize();
   });
 
   before(async () => {

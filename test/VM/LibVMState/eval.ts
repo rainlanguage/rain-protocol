@@ -1,18 +1,25 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
+import type { LibVMStateTest, StandardIntegrity } from "../../../typechain";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 
 describe("LibVMState eval tests", async function () {
-  let libStackTop: LibVMStateTest;
+  let libVMState: LibVMStateTest;
 
   before(async () => {
-    const libStackTopFactory = await ethers.getContractFactory(
-      "LibVMStateTest"
+    const stateBuilderFactory = await ethers.getContractFactory(
+      "StandardIntegrity"
     );
-    libStackTop = (await libStackTopFactory.deploy()) as LibVMStateTest;
+    const vmIntegrity =
+      (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    await vmIntegrity.deployed();
+
+    const libVMStateFactory = await ethers.getContractFactory("LibVMStateTest");
+    libVMState = (await libVMStateFactory.deploy(
+      vmIntegrity.address
+    )) as LibVMStateTest;
   });
 
   it("should eval state for specified sourceIndex 1 when StackTop is specified", async () => {
@@ -26,11 +33,13 @@ describe("LibVMState eval tests", async function () {
         op(Opcode.EXPLODE32),
       ])
     ];
+    const constants = [];
+
     const sourceIndex = 1;
 
-    const { stackBottom_, stackTopAfter_ } = await libStackTop.callStatic[
-      "evalStackTop(bytes[],uint256)"
-    ](sources, sourceIndex); // simply sets stackTop to stackBottom for ease of testing
+    const { stackBottom_, stackTopAfter_ } = await libVMState.callStatic[
+      "evalStackTop((bytes[],uint256[]),uint256)"
+    ]({ sources, constants }, sourceIndex); // simply sets stackTop to stackBottom for ease of testing
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
@@ -49,10 +58,11 @@ describe("LibVMState eval tests", async function () {
         op(Opcode.EXPLODE32),
       ])
     ];
+    const constants = [];
 
-    const { stackBottom_, stackTopAfter_ } = await libStackTop.callStatic[
-      "evalStackTop(bytes[])"
-    ](sources); // simply sets stackTop to stackBottom for ease of testing
+    const { stackBottom_, stackTopAfter_ } = await libVMState.callStatic[
+      "evalStackTop((bytes[],uint256[]))"
+    ]({ sources, constants }); // simply sets stackTop to stackBottom for ease of testing
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32)),
@@ -71,12 +81,13 @@ describe("LibVMState eval tests", async function () {
         op(Opcode.EXPLODE32),
       ])
     ];
+    const constants = [];
 
     const sourceIndex = 1;
 
-    const { stackBottom_, stackTopAfter_ } = await libStackTop.callStatic[
-      "eval(bytes[],uint256)"
-    ](sources, sourceIndex);
+    const { stackBottom_, stackTopAfter_ } = await libVMState.callStatic[
+      "eval((bytes[],uint256[]),uint256)"
+    ]({ sources, constants }, sourceIndex);
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
@@ -92,10 +103,11 @@ describe("LibVMState eval tests", async function () {
         op(Opcode.EXPLODE32),
       ])
     ];
+    const constants = [];
 
-    const { stackBottom_, stackTopAfter_ } = await libStackTop.callStatic[
-      "eval(bytes[])"
-    ](sources);
+    const { stackBottom_, stackTopAfter_ } = await libVMState.callStatic[
+      "eval((bytes[],uint256[]))"
+    ]({ sources, constants });
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
@@ -110,10 +122,11 @@ describe("LibVMState eval tests", async function () {
         op(Opcode.BLOCK_NUMBER)
       ])
     ];
+    const constants = [];
 
-    const { stackBottom_, stackTopAfter_ } = await libStackTop.callStatic[
-      "eval(bytes[])"
-    ](sources);
+    const { stackBottom_, stackTopAfter_ } = await libVMState.callStatic[
+      "eval((bytes[],uint256[]))"
+    ]({ sources, constants });
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32)),

@@ -1,10 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { artifacts, ethers } from "hardhat";
-import { EmissionsERC20 } from "../../typechain/EmissionsERC20";
-import {
-  EmissionsERC20ConfigStruct,
-  EmissionsERC20Factory,
-} from "../../typechain/EmissionsERC20Factory";
+import { EmissionsERC20, EmissionsERC20Factory } from "../../typechain";
+import { EmissionsERC20ConfigStruct } from "../../typechain/contracts/claim/EmissionsERC20";
 import { getEventArgs } from "../events";
 
 export const emissionsDeploy = async (

@@ -1,19 +1,19 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
+import type { ReadWriteTier } from "../../../typechain";
 import * as Util from "../../../utils";
 import {
   compareTierReports,
   getBlockTimestamp,
+  memoryOperand,
+  MemoryType,
   op,
   paddedUInt256,
   paddedUInt32,
   Tier,
   tierRange,
   timewarp,
-  memoryOperand,
-  MemoryType,
 } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";

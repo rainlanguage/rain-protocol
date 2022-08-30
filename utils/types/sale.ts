@@ -6,7 +6,7 @@ export enum Status {
 }
 
 export enum SaleStorage {
-  RemainingUnits = 6, // Adjusting the slot for sale
+  RemainingUnits = 54, // Adjusting the slot pointer for sale
   TotalReserveIn,
   Token,
   Reserve,

@@ -1,6 +1,6 @@
+import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-import { assert } from "chai";
 
 /**
  * Uses chai `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
@@ -109,7 +109,10 @@ const testStructs = (
           condition,
           `wrong value for property: '${key}'
           expected  ${expectedValue}
-          got       ${actualValue}`
+          got       ${actualValue}
+          -
+          key       ${key}
+          object    ${solObj}`
         );
       }
     }
@@ -143,7 +146,10 @@ const testSolStructs = (
         condition,
         `wrong value for property: '${key}'
         expected  ${expectedValue}
-        got       ${actualValue}`
+        got       ${actualValue}
+        -
+        key       ${key}
+        object    ${solActualObj}`
       );
     }
   });

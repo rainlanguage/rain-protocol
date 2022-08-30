@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { ReadWriteTier } from "../../typechain";
+import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
 import { Tier } from "../../utils";
 
@@ -180,6 +180,7 @@ describe("RedeemableERC20 constructor test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

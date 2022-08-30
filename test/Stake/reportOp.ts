@@ -1,11 +1,11 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
+import { StandardIntegrity } from "../../typechain";
+import { AllStandardOpsTest } from "../../typechain";
+import { ReserveToken18 } from "../../typechain";
+import { StakeFactory } from "../../typechain";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -59,6 +59,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should return a correct report using ITIERV2_REPORT when no token has been staked", async function () {

@@ -1,16 +1,16 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
-import { ReserveToken } from "../../typechain/ReserveToken";
+import { ReadWriteTier } from "../../typechain";
+import { RedeemableERC20Factory } from "../../typechain";
+import { ReserveToken } from "../../typechain";
+import { SaleFactory } from "../../typechain";
 import {
   BuyEvent,
   EndEvent,
   InitializeEvent,
   StartEvent,
-} from "../../typechain/Sale";
-import { SaleFactory } from "../../typechain/SaleFactory";
+} from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -40,6 +40,7 @@ describe("Sale minimum raise", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {

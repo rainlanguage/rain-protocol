@@ -2,12 +2,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import { ReserveToken } from "../../../../typechain/ReserveToken";
+import type {
+  AllStandardOpsTest,
+  ReserveToken,
+  StandardIntegrity,
+} from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 
@@ -38,6 +40,7 @@ describe("RainVM ERC20 ops", async function () {
     signer1 = signers[1];
 
     tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await tokenERC20.initialize();
   });
 
   it("should return ERC20 total supply", async () => {

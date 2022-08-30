@@ -55,7 +55,7 @@ contract StandardVM is RainVM {
         virtual
         returns (VMState memory)
     {
-        return SSTORE2.read(vmStatePointer).fromBytesPacked(context_);
+        return SSTORE2.read(vmStatePointer).deserialize(context_);
     }
 
     function localEvalFunctionPointers()
@@ -71,7 +71,7 @@ contract StandardVM is RainVM {
     {}
 
     /// @inheritdoc RainVM
-    function opFunctionPointers()
+    function opcodeFunctionPointers()
         internal
         view
         virtual
@@ -83,6 +83,7 @@ contract StandardVM is RainVM {
                 memory
         )
     {
-        return AllStandardOps.opFunctionPointers(localEvalFunctionPointers());
+        return
+            AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
     }
 }

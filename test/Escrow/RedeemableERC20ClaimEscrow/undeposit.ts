@@ -1,16 +1,14 @@
 import { assert } from "chai";
 import { getAddress } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { MockISale } from "../../../typechain/MockISale";
-import type { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import type { RedeemableERC20 } from "../../../typechain/RedeemableERC20";
 import type {
+  ReadWriteTier,
+  RedeemableERC20,
   RedeemableERC20ClaimEscrow,
-  UndepositEvent,
-} from "../../../typechain/RedeemableERC20ClaimEscrow";
-import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
-import type { ReserveToken } from "../../../typechain/ReserveToken";
-import {} from "../../../typechain/SaleFactory";
+  ReserveToken,
+} from "../../../typechain";
+import { MockISale, RedeemableERC20Factory } from "../../../typechain";
+import { UndepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
 import { getEventArgs } from "../../../utils";
 import { deployGlobals } from "../../../utils/deploy/escrow";
@@ -29,6 +27,7 @@ describe("RedeemableERC20ClaimEscrow undeposit test", async function () {
   beforeEach(async () => {
     // some other token to put into the escrow
     reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
     const redeemableERC20FactoryFactory = await ethers.getContractFactory(
       "RedeemableERC20Factory",
       {}

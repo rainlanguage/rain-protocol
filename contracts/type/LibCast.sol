@@ -39,7 +39,7 @@ library LibCast {
     /// @param is_ The array of integers to cast to an array of opcode fuction
     /// pointers.
     /// @return fns_ The array of opcode function pointers.
-    function asOpFunctionPointers(uint256[] memory is_)
+    function asOpcodeFunctionPointers(uint256[] memory is_)
         internal
         pure
         returns (

@@ -1,10 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../typechain/ReserveToken";
-import { BuyEvent, RefundEvent } from "../../typechain/Sale";
-import { SaleFactory } from "../../typechain/SaleFactory";
+import { ReadWriteTier } from "../../typechain";
+import { ReserveToken } from "../../typechain";
+import { SaleFactory } from "../../typechain";
+import { BuyEvent, RefundEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -31,6 +31,7 @@ describe("Sale claim fees", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should prevent recipient claiming fees on failed raise, allowing buyers to refund their tokens", async function () {

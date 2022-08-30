@@ -39,13 +39,13 @@ export function bytify(
 /**
  * Converts an opcode and operand to bytes, and returns their concatenation.
  * @param code - the opcode
- * @param erand - the operand, currently limited to 1 byte (defaults to 0)
+ * @param erand - the operand, currently limited to 2 bytes (defaults to 0)
  */
 export function op(
   code: number,
   erand: number | BytesLike | Hexable = 0
 ): Uint8Array {
-  return concat([bytify(code), bytify(erand)]);
+  return concat([bytify(code, 2), bytify(erand, 2)]);
 }
 
 export function memoryOperand(type: number, offset: number): number {

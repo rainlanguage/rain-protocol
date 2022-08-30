@@ -3,7 +3,7 @@ import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import * as Util from "../../../utils";
 
-import type { SaturatingMathTest } from "../../../typechain/SaturatingMathTest";
+import type { SaturatingMathTest } from "../../../typechain";
 
 let saturatingMathTestFactory: ContractFactory;
 

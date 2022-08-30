@@ -1,19 +1,21 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import type { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
-import { ReadWriteTier } from "../../../../typechain/ReadWriteTier";
-import { TierReportTest } from "../../../../typechain/TierReportTest";
+import type {
+  AllStandardOpsTest,
+  ReadWriteTier,
+  StandardIntegrity,
+  TierReportTest,
+} from "../../../../typechain";
 import {
   AllStandardOps,
-  op,
-  memoryOperand,
-  MemoryType,
+  basicDeploy,
   callOperand,
   getBlockTimestamp,
+  memoryOperand,
+  MemoryType,
+  op,
   Tier,
-  basicDeploy,
   timewarp,
 } from "../../../../utils";
 
@@ -350,61 +352,61 @@ describe("CALL Opcode test", async function () {
           // IF TIER == 1
             op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Adding extra copy of Tier being passed to function
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.EQUAL_TO), 
+          op(Opcode.EQUAL_TO),
           // THEN DISCOUNT = 10
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.MUL, 2), 
+          op(Opcode.MUL, 2),
             // ELSE IF TIER == 2
               op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
               op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-            op(Opcode.EQUAL_TO), 
+            op(Opcode.EQUAL_TO),
               // THEN DISCOUNT = 20
               op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
               op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-            op(Opcode.MUL, 2), 
+            op(Opcode.MUL, 2),
                 // ELSE IF TIER == 3
                 op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
                 op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-              op(Opcode.EQUAL_TO), 
+              op(Opcode.EQUAL_TO),
                 // THEN DISCOUNT = 30
                 op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
                 op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-              op(Opcode.MUL, 2), 
+              op(Opcode.MUL, 2),
                   // ELSE IF TIER == 4
                   op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
                   op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-                op(Opcode.EQUAL_TO), 
+                op(Opcode.EQUAL_TO),
                   // THEN DISCOUNT = 40
                   op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
                   op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-                op(Opcode.MUL, 2), 
+                op(Opcode.MUL, 2),
                     // ELSE IF TIER == 5
                     op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
                     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-                  op(Opcode.EQUAL_TO), 
+                  op(Opcode.EQUAL_TO),
                     // THEN DISCOUNT = 50
                     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
                     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-                  op(Opcode.MUL, 2), 
+                  op(Opcode.MUL, 2),
                       // ELSE IF TIER == 6
                       op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
                       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-                    op(Opcode.EQUAL_TO), 
+                    op(Opcode.EQUAL_TO),
                       // THEN DISCOUNT = 60
                       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
                       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-                    op(Opcode.MUL, 2), 
+                    op(Opcode.MUL, 2),
                         // ELSE IF TIER == 7
                         op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
                         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-                      op(Opcode.EQUAL_TO), 
+                      op(Opcode.EQUAL_TO),
                         // THEN DISCOUNT = 70
                         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
                         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-                      op(Opcode.MUL, 2), 
-                        // ELSE 
-                      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)), 
+                      op(Opcode.MUL, 2),
+                        // ELSE
+                      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
                     op(Opcode.EAGER_IF), // TIER == 7
                   op(Opcode.EAGER_IF), // TIER == 6
                 op(Opcode.EAGER_IF), // TIER == 5
@@ -417,7 +419,7 @@ describe("CALL Opcode test", async function () {
     // prettier-ignore
     const sourceGetDiscountedPrice = concat([
         op(Opcode.CONTEXT, 1), // PRICE
-          op(Opcode.CONTEXT, 0), // TIER 
+          op(Opcode.CONTEXT, 0), // TIER
         callGetDiscount, // This function takes TIER as an input and returns the discount that will be applied on the price
       op(Opcode.SUB, 2) // PRICE - DISCOUNT
     ]);

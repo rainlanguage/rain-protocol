@@ -2,10 +2,8 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import * as Util from "..";
 import { getEventArgs } from "..";
-import {
-  EmissionsERC20Factory,
-  ImplementationEvent as ImplementationEventEmissionsERC20Factory,
-} from "../../typechain/EmissionsERC20Factory";
+import { EmissionsERC20Factory } from "../../typechain";
+import { ImplementationEvent as ImplementationEventEmissionsERC20Factory } from "../../typechain/contracts/claim/EmissionsERC20Factory";
 
 export interface ClaimFactories {
   emissionsERC20Factory: EmissionsERC20Factory;

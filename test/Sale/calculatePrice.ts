@@ -1,10 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { ReserveToken } from "../../typechain/ReserveToken";
-import { BuyEvent } from "../../typechain/Sale";
-import { SaleFactory } from "../../typechain/SaleFactory";
+import { ReadWriteTier } from "../../typechain";
+import { ReserveToken } from "../../typechain";
+import { SaleFactory } from "../../typechain";
+import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import {
   fourZeros,
@@ -36,6 +36,7 @@ describe("Sale calculate price", async function () {
 
   beforeEach(async () => {
     reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await reserve.initialize();
   });
 
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {

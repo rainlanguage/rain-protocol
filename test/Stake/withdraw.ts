@@ -1,8 +1,8 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
+import { ReserveToken18 } from "../../typechain";
+import { StakeFactory } from "../../typechain";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { zeroAddress } from "../../utils";
 import { sixZeros, eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
@@ -26,6 +26,7 @@ describe("Stake withdraw", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should not process an invalid withdraw", async function () {

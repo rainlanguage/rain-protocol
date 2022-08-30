@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibCastTest } from "../../../typechain/LibCastTest";
+import type { LibCastTest } from "../../../typechain";
 import { randomUint256 } from "../../../utils/bytes";
 
 describe("LibCast asUint256 tests", async function () {

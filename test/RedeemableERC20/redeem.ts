@@ -1,15 +1,15 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type {
-  PhaseScheduledEvent,
-  RedeemEvent,
-} from "../../typechain/RedeemableERC20";
-import { RedeemableERC20Reentrant } from "../../typechain/RedeemableERC20Reentrant";
-import type { ReserveToken } from "../../typechain/ReserveToken";
+import type { ReadWriteTier } from "../../typechain";
+import { RedeemableERC20Reentrant } from "../../typechain";
+import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
 import { getBlockTimestamp, Tier } from "../../utils";
 import { Phase } from "../../utils/types/redeemableERC20";
+import {
+  PhaseScheduledEvent,
+  RedeemEvent,
+} from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 
 describe("RedeemableERC20 redeem test", async function () {
   it("should guard against reentrancy if a treasury asset is malicious", async function () {
@@ -39,6 +39,8 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as RedeemableERC20Reentrant;
+
+    await maliciousReserve.initialize();
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
     const redeemableERC20Config = {
@@ -113,6 +115,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -443,6 +446,8 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve1.initialize();
+    await reserve2.initialize();
 
     const tierFactory = await ethers.getContractFactory("ReadWriteTier");
     const tier = (await tierFactory.deploy()) as ReadWriteTier;
@@ -550,6 +555,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -643,6 +649,8 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve1.initialize();
+    await reserve2.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
@@ -858,6 +866,7 @@ describe("RedeemableERC20 redeem test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
+    await reserve.initialize();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 

@@ -1,14 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type {
-  CombineTier,
-  CombineTierConfigStruct,
-} from "../../typechain/CombineTier";
-import type {
-  CombineTierFactory,
-  ImplementationEvent as ImplementationEventCombineTierFactory,
-} from "../../typechain/CombineTierFactory";
+import type { CombineTier, CombineTierFactory } from "../../typechain";
+import { CombineTierConfigStruct } from "../../typechain/contracts/tier/CombineTier";
+import { ImplementationEvent as ImplementationEventCombineTierFactory } from "../../typechain/contracts/tier/CombineTierFactory";
 import { zeroAddress } from "../constants";
 import { getEventArgs } from "../events";
 
@@ -48,6 +43,10 @@ export const combineTierDeploy = async (
     deployer
   ) as CombineTier;
   await contract.deployed();
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  contract.deployTransaction = tx;
 
   return contract;
 };

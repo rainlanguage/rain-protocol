@@ -1,9 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type {
-  LibIntegrityStateTest,
-  StorageOpcodesRangeStruct,
-} from "../../../../typechain/LibIntegrityStateTest";
+import type { LibIntegrityStateTest } from "../../../../typechain";
+import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/vm/runtime/RainVM";
 
 describe("LibIntegrityState push tests", async function () {
   let libIntegrityState: LibIntegrityStateTest;

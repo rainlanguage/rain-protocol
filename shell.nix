@@ -45,6 +45,7 @@ let
     rm -rf node_modules
     rm -rf typechain
     rm -rf bin
+    rm -rf crytic-export
   '';
 
   security-check = pkgs.writeShellScriptBin "security-check" ''
@@ -160,6 +161,7 @@ in
 pkgs.stdenv.mkDerivation {
   name = "shell";
   buildInputs = [
+    pkgs.watch
     pkgs.nixpkgs-fmt
     pkgs.yarn
     pkgs.nodejs-16_x

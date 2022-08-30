@@ -1,19 +1,19 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
-import { StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
+import { ReserveToken18 } from "../../typechain";
+import { StakeFactory } from "../../typechain";
 import { max_uint32, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { Tier } from "../../utils/types/tier";
-import { StandardIntegrity } from "../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../typechain/AllStandardOpsTest";
+import { StandardIntegrity } from "../../typechain";
+import { AllStandardOpsTest } from "../../typechain";
 import { concat } from "ethers/lib/utils";
 import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;
@@ -43,6 +43,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await token.initialize();
   });
 
   it("should return NEVER time using ITIERV2_REPORT_TIME_FOR_TIER if tier greater than context length", async () => {

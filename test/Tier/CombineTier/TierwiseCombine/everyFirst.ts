@@ -1,20 +1,19 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CombineTier } from "../../../../typechain/CombineTier";
-import type { ReadWriteTier } from "../../../../typechain/ReadWriteTier";
+import type { CombineTier, ReadWriteTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
 import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
 import { getBlockTimestamp, timewarp } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
 import {
+  memoryOperand,
+  MemoryType,
   op,
   selectLte,
   selectLteLogic,
   selectLteMode,
-  memoryOperand,
-  MemoryType,
 } from "../../../../utils/rainvm/vm";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
