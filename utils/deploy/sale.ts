@@ -2,17 +2,19 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { StandardIntegrity } from "../../typechain/StandardIntegrity";
-import { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import { RedeemableERC20 } from "../../typechain/RedeemableERC20";
-import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
+import {
+  ReadWriteTier,
+  RedeemableERC20,
+  RedeemableERC20Factory,
+  Sale,
+  SaleFactory,
+  StandardIntegrity,
+} from "../../typechain";
 import {
   ConstructEvent,
-  Sale,
   SaleConfigStruct,
   SaleRedeemableERC20ConfigStruct,
-} from "../../typechain/Sale";
-import { SaleFactory } from "../../typechain/SaleFactory";
+} from "../../typechain/contracts/sale/Sale";
 import { getEventArgs } from "../events";
 
 export const saleDeploy = async (

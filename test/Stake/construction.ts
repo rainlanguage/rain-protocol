@@ -1,8 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken } from "../../typechain/ReserveToken";
-import { InitializeEvent, StakeConfigStruct } from "../../typechain/Stake";
-import { StakeFactory } from "../../typechain/StakeFactory";
+import { ReserveToken, StakeFactory } from "../../typechain";
+import {
+  InitializeEvent,
+  StakeConfigStruct,
+} from "../../typechain/contracts/stake/Stake";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";

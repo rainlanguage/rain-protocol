@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import * as Util from "../../../utils";
-import { op, memoryOperand, MemoryType } from "../../../utils";
+import { memoryOperand, MemoryType, op } from "../../../utils";
 import { claimFactoriesDeploy } from "../../../utils/deploy/claim";
 import { emissionsDeploy } from "../../../utils/deploy/emissions";
 

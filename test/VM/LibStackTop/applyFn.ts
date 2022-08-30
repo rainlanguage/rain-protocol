@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
+import type { LibStackTopTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
 
 describe("LibStackTop applyFn tests", async function () {

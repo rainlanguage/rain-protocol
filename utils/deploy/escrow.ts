@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain/ReadWriteTier";
-import type { RedeemableERC20ClaimEscrow } from "../../typechain/RedeemableERC20ClaimEscrow";
-import { RedeemableERC20ClaimEscrowWrapper } from "../../typechain/RedeemableERC20ClaimEscrowWrapper";
-import { RedeemableERC20Factory } from "../../typechain/RedeemableERC20Factory";
 import type {
-  SaleConstructorConfigStruct,
+  ReadWriteTier,
+  RedeemableERC20ClaimEscrow,
   SaleFactory,
-} from "../../typechain/SaleFactory";
+} from "../../typechain";
+import {
+  RedeemableERC20ClaimEscrowWrapper,
+  RedeemableERC20Factory,
+} from "../../typechain";
+import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
 
 export const deployGlobals = async () => {
   const integrityFactory = await ethers.getContractFactory("StandardIntegrity");

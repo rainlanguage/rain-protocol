@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibStackTopTest } from "../../../typechain/LibStackTopTest";
+import type { LibStackTopTest } from "../../../typechain";
 
 describe("LibStackTop stackTop tests", async function () {
   let libStackTop: LibStackTopTest;
