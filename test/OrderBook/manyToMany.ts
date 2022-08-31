@@ -223,10 +223,10 @@ describe("OrderBook many-to-many", async function () {
     // BOUNTY BOT CLEARS THE ORDERS
 
     const clearConfig0: ClearConfigStruct = {
-      aInputIndex: 0,
-      aOutputIndex: 0,
-      bInputIndex: 0,
-      bOutputIndex: 0,
+      aInputIOIndex: 0,
+      aOutputIOIndex: 0,
+      bInputIOIndex: 0,
+      bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
     };
@@ -276,10 +276,10 @@ describe("OrderBook many-to-many", async function () {
     compareStructs(clearStateChange0, expectedClearStateChange0);
 
     const clearConfig1: ClearConfigStruct = {
-      aInputIndex: 1,
-      aOutputIndex: 1,
-      bInputIndex: 1,
-      bOutputIndex: 1,
+      aInputIOIndex: 1,
+      aOutputIOIndex: 1,
+      bInputIOIndex: 1,
+      bOutputIOIndex: 1,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
     };
