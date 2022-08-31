@@ -53,6 +53,137 @@ describe("OrderBook take orders", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
+  it("should respect output maximum of a given order", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const carol = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy(
+      integrity.address
+    )) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(1);
+    const bobOutputVault = ethers.BigNumber.from(2);
+
+    // ASK ORDERS
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const askOrderOutputMax = amountB.sub(1); // will only sell 999 tokenBs to each buyer
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [askOrderOutputMax, askPrice];
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+
+    const askOrderConfigAlice: OrderConfigStruct = {
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      vmStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+    };
+    const askOrderConfigBob: OrderConfigStruct = {
+      validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
+      vmStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+    };
+
+    const txAskOrderLiveAlice = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfigAlice);
+    const txAskOrderLiveBob = await orderBook
+      .connect(bob)
+      .addOrder(askOrderConfigBob);
+
+    const { config: askConfigAlice } = (await getEventArgs(
+      txAskOrderLiveAlice,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+    const { config: askConfigBob } = (await getEventArgs(
+      txAskOrderLiveBob,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // DEPOSIT
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: bobOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB.transfer(bob.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenB
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    await orderBook.connect(alice).deposit(depositConfigStructAlice);
+    // Bob deposits tokenB into his output vault
+    await orderBook.connect(bob).deposit(depositConfigStructBob);
+
+    // TAKE ORDER
+
+    // Carol takes orders with direct wallet transfer
+    const takeOrderConfigStructAlice: TakeOrderConfigStruct = {
+      order: askConfigAlice,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+    const takeOrderConfigStructBob: TakeOrderConfigStruct = {
+      order: askConfigBob,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB.mul(2),
+      maximumInput: amountB.mul(2),
+      maximumIORatio: askPrice,
+      orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
+    };
+
+    const amountA = amountB.mul(askPrice).div(ONE);
+    await tokenA.transfer(carol.address, amountA.mul(2));
+    await tokenA.connect(carol).approve(orderBook.address, amountA.mul(2));
+
+    await assertError(
+      async () =>
+        await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct),
+      "MIN_INPUT",
+      "did not respect order output max"
+    );
+  });
+
   it("should validate minimum input", async function () {
     const signers = await ethers.getSigners();
 
@@ -323,7 +454,7 @@ describe("OrderBook take orders", async function () {
     const takeOrdersConfigStruct0: TakeOrdersConfigStruct = {
       output: tokenB.address, // will result in mismatch
       input: tokenB.address,
-      minimumInput: amountB,
+      minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
       maximumIORatio: askPrice,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
@@ -331,7 +462,7 @@ describe("OrderBook take orders", async function () {
     const takeOrdersConfigStruct1: TakeOrdersConfigStruct = {
       output: tokenA.address,
       input: tokenA.address, // will result in mismatch
-      minimumInput: amountB,
+      minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
       maximumIORatio: askPrice,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
