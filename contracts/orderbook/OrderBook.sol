@@ -253,27 +253,25 @@ contract OrderBook is StandardVM {
             // between submitting to mempool and execution, but other orders may
             // be valid so we want to take advantage of those if possible.
             if (
-                orderIORatio_ > takeOrders_.maximumIORatio ||
-                orderOutputMax_ == 0
+                orderIORatio_ <= takeOrders_.maximumIORatio &&
+                orderOutputMax_ > 0
             ) {
-                continue;
+                uint256 input_ = remainingInput_.min(orderOutputMax_);
+                uint256 output_ = input_.fixedPointMul(orderIORatio_);
+
+                remainingInput_ -= input_;
+                totalOutput_ += output_;
+
+                _recordVaultIO(
+                    order_,
+                    msg.sender,
+                    takeOrder_.inputIOIndex,
+                    output_,
+                    takeOrder_.outputIOIndex,
+                    input_
+                );
+                emit TakeOrder(msg.sender, takeOrder_, input_, output_);
             }
-
-            uint256 input_ = remainingInput_.min(orderOutputMax_);
-            uint256 output_ = input_.fixedPointMul(orderIORatio_);
-
-            remainingInput_ -= input_;
-            totalOutput_ += output_;
-
-            _recordVaultIO(
-                order_,
-                msg.sender,
-                takeOrder_.inputIOIndex,
-                output_,
-                takeOrder_.outputIOIndex,
-                input_
-            );
-            emit TakeOrder(msg.sender, takeOrder_, input_, output_);
 
             unchecked {
                 i_++;
