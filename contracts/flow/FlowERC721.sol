@@ -13,7 +13,9 @@ import "../idempotent/LibIdempotentFlag.sol";
 import "./FlowVM.sol";
 import "../sentinel/LibSentinel.sol";
 
-uint constant RAIN_FLOW_ERC721_SENTINEL = uint(keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS);
+uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
+    keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS
+);
 
 /// Constructor config.
 /// @param Constructor config for the ERC721 token minted according to flow
@@ -27,8 +29,8 @@ struct FlowERC721Config {
 }
 
 struct FlowERC721IO {
-    uint256[] mintIDs;
-    uint256[] burnIDs;
+    uint256[] mints;
+    uint256[] burns;
     FlowIO flow;
 }
 
@@ -53,7 +55,10 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(FlowERC721Config calldata config_) external initializer {
+    function initialize(FlowERC721Config calldata config_)
+        external
+        initializer
+    {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
         _saveVMState(config_.vmStateConfig);
@@ -64,7 +69,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         address from_,
         address to_,
         uint256 tokenId_
-    ) internal virtual view {
+    ) internal view virtual {
         VMState memory state_ = _loadVMState();
         state_.context = LibUint256Array.arrayFrom(
             uint256(uint160(from_)),
@@ -77,11 +82,11 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         );
     }
 
-    function _transfer(address from_, address to_, uint256 tokenId_)
-        internal
-        virtual
-        override
-    {
+    function _transfer(
+        address from_,
+        address to_,
+        uint256 tokenId_
+    ) internal virtual override {
         _transferPreflight(from_, to_, tokenId_);
         return super._transfer(from_, to_, tokenId_);
     }
@@ -92,32 +97,38 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         uint256 id_
     ) internal view returns (FlowERC721IO memory flowIO_) {
         StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
-        (stackTop_, flowIO_.mintIDs) = stackTop_.consumeSentinel(state_.stackBottom, RAIN_FLOW_ERC721_SENTINEL, 1);
-        (stackTop_, flowIO_.burnIDs) = stackTop_.consumeSentinel(state_.stackBottom, RAIN_FLOW_ERC721_SENTINEL, 1);
+        (stackTop_, flowIO_.mints) = stackTop_.consumeSentinel(
+            state_.stackBottom,
+            RAIN_FLOW_ERC721_SENTINEL,
+            1
+        );
+        (stackTop_, flowIO_.burns) = stackTop_.consumeSentinel(
+            state_.stackBottom,
+            RAIN_FLOW_ERC721_SENTINEL,
+            1
+        );
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
         return flowIO_;
     }
 
-    function _flow(VMState memory state_, SourceIndex flow_, uint256 id_)
-        internal
-        virtual
-        nonReentrant
-        returns (FlowERC721IO memory flowIO_)
-    {
+    function _flow(
+        VMState memory state_,
+        SourceIndex flow_,
+        uint256 id_
+    ) internal virtual nonReentrant returns (FlowERC721IO memory flowIO_) {
         unchecked {
             flowIO_ = _previewFlow(state_, flow_, id_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
-            for (uint i_ = 0; i_ < flowIO_.mintIDs.length; i_++) {
-                _safeMint(msg.sender, flowIO_.mintIDs[i_]);
+            for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
+                _safeMint(msg.sender, flowIO_.mints[i_]);
             }
-            for (uint i_ = 0; i_ < flowIO_.burnIDs.length; i_++) {
-                uint burnId_ = flowIO_.burnIDs[i_];
+            for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
+                uint256 burnId_ = flowIO_.burns[i_];
                 require(ERC721.ownerOf(burnId_) == msg.sender, "NOT_OWNER");
                 _burn(burnId_);
             }
             LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
         }
-
     }
 
     function previewFlow(SourceIndex flow_, uint256 id_)
@@ -129,7 +140,11 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         return _previewFlow(_loadVMState(), flow_, id_);
     }
 
-    function flow(SourceIndex flow_, uint id_) external virtual returns (FlowERC721IO memory) {
+    function flow(SourceIndex flow_, uint256 id_)
+        external
+        virtual
+        returns (FlowERC721IO memory)
+    {
         return _flow(_loadVMState(), flow_, id_);
     }
 }

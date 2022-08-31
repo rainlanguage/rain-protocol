@@ -14,7 +14,9 @@ import "../../sentinel/LibSentinel.sol";
 // - Won't collide with token addresses
 // - Won't collide with common values like type(uint).max and type(uint).min
 // - Won't collide with other sentinels from unrelated contexts
-uint256 constant RAIN_FLOW_SENTINEL = uint(keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS);
+uint256 constant RAIN_FLOW_SENTINEL = uint256(
+    keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS
+);
 
 struct ERC20IO {
     address token;

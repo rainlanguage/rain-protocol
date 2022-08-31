@@ -11,6 +11,7 @@ import "./libraries/LibFlow.sol";
 import "../math/FixedPointMath.sol";
 import "../idempotent/LibIdempotentFlag.sol";
 import "./FlowVM.sol";
+import "./libraries/LibRebase.sol";
 
 /// Constructor config.
 /// @param Constructor config for the ERC20 token minted according to flow
@@ -52,6 +53,8 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     using LibUint256Array for uint256;
     using LibVMState for VMState;
     using FixedPointMath for uint256;
+    using LibRebase for VMState;
+    using LibRebase for uint256;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -70,40 +73,11 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         emit Initialize(msg.sender, config_);
     }
 
-    function _rebaseRatio(VMState memory state_)
-        internal
-        view
-        returns (uint256)
-    {
-        return state_.eval(REBASE_RATIO_ENTRYPOINT).peek();
-    }
-
-    function _rebaseInput(uint256 ratio_, uint256 input_)
-        internal
-        pure
-        returns (uint256)
-    {
-        return input_.fixedPointDiv(ratio_);
-    }
-
-    /// User input needs to be divided by the ratio to compensate for the
-    /// multiples calculated upon output.
-    function _rebaseInput(VMState memory state_, uint256 input_)
-        internal
-        view
-        returns (uint256)
-    {
-        return _rebaseInput(_rebaseRatio(state_), input_);
-    }
-
-    /// Internal data needs to be multiplied by the ratio as it is output.
-    /// Inputs will be divided by the ratio when accepted.
-    function _rebaseOutput(uint256 output_) internal view returns (uint256) {
-        return output_.fixedPointMul(_rebaseRatio(_loadVMState()));
-    }
-
     function totalSupply() public view virtual override returns (uint256) {
-        return _rebaseOutput(super.totalSupply());
+        return
+            super.totalSupply().rebaseOutput(
+                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+            );
     }
 
     function balanceOf(address account_)
@@ -113,16 +87,21 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         override
         returns (uint256)
     {
-        return _rebaseOutput(super.balanceOf(account_));
+        return
+            super.balanceOf(account_).rebaseOutput(
+                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+            );
     }
 
     function _transferPreflight(
         address from_,
         address to_,
         uint256 amount_
-    ) internal view returns (uint256 amountRebased_) {
+    ) internal view virtual returns (uint256 amountRebased_) {
         VMState memory state_ = _loadVMState();
-        amountRebased_ = _rebaseInput(state_, amount_);
+        amountRebased_ = amount_.rebaseInput(
+            state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+        );
         state_.context = LibUint256Array.arrayFrom(
             uint256(uint160(from_)),
             uint256(uint160(to_)),
@@ -135,14 +114,21 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         );
     }
 
-    function _transfer(address from_, address to_, uint256 amount_)
-        internal
-        virtual
-        override
-    {
-        return super._transfer(from_, to_, _transferPreflight(msg.sender, to_, amount_));
+    /// @inheritdoc ERC20
+    function _transfer(
+        address from_,
+        address to_,
+        uint256 amount_
+    ) internal virtual override {
+        return
+            super._transfer(
+                from_,
+                to_,
+                _transferPreflight(msg.sender, to_, amount_)
+            );
     }
 
+    /// @inheritdoc ERC20
     function allowance(address owner_, address spender_)
         public
         view
@@ -150,60 +136,47 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         override
         returns (uint256)
     {
-        return _rebaseOutput(super.allowance(owner_, spender_));
-    }
-
-    function approve(address spender_, uint256 amount_)
-        public
-        virtual
-        override
-        returns (bool)
-    {
-        return super.approve(spender_, _rebaseInput(_loadVMState(), amount_));
-    }
-
-    function increaseAllowance(address spender_, uint256 addedValue_)
-        public
-        virtual
-        override
-        returns (bool)
-    {
         return
-            super.increaseAllowance(
-                spender_,
-                _rebaseInput(_loadVMState(), addedValue_)
+            super.allowance(owner_, spender_).rebaseOutput(
+                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
-    function decreaseAllowance(address spender_, uint256 subtractedValue_)
-        public
-        virtual
-        override
-        returns (bool)
-    {
-        return
-            super.decreaseAllowance(
-                spender_,
-                _rebaseInput(_loadVMState(), subtractedValue_)
-            );
+    /// @inheritdoc ERC20
+    function _approve(
+        address owner_,
+        address spender_,
+        uint256 amount_
+    ) internal virtual override {
+        super._approve(
+            owner_,
+            spender_,
+            amount_.rebaseInput(
+                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+            )
+        );
     }
 
     function _previewFlow(
         VMState memory state_,
         SourceIndex flow_,
         uint256 id_
-    ) internal virtual view returns (FlowERC20IO memory flowIO_) {
+    ) internal view virtual returns (FlowERC20IO memory flowIO_) {
         StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
         (stackTop_, flowIO_.mint) = stackTop_.pop();
         (stackTop_, flowIO_.burn) = stackTop_.pop();
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
-        uint256 rebaseRatio_ = _rebaseRatio(state_);
-        flowIO_.mint = _rebaseInput(rebaseRatio_, flowIO_.mint);
-        flowIO_.burn = _rebaseInput(rebaseRatio_, flowIO_.burn);
+        uint256 rebaseRatio_ = state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT);
+        flowIO_.mint = flowIO_.mint.rebaseInput(rebaseRatio_);
+        flowIO_.burn = flowIO_.burn.rebaseInput(rebaseRatio_);
         return flowIO_;
     }
 
-    function _flow(VMState memory state_, SourceIndex flow_, uint id_) internal virtual nonReentrant returns (FlowERC20IO memory flowIO_) {
+    function _flow(
+        VMState memory state_,
+        SourceIndex flow_,
+        uint256 id_
+    ) internal virtual nonReentrant returns (FlowERC20IO memory flowIO_) {
         flowIO_ = _previewFlow(state_, flow_, id_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         _mint(msg.sender, flowIO_.mint);
