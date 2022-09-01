@@ -6,7 +6,7 @@ import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 
-enum DebugStyle {
+export enum DebugStyle {
   Stack,
   Constant,
   Context,

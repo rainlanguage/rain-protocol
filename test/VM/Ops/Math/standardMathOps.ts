@@ -6,6 +6,7 @@ import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
 import { op, memoryOperand, MemoryType } from "../../../../utils/rainvm/vm";
+import { DebugStyle } from "../../LibVMState/debug";
 
 const Opcode = AllStandardOps;
 

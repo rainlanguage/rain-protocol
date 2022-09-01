@@ -43,9 +43,9 @@ struct StateConfig {
 /// @param arguments `ZIPMAP` populates arguments which can be copied to the
 /// stack by `VAL`.
 struct VMState {
-    uint256 scratch;
     StackTop stackBottom;
     StackTop constantsBottom;
+    uint256 scratch;
     uint256[] context;
     bytes[] compiledSources;
 }
@@ -107,6 +107,47 @@ library LibVMState {
         return stackTop_;
     }
 
+    function serialize(
+        StateConfig memory config_,
+        uint256 scratch_,
+        uint256 stackLength_,
+        function(VMState memory, Operand, StackTop)
+            internal
+            view
+            returns (StackTop)[]
+            memory opcodeFunctionPointers_
+    ) internal pure returns (bytes memory) {
+        unchecked {
+            uint256 size_ = 0;
+            size_ += scratch_.size();
+            size_ += stackLength_.size();
+            size_ += config_.constants.size();
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+                size_ += config_.sources[i_].size();
+            }
+            bytes memory serialized_ = new bytes(size_);
+            StackTop cursor_ = serialized_.asStackTop().up();
+
+            // Copy stack length.
+            cursor_ = cursor_.push(stackLength_);
+
+            // Then the constants.
+            cursor_ = cursor_.pushWithLength(config_.constants);
+
+            // Copy scratch.
+            cursor_ = cursor_.push(scratch_);
+
+            // Last the sources.
+            bytes memory source_;
+            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
+                source_ = config_.sources[i_];
+                compile(source_, opcodeFunctionPointers_.asUint256Array());
+                cursor_ = cursor_.unalignedPushWithLength(source_);
+            }
+            return serialized_;
+        }
+    }
+
     function deserialize(bytes memory serialized_, uint256[] memory context_)
         internal
         pure
@@ -123,12 +164,10 @@ library LibVMState {
             // The end of processing is the end of the state bytes.
             StackTop end_ = cursor_.upBytes(cursor_.peek());
 
-            cursor_ = cursor_.up();
-            state_.scratch = cursor_.peek();
-
             // Read the stack length and build a stack.
             cursor_ = cursor_.up();
             uint256 stackLength_ = cursor_.peek();
+
             // The stack is never stored in stack bytes so we allocate a new
             // array for it with length as per the indexes and point the state
             // at it.
@@ -138,6 +177,9 @@ library LibVMState {
             cursor_ = cursor_.up();
             state_.constantsBottom = cursor_;
             cursor_ = cursor_.up(cursor_.peek());
+
+            cursor_ = cursor_.up();
+            state_.scratch = cursor_.peek();
 
             // Rebuild the sources array.
             uint256 i_ = 0;
@@ -200,46 +242,7 @@ library LibVMState {
         }
     }
 
-    function serialize(
-        StateConfig memory config_,
-        uint256 scratch_,
-        uint256 stackLength_,
-        function(VMState memory, Operand, StackTop)
-            internal
-            view
-            returns (StackTop)[]
-            memory opcodeFunctionPointers_
-    ) internal pure returns (bytes memory) {
-        unchecked {
-            uint256 size_ = 0;
-            size_ += scratch_.size();
-            size_ += stackLength_.size();
-            size_ += config_.constants.size();
-            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-                size_ += config_.sources[i_].size();
-            }
-            bytes memory serialized_ = new bytes(size_);
-            StackTop cursor_ = serialized_.asStackTop().up();
 
-            // Copy scratch.
-            cursor_ = cursor_.push(scratch_);
-
-            // Copy stack length.
-            cursor_ = cursor_.push(stackLength_);
-
-            // Then the constants.
-            cursor_ = cursor_.pushWithLength(config_.constants);
-
-            // Last the sources.
-            bytes memory source_;
-            for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
-                source_ = config_.sources[i_];
-                compile(source_, opcodeFunctionPointers_.asUint256Array());
-                cursor_ = cursor_.unalignedPushWithLength(source_);
-            }
-            return serialized_;
-        }
-    }
 
     /// Eval with sane defaults partially applied.
     function eval(VMState memory state_) internal view returns (StackTop) {
@@ -287,7 +290,7 @@ library LibVMState {
             assembly ("memory-safe") {
                 cursor_ := mload(
                     add(
-                        mload(add(state_, 0x60)),
+                        mload(add(state_, 0x80)),
                         add(0x20, mul(0x20, sourceIndex_))
                     )
                 )
