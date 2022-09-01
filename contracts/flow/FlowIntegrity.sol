@@ -7,7 +7,7 @@ import "../idempotent/LibIdempotentFlag.sol";
 uint256 constant FLAG_INDEX_FLOW_TIME = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
-contract OrderBookIntegrity is StandardIntegrity {
+contract FlowIntegrity is StandardIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrityState for IntegrityState;
     using LibIdempotentFlag for IdempotentFlag;
