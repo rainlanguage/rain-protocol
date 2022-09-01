@@ -16,7 +16,7 @@ import {
   RegisterCurationEvent,
 } from "../../../typechain/contracts/factory/FactoryCurator";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
-import { InitializeEvent } from "../../../typechain/contracts/test/FactoryChildTest";
+import { InitializeEvent } from "../../../typechain/contracts/test/factory/Factory/FactoryChildTest";
 import {
   combineTierDeploy,
   memoryOperand,

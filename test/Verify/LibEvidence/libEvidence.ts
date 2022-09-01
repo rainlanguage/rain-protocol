@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import type { LibEvidenceTest } from "../../../typechain";
-import { EvidenceStruct } from "../../../typechain/contracts/test/wrappers/LibEvidenceTest";
+import { EvidenceStruct } from "../../../typechain/contracts/test/verify/LibEvidence/LibEvidenceTest";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 describe("LibEvidence tests", async function () {
