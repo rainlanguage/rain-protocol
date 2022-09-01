@@ -3,7 +3,7 @@ pragma solidity =0.8.15;
 
 import {TierReport} from "../../contracts/tier/libraries/TierReport.sol";
 import {TierConstants} from "../../contracts/tier/libraries/TierConstants.sol";
-import {TierReportTest} from "../../contracts/test/wrappers/TierReportTest.sol";
+import {TierReportTest} from "../../contracts/test/tier/libraries/TierReport/TierReportTest.sol";
 
 /// @title TierReportEchidna
 /// Wrapper around the `TierReport` library for echidna fuzz testing.
