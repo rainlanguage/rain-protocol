@@ -1,5 +1,3 @@
-testLimit: 20000
-seqLen: 50
+testMode: "assertion"
 cryticArgs: ["--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/"]
-stopOnFail: true
-prefix: "echidna"
+testLimit: 25000

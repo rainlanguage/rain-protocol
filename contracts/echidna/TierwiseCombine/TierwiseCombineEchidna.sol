@@ -6,6 +6,8 @@ import {SaturatingMath} from "../../math/SaturatingMath.sol";
 
 import {TierConstants} from "../../tier/libraries/TierConstants.sol";
 
+// TODO Change to test mode: assertion
+
 /// @title TierwiseCombineEchidna
 /// Wrapper around the `TierwiseCombine` library for echidna fuzz testing.
 contract TierwiseCombineEchidna {
