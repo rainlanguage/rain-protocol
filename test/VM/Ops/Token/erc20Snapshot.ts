@@ -7,7 +7,7 @@ import type {
   ReserveTokenERC20Snapshot,
   StandardIntegrity,
 } from "../../../../typechain";
-import { SnapshotEvent } from "../../../../typechain/contracts/test/ReserveTokenERC20Snapshot";
+import { SnapshotEvent } from "../../../../typechain/contracts/test/testToken/ReserveTokenERC20Snapshot";
 import { basicDeploy } from "../../../../utils/deploy/basic";
 import { getEventArgs } from "../../../../utils/events";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
