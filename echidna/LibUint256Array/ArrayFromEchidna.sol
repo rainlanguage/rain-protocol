@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {LibUint256Array} from "../../array/LibUint256Array.sol";
+import {LibUint256Array} from "../../contracts/array/LibUint256Array.sol";
 
 /// @title ArrayFromEchidna
 /// Wrapper around the `LibUint256Array` library for testing arrayFrom functions with Echidna.
