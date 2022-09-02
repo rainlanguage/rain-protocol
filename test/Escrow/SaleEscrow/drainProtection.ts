@@ -1,13 +1,13 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import { MockISale } from "../../../typechain/MockISale";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import { RedeemableERC20ClaimEscrow } from "../../../typechain/RedeemableERC20ClaimEscrow";
-import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { SaleConstructorConfigStruct } from "../../../typechain/Sale";
-import { SaleFactory } from "../../../typechain/SaleFactory";
+import { MockISale } from "../../../typechain";
+import { ReadWriteTier } from "../../../typechain";
+import { RedeemableERC20ClaimEscrow } from "../../../typechain";
+import { RedeemableERC20Factory } from "../../../typechain";
+import { ReserveToken } from "../../../typechain";
+import { SaleFactory } from "../../../typechain";
+import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
 import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
 

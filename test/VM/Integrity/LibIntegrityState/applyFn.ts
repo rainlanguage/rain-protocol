@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { LibIntegrityStateTest } from "../../../../typechain/LibIntegrityStateTest";
+import type { LibIntegrityStateTest } from "../../../../typechain";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("LibIntegrityState applyFn tests", async function () {

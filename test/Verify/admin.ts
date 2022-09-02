@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { Verify } from "../../typechain/Verify";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+import type { Verify } from "../../typechain";
+import { VerifyFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants";
 import { verifyDeploy } from "../../utils/deploy/verify";
 import { assertError } from "../../utils/test/assertError";

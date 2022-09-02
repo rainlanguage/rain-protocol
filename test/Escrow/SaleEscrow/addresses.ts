@@ -1,21 +1,21 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import { IERC20Upgradeable as IERC20 } from "../../../typechain/IERC20Upgradeable";
-import { MockISale } from "../../../typechain/MockISale";
-import { ReadWriteTier } from "../../../typechain/ReadWriteTier";
-import type { RedeemableERC20 } from "../../../typechain/RedeemableERC20";
-import { RedeemableERC20Factory } from "../../../typechain/RedeemableERC20Factory";
-import { ReserveToken } from "../../../typechain/ReserveToken";
-import { SaleConstructorConfigStruct } from "../../../typechain/Sale";
-import { SaleEscrowWrapper } from "../../../typechain/SaleEscrowWrapper";
-import { SaleFactory } from "../../../typechain/SaleFactory";
+import { IERC20Upgradeable as IERC20 } from "../../../typechain";
+import { MockISale } from "../../../typechain";
+import { ReadWriteTier } from "../../../typechain";
+import type { RedeemableERC20 } from "../../../typechain";
+import { RedeemableERC20Factory } from "../../../typechain";
+import { ReserveToken } from "../../../typechain";
+import { SaleEscrowWrapper } from "../../../typechain";
+import { SaleFactory } from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20";
 import { Status } from "../../../utils/types/sale";
 import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
+import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
 
 let reserve: ReserveToken,
   redeemableERC20FactoryFactory: ContractFactory,

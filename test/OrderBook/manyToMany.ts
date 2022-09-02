@@ -2,18 +2,17 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
+import type { OrderBook } from "../../typechain";
+import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import {
   AfterClearEvent,
   ClearConfigStruct,
   ClearEvent,
   ClearStateChangeStruct,
   DepositConfigStruct,
-  OrderBook,
   OrderConfigStruct,
   OrderLiveEvent,
-} from "../../typechain/OrderBook";
-import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
+} from "../../typechain/contracts/orderbook/OrderBook";
 import {
   eighteenZeros,
   max_uint256,
@@ -23,7 +22,7 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import {
   compareSolStructs,
   compareStructs,
@@ -224,10 +223,10 @@ describe("OrderBook many-to-many", async function () {
     // BOUNTY BOT CLEARS THE ORDERS
 
     const clearConfig0: ClearConfigStruct = {
-      aInputIndex: 0,
-      aOutputIndex: 0,
-      bInputIndex: 0,
-      bOutputIndex: 0,
+      aInputIOIndex: 0,
+      aOutputIOIndex: 0,
+      bInputIOIndex: 0,
+      bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
     };
@@ -279,10 +278,10 @@ describe("OrderBook many-to-many", async function () {
     compareStructs(clearStateChange0, expectedClearStateChange0);
 
     const clearConfig1: ClearConfigStruct = {
-      aInputIndex: 1,
-      aOutputIndex: 1,
-      bInputIndex: 1,
-      bOutputIndex: 1,
+      aInputIOIndex: 1,
+      aOutputIOIndex: 1,
+      bInputIOIndex: 1,
+      bOutputIOIndex: 1,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
     };

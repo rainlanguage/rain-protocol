@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { BigNumberish } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { RandomTest } from "../../../typechain/RandomTest";
+import type { RandomTest } from "../../../typechain";
 import { zeroPad32 } from "../../../utils";
 import { max_uint256 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basic";

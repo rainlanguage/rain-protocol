@@ -1,11 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../typechain/StandardIntegrity";
-import { AllStandardOpsTest } from "../../../../typechain/AllStandardOpsTest";
+import type {
+  AllStandardOpsTest,
+  StandardIntegrity,
+} from "../../../../typechain";
 import { eighteenZeros, ONE, sixZeros } from "../../../../utils/constants";
 import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
-import { op, MemoryType, memoryOperand } from "../../../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
 
 const Opcode = AllStandardOps;
 

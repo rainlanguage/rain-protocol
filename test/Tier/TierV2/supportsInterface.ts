@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { TierV2Test } from "../../../typechain/TierV2Test";
+import { TierV2Test } from "../../../typechain";
 import { zeroPad4 } from "../../../utils/bytes";
 import { basicDeploy } from "../../../utils/deploy/basic";
 

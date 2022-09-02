@@ -1,10 +1,8 @@
 import { assert } from "chai";
 import { keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  CommitEvent,
-  SeedDanceTest,
-} from "../../../typechain/SeedDanceTest";
+import type { SeedDanceTest } from "../../../typechain";
+import { CommitEvent } from "../../../typechain/contracts/dance/SeedDance";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";

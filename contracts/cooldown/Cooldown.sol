@@ -56,7 +56,7 @@ contract Cooldown {
     /// @param cooldownDuration_ The global cooldown duration.
     function initializeCooldown(uint256 cooldownDuration_) internal {
         require(cooldownDuration_ > 0, "COOLDOWN_0");
-        require(cooldownDuration <= type(uint32).max, "COOLDOWN_MAX");
+        require(cooldownDuration_ <= type(uint32).max, "COOLDOWN_MAX");
         // Reinitialization is a bug.
         assert(cooldownDuration == 0);
         cooldownDuration = cooldownDuration_;

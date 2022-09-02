@@ -1,8 +1,9 @@
 import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { ApproveEvent, Verify } from "../../typechain/Verify";
-import { VerifyFactory } from "../../typechain/VerifyFactory";
+import type { Verify } from "../../typechain";
+import { VerifyFactory } from "../../typechain";
+import { ApproveEvent } from "../../typechain/contracts/verify/Verify";
 import {
   assertError,
   getBlockTimestamp,

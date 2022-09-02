@@ -1,6 +1,6 @@
+import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import { assert } from "chai";
 import { max_uint256 } from "../constants";
 
 export const ALWAYS = 0;

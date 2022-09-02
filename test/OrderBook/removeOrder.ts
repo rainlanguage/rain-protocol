@@ -2,19 +2,18 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
+import type { OrderBook } from "../../typechain";
+import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import {
   OrderConfigStruct,
   OrderDeadEvent,
   OrderLiveEvent,
-} from "../../typechain/OrderBook";
-import { OrderBookIntegrity } from "../../typechain/OrderBookIntegrity";
-import { ReserveToken18 } from "../../typechain/ReserveToken18";
+} from "../../typechain/contracts/orderbook/OrderBook";
 import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;

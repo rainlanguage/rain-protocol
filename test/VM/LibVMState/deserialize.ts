@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LibVMStateTest } from "../../../typechain/LibVMStateTest";
-import { StandardIntegrity } from "../../../typechain/StandardIntegrity";
+import type { LibVMStateTest, StandardIntegrity } from "../../../typechain";
 import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
 import { op } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";

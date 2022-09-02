@@ -89,7 +89,17 @@ let
 
   echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
     # By now, we will use the `echidna-test` file in the repo
-    time find contracts/test/echidna -name '*.sol' | xargs -i sh -c './echidna-test "{}" --contract "$(basename -s .sol {})" --config echidnaConfig.yaml'
+
+    find echidna -name '*.sol' | xargs -i sh -c '
+      file="{}";
+      configFile=''${file%%.*}.yaml;
+
+      if ! [ -e $configFile ]; then
+        configFile=echidna/default.yaml;
+      fi;
+
+      ./echidna-test $file --contract "$(basename -s .sol $file)" --config $configFile
+    '
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
