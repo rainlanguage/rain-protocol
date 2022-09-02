@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type {
   AfterClearEvent,
   ClearConfigStruct,
+  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderBook,
@@ -231,13 +232,23 @@ describe("OrderBook tracking order funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange0: ClearStateChangeStruct = {
+      aOutput: 45,
+      bOutput: 4050,
+      aInput: 4050,
+      bInput: 44,
+      aFlag: 1,
+      bFlag: 0,
+    };
+    compareStructs(stateChange0, expectedStateChange0);
+
     const { bInput: bInput0 } = stateChange0;
 
-    const actualBounty0 = {
+    const _actualBounty0 = {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
-    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),
@@ -274,13 +285,23 @@ describe("OrderBook tracking order funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange1: ClearStateChangeStruct = {
+      aOutput: 10,
+      bOutput: 900,
+      aInput: 900,
+      bInput: 9,
+      aFlag: 1,
+      bFlag: 0,
+    };
+    compareStructs(stateChange1, expectedStateChange1);
+
     const { bInput: bInput1 } = stateChange1;
 
-    const actualBounty1 = {
+    const _actualBounty1 = {
       a: stateChange1.aOutput.sub(stateChange1.bInput),
       b: stateChange1.bOutput.sub(stateChange1.aInput),
     };
-    console.log({ actualBounty1 });
 
     assert(
       bInput1.eq(expectedOutputAmount1),

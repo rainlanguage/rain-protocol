@@ -20,10 +20,6 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import {
-  FLAG_INDEX_CLEARED_COUNTERPARTY,
-  FLAG_INDEX_CLEARED_ORDER,
-} from "../../utils/constants/orderbook";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
@@ -351,8 +347,8 @@ describe("OrderBook counterparty in context", async function () {
       bOutput: bOutputExpected,
       aInput: fixedPointMul(askPrice, aOutputExpected),
       bInput: fixedPointMul(bidPrice, bOutputExpected),
-      aFlag: FLAG_INDEX_CLEARED_ORDER,
-      bFlag: FLAG_INDEX_CLEARED_COUNTERPARTY,
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender === bountyBot.address);

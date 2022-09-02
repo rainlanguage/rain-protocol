@@ -19,10 +19,6 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import {
-  FLAG_INDEX_CLEARED_COUNTERPARTY,
-  FLAG_INDEX_CLEARED_ORDER,
-} from "../../utils/constants/orderbook";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
@@ -272,8 +268,8 @@ describe("OrderBook many-to-many", async function () {
       bOutput: bOutputExpected0,
       aInput: fixedPointMul(askPrice, aOutputExpected0),
       bInput: fixedPointMul(bidPrice, bOutputExpected0),
-      aFlag: FLAG_INDEX_CLEARED_ORDER,
-      bFlag: FLAG_INDEX_CLEARED_COUNTERPARTY,
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender0 === bountyBot.address);
@@ -327,8 +323,8 @@ describe("OrderBook many-to-many", async function () {
       bOutput: dOutputExpected1,
       aInput: fixedPointMul(askPrice, cOutputExpected1),
       bInput: fixedPointMul(bidPrice, dOutputExpected1),
-      aFlag: FLAG_INDEX_CLEARED_ORDER,
-      bFlag: FLAG_INDEX_CLEARED_COUNTERPARTY,
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender1 === bountyBot.address);

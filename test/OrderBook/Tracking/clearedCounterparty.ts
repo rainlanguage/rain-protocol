@@ -5,6 +5,7 @@ import { ethers } from "hardhat";
 import type {
   AfterClearEvent,
   ClearConfigStruct,
+  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderBook,
@@ -294,13 +295,23 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange0: ClearStateChangeStruct = {
+      aOutput: 65,
+      bOutput: 5850,
+      aInput: 5850,
+      bInput: 64,
+      aFlag: 2,
+      bFlag: 0,
+    };
+    compareStructs(stateChange0, expectedStateChange0);
+
     const { bInput: bInput0 } = stateChange0;
 
-    const actualBounty0 = {
+    const _actualBounty0 = {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
-    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),
@@ -337,13 +348,23 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange1: ClearStateChangeStruct = {
+      aOutput: 10,
+      bOutput: 900,
+      aInput: 900,
+      bInput: 9,
+      aFlag: 2,
+      bFlag: 0,
+    };
+    compareStructs(stateChange1, expectedStateChange1);
+
     const { bInput: bInput1 } = stateChange1;
 
-    const actualBounty1 = {
+    const _actualBounty1 = {
       a: stateChange1.aOutput.sub(stateChange1.bInput),
       b: stateChange1.bOutput.sub(stateChange1.aInput),
     };
-    console.log({ actualBounty1 });
 
     assert(
       bInput1.eq(expectedOutputAmount1),
@@ -375,13 +396,23 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange2: ClearStateChangeStruct = {
+      aOutput: 85,
+      bOutput: 7650,
+      aInput: 7650,
+      bInput: 84,
+      aFlag: 2,
+      bFlag: 0,
+    };
+    compareStructs(stateChange2, expectedStateChange2);
+
     const { bInput: bInput2 } = stateChange2;
 
-    const actualBounty2 = {
+    const _actualBounty2 = {
       a: stateChange2.aOutput.sub(stateChange2.bInput),
       b: stateChange2.bOutput.sub(stateChange2.aInput),
     };
-    console.log({ actualBounty2 });
 
     assert(
       bInput2.eq(expectedOutputAmount2),
@@ -418,13 +449,23 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange3: ClearStateChangeStruct = {
+      aOutput: 10,
+      bOutput: 900,
+      aInput: 900,
+      bInput: 9,
+      aFlag: 2,
+      bFlag: 0,
+    };
+    compareStructs(stateChange3, expectedStateChange3);
+
     const { bInput: bInput3 } = stateChange3;
 
-    const actualBounty3 = {
+    const _actualBounty3 = {
       a: stateChange3.aOutput.sub(stateChange3.bInput),
       b: stateChange3.bOutput.sub(stateChange3.aInput),
     };
-    console.log({ actualBounty3 });
 
     assert(
       bInput3.eq(expectedOutputAmount3),
