@@ -183,11 +183,12 @@ contract OrderBook is StandardVM {
         Order memory order_,
         uint256 outputIOIndex_,
         address counterparty_
-    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_) {
-        VMState memory vmState_ = order_.vmState.deserialize(
+    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_, IdempotentFlag flag_) {
+        VMState memory state_ = order_.vmState.deserialize(
             EvalContext(order_.hash(), counterparty_).toContext()
         );
-        (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
+        flag_ = IdempotentFlag.wrap(state_.scratch);
+        (orderOutputMax_, orderIORatio_) = state_.eval().peek2();
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -203,7 +204,8 @@ contract OrderBook is StandardVM {
         uint256 inputIOIndex_,
         uint256 input_,
         uint256 outputIOIndex_,
-        uint256 output_
+        uint256 output_,
+        IdempotentFlag flag_
     ) internal {
         IO memory io_;
         if (input_ > 0) {
@@ -213,12 +215,10 @@ contract OrderBook is StandardVM {
         if (output_ > 0) {
             io_ = order_.validOutputs[outputIOIndex_];
             vaults[order_.owner][io_.token][io_.vaultId] -= output_;
-            if (_isTracked(order_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
+            if (flag_.get(FLAG_INDEX_CLEARED_ORDER)) {
                 clearedOrder[order_.hash()] += output_;
             }
-            if (
-                _isTracked(order_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)
-            ) {
+            if (flag_.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
                 clearedCounterparty[order_.hash()][counterparty_] += output_;
             }
         }
@@ -248,7 +248,8 @@ contract OrderBook is StandardVM {
 
             (
                 uint256 orderOutputMax_,
-                uint256 orderIORatio_
+                uint256 orderIORatio_,
+                IdempotentFlag flag_
             ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
 
             // Skip orders that are too expensive rather than revert as we have
@@ -271,7 +272,8 @@ contract OrderBook is StandardVM {
                     takeOrder_.inputIOIndex,
                     output_,
                     takeOrder_.outputIOIndex,
-                    input_
+                    input_,
+                    flag_
                 );
                 emit TakeOrder(msg.sender, takeOrder_, input_, output_);
             }
@@ -325,50 +327,16 @@ contract OrderBook is StandardVM {
             // VM execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-<<<<<<< HEAD
-            unchecked {
-                {
-                    VMState memory state_ = a_.vmState.deserialize(
-                        EvalContext(a_.hash(), b_.owner).toContext()
-                    );
-                    stateChange_.aFlag = IdempotentFlag.wrap(state_.scratch);
-                    (aOutputMax_, aPrice_) = state_.eval().peek2();
-                }
-
-                {
-                    VMState memory state_ = b_.vmState.deserialize(
-                        EvalContext(b_.hash(), a_.owner).toContext()
-                    );
-                    stateChange_.bFlag = IdempotentFlag.wrap(state_.scratch);
-                    (bOutputMax_, bPrice_) = state_.eval().peek2();
-                }
-            }
-
-            // outputs are capped by the remaining funds in their output vault.
-            {
-                aOutputMax_ = aOutputMax_.min(
-                    vaults[a_.owner][
-                        a_.validOutputs[clearConfig_.aOutputIndex].token
-                    ][a_.validOutputs[clearConfig_.aOutputIndex].vaultId]
-                );
-                bOutputMax_ = bOutputMax_.min(
-                    vaults[b_.owner][
-                        b_.validOutputs[clearConfig_.bOutputIndex].token
-                    ][b_.validOutputs[clearConfig_.bOutputIndex].vaultId]
-                );
-            }
-=======
-            (aOutputMax_, aIORatio_) = _calculateOrderIO(
+            (aOutputMax_, aIORatio_, stateChange_.aFlag) = _calculateOrderIO(
                 a_,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (bOutputMax_, bIORatio_) = _calculateOrderIO(
+            (bOutputMax_, bIORatio_, stateChange_.bFlag) = _calculateOrderIO(
                 b_,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
             );
->>>>>>> develop
 
             stateChange_.aOutput = aOutputMax_.min(
                 bOutputMax_.fixedPointMul(bIORatio_)
@@ -386,50 +354,14 @@ contract OrderBook is StandardVM {
             stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bIORatio_);
         }
 
-<<<<<<< HEAD
-        if (stateChange_.aOutput > 0) {
-            vaults[a_.owner][a_.validOutputs[clearConfig_.aOutputIndex].token][
-                a_.validOutputs[clearConfig_.aOutputIndex].vaultId
-            ] -= stateChange_.aOutput;
-            if (stateChange_.aFlag.get(FLAG_INDEX_CLEARED_ORDER)) {
-                clearedOrder[a_.hash()] += stateChange_.aOutput;
-            }
-            if (stateChange_.aFlag.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
-                // A counts funds paid to cover the bounty as cleared for B.
-                clearedCounterparty[a_.hash()][b_.owner] += stateChange_
-                    .aOutput;
-            }
-        }
-        if (stateChange_.bOutput > 0) {
-            vaults[b_.owner][b_.validOutputs[clearConfig_.bOutputIndex].token][
-                b_.validOutputs[clearConfig_.bOutputIndex].vaultId
-            ] -= stateChange_.bOutput;
-            if (stateChange_.bFlag.get(FLAG_INDEX_CLEARED_ORDER)) {
-                clearedOrder[b_.hash()] += stateChange_.bOutput;
-            }
-            if (stateChange_.bFlag.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
-                clearedCounterparty[b_.hash()][a_.owner] += stateChange_
-                    .bOutput;
-            }
-        }
-        if (stateChange_.aInput > 0) {
-            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][
-                a_.validInputs[clearConfig_.aInputIndex].vaultId
-            ] += stateChange_.aInput;
-        }
-        if (stateChange_.bInput > 0) {
-            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][
-                b_.validInputs[clearConfig_.bInputIndex].vaultId
-            ] += stateChange_.bInput;
-        }
-=======
         _recordVaultIO(
             a_,
             b_.owner,
             clearConfig_.aInputIOIndex,
             stateChange_.aInput,
             clearConfig_.aOutputIOIndex,
-            stateChange_.aOutput
+            stateChange_.aOutput,
+            stateChange_.aFlag
         );
         _recordVaultIO(
             b_,
@@ -437,10 +369,10 @@ contract OrderBook is StandardVM {
             clearConfig_.bInputIOIndex,
             stateChange_.bInput,
             clearConfig_.bOutputIOIndex,
-            stateChange_.bOutput
+            stateChange_.bOutput,
+            stateChange_.bFlag
         );
 
->>>>>>> develop
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
