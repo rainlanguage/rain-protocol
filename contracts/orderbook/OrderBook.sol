@@ -23,10 +23,10 @@ struct WithdrawConfig {
 }
 
 struct ClearConfig {
-    uint256 aInputIndex;
-    uint256 aOutputIndex;
-    uint256 bInputIndex;
-    uint256 bOutputIndex;
+    uint256 aInputIOIndex;
+    uint256 aOutputIOIndex;
+    uint256 bInputIOIndex;
+    uint256 bOutputIOIndex;
     uint256 aBountyVaultId;
     uint256 bBountyVaultId;
 }
@@ -41,6 +41,21 @@ struct ClearStateChange {
     uint256 bOutput;
     uint256 aInput;
     uint256 bInput;
+}
+
+struct TakeOrderConfig {
+    Order order;
+    uint256 inputIOIndex;
+    uint256 outputIOIndex;
+}
+
+struct TakeOrdersConfig {
+    address output;
+    address input;
+    uint256 minimumInput;
+    uint256 maximumInput;
+    uint256 maximumIORatio;
+    TakeOrderConfig[] orders;
 }
 
 uint256 constant LOCAL_OPS_LENGTH = 2;
@@ -82,6 +97,12 @@ contract OrderBook is StandardVM {
     event OrderDead(address sender, Order config);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
+    event TakeOrder(
+        address sender,
+        TakeOrderConfig takeOrder,
+        uint256 input,
+        uint256 output
+    );
 
     // order hash => order liveness
     mapping(OrderHash => OrderLiveness) private orders;
@@ -155,6 +176,117 @@ contract OrderBook is StandardVM {
         }
     }
 
+    function _calculateOrderIO(
+        Order memory order_,
+        uint256 outputIOIndex_,
+        address counterparty_
+    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_) {
+        VMState memory vmState_ = order_.vmState.deserialize(
+            EvalContext(order_.hash(), counterparty_).toContext()
+        );
+        (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
+
+        // The order owner can't send more than the smaller of their vault
+        // balance or their per-order limit.
+        IO memory outputIO_ = order_.validOutputs[outputIOIndex_];
+        orderOutputMax_ = orderOutputMax_.min(
+            vaults[order_.owner][outputIO_.token][outputIO_.vaultId]
+        );
+    }
+
+    function _recordVaultIO(
+        Order memory order_,
+        address counterparty_,
+        uint256 inputIOIndex_,
+        uint256 input_,
+        uint256 outputIOIndex_,
+        uint256 output_
+    ) internal {
+        IO memory io_;
+        if (input_ > 0) {
+            io_ = order_.validInputs[inputIOIndex_];
+            vaults[order_.owner][io_.token][io_.vaultId] += input_;
+        }
+        if (output_ > 0) {
+            io_ = order_.validOutputs[outputIOIndex_];
+            vaults[order_.owner][io_.token][io_.vaultId] -= output_;
+            if (_isTracked(order_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
+                clearedOrder[order_.hash()] += output_;
+            }
+            if (
+                _isTracked(order_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)
+            ) {
+                clearedCounterparty[order_.hash()][counterparty_] += output_;
+            }
+        }
+    }
+
+    function takeOrders(TakeOrdersConfig calldata takeOrders_)
+        external
+        returns (uint256 totalInput_, uint256 totalOutput_)
+    {
+        uint256 i_ = 0;
+        TakeOrderConfig memory takeOrder_;
+        Order memory order_;
+        uint256 remainingInput_ = takeOrders_.maximumInput;
+        while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
+            takeOrder_ = takeOrders_.orders[i_];
+            order_ = takeOrder_.order;
+            require(
+                order_.validInputs[takeOrder_.inputIOIndex].token ==
+                    takeOrders_.output,
+                "TOKEN_MISMATCH"
+            );
+            require(
+                order_.validOutputs[takeOrder_.outputIOIndex].token ==
+                    takeOrders_.input,
+                "TOKEN_MISMATCH"
+            );
+
+            (
+                uint256 orderOutputMax_,
+                uint256 orderIORatio_
+            ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
+
+            // Skip orders that are too expensive rather than revert as we have
+            // no way of knowing if a specific order becomes too expensive
+            // between submitting to mempool and execution, but other orders may
+            // be valid so we want to take advantage of those if possible.
+            if (
+                orderIORatio_ <= takeOrders_.maximumIORatio &&
+                orderOutputMax_ > 0
+            ) {
+                uint256 input_ = remainingInput_.min(orderOutputMax_);
+                uint256 output_ = input_.fixedPointMul(orderIORatio_);
+
+                remainingInput_ -= input_;
+                totalOutput_ += output_;
+
+                _recordVaultIO(
+                    order_,
+                    msg.sender,
+                    takeOrder_.inputIOIndex,
+                    output_,
+                    takeOrder_.outputIOIndex,
+                    input_
+                );
+                emit TakeOrder(msg.sender, takeOrder_, input_, output_);
+            }
+
+            unchecked {
+                i_++;
+            }
+        }
+        totalInput_ = takeOrders_.maximumInput - remainingInput_;
+        require(totalInput_ >= takeOrders_.minimumInput, "MIN_INPUT");
+        IERC20(takeOrders_.output).safeTransferFrom(
+            msg.sender,
+            address(this),
+            totalOutput_
+        );
+        IERC20(takeOrders_.input).safeTransfer(msg.sender, totalInput_);
+    }
+
     function clear(
         Order memory a_,
         Order memory b_,
@@ -165,13 +297,13 @@ contract OrderBook is StandardVM {
         {
             require(a_.owner != b_.owner, "SAME_OWNER");
             require(
-                a_.validOutputs[clearConfig_.aOutputIndex].token ==
-                    b_.validInputs[clearConfig_.bInputIndex].token,
+                a_.validOutputs[clearConfig_.aOutputIOIndex].token ==
+                    b_.validInputs[clearConfig_.bInputIOIndex].token,
                 "TOKEN_MISMATCH"
             );
             require(
-                b_.validOutputs[clearConfig_.bOutputIndex].token ==
-                    a_.validInputs[clearConfig_.aInputIndex].token,
+                b_.validOutputs[clearConfig_.bOutputIOIndex].token ==
+                    a_.validInputs[clearConfig_.aInputIOIndex].token,
                 "TOKEN_MISMATCH"
             );
             require(orders[aHash_].isLive(), "A_NOT_LIVE");
@@ -181,9 +313,9 @@ contract OrderBook is StandardVM {
         ClearStateChange memory stateChange_;
 
         {
-            // Price is input per output for both a_ and b_.
-            uint256 aPrice_;
-            uint256 bPrice_;
+            // IORatio is input per output for both a_ and b_.
+            uint256 aIORatio_;
+            uint256 bIORatio_;
             // a_ and b_ can both set a maximum output from the VM.
             uint256 aOutputMax_;
             uint256 bOutputMax_;
@@ -192,43 +324,22 @@ contract OrderBook is StandardVM {
             // VM execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            unchecked {
-                {
-                    (aOutputMax_, aPrice_) = a_
-                        .vmState
-                        .deserialize(EvalContext(aHash_, b_.owner).toContext())
-                        .eval()
-                        .peek2();
-                }
-
-                {
-                    (bOutputMax_, bPrice_) = b_
-                        .vmState
-                        .deserialize(EvalContext(bHash_, a_.owner).toContext())
-                        .eval()
-                        .peek2();
-                }
-            }
-
-            // outputs are capped by the remaining funds in their output vault.
-            {
-                aOutputMax_ = aOutputMax_.min(
-                    vaults[a_.owner][
-                        a_.validOutputs[clearConfig_.aOutputIndex].token
-                    ][a_.validOutputs[clearConfig_.aOutputIndex].vaultId]
-                );
-                bOutputMax_ = bOutputMax_.min(
-                    vaults[b_.owner][
-                        b_.validOutputs[clearConfig_.bOutputIndex].token
-                    ][b_.validOutputs[clearConfig_.bOutputIndex].vaultId]
-                );
-            }
+            (aOutputMax_, aIORatio_) = _calculateOrderIO(
+                a_,
+                clearConfig_.aOutputIOIndex,
+                b_.owner
+            );
+            (bOutputMax_, bIORatio_) = _calculateOrderIO(
+                b_,
+                clearConfig_.bOutputIOIndex,
+                a_.owner
+            );
 
             stateChange_.aOutput = aOutputMax_.min(
-                bOutputMax_.fixedPointMul(bPrice_)
+                bOutputMax_.fixedPointMul(bIORatio_)
             );
             stateChange_.bOutput = bOutputMax_.min(
-                aOutputMax_.fixedPointMul(aPrice_)
+                aOutputMax_.fixedPointMul(aIORatio_)
             );
 
             require(
@@ -236,43 +347,27 @@ contract OrderBook is StandardVM {
                 "0_CLEAR"
             );
 
-            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(aPrice_);
-            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bPrice_);
+            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(aIORatio_);
+            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bIORatio_);
         }
 
-        if (stateChange_.aOutput > 0) {
-            vaults[a_.owner][a_.validOutputs[clearConfig_.aOutputIndex].token][
-                a_.validOutputs[clearConfig_.aOutputIndex].vaultId
-            ] -= stateChange_.aOutput;
-            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
-                clearedOrder[aHash_] += stateChange_.aOutput;
-            }
-            if (_isTracked(a_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
-                // A counts funds paid to cover the bounty as cleared for B.
-                clearedCounterparty[aHash_][b_.owner] += stateChange_.aOutput;
-            }
-        }
-        if (stateChange_.bOutput > 0) {
-            vaults[b_.owner][b_.validOutputs[clearConfig_.bOutputIndex].token][
-                b_.validOutputs[clearConfig_.bOutputIndex].vaultId
-            ] -= stateChange_.bOutput;
-            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
-                clearedOrder[bHash_] += stateChange_.bOutput;
-            }
-            if (_isTracked(b_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)) {
-                clearedCounterparty[bHash_][a_.owner] += stateChange_.bOutput;
-            }
-        }
-        if (stateChange_.aInput > 0) {
-            vaults[a_.owner][a_.validInputs[clearConfig_.aInputIndex].token][
-                a_.validInputs[clearConfig_.aInputIndex].vaultId
-            ] += stateChange_.aInput;
-        }
-        if (stateChange_.bInput > 0) {
-            vaults[b_.owner][b_.validInputs[clearConfig_.bInputIndex].token][
-                b_.validInputs[clearConfig_.bInputIndex].vaultId
-            ] += stateChange_.bInput;
-        }
+        _recordVaultIO(
+            a_,
+            b_.owner,
+            clearConfig_.aInputIOIndex,
+            stateChange_.aInput,
+            clearConfig_.aOutputIOIndex,
+            stateChange_.aOutput
+        );
+        _recordVaultIO(
+            b_,
+            a_.owner,
+            clearConfig_.bInputIOIndex,
+            stateChange_.bInput,
+            clearConfig_.bOutputIOIndex,
+            stateChange_.bOutput
+        );
+
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
@@ -280,12 +375,12 @@ contract OrderBook is StandardVM {
             uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
             if (aBounty_ > 0) {
                 vaults[msg.sender][
-                    a_.validOutputs[clearConfig_.aOutputIndex].token
+                    a_.validOutputs[clearConfig_.aOutputIOIndex].token
                 ][clearConfig_.aBountyVaultId] += aBounty_;
             }
             if (bBounty_ > 0) {
                 vaults[msg.sender][
-                    b_.validOutputs[clearConfig_.bOutputIndex].token
+                    b_.validOutputs[clearConfig_.bOutputIOIndex].token
                 ][clearConfig_.bBountyVaultId] += bBounty_;
             }
         }
