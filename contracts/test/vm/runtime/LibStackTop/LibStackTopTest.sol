@@ -227,6 +227,20 @@ contract LibStackTopTest {
         LibDebug.dumpMemory();
     }
 
+    function consumeSentinel(
+        uint256[] memory array_,
+        uint256 sentinel_,
+        uint256 stepSize_
+    ) external pure returns (StackTop, uint256[] memory) {
+        return
+            LibStackTop.consumeSentinel(
+                array_.asStackTop().up(array_.size() / 0x20),
+                array_.asStackTop(),
+                sentinel_,
+                stepSize_
+            );
+    }
+
     function set(
         bytes memory bytes_,
         uint256 a_,

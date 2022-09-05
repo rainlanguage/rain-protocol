@@ -17,8 +17,8 @@ contract LibIdempotentFlagTest {
     function set(IdempotentFlag flag_, uint256 index_)
         external
         pure
-        returns (IdempotentFlag)
+        returns (uint256)
     {
-        return LibIdempotentFlag.set(flag_, index_);
+        return IdempotentFlag.unwrap(LibIdempotentFlag.set(flag_, index_));
     }
 }
