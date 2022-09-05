@@ -7,22 +7,11 @@ import { eighteenZeros, sixZeros, tenZeros } from "../../../utils";
 
 let fixedPointMathTestFactory: ContractFactory;
 
-describe.only("FixedPointMathTest scaling a number", async function () {
+describe("FixedPointMathTest scaling a number", async function () {
   before(async () => {
     fixedPointMathTestFactory = await ethers.getContractFactory(
       "FixedPointMathTest"
     );
-  });
-
-  // Scale 18
-  it.only("should scale a fixed point decimal UP to scale 18", async () => {
-    const fixedPointMathTestF = await ethers.getContractFactory(
-      "FixedPointMathEchidna"
-    );
-
-    const test = await fixedPointMathTestF.deploy();
-
-    await test.Scale18(1);
   });
 
   // Scale 18
