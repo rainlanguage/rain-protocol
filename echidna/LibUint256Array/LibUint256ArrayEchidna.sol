@@ -3,7 +3,7 @@ pragma solidity =0.8.15;
 
 import {LibUint256Array} from "../../contracts/array/LibUint256Array.sol";
 
-/// @title ArrayFromEchidna
+/// @title LibUint256ArrayEchidna
 /// Wrapper around the `LibUint256Array` library for testing arrayFrom functions with Echidna.
 contract LibUint256ArrayEchidna {
     // Test arrayFrom using a single value
