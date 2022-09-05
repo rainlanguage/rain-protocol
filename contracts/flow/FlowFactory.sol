@@ -4,7 +4,7 @@ pragma solidity =0.8.15;
 import {Factory} from "../factory/Factory.sol";
 import {Flow} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
-import {StateConfig} from "../vm/runtime/LibVMState.sol";
+import {StateConfig} from "../interpreter/LibInterpreter.sol";
 
 /// @title FlowFactory
 /// @notice Factory for deploying and registering `Flow` contracts.
@@ -14,8 +14,8 @@ contract FlowFactory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmIntegrity_) {
-        address implementation_ = address(new Flow(vmIntegrity_));
+    constructor(address interpreterIntegrity_) {
+        address implementation_ = address(new Flow(interpreterIntegrity_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

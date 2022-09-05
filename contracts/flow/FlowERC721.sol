@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import {StandardInterpreterIntegrity, StateConfig} from "../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../interpreter/StandardInterpreter.sol";
+import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./libraries/LibFlow.sol";
 import "../math/FixedPointMath.sol";
 import "../idempotent/LibIdempotentFlag.sol";
-import "./FlowVM.sol";
+import "./FlowInterpreter.sol";
 import "../sentinel/LibSentinel.sol";
 
 uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
@@ -38,11 +38,11 @@ SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(1);
 
 /// @title FlowERC721
-contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
+contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
-    using LibVMState for VMState;
+    using LibInterpreter for InterpreterState;
     using FixedPointMath for uint256;
 
     /// Contract has initialized.
@@ -50,7 +50,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC721Config config);
 
-    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
@@ -61,7 +61,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
-        _saveVMState(config_.vmStateConfig);
+        _saveInterpreterState(config_.vmStateConfig);
         emit Initialize(msg.sender, config_);
     }
 
@@ -70,7 +70,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         address to_,
         uint256 tokenId_
     ) internal view virtual {
-        VMState memory state_ = _loadVMState();
+        InterpreterState memory state_ = _loadInterpreterState();
         state_.context = LibUint256Array.arrayFrom(
             uint256(uint160(from_)),
             uint256(uint160(to_)),
@@ -92,7 +92,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     }
 
     function _previewFlow(
-        VMState memory state_,
+        InterpreterState memory state_,
         SourceIndex flow_,
         uint256 id_
     ) internal view returns (FlowERC721IO memory flowIO_) {
@@ -112,13 +112,13 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     }
 
     function _flow(
-        VMState memory state_,
+        InterpreterState memory state_,
         SourceIndex flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC721IO memory flowIO_) {
         unchecked {
             flowIO_ = _previewFlow(state_, flow_, id_);
-            registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
+            _registerFlowTime(flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(msg.sender, flowIO_.mints[i_]);
             }
@@ -137,7 +137,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         virtual
         returns (FlowERC721IO memory)
     {
-        return _previewFlow(_loadVMState(), flow_, id_);
+        return _previewFlow(_loadInterpreterState(), flow_, id_);
     }
 
     function flow(SourceIndex flow_, uint256 id_)
@@ -145,6 +145,6 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         virtual
         returns (FlowERC721IO memory)
     {
-        return _flow(_loadVMState(), flow_, id_);
+        return _flow(_loadInterpreterState(), flow_, id_);
     }
 }

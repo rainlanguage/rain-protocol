@@ -4,8 +4,9 @@ pragma solidity =0.8.15;
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import "../interpreter/StandardInterpreter.sol";
+import "../interpreter/StorageInterpreter.sol";
+import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
@@ -16,7 +17,7 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
-import "../vm/integrity/RainVMIntegrity.sol";
+import "../interpreter/integrity/StandardInterpreterIntegrity.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -32,7 +33,7 @@ struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    address vmIntegrity;
+    address interpreterIntegrity;
 }
 
 /// Everything required to configure (initialize) a Sale.
@@ -138,11 +139,11 @@ uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
 uint256 constant STORAGE_OPCODES_LENGTH = 4;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
+contract Sale is Cooldown, StandardInterpreter, StorageInterpreter, ISale, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibVMState for VMState;
+    using LibInterpreter for InterpreterState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
@@ -237,7 +238,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     mapping(address => uint256) private fees;
 
     constructor(SaleConstructorConfig memory config_)
-        StandardVM(config_.vmIntegrity)
+        StandardInterpreter(config_.interpreterIntegrity)
     {
         _disableInitializers();
         maximumSaleTimeout = config_.maximumSaleTimeout;
@@ -266,7 +267,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        _saveVMState(
+        _saveInterpreterState(
             config_.vmStateConfig,
             LibUint256Array.arrayFrom(
                 CAN_LIVE_MIN_FINAL_STACK_INDEX,
@@ -309,7 +310,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         emit Initialize(msg.sender, config_, address(token_));
     }
 
-    /// @inheritdoc RainVM
+    /// @inheritdoc StorageInterpreter
     function storageOpcodesRange()
         public
         pure
@@ -349,7 +350,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
     /// evaluating the script.
-    function _canLive(VMState memory state_) internal view returns (bool) {
+    function _canLive(InterpreterState memory state_) internal view returns (bool) {
         unchecked {
             if (_remainingUnits < 1) {
                 return false;
@@ -390,10 +391,10 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// Offchain users MAY call this directly or calculate the outcome
     /// themselves.
     function canLive() external view returns (bool) {
-        return _canLive(_loadVMState());
+        return _canLive(_loadInterpreterState());
     }
 
-    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
+    function _calculateBuy(InterpreterState memory state_, uint256 targetUnits_)
         internal
         view
         returns (uint256, uint256)
@@ -407,7 +408,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        return _calculateBuy(_loadVMState(), targetUnits_);
+        return _calculateBuy(_loadInterpreterState(), targetUnits_);
     }
 
     /// Start the sale (move from pending to active).
@@ -416,7 +417,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        require(_canLive(_loadVMState()), "NOT_LIVE");
+        require(_canLive(_loadInterpreterState()), "NOT_LIVE");
         _start();
     }
 
@@ -426,7 +427,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        require(!_canLive(_loadVMState()), "LIVE");
+        require(!_canLive(_loadInterpreterState()), "LIVE");
         _end();
     }
 
@@ -477,7 +478,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
 
         // This state is loaded once and shared between 2x `_canLive` calls and
         // a `_calculateBuy` call.
-        VMState memory state_ = _loadVMState();
+        InterpreterState memory state_ = _loadInterpreterState();
 
         // Start or end the sale as required.
         if (_canLive(state_)) {

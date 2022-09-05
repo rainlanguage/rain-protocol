@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../../../bytes/LibBytes.sol";
-import "../../../vm/runtime/LibStackTop.sol";
+import "../../../interpreter/LibStackTop.sol";
 import "../../../debug/LibDebug.sol";
 
 /// @title LibBytesTest

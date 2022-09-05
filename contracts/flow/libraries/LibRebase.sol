@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../vm/runtime/LibVMState.sol";
-import "../../vm/runtime/LibStackTop.sol";
+import "../../interpreter/LibInterpreter.sol";
+import "../../interpreter/LibStackTop.sol";
 import "../../math/FixedPointMath.sol";
 
 library LibRebase {
-    using LibVMState for VMState;
+    using LibInterpreter for InterpreterState;
     using LibStackTop for StackTop;
     using FixedPointMath for uint256;
 
-    function rebaseRatio(VMState memory state_, SourceIndex entrypoint_)
+    function rebaseRatio(InterpreterState memory state_, SourceIndex entrypoint_)
         internal
         view
         returns (uint256)

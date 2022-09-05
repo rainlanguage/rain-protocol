@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../vm/integrity/StandardIntegrity.sol";
-import "../vm/ops/AllStandardOps.sol";
+import "../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBook.sol";
 import "../type/LibCast.sol";
 import "../idempotent/LibIdempotentFlag.sol";
@@ -10,7 +10,7 @@ import "../idempotent/LibIdempotentFlag.sol";
 uint256 constant FLAG_INDEX_CLEARED_ORDER = 0;
 uint256 constant FLAG_INDEX_CLEARED_COUNTERPARTY = 1;
 
-contract OrderBookIntegrity is StandardIntegrity {
+contract OrderBookIntegrity is StandardInterpreterIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrityState for IntegrityState;
     using LibIdempotentFlag for IdempotentFlag;

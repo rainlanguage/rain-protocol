@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import {StandardInterpreterIntegrity, StateConfig} from "../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../interpreter/StandardInterpreter.sol";
+import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./libraries/LibFlow.sol";
 import "../math/FixedPointMath.sol";
 import "../idempotent/LibIdempotentFlag.sol";
-import "./FlowVM.sol";
+import "./FlowInterpreter.sol";
 import "./libraries/LibRebase.sol";
 
 /// Constructor config.
@@ -47,13 +47,13 @@ SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(2);
 /// claim and then diff it against the current block number.
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
+contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
-    using LibVMState for VMState;
+    using LibInterpreter for InterpreterState;
     using FixedPointMath for uint256;
-    using LibRebase for VMState;
+    using LibRebase for InterpreterState;
     using LibRebase for uint256;
 
     /// Contract has initialized.
@@ -61,7 +61,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
 
-    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
@@ -69,14 +69,14 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     function initialize(FlowERC20Config calldata config_) external initializer {
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveVMState(config_.vmStateConfig);
+        _saveInterpreterState(config_.vmStateConfig);
         emit Initialize(msg.sender, config_);
     }
 
     function totalSupply() public view virtual override returns (uint256) {
         return
             super.totalSupply().rebaseOutput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadInterpreterState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
@@ -89,7 +89,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     {
         return
             super.balanceOf(account_).rebaseOutput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadInterpreterState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
@@ -98,7 +98,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         address to_,
         uint256 amount_
     ) internal view virtual returns (uint256 amountRebased_) {
-        VMState memory state_ = _loadVMState();
+        InterpreterState memory state_ = _loadInterpreterState();
         amountRebased_ = amount_.rebaseInput(
             state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT)
         );
@@ -138,7 +138,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     {
         return
             super.allowance(owner_, spender_).rebaseOutput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadInterpreterState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
@@ -152,13 +152,13 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
             owner_,
             spender_,
             amount_.rebaseInput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadInterpreterState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             )
         );
     }
 
     function _previewFlow(
-        VMState memory state_,
+        InterpreterState memory state_,
         SourceIndex flow_,
         uint256 id_
     ) internal view virtual returns (FlowERC20IO memory flowIO_) {
@@ -173,12 +173,12 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     }
 
     function _flow(
-        VMState memory state_,
+        InterpreterState memory state_,
         SourceIndex flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC20IO memory flowIO_) {
         flowIO_ = _previewFlow(state_, flow_, id_);
-        registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
+        _registerFlowTime(flow_, id_);
         _mint(msg.sender, flowIO_.mint);
         _burn(msg.sender, flowIO_.burn);
         LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
@@ -190,7 +190,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         virtual
         returns (FlowERC20IO memory)
     {
-        return _previewFlow(_loadVMState(), flow_, id_);
+        return _previewFlow(_loadInterpreterState(), flow_, id_);
     }
 
     function flow(SourceIndex flow_, uint256 id_)
@@ -199,6 +199,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         nonReentrant
         returns (FlowERC20IO memory)
     {
-        return _flow(_loadVMState(), flow_, id_);
+        return _flow(_loadInterpreterState(), flow_, id_);
     }
 }

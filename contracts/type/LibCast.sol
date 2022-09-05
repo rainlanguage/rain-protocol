@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../vm/runtime/LibStackTop.sol";
-import "../vm/runtime/LibVMState.sol";
-import "../vm/integrity/LibIntegrityState.sol";
-import "../vm/runtime/RainVM.sol";
+import "../interpreter/LibStackTop.sol";
+import "../interpreter/LibInterpreter.sol";
+import "../interpreter/integrity/LibIntegrityState.sol";
 
 /// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
@@ -25,7 +24,7 @@ library LibCast {
         internal
         pure
         returns (
-            function(VMState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackTop)
                 view
                 returns (StackTop) fn_
         )
@@ -43,7 +42,7 @@ library LibCast {
         internal
         pure
         returns (
-            function(VMState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory fns_
@@ -79,7 +78,7 @@ library LibCast {
         internal
         pure
         returns (
-            function(VMState memory, SourceIndex, StackTop)
+            function(InterpreterState memory, SourceIndex, StackTop)
                 view
                 returns (StackTop) fn_
         )
@@ -143,7 +142,7 @@ library LibCast {
     }
 
     function asUint256(
-        function(VMState memory, SourceIndex, StackTop)
+        function(InterpreterState memory, SourceIndex, StackTop)
             view
             returns (StackTop) fn_
     ) internal pure returns (uint256 i_) {
@@ -153,7 +152,7 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(VMState memory, Operand, StackTop) view returns (StackTop)[]
+        function(InterpreterState memory, Operand, StackTop) view returns (StackTop)[]
             memory fns_
     ) internal pure returns (uint256[] memory is_) {
         assembly ("memory-safe") {

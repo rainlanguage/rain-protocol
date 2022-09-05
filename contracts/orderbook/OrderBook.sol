@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../vm/runtime/StandardVM.sol";
-import "../vm/runtime/LibStackTop.sol";
+import "../interpreter/StandardInterpreter.sol";
+import "../interpreter/LibStackTop.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
-import "../vm/ops/AllStandardOps.sol";
-import "./libraries/Order.sol";
+import "../interpreter/ops/AllStandardOps.sol";
+import "./libraries/LibOrder.sol";
 import "../idempotent/LibIdempotentFlag.sol";
 import "./OrderBookIntegrity.sol";
 
@@ -76,8 +76,8 @@ library LibEvalContext {
     }
 }
 
-contract OrderBook is StandardVM {
-    using LibVMState for bytes;
+contract OrderBook is StandardInterpreter {
+    using LibInterpreter for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
     using SafeERC20 for IERC20;
@@ -86,7 +86,7 @@ contract OrderBook is StandardVM {
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
-    using LibVMState for VMState;
+    using LibInterpreter for InterpreterState;
     using LibIdempotentFlag for IdempotentFlag;
 
     event Deposit(address sender, DepositConfig config);
@@ -121,7 +121,7 @@ contract OrderBook is StandardVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
+    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -159,8 +159,7 @@ contract OrderBook is StandardVM {
 
     function addOrder(OrderConfig calldata orderConfig_) external {
         Order memory order_ = LibOrder.fromOrderConfig(
-            IRainVMIntegrity(vmIntegrity),
-            buildStateBytes,
+            IInterpreterIntegrity(interpreterIntegrity),
             orderConfig_
         );
         OrderHash orderHash_ = order_.hash();
@@ -184,7 +183,7 @@ contract OrderBook is StandardVM {
         uint256 outputIOIndex_,
         address counterparty_
     ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_, IdempotentFlag flag_) {
-        VMState memory state_ = order_.vmState.deserialize(
+        InterpreterState memory state_ = order_.vmState.deserialize(
             EvalContext(order_.hash(), counterparty_).toContext()
         );
         flag_ = IdempotentFlag.wrap(state_.scratch);
@@ -402,7 +401,7 @@ contract OrderBook is StandardVM {
     }
 
     function opOrderFundsCleared(
-        VMState memory,
+        InterpreterState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
@@ -420,7 +419,7 @@ contract OrderBook is StandardVM {
     }
 
     function opOrderCounterpartyFundsCleared(
-        VMState memory,
+        InterpreterState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
@@ -432,13 +431,13 @@ contract OrderBook is StandardVM {
         pure
         override
         returns (
-            function(VMState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(VMState memory, Operand, StackTop)
+        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
             view
             returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;
