@@ -8,7 +8,7 @@ import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
 contract SaturatingMathEchidna {
     function checkSaturatingAdd(uint256 a, uint256 b) external pure {
         uint256 c = SaturatingMath.saturatingAdd(a, b);
-
+        assert(false);
         if (a >= b) {
             assert(c >= a);
         } else {

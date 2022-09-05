@@ -6,7 +6,8 @@ import {LibUint256Array} from "../../contracts/array/LibUint256Array.sol";
 /// @title ArrayFromEchidna
 /// Wrapper around the `LibUint256Array` library for testing arrayFrom functions with Echidna.
 contract CopyArrayEchidna {
-    function UnsafeCopyValuesTo(uint256[] memory inputs_) external pure {
+    // Function to unsafeCopyValuesTo that use the input and output cursor as arguments
+    function UnsafeCopyValuesToWithIO(uint256[] memory inputs_) external pure {
         uint256[] memory outputs_ = new uint256[](inputs_.length);
 
         uint256 inputCursor_;
@@ -26,6 +27,24 @@ contract CopyArrayEchidna {
         _compareArrays(inputs_, outputs_);
     }
 
+ // Function to unsafeCopyValuesTo that use the output cursor as argument
+    function UnsafeCopyValuesToWithO(uint256[] memory inputs_) external pure {
+        uint256[] memory outputs_ = new uint256[](inputs_.length);
+
+        uint256 outputCursor_;
+
+        assembly ("memory-safe") {
+            outputCursor_ := add(outputs_, 0x20)
+        }
+
+        LibUint256Array.unsafeCopyValuesTo(
+            inputs_,
+            outputCursor_
+        );
+
+        _compareArrays(inputs_, outputs_);
+    }
+
     function CopyToNewUint256Array(uint256[] memory inputs_) external pure {
         uint256 inputCursor_;
         assembly ("memory-safe") {
@@ -38,7 +57,6 @@ contract CopyArrayEchidna {
         );
 
         _compareArrays(inputs_, outputs_);
-
     }
 
     function _compareArrays(uint256[] memory array1_, uint256[] memory array2_)
