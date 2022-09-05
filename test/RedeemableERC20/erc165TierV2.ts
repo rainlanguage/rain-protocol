@@ -11,10 +11,8 @@ import {
   AllStandardOps,
   assertError,
   basicDeploy,
-  claimFactoriesDeploy,
   combineTierDeploy,
   compareStructs,
-  emissionsDeploy,
   getEventArgs,
   stakeDeploy,
   Tier,
@@ -135,57 +133,6 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
     };
 
     const tier = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-
-    const minimumTier = Tier.FOUR;
-
-    const tokenConfig = {
-      reserve: reserve.address,
-      erc20Config: redeemableERC20Config,
-      tier: tier.address,
-      minimumTier,
-      distributionEndForwardingAddress: ethers.constants.AddressZero,
-    };
-
-    const token = await Util.redeemableERC20Deploy(signers[0], tokenConfig);
-
-    const { config } = (await getEventArgs(
-      token.deployTransaction,
-      "Initialize",
-      token
-    )) as InitializeEvent["args"];
-
-    assert(token.signer == signers[0], "wrong signer");
-    compareStructs(config, tokenConfig);
-  });
-
-  it("should pass ERC165 check by passing an EmissionsERC20 contract inheriting TierV2", async () => {
-    const signers = await ethers.getSigners();
-    const creator = signers[0];
-
-    // Deploying EmissionsERC20 contract
-    const { emissionsERC20Factory } = await claimFactoriesDeploy();
-
-    const emissionsERC20Config = {
-      allowDelegatedClaims: true,
-      erc20Config: {
-        name: "Emissions",
-        symbol: "EMS",
-        distributor: signers[0].address,
-        initialSupply: 0,
-      },
-      vmStateConfig: {
-        sources: [
-          concat([op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))]),
-        ],
-        constants: [0],
-      },
-    };
-
-    const tier = await emissionsDeploy(
-      creator,
-      emissionsERC20Factory,
-      emissionsERC20Config
-    );
 
     const minimumTier = Tier.FOUR;
 
