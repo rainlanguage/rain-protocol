@@ -3,9 +3,11 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory, FlowIntegrity } from "../../../typechain";
 import {
+  FlowIOStruct,
   InitializeEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
+import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
@@ -14,7 +16,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("Flow construction tests", async function () {
+describe("Flow flow tests", async function () {
   let integrity: FlowIntegrity;
   let flowFactory: FlowFactory;
 
@@ -33,20 +35,50 @@ describe("Flow construction tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should initialize on the good path", async () => {
+  it("should preview flow when specifying only native IO", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [1, 2];
+    const flowIO: FlowIOStruct = {
+      inputNative: 100,
+      outputNative: 200,
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sourceCanFlow = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // true
     ]);
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      FLOWIO_INPUT_NATIVE(),
+      FLOWIO_OUTPUT_NATIVE(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
     ]);
 
     const sources = [sourceCanFlow, sourceFlowIO];
@@ -58,14 +90,26 @@ describe("Flow construction tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
 
-    const { sender, config } = (await getEventArgs(
-      flow.deployTransaction,
-      "Initialize",
-      flow
-    )) as InitializeEvent["args"];
+    const {
+      inputNative,
+      outputNative,
+      inputs20,
+      outputs20,
+      inputs721,
+      outputs721,
+      inputs1155,
+      outputs1155,
+    } = await flow.previewFlow(1, 1234);
 
-    assert(sender === flowFactory.address, "wrong sender in Initialize event");
-
-    compareStructs(config, stateConfigStruct);
+    console.log({
+      inputNative,
+      outputNative,
+      inputs20,
+      outputs20,
+      inputs721,
+      outputs721,
+      inputs1155,
+      outputs1155,
+    });
   });
 });

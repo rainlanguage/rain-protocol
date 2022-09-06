@@ -2,10 +2,8 @@ import { assert } from "chai";
 import { keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain";
+import { SENTINEL_HIGH_BITS } from "../../../utils/constants/sentinel";
 import { assertError } from "../../../utils/test/assertError";
-
-const SENTINEL_HIGH_BITS =
-  "0xF000000000000000000000000000000000000000000000000000000000000000";
 
 describe("LibStackTop consumeSentinel tests", async function () {
   let libStackTop: LibStackTopTest;
