@@ -1,18 +1,14 @@
-import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory, FlowIntegrity } from "../../../typechain";
 import {
   FlowIOStruct,
-  InitializeEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
-import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
-import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
@@ -35,13 +31,13 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should preview flow when specifying only native IO", async () => {
+  it("should preview empty flow io", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
     const flowIO: FlowIOStruct = {
-      inputNative: 100,
-      outputNative: 200,
+      inputNative: 0,
+      outputNative: 0,
       inputs20: [],
       outputs20: [],
       inputs721: [],
@@ -71,14 +67,14 @@ describe("Flow flow tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      FLOWIO_INPUT_NATIVE(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
+      FLOWIO_INPUT_NATIVE(),
     ]);
 
     const sources = [sourceCanFlow, sourceFlowIO];
