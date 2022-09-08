@@ -4,13 +4,13 @@ pragma solidity ^0.8.15;
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpERC721OwnerOf
 /// @notice Opcode for getting the current erc721 owner of an account.
 library OpERC721OwnerOf {
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _ownerOf(uint256 token_, uint256 id_)
         internal

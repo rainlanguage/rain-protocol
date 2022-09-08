@@ -4,11 +4,11 @@ pragma solidity ^0.8.15;
 import "../../../tier/libraries/TierReport.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _updateTimesForTierRange(
         Operand operand_,

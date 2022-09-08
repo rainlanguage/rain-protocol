@@ -6,14 +6,14 @@ import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
     using LibStackTop for StackTop;
     using LibCast for uint256[];
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _balanceOfBatch(
         uint256 token_,

@@ -4,11 +4,11 @@ pragma solidity ^0.8.15;
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 library OpSaturatingDiff {
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function integrity(
         IntegrityState memory integrityState_,

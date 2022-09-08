@@ -33,12 +33,13 @@ SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(2);
 
-contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
+contract FlowERC1155 is ReentrancyGuard, ERC1155 {
     using LibInterpreter for InterpreterState;
     using LibRebase for InterpreterState;
     using LibStackTop for StackTop;
     using LibRebase for uint256;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint[];
 
     event Initialize(address sender, FlowERC1155Config config);
 
@@ -61,7 +62,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         view
         returns (uint256)
     {
-        state_.context = LibUint256Array.arrayFrom(id_);
+        state_.context = LibUint256Array.arrayFrom(id_).matrixFrom();
         return state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT);
     }
 
@@ -102,7 +103,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
                     id_,
                     amount_,
                     amountsRebased_[i_]
-                );
+                ).matrixFrom();
                 require(
                     state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
                     "INVALID_TRANSFER"

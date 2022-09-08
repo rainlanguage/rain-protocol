@@ -4,14 +4,14 @@ pragma solidity ^0.8.15;
 import "../../../../math/FixedPointMath.sol";
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpFixedPointScaleBy
 /// @notice Opcode for scaling a number by some OOMs.
 library OpFixedPointScaleBy {
     using FixedPointMath for uint256;
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _scaleBy(Operand operand_, uint256 a_)
         internal

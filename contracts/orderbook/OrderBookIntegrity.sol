@@ -12,7 +12,7 @@ uint256 constant FLAG_INDEX_CLEARED_COUNTERPARTY = 1;
 
 contract OrderBookIntegrity is StandardInterpreterIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
     using LibIdempotentFlag for IdempotentFlag;
 
     function integrityOrderFundsCleared(

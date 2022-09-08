@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "./LibIntegrityState.sol";
+import "./LibIntegrity.sol";
 
 interface IInterpreterIntegrity {
     function ensureIntegrity(

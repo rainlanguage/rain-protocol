@@ -2,10 +2,10 @@
 pragma solidity =0.8.15;
 
 import "../ops/AllStandardOps.sol";
-import "./LibIntegrityState.sol";
+import "./LibIntegrity.sol";
 
 contract StandardInterpreterIntegrity {
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
 
     function localIntegrityFunctionPointers()

@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
@@ -14,7 +14,7 @@ uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
 library OpState {
     using LibStackTop for StackTop;
     using LibInterpreter for InterpreterState;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function integrity(
         IntegrityState memory integrityState_,

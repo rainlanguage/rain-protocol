@@ -17,8 +17,8 @@ struct IntegrityState {
         returns (StackTop)[] integrityFunctionPointers;
 }
 
-library LibIntegrityState {
-    using LibIntegrityState for IntegrityState;
+library LibIntegrity {
+    using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
     using Math for uint256;
 

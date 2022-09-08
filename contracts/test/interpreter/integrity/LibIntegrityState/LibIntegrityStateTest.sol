@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/integrity/LibIntegrityState.sol";
+import "../../../../interpreter/integrity/LibIntegrity.sol";
 import "../../../../interpreter/StorageInterpreter.sol";
 import "../../../../debug/LibDebug.sol";
 import "../../../../type/LibCast.sol";
 import "../../../../interpreter/integrity/StandardInterpreterIntegrity.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 
-/// @title LibIntegrityStateTest
-/// Test wrapper around `LibIntegrityState` library for testing.
-contract LibIntegrityStateTest is StandardInterpreterIntegrity {
-    using LibIntegrityState for IntegrityState;
+/// @title LibIntegrityTest
+/// Test wrapper around `LibIntegrity` library for testing.
+contract LibIntegrityTest is StandardInterpreterIntegrity {
+    using LibIntegrity for IntegrityState;
     using LibCast for uint256[];
 
     /// @inheritdoc StandardInterpreterIntegrity
@@ -35,14 +35,12 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function syncStackMaxTop(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         uint256 stackMaxTop_,
         StackTop stackTop_
     ) external returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -58,7 +56,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function ensureIntegrityTest(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         SourceIndex sourceIndex_,
         StackTop stackTop_,
@@ -66,7 +63,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     ) external returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -86,14 +82,12 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function push(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         uint256 stackMaxTop_,
         StackTop stackTop_
     ) external view returns (StackTop stackTopAfter_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -106,7 +100,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function push(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         uint256 stackMaxTop_,
         StackTop stackTop_,
@@ -114,7 +107,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     ) external view returns (StackTop stackTopAfter_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -127,7 +119,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function popUnderflowCheck(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         uint256 stackBottom_,
         uint256 stackMaxTop_,
@@ -135,7 +126,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     ) external view {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
@@ -148,7 +138,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function pop(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         uint256 stackBottom_,
         uint256 stackMaxTop_,
@@ -156,7 +145,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     ) external view returns (StackTop stackTopAfter_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
@@ -169,7 +157,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
 
     function pop(
         bytes[] memory sources_,
-        StorageOpcodesRange memory storageOpcodesRange_,
         uint256 constantsLength_,
         uint256 stackBottom_,
         uint256 stackMaxTop_,
@@ -178,7 +165,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     ) external view returns (StackTop stackTopAfter_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
-            storageOpcodesRange_, // storageOpcodesRange
             constantsLength_, // constantsLength
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
@@ -254,7 +240,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -269,7 +254,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     function applyFn0(StackTop stackTop_) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -284,7 +268,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     function applyFn1(StackTop stackTop_) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -299,7 +282,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     function applyFn2(StackTop stackTop_) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -314,7 +296,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     function applyFn3(StackTop stackTop_) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -329,7 +310,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     function applyFn4(StackTop stackTop_) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -348,7 +328,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -367,7 +346,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -386,7 +364,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom
@@ -405,7 +382,6 @@ contract LibIntegrityStateTest is StandardInterpreterIntegrity {
     {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
-            StorageOpcodesRange(0, 0), // storageOpcodesRange
             0, // constantsLength
             0, // contextLength
             StackTop.wrap(0), // stackBottom

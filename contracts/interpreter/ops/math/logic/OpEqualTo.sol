@@ -3,14 +3,14 @@ pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../../type/LibCast.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpEqualTo
 /// @notice Opcode to compare the top two stack values.
 library OpEqualTo {
     using LibCast for bool;
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _equalTo(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return (a_ == b_).asUint256();

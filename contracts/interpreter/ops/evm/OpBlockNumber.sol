@@ -3,13 +3,13 @@ pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpBlockNumber
 /// @notice Opcode for getting the current block number.
 library OpBlockNumber {
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function integrity(
         IntegrityState memory integrityState_,

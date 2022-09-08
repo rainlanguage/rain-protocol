@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "./integrity/LibIntegrityState.sol";
+import "./integrity/LibIntegrity.sol";
 
 struct StorageOpcodesRange {
     uint256 pointer;
@@ -9,6 +9,9 @@ struct StorageOpcodesRange {
 }
 
 abstract contract StorageInterpreter {
+    using LibIntegrity for IntegrityState;
+    using LibStackTop for StackTop;
+
     /// Default is to disallow all storage access to opcodes.
     function storageOpcodesRange()
         public

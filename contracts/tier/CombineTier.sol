@@ -80,7 +80,7 @@ contract CombineTier is TierV2, StandardInterpreter {
         returns (uint256)
     {
         return
-            _loadInterpreterState(uint256(uint160(account_)).arrayFrom(context_))
+            _loadInterpreterState(uint256(uint160(account_)).arrayFrom(context_).matrixFrom())
                 .eval(REPORT_ENTRYPOINT)
                 .peek();
     }
@@ -97,7 +97,7 @@ contract CombineTier is TierV2, StandardInterpreter {
                     uint256(uint160(account_)),
                     tier_,
                     context_
-                )
+                ).matrixFrom()
             ).eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
     }
 }

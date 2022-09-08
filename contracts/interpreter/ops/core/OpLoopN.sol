@@ -4,14 +4,14 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpLoopN
 /// @notice Opcode for looping a static number of times.
 library OpLoopN {
     using LibStackTop for StackTop;
     using LibInterpreter for InterpreterState;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function integrity(
         IntegrityState memory integrityState_,

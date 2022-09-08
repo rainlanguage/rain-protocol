@@ -46,12 +46,16 @@ contract StandardInterpreter {
         vmStatePointer = SSTORE2.write(stateBytes_);
     }
 
-    function _loadInterpreterState() internal view returns (InterpreterState memory) {
+    function _loadInterpreterState() internal view virtual returns (InterpreterState memory) {
         return _loadInterpreterState(vmStatePointer);
     }
 
-    function _loadInterpreterState(address vmStatePointer_) internal view returns (InterpreterState memory) {
+    function _loadInterpreterState(address vmStatePointer_) internal view virtual returns (InterpreterState memory) {
         return _loadInterpreterState(vmStatePointer_, new uint[][](0));
+    }
+
+    function _loadInterpreterState(uint[][] memory context_) internal view virtual returns (InterpreterState memory) {
+        return _loadInterpreterState(vmStatePointer, context_);
     }
 
     function _loadInterpreterState(address vmStatePointer_, uint256[][] memory context_)

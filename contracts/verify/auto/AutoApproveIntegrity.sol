@@ -7,7 +7,7 @@ import "../../type/LibCast.sol";
 
 contract AutoApproveIntegrity is StandardInterpreterIntegrity {
     using LibCast for function(uint256) pure returns (uint256)[];
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function integrityEvidenceDataApproved(
         IntegrityState memory integrityState_,

@@ -3,14 +3,14 @@ pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../../type/LibCast.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
 library OpIsZero {
     using LibCast for bool;
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _isZero(uint256 a_) internal pure returns (uint256) {
         return (a_ == 0).asUint256();

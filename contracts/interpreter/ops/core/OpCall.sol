@@ -5,7 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
 import "../../../array/LibUint256Array.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpCall
 /// @notice Opcode for calling eval with a new scope. The construction of this
@@ -23,7 +23,7 @@ import "../../integrity/LibIntegrityState.sol";
 /// in the called source will 0 index from the first input, NOT the bottom of
 /// the calling stack.
 library OpCall {
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
     using LibInterpreter for InterpreterState;
 

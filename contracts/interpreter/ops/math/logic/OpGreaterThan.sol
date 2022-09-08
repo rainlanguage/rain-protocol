@@ -3,14 +3,14 @@ pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../../type/LibCast.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpGreaterThan
 /// @notice Opcode to compare the top two stack values.
 library OpGreaterThan {
     using LibCast for bool;
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _greaterThan(uint256 a_, uint256 b_)
         internal

@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpWhile
 /// @notice Opcode for looping while the stack top is nonzero. As we pre-allocate
@@ -20,7 +20,7 @@ import "../../integrity/LibIntegrityState.sol";
 /// position with full access to all stack data. Call and loop MAY be combined
 /// safely if a new stack is desired for each iteration.
 library OpDoWhile {
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
     using LibInterpreter for InterpreterState;
 

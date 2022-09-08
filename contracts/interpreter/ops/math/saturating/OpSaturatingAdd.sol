@@ -4,14 +4,14 @@ pragma solidity ^0.8.15;
 import "../../../../math/SaturatingMath.sol";
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpSaturatingAdd
 /// @notice Opcode for adding N numbers with saturating addition.
 library OpSaturatingAdd {
     using SaturatingMath for uint256;
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function integrity(
         IntegrityState memory integrityState_,

@@ -55,7 +55,7 @@ contract LibInterpreterTest is StandardInterpreter {
 
     function debug(
         StateConfig memory config_,
-        uint256[] memory context_,
+        uint256[][] memory context_,
         DebugStyle debugStyle_,
         SourceIndex sourceIndex_
     ) external view returns (StackTop stackTop_, StackTop stackTopAfter_) {
@@ -66,7 +66,7 @@ contract LibInterpreterTest is StandardInterpreter {
 
     function serDeserialize(
         StateConfig memory config_,
-        uint256[] memory context_
+        uint256[][] memory context_
     ) public view returns (InterpreterState memory state_) {
         bytes memory serialized_ = serialize(config_);
         state_ = serialized_.deserialize(context_);
@@ -98,7 +98,7 @@ contract LibInterpreterTest is StandardInterpreter {
     {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[](0) // context
+            new uint256[][](0) // context
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
@@ -112,7 +112,7 @@ contract LibInterpreterTest is StandardInterpreter {
     {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[](0) // context
+            new uint256[][](0) // context
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
@@ -126,7 +126,7 @@ contract LibInterpreterTest is StandardInterpreter {
     {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[](0) // context
+            new uint256[][](0) // context
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
@@ -140,7 +140,7 @@ contract LibInterpreterTest is StandardInterpreter {
     {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[](0) // context
+            new uint256[][](0) // context
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);

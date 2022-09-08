@@ -10,6 +10,7 @@ contract FlowInterpreter is Initializable, StandardInterpreter {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreter for InterpreterState;
     using LibStackTop for StackTop;
+    using LibUint256Array for uint[];
 
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
@@ -37,7 +38,7 @@ contract FlowInterpreter is Initializable, StandardInterpreter {
         state_.context = LibUint256Array.arrayFrom(
             SourceIndex.unwrap(flow_),
             id_
-        );
+        ).matrixFrom();
         require(
             SourceIndex.unwrap(flow_) < state_.compiledSources.length,
             "FLOW_OOB"

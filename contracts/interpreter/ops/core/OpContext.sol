@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly
@@ -13,7 +13,7 @@ import "../../integrity/LibIntegrityState.sol";
 library OpContext {
     using LibStackTop for StackTop;
     using LibInterpreter for InterpreterState;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     /// VM integrity logic.
     /// Context pushes a single value to the stack from memory.

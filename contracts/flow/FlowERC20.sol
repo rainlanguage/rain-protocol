@@ -51,6 +51,7 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint[];
     using LibInterpreter for InterpreterState;
     using FixedPointMath for uint256;
     using LibRebase for InterpreterState;
@@ -107,7 +108,7 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
             uint256(uint160(to_)),
             amount_,
             amountRebased_
-        );
+        ).matrixFrom();
         require(
             state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
             "INVALID_TRANSFER"

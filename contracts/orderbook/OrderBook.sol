@@ -65,14 +65,14 @@ struct TakeOrdersConfig {
 uint256 constant LOCAL_OPS_LENGTH = 2;
 
 library LibEvalContext {
+    using LibUint256Array for uint[];
+
     function toContext(EvalContext memory evalContext_)
         internal
         pure
-        returns (uint256[] memory context_)
+        returns (uint256[][] memory)
     {
-        context_ = new uint256[](2);
-        context_[0] = OrderHash.unwrap(evalContext_.orderHash);
-        context_[1] = uint256(uint160(evalContext_.counterparty));
+        return LibUint256Array.arrayFrom(OrderHash.unwrap(evalContext_.orderHash), uint(uint160(evalContext_.counterparty))).matrixFrom();
     }
 }
 
@@ -160,6 +160,7 @@ contract OrderBook is StandardInterpreter {
     function addOrder(OrderConfig calldata orderConfig_) external {
         Order memory order_ = LibOrder.fromOrderConfig(
             IInterpreterIntegrity(interpreterIntegrity),
+            opcodeFunctionPointers(),
             orderConfig_
         );
         OrderHash orderHash_ = order_.hash();

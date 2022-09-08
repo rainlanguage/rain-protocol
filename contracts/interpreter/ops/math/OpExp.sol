@@ -3,13 +3,13 @@ pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpExp
 /// @notice Opcode to exponentiate N numbers.
 library OpExp {
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _exp(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_**b_;

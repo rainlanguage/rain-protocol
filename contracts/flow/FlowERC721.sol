@@ -44,6 +44,7 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     using LibUint256Array for uint256;
     using LibInterpreter for InterpreterState;
     using FixedPointMath for uint256;
+    using LibUint256Array for uint[];
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -75,7 +76,7 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
             uint256(uint160(from_)),
             uint256(uint160(to_)),
             tokenId_
-        );
+        ).matrixFrom();
         require(
             state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
             "INVALID_TRANSFER"

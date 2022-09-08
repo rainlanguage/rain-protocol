@@ -4,14 +4,14 @@ pragma solidity ^0.8.15;
 import "../../../tier/ITierV2.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../integrity/LibIntegrity.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.reportTimeForTier` as an opcode.
 library OpITierV2ReportTimeForTier {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _reportTimeForTier(
         uint256 tierContract_,

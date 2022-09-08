@@ -4,14 +4,14 @@ pragma solidity ^0.8.15;
 import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpERC20SnapshotBalanceOfAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.balanceOfAt`.
 /// https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20Snapshot
 library OpERC20SnapshotBalanceOfAt {
     using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
 
     function _balanceOfAt(
         uint256 token_,

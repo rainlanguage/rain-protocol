@@ -37,10 +37,16 @@ library LibOrder {
 
     function fromOrderConfig(
         IInterpreterIntegrity interpreterIntegrity_,
+        function(InterpreterState memory, Operand, StackTop)
+                internal
+                view
+                returns (StackTop)[]
+                memory opcodeFunctionPointers_,
         OrderConfig memory config_
-    ) internal returns (Order memory) {
+    ) internal view returns (Order memory) {
         bytes memory stateBytes_ = LibInterpreter.buildStateBytes(
             interpreterIntegrity_,
+            opcodeFunctionPointers_,
             config_.vmStateConfig,
             MIN_FINAL_STACK_INDEX.arrayFrom()
         );

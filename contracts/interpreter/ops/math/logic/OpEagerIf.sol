@@ -2,12 +2,12 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../integrity/LibIntegrity.sol";
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
 library OpEagerIf {
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
 
     function _eagerIf(
