@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../../../math/FixedPointMath.sol";
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrity.sol";
+import "../../../deploy/LibIntegrity.sol";
 
 /// @title OpFixedPointScaleBy
 /// @notice Opcode for scaling a number by some OOMs.

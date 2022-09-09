@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.

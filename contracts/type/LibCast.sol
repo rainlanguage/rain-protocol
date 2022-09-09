@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../interpreter/LibStackTop.sol";
 import "../interpreter/LibInterpreter.sol";
-import "../interpreter/integrity/LibIntegrity.sol";
+import "../interpreter/deploy/LibIntegrity.sol";
 
 /// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't

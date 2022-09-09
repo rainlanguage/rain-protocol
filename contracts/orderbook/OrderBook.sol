@@ -159,7 +159,7 @@ contract OrderBook is StandardInterpreter {
 
     function addOrder(OrderConfig calldata orderConfig_) external {
         Order memory order_ = LibOrder.fromOrderConfig(
-            IInterpreterIntegrity(interpreterIntegrity),
+            IExpressionDeployer(interpreterIntegrity),
             opcodeFunctionPointers(),
             orderConfig_
         );

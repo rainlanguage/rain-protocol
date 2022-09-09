@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../../tier/libraries/TierReport.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;

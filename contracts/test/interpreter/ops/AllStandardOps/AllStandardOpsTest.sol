@@ -4,7 +4,7 @@ pragma solidity =0.8.15;
 import {StandardInterpreter} from "../../../../interpreter/StandardInterpreter.sol";
 import "../../../../interpreter/StorageInterpreter.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
-import "../../../../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../../../../interpreter/deploy/StandardExpressionDeployer.sol";
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
 

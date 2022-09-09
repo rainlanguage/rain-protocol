@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 /// @title OpAdd
 /// @notice Opcode for adding N numbers.

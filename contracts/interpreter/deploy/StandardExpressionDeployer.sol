@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
+import "./IExpressionDeployer.sol";
 import "../ops/AllStandardOps.sol";
 import "./LibIntegrity.sol";
 
-contract StandardInterpreterIntegrity {
+contract StandardExpressionDeployer is IExpressionDeployer {
     using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
 
@@ -62,5 +63,28 @@ contract StandardInterpreterIntegrity {
             integrityState_.scratch,
             integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
         );
+    }
+
+    function _deployExpression(StateConfig memory config_) internal {
+        return _deployExpression(config_, DEFAULT_MIN_FINAL_STACK);
+    }
+
+    function _deployExpression(StateConfig memory config_, uint256 finalMinStack_)
+        internal
+    {
+        return _deployExpression(config_, finalMinStack_.arrayFrom());
+    }
+
+    function deployExpression(
+        StateConfig memory config_,
+        uint256[] memory finalMinStacks_
+    ) public virtual {
+        bytes memory stateBytes_ = LibInterpreter.buildStateBytes(
+            IExpressionDeployer(interpreterIntegrity),
+            opcodeFunctionPointers(),
+            config_,
+            finalMinStacks_
+        );
+        vmStatePointer = SSTORE2.write(stateBytes_);
     }
 }

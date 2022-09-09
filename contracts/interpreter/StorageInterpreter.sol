@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "./integrity/LibIntegrity.sol";
+import "./deploy/LibIntegrity.sol";
 
 struct StorageOpcodesRange {
     uint256 pointer;

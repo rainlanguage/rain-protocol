@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 /// @title OpExplode
 /// @notice Opcode for exploding a single value into 8x 32 bit integers.

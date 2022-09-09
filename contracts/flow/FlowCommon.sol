@@ -1,24 +1,21 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../interpreter/StandardInterpreter.sol";
-import "./libraries/LibFlow.sol";
-import "../idempotent/LibIdempotentFlag.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
-contract FlowInterpreter is Initializable, StandardInterpreter {
+contract FlowCommon is ReentrancyGuard {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreter for InterpreterState;
     using LibStackTop for StackTop;
     using LibUint256Array for uint[];
 
+    
+
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {}
+    constructor(address interpreterIntegrity_) {}
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function __FlowInterpreter_init(StateConfig calldata config_)
+    function __FlowInterpreter_init(StateConfig calldata config_, address expressionDeployer_, address interpreter_)
         internal
         onlyInitializing
     {

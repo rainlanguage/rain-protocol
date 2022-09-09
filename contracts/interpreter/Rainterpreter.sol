@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "./StandardInterpreter.sol";
 
-contract Rainterpreter is StandardInterpreter {
+contract Rainterpreter is IInterpreter, StandardInterpreter {
     using LibInterpreter for InterpreterState;
     using LibStackTop for StackTop;
 

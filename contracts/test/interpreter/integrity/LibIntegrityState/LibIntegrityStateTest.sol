@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/integrity/LibIntegrity.sol";
+import "../../../../interpreter/deploy/LibIntegrity.sol";
 import "../../../../interpreter/StorageInterpreter.sol";
 import "../../../../debug/LibDebug.sol";
 import "../../../../type/LibCast.sol";
-import "../../../../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../../../../interpreter/deploy/StandardExpressionDeployer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 
 /// @title LibIntegrityTest
 /// Test wrapper around `LibIntegrity` library for testing.
-contract LibIntegrityTest is StandardInterpreterIntegrity {
+contract LibIntegrityTest is StandardExpressionDeployer {
     using LibIntegrity for IntegrityState;
     using LibCast for uint256[];
 
-    /// @inheritdoc StandardInterpreterIntegrity
+    /// @inheritdoc StandardExpressionDeployer
     function integrityFunctionPointers()
         internal
         view

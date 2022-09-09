@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../../tier/ITierV2.sol";
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.reportTimeForTier` as an opcode.

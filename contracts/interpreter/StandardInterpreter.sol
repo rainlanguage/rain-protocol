@@ -2,7 +2,7 @@
 pragma solidity =0.8.15;
 
 import "./LibInterpreter.sol";
-import "./integrity/StandardInterpreterIntegrity.sol";
+import "./deploy/StandardExpressionDeployer.sol";
 import "./ops/AllStandardOps.sol";
 import "../sstore2/SSTORE2.sol";
 
@@ -23,28 +23,7 @@ contract StandardInterpreter {
         interpreterIntegrity = interpreterIntegrity_;
     }
 
-    function _saveInterpreterState(StateConfig memory config_) internal {
-        return _saveInterpreterState(config_, DEFAULT_MIN_FINAL_STACK);
-    }
 
-    function _saveInterpreterState(StateConfig memory config_, uint256 finalMinStack_)
-        internal
-    {
-        return _saveInterpreterState(config_, finalMinStack_.arrayFrom());
-    }
-
-    function _saveInterpreterState(
-        StateConfig memory config_,
-        uint256[] memory finalMinStacks_
-    ) internal virtual {
-        bytes memory stateBytes_ = LibInterpreter.buildStateBytes(
-            IInterpreterIntegrity(interpreterIntegrity),
-            opcodeFunctionPointers(),
-            config_,
-            finalMinStacks_
-        );
-        vmStatePointer = SSTORE2.write(stateBytes_);
-    }
 
     function _loadInterpreterState() internal view virtual returns (InterpreterState memory) {
         return _loadInterpreterState(vmStatePointer);

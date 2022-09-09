@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "./FlowInterpreter.sol";
 import "./libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract Flow is ReentrancyGuard, FlowInterpreter {
+contract Flow is ReentrancyGuard {
     event Initialize(address sender, StateConfig config);
 
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {}
+    constructor() {
+        _disableInitializers();
+    }
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(StateConfig calldata config_) external initializer {
-        __FlowInterpreter_init(config_);
         emit Initialize(msg.sender, config_);
     }
 

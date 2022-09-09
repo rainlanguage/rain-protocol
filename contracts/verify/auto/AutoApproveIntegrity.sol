@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import "../../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../../interpreter/deploy/StandardExpressionDeployer.sol";
 import "./AutoApprove.sol";
 import "../../type/LibCast.sol";
 
-contract AutoApproveIntegrity is StandardInterpreterIntegrity {
+contract AutoApproveIntegrity is StandardExpressionDeployer {
     using LibCast for function(uint256) pure returns (uint256)[];
     using LibIntegrity for IntegrityState;
 

@@ -3,6 +3,8 @@ pragma solidity ^0.8.15;
 
 import "../LibStackTop.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import "../IInterpreter.sol";
+import "../LibInterpreter.sol";
 
 struct IntegrityState {
     // Sources first as we read it in assembly.

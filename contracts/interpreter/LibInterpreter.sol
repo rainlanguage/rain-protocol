@@ -7,24 +7,15 @@ import "../array/LibUint256Array.sol";
 import "../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import "./integrity/IInterpreterIntegrity.sol";
+import "./deploy/IExpressionDeployer.sol";
 
 type Operand is uint256;
-type SourceIndex is uint256;
 
 enum DebugStyle {
     Stack,
     Constant,
     Context,
     Source
-}
-
-/// Config required to build a new `State`.
-/// @param sources Sources verbatim.
-/// @param constants Constants verbatim.
-struct StateConfig {
-    bytes[] sources;
-    uint256[] constants;
 }
 
 /// Everything required to evaluate and track the state of a rain script.
@@ -259,7 +250,7 @@ library LibInterpreter {
     /// Empty stack and arguments with stack index 0.
     /// @param config_ State config to build the new `State`.
     function buildStateBytes(
-        IInterpreterIntegrity interpreterIntegrity_,
+        IExpressionDeployer interpreterIntegrity_,
         function(InterpreterState memory, Operand, StackTop)
                 internal
                 view

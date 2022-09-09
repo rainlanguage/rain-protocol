@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
 import "../../interpreter/StandardInterpreter.sol";
-import "../../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../../interpreter/deploy/StandardExpressionDeployer.sol";
 import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;
@@ -36,7 +36,7 @@ library LibOrder {
     using LibUint256Array for uint256;
 
     function fromOrderConfig(
-        IInterpreterIntegrity interpreterIntegrity_,
+        IExpressionDeployer interpreterIntegrity_,
         function(InterpreterState memory, Operand, StackTop)
                 internal
                 view

@@ -6,7 +6,7 @@ import "../../LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.

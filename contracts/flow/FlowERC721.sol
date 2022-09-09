@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-import {StandardInterpreterIntegrity, StateConfig} from "../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import {StandardExpressionDeployer, StateConfig} from "../interpreter/deploy/StandardExpressionDeployer.sol";
 import "../interpreter/StandardInterpreter.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -10,7 +10,6 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "./libraries/LibFlow.sol";
 import "../math/FixedPointMath.sol";
 import "../idempotent/LibIdempotentFlag.sol";
-import "./FlowInterpreter.sol";
 import "../sentinel/LibSentinel.sol";
 
 uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
@@ -38,7 +37,7 @@ SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(1);
 
 /// @title FlowERC721
-contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
+contract FlowERC721 is ReentrancyGuard, ERC721 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
@@ -51,7 +50,7 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC721Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    constructor() {
         _disableInitializers();
     }
 

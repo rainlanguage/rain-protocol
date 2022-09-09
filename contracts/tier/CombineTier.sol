@@ -6,7 +6,7 @@ import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../interpreter/integrity/StandardInterpreterIntegrity.sol";
+import "../interpreter/deploy/StandardExpressionDeployer.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 

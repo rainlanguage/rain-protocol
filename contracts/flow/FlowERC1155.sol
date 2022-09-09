@@ -6,7 +6,6 @@ import "../interpreter/LibInterpreter.sol";
 import "./libraries/LibFlow.sol";
 import "./libraries/LibRebase.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./FlowInterpreter.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 
 uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
@@ -43,7 +42,9 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
 
     event Initialize(address sender, FlowERC1155Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    address public interpreter;
+
+    constructor() {
         _disableInitializers();
     }
 
@@ -139,7 +140,7 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
         return super._safeBatchTransferFrom(from_, to_, ids_, _transferPreflight(from_, to_, ids_, amounts_), data_);
     }
 
-    function _previewFlow(InterpreterState memory state_, SourceIndex flow_, uint id_) internal view returns (FlowERC1155IO memory flowIO_) {
+    function _previewFlow(address interpreter_, SourceIndex flow_, uint id_) internal view returns (FlowERC1155IO memory flowIO_) {
         StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
         uint[] memory tempArray_;
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
@@ -163,12 +164,12 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
     }
 
     function _flow(
-        InterpreterState memory state_,
+        address interpreter_,
         SourceIndex flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory flowIO_) {
         unchecked {
-            flowIO_ = _previewFlow(state_, flow_, id_);
+            flowIO_ = _previewFlow(interpreter_, flow_, id_);
             _registerFlowTime(flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
@@ -187,7 +188,7 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _previewFlow(_loadInterpreterState(), flow_, id_);
+        return _previewFlow(interpreter, flow_, id_);
     }
 
     function flow(SourceIndex flow_, uint256 id_)
@@ -195,6 +196,6 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _flow(_loadInterpreterState(), flow_, id_);
+        return _flow(interpreter, flow_, id_);
     }
 }

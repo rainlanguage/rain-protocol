@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../../../../math/SaturatingMath.sol";
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrity.sol";
+import "../../../deploy/LibIntegrity.sol";
 
 /// @title OpSaturatingAdd
 /// @notice Opcode for adding N numbers with saturating addition.

@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../../LibStackTop.sol";
 import "../../LibInterpreter.sol";
-import "../../integrity/LibIntegrity.sol";
+import "../../deploy/LibIntegrity.sol";
 
 /// @title OpThisAddress
 /// @notice Opcode for getting the address of the current contract.

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrity.sol";
+import "../../../deploy/LibIntegrity.sol";
 
 /// @title OpEvery
 /// @notice Opcode to compare the top N stack values.

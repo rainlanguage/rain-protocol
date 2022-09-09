@@ -191,4 +191,27 @@ library LibFlow {
             return flowIO_;
         }
     }
+
+    // function flowStack(
+    //     address interpreter_,
+    //     address statePointer_,
+    //     SourceIndex canFlow_,
+    //     SourceIndex flow_,
+    //     uint256 id_
+    // ) internal view returns (StackTop) {
+    //     require(
+    //         SourceIndex.unwrap(flow_) > SourceIndex.unwrap(canFlow_),
+    //         "FLOW_OOB"
+    //     );
+    //     uint[][] memory context = LibUint256Array.arrayFrom(
+    //         SourceIndex.unwrap(flow_),
+    //         id_
+    //     ).matrixFrom();
+    //     require(
+    //         SourceIndex.unwrap(flow_) < state_.compiledSources.length,
+    //         "FLOW_OOB"
+    //     );
+    //     require(IInterpreter(interpreter_).eval(statePointer_, canFlow_).peek() > 0, "CANT_FLOW");
+    //     return state_.eval(flow_);
+    // }
 }

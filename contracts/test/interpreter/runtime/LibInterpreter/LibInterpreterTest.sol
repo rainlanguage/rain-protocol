@@ -77,7 +77,7 @@ contract LibInterpreterTest is StandardInterpreter {
         view
         returns (bytes memory serialized_)
     {
-        (uint256 scratch_, uint256 stackLength_) = IInterpreterIntegrity(interpreterIntegrity)
+        (uint256 scratch_, uint256 stackLength_) = IExpressionDeployer(interpreterIntegrity)
             .ensureIntegrity(
                 config_.sources,
                 config_.constants.length,

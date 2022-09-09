@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 import "../../../LibStackTop.sol";
 import "../../../LibInterpreter.sol";
-import "../../../integrity/LibIntegrity.sol";
+import "../../../deploy/LibIntegrity.sol";
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
