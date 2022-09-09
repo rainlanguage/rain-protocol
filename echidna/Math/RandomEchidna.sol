@@ -126,6 +126,7 @@ contract RandomEchidna {
             // [0] = [0-1]
             // [1] = [2-3]
             // [2] = [4-5]
+            // [3] = [6-7]
             // [n] = [n * 2 - n * 2 + 1]
             bytes2 _bytesExpected = bytes2(
                 bytes.concat(shuffled_[index_ * 2], shuffled_[index_ * 2 + 1])
