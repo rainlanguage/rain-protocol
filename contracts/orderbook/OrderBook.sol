@@ -183,7 +183,15 @@ contract OrderBook is StandardVM {
         Order memory order_,
         uint256 outputIOIndex_,
         address counterparty_
-    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_, IdempotentFlag flag_) {
+    )
+        internal
+        view
+        returns (
+            uint256 orderOutputMax_,
+            uint256 orderIORatio_,
+            IdempotentFlag flag_
+        )
+    {
         VMState memory state_ = order_.vmState.deserialize(
             EvalContext(order_.hash(), counterparty_).toContext()
         );

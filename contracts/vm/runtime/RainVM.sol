@@ -129,7 +129,7 @@ abstract contract RainVM {
         uint256[] memory finalStacks_
     ) internal view returns (bytes memory) {
         unchecked {
-            (uint256 scratch_, uint stackLength_) = vmIntegrity_
+            (uint256 scratch_, uint256 stackLength_) = vmIntegrity_
                 .ensureIntegrity(
                     storageOpcodesRange(),
                     config_.sources,

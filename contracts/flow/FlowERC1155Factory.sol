@@ -26,7 +26,10 @@ contract FlowERC1155Factory is Factory {
         override
         returns (address)
     {
-        FlowERC1155Config memory config_ = abi.decode(data_, (FlowERC1155Config));
+        FlowERC1155Config memory config_ = abi.decode(
+            data_,
+            (FlowERC1155Config)
+        );
         address clone_ = Clones.clone(implementation);
         FlowERC1155(clone_).initialize(config_);
         return clone_;

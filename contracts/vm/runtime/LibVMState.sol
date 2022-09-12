@@ -242,8 +242,6 @@ library LibVMState {
         }
     }
 
-
-
     /// Eval with sane defaults partially applied.
     function eval(VMState memory state_) internal view returns (StackTop) {
         return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);

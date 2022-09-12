@@ -86,7 +86,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     ) internal view virtual returns (uint256[] memory) {
         unchecked {
             VMState memory state_ = _loadVMState();
-            uint[] memory amountsRebased_ = new uint[](amounts_.length);
+            uint256[] memory amountsRebased_ = new uint256[](amounts_.length);
             // @todo fix memory leak where each iteration we build new context arrays
             // for both rebase and can transfer when we could just reuse them.
             for (uint256 i_ = 0; i_ < ids_.length; i_++) {
@@ -134,13 +134,30 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             );
     }
 
-    function _safeBatchTransferFrom(address from_, address to_, uint[] memory ids_, uint[] memory amounts_, bytes memory data_) internal virtual override {
-        return super._safeBatchTransferFrom(from_, to_, ids_, _transferPreflight(from_, to_, ids_, amounts_), data_);
+    function _safeBatchTransferFrom(
+        address from_,
+        address to_,
+        uint256[] memory ids_,
+        uint256[] memory amounts_,
+        bytes memory data_
+    ) internal virtual override {
+        return
+            super._safeBatchTransferFrom(
+                from_,
+                to_,
+                ids_,
+                _transferPreflight(from_, to_, ids_, amounts_),
+                data_
+            );
     }
 
-    function _previewFlow(VMState memory state_, SourceIndex flow_, uint id_) internal view returns (FlowERC1155IO memory flowIO_) {
+    function _previewFlow(
+        VMState memory state_,
+        SourceIndex flow_,
+        uint256 id_
+    ) internal view returns (FlowERC1155IO memory flowIO_) {
         StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
-        uint[] memory tempArray_;
+        uint256[] memory tempArray_;
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             state_.stackBottom,
             RAIN_FLOW_ERC1155_SENTINEL,
@@ -171,10 +188,19 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
-                _mint(msg.sender, flowIO_.mints[i_].id, flowIO_.mints[i_].amount, "");
+                _mint(
+                    msg.sender,
+                    flowIO_.mints[i_].id,
+                    flowIO_.mints[i_].amount,
+                    ""
+                );
             }
             for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
-                _burn(msg.sender, flowIO_.burns[i_].id, flowIO_.burns[i_].amount);
+                _burn(
+                    msg.sender,
+                    flowIO_.burns[i_].id,
+                    flowIO_.burns[i_].amount
+                );
             }
             LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
         }
