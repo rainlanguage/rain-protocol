@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.15;
 
-contract FlowCommon is ReentrancyGuard {
+contract FlowCommon {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreter for InterpreterState;
     using LibStackTop for StackTop;
