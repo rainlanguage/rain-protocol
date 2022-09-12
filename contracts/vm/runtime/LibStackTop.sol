@@ -124,7 +124,8 @@ library LibStackTop {
             let length_ := 0
             for {
                 stackTop_ := sub(stackTop_, 0x20)
-            } gt(stackTop_, stackBottom_) {
+                let end_ := sub(stackBottom_, 0x20)
+            } gt(stackTop_, end_) {
                 stackTop_ := sub(stackTop_, mul(stepSize_, 0x20))
                 length_ := add(length_, stepSize_)
             } {
