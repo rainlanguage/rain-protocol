@@ -2,8 +2,8 @@ let
   pkgs = import
     (builtins.fetchTarball {
       name = "nixos-unstable-2021-10-01";
-      url = "https://github.com/nixos/nixpkgs/archive/369ab30030d8c56fe87a06c1fe3b2c0e85ba6253.tar.gz";
-      sha256 = "1f1lw5qrd3549l4fq3w4bqz3b6415hwjks2pa9yqz9cfpjh13y7l";
+      url = "https://github.com/nixos/nixpkgs/archive/848939f1100b660fda2afd3a7dc4345686e19001.tar.gz";
+      sha256 = "0phbaw3gkpdbqzj9v3d95xgwj84ivq77y48wn2xifjixdj3jl1ij";
     })
     { };
 
@@ -87,9 +87,7 @@ let
     hardhat test
   '';
 
-  echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
-    # By now, we will use the `echidna-test` file in the repo
-
+  run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
       configFile=''${file%%.*}.yaml;
@@ -98,7 +96,7 @@ let
         configFile=echidna/default.yaml;
       fi;
 
-      ./echidna-test $file --contract "$(basename -s .sol $file)" --config $configFile
+      echidna-test $file --contract "$(basename -s .sol $file)" --config $configFile
     '
   '';
 
@@ -173,7 +171,7 @@ pkgs.stdenv.mkDerivation {
     prettier-check
     prettier-write
     security-check
-    echidna-test
+    run-echidna
     ci-test
     ci-lint
     cut-dist
@@ -185,6 +183,7 @@ pkgs.stdenv.mkDerivation {
     init-solc
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
+    pkgs.echidna
   ];
 
   shellHook = ''
