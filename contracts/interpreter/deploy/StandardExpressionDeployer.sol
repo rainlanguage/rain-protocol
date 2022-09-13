@@ -5,6 +5,8 @@ import "./IExpressionDeployer.sol";
 import "../ops/AllStandardOps.sol";
 import "./LibIntegrity.sol";
 
+uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
+
 contract StandardExpressionDeployer is IExpressionDeployer {
     using LibIntegrity for IntegrityState;
     using LibStackTop for StackTop;
@@ -80,7 +82,7 @@ contract StandardExpressionDeployer is IExpressionDeployer {
         uint256[] memory finalMinStacks_
     ) public virtual {
         bytes memory stateBytes_ = LibInterpreter.buildStateBytes(
-            IExpressionDeployer(interpreterIntegrity),
+            IExpressionDeployer(address(this)),
             opcodeFunctionPointers(),
             config_,
             finalMinStacks_

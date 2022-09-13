@@ -4,5 +4,5 @@ pragma solidity ^0.8.0;
 type SourceIndex is uint256;
 
 interface IInterpreter {
-    function eval(address statePointer_, SourceIndex entrypoint_, uint[][] memory context_) external view returns (uint[] memory);
+    function eval(address expressionPointer, SourceIndex entrypoint, uint[][] memory context) external view returns (uint[] memory);
 }

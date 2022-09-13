@@ -21,5 +21,5 @@ interface IExpressionDeployer {
      function deployExpression(
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
-    ) external;
+    ) external returns (address);
 }

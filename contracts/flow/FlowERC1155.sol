@@ -5,6 +5,7 @@ import "../sentinel/LibSentinel.sol";
 import "../interpreter/LibInterpreter.sol";
 import "./libraries/LibFlow.sol";
 import "./libraries/LibRebase.sol";
+import "./FlowCommon.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 
@@ -32,7 +33,7 @@ SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(2);
 
-contract FlowERC1155 is ReentrancyGuard, ERC1155 {
+contract FlowERC1155 is ReentrancyGuard, ERC1155, FlowCommon {
     using LibInterpreter for InterpreterState;
     using LibRebase for InterpreterState;
     using LibStackTop for StackTop;
@@ -41,8 +42,6 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
     using LibUint256Array for uint[];
 
     event Initialize(address sender, FlowERC1155Config config);
-
-    address public interpreter;
 
     constructor() {
         _disableInitializers();
@@ -54,7 +53,7 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
     {
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveInterpreterState(config_.vmStateConfig);
+        _deployExpression(config_.expressionDeployer, config_.interpreter, config_.stateConfig, config_.finalMinStacks);
         emit Initialize(msg.sender, config_);
     }
 
@@ -76,7 +75,7 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
     {
         return
             super.balanceOf(account_, id_).rebaseOutput(
-                _rebaseRatio(_loadInterpreterState(), id_)
+                _rebaseRatio(id_)
             );
     }
 
@@ -87,7 +86,8 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
         uint256[] memory amounts_
     ) internal view virtual returns (uint256[] memory) {
         unchecked {
-            InterpreterState memory state_ = _loadInterpreterState();
+            IInterpreter interpreter_ = IInterpreter(interpreter);
+            address expressionPointer_ = expressionPointer;
             uint[] memory amountsRebased_ = new uint[](amounts_.length);
             // @todo fix memory leak where each iteration we build new context arrays
             // for both rebase and can transfer when we could just reuse them.
@@ -95,10 +95,10 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
                 uint256 id_ = ids_[i_];
                 uint256 amount_ = amounts_[i_];
                 amountsRebased_[i_] = amount_.rebaseInput(
-                    _rebaseRatio(state_, id_)
+                    _rebaseRatio(id_)
                 );
 
-                state_.context = LibUint256Array.arrayFrom(
+                uint[][] memory context_ = LibUint256Array.arrayFrom(
                     uint256(uint160(from_)),
                     uint256(uint160(to_)),
                     id_,
@@ -106,7 +106,7 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
                     amountsRebased_[i_]
                 ).matrixFrom();
                 require(
-                    state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                    interpreter_.eval(expressionPointer_, CAN_TRANSFER_ENTRYPOINT).peek() > 0,
                     "INVALID_TRANSFER"
                 );
             }
@@ -141,26 +141,23 @@ contract FlowERC1155 is ReentrancyGuard, ERC1155 {
     }
 
     function _previewFlow(address interpreter_, SourceIndex flow_, uint id_) internal view returns (FlowERC1155IO memory flowIO_) {
-        StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
-        uint[] memory tempArray_;
-        (stackTop_, tempArray_) = stackTop_.consumeSentinel(
-            state_.stackBottom,
+        uint[] memory stack_ = flowStack(CAN_FLOW_ENTRYPOINT, flow_, id_);
+        uint[] memory values_;
+        (stack_, values_) = stack_.consumeSentinel(
             RAIN_FLOW_ERC1155_SENTINEL,
             2
         );
         assembly ("memory-safe") {
-            mstore(flowIO_, tempArray_)
+            mstore(flowIO_, values_)
         }
-        (stackTop_, tempArray_) = stackTop_.consumeSentinel(
-            state_.stackBottom,
+        (stack_, values_) = stack_.consumeSentinel(
             RAIN_FLOW_ERC1155_SENTINEL,
             2
         );
         assembly ("memory-safe") {
-            mstore(add(flowIO_, 0x20), tempArray_)
+            mstore(add(flowIO_, 0x20), values_)
         }
-        flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
-        return flowIO_;
+        flowIO_.flow = LibFlow.stackToFlow(stack_);
     }
 
     function _flow(

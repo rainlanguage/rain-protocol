@@ -6,8 +6,6 @@ import "./deploy/StandardExpressionDeployer.sol";
 import "./ops/AllStandardOps.sol";
 import "../sstore2/SSTORE2.sol";
 
-uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
-
 contract StandardInterpreter {
     using LibInterpreter for bytes;
     using LibUint256Array for uint256;
@@ -22,8 +20,6 @@ contract StandardInterpreter {
         self = address(this);
         interpreterIntegrity = interpreterIntegrity_;
     }
-
-
 
     function _loadInterpreterState() internal view virtual returns (InterpreterState memory) {
         return _loadInterpreterState(vmStatePointer);

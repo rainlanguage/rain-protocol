@@ -3,10 +3,11 @@ pragma solidity =0.8.15;
 
 import "./libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "./FlowCommon.sol";
 
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract Flow is ReentrancyGuard {
+contract Flow is ReentrancyGuard, FlowCommon {
     event Initialize(address sender, StateConfig config);
 
     /// flow index => id => time
@@ -36,7 +37,7 @@ contract Flow is ReentrancyGuard {
         virtual
         returns (FlowIO memory flowIO_)
     {
-        flowIO_ = _previewFlow(_loadInterpreterState(), flow_, id_);
+        flowIO_ = _previewFlow(flow_, id_);
     }
 
     function flow(SourceIndex flow_, uint256 id_)
@@ -45,8 +46,7 @@ contract Flow is ReentrancyGuard {
         nonReentrant
         returns (FlowIO memory flowIO_)
     {
-        InterpreterState memory state_ = _loadInterpreterState();
-        flowIO_ = _previewFlow(state_, flow_, id_);
+        flowIO_ = _previewFlow(flow_, id_);
         _registerFlowTime(flow_, id_);
         LibFlow.flow(flowIO_, address(this), payable(msg.sender));
     }
