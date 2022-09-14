@@ -9,6 +9,8 @@ import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeab
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../../sentinel/LibSentinel.sol";
 
+import "hardhat/console.sol";
+
 // We want a sentinel with the following properties:
 // - Won't collide with token amounts (| with very large number)
 // - Won't collide with token addresses
@@ -55,7 +57,10 @@ library LibFlow {
         pure
         returns (FlowIO memory flowIO_)
     {
+        unchecked {
         uint256[] memory tempArray_;
+        uint structsLength_;
+        uint[] memory refs_;
         (stackTop_, flowIO_.inputNative) = stackTop_.pop();
         (stackTop_, flowIO_.outputNative) = stackTop_.pop();
 
@@ -65,9 +70,21 @@ library LibFlow {
             RAIN_FLOW_SENTINEL,
             2
         );
+
+        structsLength_ = tempArray_.length / 2;
+        refs_ = new uint[](structsLength_);
         assembly ("memory-safe") {
-            mstore(tempArray_, div(mload(tempArray_), 2))
-            mstore(add(flowIO_, 0x40), tempArray_)
+            mstore(add(flowIO_, 0x40), refs_)
+            for {
+                let cursor_ := add(refs_, 0x20)
+                let refCursor_ := add(tempArray_, 0x20)
+                let end_ := add(cursor_, mul(structsLength_, 0x20))
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                refCursor_ := add(refCursor_, 0x40)
+            } {
+                mstore(cursor_, refCursor_)
+            }
         }
 
         // outputs20
@@ -76,9 +93,20 @@ library LibFlow {
             RAIN_FLOW_SENTINEL,
             2
         );
+        structsLength_ = tempArray_.length / 2;
+        refs_ = new uint[](structsLength_);
         assembly ("memory-safe") {
-            mstore(tempArray_, div(mload(tempArray_), 2))
-            mstore(add(flowIO_, 0x60), tempArray_)
+            mstore(add(flowIO_, 0x60), refs_)
+            for {
+                let cursor_ := add(refs_, 0x20)
+                let refCursor_ := add(tempArray_, 0x20)
+                let end_ := add(cursor_, mul(structsLength_, 0x20))
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                refCursor_ := add(refCursor_, 0x40)
+            } {
+                mstore(cursor_, refCursor_)
+            }
         }
 
         // inputs721
@@ -87,9 +115,20 @@ library LibFlow {
             RAIN_FLOW_SENTINEL,
             2
         );
+        structsLength_ = tempArray_.length / 2;
+        refs_ = new uint[](structsLength_);
         assembly ("memory-safe") {
-            mstore(tempArray_, div(mload(tempArray_), 2))
-            mstore(add(flowIO_, 0x80), tempArray_)
+            mstore(add(flowIO_, 0x80), refs_)
+            for {
+                let cursor_ := add(refs_, 0x20)
+                let refCursor_ := add(tempArray_, 0x20)
+                let end_ := add(cursor_, mul(structsLength_, 0x20))
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                refCursor_ := add(refCursor_, 0x40)
+            } {
+                mstore(cursor_, refCursor_)
+            }
         }
 
         // outputs721
@@ -98,9 +137,20 @@ library LibFlow {
             RAIN_FLOW_SENTINEL,
             2
         );
+        structsLength_ = tempArray_.length / 2;
+        refs_ = new uint[](structsLength_);
         assembly ("memory-safe") {
-            mstore(tempArray_, div(mload(tempArray_), 2))
-            mstore(add(flowIO_, 0xA0), tempArray_)
+            mstore(add(flowIO_, 0xA0), refs_)
+            for {
+                let cursor_ := add(refs_, 0x20)
+                let refCursor_ := add(tempArray_, 0x20)
+                let end_ := add(cursor_, mul(structsLength_, 0x20))
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                refCursor_ := add(refCursor_, 0x40)
+            } {
+                mstore(cursor_, refCursor_)
+            }
         }
 
         // inputs1155
@@ -109,9 +159,20 @@ library LibFlow {
             RAIN_FLOW_SENTINEL,
             3
         );
+        structsLength_ = tempArray_.length / 3;
+        refs_ = new uint[](structsLength_);
         assembly ("memory-safe") {
-            mstore(tempArray_, div(mload(tempArray_), 3))
-            mstore(add(flowIO_, 0xC0), tempArray_)
+            mstore(add(flowIO_, 0xC0), refs_)
+            for {
+                let cursor_ := add(refs_, 0x20)
+                let refCursor_ := add(tempArray_, 0x20)
+                let end_ := add(cursor_, mul(structsLength_, 0x20))
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                refCursor_ := add(refCursor_, 0x60)
+            } {
+                mstore(cursor_, refCursor_)
+            }
         }
 
         // outputs1155
@@ -120,9 +181,21 @@ library LibFlow {
             RAIN_FLOW_SENTINEL,
             3
         );
+        structsLength_ = tempArray_.length / 3;
+        refs_ = new uint[](structsLength_);
         assembly ("memory-safe") {
-            mstore(tempArray_, div(mload(tempArray_), 3))
-            mstore(add(flowIO_, 0xE0), tempArray_)
+            mstore(add(flowIO_, 0xE0), refs_)
+            for {
+                let cursor_ := add(refs_, 0x20)
+                let refCursor_ := add(tempArray_, 0x20)
+                let end_ := add(cursor_, mul(structsLength_, 0x20))
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                refCursor_ := add(refCursor_, 0x60)
+            } {
+                mstore(cursor_, refCursor_)
+            }
+        }
         }
     }
 

@@ -214,7 +214,7 @@ describe("Flow flow tests", async function () {
     compareStructs(flowIOPreview, flowIO, true);
   });
 
-  it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
+  it.only("should preview defined flow IO for ERC20 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -222,8 +222,8 @@ describe("Flow flow tests", async function () {
     await erc20.initialize();
 
     const flowIO: FlowIOStruct = {
-      inputNative: 0,
-      outputNative: 0,
+      inputNative: 10,
+      outputNative: 50,
       inputs20: [{ token: erc20.address, amount: 1 }],
       outputs20: [{ token: erc20.address, amount: 2 }],
       inputs721: [],
@@ -271,11 +271,11 @@ describe("Flow flow tests", async function () {
       SENTINEL(),
       SENTINEL(),
       SENTINEL(),
-      FLOWIO_OUTPUT_ERC20_AMOUNT(),
       FLOWIO_OUTPUT_ERC20_TOKEN(),
+      FLOWIO_OUTPUT_ERC20_AMOUNT(),
       SENTINEL(),
-      FLOWIO_INPUT_ERC20_AMOUNT(),
       FLOWIO_INPUT_ERC20_TOKEN(),
+      FLOWIO_INPUT_ERC20_AMOUNT(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
     ]);
