@@ -53,12 +53,13 @@ library LibFlow {
     function stackToFlow(StackTop stackBottom_, StackTop stackTop_)
         internal
         pure
-        returns (FlowIO memory)
+        returns (FlowIO memory flowIO_)
     {
-        FlowIO memory flowIO_;
         uint256[] memory tempArray_;
         (stackTop_, flowIO_.inputNative) = stackTop_.pop();
         (stackTop_, flowIO_.outputNative) = stackTop_.pop();
+
+        // inputs20
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             RAIN_FLOW_SENTINEL,
@@ -68,6 +69,8 @@ library LibFlow {
             mstore(tempArray_, div(mload(tempArray_), 2))
             mstore(add(flowIO_, 0x40), tempArray_)
         }
+
+        // outputs20
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             RAIN_FLOW_SENTINEL,
@@ -77,6 +80,8 @@ library LibFlow {
             mstore(tempArray_, div(mload(tempArray_), 2))
             mstore(add(flowIO_, 0x60), tempArray_)
         }
+
+        // inputs721
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             RAIN_FLOW_SENTINEL,
@@ -86,6 +91,8 @@ library LibFlow {
             mstore(tempArray_, div(mload(tempArray_), 2))
             mstore(add(flowIO_, 0x80), tempArray_)
         }
+
+        // outputs721
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             RAIN_FLOW_SENTINEL,
@@ -95,6 +102,8 @@ library LibFlow {
             mstore(tempArray_, div(mload(tempArray_), 2))
             mstore(add(flowIO_, 0xA0), tempArray_)
         }
+
+        // inputs1155
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             RAIN_FLOW_SENTINEL,
@@ -104,6 +113,8 @@ library LibFlow {
             mstore(tempArray_, div(mload(tempArray_), 3))
             mstore(add(flowIO_, 0xC0), tempArray_)
         }
+
+        // outputs1155
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             RAIN_FLOW_SENTINEL,
@@ -113,7 +124,6 @@ library LibFlow {
             mstore(tempArray_, div(mload(tempArray_), 3))
             mstore(add(flowIO_, 0xE0), tempArray_)
         }
-        return flowIO_;
     }
 
     function flow(

@@ -40,15 +40,15 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
+  xit("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const reserveERC1155 = (await basicDeploy(
+    const erc1155 = (await basicDeploy(
       "ReserveTokenERC1155",
       {}
     )) as ReserveTokenERC1155;
-    await reserveERC1155.initialize();
+    await erc1155.initialize();
 
     const flowIO: FlowIOStruct = {
       inputNative: 0,
@@ -57,8 +57,8 @@ describe("Flow flow tests", async function () {
       outputs20: [],
       inputs721: [],
       outputs721: [],
-      inputs1155: [{ token: reserveERC1155.address, id: 0, amount: 0 }],
-      outputs1155: [{ token: reserveERC1155.address, id: 0, amount: 0 }],
+      inputs1155: [{ token: erc1155.address, id: 1, amount: 2 }],
+      outputs1155: [{ token: erc1155.address, id: 3, amount: 4 }],
     };
 
     const constants = [
@@ -128,26 +128,26 @@ describe("Flow flow tests", async function () {
 
     const flowIOPreview = await flow.previewFlow(1, 1234);
 
-    compareStructs(flowIOPreview, flowIO);
+    compareStructs(flowIOPreview, flowIO, true);
   });
 
-  it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
+  xit("should preview defined flow IO for ERC721 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const reserveERC721 = (await basicDeploy(
+    const erc721 = (await basicDeploy(
       "ReserveTokenERC721",
       {}
     )) as ReserveTokenERC721;
-    await reserveERC721.initialize();
+    await erc721.initialize();
 
     const flowIO: FlowIOStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
       outputs20: [],
-      inputs721: [{ token: reserveERC721.address, id: 0 }],
-      outputs721: [{ token: reserveERC721.address, id: 0 }],
+      inputs721: [{ token: erc721.address, id: 1 }],
+      outputs721: [{ token: erc721.address, id: 2 }],
       inputs1155: [],
       outputs1155: [],
     };
@@ -211,24 +211,21 @@ describe("Flow flow tests", async function () {
 
     const flowIOPreview = await flow.previewFlow(1, 1234);
 
-    compareStructs(flowIOPreview, flowIO);
+    compareStructs(flowIOPreview, flowIO, true);
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const reserveERC20 = (await basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-    await reserveERC20.initialize();
+    const erc20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    await erc20.initialize();
 
     const flowIO: FlowIOStruct = {
       inputNative: 0,
       outputNative: 0,
-      inputs20: [{ token: reserveERC20.address, amount: 0 }],
-      outputs20: [{ token: reserveERC20.address, amount: 0 }],
+      inputs20: [{ token: erc20.address, amount: 1 }],
+      outputs20: [{ token: erc20.address, amount: 2 }],
       inputs721: [],
       outputs721: [],
       inputs1155: [],

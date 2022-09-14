@@ -58,16 +58,17 @@ describe("LibStackTop consumeSentinel tests", async function () {
     );
   });
 
-  it("should consume a sentinel, returning an starting array from the sentinel position", async () => {
+  it("should consume a sentinel, returning an array starting from the sentinel position", async () => {
     const SENTINEL = ethers.BigNumber.from(
       keccak256([...Buffer.from("TEST")])
     ).or(SENTINEL_HIGH_BITS);
     const array = [1, 2, SENTINEL, 4, 5, 6];
     const stepSize = 1;
 
-    const { stackTopSentinel_, arraySentinel_, stackBottom_ } =
+    const { stackTopSentinel_, arraySentinel_, stackBottom_, stackTop_ } =
       await libStackTop.consumeSentinel(array, SENTINEL, stepSize);
 
+    assert(stackTopSentinel_.eq(stackTop_.sub(4 * 32)));
     assert(stackTopSentinel_.eq(stackBottom_.add(3 * 32)));
     assert(arraySentinel_[0].eq(array[3]));
     assert(arraySentinel_[1].eq(array[4]));
