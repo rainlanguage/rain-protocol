@@ -251,6 +251,42 @@ contract LibStackTopTest {
         );
     }
 
+    function consumeSentinels(
+        uint256[] memory array_,
+        uint256 sentinel_,
+        uint256 stepSize0_,
+        uint256 stepSize1_
+    )
+        external
+        pure
+        returns (
+            StackTop stackTopSentinel_,
+            uint256[] memory arraySentinel0_,
+            uint256[] memory arraySentinel1_,
+            StackTop stackTop_,
+            StackTop stackBottom_
+        )
+    {
+        // move stackTop to typical `eval` start position
+        stackTop_ = array_.asStackTop().up(array_.size() / 0x20);
+        stackBottom_ = array_.asStackTop();
+
+        (stackTopSentinel_, arraySentinel0_) = LibStackTop.consumeSentinel(
+            stackTop_,
+            stackBottom_,
+            sentinel_,
+            stepSize0_
+        );
+
+        // consume another sentinel using new stackTop
+        (stackTopSentinel_, arraySentinel1_) = LibStackTop.consumeSentinel(
+            stackTopSentinel_,
+            stackBottom_,
+            sentinel_,
+            stepSize1_
+        );
+    }
+
     function set(
         bytes memory bytes_,
         uint256 a_,
