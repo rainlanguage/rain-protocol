@@ -35,7 +35,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -69,7 +69,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer3).commit(commitment3);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1000000, // high number to reduce flakiness where canRevealUntil timestamps overlap, just so we can test that we are, in fact, getting a random spread of timestamps
     };
 
@@ -142,7 +142,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 100, // we always lose a second, so need minimum of `1`
     };
 
@@ -175,7 +175,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -208,7 +208,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 100, // we always lose a second, so need minimum of `1`
     };
 
@@ -225,7 +225,7 @@ describe("SeedDance reveal", async function () {
     assert(
       canRevealUntil_.gt(START.add(timeBound.baseDuration)),
       `wrong canRevealUntil timestamp
-      expected gt ${START.gt(timeBound.baseDuration)}
+      expected gt ${START.add(timeBound.baseDuration)}
       got         ${canRevealUntil_}`
     );
   });
@@ -243,7 +243,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -305,7 +305,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer3).commit(commitment3);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -431,7 +431,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -564,7 +564,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer3).commit(commitment3);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 10,
     };
 
@@ -644,7 +644,7 @@ describe("SeedDance reveal", async function () {
     const initialSeed = randomBytes(32);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: MAX_EXTRATIME,
     };
 
@@ -696,7 +696,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 

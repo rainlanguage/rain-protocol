@@ -40,7 +40,7 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  xit("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
+  it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -131,7 +131,7 @@ describe("Flow flow tests", async function () {
     compareStructs(flowIOPreview, flowIO, true);
   });
 
-  xit("should preview defined flow IO for ERC721 (single element arrays)", async () => {
+  it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -214,7 +214,7 @@ describe("Flow flow tests", async function () {
     compareStructs(flowIOPreview, flowIO, true);
   });
 
-  it.only("should preview defined flow IO for ERC20 (single element arrays)", async () => {
+  it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 

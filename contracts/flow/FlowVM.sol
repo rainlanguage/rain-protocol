@@ -18,6 +18,7 @@ contract FlowVM is Initializable, StandardVM {
     constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
 
     /// @param config_ source and token config. Also controls delegated claims.
+    // solhint-disable-next-line func-name-mixedcase
     function __FlowVM_init(StateConfig calldata config_)
         internal
         onlyInitializing

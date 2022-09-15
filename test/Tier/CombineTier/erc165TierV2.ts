@@ -3,7 +3,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
 import {
-  AllStandardOpsTest,
   ReserveToken,
   StakeFactory,
   StandardIntegrity,
@@ -25,7 +24,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier ERC165 Test", async function () {
   let integrity: StandardIntegrity;
-  let logic: AllStandardOpsTest;
+  // let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
 
   before(async () => {
@@ -36,10 +35,10 @@ describe("CombineTier ERC165 Test", async function () {
     await integrity.deployed();
 
     // LogicFactory
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    // const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
+    // logic = (await logicFactory.deploy(
+    //   integrity.address
+    // )) as AllStandardOpsTest;
 
     // StakeFactory
     const stakeFactoryFactory = await ethers.getContractFactory(
