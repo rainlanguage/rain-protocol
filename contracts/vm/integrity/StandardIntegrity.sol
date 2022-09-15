@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import "./RainVMIntegrity.sol";
 import "../ops/AllStandardOps.sol";

@@ -5,6 +5,8 @@ import "./RainVM.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibBytes.sol";
 
+import "hardhat/console.sol";
+
 /// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
 
@@ -117,16 +119,22 @@ library LibStackTop {
         StackTop stackBottom_,
         uint256 sentinel_,
         uint256 stepSize_
-    ) internal pure returns (StackTop, uint256[] memory) {
+    ) internal view returns (StackTop, uint256[] memory) {
         uint256[] memory array_;
         assembly ("memory-safe") {
+            // Underflow is not allowed and pointing at position 0 in memory is
+            // corrupt behaviour anyway.
+            if iszero(stackBottom_) {
+                revert(0, 0)
+            }
             let sentinelLocation_ := 0
             let length_ := 0
+            let step_ := mul(stepSize_, 0x20)
             for {
                 stackTop_ := sub(stackTop_, 0x20)
                 let end_ := sub(stackBottom_, 0x20)
             } gt(stackTop_, end_) {
-                stackTop_ := sub(stackTop_, mul(stepSize_, 0x20))
+                stackTop_ := sub(stackTop_, step_)
                 length_ := add(length_, stepSize_)
             } {
                 if eq(sentinel_, mload(stackTop_)) {

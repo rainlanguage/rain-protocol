@@ -233,7 +233,7 @@ contract LibStackTopTest {
         uint256 stepSize_
     )
         external
-        pure
+        view
         returns (
             StackTop stackTopSentinel_,
             uint256[] memory arraySentinel_,
@@ -258,7 +258,7 @@ contract LibStackTopTest {
         uint256 stepSize1_
     )
         external
-        pure
+        view
         returns (
             StackTop stackTopSentinel_,
             uint256[] memory arraySentinel0_,

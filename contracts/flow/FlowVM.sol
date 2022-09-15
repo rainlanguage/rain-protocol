@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import "../vm/runtime/StandardVM.sol";
 import "./libraries/LibFlow.sol";
 import "./FlowIntegrity.sol";
 import "../idempotent/LibIdempotentFlag.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+import "hardhat/console.sol";
 
 contract FlowVM is Initializable, StandardVM {
     using LibIdempotentFlag for IdempotentFlag;
@@ -45,6 +47,13 @@ contract FlowVM is Initializable, StandardVM {
             "FLOW_OOB"
         );
         require(state_.eval(canFlow_).peek() > 0, "CANT_FLOW");
+
+        // VERY HACKY WORKAROUND.
+        // I don't even know why this works or what is broken.
+        // for some reason the eval below does not write values to memory without
+        // this here so then the stack is corrupt.
+        console.logBytes("");
+
         return state_.eval(flow_);
     }
 

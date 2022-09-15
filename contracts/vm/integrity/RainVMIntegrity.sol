@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 import "../runtime/RainVM.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../../sstore2/SSTORE2.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import {Factory} from "../factory/Factory.sol";
 import {FlowERC1155, FlowERC1155Config} from "./FlowERC1155.sol";

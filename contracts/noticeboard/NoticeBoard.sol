@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 /// @param subject Every notice is assumed to be about some contract.
 /// If it isn't then emitting `0` bytes for the address is valid.
