@@ -52,7 +52,7 @@ contract FlowVM is Initializable, StandardVM {
         // I don't even know why this works or what is broken.
         // for some reason the eval below does not write values to memory without
         // this here so then the stack is corrupt.
-        // console.logBytes("");
+        console.logBytes("");
 
         return state_.eval(flow_);
     }
