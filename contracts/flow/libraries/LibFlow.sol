@@ -9,8 +9,6 @@ import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeab
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "../../sentinel/LibSentinel.sol";
 
-import "hardhat/console.sol";
-
 // We want a sentinel with the following properties:
 // - Won't collide with token amounts (| with very large number)
 // - Won't collide with token addresses

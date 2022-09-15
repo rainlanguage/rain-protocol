@@ -21,7 +21,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("Flow flow tests", async function () {
+describe("Flow previewFlow tests", async function () {
   let integrity: FlowIntegrity;
   let flowFactory: FlowFactory;
 
