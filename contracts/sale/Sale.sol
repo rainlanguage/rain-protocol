@@ -317,7 +317,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         returns (StorageOpcodesRange memory storageOpcodesRange_)
     {
         uint256 slot_;
-        assembly {
+        assembly ("memory-safe") {
             slot_ := _remainingUnits.slot
         }
         storageOpcodesRange_ = StorageOpcodesRange(
