@@ -28,8 +28,8 @@ contract FlowFactory is Factory {
         returns (address)
     {
         StateConfig memory config_ = abi.decode(data_, (StateConfig));
-        address clone_ = Clones.clone(implementation);
-        Flow(clone_).initialize(config_);
+        address clone_ = address(Clones.clone(implementation));
+        Flow(payable(clone_)).initialize(config_);
         return clone_;
     }
 
@@ -43,6 +43,6 @@ contract FlowFactory is Factory {
         external
         returns (Flow)
     {
-        return Flow(createChild(abi.encode(config_)));
+        return Flow(payable(createChild(abi.encode(config_))));
     }
 }
