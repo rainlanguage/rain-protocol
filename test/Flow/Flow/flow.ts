@@ -113,4 +113,66 @@ describe("Flow flow tests", async function () {
 
     // compareStructs(flowStruct, flowIO);
   });
+
+  it("should receive Ether", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const flowIO: FlowIOStruct = {
+      inputNative: 1,
+      outputNative: 2,
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+
+    // prettier-ignore
+    const sourceCanFlow = concat([
+      CAN_FLOW(), // true
+    ]);
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+    ]);
+
+    const sources = [sourceCanFlow, sourceFlowIO];
+
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+
+    await signers[0].sendTransaction({
+      to: flow.address,
+      value: ethers.utils.parseEther(flowIO.outputNative.toString()),
+    });
+  });
 });
