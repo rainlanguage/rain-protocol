@@ -114,7 +114,7 @@ describe("Flow flow tests", async function () {
     // compareStructs(flowStruct, flowIO);
   });
 
-  it("should receive Ether", async () => {
+  it.only("should receive Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 

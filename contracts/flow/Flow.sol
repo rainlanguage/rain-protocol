@@ -42,6 +42,7 @@ contract Flow is ReentrancyGuard, FlowVM {
     function flow(SourceIndex flow_, uint256 id_)
         external
         virtual
+        payable
         nonReentrant
         returns (FlowIO memory flowIO_)
     {

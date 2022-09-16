@@ -40,7 +40,7 @@ describe("Flow previewFlow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it.only("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
+  it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
