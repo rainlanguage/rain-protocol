@@ -56,7 +56,7 @@ describe("FlowERC20 construction tests", async function () {
 
     const sources = [sourceCanFlow, sourceFlowIO];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const configStruct: FlowERC20ConfigStruct = {
       name: "tokenERC20",
       symbol: "TKN",
       vmStateConfig: {
@@ -68,7 +68,7 @@ describe("FlowERC20 construction tests", async function () {
     const flow = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
-      stateConfigStruct
+      configStruct
     );
 
     const { sender, config } = (await getEventArgs(
@@ -82,6 +82,6 @@ describe("FlowERC20 construction tests", async function () {
       "wrong sender in Initialize event"
     );
 
-    compareStructs(config, stateConfigStruct);
+    compareStructs(config, configStruct);
   });
 });

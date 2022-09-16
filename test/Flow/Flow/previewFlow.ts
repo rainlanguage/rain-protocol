@@ -40,6 +40,8 @@ describe("Flow previewFlow tests", async function () {
     await flowFactory.deployed();
   });
 
+  // should preview defined flow IO for native Ether
+
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -163,7 +165,6 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
 
-    console.log(RAIN_FLOW_SENTINEL)
     const flowIOPreview = await flow.previewFlow(1, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
