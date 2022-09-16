@@ -5,7 +5,6 @@ import {
   FlowIOStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
-import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
