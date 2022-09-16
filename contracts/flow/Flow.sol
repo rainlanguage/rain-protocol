@@ -51,4 +51,6 @@ contract Flow is ReentrancyGuard, FlowVM {
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         LibFlow.flow(flowIO_, address(this), payable(msg.sender));
     }
+
+    receive() external payable {}
 }
