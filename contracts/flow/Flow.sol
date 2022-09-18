@@ -8,6 +8,8 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 
 contract Flow is ReentrancyGuard, FlowVM {
+    using LibVMState for VMState;
+
     event Initialize(address sender, StateConfig config);
 
     /// flow index => id => time
@@ -27,6 +29,7 @@ contract Flow is ReentrancyGuard, FlowVM {
         uint256 id_
     ) internal view returns (FlowIO memory flowIO_) {
         StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
+        state_.debug(stackTop_, DebugStyle.Stack);
         flowIO_ = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 

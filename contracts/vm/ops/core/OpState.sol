@@ -46,7 +46,7 @@ library OpState {
         unchecked {
             uint256 type_ = Operand.unwrap(operand_) & 0x1;
             uint256 offset_ = Operand.unwrap(operand_) >> 1;
-            assembly ("memory-safe") {
+            assembly {
                 mstore(
                     stackTop_,
                     mload(
