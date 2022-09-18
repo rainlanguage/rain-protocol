@@ -48,6 +48,8 @@ struct VMState {
     uint256 scratch;
     uint256[] context;
     bytes[] compiledSources;
+    uint[] stack;
+    uint[] constants;
 }
 
 SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
@@ -150,7 +152,7 @@ library LibVMState {
 
     function deserialize(bytes memory serialized_, uint256[] memory context_)
         internal
-        pure
+        view
         returns (VMState memory)
     {
         unchecked {
@@ -171,7 +173,12 @@ library LibVMState {
             // The stack is never stored in stack bytes so we allocate a new
             // array for it with length as per the indexes and point the state
             // at it.
-            state_.stackBottom = (new uint256[](stackLength_)).asStackTopUp();
+            state_.stack = new uint256[](stackLength_);
+            state_.stackBottom = state_.stack.asStackTopUp();
+
+            assembly ("memory-safe") {
+                mstore(add(state_, 0xC0), cursor_)
+            }
 
             // Reference the constants array and move cursor past it.
             cursor_ = cursor_.up();
