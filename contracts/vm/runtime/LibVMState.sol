@@ -289,6 +289,7 @@ library LibVMState {
         SourceIndex sourceIndex_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
+        console.logBytes("");
         unchecked {
             uint256 cursor_;
             uint256 end_;
