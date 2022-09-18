@@ -48,12 +48,6 @@ contract FlowVM is Initializable, StandardVM {
         );
         require(state_.eval(canFlow_).peek() > 0, "CANT_FLOW");
 
-        // VERY HACKY WORKAROUND.
-        // I don't even know why this works or what is broken.
-        // for some reason the eval below does not write values to memory without
-        // this here so then the stack is corrupt.
-        // console.logBytes("");
-
         return state_.eval(flow_);
     }
 

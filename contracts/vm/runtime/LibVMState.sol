@@ -289,7 +289,12 @@ library LibVMState {
         SourceIndex sourceIndex_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        // console.logBytes("");
+        // VERY HACKY WORKAROUND.
+        // I don't even know why this works or what is broken.
+        // for some reason the eval below does not write values to memory without
+        // this here so then the stack is corrupt.
+        // https://github.com/ethereum/solidity/issues/13530
+        console.logBytes("");
         unchecked {
             uint256 cursor_;
             uint256 end_;
