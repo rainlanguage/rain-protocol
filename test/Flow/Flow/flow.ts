@@ -1,13 +1,15 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory, FlowIntegrity } from "../../../typechain";
+import { FlowFactory, FlowIntegrity, ReserveToken18 } from "../../../typechain";
 import {
+  FlowIOStruct,
   FlowIOStructOutput,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
-import { sixZeros } from "../../../utils/constants/bigNumber";
+import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
+import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
@@ -35,7 +37,109 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should flow for native tokens on the good path", async () => {
+  it("should flow for ERC20<->ERC20 tokens on the good path", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await erc20In.initialize();
+
+    const erc20Out = (await basicDeploy(
+      "ReserveToken18",
+      {}
+    )) as ReserveToken18;
+    await erc20Out.initialize();
+
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(0),
+      outputNative: ethers.BigNumber.from(0),
+      inputs20: [
+        {
+          token: erc20In.address,
+          amount: ethers.BigNumber.from(1 + eighteenZeros),
+        },
+      ],
+      outputs20: [
+        {
+          token: erc20In.address,
+          amount: ethers.BigNumber.from(2 + eighteenZeros),
+        },
+      ],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+      flowIO.inputs20[0].token,
+      flowIO.inputs20[0].amount,
+      flowIO.outputs20[0].token,
+      flowIO.outputs20[0].amount,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_INPUT_ERC20_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const FLOWIO_INPUT_ERC20_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_OUTPUT_ERC20_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_ERC20_TOKEN(),
+      FLOWIO_OUTPUT_ERC20_AMOUNT(),
+      SENTINEL(),
+      FLOWIO_INPUT_ERC20_TOKEN(),
+      FLOWIO_INPUT_ERC20_AMOUNT(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+    ]);
+
+    const sources = [CAN_FLOW(), sourceFlowIO];
+
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+
+    const you = signers[1];
+    const me = flow;
+
+    // Ensure parties hold enough ERC20
+    await erc20In.transfer(you.address, flowIO.inputs20[0].amount);
+    await erc20Out.transfer(me.address, flowIO.outputs20[0].amount);
+
+    await erc20In.connect(you).approve(me.address, flowIO.inputs20[0].amount);
+
+    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
+
+    compareStructs(flowStruct, flowIO);
+
+    const txFlow = await flow.connect(you).flow(1, 1234);
+  });
+
+  it("should flow for native<->native tokens on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -89,7 +193,7 @@ describe("Flow flow tests", async function () {
     const you = signers[1];
     const me = flow;
 
-    // Ensure Flow contract holds some Ether
+    // Ensure Flow contract holds enough Ether
     await signers[0].sendTransaction({
       to: me.address,
       value: ethers.BigNumber.from(flowIO.outputNative),
@@ -98,10 +202,9 @@ describe("Flow flow tests", async function () {
     const youBalance0 = await ethers.provider.getBalance(you.address);
     const meBalance0 = await ethers.provider.getBalance(me.address);
 
-    assert(youBalance0.eq("10000000000000000000000")); // hardhat-ethers default balance
     assert(meBalance0.eq(flowIO.outputNative));
 
-    const flowStruct = await flow.callStatic.flow(1, 1234, {
+    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234, {
       value: ethers.BigNumber.from(flowIO.inputNative),
     });
 

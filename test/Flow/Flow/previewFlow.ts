@@ -128,11 +128,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC1155_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 15));
 
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
     const sourceFlowIO = concat([
       SENTINEL(),
       FLOWIO_OUTPUT_ERC1155_TOKEN_A(),
@@ -156,7 +151,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -244,11 +239,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC721_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
 
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -268,7 +258,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -350,11 +340,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC20_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
 
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -374,7 +359,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -443,11 +428,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
 
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
     const sourceFlowIO = concat([
       SENTINEL(),
       FLOWIO_OUTPUT_ERC1155_TOKEN(),
@@ -465,7 +445,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -528,11 +508,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -548,7 +523,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -608,11 +583,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -628,7 +598,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -674,11 +644,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // false
-    ]);
-
-    // prettier-ignore
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -690,7 +655,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -738,11 +703,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
-    const sourceCanFlow = concat([
-      CAN_FLOW(), // true
-    ]);
-
-    // prettier-ignore
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -754,7 +714,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
