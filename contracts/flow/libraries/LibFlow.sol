@@ -219,8 +219,7 @@ library LibFlow {
             }
             if (flowIO_.outputs20.length > 0) {
                 for (uint256 i_ = 0; i_ < flowIO_.outputs20.length; i_++) {
-                    IERC20(flowIO_.outputs20[i_].token).safeTransferFrom(
-                        me_,
+                    IERC20(flowIO_.outputs20[i_].token).safeTransfer(
                         you_,
                         flowIO_.outputs20[i_].amount
                     );

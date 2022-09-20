@@ -314,7 +314,7 @@ describe("Flow flow tests", async function () {
       ],
       outputs20: [
         {
-          token: erc20In.address,
+          token: erc20Out.address,
           amount: ethers.BigNumber.from(2 + eighteenZeros),
         },
       ],
