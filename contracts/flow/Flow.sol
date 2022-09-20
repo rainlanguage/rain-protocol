@@ -55,5 +55,5 @@ contract Flow is ReentrancyGuard, FlowVM {
         LibFlow.flow(flowIO_, address(this), payable(msg.sender));
     }
 
-    receive() external payable {}
+
 }

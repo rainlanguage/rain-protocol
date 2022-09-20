@@ -8,6 +8,7 @@ import "./libraries/LibRebase.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./FlowVM.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
 uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -54,6 +55,18 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         __ERC1155_init(config_.uri);
         _saveVMState(config_.vmStateConfig);
         emit Initialize(msg.sender, config_);
+    }
+
+    /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
+    /// multiple base contracts.
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC1155, ERC1155Receiver)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 
     function _rebaseRatio(VMState memory state_, uint256 id_)

@@ -28,7 +28,7 @@ contract FlowERC20Factory is Factory {
     {
         FlowERC20Config memory config_ = abi.decode(data_, (FlowERC20Config));
         address clone_ = Clones.clone(implementation);
-        FlowERC20(clone_).initialize(config_);
+        FlowERC20(payable(clone_)).initialize(config_);
         return clone_;
     }
 
@@ -42,6 +42,6 @@ contract FlowERC20Factory is Factory {
         external
         returns (FlowERC20)
     {
-        return FlowERC20(createChild(abi.encode(config_)));
+        return FlowERC20(payable(createChild(abi.encode(config_))));
     }
 }

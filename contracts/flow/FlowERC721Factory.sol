@@ -28,7 +28,7 @@ contract FlowERC721Factory is Factory {
     {
         FlowERC721Config memory config_ = abi.decode(data_, (FlowERC721Config));
         address clone_ = Clones.clone(implementation);
-        FlowERC721(clone_).initialize(config_);
+        FlowERC721(payable(clone_)).initialize(config_);
         return clone_;
     }
 
@@ -42,6 +42,6 @@ contract FlowERC721Factory is Factory {
         external
         returns (FlowERC721)
     {
-        return FlowERC721(createChild(abi.encode(config_)));
+        return FlowERC721(payable(createChild(abi.encode(config_))));
     }
 }

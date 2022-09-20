@@ -31,7 +31,7 @@ contract FlowERC1155Factory is Factory {
             (FlowERC1155Config)
         );
         address clone_ = Clones.clone(implementation);
-        FlowERC1155(clone_).initialize(config_);
+        FlowERC1155(payable(clone_)).initialize(config_);
         return clone_;
     }
 
@@ -45,6 +45,6 @@ contract FlowERC1155Factory is Factory {
         external
         returns (FlowERC1155)
     {
-        return FlowERC1155(createChild(abi.encode(config_)));
+        return FlowERC1155(payable(createChild(abi.encode(config_))));
     }
 }
