@@ -1,7 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory, FlowIntegrity, ReserveToken18 } from "../../../typechain";
+import {
+  FlowFactory,
+  FlowIntegrity,
+  ReserveToken18,
+  ReserveTokenERC1155,
+  ReserveTokenERC721,
+} from "../../../typechain";
 import {
   FlowIOStruct,
   FlowIOStructOutput,
@@ -37,7 +43,254 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should flow for ERC20<->ERC20 tokens on the good path", async () => {
+  it("should flow for ERC1155<->ERC1155 on the good path", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const erc1155In = (await basicDeploy(
+      "ReserveTokenERC1155",
+      {}
+    )) as ReserveTokenERC1155;
+    await erc1155In.initialize();
+
+    const erc1155Out = (await basicDeploy(
+      "ReserveTokenERC1155",
+      {}
+    )) as ReserveTokenERC1155;
+    await erc1155Out.initialize();
+
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(0),
+      outputNative: ethers.BigNumber.from(0),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [
+        {
+          token: erc1155In.address,
+          id: 0,
+          amount: ethers.BigNumber.from(1 + sixZeros),
+        },
+      ],
+      outputs1155: [
+        {
+          token: erc1155Out.address,
+          id: 0,
+          amount: ethers.BigNumber.from(2 + sixZeros),
+        },
+      ],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+      flowIO.inputs1155[0].token,
+      flowIO.inputs1155[0].id,
+      flowIO.inputs1155[0].amount,
+      flowIO.outputs1155[0].token,
+      flowIO.outputs1155[0].id,
+      flowIO.outputs1155[0].amount,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_INPUT_ERC1155_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const FLOWIO_INPUT_ERC1155_ID = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_INPUT_ERC1155_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const FLOWIO_OUTPUT_ERC1155_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const FLOWIO_OUTPUT_ERC1155_ID = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const FLOWIO_OUTPUT_ERC1155_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      FLOWIO_OUTPUT_ERC1155_TOKEN(),
+      FLOWIO_OUTPUT_ERC1155_ID(),
+      FLOWIO_OUTPUT_ERC1155_AMOUNT(),
+      SENTINEL(),
+      FLOWIO_INPUT_ERC1155_TOKEN(),
+      FLOWIO_INPUT_ERC1155_ID(),
+      FLOWIO_INPUT_ERC1155_AMOUNT(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+    ]);
+
+    const sources = [CAN_FLOW(), sourceFlowIO];
+
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+
+    const you = signers[1];
+    const me = flow;
+
+    // Ensure parties hold ERC1155 tokens
+    await erc1155In.mintNewToken();
+    await erc1155Out.mintNewToken();
+
+    await erc1155In.safeTransferFrom(
+      signers[0].address,
+      you.address,
+      flowIO.inputs1155[0].id,
+      flowIO.inputs1155[0].amount,
+      new Uint8Array()
+    );
+
+    await erc1155In.safeTransferFrom(
+      signers[0].address,
+      me.address,
+      flowIO.outputs1155[0].id,
+      flowIO.outputs1155[0].amount,
+      new Uint8Array()
+    );
+
+    await erc1155In.connect(you).setApprovalForAll(me.address, true);
+
+    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
+
+    compareStructs(flowStruct, flowIO);
+
+    const _txFlow = await flow.connect(you).flow(1, 1234);
+  });
+
+  it("should flow for ERC721<->ERC721 on the good path", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const erc721In = (await basicDeploy(
+      "ReserveTokenERC721",
+      {}
+    )) as ReserveTokenERC721;
+    await erc721In.initialize();
+
+    const erc721Out = (await basicDeploy(
+      "ReserveTokenERC721",
+      {}
+    )) as ReserveTokenERC721;
+    await erc721Out.initialize();
+
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(0),
+      outputNative: ethers.BigNumber.from(0),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [
+        {
+          token: erc721In.address,
+          id: 0,
+        },
+      ],
+      outputs721: [
+        {
+          token: erc721Out.address,
+          id: 0,
+        },
+      ],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+      flowIO.inputs721[0].token,
+      flowIO.inputs721[0].id,
+      flowIO.outputs721[0].token,
+      flowIO.outputs721[0].id,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_INPUT_ERC721_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const FLOWIO_INPUT_ERC721_ID = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_OUTPUT_ERC721_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const FLOWIO_OUTPUT_ERC721_ID = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_ERC721_TOKEN(),
+      FLOWIO_OUTPUT_ERC721_ID(),
+      SENTINEL(),
+      FLOWIO_INPUT_ERC721_TOKEN(),
+      FLOWIO_INPUT_ERC721_ID(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+    ]);
+
+    const sources = [CAN_FLOW(), sourceFlowIO];
+
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+
+    const you = signers[1];
+    const me = flow;
+
+    // Ensure parties hold ERC721 tokens
+    await erc721In.mintNewToken();
+    await erc721Out.mintNewToken();
+
+    await erc721In.transferFrom(
+      signers[0].address,
+      you.address,
+      flowIO.inputs721[0].id
+    );
+    await erc721In.transferFrom(
+      signers[0].address,
+      me.address,
+      flowIO.outputs721[0].id
+    );
+
+    await erc721In.connect(you).approve(me.address, flowIO.inputs721[0].id);
+
+    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
+
+    compareStructs(flowStruct, flowIO);
+
+    const _txFlow = await flow.connect(you).flow(1, 1234);
+  });
+
+  it("should flow for ERC20<->ERC20 on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -136,10 +389,10 @@ describe("Flow flow tests", async function () {
 
     compareStructs(flowStruct, flowIO);
 
-    const txFlow = await flow.connect(you).flow(1, 1234);
+    const _txFlow = await flow.connect(you).flow(1, 1234);
   });
 
-  it("should flow for native<->native tokens on the good path", async () => {
+  it("should flow for native<->native on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
