@@ -1,10 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
+import { FlowERC1155Factory, FlowIntegrity } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/Flow";
-import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/FlowERC20";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { FlowERC1155ConfigStruct } from "../../../typechain/contracts/flow/FlowERC1155";
+import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
@@ -12,23 +12,23 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("FlowERC20 construction tests", async function () {
+describe("FlowERC1155 construction tests", async function () {
   let integrity: FlowIntegrity;
-  let flowERC20Factory: FlowERC20Factory;
+  let flowERC1155Factory: FlowERC1155Factory;
 
   before(async () => {
     const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
     integrity = (await integrityFactory.deploy()) as FlowIntegrity;
     await integrity.deployed();
 
-    const flowERC20FactoryFactory = await ethers.getContractFactory(
-      "FlowERC20Factory",
+    const flowERC1155FactoryFactory = await ethers.getContractFactory(
+      "FlowERC1155Factory",
       {}
     );
-    flowERC20Factory = (await flowERC20FactoryFactory.deploy(
+    flowERC1155Factory = (await flowERC1155FactoryFactory.deploy(
       integrity.address
-    )) as FlowERC20Factory;
-    await flowERC20Factory.deployed();
+    )) as FlowERC1155Factory;
+    await flowERC1155Factory.deployed();
   });
 
   it("should initialize on the good path", async () => {
@@ -36,6 +36,16 @@ describe("FlowERC20 construction tests", async function () {
     const deployer = signers[0];
 
     const constants = [1, 2];
+
+    // prettier-ignore
+    const sourceRebaseRatio = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    // prettier-ignore
+    const sourceCanTransfer = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+    ]);
 
     // prettier-ignore
     const sourceCanFlow = concat([
@@ -47,20 +57,24 @@ describe("FlowERC20 construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [
+      sourceRebaseRatio,
+      sourceCanTransfer,
+      sourceCanFlow,
+      sourceFlowIO,
+    ];
 
-    const configStruct: FlowERC20ConfigStruct = {
-      name: "Flow ERC721",
-      symbol: "F721",
+    const configStruct: FlowERC1155ConfigStruct = {
+      uri: "F1155",
       vmStateConfig: {
         sources,
         constants,
       },
     };
 
-    const flow = await flowERC20Deploy(
+    const flow = await flowERC1155Deploy(
       deployer,
-      flowERC20Factory,
+      flowERC1155Factory,
       configStruct
     );
 
@@ -71,7 +85,7 @@ describe("FlowERC20 construction tests", async function () {
     )) as InitializeEvent["args"];
 
     assert(
-      sender === flowERC20Factory.address,
+      sender === flowERC1155Factory.address,
       "wrong sender in Initialize event"
     );
 
