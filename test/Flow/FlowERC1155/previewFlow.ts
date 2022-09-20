@@ -1,7 +1,7 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  FlowFactory,
+  FlowERC1155Factory,
   FlowIntegrity,
   ReserveToken,
   ReserveTokenERC1155,
@@ -13,7 +13,7 @@ import {
 } from "../../../typechain/contracts/flow/Flow";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
@@ -21,9 +21,9 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("Flow previewFlow tests", async function () {
+describe("FlowERC1155 previewFlow tests", async function () {
   let integrity: FlowIntegrity;
-  let flowFactory: FlowFactory;
+  let flowFactory: FlowERC1155Factory;
 
   before(async () => {
     const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
@@ -31,12 +31,12 @@ describe("Flow previewFlow tests", async function () {
     await integrity.deployed();
 
     const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowFactory",
+      "FlowERC1155Factory",
       {}
     );
     flowFactory = (await flowFactoryFactory.deploy(
       integrity.address
-    )) as FlowFactory;
+    )) as FlowERC1155Factory;
     await flowFactory.deployed();
   });
 
@@ -95,8 +95,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -151,14 +150,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -214,8 +216,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -258,14 +259,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -315,8 +319,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -359,14 +362,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -409,8 +415,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -445,14 +450,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -493,8 +501,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -523,14 +530,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -568,8 +578,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -598,14 +607,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -636,8 +648,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -655,14 +666,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     await assertError(
       async () => await flow.previewFlow(sources.length - 1, 1234),
@@ -695,8 +709,7 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -714,14 +727,17 @@ describe("Flow previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
