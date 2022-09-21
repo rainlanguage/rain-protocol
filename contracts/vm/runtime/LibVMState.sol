@@ -48,8 +48,6 @@ struct VMState {
     uint256 scratch;
     uint256[] context;
     bytes[] compiledSources;
-    uint[] stack;
-    uint[] constants;
 }
 
 SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
@@ -118,7 +116,7 @@ library LibVMState {
             view
             returns (StackTop)[]
             memory opcodeFunctionPointers_
-    ) internal pure returns (bytes memory) {
+    ) internal view returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
             size_ += scratch_.size();
@@ -173,12 +171,8 @@ library LibVMState {
             // The stack is never stored in stack bytes so we allocate a new
             // array for it with length as per the indexes and point the state
             // at it.
-            state_.stack = new uint256[](stackLength_);
-            state_.stackBottom = state_.stack.asStackTopUp();
-
-            assembly ("memory-safe") {
-                mstore(add(state_, 0xC0), cursor_)
-            }
+            uint[] memory stack_ = new uint256[](stackLength_);
+            state_.stackBottom = stack_.asStackTopUp();
 
             // Reference the constants array and move cursor past it.
             cursor_ = cursor_.up();
@@ -289,14 +283,6 @@ library LibVMState {
         SourceIndex sourceIndex_,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        // VERY HACKY WORKAROUND.
-        // I don't even know why this works or what is broken.
-        // for some reason the eval below does not write values to memory without
-        // this here so then the stack is corrupt.
-        // https://github.com/ethereum/solidity/issues/13530
-        assembly ("memory-safe") {
-            mstore(0x40, add(mload(0x40), 0xA0))
-        }
         unchecked {
             uint256 cursor_;
             uint256 end_;

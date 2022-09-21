@@ -27,7 +27,7 @@ contract FlowVM is ERC1155Holder, StandardVM {
         onlyInitializing
     {
         __ERC1155Holder_init();
-        _saveVMState(config_);
+        _saveVMState(config_, LibUint256Array.arrayFrom(1, 8));
     }
 
     function flowStack(
