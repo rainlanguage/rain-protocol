@@ -22,6 +22,7 @@ struct FlowERC20Config {
     string name;
     string symbol;
     StateConfig vmStateConfig;
+    StateConfig[] flows;
 }
 
 struct FlowERC20IO {
@@ -29,6 +30,8 @@ struct FlowERC20IO {
     uint256 burn;
     FlowIO flow;
 }
+
+uint constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -69,14 +72,15 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     function initialize(FlowERC20Config calldata config_) external initializer {
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveVMState(config_.vmStateConfig);
+        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
+        __FlowVM_init(config_.flows);
         emit Initialize(msg.sender, config_);
     }
 
     function totalSupply() public view virtual override returns (uint256) {
         return
             super.totalSupply().rebaseOutput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
@@ -89,7 +93,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     {
         return
             super.balanceOf(account_).rebaseOutput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
@@ -98,7 +102,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         address to_,
         uint256 amount_
     ) internal view virtual returns (uint256 amountRebased_) {
-        VMState memory state_ = _loadVMState();
+        VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
         amountRebased_ = amount_.rebaseInput(
             state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT)
         );
@@ -138,7 +142,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     {
         return
             super.allowance(owner_, spender_).rebaseOutput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             );
     }
 
@@ -152,17 +156,16 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
             owner_,
             spender_,
             amount_.rebaseInput(
-                _loadVMState().rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
             )
         );
     }
 
     function _previewFlow(
         VMState memory state_,
-        SourceIndex flow_,
         uint256 id_
     ) internal view virtual returns (FlowERC20IO memory flowIO_) {
-        StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
+        StackTop stackTop_ = flowStack(state_, id_);
         (stackTop_, flowIO_.mint) = stackTop_.pop();
         (stackTop_, flowIO_.burn) = stackTop_.pop();
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
@@ -174,31 +177,31 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
 
     function _flow(
         VMState memory state_,
-        SourceIndex flow_,
+        uint flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC20IO memory flowIO_) {
-        flowIO_ = _previewFlow(state_, flow_, id_);
+        flowIO_ = _previewFlow(state_, id_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         _mint(msg.sender, flowIO_.mint);
         _burn(msg.sender, flowIO_.burn);
         LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
     }
 
-    function previewFlow(SourceIndex flow_, uint256 id_)
+    function previewFlow(uint flow_, uint256 id_)
         external
         view
         virtual
         returns (FlowERC20IO memory)
     {
-        return _previewFlow(_loadVMState(), flow_, id_);
+        return _previewFlow(_loadVMState(flow_), id_);
     }
 
-    function flow(SourceIndex flow_, uint256 id_)
+    function flow(uint flow_, uint256 id_)
         external
         virtual
         nonReentrant
         returns (FlowERC20IO memory)
     {
-        return _flow(_loadVMState(), flow_, id_);
+        return _flow(_loadVMState(flow_), flow_, id_);
     }
 }

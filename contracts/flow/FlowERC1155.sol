@@ -17,6 +17,7 @@ uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
 struct FlowERC1155Config {
     string uri;
     StateConfig vmStateConfig;
+    StateConfig[] flows;
 }
 
 struct ERC1155SelfIO {
@@ -29,6 +30,8 @@ struct FlowERC1155IO {
     ERC1155SelfIO[] burns;
     FlowIO flow;
 }
+
+uint constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -53,7 +56,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     {
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveVMState(config_.vmStateConfig);
+        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
+        __FlowVM_init(config_.flows);
         emit Initialize(msg.sender, config_);
     }
 
@@ -87,7 +91,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     {
         return
             super.balanceOf(account_, id_).rebaseOutput(
-                _rebaseRatio(_loadVMState(), id_)
+                _rebaseRatio(_loadVMState(CORE_SOURCE_ID), id_)
             );
     }
 
@@ -98,7 +102,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         uint256[] memory amounts_
     ) internal view virtual returns (uint256[] memory) {
         unchecked {
-            VMState memory state_ = _loadVMState();
+            VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
             uint256[] memory amountsRebased_ = new uint256[](amounts_.length);
             // @todo fix memory leak where each iteration we build new context arrays
             // for both rebase and can transfer when we could just reuse them.
@@ -166,10 +170,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
 
     function _previewFlow(
         VMState memory state_,
-        SourceIndex flow_,
         uint256 id_
     ) internal view returns (FlowERC1155IO memory flowIO_) {
-        StackTop stackTop_ = flowStack(state_, CAN_FLOW_ENTRYPOINT, flow_, id_);
+        StackTop stackTop_ = flowStack(state_, id_);
         uint256[] memory tempArray_;
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             state_.stackBottom,
@@ -193,11 +196,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
 
     function _flow(
         VMState memory state_,
-        SourceIndex flow_,
+        uint flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory flowIO_) {
         unchecked {
-            flowIO_ = _previewFlow(state_, flow_, id_);
+            flowIO_ = _previewFlow(state_, id_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
@@ -219,20 +222,20 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         }
     }
 
-    function previewFlow(SourceIndex flow_, uint256 id_)
+    function previewFlow(uint flow_, uint256 id_)
         external
         view
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _previewFlow(_loadVMState(), flow_, id_);
+        return _previewFlow(_loadVMState(flow_), id_);
     }
 
-    function flow(SourceIndex flow_, uint256 id_)
+    function flow(uint flow_, uint256 id_)
         external
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _flow(_loadVMState(), flow_, id_);
+        return _flow(_loadVMState(flow_), flow_, id_);
     }
 }

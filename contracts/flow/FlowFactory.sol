@@ -27,7 +27,7 @@ contract FlowFactory is Factory {
         override
         returns (address)
     {
-        StateConfig memory config_ = abi.decode(data_, (StateConfig));
+        StateConfig[] memory config_ = abi.decode(data_, (StateConfig[]));
         address clone_ = address(Clones.clone(implementation));
         Flow(payable(clone_)).initialize(config_);
         return clone_;

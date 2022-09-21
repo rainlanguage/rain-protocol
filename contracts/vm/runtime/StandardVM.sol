@@ -6,6 +6,7 @@ import "./RainVM.sol";
 import "../integrity/RainVMIntegrity.sol";
 import "../ops/AllStandardOps.sol";
 
+uint constant DEFAULT_SOURCE_ID = 0;
 uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
 
 contract StandardVM is RainVM {
@@ -16,7 +17,7 @@ contract StandardVM is RainVM {
     address internal immutable vmIntegrity;
 
     /// Address of the immutable rain script deployed as a `VMState`.
-    address internal vmStatePointer;
+    mapping(uint => address) internal vmStatePointers;
 
     constructor(address vmIntegrity_) {
         self = address(this);
@@ -24,16 +25,29 @@ contract StandardVM is RainVM {
     }
 
     function _saveVMState(StateConfig memory config_) internal {
-        return _saveVMState(config_, DEFAULT_MIN_FINAL_STACK);
+        return _saveVMState(DEFAULT_SOURCE_ID, config_);
     }
 
-    function _saveVMState(StateConfig memory config_, uint256 finalMinStack_)
+    function _saveVMState(uint id_, StateConfig memory config_) internal {
+        return _saveVMState(id_, config_, DEFAULT_MIN_FINAL_STACK);
+    }
+
+    function _saveVMState(StateConfig memory config_, uint finalMinStack_) internal {
+        return _saveVMState(DEFAULT_SOURCE_ID, config_, finalMinStack_);
+    }
+
+    function _saveVMState(uint id_, StateConfig memory config_, uint256 finalMinStack_)
         internal
     {
-        return _saveVMState(config_, finalMinStack_.arrayFrom());
+        return _saveVMState(id_, config_, finalMinStack_.arrayFrom());
+    }
+
+    function _saveVMState(StateConfig memory config_, uint[] memory finalMinStacks_) internal {
+        return _saveVMState(DEFAULT_SOURCE_ID, config_, finalMinStacks_);
     }
 
     function _saveVMState(
+        uint id_,
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal virtual {
@@ -42,20 +56,28 @@ contract StandardVM is RainVM {
             config_,
             finalMinStacks_
         );
-        vmStatePointer = SSTORE2.write(stateBytes_);
+        vmStatePointers[id_] = SSTORE2.write(stateBytes_);
     }
 
     function _loadVMState() internal view returns (VMState memory) {
-        return _loadVMState(new uint256[](0));
+        return _loadVMState(DEFAULT_SOURCE_ID);
     }
 
-    function _loadVMState(uint256[] memory context_)
+    function _loadVMState(uint id_) internal view returns (VMState memory) {
+        return _loadVMState(id_, new uint256[](0));
+    }
+
+    function _loadVMState(uint[] memory context_) internal view returns (VMState memory) {
+        return _loadVMState(DEFAULT_SOURCE_ID, context_);
+    }
+
+    function _loadVMState(uint id_, uint256[] memory context_)
         internal
         view
         virtual
         returns (VMState memory)
     {
-        return SSTORE2.read(vmStatePointer).deserialize(context_);
+        return SSTORE2.read(vmStatePointers[id_]).deserialize(context_);
     }
 
     function localEvalFunctionPointers()

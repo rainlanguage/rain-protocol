@@ -8,7 +8,8 @@ import "../idempotent/LibIdempotentFlag.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 
-import "hardhat/console.sol";
+SourceIndex constant CAN_FLOW_ENDPOINT = SourceIndex.wrap(0);
+SourceIndex constant FLOW_ENDPOINT = SourceIndex.wrap(0);
 
 contract FlowVM is ERC1155Holder, StandardVM {
     using LibIdempotentFlag for IdempotentFlag;
@@ -16,46 +17,37 @@ contract FlowVM is ERC1155Holder, StandardVM {
     using LibStackTop for StackTop;
 
     /// flow index => id => time
-    mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
+    mapping(uint => mapping(uint256 => uint256)) private _flows;
 
     constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
 
-    /// @param config_ source and token config. Also controls delegated claims.
+    /// @param flows_ source and token config. Also controls delegated claims.
     // solhint-disable-next-line func-name-mixedcase
-    function __FlowVM_init(StateConfig calldata config_)
+    function __FlowVM_init(StateConfig[] calldata flows_)
         internal
         onlyInitializing
     {
         __ERC1155Holder_init();
-        _saveVMState(config_, LibUint256Array.arrayFrom(1, 8));
+        for (uint i_ = 0; i_ < flows_.length; i_++) {
+            uint id_ = uint(keccak256(abi.encode(flows_[i_])));
+            _saveVMState(id_, flows_[i_], LibUint256Array.arrayFrom(1, 8));
+        }
     }
 
     function flowStack(
         VMState memory state_,
-        SourceIndex canFlow_,
-        SourceIndex flow_,
         uint256 id_
     ) internal view returns (StackTop) {
-        require(
-            SourceIndex.unwrap(flow_) > SourceIndex.unwrap(canFlow_),
-            "FLOW_OOB"
-        );
         state_.context = LibUint256Array.arrayFrom(
-            SourceIndex.unwrap(flow_),
             id_
         );
-        require(
-            SourceIndex.unwrap(flow_) < state_.compiledSources.length,
-            "FLOW_OOB"
-        );
-        // require(state_.eval(canFlow_).peek() > 0, "CANT_FLOW");
-
-        return state_.eval(flow_);
+        require(state_.eval(CAN_FLOW_ENDPOINT).peek() > 0, "CANT_FLOW");
+        return state_.eval(FLOW_ENDPOINT);
     }
 
     function registerFlowTime(
         IdempotentFlag flag_,
-        SourceIndex flow_,
+        uint flow_,
         uint256 id_
     ) internal {
         if (flag_.get(FLAG_INDEX_FLOW_TIME)) {
@@ -68,7 +60,7 @@ contract FlowVM is ERC1155Holder, StandardVM {
         view
         returns (uint256 flowTime_)
     {
-        return _flows[SourceIndex.wrap(flow_)][id_];
+        return _flows[flow_][id_];
     }
 
     function opFlowTime(
