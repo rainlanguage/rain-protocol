@@ -48,7 +48,7 @@ contract FlowVM is ERC1155Holder, StandardVM {
             SourceIndex.unwrap(flow_) < state_.compiledSources.length,
             "FLOW_OOB"
         );
-        require(state_.eval(canFlow_).peek() > 0, "CANT_FLOW");
+        // require(state_.eval(canFlow_).peek() > 0, "CANT_FLOW");
 
         return state_.eval(flow_);
     }
