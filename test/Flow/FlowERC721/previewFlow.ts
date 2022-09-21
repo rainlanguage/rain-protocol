@@ -11,6 +11,7 @@ import {
   FlowIOStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
+import { sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -43,7 +44,64 @@ describe("FlowERC721 previewFlow tests", async function () {
     await flowFactory.deployed();
   });
 
-  // should preview defined flow IO for native Ether
+  it("should preview defined flow IO for native Ether", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(1 + sixZeros),
+      outputNative: ethers.BigNumber.from(2 + sixZeros),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+    ]);
+
+    const sources = [TRUE(), TRUE(), sourceFlowIO];
+
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowERC721Deploy(deployer, flowFactory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      vmStateConfig: stateConfigStruct,
+    });
+
+    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+
+    compareStructs(flowIOPreview, flowIO, true);
+  });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();

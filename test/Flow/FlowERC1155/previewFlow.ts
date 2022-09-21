@@ -11,7 +11,11 @@ import {
   FlowIOStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
-import { RAIN_FLOW_ERC1155_SENTINEL } from "../../../utils/constants/sentinel";
+import { sixZeros } from "../../../utils/constants/bigNumber";
+import {
+  RAIN_FLOW_ERC1155_SENTINEL,
+  RAIN_FLOW_SENTINEL,
+} from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
@@ -40,7 +44,63 @@ describe("FlowERC1155 previewFlow tests", async function () {
     await flowFactory.deployed();
   });
 
-  // should preview defined flow IO for native Ether
+  it("should preview defined flow IO for native Ether", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(1 + sixZeros),
+      outputNative: ethers.BigNumber.from(2 + sixZeros),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowIO.inputNative,
+      flowIO.outputNative,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+    ]);
+
+    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+      uri: "F1155",
+      vmStateConfig: stateConfigStruct,
+    });
+
+    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+
+    compareStructs(flowIOPreview, flowIO, true);
+  });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
@@ -75,6 +135,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -95,37 +156,39 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWIO_INPUT_ERC1155_TOKEN_A = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_INPUT_ERC1155_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWIO_INPUT_ERC1155_AMOUNT_A = () =>
+    const FLOWIO_INPUT_ERC1155_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const FLOWIO_INPUT_ERC1155_TOKEN_B = () =>
+    const FLOWIO_INPUT_ERC1155_AMOUNT_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-    const FLOWIO_INPUT_ERC1155_ID_B = () =>
+    const FLOWIO_INPUT_ERC1155_TOKEN_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    const FLOWIO_INPUT_ERC1155_AMOUNT_B = () =>
+    const FLOWIO_INPUT_ERC1155_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+    const FLOWIO_INPUT_ERC1155_AMOUNT_B = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
 
     const FLOWIO_OUTPUT_ERC1155_TOKEN_A = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-    const FLOWIO_OUTPUT_ERC1155_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
-    const FLOWIO_OUTPUT_ERC1155_AMOUNT_A = () =>
+    const FLOWIO_OUTPUT_ERC1155_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
-    const FLOWIO_OUTPUT_ERC1155_TOKEN_B = () =>
+    const FLOWIO_OUTPUT_ERC1155_AMOUNT_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
-    const FLOWIO_OUTPUT_ERC1155_ID_B = () =>
+    const FLOWIO_OUTPUT_ERC1155_TOKEN_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
-    const FLOWIO_OUTPUT_ERC1155_AMOUNT_B = () =>
+    const FLOWIO_OUTPUT_ERC1155_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 15));
+    const FLOWIO_OUTPUT_ERC1155_AMOUNT_B = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 16));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -148,6 +211,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -200,6 +265,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -216,29 +282,31 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWIO_INPUT_ERC721_TOKEN_A = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_INPUT_ERC721_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWIO_INPUT_ERC721_TOKEN_B = () =>
+    const FLOWIO_INPUT_ERC721_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const FLOWIO_INPUT_ERC721_ID_B = () =>
+    const FLOWIO_INPUT_ERC721_TOKEN_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const FLOWIO_INPUT_ERC721_ID_B = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const FLOWIO_OUTPUT_ERC721_TOKEN_A = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    const FLOWIO_OUTPUT_ERC721_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
-    const FLOWIO_OUTPUT_ERC721_TOKEN_B = () =>
+    const FLOWIO_OUTPUT_ERC721_ID_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-    const FLOWIO_OUTPUT_ERC721_ID_B = () =>
+    const FLOWIO_OUTPUT_ERC721_TOKEN_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
+    const FLOWIO_OUTPUT_ERC721_ID_B = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -257,6 +325,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -303,6 +373,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -319,29 +390,31 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWIO_INPUT_ERC20_TOKEN_A = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_INPUT_ERC20_AMOUNT_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWIO_INPUT_ERC20_TOKEN_B = () =>
+    const FLOWIO_INPUT_ERC20_AMOUNT_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const FLOWIO_INPUT_ERC20_AMOUNT_B = () =>
+    const FLOWIO_INPUT_ERC20_TOKEN_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const FLOWIO_INPUT_ERC20_AMOUNT_B = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const FLOWIO_OUTPUT_ERC20_TOKEN_A = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    const FLOWIO_OUTPUT_ERC20_AMOUNT_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
-    const FLOWIO_OUTPUT_ERC20_TOKEN_B = () =>
+    const FLOWIO_OUTPUT_ERC20_AMOUNT_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-    const FLOWIO_OUTPUT_ERC20_AMOUNT_B = () =>
+    const FLOWIO_OUTPUT_ERC20_TOKEN_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
+    const FLOWIO_OUTPUT_ERC20_AMOUNT_B = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -360,6 +433,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       FLOWIO_INPUT_ERC20_AMOUNT_B(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -401,6 +476,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -415,23 +491,25 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWIO_INPUT_ERC1155_TOKEN = () =>
+    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_INPUT_ERC1155_ID = () =>
+    const FLOWIO_INPUT_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWIO_INPUT_ERC1155_AMOUNT = () =>
+    const FLOWIO_INPUT_ERC1155_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const FLOWIO_OUTPUT_ERC1155_TOKEN = () =>
+    const FLOWIO_INPUT_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-    const FLOWIO_OUTPUT_ERC1155_ID = () =>
+    const FLOWIO_OUTPUT_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    const FLOWIO_OUTPUT_ERC1155_AMOUNT = () =>
+    const FLOWIO_OUTPUT_ERC1155_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+    const FLOWIO_OUTPUT_ERC1155_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -448,6 +526,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -489,6 +569,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -501,19 +582,21 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWIO_INPUT_ERC721_TOKEN = () =>
+    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_INPUT_ERC721_ID = () =>
+    const FLOWIO_INPUT_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWIO_OUTPUT_ERC721_TOKEN = () =>
+    const FLOWIO_INPUT_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const FLOWIO_OUTPUT_ERC721_ID = () =>
+    const FLOWIO_OUTPUT_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const FLOWIO_OUTPUT_ERC721_ID = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -528,6 +611,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -566,6 +651,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -578,19 +664,21 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWIO_INPUT_ERC20_TOKEN = () =>
+    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_INPUT_ERC20_AMOUNT = () =>
+    const FLOWIO_INPUT_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWIO_OUTPUT_ERC20_TOKEN = () =>
+    const FLOWIO_INPUT_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
+    const FLOWIO_OUTPUT_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -605,6 +693,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       FLOWIO_INPUT_ERC20_AMOUNT(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -640,6 +730,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       0,
       flowIO.inputNative,
@@ -648,11 +739,13 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -664,6 +757,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
@@ -701,6 +796,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
+      RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
@@ -709,11 +805,13 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -725,6 +823,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
     const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
