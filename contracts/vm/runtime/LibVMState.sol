@@ -294,7 +294,7 @@ library LibVMState {
         // for some reason the eval below does not write values to memory without
         // this here so then the stack is corrupt.
         // https://github.com/ethereum/solidity/issues/13530
-        console.logBytes("");
+        bytes memory foo_ = abi.encodeWithSignature("log(bytes)", "");
         unchecked {
             uint256 cursor_;
             uint256 end_;
