@@ -11,7 +11,7 @@ import {
   FlowIOStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
-import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
+import { RAIN_FLOW_ERC1155_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
@@ -75,7 +75,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -200,7 +200,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -303,7 +303,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -401,7 +401,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -489,7 +489,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -566,7 +566,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -640,7 +640,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       0,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -701,7 +701,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     };
 
     const constants = [
-      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
