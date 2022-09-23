@@ -13,6 +13,8 @@ contract StandardVM is RainVM {
     using LibVMState for bytes;
     using LibUint256Array for uint256;
 
+    event SaveVMState(address sender, uint id, StateConfig config);
+
     address internal immutable self;
     address internal immutable vmIntegrity;
 
@@ -56,6 +58,7 @@ contract StandardVM is RainVM {
             config_,
             finalMinStacks_
         );
+        emit SaveVMState(msg.sender, id_, config_);
         vmStatePointers[id_] = SSTORE2.write(stateBytes_);
     }
 

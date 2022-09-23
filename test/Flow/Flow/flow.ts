@@ -44,7 +44,7 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should flow for ERC1155<->ERC1155 on the good path", async () => {
+  it.only("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
