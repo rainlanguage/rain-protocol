@@ -5,8 +5,6 @@ import "./FlowVM.sol";
 import "./libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(0);
-
 contract Flow is ReentrancyGuard, FlowVM {
     using LibVMState for VMState;
 

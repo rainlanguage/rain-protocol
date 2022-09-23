@@ -9,7 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 
 SourceIndex constant CAN_FLOW_ENDPOINT = SourceIndex.wrap(0);
-SourceIndex constant FLOW_ENDPOINT = SourceIndex.wrap(0);
+SourceIndex constant FLOW_ENDPOINT = SourceIndex.wrap(1);
 
 contract FlowVM is ERC1155Holder, StandardVM {
     using LibIdempotentFlag for IdempotentFlag;
