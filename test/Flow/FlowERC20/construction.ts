@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/Flow";
+import { InitializeEvent } from "../../../typechain/contracts/flow/FlowERC20";
 import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/FlowERC20";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
@@ -38,25 +38,47 @@ describe("FlowERC20 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
+    const sourceRebaseRatio = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    // prettier-ignore
+    const sourceCanTransfer = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    // prettier-ignore
     const sourceCanFlow = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [sourceRebaseRatio, sourceCanTransfer];
 
     const configStruct: FlowERC20ConfigStruct = {
-      name: "Flow ERC721",
-      symbol: "F721",
+      name: "Flow ERC20",
+      symbol: "F20",
       vmStateConfig: {
         sources,
         constants,
       },
-      flows: [],
+      flows: [
+        {
+          sources: [sourceCanFlow, sourceFlowIO],
+          constants,
+        },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -65,7 +87,7 @@ describe("FlowERC20 construction tests", async function () {
       configStruct
     );
 
-    const { sender, flows } = (await getEventArgs(
+    const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
       "Initialize",
       flow
@@ -76,6 +98,6 @@ describe("FlowERC20 construction tests", async function () {
       "wrong sender in Initialize event"
     );
 
-    compareStructs(flows[0], configStruct);
+    compareStructs(config, configStruct);
   });
 });
