@@ -67,7 +67,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -84,7 +84,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -97,7 +97,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -167,7 +167,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -222,7 +222,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -235,7 +235,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -301,7 +301,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -344,7 +344,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -357,7 +357,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -417,7 +417,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -460,7 +460,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -473,7 +473,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -526,7 +526,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -561,7 +561,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -574,7 +574,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -625,7 +625,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -654,7 +654,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -667,7 +667,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -715,7 +715,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -744,7 +744,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -757,7 +757,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -798,7 +798,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -816,7 +816,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -829,7 +829,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
@@ -872,7 +872,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -890,7 +890,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE()];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -903,7 +903,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [TRUE(), sourceFlowIO],
+          sources: [ONE(), sourceFlowIO],
           constants,
         },
       ],
