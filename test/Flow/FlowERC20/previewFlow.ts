@@ -9,12 +9,14 @@ import {
 } from "../../../typechain";
 import {
   FlowIOStruct,
+  SaveVMStateEvent,
   StateConfigStruct,
-} from "../../../typechain/contracts/flow/Flow";
+} from "../../../typechain/contracts/flow/FlowERC20";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
@@ -82,7 +84,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -93,9 +95,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -208,7 +222,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -219,9 +233,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -318,7 +344,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -329,9 +355,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -422,7 +460,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -433,9 +471,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -511,7 +561,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -522,9 +572,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -592,7 +654,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -603,9 +665,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -670,7 +744,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -681,9 +755,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -730,7 +816,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -741,10 +827,22 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     await assertError(
-      async () => await flow.previewFlow(sources.length - 1, 1234),
+      async () => await flow.previewFlow(flowStates[0].id, 1234),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -792,7 +890,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [TRUE(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -803,9 +901,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       name: "FlowERC20",
       symbol: "F20",
       vmStateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [TRUE(), sourceFlowIO],
+          constants,
+        },
+      ],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });

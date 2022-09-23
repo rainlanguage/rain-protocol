@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { concat, keccak256 } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowFactory,
@@ -681,12 +681,6 @@ describe("Flow flow tests", async function () {
     };
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
-
-    const flowStates = (await getEvents(
-      flow.deployTransaction,
-      "SaveVMState",
-      flow
-    )) as SaveVMStateEvent["args"][];
 
     await signers[0].sendTransaction({
       to: flow.address,

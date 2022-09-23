@@ -9,12 +9,14 @@ import {
 } from "../../../typechain";
 import {
   FlowIOStruct,
+  SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
@@ -92,7 +94,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -215,7 +223,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -322,7 +336,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -423,7 +443,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -509,7 +535,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -587,7 +619,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -662,7 +700,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -719,8 +763,14 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     await assertError(
-      async () => await flow.previewFlow(sources.length - 1, 1234),
+      async () => await flow.previewFlow(flowStates[0].id, 1234),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -778,7 +828,13 @@ describe("Flow previewFlow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
