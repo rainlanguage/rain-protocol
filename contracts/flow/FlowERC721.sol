@@ -39,7 +39,6 @@ struct FlowERC721IO {
 uint constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(1);
 
 /// @title FlowERC721
 contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {

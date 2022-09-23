@@ -35,7 +35,6 @@ uint constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
-SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(2);
 
 contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     using LibVMState for VMState;
