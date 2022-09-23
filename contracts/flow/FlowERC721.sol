@@ -65,7 +65,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
         _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
-        __FlowVM_init(config_.flows);
+        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
         emit Initialize(msg.sender, config_);
     }
 

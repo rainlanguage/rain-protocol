@@ -56,7 +56,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
         _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
-        __FlowVM_init(config_.flows);
+        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
         emit Initialize(msg.sender, config_);
     }
 

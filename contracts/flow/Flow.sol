@@ -17,7 +17,7 @@ contract Flow is ReentrancyGuard, FlowVM {
 
     /// @param flows_ source and token config. Also controls delegated claims.
     function initialize(StateConfig[] calldata flows_) external initializer {
-        __FlowVM_init(flows_);
+        __FlowVM_init(flows_, LibUint256Array.arrayFrom(1, 8));
         emit Initialize(msg.sender, flows_);
     }
 

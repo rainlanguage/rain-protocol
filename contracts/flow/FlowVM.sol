@@ -24,7 +24,7 @@ contract FlowVM is ERC721Holder, ERC1155Holder, StandardVM {
 
     /// @param flows_ source and token config. Also controls delegated claims.
     // solhint-disable-next-line func-name-mixedcase
-    function __FlowVM_init(StateConfig[] calldata flows_)
+    function __FlowVM_init(StateConfig[] calldata flows_, uint256[] memory flowsFinalMinStacks_)
         internal
         onlyInitializing
     {
@@ -32,7 +32,7 @@ contract FlowVM is ERC721Holder, ERC1155Holder, StandardVM {
         __ERC1155Holder_init();
         for (uint i_ = 0; i_ < flows_.length; i_++) {
             uint id_ = uint(keccak256(abi.encode(flows_[i_])));
-            _saveVMState(id_, flows_[i_], LibUint256Array.arrayFrom(1, 8));
+            _saveVMState(id_, flows_[i_], flowsFinalMinStacks_);
         }
     }
 
