@@ -90,7 +90,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       MINT(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,

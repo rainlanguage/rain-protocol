@@ -63,7 +63,6 @@ library LibFlow {
             uint256[] memory refs_;
             (stackTop_, flowIO_.inputNative) = stackTop_.pop();
             (stackTop_, flowIO_.outputNative) = stackTop_.pop();
-
             // inputs20
             (stackTop_, tempArray_) = stackTop_.consumeSentinel(
                 stackBottom_,
@@ -85,7 +84,6 @@ library LibFlow {
                     mstore(cursor_, refCursor_)
                 }
             }
-
             // outputs20
             (stackTop_, tempArray_) = stackTop_.consumeSentinel(
                 stackBottom_,
@@ -107,7 +105,6 @@ library LibFlow {
                     mstore(cursor_, refCursor_)
                 }
             }
-
             // inputs721
             (stackTop_, tempArray_) = stackTop_.consumeSentinel(
                 stackBottom_,
@@ -129,7 +126,6 @@ library LibFlow {
                     mstore(cursor_, refCursor_)
                 }
             }
-
             // outputs721
             (stackTop_, tempArray_) = stackTop_.consumeSentinel(
                 stackBottom_,
@@ -151,7 +147,6 @@ library LibFlow {
                     mstore(cursor_, refCursor_)
                 }
             }
-
             // inputs1155
             (stackTop_, tempArray_) = stackTop_.consumeSentinel(
                 stackBottom_,
@@ -173,7 +168,6 @@ library LibFlow {
                     mstore(cursor_, refCursor_)
                 }
             }
-
             // outputs1155
             (stackTop_, tempArray_) = stackTop_.consumeSentinel(
                 stackBottom_,

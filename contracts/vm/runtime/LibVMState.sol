@@ -71,6 +71,25 @@ library LibVMState {
         view
         returns (StackTop)[];
 
+    function debugArray(uint[] memory array_) internal view {
+            console.log("~~~");
+            for (uint256 i_ = 0; i_ < array_.length; i_++) {
+                console.log(i_, array_[i_]);
+            }
+            console.log("***");
+    }
+
+    function debugStack(StackTop stackBottom_, StackTop stackTop_) internal view returns (StackTop) {
+                uint length_ = stackBottom_.toIndex(stackTop_);
+                debugArray(StackTop
+                    .unwrap(stackTop_.down(length_))
+                    .copyToNewUint256Array(length_));
+    }
+
+    function debugStack(VMState memory state_, StackTop stackTop_) internal view returns (StackTop) {
+        return debugStack(state_.stackBottom, stackTop_);
+    }
+
     /// Console log various aspects of the VM state.
     /// Gas intensive and relies on hardhat console so not intended for
     /// production but great for debugging rain scripts.
@@ -84,25 +103,13 @@ library LibVMState {
                 console.logBytes(state_.compiledSources[i_]);
             }
         } else {
-            uint256[] memory array_;
-            uint256 length_;
             if (debugStyle_ == DebugStyle.Stack) {
-                length_ = state_.stackBottom.toIndex(stackTop_);
-                array_ = StackTop
-                    .unwrap(stackTop_.down(length_))
-                    .copyToNewUint256Array(length_);
+                state_.debugStack(stackTop_);
             } else if (debugStyle_ == DebugStyle.Constant) {
-                array_ = state_.constantsBottom.down().asUint256Array();
-                length_ = array_.length;
+                debugArray(state_.constantsBottom.down().asUint256Array());
             } else {
-                array_ = state_.context;
-                length_ = array_.length;
+                debugArray(state_.context);
             }
-            console.log("~~~");
-            for (uint256 i_ = 0; i_ < length_; i_++) {
-                console.log(i_, array_[i_]);
-            }
-            console.log("***");
         }
         return stackTop_;
     }
