@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { concat } from "ethers/lib/utils";
+import { concat, keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowFactory,
@@ -12,12 +12,14 @@ import {
 import {
   FlowIOStruct,
   FlowIOStructOutput,
+  SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
@@ -44,7 +46,7 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should flow for ERC1155<->ERC1155 on the good path", async () => {
+  it.only("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -143,6 +145,12 @@ describe("Flow flow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     const you = signers[1];
     const me = flow;
 
@@ -168,44 +176,46 @@ describe("Flow flow tests", async function () {
 
     await erc1155In.connect(you).setApprovalForAll(me.address, true);
 
-    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowStates[0].id, 1234);
 
-    // compareStructs(flowStruct, flowIO);
+    compareStructs(flowStruct, flowIO);
 
-    // const _txFlow = await flow.connect(you).flow(1, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
-    // const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
-    // const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
-    // const youBalanceIn = await erc1155In.balanceOf(you.address, 0);
-    // const youBalanceOut = await erc1155Out.balanceOf(you.address, 0);
+    const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
+    const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
+    const youBalanceIn = await erc1155In.balanceOf(you.address, 0);
+    const youBalanceOut = await erc1155Out.balanceOf(you.address, 0);
 
-    // assert(
-    //   meBalanceIn.eq(flowStruct.inputs1155[0].amount),
-    //   `wrong balance for me (flow contract)
-    //   expected  ${flowStruct.inputs1155[0].amount}
-    //   got       ${meBalanceIn}`
-    // );
+    assert(
+      meBalanceIn.eq(flowStruct.inputs1155[0].amount),
+      `wrong balance for me (flow contract)
+      expected  ${flowStruct.inputs1155[0].amount}
+      got       ${meBalanceIn}`
+    );
 
-    // assert(
-    //   meBalanceOut.eq(BigNumber.from(0)),
-    //   `wrong balance for me (flow contract)
-    //   expected  ${0}
-    //   got       ${meBalanceOut}`
-    // );
+    assert(
+      meBalanceOut.eq(BigNumber.from(0)),
+      `wrong balance for me (flow contract)
+      expected  ${0}
+      got       ${meBalanceOut}`
+    );
 
-    // assert(
-    //   youBalanceIn.eq(BigNumber.from(0)),
-    //   `wrong balance for me (flow contract)
-    //   expected  ${0}
-    //   got       ${youBalanceIn}`
-    // );
+    assert(
+      youBalanceIn.eq(BigNumber.from(0)),
+      `wrong balance for me (flow contract)
+      expected  ${0}
+      got       ${youBalanceIn}`
+    );
 
-    // assert(
-    //   youBalanceOut.eq(flowStruct.outputs1155[0].amount),
-    //   `wrong balance for you (signer1 contract)
-    //   expected  ${flowStruct.outputs1155[0].amount}
-    //   got       ${youBalanceOut}`
-    // );
+    assert(
+      youBalanceOut.eq(flowStruct.outputs1155[0].amount),
+      `wrong balance for you (signer1 contract)
+      expected  ${flowStruct.outputs1155[0].amount}
+      got       ${youBalanceOut}`
+    );
   });
 
   it("should flow for ERC721<->ERC721 on the good path", async () => {

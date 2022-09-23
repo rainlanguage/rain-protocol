@@ -6,20 +6,20 @@ import "./RainVM.sol";
 import "../integrity/RainVMIntegrity.sol";
 import "../ops/AllStandardOps.sol";
 
-uint constant DEFAULT_SOURCE_ID = 0;
+uint256 constant DEFAULT_SOURCE_ID = 0;
 uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
 
 contract StandardVM is RainVM {
     using LibVMState for bytes;
     using LibUint256Array for uint256;
 
-    event SaveVMState(address sender, uint id, StateConfig config);
+    event SaveVMState(address sender, uint256 id, StateConfig config);
 
     address internal immutable self;
     address internal immutable vmIntegrity;
 
     /// Address of the immutable rain script deployed as a `VMState`.
-    mapping(uint => address) internal vmStatePointers;
+    mapping(uint256 => address) internal vmStatePointers;
 
     constructor(address vmIntegrity_) {
         self = address(this);
@@ -30,26 +30,33 @@ contract StandardVM is RainVM {
         return _saveVMState(DEFAULT_SOURCE_ID, config_);
     }
 
-    function _saveVMState(uint id_, StateConfig memory config_) internal {
+    function _saveVMState(uint256 id_, StateConfig memory config_) internal {
         return _saveVMState(id_, config_, DEFAULT_MIN_FINAL_STACK);
     }
 
-    function _saveVMState(StateConfig memory config_, uint finalMinStack_) internal {
+    function _saveVMState(StateConfig memory config_, uint256 finalMinStack_)
+        internal
+    {
         return _saveVMState(DEFAULT_SOURCE_ID, config_, finalMinStack_);
     }
 
-    function _saveVMState(uint id_, StateConfig memory config_, uint256 finalMinStack_)
-        internal
-    {
+    function _saveVMState(
+        uint256 id_,
+        StateConfig memory config_,
+        uint256 finalMinStack_
+    ) internal {
         return _saveVMState(id_, config_, finalMinStack_.arrayFrom());
     }
 
-    function _saveVMState(StateConfig memory config_, uint[] memory finalMinStacks_) internal {
+    function _saveVMState(
+        StateConfig memory config_,
+        uint256[] memory finalMinStacks_
+    ) internal {
         return _saveVMState(DEFAULT_SOURCE_ID, config_, finalMinStacks_);
     }
 
     function _saveVMState(
-        uint id_,
+        uint256 id_,
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal virtual {
@@ -66,22 +73,26 @@ contract StandardVM is RainVM {
         return _loadVMState(DEFAULT_SOURCE_ID);
     }
 
-    function _loadVMState(uint id_) internal view returns (VMState memory) {
+    function _loadVMState(uint256 id_) internal view returns (VMState memory) {
         return _loadVMState(id_, new uint256[](0));
     }
 
-    function _loadVMState(uint[] memory context_) internal view returns (VMState memory) {
+    function _loadVMState(uint256[] memory context_)
+        internal
+        view
+        returns (VMState memory)
+    {
         return _loadVMState(DEFAULT_SOURCE_ID, context_);
     }
 
-    function _loadVMState(uint id_, uint256[] memory context_)
+    function _loadVMState(uint256 id_, uint256[] memory context_)
         internal
         view
         virtual
         returns (VMState memory)
     {
         address pointer_ = vmStatePointers[id_];
-        require(pointer_ != address(0), "UNKNOWN STATE");
+        require(pointer_ != address(0), "UNKNOWN_STATE");
         return SSTORE2.read(pointer_).deserialize(context_);
     }
 
