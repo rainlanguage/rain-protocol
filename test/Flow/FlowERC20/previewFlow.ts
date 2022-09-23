@@ -43,7 +43,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it("should preview defined flow IO for native Ether", async () => {
+  it.only("should preview defined flow IO for native Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -63,6 +63,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       1,
       flowIO.inputNative,
       flowIO.outputNative,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -72,6 +74,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -82,6 +86,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
