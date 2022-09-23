@@ -80,7 +80,9 @@ contract StandardVM is RainVM {
         virtual
         returns (VMState memory)
     {
-        return SSTORE2.read(vmStatePointers[id_]).deserialize(context_);
+        address pointer_ = vmStatePointers[id_];
+        require(pointer_ != address(0), "UNKNOWN STATE");
+        return SSTORE2.read(pointer_).deserialize(context_);
     }
 
     function localEvalFunctionPointers()
