@@ -68,7 +68,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -85,7 +85,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -159,7 +159,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -216,7 +216,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -286,7 +286,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -331,7 +331,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -395,7 +395,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -440,7 +440,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -497,7 +497,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -534,7 +534,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -589,7 +589,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -620,7 +620,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -672,7 +672,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -703,7 +703,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -748,7 +748,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -768,7 +768,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -815,7 +815,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -835,7 +835,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [TRUE(), TRUE(), TRUE(), sourceFlowIO];
+    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
