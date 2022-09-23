@@ -25,7 +25,7 @@ import { Struct } from "../../../utils/types";
 
 const Opcode = AllStandardOps;
 
-describe.only("Flow flow tests", async function () {
+describe("Flow flow tests", async function () {
   let integrity: FlowIntegrity;
   let flowFactory: FlowFactory;
 
@@ -134,14 +134,14 @@ describe.only("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const stateConfigStructs: StateConfigStruct[] = [
+      {
+        sources: [CAN_FLOW(), sourceFlowIO],
+        constants,
+      },
+    ];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
-    };
-
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
 
     const you = signers[1];
     const me = flow;
@@ -171,13 +171,13 @@ describe.only("Flow flow tests", async function () {
     const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
 
     compareStructs(flowStruct, flowIO);
-    
+
     const _txFlow = await flow.connect(you).flow(1, 1234);
 
-    const meBalanceIn = await erc1155In.balanceOf(me.address,0);
-    const meBalanceOut =await erc1155Out.balanceOf(me.address,0);
-    const youBalanceIn = await erc1155In.balanceOf(you.address,0);
-    const youBalanceOut =await erc1155Out.balanceOf(you.address,0);
+    const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
+    const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
+    const youBalanceIn = await erc1155In.balanceOf(you.address, 0);
+    const youBalanceOut = await erc1155Out.balanceOf(you.address, 0);
 
     assert(
       meBalanceIn.eq(flowStruct.inputs1155[0].amount),
@@ -185,7 +185,7 @@ describe.only("Flow flow tests", async function () {
       expected  ${flowStruct.inputs1155[0].amount}
       got       ${meBalanceIn}`
     );
-    
+
     assert(
       meBalanceOut.eq(BigNumber.from(0)),
       `wrong balance for me (flow contract)
@@ -199,14 +199,13 @@ describe.only("Flow flow tests", async function () {
       expected  ${0}
       got       ${youBalanceIn}`
     );
-    
+
     assert(
       youBalanceOut.eq(flowStruct.outputs1155[0].amount),
-      `wrong balance for you (flow contract)
+      `wrong balance for you (signer1 contract)
       expected  ${flowStruct.outputs1155[0].amount}
       got       ${youBalanceOut}`
     );
-   
   });
 
   it("should flow for ERC721<->ERC721 on the good path", async () => {
@@ -289,14 +288,14 @@ describe.only("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const stateConfigStructs: StateConfigStruct[] = [
+      {
+        sources: [CAN_FLOW(), sourceFlowIO],
+        constants,
+      },
+    ];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
-    };
-
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
 
     const you = signers[1];
     const me = flow;
@@ -325,17 +324,17 @@ describe.only("Flow flow tests", async function () {
     const _txFlow = await flow.connect(you).flow(1, 1234);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
-    const meBalanceOut =await erc721Out.balanceOf(me.address);
+    const meBalanceOut = await erc721Out.balanceOf(me.address);
     const youBalanceIn = await erc721In.balanceOf(you.address);
-    const youBalanceOut =await erc721Out.balanceOf(you.address);
-    
+    const youBalanceOut = await erc721Out.balanceOf(you.address);
+
     assert(
       meBalanceIn.eq(BigNumber.from(1)),
       `wrong balance for me (flow contract)
       expected  ${BigNumber.from(1)}
       got       ${meBalanceIn}`
     );
-    
+
     assert(
       meBalanceOut.eq(BigNumber.from(0)),
       `wrong balance for me (flow contract)
@@ -352,7 +351,7 @@ describe.only("Flow flow tests", async function () {
 
     assert(
       youBalanceOut.eq(BigNumber.from(1)),
-      `wrong balance for you (flow contract)
+      `wrong balance for you (signer1 contract)
       expected  ${BigNumber.from(1)}
       got       ${youBalanceOut}`
     );
@@ -435,14 +434,14 @@ describe.only("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const stateConfigStructs: StateConfigStruct[] = [
+      {
+        sources: [CAN_FLOW(), sourceFlowIO],
+        constants,
+      },
+    ];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
-    };
-
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
 
     const you = signers[1];
     const me = flow;
@@ -460,9 +459,9 @@ describe.only("Flow flow tests", async function () {
     const _txFlow = await flow.connect(you).flow(1, 1234);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
-    const meBalanceOut =await erc20Out.balanceOf(me.address);
+    const meBalanceOut = await erc20Out.balanceOf(me.address);
     const youBalanceIn = await erc20In.balanceOf(you.address);
-    const youBalanceOut =await erc20Out.balanceOf(you.address);
+    const youBalanceOut = await erc20Out.balanceOf(you.address);
 
     assert(
       meBalanceIn.eq(flowStruct.inputs20[0].amount),
@@ -470,7 +469,7 @@ describe.only("Flow flow tests", async function () {
       expected  ${flowStruct.inputs20[0].amount}
       got       ${meBalanceIn}`
     );
-    
+
     assert(
       meBalanceOut.eq(BigNumber.from(0)),
       `wrong balance for me (flow contract)
@@ -484,14 +483,13 @@ describe.only("Flow flow tests", async function () {
       expected  ${0}
       got       ${youBalanceIn}`
     );
-    
+
     assert(
       youBalanceOut.eq(flowStruct.outputs20[0].amount),
-      `wrong balance for you (flow contract)
+      `wrong balance for you (signer1 contract)
       expected  ${flowStruct.outputs20[0].amount}
       got       ${youBalanceOut}`
     );
-
   });
 
   it("should flow for native<->native on the good path", async () => {
@@ -536,14 +534,14 @@ describe.only("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const stateConfigStructs: StateConfigStruct[] = [
+      {
+        sources: [CAN_FLOW(), sourceFlowIO],
+        constants,
+      },
+    ];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
-    };
-
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
 
     const you = signers[1];
     const me = flow;
@@ -641,14 +639,14 @@ describe.only("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const stateConfigStructs: StateConfigStruct[] = [
+      {
+        sources: [CAN_FLOW(), sourceFlowIO],
+        constants,
+      },
+    ];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
-    };
-
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
 
     await signers[0].sendTransaction({
       to: flow.address,

@@ -46,7 +46,14 @@ describe("Flow construction tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
     ]);
 
     const sources = [sourceCanFlow, sourceFlowIO];
@@ -56,9 +63,9 @@ describe("Flow construction tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
-    const { sender, config } = (await getEventArgs(
+    const { sender, flows } = (await getEventArgs(
       flow.deployTransaction,
       "Initialize",
       flow
@@ -66,6 +73,6 @@ describe("Flow construction tests", async function () {
 
     assert(sender === flowFactory.address, "wrong sender in Initialize event");
 
-    compareStructs(config, stateConfigStruct);
+    compareStructs(flows[0], stateConfigStruct);
   });
 });

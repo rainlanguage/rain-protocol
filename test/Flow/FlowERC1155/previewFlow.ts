@@ -95,6 +95,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -225,6 +226,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -339,6 +341,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -447,6 +450,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -540,6 +544,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -625,6 +630,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -707,6 +713,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
@@ -771,6 +778,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     await assertError(
@@ -837,6 +845,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
+      flows: [],
     });
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);

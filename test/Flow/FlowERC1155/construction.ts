@@ -70,6 +70,7 @@ describe("FlowERC1155 construction tests", async function () {
         sources,
         constants,
       },
+      flows: [],
     };
 
     const flow = await flowERC1155Deploy(
@@ -78,7 +79,7 @@ describe("FlowERC1155 construction tests", async function () {
       configStruct
     );
 
-    const { sender, config } = (await getEventArgs(
+    const { sender, flows } = (await getEventArgs(
       flow.deployTransaction,
       "Initialize",
       flow
@@ -89,6 +90,6 @@ describe("FlowERC1155 construction tests", async function () {
       "wrong sender in Initialize event"
     );
 
-    compareStructs(config, configStruct);
+    compareStructs(flows[0], configStruct);
   });
 });

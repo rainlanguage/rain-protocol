@@ -90,7 +90,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -213,7 +213,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -320,7 +320,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -421,7 +421,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -507,7 +507,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -585,7 +585,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -660,7 +660,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 
@@ -717,7 +717,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     await assertError(
       async () => await flow.previewFlow(sources.length - 1, 1234),
@@ -776,7 +776,7 @@ describe("Flow previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
 

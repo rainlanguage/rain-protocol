@@ -37,9 +37,9 @@ contract FlowFactory is Factory {
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///
-    /// @param config_ `FlowE` constructor configuration.
+    /// @param config_ `Flow` constructor configuration.
     /// @return New `Flow` child contract address.
-    function createChildTyped(StateConfig memory config_)
+    function createChildTyped(StateConfig[] memory config_)
         external
         returns (Flow)
     {

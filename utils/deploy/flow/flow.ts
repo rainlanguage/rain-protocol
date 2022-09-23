@@ -26,7 +26,7 @@ import { getEventArgs } from "../../events";
 export const flowDeploy = async (
   deployer: SignerWithAddress,
   flowFactory: FlowFactory,
-  stateConfigStruct: StateConfigStruct,
+  stateConfigStruct: StateConfigStruct[],
   ...args: Overrides[]
 ): Promise<Flow> => {
   const txDeploy = await flowFactory.createChildTyped(
