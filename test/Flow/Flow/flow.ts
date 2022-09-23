@@ -46,7 +46,7 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it.only("should flow for ERC1155<->ERC1155 on the good path", async () => {
+  it("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -307,6 +307,12 @@ describe("Flow flow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     const you = signers[1];
     const me = flow;
 
@@ -327,11 +333,13 @@ describe("Flow flow tests", async function () {
 
     await erc721In.connect(you).approve(me.address, flowIO.inputs721[0].id);
 
-    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowStates[0].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(1, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -453,6 +461,12 @@ describe("Flow flow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     const you = signers[1];
     const me = flow;
 
@@ -462,11 +476,13 @@ describe("Flow flow tests", async function () {
 
     await erc20In.connect(you).approve(me.address, flowIO.inputs20[0].amount);
 
-    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234);
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowStates[0].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(1, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -553,6 +569,12 @@ describe("Flow flow tests", async function () {
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     const you = signers[1];
     const me = flow;
 
@@ -567,15 +589,17 @@ describe("Flow flow tests", async function () {
 
     assert(meBalance0.eq(flowIO.outputNative));
 
-    const flowStruct = await flow.connect(you).callStatic.flow(1, 1234, {
-      value: ethers.BigNumber.from(flowIO.inputNative),
-    });
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowStates[0].id, 1234, {
+        value: ethers.BigNumber.from(flowIO.inputNative),
+      });
 
     compareStructs(flowStruct, flowIO);
 
-    const txFlow = await flow
-      .connect(you)
-      .flow(1, 1234, { value: ethers.BigNumber.from(flowIO.inputNative) });
+    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
+      value: ethers.BigNumber.from(flowIO.inputNative),
+    });
 
     const { gasUsed } = await txFlow.wait();
     const { gasPrice } = txFlow;
@@ -657,6 +681,12 @@ describe("Flow flow tests", async function () {
     };
 
     const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
 
     await signers[0].sendTransaction({
       to: flow.address,
