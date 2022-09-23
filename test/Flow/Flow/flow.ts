@@ -44,7 +44,7 @@ describe("Flow flow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it.only("should flow for ERC1155<->ERC1155 on the good path", async () => {
+  it("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -134,14 +134,14 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const stateConfigStructs: StateConfigStruct[] = [
-      {
-        sources: [CAN_FLOW(), sourceFlowIO],
-        constants,
-      },
-    ];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const you = signers[1];
     const me = flow;
@@ -288,14 +288,14 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const stateConfigStructs: StateConfigStruct[] = [
-      {
-        sources: [CAN_FLOW(), sourceFlowIO],
-        constants,
-      },
-    ];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const you = signers[1];
     const me = flow;
@@ -434,14 +434,14 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const stateConfigStructs: StateConfigStruct[] = [
-      {
-        sources: [CAN_FLOW(), sourceFlowIO],
-        constants,
-      },
-    ];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const you = signers[1];
     const me = flow;
@@ -534,14 +534,14 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const stateConfigStructs: StateConfigStruct[] = [
-      {
-        sources: [CAN_FLOW(), sourceFlowIO],
-        constants,
-      },
-    ];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     const you = signers[1];
     const me = flow;
@@ -639,14 +639,14 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const stateConfigStructs: StateConfigStruct[] = [
-      {
-        sources: [CAN_FLOW(), sourceFlowIO],
-        constants,
-      },
-    ];
+    const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const flow = await flowDeploy(deployer, flowFactory, stateConfigStructs);
+    const stateConfigStruct: StateConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
 
     await signers[0].sendTransaction({
       to: flow.address,
