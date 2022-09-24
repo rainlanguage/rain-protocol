@@ -84,6 +84,7 @@ library LibVMState {
                 debugArray(StackTop
                     .unwrap(stackTop_.down(length_))
                     .copyToNewUint256Array(length_));
+                    return stackTop_;
     }
 
     function debugStack(VMState memory state_, StackTop stackTop_) internal view returns (StackTop) {

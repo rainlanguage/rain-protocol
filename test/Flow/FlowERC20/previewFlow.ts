@@ -1,3 +1,4 @@
+import { utils } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -12,7 +13,7 @@ import {
   SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/FlowERC20";
-import { sixZeros } from "../../../utils/constants/bigNumber";
+import { sixZeros, ONE } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
@@ -43,7 +44,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     await flowFactory.deployed();
   });
 
-  it.only("should preview defined flow IO for native Ether", async () => {
+  it("should preview defined flow IO for native Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
@@ -61,6 +62,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
+      ONE,
       flowIO.inputNative,
       flowIO.outputNative,
       20,
@@ -69,13 +71,14 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE_OP = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -90,7 +93,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       MINT(),
     ]);
 
-    const sources = [ONE(), sourceFlowIO];
+    const sources = [ONE_OP(), TRUE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -103,7 +106,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [ONE(), sourceFlowIO],
+          sources: [TRUE(), sourceFlowIO],
           constants,
         },
       ],
@@ -115,7 +118,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });

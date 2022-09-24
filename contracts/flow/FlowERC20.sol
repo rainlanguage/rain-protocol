@@ -68,10 +68,10 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     }
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(FlowERC20Config calldata config_) external initializer {
+    function initialize(FlowERC20Config memory config_) external initializer {
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
+        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig, LibUint256Array.arrayFrom(1, 1));
         __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
         emit Initialize(msg.sender, config_);
     }
