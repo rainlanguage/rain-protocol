@@ -1,4 +1,3 @@
-import { utils } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -13,7 +12,7 @@ import {
   SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/FlowERC20";
-import { sixZeros, ONE } from "../../../utils/constants/bigNumber";
+import { ONE, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
@@ -72,7 +71,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE_OP = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ONE_OP = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_OUTPUT_NATIVE = () =>

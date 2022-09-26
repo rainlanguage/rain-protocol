@@ -1,7 +1,7 @@
 let
   pkgs = import
     (builtins.fetchTarball {
-      name = "nixos-unstable-2021-10-01";
+      name = "nixos-unstable-2022-09-23";
       url = "https://github.com/nixos/nixpkgs/archive/866431777b6c766cea0db7aad347824d3816be68.tar.gz";
       sha256 = "12yhys7i62bsyylbmg0qz9yxwrqy7nigm3w3r6drbgxsxvw3p0pp";
     })

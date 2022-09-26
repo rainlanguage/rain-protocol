@@ -71,23 +71,33 @@ library LibVMState {
         view
         returns (StackTop)[];
 
-    function debugArray(uint[] memory array_) internal view {
-            console.log("~~~");
-            for (uint256 i_ = 0; i_ < array_.length; i_++) {
-                console.log(i_, array_[i_]);
-            }
-            console.log("***");
+    function debugArray(uint256[] memory array_) internal view {
+        console.log("~~~");
+        for (uint256 i_ = 0; i_ < array_.length; i_++) {
+            console.log(i_, array_[i_]);
+        }
+        console.log("***");
     }
 
-    function debugStack(StackTop stackBottom_, StackTop stackTop_) internal view returns (StackTop) {
-                uint length_ = stackBottom_.toIndex(stackTop_);
-                debugArray(StackTop
-                    .unwrap(stackTop_.down(length_))
-                    .copyToNewUint256Array(length_));
-                    return stackTop_;
+    function debugStack(StackTop stackBottom_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
+        uint256 length_ = stackBottom_.toIndex(stackTop_);
+        debugArray(
+            StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(
+                length_
+            )
+        );
+        return stackTop_;
     }
 
-    function debugStack(VMState memory state_, StackTop stackTop_) internal view returns (StackTop) {
+    function debugStack(VMState memory state_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return debugStack(state_.stackBottom, stackTop_);
     }
 
@@ -179,7 +189,7 @@ library LibVMState {
             // The stack is never stored in stack bytes so we allocate a new
             // array for it with length as per the indexes and point the state
             // at it.
-            uint[] memory stack_ = new uint256[](stackLength_);
+            uint256[] memory stack_ = new uint256[](stackLength_);
             state_.stackBottom = stack_.asStackTopUp();
 
             // Reference the constants array and move cursor past it.

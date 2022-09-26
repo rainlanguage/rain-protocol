@@ -31,7 +31,7 @@ struct FlowERC1155IO {
     FlowIO flow;
 }
 
-uint constant CORE_SOURCE_ID = 0;
+uint256 constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -167,10 +167,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             );
     }
 
-    function _previewFlow(
-        VMState memory state_,
-        uint256 id_
-    ) internal view returns (FlowERC1155IO memory flowIO_) {
+    function _previewFlow(VMState memory state_, uint256 id_)
+        internal
+        view
+        returns (FlowERC1155IO memory flowIO_)
+    {
         StackTop stackTop_ = flowStack(state_, id_);
         uint256[] memory tempArray_;
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
@@ -195,7 +196,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
 
     function _flow(
         VMState memory state_,
-        uint flow_,
+        uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory flowIO_) {
         unchecked {
@@ -221,7 +222,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         }
     }
 
-    function previewFlow(uint flow_, uint256 id_)
+    function previewFlow(uint256 flow_, uint256 id_)
         external
         view
         virtual
@@ -230,7 +231,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         return _previewFlow(_loadVMState(flow_), id_);
     }
 
-    function flow(uint flow_, uint256 id_)
+    function flow(uint256 flow_, uint256 id_)
         external
         virtual
         returns (FlowERC1155IO memory)

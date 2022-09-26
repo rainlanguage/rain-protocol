@@ -36,7 +36,7 @@ struct FlowERC721IO {
     FlowIO flow;
 }
 
-uint constant CORE_SOURCE_ID = 0;
+uint256 constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
@@ -107,10 +107,11 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         return super._transfer(from_, to_, tokenId_);
     }
 
-    function _previewFlow(
-        VMState memory state_,
-        uint256 id_
-    ) internal view returns (FlowERC721IO memory flowIO_) {
+    function _previewFlow(VMState memory state_, uint256 id_)
+        internal
+        view
+        returns (FlowERC721IO memory flowIO_)
+    {
         StackTop stackTop_ = flowStack(state_, id_);
         (stackTop_, flowIO_.mints) = stackTop_.consumeSentinel(
             state_.stackBottom,
@@ -128,7 +129,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
 
     function _flow(
         VMState memory state_,
-        uint flow_,
+        uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC721IO memory flowIO_) {
         unchecked {
@@ -146,7 +147,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         }
     }
 
-    function previewFlow(uint flow_, uint256 id_)
+    function previewFlow(uint256 flow_, uint256 id_)
         external
         view
         virtual
@@ -155,7 +156,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         return _previewFlow(_loadVMState(flow_), id_);
     }
 
-    function flow(uint flow_, uint256 id_)
+    function flow(uint256 flow_, uint256 id_)
         external
         virtual
         returns (FlowERC721IO memory)

@@ -31,7 +31,7 @@ struct FlowERC20IO {
     FlowIO flow;
 }
 
-uint constant CORE_SOURCE_ID = 0;
+uint256 constant CORE_SOURCE_ID = 0;
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -71,7 +71,11 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     function initialize(FlowERC20Config memory config_) external initializer {
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig, LibUint256Array.arrayFrom(1, 1));
+        _saveVMState(
+            CORE_SOURCE_ID,
+            config_.vmStateConfig,
+            LibUint256Array.arrayFrom(1, 1)
+        );
         __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
         emit Initialize(msg.sender, config_);
     }
@@ -79,7 +83,9 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     function totalSupply() public view virtual override returns (uint256) {
         return
             super.totalSupply().rebaseOutput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
+                    REBASE_RATIO_ENTRYPOINT
+                )
             );
     }
 
@@ -92,7 +98,9 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     {
         return
             super.balanceOf(account_).rebaseOutput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
+                    REBASE_RATIO_ENTRYPOINT
+                )
             );
     }
 
@@ -141,7 +149,9 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     {
         return
             super.allowance(owner_, spender_).rebaseOutput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
+                    REBASE_RATIO_ENTRYPOINT
+                )
             );
     }
 
@@ -155,15 +165,19 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
             owner_,
             spender_,
             amount_.rebaseInput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(REBASE_RATIO_ENTRYPOINT)
+                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
+                    REBASE_RATIO_ENTRYPOINT
+                )
             )
         );
     }
 
-    function _previewFlow(
-        VMState memory state_,
-        uint256 id_
-    ) internal view virtual returns (FlowERC20IO memory) {
+    function _previewFlow(VMState memory state_, uint256 id_)
+        internal
+        view
+        virtual
+        returns (FlowERC20IO memory)
+    {
         FlowERC20IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_, id_);
         (stackTop_, flowIO_.mint) = stackTop_.pop();
@@ -177,7 +191,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
 
     function _flow(
         VMState memory state_,
-        uint flow_,
+        uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         FlowERC20IO memory flowIO_ = _previewFlow(state_, id_);
@@ -188,7 +202,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         return flowIO_;
     }
 
-    function previewFlow(uint flow_, uint256 id_)
+    function previewFlow(uint256 flow_, uint256 id_)
         external
         view
         virtual
@@ -197,7 +211,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         return _previewFlow(_loadVMState(flow_), id_);
     }
 
-    function flow(uint flow_, uint256 id_)
+    function flow(uint256 flow_, uint256 id_)
         external
         virtual
         nonReentrant
