@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/FlowERC20";
 import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/FlowERC20";
+import { ONE } from "../../../utils/constants/bigNumber";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
@@ -35,11 +36,11 @@ describe("FlowERC20 construction tests", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [1, 2];
+    const constants = [1, 2, ONE];
 
     // prettier-ignore
     const sourceRebaseRatio = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
     ]);
 
     // prettier-ignore
@@ -62,6 +63,8 @@ describe("FlowERC20 construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // burn
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // mint
     ]);
 
     const sources = [sourceRebaseRatio, sourceCanTransfer];
@@ -98,6 +101,6 @@ describe("FlowERC20 construction tests", async function () {
       "wrong sender in Initialize event"
     );
 
-    compareStructs(config, configStruct);
+    compareStructs(config, configStruct, true);
   });
 });

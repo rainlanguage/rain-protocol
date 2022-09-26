@@ -9,8 +9,9 @@ import {
 } from "../../../typechain";
 import {
   FlowIOStruct,
+  SaveVMStateEvent,
   StateConfigStruct,
-} from "../../../typechain/contracts/flow/Flow";
+} from "../../../typechain/contracts/flow/FlowERC1155";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
@@ -18,6 +19,7 @@ import {
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
+import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
@@ -61,6 +63,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const constants = [
       RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
       1,
       flowIO.inputNative,
       flowIO.outputNative,
@@ -68,11 +71,13 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const SENTINEL_1155 = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_INPUT_NATIVE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const sourceFlowIO = concat([
       SENTINEL(),
@@ -83,9 +88,11 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      SENTINEL_1155(),
+      SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -95,10 +102,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -216,7 +229,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -226,10 +239,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -331,7 +350,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -341,10 +360,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -440,7 +465,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -450,10 +475,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -534,7 +565,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -544,10 +575,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -620,7 +657,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -630,10 +667,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -703,7 +746,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -713,10 +756,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -768,7 +817,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -778,11 +827,17 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
     await assertError(
-      async () => await flow.previewFlow(sources.length - 1, 1234),
+      async () => await flow.previewFlow(flowStates[1].id, 1234),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -835,7 +890,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE(), ONE(), sourceFlowIO];
+    const sources = [ONE(), ONE()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -845,10 +900,16 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [],
+      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
-    const flowIOPreview = await flow.previewFlow(sources.length - 1, 1234);
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });

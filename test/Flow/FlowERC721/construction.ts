@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC721Factory, FlowIntegrity } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/Flow";
+import { InitializeEvent } from "../../../typechain/contracts/flow/FlowERC721";
 import { FlowERC721ConfigStruct } from "../../../typechain/contracts/flow/FlowERC721";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
@@ -49,18 +49,28 @@ describe("FlowERC721 construction tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel721
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel721
     ]);
 
-    const sources = [sourceCanTransfer, sourceCanFlow, sourceFlowIO];
+    const sources = [sourceCanTransfer];
 
     const configStruct: FlowERC721ConfigStruct = {
-      name: "Flow ERC1155",
-      symbol: "F1155",
+      name: "Flow ERC721",
+      symbol: "F721",
       vmStateConfig: {
         sources,
         constants,
       },
+      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
     };
 
     const flow = await flowERC721Deploy(

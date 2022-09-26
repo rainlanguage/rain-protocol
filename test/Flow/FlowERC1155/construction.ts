@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC1155Factory, FlowIntegrity } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/Flow";
+import { InitializeEvent } from "../../../typechain/contracts/flow/FlowERC1155";
 import { FlowERC1155ConfigStruct } from "../../../typechain/contracts/flow/FlowERC1155";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
@@ -54,15 +54,19 @@ describe("FlowERC1155 construction tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
     ]);
 
-    const sources = [
-      sourceRebaseRatio,
-      sourceCanTransfer,
-      sourceCanFlow,
-      sourceFlowIO,
-    ];
+    const sources = [sourceRebaseRatio, sourceCanTransfer];
 
     const configStruct: FlowERC1155ConfigStruct = {
       uri: "F1155",
@@ -70,7 +74,7 @@ describe("FlowERC1155 construction tests", async function () {
         sources,
         constants,
       },
-      flows: [],
+      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
     };
 
     const flow = await flowERC1155Deploy(
@@ -79,7 +83,7 @@ describe("FlowERC1155 construction tests", async function () {
       configStruct
     );
 
-    const { sender, flows } = (await getEventArgs(
+    const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
       "Initialize",
       flow
@@ -90,6 +94,6 @@ describe("FlowERC1155 construction tests", async function () {
       "wrong sender in Initialize event"
     );
 
-    compareStructs(flows[0], configStruct);
+    compareStructs(config, configStruct);
   });
 });
