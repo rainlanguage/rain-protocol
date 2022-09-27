@@ -591,7 +591,7 @@ describe("Sale buy", async function () {
     );
   });
 
-  it("should support multiple successive buys (same logic as the following total reserve in test)", async function () {
+  it("should support multiple successive buys", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -668,6 +668,21 @@ describe("Sale buy", async function () {
     await sale.start();
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
+
+    const [actualMaxUnits0_, actualPrice0_] = await sale.calculateBuy(
+      desiredUnits0
+    );
+
+    assert(
+      expectedPrice0.eq(actualPrice0_),
+      `wrong price returned from Sale._calculateBuy()
+      expected  ${expectedPrice0}
+      got       ${actualPrice0_}
+      -
+      maxUnits      ${actualMaxUnits0_}
+      desiredUnits  ${desiredUnits0}`
+    );
+
     const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost0.add(fee));
