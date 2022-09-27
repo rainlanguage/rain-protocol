@@ -263,7 +263,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -392,7 +392,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -515,7 +515,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });
@@ -623,7 +623,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -658,6 +658,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.inputs721[0].id,
       flowIO.outputs721[0].token,
       flowIO.outputs721[0].id,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -721,7 +723,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -818,7 +820,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
@@ -893,7 +895,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as SaveVMStateEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowStates[0].id, 1234),
+      async () => await flow.previewFlow(flowStates[1].id, 1234),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -972,7 +974,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO);
   });
