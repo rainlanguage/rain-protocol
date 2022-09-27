@@ -36,8 +36,6 @@ struct FlowERC721IO {
     FlowIO flow;
 }
 
-uint256 constant CORE_SOURCE_ID = 0;
-
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 /// @title FlowERC721
@@ -153,7 +151,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         virtual
         returns (FlowERC721IO memory)
     {
-        return _previewFlow(_loadVMState(flow_), id_);
+        return _previewFlow(_loadFlowState(flow_, id_), id_);
     }
 
     function flow(uint256 flow_, uint256 id_)
@@ -161,6 +159,6 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         virtual
         returns (FlowERC721IO memory)
     {
-        return _flow(_loadVMState(flow_), flow_, id_);
+        return _flow(_loadFlowState(flow_, id_), flow_, id_);
     }
 }

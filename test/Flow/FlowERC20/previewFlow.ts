@@ -263,7 +263,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowIOPreview = await flow.previewFlow(flowStates[1].id, 1234);
 
     compareStructs(flowIOPreview, flowIO, true);
   });

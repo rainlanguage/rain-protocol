@@ -13,6 +13,8 @@ uint256 constant ENTRYPOINTS_COUNT = 2;
 SourceIndex constant CAN_FLOW_ENDPOINT = SourceIndex.wrap(0);
 SourceIndex constant FLOW_ENDPOINT = SourceIndex.wrap(1);
 
+uint256 constant CORE_SOURCE_ID = 0;
+
 contract FlowVM is ERC721Holder, ERC1155Holder, StandardVM {
     using LibIdempotentFlag for IdempotentFlag;
     using LibVMState for VMState;
@@ -41,12 +43,18 @@ contract FlowVM is ERC721Holder, ERC1155Holder, StandardVM {
         }
     }
 
+    function _loadFlowState(uint flow_, uint id_)         internal
+        view
+        returns (VMState memory) {
+            require(id_ != CORE_SOURCE_ID, "CORE_SOURCE_ID");
+            return _loadVMState(flow_, LibUint256Array.arrayFrom(id_));
+        }
+
     function flowStack(VMState memory state_, uint256 id_)
         internal
         view
         returns (StackTop)
     {
-        state_.context = LibUint256Array.arrayFrom(id_);
         require(state_.eval(CAN_FLOW_ENDPOINT).peek() > 0, "CANT_FLOW");
         return state_.eval(FLOW_ENDPOINT);
     }

@@ -31,8 +31,6 @@ struct FlowERC20IO {
     FlowIO flow;
 }
 
-uint256 constant CORE_SOURCE_ID = 0;
-
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 
@@ -208,7 +206,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         virtual
         returns (FlowERC20IO memory)
     {
-        return _previewFlow(_loadVMState(flow_), id_);
+        return _previewFlow(_loadFlowState(flow_, id_), id_);
     }
 
     function flow(uint256 flow_, uint256 id_)
@@ -217,6 +215,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         nonReentrant
         returns (FlowERC20IO memory)
     {
-        return _flow(_loadVMState(flow_), flow_, id_);
+        return _flow(_loadFlowState(flow_, id_), flow_, id_);
     }
 }

@@ -31,8 +31,6 @@ struct FlowERC1155IO {
     FlowIO flow;
 }
 
-uint256 constant CORE_SOURCE_ID = 0;
-
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 
@@ -228,7 +226,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _previewFlow(_loadVMState(flow_), id_);
+        return _previewFlow(_loadFlowState(flow_, id_), id_);
     }
 
     function flow(uint256 flow_, uint256 id_)
@@ -236,6 +234,6 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _flow(_loadVMState(flow_), flow_, id_);
+        return _flow(_loadFlowState(flow_, id_), flow_, id_);
     }
 }
