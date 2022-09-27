@@ -807,7 +807,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const ZERO = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
@@ -823,9 +823,11 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      ZERO(),
+      ZERO(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [ZERO(), ZERO()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -838,7 +840,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       vmStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [ONE(), sourceFlowIO],
+          sources: [ZERO(), sourceFlowIO],
           constants,
         },
       ],
