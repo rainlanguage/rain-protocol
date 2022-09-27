@@ -100,7 +100,6 @@ describe("FlowERC20 construction tests", async function () {
       sender === flowERC20Factory.address,
       "wrong sender in Initialize event"
     );
-
     compareStructs(config, configStruct, true);
   });
 });
