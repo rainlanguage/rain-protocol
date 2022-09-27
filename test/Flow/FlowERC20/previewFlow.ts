@@ -172,6 +172,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs1155[1].token,
       flowIO.outputs1155[1].id,
       flowIO.outputs1155[1].amount,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -208,6 +210,9 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC1155_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 15));
 
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 16));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 17));
+
     const sourceFlowIO = concat([
       SENTINEL(),
       FLOWIO_OUTPUT_ERC1155_TOKEN_A(),
@@ -229,6 +234,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
@@ -306,6 +313,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs721[0].id,
       flowIO.outputs721[1].token,
       flowIO.outputs721[1].id,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -334,6 +343,9 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC721_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
 
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
+
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -351,6 +363,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
@@ -422,6 +436,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs20[0].amount,
       flowIO.outputs20[1].token,
       flowIO.outputs20[1].amount,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -450,6 +466,9 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC20_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
 
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
+
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -467,6 +486,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_ERC20_AMOUNT_B(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
@@ -531,6 +552,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs1155[0].token,
       flowIO.outputs1155[0].id,
       flowIO.outputs1155[0].amount,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -553,6 +576,9 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
 
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
+
     const sourceFlowIO = concat([
       SENTINEL(),
       FLOWIO_OUTPUT_ERC1155_TOKEN(),
@@ -568,6 +594,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
@@ -648,6 +676,9 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -661,6 +692,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
@@ -720,6 +753,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.inputs20[0].amount,
       flowIO.outputs20[0].token,
       flowIO.outputs20[0].amount,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -738,6 +773,9 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+
     const sourceFlowIO = concat([
       SENTINEL(),
       SENTINEL(),
@@ -751,6 +789,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       FLOWIO_INPUT_ERC20_AMOUNT(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
     ]);
 
     const sources = [ONE(), ONE()];
@@ -879,6 +919,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       1,
       flowIO.inputNative,
       flowIO.outputNative,
+      20,
+      10,
     ];
 
     const SENTINEL = () =>
@@ -888,6 +930,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -899,6 +943,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       SENTINEL(),
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT()
     ]);
 
     const sources = [ONE(), ONE()];
