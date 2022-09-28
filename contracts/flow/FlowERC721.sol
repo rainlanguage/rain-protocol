@@ -156,6 +156,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
 
     function flow(uint256 flow_, uint256 id_)
         external
+        payable
         virtual
         returns (FlowERC721IO memory)
     {

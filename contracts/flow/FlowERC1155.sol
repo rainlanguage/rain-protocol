@@ -231,6 +231,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
 
     function flow(uint256 flow_, uint256 id_)
         external
+        payable
         virtual
         returns (FlowERC1155IO memory)
     {

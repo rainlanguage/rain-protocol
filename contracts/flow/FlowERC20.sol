@@ -211,6 +211,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
 
     function flow(uint256 flow_, uint256 id_)
         external
+        payable
         virtual
         nonReentrant
         returns (FlowERC20IO memory)
