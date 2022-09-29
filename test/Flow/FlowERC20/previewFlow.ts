@@ -12,7 +12,11 @@ import {
   SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/FlowERC20";
-import { ONE, sixZeros } from "../../../utils/constants/bigNumber";
+import {
+  eighteenZeros,
+  ONE,
+  sixZeros,
+} from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
@@ -64,8 +68,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       ONE,
       flowIO.inputNative,
       flowIO.outputNative,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -172,8 +176,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs1155[1].token,
       flowIO.outputs1155[1].id,
       flowIO.outputs1155[1].amount,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -313,8 +317,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs721[0].id,
       flowIO.outputs721[1].token,
       flowIO.outputs721[1].id,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -436,8 +440,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs20[0].amount,
       flowIO.outputs20[1].token,
       flowIO.outputs20[1].amount,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -552,8 +556,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.outputs1155[0].token,
       flowIO.outputs1155[0].id,
       flowIO.outputs1155[0].amount,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -658,8 +662,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.inputs721[0].id,
       flowIO.outputs721[0].token,
       flowIO.outputs721[0].id,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -755,8 +759,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowIO.inputs20[0].amount,
       flowIO.outputs20[0].token,
       flowIO.outputs20[0].amount,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>
@@ -921,8 +925,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       1,
       flowIO.inputNative,
       flowIO.outputNative,
-      20,
-      10,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
     ];
 
     const SENTINEL = () =>

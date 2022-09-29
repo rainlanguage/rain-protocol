@@ -43,12 +43,14 @@ contract FlowVM is ERC721Holder, ERC1155Holder, StandardVM {
         }
     }
 
-    function _loadFlowState(uint flow_, uint id_)         internal
+    function _loadFlowState(uint256 flow_, uint256 id_)
+        internal
         view
-        returns (VMState memory) {
-            require(id_ != CORE_SOURCE_ID, "CORE_SOURCE_ID");
-            return _loadVMState(flow_, LibUint256Array.arrayFrom(id_));
-        }
+        returns (VMState memory)
+    {
+        require(id_ != CORE_SOURCE_ID, "CORE_SOURCE_ID");
+        return _loadVMState(flow_, LibUint256Array.arrayFrom(id_));
+    }
 
     function flowStack(VMState memory state_, uint256 id_)
         internal

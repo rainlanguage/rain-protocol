@@ -196,7 +196,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         VMState memory state_,
         uint256 flow_,
         uint256 id_
-    ) internal virtual nonReentrant returns (FlowERC1155IO memory flowIO_) {
+    ) internal virtual returns (FlowERC1155IO memory flowIO_) {
         unchecked {
             flowIO_ = _previewFlow(state_, id_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
@@ -233,6 +233,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         external
         payable
         virtual
+        nonReentrant
         returns (FlowERC1155IO memory)
     {
         return _flow(_loadFlowState(flow_, id_), flow_, id_);
