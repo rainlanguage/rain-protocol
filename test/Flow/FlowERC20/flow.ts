@@ -31,6 +31,11 @@ import { Struct } from "../../../utils/types";
 
 const Opcode = AllStandardOps;
 
+// should _transferPreflight
+// should flow self-minted tokens
+//  - minting
+//  - burning
+
 describe("FlowERC20 flow tests", async function () {
   let integrity: FlowIntegrity;
   let flowERC20Factory: FlowERC20Factory;
@@ -48,6 +53,232 @@ describe("FlowERC20 flow tests", async function () {
       integrity.address
     )) as FlowERC20Factory;
     await flowERC20Factory.deployed();
+  });
+
+  it("should mint and burn tokens per flow in exchange for another token (e.g. native)", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const rebaseRatio = ONE;
+
+    const flowIOMint: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(2 + sixZeros),
+      outputNative: ethers.BigNumber.from(0),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+    const flowIOBurn: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(0),
+      outputNative: ethers.BigNumber.from(2 + sixZeros),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    // for mint flow (redeem native for erc20)
+    const mintMint = ethers.BigNumber.from(2);
+    const burnMint = ethers.BigNumber.from(0);
+    const constantsMint = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      rebaseRatio,
+      mintMint,
+      burnMint,
+      flowIOMint.inputNative,
+      flowIOMint.outputNative,
+    ];
+
+    // for burn flow (redeem erc20 for native)
+    const mintBurn = ethers.BigNumber.from(0);
+    const burnBurn = ethers.BigNumber.from(2);
+    const constantsBurn = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      rebaseRatio,
+      mintBurn,
+      burnBurn,
+      flowIOBurn.inputNative,
+      flowIOBurn.outputNative,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const REBASE_RATIO = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
+    ]);
+
+    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+
+    const stateConfigStruct: FlowERC20ConfigStruct = {
+      name: "FlowERC20",
+      symbol: "F20",
+      vmStateConfig: {
+        sources,
+        constants: constantsMint, // only needed for REBASE_RATIO and CAN_TRANSFER, so could also be `constantsBurn` and produce same result
+      },
+      flows: [
+        { sources: [CAN_FLOW(), sourceFlowIO], constants: constantsMint },
+        { sources: [CAN_FLOW(), sourceFlowIO], constants: constantsBurn },
+      ],
+    };
+
+    const flow = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      stateConfigStruct
+    );
+
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
+
+    const mintFlowId = flowStates[1].id;
+    const burnFlowId = flowStates[2].id;
+
+    const you = signers[1];
+    const me = flow;
+
+    const totalSupply0 = await flow.totalSupply();
+    assert(
+      totalSupply0.isZero(),
+      "should not have minted any tokens before calling flow that mints"
+    );
+
+    // prepare input Ether
+    const youEtherBalance0 = await ethers.provider.getBalance(you.address);
+
+    // -- PERFORM MINT --
+
+    const flowStructMint = await flow
+      .connect(you)
+      .callStatic.flow(mintFlowId, 1234, {
+        value: ethers.BigNumber.from(flowIOMint.inputNative),
+      });
+
+    compareStructs(flowStructMint, flowIOMint);
+
+    const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
+      value: ethers.BigNumber.from(flowIOMint.inputNative),
+    });
+
+    // check input Ether affected balances correctly
+
+    const { gasUsed } = await txFlowMint.wait();
+    const { gasPrice } = txFlowMint;
+
+    const youEtherBalance1 = await ethers.provider.getBalance(you.address);
+    const meEtherBalance1 = await ethers.provider.getBalance(me.address);
+
+    const expectedYouEtherBalance1 = youEtherBalance0
+      .sub(flowIOMint.inputNative as BigNumber)
+      .sub(gasUsed.mul(gasPrice));
+
+    assert(
+      youEtherBalance1.eq(expectedYouEtherBalance1),
+      `wrong balance for you (signer1)
+      expected  ${expectedYouEtherBalance1}
+      got       ${youEtherBalance1}`
+    );
+
+    const expectedMeEtherBalance1 = flowIOMint.inputNative as BigNumber;
+
+    assert(
+      meEtherBalance1.eq(expectedMeEtherBalance1),
+      `wrong balance for me (flow contract)
+      expected  ${expectedMeEtherBalance1}
+      got       ${meEtherBalance1}`
+    );
+
+    const me20Balance1 = await flow.balanceOf(me.address);
+    const you20Balance1 = await flow.balanceOf(you.address);
+    const totalSupply1 = await flow.totalSupply();
+
+    assert(me20Balance1.isZero());
+    assert(
+      you20Balance1.eq(mintMint.mul(rebaseRatio)),
+      `wrong sender balance minted
+      expected  ${mintMint.mul(rebaseRatio)}
+      got       ${you20Balance1}`
+    );
+    assert(totalSupply1.eq(mintMint.mul(rebaseRatio)));
+
+    // -- PERFORM BURN --
+
+    const flowStructBurn = await flow
+      .connect(you)
+      .callStatic.flow(burnFlowId, 1234);
+
+    compareStructs(flowStructBurn, flowIOBurn);
+
+    const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234);
+
+    const { gasUsed: gasUsedBurn } = await txFlowBurn.wait();
+    const { gasPrice: gasPriceBurn } = txFlowBurn;
+
+    const youEtherBalance2 = await ethers.provider.getBalance(you.address);
+    const meEtherBalance2 = await ethers.provider.getBalance(me.address);
+
+    const expectedYouEtherBalance2 = youEtherBalance1
+      .add(flowIOBurn.outputNative as BigNumber)
+      .sub(gasUsedBurn.mul(gasPriceBurn));
+
+    assert(
+      youEtherBalance2.eq(expectedYouEtherBalance2),
+      `wrong balance for you (signer1)
+      expected  ${expectedYouEtherBalance2}
+      got       ${youEtherBalance2}`
+    );
+
+    assert(
+      meEtherBalance2.isZero(),
+      `wrong balance for me (flow contract)
+      expected  0
+      got       ${meEtherBalance2}`
+    );
+
+    const me20Balance2 = await flow.balanceOf(me.address);
+    const you20Balance2 = await flow.balanceOf(you.address);
+    const totalSupply2 = await flow.totalSupply();
+
+    assert(me20Balance2.isZero());
+    assert(
+      you20Balance2.isZero(),
+      `wrong sender balance burned
+      expected  0
+      got       ${you20Balance2}`
+    );
+    assert(totalSupply2.isZero());
   });
 
   it("should flow for erc1155<->native on the good path", async () => {
@@ -555,158 +786,158 @@ describe("FlowERC20 flow tests", async function () {
     assert(owner721Out === you.address);
   });
 
-  // it("should flow for native<->erc20 on the good path", async () => {
-  //   const signers = await ethers.getSigners();
-  //   const deployer = signers[0];
+  it("should flow for native<->erc20 on the good path", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
 
-  //   const erc20Out = (await basicDeploy(
-  //     "ReserveToken18",
-  //     {}
-  //   )) as ReserveToken18;
-  //   await erc20Out.initialize();
+    const erc20Out = (await basicDeploy(
+      "ReserveToken18",
+      {}
+    )) as ReserveToken18;
+    await erc20Out.initialize();
 
-  //   const flowIO: FlowIOStruct = {
-  //     inputNative: ethers.BigNumber.from(1 + sixZeros),
-  //     outputNative: ethers.BigNumber.from(0),
-  //     inputs20: [],
-  //     outputs20: [
-  //       {
-  //         token: erc20Out.address,
-  //         amount: ethers.BigNumber.from(2 + eighteenZeros),
-  //       },
-  //     ],
-  //     inputs721: [],
-  //     outputs721: [],
-  //     inputs1155: [],
-  //     outputs1155: [],
-  //   };
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(1 + sixZeros),
+      outputNative: ethers.BigNumber.from(0),
+      inputs20: [],
+      outputs20: [
+        {
+          token: erc20Out.address,
+          amount: ethers.BigNumber.from(2 + eighteenZeros),
+        },
+      ],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
 
-  //   const constants = [
-  //     RAIN_FLOW_SENTINEL,
-  //     1,
-  //     ONE,
-  //     ethers.BigNumber.from(20 + eighteenZeros),
-  //     ethers.BigNumber.from(10 + eighteenZeros),
-  //     flowIO.inputNative,
-  //     flowIO.outputNative,
-  //     flowIO.outputs20[0].token,
-  //     flowIO.outputs20[0].amount,
-  //   ];
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      ONE,
+      ethers.BigNumber.from(20 + eighteenZeros),
+      ethers.BigNumber.from(10 + eighteenZeros),
+      flowIO.inputNative,
+      flowIO.outputNative,
+      flowIO.outputs20[0].token,
+      flowIO.outputs20[0].amount,
+    ];
 
-  //   const SENTINEL = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-  //   const CAN_TRANSFER = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-  //   const CAN_FLOW = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-  //   const REBASE_RATIO = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-  //   const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-  //   const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-  //   const FLOWIO_INPUT_NATIVE = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-  //   const FLOWIO_OUTPUT_NATIVE = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-  //   const FLOWIO_OUTPUT_ERC20_TOKEN = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-  //   const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
-  //     op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const REBASE_RATIO = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const FLOWIO_OUTPUT_ERC20_TOKEN = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const FLOWIO_OUTPUT_ERC20_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
-  //   const sourceFlowIO = concat([
-  //     SENTINEL(),
-  //     SENTINEL(),
-  //     SENTINEL(),
-  //     SENTINEL(),
-  //     SENTINEL(),
-  //     FLOWIO_OUTPUT_ERC20_TOKEN(),
-  //     FLOWIO_OUTPUT_ERC20_AMOUNT(),
-  //     SENTINEL(),
-  //     FLOWIO_OUTPUT_NATIVE(),
-  //     FLOWIO_INPUT_NATIVE(),
-  //     BURN(),
-  //     MINT(),
-  //   ]);
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_ERC20_TOKEN(),
+      FLOWIO_OUTPUT_ERC20_AMOUNT(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
+    ]);
 
-  //   const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
 
-  //   const stateConfigStruct: FlowERC20ConfigStruct = {
-  //     name: "FlowERC20",
-  //     symbol: "F20",
-  //     vmStateConfig: {
-  //       sources,
-  //       constants,
-  //     },
-  //     flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
-  //   };
+    const stateConfigStruct: FlowERC20ConfigStruct = {
+      name: "FlowERC20",
+      symbol: "F20",
+      vmStateConfig: {
+        sources,
+        constants,
+      },
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+    };
 
-  //   const flow = await flowERC20Deploy(
-  //     deployer,
-  //     flowERC20Factory,
-  //     stateConfigStruct
-  //   );
+    const flow = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      stateConfigStruct
+    );
 
-  //   const flowStates = (await getEvents(
-  //     flow.deployTransaction,
-  //     "SaveVMState",
-  //     flow
-  //   )) as SaveVMStateEvent["args"][];
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveVMState",
+      flow
+    )) as SaveVMStateEvent["args"][];
 
-  //   const you = signers[1];
-  //   const me = flow;
+    const you = signers[1];
+    const me = flow;
 
-  //   // prepare output ERC20
-  //   await erc20Out.transfer(me.address, flowIO.outputs20[0].amount);
+    // prepare output ERC20
+    await erc20Out.transfer(me.address, flowIO.outputs20[0].amount);
 
-  //   // prepare input Ether
-  //   const youBalance0 = await ethers.provider.getBalance(you.address);
+    // prepare input Ether
+    const youBalance0 = await ethers.provider.getBalance(you.address);
 
-  //   const flowStruct = await flow
-  //     .connect(you)
-  //     .callStatic.flow(flowStates[1].id, 1234, {
-  //       value: ethers.BigNumber.from(flowIO.inputNative),
-  //     });
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowStates[1].id, 1234, {
+        value: ethers.BigNumber.from(flowIO.inputNative),
+      });
 
-  //   compareStructs(flowStruct, flowIO);
+    compareStructs(flowStruct, flowIO);
 
-  //   const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
-  //     value: ethers.BigNumber.from(flowIO.inputNative),
-  //   });
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
+      value: ethers.BigNumber.from(flowIO.inputNative),
+    });
 
-  //   // check input Ether affected balances correctly
+    // check input Ether affected balances correctly
 
-  //   const { gasUsed } = await txFlow.wait();
-  //   const { gasPrice } = txFlow;
+    const { gasUsed } = await txFlow.wait();
+    const { gasPrice } = txFlow;
 
-  //   const youEtherBalance1 = await ethers.provider.getBalance(you.address);
-  //   const meEtherBalance1 = await ethers.provider.getBalance(me.address);
+    const youEtherBalance1 = await ethers.provider.getBalance(you.address);
+    const meEtherBalance1 = await ethers.provider.getBalance(me.address);
 
-  //   const expectedYouEtherBalance1 = youBalance0
-  //     .sub(flowIO.inputNative as BigNumber)
-  //     .sub(gasUsed.mul(gasPrice));
+    const expectedYouEtherBalance1 = youBalance0
+      .sub(flowIO.inputNative as BigNumber)
+      .sub(gasUsed.mul(gasPrice));
 
-  //   assert(
-  //     youEtherBalance1.eq(expectedYouEtherBalance1),
-  //     `wrong balance for you (signer1)
-  //     expected  ${expectedYouEtherBalance1}
-  //     got       ${youEtherBalance1}`
-  //   );
+    assert(
+      youEtherBalance1.eq(expectedYouEtherBalance1),
+      `wrong balance for you (signer1)
+      expected  ${expectedYouEtherBalance1}
+      got       ${youEtherBalance1}`
+    );
 
-  //   const expectedMeEtherBalance1 = flowIO.inputNative as BigNumber;
+    const expectedMeEtherBalance1 = flowIO.inputNative as BigNumber;
 
-  //   assert(
-  //     meEtherBalance1.eq(expectedMeEtherBalance1),
-  //     `wrong balance for me (flow contract)
-  //     expected  ${expectedMeEtherBalance1}
-  //     got       ${meEtherBalance1}`
-  //   );
+    assert(
+      meEtherBalance1.eq(expectedMeEtherBalance1),
+      `wrong balance for me (flow contract)
+      expected  ${expectedMeEtherBalance1}
+      got       ${meEtherBalance1}`
+    );
 
-  //   // check output ERC20 affected balances correctly
-  //   const me20Balance1 = await erc20Out.balanceOf(me.address);
-  //   const you20Balance1 = await erc20Out.balanceOf(you.address);
+    // check output ERC20 affected balances correctly
+    const me20Balance1 = await erc20Out.balanceOf(me.address);
+    const you20Balance1 = await erc20Out.balanceOf(you.address);
 
-  //   assert(me20Balance1.isZero());
-  //   assert(you20Balance1.eq(flowIO.outputs20[0].amount as BigNumber));
-  // });
+    assert(me20Balance1.isZero());
+    assert(you20Balance1.eq(flowIO.outputs20[0].amount as BigNumber));
+  });
 
   it("should flow for ERC1155<->ERC1155 on the good path", async () => {
     const signers = await ethers.getSigners();
