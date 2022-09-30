@@ -26,15 +26,11 @@ import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { Struct } from "../../../utils/types";
 
 const Opcode = AllStandardOps;
-
-// should _transferPreflight
-// should flow self-minted tokens
-//  - minting
-//  - burning
 
 describe("FlowERC20 flow tests", async function () {
   let integrity: FlowIntegrity;
@@ -53,6 +49,152 @@ describe("FlowERC20 flow tests", async function () {
       integrity.address
     )) as FlowERC20Factory;
     await flowERC20Factory.deployed();
+  });
+
+  it("should support transferPreflight hook", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+
+    const rebaseRatio = ONE;
+
+    const flowIO: FlowIOStruct = {
+      inputNative: ethers.BigNumber.from(0),
+      outputNative: ethers.BigNumber.from(0),
+      inputs20: [],
+      outputs20: [],
+      inputs721: [],
+      outputs721: [],
+      inputs1155: [],
+      outputs1155: [],
+    };
+
+    const mint = ethers.BigNumber.from(2);
+    const burn = ethers.BigNumber.from(0);
+    const constantsCanTransfer = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      rebaseRatio,
+      mint,
+      burn,
+      flowIO.inputNative,
+      flowIO.outputNative,
+      1,
+    ];
+    const constantsCannotTransfer = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      rebaseRatio,
+      mint,
+      burn,
+      flowIO.inputNative,
+      flowIO.outputNative,
+      0,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const REBASE_RATIO = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const MINT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const BURN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const FLOWIO_INPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const FLOWIO_OUTPUT_NATIVE = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+
+    const sourceFlowIO = concat([
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      FLOWIO_OUTPUT_NATIVE(),
+      FLOWIO_INPUT_NATIVE(),
+      BURN(),
+      MINT(),
+    ]);
+
+    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+
+    const stateConfigStructCanTransfer: FlowERC20ConfigStruct = {
+      name: "FlowERC20",
+      symbol: "F20",
+      vmStateConfig: {
+        sources,
+        constants: constantsCanTransfer,
+      },
+      flows: [
+        {
+          sources: [CAN_FLOW(), sourceFlowIO],
+          constants: constantsCanTransfer,
+        },
+      ],
+    };
+    const stateConfigStructCannotTransfer: FlowERC20ConfigStruct = {
+      name: "FlowERC20",
+      symbol: "F20",
+      vmStateConfig: {
+        sources,
+        constants: constantsCannotTransfer,
+      },
+      flows: [
+        {
+          sources: [CAN_FLOW(), sourceFlowIO],
+          constants: constantsCannotTransfer,
+        },
+      ],
+    };
+
+    const flowCanTransfer = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      stateConfigStructCanTransfer
+    );
+    const flowCannotTransfer = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      stateConfigStructCannotTransfer
+    );
+
+    const flowStatesCanTransfer = (await getEvents(
+      flowCanTransfer.deployTransaction,
+      "SaveVMState",
+      flowCanTransfer
+    )) as SaveVMStateEvent["args"][];
+    const flowStatesCannotTransfer = (await getEvents(
+      flowCanTransfer.deployTransaction,
+      "SaveVMState",
+      flowCanTransfer
+    )) as SaveVMStateEvent["args"][];
+
+    const signer1 = signers[1];
+    const signerReceiver = signers[2];
+
+    const _txFlowCanTransfer = await flowCanTransfer
+      .connect(signer1)
+      .flow(flowStatesCanTransfer[1].id, 1234);
+
+    const _txFlowCannotTransfer = await flowCanTransfer
+      .connect(signer1)
+      .flow(flowStatesCannotTransfer[1].id, 1234);
+
+    await flowCanTransfer
+      .connect(signer1)
+      .transfer(signerReceiver.address, mint);
+
+    await assertError(
+      async () =>
+        await flowCannotTransfer
+          .connect(signer1)
+          .transfer(signerReceiver.address, mint),
+      "INVALID_TRANSFER",
+      "transferred when it should not"
+    );
   });
 
   it("should mint and burn tokens per flow in exchange for another token (e.g. native)", async () => {
