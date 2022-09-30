@@ -179,11 +179,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
     // check input ERC1155 affected balances correctly
 
@@ -369,11 +369,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
     // check input ERC721 affected balances correctly
 
@@ -532,11 +532,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -662,13 +662,13 @@ describe("FlowERC20 flow tests", async function () {
 
   //   const flowStruct = await flow
   //     .connect(you)
-  //     .callStatic.flow(flowStates[0].id, 1234, {
+  //     .callStatic.flow(flowStates[1].id, 1234, {
   //       value: ethers.BigNumber.from(flowIO.inputNative),
   //     });
 
   //   compareStructs(flowStruct, flowIO);
 
-  //   const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
+  //   const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
   //     value: ethers.BigNumber.from(flowIO.inputNative),
   //   });
 
@@ -860,11 +860,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -1037,11 +1037,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1200,11 +1200,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234);
 
     compareStructs(flowStruct, flowIO);
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1333,13 +1333,13 @@ describe("FlowERC20 flow tests", async function () {
 
   //   const flowStruct = await flow
   //     .connect(you)
-  //     .callStatic.flow(flowStates[0].id, 1234, {
+  //     .callStatic.flow(flowStates[1].id, 1234, {
   //       value: ethers.BigNumber.from(flowIO.inputNative),
   //     });
 
   //   compareStructs(flowStruct, flowIO);
 
-  //   const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
+  //   const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
   //     value: ethers.BigNumber.from(flowIO.inputNative),
   //   });
 

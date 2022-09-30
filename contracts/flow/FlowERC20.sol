@@ -191,7 +191,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         VMState memory state_,
         uint256 flow_,
         uint256 id_
-    ) internal virtual returns (FlowERC20IO memory) {
+    ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         FlowERC20IO memory flowIO_ = _previewFlow(state_, id_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         _mint(msg.sender, flowIO_.mint);
@@ -213,7 +213,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         external
         payable
         virtual
-        nonReentrant
         returns (FlowERC20IO memory)
     {
         return _flow(_loadFlowState(flow_, id_), flow_, id_);

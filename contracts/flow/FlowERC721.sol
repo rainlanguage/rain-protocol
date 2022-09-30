@@ -129,7 +129,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         VMState memory state_,
         uint256 flow_,
         uint256 id_
-    ) internal virtual returns (FlowERC721IO memory flowIO_) {
+    ) internal virtual nonReentrant returns (FlowERC721IO memory flowIO_) {
         unchecked {
             flowIO_ = _previewFlow(state_, id_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
@@ -158,7 +158,6 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         external
         payable
         virtual
-        nonReentrant
         returns (FlowERC721IO memory)
     {
         return _flow(_loadFlowState(flow_, id_), flow_, id_);
