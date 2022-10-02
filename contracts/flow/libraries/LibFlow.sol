@@ -54,7 +54,7 @@ library LibFlow {
 
     function stackToFlow(StackTop stackBottom_, StackTop stackTop_)
         internal
-        view
+        pure
         returns (FlowIO memory flowIO_)
     {
         unchecked {

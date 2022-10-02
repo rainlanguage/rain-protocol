@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import {RainVMIntegrity, StateConfig} from "../../vm/integrity/RainVMIntegrity.sol";
+import "../../vm/runtime/StandardVM.sol";
+import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "../array/LibUint256Array.sol";
+import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./libraries/LibFlow.sol";
-import "../math/FixedPointMath.sol";
-import "../idempotent/LibIdempotentFlag.sol";
-import "./FlowVM.sol";
-import "../sentinel/LibSentinel.sol";
+import "../libraries/LibFlow.sol";
+import "../../math/FixedPointMath.sol";
+import "../../idempotent/LibIdempotentFlag.sol";
+import "../vm/FlowVM.sol";
+import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
 uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
@@ -105,12 +105,12 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         return super._transfer(from_, to_, tokenId_);
     }
 
-    function _previewFlow(VMState memory state_, uint256 id_)
+    function _previewFlow(VMState memory state_)
         internal
         view
         returns (FlowERC721IO memory flowIO_)
     {
-        StackTop stackTop_ = flowStack(state_, id_);
+        StackTop stackTop_ = flowStack(state_);
         (stackTop_, flowIO_.mints) = stackTop_.consumeSentinel(
             state_.stackBottom,
             RAIN_FLOW_ERC721_SENTINEL,
@@ -131,7 +131,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC721IO memory flowIO_) {
         unchecked {
-            flowIO_ = _previewFlow(state_, id_);
+            flowIO_ = _previewFlow(state_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(msg.sender, flowIO_.mints[i_]);
@@ -151,7 +151,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         virtual
         returns (FlowERC721IO memory)
     {
-        return _previewFlow(_loadFlowState(flow_, id_), id_);
+        return _previewFlow(_loadFlowState(flow_, id_));
     }
 
     function flow(uint256 flow_, uint256 id_)

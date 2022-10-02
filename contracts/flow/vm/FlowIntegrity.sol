@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
-import "../vm/integrity/StandardIntegrity.sol";
-import "../vm/ops/AllStandardOps.sol";
-import "../type/LibCast.sol";
-import "../idempotent/LibIdempotentFlag.sol";
+import "../../vm/integrity/StandardIntegrity.sol";
+import "../../vm/ops/AllStandardOps.sol";
+import "../../type/LibCast.sol";
+import "../../idempotent/LibIdempotentFlag.sol";
 uint256 constant FLAG_INDEX_FLOW_TIME = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 

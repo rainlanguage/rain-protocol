@@ -30,7 +30,10 @@ export const flowDeploy = async (
   ...args: Overrides[]
 ): Promise<Flow> => {
   const txDeploy = await flowFactory.createChildTyped(
-    stateConfigStruct,
+    {
+      stateConfig: { sources: [], constants: [] },
+      flows: stateConfigStruct,
+    },
     ...args
   );
 

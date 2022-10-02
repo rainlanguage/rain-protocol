@@ -134,7 +134,7 @@ library LibVMState {
             view
             returns (StackTop)[]
             memory opcodeFunctionPointers_
-    ) internal view returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
             size_ += scratch_.size();
@@ -168,7 +168,7 @@ library LibVMState {
 
     function deserialize(bytes memory serialized_, uint256[] memory context_)
         internal
-        view
+        pure
         returns (VMState memory)
     {
         unchecked {

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {Factory} from "../factory/Factory.sol";
-import {Flow} from "./Flow.sol";
+import {Factory} from "../../factory/Factory.sol";
+import {Flow, FlowConfig} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
-import {StateConfig} from "../vm/runtime/LibVMState.sol";
+import {StateConfig, LibVMState} from "../../vm/runtime/LibVMState.sol";
 
 /// @title FlowFactory
 /// @notice Factory for deploying and registering `Flow` contracts.
@@ -27,8 +27,8 @@ contract FlowFactory is Factory {
         override
         returns (address)
     {
-        StateConfig[] memory config_ = abi.decode(data_, (StateConfig[]));
-        address clone_ = address(Clones.clone(implementation));
+        FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
+        address clone_ = Clones.clone(implementation);
         Flow(payable(clone_)).initialize(config_);
         return clone_;
     }
@@ -39,7 +39,7 @@ contract FlowFactory is Factory {
     ///
     /// @param config_ `Flow` constructor configuration.
     /// @return New `Flow` child contract address.
-    function createChildTyped(StateConfig[] memory config_)
+    function createChildTyped(FlowConfig memory config_)
         external
         returns (Flow)
     {

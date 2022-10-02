@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../vm/runtime/StandardVM.sol";
-import "./libraries/LibFlow.sol";
+import "../../vm/runtime/StandardVM.sol";
+import "../libraries/LibFlow.sol";
 import "./FlowIntegrity.sol";
-import "../idempotent/LibIdempotentFlag.sol";
+import "../../idempotent/LibIdempotentFlag.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
@@ -52,11 +52,7 @@ contract FlowVM is ERC721Holder, ERC1155Holder, StandardVM {
         return _loadVMState(flow_, LibUint256Array.arrayFrom(id_));
     }
 
-    function flowStack(VMState memory state_, uint256 id_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function flowStack(VMState memory state_) internal view returns (StackTop) {
         require(state_.eval(CAN_FLOW_ENDPOINT).peek() > 0, "CANT_FLOW");
         return state_.eval(FLOW_ENDPOINT);
     }

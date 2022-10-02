@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {Factory} from "../factory/Factory.sol";
-import {FlowERC20, FlowERC20Config} from "./FlowERC20.sol";
+import {Factory} from "../../factory/Factory.sol";
+import {FlowERC20, FlowERC20Config} from "../erc20/FlowERC20.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 
 /// @title EmissionsERC20Factory

@@ -119,7 +119,7 @@ library LibStackTop {
         StackTop stackBottom_,
         uint256 sentinel_,
         uint256 stepSize_
-    ) internal view returns (StackTop, uint256[] memory) {
+    ) internal pure returns (StackTop, uint256[] memory) {
         uint256[] memory array_;
         assembly ("memory-safe") {
             // Underflow is not allowed and pointing at position 0 in memory is

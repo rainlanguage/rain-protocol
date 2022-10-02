@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../sentinel/LibSentinel.sol";
-import "../vm/runtime/LibVMState.sol";
-import "./libraries/LibFlow.sol";
-import "./libraries/LibRebase.sol";
+import "../../sentinel/LibSentinel.sol";
+import "../../vm/runtime/LibVMState.sol";
+import "../libraries/LibFlow.sol";
+import "../libraries/LibRebase.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./FlowVM.sol";
+import "../vm/FlowVM.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
@@ -165,12 +165,12 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             );
     }
 
-    function _previewFlow(VMState memory state_, uint256 id_)
+    function _previewFlow(VMState memory state_)
         internal
         view
         returns (FlowERC1155IO memory flowIO_)
     {
-        StackTop stackTop_ = flowStack(state_, id_);
+        StackTop stackTop_ = flowStack(state_);
         uint256[] memory tempArray_;
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             state_.stackBottom,
@@ -198,7 +198,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory flowIO_) {
         unchecked {
-            flowIO_ = _previewFlow(state_, id_);
+            flowIO_ = _previewFlow(state_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
@@ -226,7 +226,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         virtual
         returns (FlowERC1155IO memory)
     {
-        return _previewFlow(_loadFlowState(flow_, id_), id_);
+        return _previewFlow(_loadFlowState(flow_, id_));
     }
 
     function flow(uint256 flow_, uint256 id_)

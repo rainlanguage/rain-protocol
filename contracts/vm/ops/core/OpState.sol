@@ -42,7 +42,7 @@ library OpState {
         VMState memory state_,
         Operand operand_,
         StackTop stackTop_
-    ) internal view returns (StackTop) {
+    ) internal pure returns (StackTop) {
         unchecked {
             uint256 type_ = Operand.unwrap(operand_) & 0x1;
             uint256 offset_ = Operand.unwrap(operand_) >> 1;

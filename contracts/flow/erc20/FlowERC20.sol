@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {RainVMIntegrity, StateConfig} from "../vm/integrity/RainVMIntegrity.sol";
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import {RainVMIntegrity, StateConfig} from "../../vm/integrity/RainVMIntegrity.sol";
+import "../../vm/runtime/StandardVM.sol";
+import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "../array/LibUint256Array.sol";
+import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./libraries/LibFlow.sol";
-import "../math/FixedPointMath.sol";
-import "../idempotent/LibIdempotentFlag.sol";
-import "./FlowVM.sol";
-import "./libraries/LibRebase.sol";
+import "../libraries/LibFlow.sol";
+import "../../math/FixedPointMath.sol";
+import "../../idempotent/LibIdempotentFlag.sol";
+import "../vm/FlowVM.sol";
+import "../libraries/LibRebase.sol";
 
 /// Constructor config.
 /// @param Constructor config for the ERC20 token minted according to flow
@@ -170,14 +170,14 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         );
     }
 
-    function _previewFlow(VMState memory state_, uint256 id_)
+    function _previewFlow(VMState memory state_)
         internal
         view
         virtual
         returns (FlowERC20IO memory)
     {
         FlowERC20IO memory flowIO_;
-        StackTop stackTop_ = flowStack(state_, id_);
+        StackTop stackTop_ = flowStack(state_);
         (stackTop_, flowIO_.mint) = stackTop_.pop();
         (stackTop_, flowIO_.burn) = stackTop_.pop();
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
@@ -192,7 +192,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
-        FlowERC20IO memory flowIO_ = _previewFlow(state_, id_);
+        FlowERC20IO memory flowIO_ = _previewFlow(state_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         _mint(msg.sender, flowIO_.mint);
         _burn(msg.sender, flowIO_.burn);
@@ -206,7 +206,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         virtual
         returns (FlowERC20IO memory)
     {
-        return _previewFlow(_loadFlowState(flow_, id_), id_);
+        return _previewFlow(_loadFlowState(flow_, id_));
     }
 
     function flow(uint256 flow_, uint256 id_)

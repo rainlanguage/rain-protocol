@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
         version: "0.8.17",
         settings: {
           optimizer: {
-            enabled: false,
+            enabled: true,
             runs: 1000000000,
             details: {
               peephole: true,

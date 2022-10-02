@@ -1,32 +1,40 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "./FlowVM.sol";
-import "./libraries/LibFlow.sol";
+import "../vm/FlowVM.sol";
+import "../libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
+struct FlowConfig {
+    // This is NOT USED by `Flow` but removing it causes the compiler to fail to
+    // compile the code with optimizations. Removing this seems to cause the EVM
+    // stack to overflow.
+    StateConfig stateConfig;
+    StateConfig[] flows;
+}
 
 contract Flow is ReentrancyGuard, FlowVM {
     using LibVMState for VMState;
 
-    event Initialize(address sender, StateConfig[] flows);
+    event Initialize(address sender, FlowConfig config);
 
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
     constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {}
 
-    /// @param flows_ source and token config. Also controls delegated claims.
-    function initialize(StateConfig[] calldata flows_) external initializer {
-        __FlowVM_init(flows_, LibUint256Array.arrayFrom(1, 8));
-        emit Initialize(msg.sender, flows_);
+    /// @param config_ allowed flows set at initialization.
+    function initialize(FlowConfig calldata config_) external initializer {
+        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 8));
+        emit Initialize(msg.sender, config_);
     }
 
-    function _previewFlow(VMState memory state_, uint256 id_)
+    function _previewFlow(VMState memory state_)
         internal
         view
         returns (FlowIO memory flowIO_)
     {
-        StackTop stackTop_ = flowStack(state_, id_);
+        StackTop stackTop_ = flowStack(state_);
         flowIO_ = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 
@@ -36,7 +44,7 @@ contract Flow is ReentrancyGuard, FlowVM {
         virtual
         returns (FlowIO memory flowIO_)
     {
-        flowIO_ = _previewFlow(_loadVMState(flow_), id_);
+        flowIO_ = _previewFlow(_loadFlowState(flow_, id_));
     }
 
     function flow(uint256 flow_, uint256 id_)
@@ -46,8 +54,8 @@ contract Flow is ReentrancyGuard, FlowVM {
         nonReentrant
         returns (FlowIO memory flowIO_)
     {
-        VMState memory state_ = _loadVMState(flow_);
-        flowIO_ = _previewFlow(state_, id_);
+        VMState memory state_ = _loadFlowState(flow_, id_);
+        flowIO_ = _previewFlow(state_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         LibFlow.flow(flowIO_, address(this), payable(msg.sender));
     }
