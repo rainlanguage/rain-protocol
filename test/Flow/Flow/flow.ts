@@ -112,11 +112,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW()];
+    const sources = [];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
