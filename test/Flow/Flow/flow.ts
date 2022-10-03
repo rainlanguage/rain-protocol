@@ -112,11 +112,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -281,11 +281,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -433,11 +433,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -552,11 +552,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -714,11 +714,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -876,11 +876,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -1030,11 +1030,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -1138,11 +1138,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -1251,11 +1251,11 @@ describe("Flow flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
     ]);
 
-    const sources = [CAN_FLOW(), sourceFlowIO];
+    const sources = [CAN_FLOW()];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
