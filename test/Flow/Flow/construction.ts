@@ -3,9 +3,9 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory, FlowIntegrity } from "../../../typechain";
 import {
+  FlowConfigStruct,
   InitializeEvent,
-  StateConfigStruct,
-} from "../../../typechain/contracts/flow/Flow";
+} from "../../../typechain/contracts/flow/raw/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
@@ -58,14 +58,14 @@ describe("Flow construction tests", async function () {
 
     const sources = [sourceCanFlow, sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const { sender, flows } = (await getEventArgs(
+    const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
       "Initialize",
       flow
@@ -73,6 +73,6 @@ describe("Flow construction tests", async function () {
 
     assert(sender === flowFactory.address, "wrong sender in Initialize event");
 
-    compareStructs(flows[0], stateConfigStruct);
+    compareStructs(config, flowConfigStruct);
   });
 });

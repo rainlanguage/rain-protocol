@@ -8,10 +8,10 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
+  FlowConfigStruct,
   FlowIOStruct,
   SaveVMStateEvent,
-  StateConfigStruct,
-} from "../../../typechain/contracts/flow/Flow";
+} from "../../../typechain/contracts/flow/raw/Flow";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
@@ -87,12 +87,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -216,12 +216,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -329,12 +329,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -436,12 +436,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -528,12 +528,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -612,12 +612,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -693,12 +693,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -756,12 +756,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
@@ -821,12 +821,12 @@ describe("Flow previewFlow tests", async function () {
 
     const sources = [CAN_FLOW(), sourceFlowIO];
 
-    const stateConfigStruct: StateConfigStruct = {
-      sources,
-      constants,
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, [stateConfigStruct]);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowStates = (await getEvents(
       flow.deployTransaction,

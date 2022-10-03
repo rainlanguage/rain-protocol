@@ -10,11 +10,11 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
+  FlowERC20ConfigStruct,
   FlowIOStruct,
   FlowIOStructOutput,
   SaveVMStateEvent,
-} from "../../../typechain/contracts/flow/Flow";
-import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/FlowERC20";
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import {
   eighteenZeros,
   ONE,

@@ -2,8 +2,10 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/FlowERC20";
-import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/FlowERC20";
+import {
+  FlowERC20ConfigStruct,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { ONE } from "../../../utils/constants/bigNumber";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";

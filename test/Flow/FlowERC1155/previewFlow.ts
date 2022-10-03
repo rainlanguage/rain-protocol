@@ -11,7 +11,7 @@ import {
   FlowIOStruct,
   SaveVMStateEvent,
   StateConfigStruct,
-} from "../../../typechain/contracts/flow/FlowERC1155";
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,

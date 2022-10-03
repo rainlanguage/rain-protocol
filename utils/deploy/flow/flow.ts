@@ -8,32 +8,29 @@ import {
   FlowERC721Factory,
   FlowFactory,
 } from "../../../typechain";
-import { StateConfigStruct } from "../../../typechain/contracts/flow/Flow";
 import {
   FlowERC1155,
   FlowERC1155ConfigStruct,
-} from "../../../typechain/contracts/flow/FlowERC1155";
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import {
   FlowERC20,
   FlowERC20ConfigStruct,
-} from "../../../typechain/contracts/flow/FlowERC20";
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import {
   FlowERC721,
   FlowERC721ConfigStruct,
-} from "../../../typechain/contracts/flow/FlowERC721";
+} from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import { FlowConfigStruct } from "../../../typechain/contracts/flow/raw/Flow";
 import { getEventArgs } from "../../events";
 
 export const flowDeploy = async (
   deployer: SignerWithAddress,
   flowFactory: FlowFactory,
-  stateConfigStruct: StateConfigStruct[],
+  flowConfigStruct: FlowConfigStruct,
   ...args: Overrides[]
 ): Promise<Flow> => {
   const txDeploy = await flowFactory.createChildTyped(
-    {
-      stateConfig: { sources: [], constants: [] },
-      flows: stateConfigStruct,
-    },
+    flowConfigStruct,
     ...args
   );
 

@@ -11,7 +11,7 @@ import {
   FlowIOStruct,
   SaveVMStateEvent,
   StateConfigStruct,
-} from "../../../typechain/contracts/flow/FlowERC20";
+} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import {
   eighteenZeros,
   ONE,
