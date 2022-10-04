@@ -167,9 +167,9 @@ describe("FlowERC20 flow tests", async function () {
       flowCanTransfer
     )) as SaveVMStateEvent["args"][];
     const flowStatesCannotTransfer = (await getEvents(
-      flowCanTransfer.deployTransaction,
+      flowCannotTransfer.deployTransaction,
       "SaveVMState",
-      flowCanTransfer
+      flowCannotTransfer
     )) as SaveVMStateEvent["args"][];
 
     const signer1 = signers[1];
@@ -179,7 +179,7 @@ describe("FlowERC20 flow tests", async function () {
       .connect(signer1)
       .flow(flowStatesCanTransfer[1].id, 1234);
 
-    const _txFlowCannotTransfer = await flowCanTransfer
+    const _txFlowCannotTransfer = await flowCannotTransfer
       .connect(signer1)
       .flow(flowStatesCannotTransfer[1].id, 1234);
 
