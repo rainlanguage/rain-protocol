@@ -188,6 +188,21 @@ describe("FlowERC1155 flow tests", async function () {
       .connect(signer1)
       .flow(flowStatesCannotTransfer[1].id, 1234);
 
+    // check minting worked
+    const balanceCan0 = await flowCanTransfer.balanceOf(
+      signer1.address,
+      tokenId
+    );
+    const balanceCannot0 = await flowCannotTransfer.balanceOf(
+      signer1.address,
+      tokenId
+    );
+
+    console.log({ balanceCan0, balanceCannot0 });
+
+    assert(balanceCan0.eq(tokenAmount));
+    assert(balanceCannot0.eq(tokenAmount));
+
     await flowCanTransfer
       .connect(signer1)
       .safeTransferFrom(
