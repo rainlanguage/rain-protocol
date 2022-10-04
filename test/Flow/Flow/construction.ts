@@ -56,11 +56,11 @@ describe("Flow construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
     ]);
 
-    const sources = [sourceCanFlow, sourceFlowIO];
+    const sources = [];
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [],
+      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
