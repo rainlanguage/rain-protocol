@@ -152,6 +152,31 @@ library LibStackTop {
         return (stackTop_, array_);
     }
 
+    function consumeStructs(StackTop stackTop_, StackTop stackBottom_, uint sentinel_, uint structSize_) internal pure returns (StackTop, uint[] memory) {
+        uint[] memory tempArray_;
+        (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            stackBottom_,
+            sentinel_,
+            structSize_
+        );
+        uint structsLength_ = tempArray_.length / structSize_;
+        uint[] memory refs_ = new uint256[](structsLength_);
+        assembly ("memory-safe") {
+            for {
+                let refCursor_ := add(refs_, 0x20)
+                let refEnd_ := add(refCursor_, mul(structsLength_, 0x20))
+                let tempCursor_ := add(tempArray_, 0x20)
+                let tempStepSize_ := mul(structSize_, 0x20)
+            } lt(refCursor_, refEnd_) {
+                refCursor_ := add(refCursor_, 0x20)
+                tempCursor_ := add(tempCursor_, tempStepSize_)
+            } {
+                mstore(refCursor_, tempCursor_)
+            }
+        }
+        return (stackTop_, refs_);
+    }
+
     /// Write a value at the stack top location. Typically not useful if the
     /// given stack top is not subsequently moved past the written value , or
     /// if the given stack top is actually located somewhere below the "true"

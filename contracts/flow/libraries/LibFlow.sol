@@ -58,136 +58,62 @@ library LibFlow {
         returns (FlowIO memory flowIO_)
     {
         unchecked {
-            uint256[] memory tempArray_;
-            uint256 structsLength_;
             uint256[] memory refs_;
             (stackTop_, flowIO_.inputNative) = stackTop_.pop();
             (stackTop_, flowIO_.outputNative) = stackTop_.pop();
             // inputs20
-            (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            (stackTop_, refs_) = stackTop_.consumeStructs(
                 stackBottom_,
                 RAIN_FLOW_SENTINEL,
                 2
             );
-            structsLength_ = tempArray_.length / 2;
-            refs_ = new uint256[](structsLength_);
             assembly ("memory-safe") {
                 mstore(add(flowIO_, 0x40), refs_)
-                for {
-                    let cursor_ := add(refs_, 0x20)
-                    let refCursor_ := add(tempArray_, 0x20)
-                    let end_ := add(cursor_, mul(structsLength_, 0x20))
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    refCursor_ := add(refCursor_, 0x40)
-                } {
-                    mstore(cursor_, refCursor_)
-                }
             }
             // outputs20
-            (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            (stackTop_, refs_) = stackTop_.consumeStructs(
                 stackBottom_,
                 RAIN_FLOW_SENTINEL,
                 2
             );
-            structsLength_ = tempArray_.length / 2;
-            refs_ = new uint256[](structsLength_);
             assembly ("memory-safe") {
                 mstore(add(flowIO_, 0x60), refs_)
-                for {
-                    let cursor_ := add(refs_, 0x20)
-                    let refCursor_ := add(tempArray_, 0x20)
-                    let end_ := add(cursor_, mul(structsLength_, 0x20))
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    refCursor_ := add(refCursor_, 0x40)
-                } {
-                    mstore(cursor_, refCursor_)
-                }
             }
             // inputs721
-            (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            (stackTop_, refs_) = stackTop_.consumeStructs(
                 stackBottom_,
                 RAIN_FLOW_SENTINEL,
                 2
             );
-            structsLength_ = tempArray_.length / 2;
-            refs_ = new uint256[](structsLength_);
             assembly ("memory-safe") {
                 mstore(add(flowIO_, 0x80), refs_)
-                for {
-                    let cursor_ := add(refs_, 0x20)
-                    let refCursor_ := add(tempArray_, 0x20)
-                    let end_ := add(cursor_, mul(structsLength_, 0x20))
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    refCursor_ := add(refCursor_, 0x40)
-                } {
-                    mstore(cursor_, refCursor_)
-                }
             }
             // outputs721
-            (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            (stackTop_, refs_) = stackTop_.consumeStructs(
                 stackBottom_,
                 RAIN_FLOW_SENTINEL,
                 2
             );
-            structsLength_ = tempArray_.length / 2;
-            refs_ = new uint256[](structsLength_);
             assembly ("memory-safe") {
                 mstore(add(flowIO_, 0xA0), refs_)
-                for {
-                    let cursor_ := add(refs_, 0x20)
-                    let refCursor_ := add(tempArray_, 0x20)
-                    let end_ := add(cursor_, mul(structsLength_, 0x20))
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    refCursor_ := add(refCursor_, 0x40)
-                } {
-                    mstore(cursor_, refCursor_)
-                }
             }
             // inputs1155
-            (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            (stackTop_, refs_) = stackTop_.consumeStructs(
                 stackBottom_,
                 RAIN_FLOW_SENTINEL,
                 3
             );
-            structsLength_ = tempArray_.length / 3;
-            refs_ = new uint256[](structsLength_);
             assembly ("memory-safe") {
                 mstore(add(flowIO_, 0xC0), refs_)
-                for {
-                    let cursor_ := add(refs_, 0x20)
-                    let refCursor_ := add(tempArray_, 0x20)
-                    let end_ := add(cursor_, mul(structsLength_, 0x20))
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    refCursor_ := add(refCursor_, 0x60)
-                } {
-                    mstore(cursor_, refCursor_)
-                }
             }
             // outputs1155
-            (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            (stackTop_, refs_) = stackTop_.consumeStructs(
                 stackBottom_,
                 RAIN_FLOW_SENTINEL,
                 3
             );
-            structsLength_ = tempArray_.length / 3;
-            refs_ = new uint256[](structsLength_);
             assembly ("memory-safe") {
                 mstore(add(flowIO_, 0xE0), refs_)
-                for {
-                    let cursor_ := add(refs_, 0x20)
-                    let refCursor_ := add(tempArray_, 0x20)
-                    let end_ := add(cursor_, mul(structsLength_, 0x20))
-                } lt(cursor_, end_) {
-                    cursor_ := add(cursor_, 0x20)
-                    refCursor_ := add(refCursor_, 0x60)
-                } {
-                    mstore(cursor_, refCursor_)
-                }
             }
         }
     }

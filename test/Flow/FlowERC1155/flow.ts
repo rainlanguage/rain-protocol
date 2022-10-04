@@ -29,6 +29,7 @@ import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { Struct } from "../../../utils/types";
+import * as Util from "../../../utils";
 
 const Opcode = AllStandardOps;
 
@@ -78,7 +79,7 @@ describe("FlowERC1155 flow tests", async function () {
       flowIO.inputNative,
       flowIO.outputNative,
       1,
-      1,
+      Util.ONE,
     ];
     const constantsCannotTransfer = [
       RAIN_FLOW_SENTINEL,
@@ -89,7 +90,7 @@ describe("FlowERC1155 flow tests", async function () {
       flowIO.inputNative,
       flowIO.outputNative,
       0,
-      1,
+      Util.ONE,
     ];
 
     const SENTINEL = () =>
@@ -122,8 +123,8 @@ describe("FlowERC1155 flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
       SENTINEL_1155(),
       SENTINEL_1155(),
-      TOKEN_AMOUNT(),
       TOKEN_ID(),
+      TOKEN_AMOUNT(),
     ]);
 
     const sources = [REBASE_RATIO(), CAN_TRANSFER()];
@@ -200,7 +201,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     console.log({ balanceCan0, balanceCannot0 });
 
-    assert(balanceCan0.eq(tokenAmount));
+    assert(balanceCan0.eq(tokenAmount), `balance ${balanceCan0} not equal amount ${tokenAmount}`);
     assert(balanceCannot0.eq(tokenAmount));
 
     await flowCanTransfer
@@ -261,7 +262,7 @@ describe("FlowERC1155 flow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
-      1,
+      Util.ONE,
       tokenId,
       tokenAmount,
       flowIOMint.inputNative,
@@ -298,8 +299,8 @@ describe("FlowERC1155 flow tests", async function () {
       FLOWIO_INPUT_NATIVE(),
       SENTINEL_1155(),
       SENTINEL_1155(),
-      TOKEN_AMOUNT(), // mint
       TOKEN_ID(), // mint
+      TOKEN_AMOUNT(), // mint
     ]);
     const sourceFlowIOBurn = concat([
       SENTINEL(),
@@ -311,8 +312,8 @@ describe("FlowERC1155 flow tests", async function () {
       FLOWIO_OUTPUT_NATIVE(),
       FLOWIO_INPUT_NATIVE(),
       SENTINEL_1155(),
-      TOKEN_AMOUNT(), // burn
       TOKEN_ID(), // burn
+      TOKEN_AMOUNT(), // burn
       SENTINEL_1155(),
     ]);
 
