@@ -201,7 +201,10 @@ describe("FlowERC1155 flow tests", async function () {
 
     console.log({ balanceCan0, balanceCannot0 });
 
-    assert(balanceCan0.eq(tokenAmount), `balance ${balanceCan0} not equal amount ${tokenAmount}`);
+    assert(
+      balanceCan0.eq(tokenAmount),
+      `balance ${balanceCan0} not equal amount ${tokenAmount}`
+    );
     assert(balanceCannot0.eq(tokenAmount));
 
     await flowCanTransfer

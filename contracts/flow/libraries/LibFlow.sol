@@ -22,7 +22,7 @@ uint256 constant RAIN_FLOW_SENTINEL = uint256(
 struct NativeTransfer {
     address from;
     address to;
-    uint amount;
+    uint256 amount;
 }
 
 struct ERC20Transfer {
@@ -58,7 +58,7 @@ library LibFlow {
     using Address for address payable;
     using SafeERC20 for IERC20;
     using LibStackTop for StackTop;
-    using SafeCast for uint;
+    using SafeCast for uint256;
     using LibFlow for FlowTransfer;
 
     function stackToFlow(StackTop stackBottom_, StackTop stackTop_)
@@ -116,32 +116,29 @@ library LibFlow {
     ) internal returns (FlowTransfer memory) {
         unchecked {
             // +'ve is from you to me, -'ve is from me to you.
-            int youToMe_ = 0;
+            int256 youToMe_ = 0;
             NativeTransfer memory transfer_;
-            for (uint i_ = 0; i_ < flowTransfer_.native.length; i_++) {
+            for (uint256 i_ = 0; i_ < flowTransfer_.native.length; i_++) {
                 transfer_ = flowTransfer_.native[i_];
                 if (transfer_.from == you_) {
                     require(transfer_.to == me_, "UNSUPPORTED_NATIVE_FLOW");
                     youToMe_ += transfer_.amount.toInt256();
-                }
-                else {
+                } else {
                     require(transfer_.from == me_, "UNSUPPORTED_NATIVE_FLOW");
                     if (transfer_.to == you_) {
                         youToMe_ -= transfer_.amount.toInt256();
-                    }
-                    else {
+                    } else {
                         payable(transfer_.to).sendValue(transfer_.amount);
                     }
                 }
             }
 
-            uint meToYou_ = 0;
+            uint256 meToYou_ = 0;
             if (youToMe_ > 0) {
                 // This will overflow if the msg.value is less than youToMe_.
-                meToYou_ = msg.value - uint(youToMe_);
-            }
-            else if (youToMe_ < 0) {
-                meToYou_ = uint(-youToMe_);
+                meToYou_ = msg.value - uint256(youToMe_);
+            } else if (youToMe_ < 0) {
+                meToYou_ = uint256(-youToMe_);
             }
             if (meToYou_ > 0) {
                 you_.sendValue(meToYou_);
@@ -151,18 +148,27 @@ library LibFlow {
         }
     }
 
-    function flowERC20(FlowTransfer memory flowTransfer_, address me_, address payable you_) internal returns (FlowTransfer memory) {
+    function flowERC20(
+        FlowTransfer memory flowTransfer_,
+        address me_,
+        address payable you_
+    ) internal returns (FlowTransfer memory) {
         unchecked {
             ERC20Transfer memory transfer_;
-            for (uint i_ = 0; i_ < flowTransfer_.erc20.length; i_++) {
+            for (uint256 i_ = 0; i_ < flowTransfer_.erc20.length; i_++) {
                 transfer_ = flowTransfer_.erc20[i_];
                 if (transfer_.from == you_) {
-                    IERC20(transfer_.token).safeTransferFrom(you_, transfer_.to, transfer_.amount);
-                }
-                else if (transfer_.from == me_) {
-                    IERC20(transfer_.token).safeTransfer(transfer_.to, transfer_.amount);
-                }
-                else {
+                    IERC20(transfer_.token).safeTransferFrom(
+                        you_,
+                        transfer_.to,
+                        transfer_.amount
+                    );
+                } else if (transfer_.from == me_) {
+                    IERC20(transfer_.token).safeTransfer(
+                        transfer_.to,
+                        transfer_.amount
+                    );
+                } else {
                     // We don't support `from` as anyone other than `you` or `me`
                     // as this would allow for all kinds of issues re: approvals.
                     revert("UNSUPPORTED_ERC20_FLOW");
@@ -173,27 +179,51 @@ library LibFlow {
         }
     }
 
-    function flowERC721(FlowTransfer memory flowTransfer_, address me_, address payable you_) internal returns (FlowTransfer memory) {
+    function flowERC721(
+        FlowTransfer memory flowTransfer_,
+        address me_,
+        address payable you_
+    ) internal returns (FlowTransfer memory) {
         unchecked {
             ERC721Transfer memory transfer_;
-            for (uint i_ = 0; i_ < flowTransfer_.erc721.length; i_++) {
+            for (uint256 i_ = 0; i_ < flowTransfer_.erc721.length; i_++) {
                 transfer_ = flowTransfer_.erc721[i_];
-                require(transfer_.from == you_ || transfer_.from == me_, "UNSUPPORTED_ERC721_FLOW");
-                IERC721(transfer_.token).safeTransferFrom(transfer_.from, transfer_.to, transfer_.id);
+                require(
+                    transfer_.from == you_ || transfer_.from == me_,
+                    "UNSUPPORTED_ERC721_FLOW"
+                );
+                IERC721(transfer_.token).safeTransferFrom(
+                    transfer_.from,
+                    transfer_.to,
+                    transfer_.id
+                );
             }
             return flowTransfer_;
         }
     }
 
-    function flowERC1155(FlowTransfer memory flowTransfer_, address me_, address payable you_) internal returns (FlowTransfer memory) {
+    function flowERC1155(
+        FlowTransfer memory flowTransfer_,
+        address me_,
+        address payable you_
+    ) internal returns (FlowTransfer memory) {
         unchecked {
             ERC1155Transfer memory transfer_;
-            for (uint i_ = 0; i_ < flowTransfer_.erc1155.length; i_++) {
+            for (uint256 i_ = 0; i_ < flowTransfer_.erc1155.length; i_++) {
                 transfer_ = flowTransfer_.erc1155[i_];
-                require(transfer_.from == you_ || transfer_.from == me_, "UNSUPPORTED_ERC1155_FLOW");
+                require(
+                    transfer_.from == you_ || transfer_.from == me_,
+                    "UNSUPPORTED_ERC1155_FLOW"
+                );
                 // @todo safeBatchTransferFrom support.
                 // @todo data support.
-                IERC1155(transfer_.token).safeTransferFrom(transfer_.from, transfer_.to, transfer_.id, transfer_.amount, "");
+                IERC1155(transfer_.token).safeTransferFrom(
+                    transfer_.from,
+                    transfer_.to,
+                    transfer_.id,
+                    transfer_.amount,
+                    ""
+                );
             }
             return flowTransfer_;
         }
@@ -204,6 +234,11 @@ library LibFlow {
         address me_,
         address payable you_
     ) internal returns (FlowTransfer memory) {
-        return flowTransfer_.flowNative(me_, you_).flowERC20(me_, you_).flowERC721(me_, you_).flowERC1155(me_, you_);
+        return
+            flowTransfer_
+                .flowNative(me_, you_)
+                .flowERC20(me_, you_)
+                .flowERC721(me_, you_)
+                .flowERC1155(me_, you_);
     }
 }

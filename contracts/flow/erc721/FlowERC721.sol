@@ -30,9 +30,14 @@ struct FlowERC721Config {
     StateConfig[] flows;
 }
 
+struct ERC721SupplyChange {
+    address account;
+    uint id;
+}
+
 struct FlowERC721IO {
-    uint256[] mints;
-    uint256[] burns;
+    ERC721SupplyChange[] mints;
+    ERC721SupplyChange[] burns;
     FlowTransfer flow;
 }
 
@@ -108,19 +113,27 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     function _previewFlow(VMState memory state_)
         internal
         view
-        returns (FlowERC721IO memory flowIO_)
+        returns (FlowERC721IO memory)
     {
+        uint[] memory refs_;
+        FlowERC721IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_);
-        (stackTop_, flowIO_.mints) = stackTop_.consumeSentinel(
+        (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
             RAIN_FLOW_ERC721_SENTINEL,
-            1
+            2
         );
-        (stackTop_, flowIO_.burns) = stackTop_.consumeSentinel(
+        assembly ("memory-safe") {
+            mstore(flowIO_, refs_)
+        }
+        (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
             RAIN_FLOW_ERC721_SENTINEL,
-            1
+            2
         );
+        assembly ("memory-safe") {
+            mstore(add(flowIO_, 0x20), refs_)
+        }
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
         return flowIO_;
     }
@@ -129,19 +142,20 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         VMState memory state_,
         uint256 flow_,
         uint256 id_
-    ) internal virtual nonReentrant returns (FlowERC721IO memory flowIO_) {
+    ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
-            flowIO_ = _previewFlow(state_);
+            FlowERC721IO memory flowIO_ = _previewFlow(state_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
-                _safeMint(msg.sender, flowIO_.mints[i_]);
+                _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }
             for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
-                uint256 burnId_ = flowIO_.burns[i_];
-                require(ERC721.ownerOf(burnId_) == msg.sender, "NOT_OWNER");
+                uint256 burnId_ = flowIO_.burns[i_].id;
+                require(ERC721.ownerOf(burnId_) == flowIO_.burns[i_].account, "NOT_OWNER");
                 _burn(burnId_);
             }
             LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
+            return flowIO_;
         }
     }
 

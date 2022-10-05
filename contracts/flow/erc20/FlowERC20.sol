@@ -13,6 +13,10 @@ import "../../idempotent/LibIdempotentFlag.sol";
 import "../vm/FlowVM.sol";
 import "../libraries/LibRebase.sol";
 
+uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
+    keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
+);
+
 /// Constructor config.
 /// @param Constructor config for the ERC20 token minted according to flow
 /// schedule in `flow`.
@@ -25,9 +29,14 @@ struct FlowERC20Config {
     StateConfig[] flows;
 }
 
+struct ERC20SupplyChange {
+    address account;
+    uint256 amount;
+}
+
 struct FlowERC20IO {
-    uint256 mint;
-    uint256 burn;
+    ERC20SupplyChange[] mints;
+    ERC20SupplyChange[] burns;
     FlowTransfer flow;
 }
 
@@ -176,14 +185,36 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         virtual
         returns (FlowERC20IO memory)
     {
+        uint256 rebaseRatio_ = _loadVMState(CORE_SOURCE_ID).rebaseRatio(
+            REBASE_RATIO_ENTRYPOINT
+        );
+        uint[] memory refs_;
         FlowERC20IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_);
-        (stackTop_, flowIO_.mint) = stackTop_.pop();
-        (stackTop_, flowIO_.burn) = stackTop_.pop();
+        (stackTop_, refs_) = stackTop_.consumeStructs(
+            state_.stackBottom,
+            RAIN_FLOW_ERC20_SENTINEL,
+            2
+        );
+        assembly ("memory-safe") {
+            mstore(flowIO_, refs_)
+        }
+        for (uint i_ = 0; i_ < flowIO_.mints.length; i_++) {
+            flowIO_.mints[i_].amount = flowIO_.mints[i_].amount.rebaseInput(rebaseRatio_);
+        }
+        (stackTop_, refs_) = stackTop_.consumeStructs(
+            state_.stackBottom,
+            RAIN_FLOW_ERC20_SENTINEL,
+            2
+        );
+        assembly ("memory-safe") {
+            mstore(add(flowIO_, 0x20), refs_)
+        }
+        for (uint i_ = 0; i_ < flowIO_.burns.length; i_++) {
+            flowIO_.burns[i_].amount = flowIO_.burns[i_].amount.rebaseInput(rebaseRatio_);
+        }
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
-        uint256 rebaseRatio_ = state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT);
-        flowIO_.mint = flowIO_.mint.rebaseInput(rebaseRatio_);
-        flowIO_.burn = flowIO_.burn.rebaseInput(rebaseRatio_);
+
         return flowIO_;
     }
 
@@ -194,8 +225,12 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         FlowERC20IO memory flowIO_ = _previewFlow(state_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
-        _mint(msg.sender, flowIO_.mint);
-        _burn(msg.sender, flowIO_.burn);
+        for (uint i_ = 0; i_ < flowIO_.mints.length; i_++) {
+            _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
+        }
+        for (uint i_ = 0; i_ < flowIO_.burns.length; i_++) {
+            _burn(flowIO_.burns[i_].account, flowIO_.burns[i_].amount);
+        }
         LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
         return flowIO_;
     }

@@ -152,15 +152,20 @@ library LibStackTop {
         return (stackTop_, array_);
     }
 
-    function consumeStructs(StackTop stackTop_, StackTop stackBottom_, uint sentinel_, uint structSize_) internal pure returns (StackTop, uint[] memory) {
-        uint[] memory tempArray_;
+    function consumeStructs(
+        StackTop stackTop_,
+        StackTop stackBottom_,
+        uint256 sentinel_,
+        uint256 structSize_
+    ) internal pure returns (StackTop, uint256[] memory) {
+        uint256[] memory tempArray_;
         (stackTop_, tempArray_) = stackTop_.consumeSentinel(
             stackBottom_,
             sentinel_,
             structSize_
         );
-        uint structsLength_ = tempArray_.length / structSize_;
-        uint[] memory refs_ = new uint256[](structsLength_);
+        uint256 structsLength_ = tempArray_.length / structSize_;
+        uint256[] memory refs_ = new uint256[](structsLength_);
         assembly ("memory-safe") {
             for {
                 let refCursor_ := add(refs_, 0x20)

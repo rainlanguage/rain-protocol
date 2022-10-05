@@ -20,14 +20,15 @@ struct FlowERC1155Config {
     StateConfig[] flows;
 }
 
-struct ERC1155SelfIO {
+struct ERC1155SupplyChange {
+    address account;
     uint256 id;
     uint256 amount;
 }
 
 struct FlowERC1155IO {
-    ERC1155SelfIO[] mints;
-    ERC1155SelfIO[] burns;
+    ERC1155SupplyChange[] mints;
+    ERC1155SupplyChange[] burns;
     FlowTransfer flow;
 }
 
@@ -54,7 +55,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig, LibUint256Array.arrayFrom(1, 1));
+        _saveVMState(
+            CORE_SOURCE_ID,
+            config_.vmStateConfig,
+            LibUint256Array.arrayFrom(1, 1)
+        );
         __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
     }
 
@@ -168,14 +173,15 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     function _previewFlow(VMState memory state_)
         internal
         view
-        returns (FlowERC1155IO memory flowIO_)
+        returns (FlowERC1155IO memory)
     {
-        StackTop stackTop_ = flowStack(state_);
         uint256[] memory refs_;
+        FlowERC1155IO memory flowIO_;
+        StackTop stackTop_ = flowStack(state_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
             RAIN_FLOW_ERC1155_SENTINEL,
-            2
+            3
         );
         assembly ("memory-safe") {
             mstore(flowIO_, refs_)
@@ -183,7 +189,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
             RAIN_FLOW_ERC1155_SENTINEL,
-            2
+            3
         );
         assembly ("memory-safe") {
             mstore(add(flowIO_, 0x20), refs_)
@@ -196,14 +202,14 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         VMState memory state_,
         uint256 flow_,
         uint256 id_
-    ) internal virtual nonReentrant returns (FlowERC1155IO memory flowIO_) {
+    ) internal virtual nonReentrant returns (FlowERC1155IO memory) {
         unchecked {
-            flowIO_ = _previewFlow(state_);
+            FlowERC1155IO memory flowIO_ = _previewFlow(state_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
                 _mint(
-                    msg.sender,
+                    flowIO_.mints[i_].account,
                     flowIO_.mints[i_].id,
                     flowIO_.mints[i_].amount,
                     ""
@@ -211,12 +217,13 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             }
             for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
                 _burn(
-                    msg.sender,
+                    flowIO_.burns[i_].account,
                     flowIO_.burns[i_].id,
                     flowIO_.burns[i_].amount
                 );
             }
             LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
+            return flowIO_;
         }
     }
 
