@@ -32,19 +32,19 @@ contract Flow is ReentrancyGuard, FlowVM {
     function _previewFlow(VMState memory state_)
         internal
         view
-        returns (FlowIO memory flowIO_)
+        returns (FlowTransfer memory)
     {
         StackTop stackTop_ = flowStack(state_);
-        flowIO_ = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
+        return LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 
     function previewFlow(uint256 flow_, uint256 id_)
         external
         view
         virtual
-        returns (FlowIO memory flowIO_)
+        returns (FlowTransfer memory)
     {
-        flowIO_ = _previewFlow(_loadFlowState(flow_, id_));
+        return _previewFlow(_loadFlowState(flow_, id_));
     }
 
     function flow(uint256 flow_, uint256 id_)
@@ -52,11 +52,11 @@ contract Flow is ReentrancyGuard, FlowVM {
         payable
         virtual
         nonReentrant
-        returns (FlowIO memory flowIO_)
+        returns (FlowTransfer memory)
     {
         VMState memory state_ = _loadFlowState(flow_, id_);
-        flowIO_ = _previewFlow(state_);
+        FlowTransfer memory flowTransfer_ = _previewFlow(state_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
-        LibFlow.flow(flowIO_, address(this), payable(msg.sender));
+        return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));
     }
 }

@@ -28,7 +28,7 @@ struct ERC1155SelfIO {
 struct FlowERC1155IO {
     ERC1155SelfIO[] mints;
     ERC1155SelfIO[] burns;
-    FlowIO flow;
+    FlowTransfer flow;
 }
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);

@@ -33,7 +33,7 @@ struct FlowERC721Config {
 struct FlowERC721IO {
     uint256[] mints;
     uint256[] burns;
-    FlowIO flow;
+    FlowTransfer flow;
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);

@@ -28,7 +28,7 @@ struct FlowERC20Config {
 struct FlowERC20IO {
     uint256 mint;
     uint256 burn;
-    FlowIO flow;
+    FlowTransfer flow;
 }
 
 SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
