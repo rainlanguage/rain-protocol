@@ -9,7 +9,7 @@ import {
 } from "../../../typechain";
 import {
   FlowConfigStruct,
-  FlowIOStruct,
+  FlowTransferStruct,
   SaveVMStateEvent,
 } from "../../../typechain/contracts/flow/raw/Flow";
 import { sixZeros } from "../../../utils/constants/bigNumber";
@@ -46,43 +46,58 @@ describe("Flow previewFlow tests", async function () {
   it("should preview defined flow IO for native Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+    const you = signers[1];
 
-    const flowIO: FlowIOStruct = {
-      inputNative: ethers.BigNumber.from(1 + sixZeros),
-      outputNative: ethers.BigNumber.from(2 + sixZeros),
-      inputs20: [],
-      outputs20: [],
-      inputs721: [],
-      outputs721: [],
-      inputs1155: [],
-      outputs1155: [],
+    const flowTransfer: FlowTransferStruct = {
+      native: [
+        {
+          from: you.address,
+          to: "", // Contract Address
+          amount: ethers.BigNumber.from(1 + sixZeros),
+        },
+        {
+          from: "", // Contract Address
+          to: you.address, 
+          amount: ethers.BigNumber.from(2 + sixZeros),
+        }
+      ],
+      erc20: [],
+      erc721: [],
+      erc1155: []
     };
 
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
+      flowTransfer.native[0].amount,
+      flowTransfer.native[1].amount,
+      you.address
     ];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const FLOWIO_INPUT_NATIVE = () =>
+    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWIO_OUTPUT_NATIVE = () =>
+    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const ME = () =>
+      op(Opcode.THIS_ADDRESS);
+    const YOU = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const sourceFlowIO = concat([
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      SENTINEL(),
-      FLOWIO_OUTPUT_NATIVE(),
-      FLOWIO_INPUT_NATIVE(),
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE END
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+      YOU(),
+      ME(),            
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT()
     ]);
 
     const sources = [];
@@ -100,9 +115,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO, true);
+    compareStructs(flowTransferPreview, flowTransfer, true);
   });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
@@ -120,7 +135,7 @@ describe("Flow previewFlow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155B.initialize();
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
@@ -140,20 +155,20 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
-      flowIO.inputs1155[0].token,
-      flowIO.inputs1155[0].id,
-      flowIO.inputs1155[0].amount,
-      flowIO.inputs1155[1].token,
-      flowIO.inputs1155[1].id,
-      flowIO.inputs1155[1].amount,
-      flowIO.outputs1155[0].token,
-      flowIO.outputs1155[0].id,
-      flowIO.outputs1155[0].amount,
-      flowIO.outputs1155[1].token,
-      flowIO.outputs1155[1].id,
-      flowIO.outputs1155[1].amount,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
+      flowTransfer.inputs1155[0].token,
+      flowTransfer.inputs1155[0].id,
+      flowTransfer.inputs1155[0].amount,
+      flowTransfer.inputs1155[1].token,
+      flowTransfer.inputs1155[1].id,
+      flowTransfer.inputs1155[1].amount,
+      flowTransfer.outputs1155[0].token,
+      flowTransfer.outputs1155[0].id,
+      flowTransfer.outputs1155[0].amount,
+      flowTransfer.outputs1155[1].token,
+      flowTransfer.outputs1155[1].id,
+      flowTransfer.outputs1155[1].amount,
     ];
 
     const SENTINEL = () =>
@@ -229,9 +244,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO, true);
+    compareStructs(flowTransferPreview, flowTransfer, true);
   });
 
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
@@ -249,7 +264,7 @@ describe("Flow previewFlow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721B.initialize();
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
@@ -269,16 +284,16 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
-      flowIO.inputs721[0].token,
-      flowIO.inputs721[0].id,
-      flowIO.inputs721[1].token,
-      flowIO.inputs721[1].id,
-      flowIO.outputs721[0].token,
-      flowIO.outputs721[0].id,
-      flowIO.outputs721[1].token,
-      flowIO.outputs721[1].id,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
+      flowTransfer.inputs721[0].token,
+      flowTransfer.inputs721[0].id,
+      flowTransfer.inputs721[1].token,
+      flowTransfer.inputs721[1].id,
+      flowTransfer.outputs721[0].token,
+      flowTransfer.outputs721[0].id,
+      flowTransfer.outputs721[1].token,
+      flowTransfer.outputs721[1].id,
     ];
 
     const SENTINEL = () =>
@@ -342,9 +357,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO, true);
+    compareStructs(flowTransferPreview, flowTransfer, true);
   });
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
@@ -356,7 +371,7 @@ describe("Flow previewFlow tests", async function () {
     const erc20B = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20B.initialize();
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 10,
       outputNative: 50,
       inputs20: [
@@ -376,16 +391,16 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
-      flowIO.inputs20[0].token,
-      flowIO.inputs20[0].amount,
-      flowIO.inputs20[1].token,
-      flowIO.inputs20[1].amount,
-      flowIO.outputs20[0].token,
-      flowIO.outputs20[0].amount,
-      flowIO.outputs20[1].token,
-      flowIO.outputs20[1].amount,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
+      flowTransfer.inputs20[0].token,
+      flowTransfer.inputs20[0].amount,
+      flowTransfer.inputs20[1].token,
+      flowTransfer.inputs20[1].amount,
+      flowTransfer.outputs20[0].token,
+      flowTransfer.outputs20[0].amount,
+      flowTransfer.outputs20[1].token,
+      flowTransfer.outputs20[1].amount,
     ];
 
     const SENTINEL = () =>
@@ -449,9 +464,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO, true);
+    compareStructs(flowTransferPreview, flowTransfer, true);
   });
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
@@ -464,7 +479,7 @@ describe("Flow previewFlow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155.initialize();
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
@@ -478,14 +493,14 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
-      flowIO.inputs1155[0].token,
-      flowIO.inputs1155[0].id,
-      flowIO.inputs1155[0].amount,
-      flowIO.outputs1155[0].token,
-      flowIO.outputs1155[0].id,
-      flowIO.outputs1155[0].amount,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
+      flowTransfer.inputs1155[0].token,
+      flowTransfer.inputs1155[0].id,
+      flowTransfer.inputs1155[0].amount,
+      flowTransfer.outputs1155[0].token,
+      flowTransfer.outputs1155[0].id,
+      flowTransfer.outputs1155[0].amount,
     ];
 
     const SENTINEL = () =>
@@ -541,9 +556,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO);
+    compareStructs(flowTransferPreview, flowTransfer);
   });
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
@@ -556,7 +571,7 @@ describe("Flow previewFlow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721.initialize();
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
@@ -570,12 +585,12 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
-      flowIO.inputs721[0].token,
-      flowIO.inputs721[0].id,
-      flowIO.outputs721[0].token,
-      flowIO.outputs721[0].id,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
+      flowTransfer.inputs721[0].token,
+      flowTransfer.inputs721[0].id,
+      flowTransfer.outputs721[0].token,
+      flowTransfer.outputs721[0].id,
     ];
 
     const SENTINEL = () =>
@@ -625,9 +640,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO);
+    compareStructs(flowTransferPreview, flowTransfer);
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
@@ -637,7 +652,7 @@ describe("Flow previewFlow tests", async function () {
     const erc20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20.initialize();
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 10,
       outputNative: 50,
       inputs20: [{ token: erc20.address, amount: 1 }],
@@ -651,12 +666,12 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
-      flowIO.inputs20[0].token,
-      flowIO.inputs20[0].amount,
-      flowIO.outputs20[0].token,
-      flowIO.outputs20[0].amount,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
+      flowTransfer.inputs20[0].token,
+      flowTransfer.inputs20[0].amount,
+      flowTransfer.outputs20[0].token,
+      flowTransfer.outputs20[0].amount,
     ];
 
     const SENTINEL = () =>
@@ -706,16 +721,16 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO);
+    compareStructs(flowTransferPreview, flowTransfer);
   });
 
   it("should not flow if canFlow eval returns 0", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
@@ -729,8 +744,8 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       0,
-      flowIO.inputNative,
-      flowIO.outputNative,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
     ];
 
     const SENTINEL = () =>
@@ -780,7 +795,7 @@ describe("Flow previewFlow tests", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const flowIO: FlowIOStruct = {
+    const flowTransfer: FlowTransferStruct = {
       inputNative: 0,
       outputNative: 0,
       inputs20: [],
@@ -794,8 +809,8 @@ describe("Flow previewFlow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      flowIO.inputNative,
-      flowIO.outputNative,
+      flowTransfer.inputNative,
+      flowTransfer.outputNative,
     ];
 
     const SENTINEL = () =>
@@ -834,8 +849,8 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowIOPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowIOPreview, flowIO);
+    compareStructs(flowTransferPreview, flowTransfer);
   });
 });

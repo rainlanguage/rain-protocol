@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -13,8 +13,6 @@ import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1
 import {
   FlowConfigStruct,
   FlowTransferStruct,
-  NativeTransferStruct,
-  ERC1155TransferStruct,
   SaveVMStateEvent,
 } from "../../../typechain/contracts/flow/raw/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
