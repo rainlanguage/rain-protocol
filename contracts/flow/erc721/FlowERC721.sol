@@ -32,7 +32,7 @@ struct FlowERC721Config {
 
 struct ERC721SupplyChange {
     address account;
-    uint id;
+    uint256 id;
 }
 
 struct FlowERC721IO {
@@ -115,7 +115,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         view
         returns (FlowERC721IO memory)
     {
-        uint[] memory refs_;
+        uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
@@ -151,7 +151,10 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
             }
             for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
                 uint256 burnId_ = flowIO_.burns[i_].id;
-                require(ERC721.ownerOf(burnId_) == flowIO_.burns[i_].account, "NOT_OWNER");
+                require(
+                    ERC721.ownerOf(burnId_) == flowIO_.burns[i_].account,
+                    "NOT_OWNER"
+                );
                 _burn(burnId_);
             }
             LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));

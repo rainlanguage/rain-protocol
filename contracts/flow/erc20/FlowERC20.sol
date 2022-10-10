@@ -188,7 +188,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         uint256 rebaseRatio_ = _loadVMState(CORE_SOURCE_ID).rebaseRatio(
             REBASE_RATIO_ENTRYPOINT
         );
-        uint[] memory refs_;
+        uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
@@ -199,8 +199,10 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         assembly ("memory-safe") {
             mstore(flowIO_, refs_)
         }
-        for (uint i_ = 0; i_ < flowIO_.mints.length; i_++) {
-            flowIO_.mints[i_].amount = flowIO_.mints[i_].amount.rebaseInput(rebaseRatio_);
+        for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
+            flowIO_.mints[i_].amount = flowIO_.mints[i_].amount.rebaseInput(
+                rebaseRatio_
+            );
         }
         (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
@@ -210,8 +212,10 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         assembly ("memory-safe") {
             mstore(add(flowIO_, 0x20), refs_)
         }
-        for (uint i_ = 0; i_ < flowIO_.burns.length; i_++) {
-            flowIO_.burns[i_].amount = flowIO_.burns[i_].amount.rebaseInput(rebaseRatio_);
+        for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
+            flowIO_.burns[i_].amount = flowIO_.burns[i_].amount.rebaseInput(
+                rebaseRatio_
+            );
         }
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
 
@@ -225,10 +229,10 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         FlowERC20IO memory flowIO_ = _previewFlow(state_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
-        for (uint i_ = 0; i_ < flowIO_.mints.length; i_++) {
+        for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
             _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
         }
-        for (uint i_ = 0; i_ < flowIO_.burns.length; i_++) {
+        for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
             _burn(flowIO_.burns[i_].account, flowIO_.burns[i_].amount);
         }
         LibFlow.flow(flowIO_.flow, address(this), payable(msg.sender));
