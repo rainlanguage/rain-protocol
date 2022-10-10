@@ -25,7 +25,7 @@ contract Flow is ReentrancyGuard, FlowVM {
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig calldata config_) external initializer {
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 8));
+        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 4));
         emit Initialize(msg.sender, config_);
     }
 

@@ -10,6 +10,8 @@ import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable
 import "../../sentinel/LibSentinel.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
+import "hardhat/console.sol";
+
 // We want a sentinel with the following properties:
 // - Won't collide with token amounts (| with very large number)
 // - Won't collide with token addresses
@@ -115,30 +117,28 @@ library LibFlow {
         address payable you_
     ) internal returns (FlowTransfer memory) {
         unchecked {
-            // +'ve is from you to me, -'ve is from me to you.
-            int256 youToMe_ = 0;
+            uint youToMe_ = 0;
+            uint meToYou_ = 0;
             NativeTransfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.native.length; i_++) {
                 transfer_ = flowTransfer_.native[i_];
                 if (transfer_.from == you_) {
                     require(transfer_.to == me_, "UNSUPPORTED_NATIVE_FLOW");
-                    youToMe_ += transfer_.amount.toInt256();
+                    youToMe_ += transfer_.amount;
                 } else {
                     require(transfer_.from == me_, "UNSUPPORTED_NATIVE_FLOW");
                     if (transfer_.to == you_) {
-                        youToMe_ -= transfer_.amount.toInt256();
+                        meToYou_ += transfer_.amount;
                     } else {
                         payable(transfer_.to).sendValue(transfer_.amount);
                     }
                 }
             }
 
-            uint256 meToYou_ = 0;
             if (youToMe_ > 0) {
                 // This will overflow if the msg.value is less than youToMe_.
-                meToYou_ = msg.value - uint256(youToMe_);
-            } else if (youToMe_ < 0) {
-                meToYou_ = uint256(-youToMe_);
+                // Will refund any excess incoming value.
+                meToYou_ += msg.value - youToMe_;
             }
             if (meToYou_ > 0) {
                 you_.sendValue(meToYou_);

@@ -1143,7 +1143,7 @@ describe("Flow flow tests", async function () {
         {
           from: "", // Contract Address
           to: you.address,
-          amount: ethers.BigNumber.from(2 + sixZeros),
+          amount: ethers.BigNumber.from(3 + sixZeros),
         },
       ],
       erc20: [],
@@ -1211,14 +1211,8 @@ describe("Flow flow tests", async function () {
 
     assert(meBalance0.eq(await flowTransfer.native[1].amount));
 
-    const flowStruct = await flow
-      .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, {
-        value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-      });
-
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    // // me address needs to be added to flowTransfer struct after the flow contract is deployed
+    // // compareStructs(flowStruct, flowTransfer);
 
     const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),

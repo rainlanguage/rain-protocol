@@ -84,7 +84,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
             config_.vmStateConfig,
             LibUint256Array.arrayFrom(1, 1)
         );
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
+        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
     function totalSupply() public view virtual override returns (uint256) {

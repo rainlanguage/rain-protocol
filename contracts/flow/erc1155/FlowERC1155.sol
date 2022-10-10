@@ -60,7 +60,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             config_.vmStateConfig,
             LibUint256Array.arrayFrom(1, 1)
         );
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 10));
+        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
