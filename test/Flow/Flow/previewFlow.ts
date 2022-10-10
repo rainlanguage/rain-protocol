@@ -471,9 +471,9 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE = () =>
+    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE = () =>
+    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN_A = () =>
@@ -519,10 +519,10 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE END
       ME(),
       YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE(),
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -795,9 +795,9 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE = () =>
+    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE = () =>
+    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
@@ -828,10 +828,10 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE END
       ME(),
       YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE(),
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];

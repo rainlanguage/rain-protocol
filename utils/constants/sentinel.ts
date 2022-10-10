@@ -8,6 +8,10 @@ export const RAIN_FLOW_SENTINEL = ethers.BigNumber.from(
   keccak256([...Buffer.from("RAIN_FLOW_SENTINEL")])
 ).or(SENTINEL_HIGH_BITS);
 
+export const RAIN_FLOW_ERC20_SENTINEL = ethers.BigNumber.from(
+  keccak256([...Buffer.from("RAIN_FLOW_ERC20_SENTINEL")])
+).or(SENTINEL_HIGH_BITS);
+
 export const RAIN_FLOW_ERC721_SENTINEL = ethers.BigNumber.from(
   keccak256([...Buffer.from("RAIN_FLOW_ERC721_SENTINEL")])
 ).or(SENTINEL_HIGH_BITS);

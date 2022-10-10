@@ -37,8 +37,9 @@ describe("FlowERC20 construction tests", async function () {
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
+    const alice = signers[1];
 
-    const constants = [1, 2, ONE];
+    const constants = [1, 2, ONE, alice.address];
 
     // prettier-ignore
     const sourceRebaseRatio = concat([
@@ -57,15 +58,26 @@ describe("FlowERC20 construction tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
+
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
+
+      op(Opcode.THIS_ADDRESS), // from
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // to
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative amount
+
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // from
+      op(Opcode.THIS_ADDRESS), // to
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative amount
+
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // BURN END
+      op(Opcode.THIS_ADDRESS), // to
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // burn
+
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // MINT END
+      op(Opcode.THIS_ADDRESS), // to
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // mint
     ]);
 
