@@ -49,14 +49,10 @@ describe("FlowERC721 construction tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // outputNative
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // NATIVE SKIP
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel721
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel721
     ]);
