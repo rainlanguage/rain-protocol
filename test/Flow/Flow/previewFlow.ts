@@ -17,6 +17,7 @@ import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
+import { fillEmptyAddress } from "../../../utils/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
@@ -83,19 +84,19 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -113,10 +114,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
 
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address), true);
   });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
@@ -219,20 +219,10 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN_A(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID_A(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_A(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN_B(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID_B(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_B(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A(),
       YOU(),
       ME(),
@@ -243,6 +233,16 @@ describe("Flow previewFlow tests", async function () {
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_ID_B(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT_B(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN_A(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID_A(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_A(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN_B(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID_B(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_B(),
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
@@ -263,10 +263,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
-
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+    
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address), true);
   });
 
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
@@ -352,19 +351,11 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN_A(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID_A(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN_B(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID_B(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN_A(),
       YOU(),
       ME(),
@@ -373,6 +364,14 @@ describe("Flow previewFlow tests", async function () {
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_ID_B(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN_A(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_ID_A(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN_B(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_ID_B(),
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
     ]);
@@ -392,10 +391,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
 
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
   });
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
@@ -494,20 +492,12 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN_A(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_A(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN_B(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_B(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN_A(),
       YOU(),
       ME(),
@@ -516,13 +506,21 @@ describe("Flow previewFlow tests", async function () {
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT_B(),
-      SENTINEL(), // NATIVE END
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN_A(),
       ME(),
       YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_A(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN_B(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_B(),
+      SENTINEL(), // NATIVE END
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -540,10 +538,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
-
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+    
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
   });
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
@@ -608,20 +605,20 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
@@ -642,10 +639,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
-
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+   
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
   });
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
@@ -702,19 +698,19 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
     ]);
@@ -734,10 +730,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
 
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
@@ -811,27 +806,27 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
-      SENTINEL(), // NATIVE END
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
       ME(),
       YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
+      SENTINEL(), // NATIVE END
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -849,10 +844,9 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
 
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer, true);
+    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address), true);
   });
 
   it("should not flow if canFlow eval returns 0", async () => {
@@ -895,19 +889,19 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -926,7 +920,7 @@ describe("Flow previewFlow tests", async function () {
     )) as SaveVMStateEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowStates[0].id, 1234),
+      async () => await flow.connect(you).previewFlow(flowStates[0].id, 1234),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -975,7 +969,6 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 
-    // TODO : Change the compare logic
-    // compareStructs(flowTransferPreview, flowTransfer);
+    compareStructs(flowTransferPreview, flowTransfer);
   });
 });
