@@ -20,10 +20,10 @@ import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
+import { fillEmptyAddress } from "../../../utils/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { Struct } from "../../../utils/types";
 
 const Opcode = AllStandardOps;
 
@@ -86,7 +86,6 @@ describe("Flow flow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       1,
-      you.address,
       flowTransfer.native[0].amount,
       flowTransfer.native[1].amount,
       flowTransfer.erc1155[0].token,
@@ -95,21 +94,21 @@ describe("Flow flow tests", async function () {
     ];
 
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const YOU = () => op(Opcode.SENDER);
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -121,12 +120,12 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -173,8 +172,7 @@ describe("Flow flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
 
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
@@ -245,8 +243,8 @@ describe("Flow flow tests", async function () {
           token: erc1155Out.address,
           id: 0,
           amount: ethers.BigNumber.from(2 + sixZeros),
-          from: you.address,
-          to: "", // Contract Address
+          from: "",
+          to: you.address, // Contract Address
         },
       ],
     };
@@ -259,7 +257,6 @@ describe("Flow flow tests", async function () {
       flowTransfer.erc1155[0].token,
       flowTransfer.erc1155[0].id,
       flowTransfer.erc1155[0].amount,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -277,7 +274,7 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -339,9 +336,8 @@ describe("Flow flow tests", async function () {
     const flowStruct = await flow
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
-
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
@@ -412,7 +408,6 @@ describe("Flow flow tests", async function () {
       flowTransfer.erc20[0].amount,
       flowTransfer.erc721[0].token,
       flowTransfer.erc721[0].id,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -428,7 +423,7 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -483,8 +478,7 @@ describe("Flow flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
 
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
@@ -548,7 +542,6 @@ describe("Flow flow tests", async function () {
       flowTransfer.native[1].amount,
       flowTransfer.erc20[0].token,
       flowTransfer.erc20[0].amount,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -564,7 +557,7 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -575,12 +568,12 @@ describe("Flow flow tests", async function () {
       YOU(),
       FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -612,8 +605,7 @@ describe("Flow flow tests", async function () {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
@@ -703,7 +695,6 @@ describe("Flow flow tests", async function () {
       flowTransfer.erc1155[1].token,
       flowTransfer.erc1155[1].id,
       flowTransfer.erc1155[1].amount,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -723,20 +714,20 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
@@ -785,8 +776,7 @@ describe("Flow flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
 
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
@@ -795,7 +785,7 @@ describe("Flow flow tests", async function () {
     const youBalanceIn = await erc1155In.balanceOf(you.address, 0);
     const youBalanceOut = await erc1155Out.balanceOf(you.address, 0);
 
-    for (let erc1155Transfer of flowStruct.erc1155) {
+    for (const erc1155Transfer of flowStruct.erc1155) {
       if (erc1155Transfer.to == me.address) {
         assert(
           meBalanceIn.eq(erc1155Transfer.amount),
@@ -872,7 +862,6 @@ describe("Flow flow tests", async function () {
       flowTransfer.erc721[0].id,
       flowTransfer.erc721[1].token,
       flowTransfer.erc721[1].id,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -888,19 +877,19 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
     ]);
@@ -943,8 +932,7 @@ describe("Flow flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
 
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
@@ -1023,7 +1011,6 @@ describe("Flow flow tests", async function () {
       flowTransfer.erc20[0].amount,
       flowTransfer.erc20[1].token,
       flowTransfer.erc20[1].amount,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -1039,20 +1026,20 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE SKIP
     ]);
 
@@ -1085,8 +1072,7 @@ describe("Flow flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
 
-    // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
 
@@ -1156,7 +1142,6 @@ describe("Flow flow tests", async function () {
       1,
       flowTransfer.native[0].amount,
       flowTransfer.native[1].amount,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -1168,19 +1153,19 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
     const sources = [];
@@ -1210,9 +1195,12 @@ describe("Flow flow tests", async function () {
     const meBalance0 = await ethers.provider.getBalance(me.address);
 
     assert(meBalance0.eq(await flowTransfer.native[1].amount));
+    
+    const flowStruct = await flow.connect(you).callStatic.flow(flowStates[0].id, 1234, {
+      value: ethers.BigNumber.from(flowTransfer.native[0].amount),
+    });
 
-    // // me address needs to be added to flowTransfer struct after the flow contract is deployed
-    // // compareStructs(flowStruct, flowTransfer);
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
@@ -1276,7 +1264,6 @@ describe("Flow flow tests", async function () {
       1,
       flowTransfer.native[0].amount,
       flowTransfer.native[1].amount,
-      you.address,
     ];
 
     const SENTINEL = () =>
@@ -1288,7 +1275,7 @@ describe("Flow flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

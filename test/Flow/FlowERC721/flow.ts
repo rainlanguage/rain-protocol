@@ -24,11 +24,11 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
+import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { Struct } from "../../../utils/types";
 
 const Opcode = AllStandardOps;
 
@@ -288,12 +288,12 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_721(), // BURN SKIP
       SENTINEL_721(), // MINT END
       YOU(),
@@ -304,12 +304,12 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_721(), // BURN END
       YOU(),
       TOKEN_ID(), // burn
@@ -365,7 +365,7 @@ describe("FlowERC721 flow tests", async function () {
         value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
       });
 
-    // compareStructs(flowStructMint, flowERC721IOMint);
+    compareStructs(flowStructMint, fillEmptyAddressERC721(flowERC721IOMint, flow.address));
 
     const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
       value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
@@ -414,9 +414,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(burnFlowId, 1234);
 
-      console.log(flowStructBurn.flow.native);
-
-    // compareStructs(flowStructBurn, flowERC721IOBurn);
+    compareStructs(flowStructBurn, fillEmptyAddressERC721(flowERC721IOBurn, flow.address));
 
     const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234);
 
@@ -542,12 +540,12 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_721(),
       SENTINEL_721(),
     ]);
@@ -601,7 +599,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -651,11 +649,11 @@ describe("FlowERC721 flow tests", async function () {
     )) as ReserveTokenERC721;
     await erc721In.initialize();
 
-    const erc1155In = (await basicDeploy(
+    const erc1155Out = (await basicDeploy(
       "ReserveTokenERC1155",
       {}
     )) as ReserveTokenERC1155;
-    await erc1155In.initialize();
+    await erc1155Out.initialize();
 
     const flowTransfer: FlowTransferStruct = {
       native: [],
@@ -670,11 +668,11 @@ describe("FlowERC721 flow tests", async function () {
       ],
       erc1155: [
         {
-          token: erc1155In.address,
+          token: erc1155Out.address,
           id: 0,
           amount: ethers.BigNumber.from(2 + sixZeros),
-          from: you.address,
-          to: "", // Contract Address
+          from: "", // Contract Address
+          to:  you.address, 
         },
       ],
     };
@@ -763,9 +761,9 @@ describe("FlowERC721 flow tests", async function () {
 
     // prepare output ERC1155
 
-    await erc1155In.mintNewToken();
+    await erc1155Out.mintNewToken();
 
-    await erc1155In.safeTransferFrom(
+    await erc1155Out.safeTransferFrom(
       signers[0].address,
       me.address,
       flowTransfer.erc1155[0].id,
@@ -789,7 +787,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -805,11 +803,11 @@ describe("FlowERC721 flow tests", async function () {
 
     // check output ERC1155 affected balances correctly
 
-    const me1155BalanceOut = await erc1155In.balanceOf(
+    const me1155BalanceOut = await erc1155Out.balanceOf(
       me.address,
       flowTransfer.erc1155[0].id
     );
-    const you1155BalanceOut = await erc1155In.balanceOf(
+    const you1155BalanceOut = await erc1155Out.balanceOf(
       you.address,
       flowTransfer.erc1155[0].id
     );
@@ -950,7 +948,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1087,7 +1085,7 @@ describe("FlowERC721 flow tests", async function () {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
@@ -1214,16 +1212,16 @@ describe("FlowERC721 flow tests", async function () {
     
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
       FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
@@ -1279,7 +1277,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1395,14 +1393,14 @@ describe("FlowERC721 flow tests", async function () {
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
-      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE SKIP
       SENTINEL_721(),
@@ -1452,7 +1450,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1566,14 +1564,14 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
-      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE SKIP
       SENTINEL_721(),
       SENTINEL_721(),
@@ -1611,7 +1609,7 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1707,12 +1705,12 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_721(),
       SENTINEL_721(),
     ]);
@@ -1756,7 +1754,7 @@ describe("FlowERC721 flow tests", async function () {
         value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
       });
 
-    // compareStructs(flowStruct, flowERC721IO);
+    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
       value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
@@ -1850,12 +1848,12 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       YOU(),
       ME(),
       FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_721(),
       SENTINEL_721(),
     ]);
