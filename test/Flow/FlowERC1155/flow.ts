@@ -67,7 +67,7 @@ describe("FlowERC1155 flow tests", async function () {
     };
 
     const tokenId = 0;
-    const tokenAmount = ethers.BigNumber.from(5 + sixZeros);
+    const tokenAmount = ethers.BigNumber.from(5 + eighteenZeros);
 
     const flowERC1155IO: FlowERC1155IOStruct = {
       mints: [
@@ -278,7 +278,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     // for mint flow (redeem native for erc20)
     const tokenId = 0;
-    const tokenAmount = ethers.BigNumber.from(5 + sixZeros);
+    const tokenAmount = ethers.BigNumber.from(5 + eighteenZeros);
 
     const flowERC1155IOMint: FlowERC1155IOStruct = {
       mints: [

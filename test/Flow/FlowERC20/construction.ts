@@ -37,9 +37,8 @@ describe("FlowERC20 construction tests", async function () {
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
-    const alice = signers[1];
 
-    const constants = [1, 2, ONE, alice.address];
+    const constants = [1, 2, ONE];
 
     // prettier-ignore
     const sourceRebaseRatio = concat([
@@ -115,6 +114,6 @@ describe("FlowERC20 construction tests", async function () {
       sender === flowERC20Factory.address,
       "wrong sender in Initialize event"
     );
-    compareStructs(config, configStruct, true);
+    compareStructs(config, configStruct);
   });
 });

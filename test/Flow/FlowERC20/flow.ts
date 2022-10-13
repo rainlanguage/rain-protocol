@@ -261,7 +261,7 @@ describe("FlowERC20 flow tests", async function () {
     };
 
     // for mint flow (redeem native for erc20)
-    const mintMint = ethers.BigNumber.from(2);
+    const mintMint = ethers.BigNumber.from(2 + eighteenZeros);
     const burnMint = ethers.BigNumber.from(0);
 
     const flowERC20IOMint: FlowERC20IOStruct = {
@@ -282,7 +282,7 @@ describe("FlowERC20 flow tests", async function () {
 
     // for burn flow (redeem erc20 for native)
     const mintBurn = ethers.BigNumber.from(0);
-    const burnBurn = ethers.BigNumber.from(2);
+    const burnBurn = ethers.BigNumber.from(2 + eighteenZeros);
 
     const flowERC20IOBurn: FlowERC20IOStruct = {
       mints: [
