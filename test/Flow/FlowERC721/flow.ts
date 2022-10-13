@@ -202,44 +202,8 @@ describe("FlowERC721 flow tests", async function () {
     const deployer = signers[0];
     const you = signers[1];
 
-    const flowTransferMint: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(2 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(0),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const flowTransferBurn: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(0),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(2 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    // for mint flow (redeem native for erc20)
     const tokenId = 0;
+
     const flowERC721IOMint: FlowERC721IOStruct = {
       mints: [
         {
@@ -248,7 +212,23 @@ describe("FlowERC721 flow tests", async function () {
         },
       ],
       burns: [],
-      flow: flowTransferMint,
+      flow: {
+        native: [
+          {
+            from: you.address, // input native
+            to: "",
+            amount: ethers.BigNumber.from(2 + sixZeros),
+          },
+          {
+            from: "", // output native
+            to: you.address,
+            amount: ethers.BigNumber.from(0),
+          },
+        ],
+        erc20: [],
+        erc721: [],
+        erc1155: [],
+      },
     };
 
     const flowERC721IOBurn: FlowERC721IOStruct = {
@@ -259,16 +239,41 @@ describe("FlowERC721 flow tests", async function () {
           id: tokenId,
         },
       ],
-      flow: flowTransferBurn,
+      flow: {
+        native: [
+          {
+            from: you.address, // input native
+            to: "",
+            amount: ethers.BigNumber.from(0),
+          },
+          {
+            from: "", // output native
+            to: you.address,
+            amount: ethers.BigNumber.from(2 + sixZeros),
+          },
+        ],
+        erc20: [],
+        erc721: [],
+        erc1155: [],
+      },
     };
 
-    const constants = [
+    // for mint flow (redeem native for erc20)
+    const constantsMint = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC721_SENTINEL,
       1,
-      tokenId,
-      flowTransferMint.native[0].amount,
-      flowTransferMint.native[1].amount,
+      flowERC721IOMint.mints[0].id,
+      flowERC721IOMint.flow.native[0].amount,
+      flowERC721IOMint.flow.native[1].amount,
+    ];
+    const constantsBurn = [
+      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC721_SENTINEL,
+      1,
+      flowERC721IOBurn.burns[0].id,
+      flowERC721IOBurn.flow.native[0].amount,
+      flowERC721IOBurn.flow.native[1].amount,
     ];
 
     const SENTINEL = () =>
@@ -281,45 +286,42 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const TOKEN_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
+    const FLOWIO_INPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
+    const FLOWIO_OUTPUT_NATIVE = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIOMint = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_721(), // BURN SKIP
-      SENTINEL_721(), // MINT END
-      YOU(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      op(Opcode.THIS_ADDRESS),
+      op(Opcode.SENDER),
+      FLOWIO_OUTPUT_NATIVE(),
+      op(Opcode.SENDER),
+      op(Opcode.THIS_ADDRESS),
+      FLOWIO_INPUT_NATIVE(),
+      SENTINEL_721(),
+      SENTINEL_721(),
+      op(Opcode.SENDER),
       TOKEN_ID(), // mint
     ]);
     const sourceFlowIOBurn = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
-      SENTINEL_721(), // BURN END
-      YOU(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      SENTINEL(),
+      op(Opcode.THIS_ADDRESS),
+      op(Opcode.SENDER),
+      FLOWIO_OUTPUT_NATIVE(),
+      op(Opcode.SENDER),
+      op(Opcode.THIS_ADDRESS),
+      FLOWIO_INPUT_NATIVE(),
+      SENTINEL_721(),
+      op(Opcode.SENDER),
       TOKEN_ID(), // burn
-      SENTINEL_721(), // MINT SKIP
+      SENTINEL_721(),
     ]);
 
     const sources = [CAN_TRANSFER()];
@@ -329,11 +331,11 @@ describe("FlowERC721 flow tests", async function () {
       symbol: "F721",
       vmStateConfig: {
         sources,
-        constants,
+        constants: constantsMint, // only needed for CAN_TRANSFER
       },
       flows: [
-        { sources: [CAN_FLOW(), sourceFlowIOMint], constants },
-        { sources: [CAN_FLOW(), sourceFlowIOBurn], constants },
+        { sources: [CAN_FLOW(), sourceFlowIOMint], constants: constantsMint },
+        { sources: [CAN_FLOW(), sourceFlowIOBurn], constants: constantsBurn },
       ],
     };
 
@@ -368,7 +370,7 @@ describe("FlowERC721 flow tests", async function () {
     const flowStructMint = await flow
       .connect(you)
       .callStatic.flow(mintFlowId, 1234, {
-        value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
+        value: ethers.BigNumber.from(flowERC721IOMint.flow.native[0].amount),
       });
 
     compareStructs(
@@ -377,7 +379,7 @@ describe("FlowERC721 flow tests", async function () {
     );
 
     const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
-      value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
+      value: ethers.BigNumber.from(flowERC721IOMint.flow.native[0].amount),
     });
 
     // check input Ether affected balances correctly
@@ -389,7 +391,7 @@ describe("FlowERC721 flow tests", async function () {
     const meEtherBalance1 = await ethers.provider.getBalance(me.address);
 
     const expectedYouEtherBalance1 = youEtherBalance0
-      .sub(flowTransferMint.native[0].amount as BigNumber)
+      .sub(flowERC721IOMint.flow.native[0].amount as BigNumber)
       .sub(gasUsed.mul(gasPrice));
 
     assert(
@@ -399,7 +401,7 @@ describe("FlowERC721 flow tests", async function () {
       got       ${youEtherBalance1}`
     );
 
-    const expectedMeEtherBalance1 = flowTransferMint.native[0]
+    const expectedMeEtherBalance1 = flowERC721IOMint.flow.native[0]
       .amount as BigNumber;
 
     assert(
@@ -419,7 +421,6 @@ describe("FlowERC721 flow tests", async function () {
 
     // -- PERFORM BURN --
 
-    console.log("BURNING");
     const flowStructBurn = await flow
       .connect(you)
       .callStatic.flow(burnFlowId, 1234);
@@ -438,7 +439,7 @@ describe("FlowERC721 flow tests", async function () {
     const meEtherBalance2 = await ethers.provider.getBalance(me.address);
 
     const expectedYouEtherBalance2 = youEtherBalance1
-      .add(flowTransferBurn.native[1].amount as BigNumber)
+      .add(flowERC721IOBurn.flow.native[1].amount as BigNumber)
       .sub(gasUsedBurn.mul(gasPriceBurn));
 
     assert(
