@@ -36,9 +36,8 @@ describe("Flow construction tests", async function () {
   it("should initialize on the good path", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
-    const alice = signers[1];
 
-    const constants = [1, 2, alice.address];
+    const constants = [1, 2];
 
     // prettier-ignore
     const sourceCanFlow = concat([
@@ -46,6 +45,7 @@ describe("Flow construction tests", async function () {
     ]);
 
     // prettier-ignore
+    // example source, only checking stack length in this test
     const sourceFlowIO = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
@@ -54,12 +54,12 @@ describe("Flow construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
 
       op(Opcode.THIS_ADDRESS), // from
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative amount
+      op(Opcode.SENDER), // to
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // from
+      op(Opcode.SENDER), // from
       op(Opcode.THIS_ADDRESS), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative amount
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
     ]);
 
     const sources = [];
@@ -80,6 +80,5 @@ describe("Flow construction tests", async function () {
     assert(sender === flowFactory.address, "wrong sender in Initialize event");
 
     compareStructs(config, flowConfigStruct);
-    console.log(flowConfigStruct);
   });
 });

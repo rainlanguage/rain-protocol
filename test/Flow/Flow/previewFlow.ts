@@ -28,6 +28,8 @@ const Opcode = AllStandardOps;
 describe("Flow previewFlow tests", async function () {
   let integrity: FlowIntegrity;
   let flowFactory: FlowFactory;
+  const ME = () => op(Opcode.THIS_ADDRESS);
+  const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
     const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
@@ -83,8 +85,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -224,8 +224,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -362,8 +360,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -508,8 +504,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -626,8 +620,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -724,8 +716,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -837,9 +827,6 @@ describe("Flow previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -926,8 +913,6 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

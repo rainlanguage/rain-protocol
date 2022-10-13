@@ -57,6 +57,7 @@ describe("FlowERC20 construction tests", async function () {
     ]);
 
     // prettier-ignore
+    // example source, only checking stack length in this test
     const sourceFlowIO = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
@@ -66,19 +67,19 @@ describe("FlowERC20 construction tests", async function () {
 
       op(Opcode.THIS_ADDRESS), // from
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative amount
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // from
       op(Opcode.THIS_ADDRESS), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // inputNative amount
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
 
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // BURN END
       op(Opcode.THIS_ADDRESS), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // burn
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // burn amount
 
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // MINT END
       op(Opcode.THIS_ADDRESS), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // mint
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // mint amount
     ]);
 
     const sources = [sourceRebaseRatio, sourceCanTransfer];

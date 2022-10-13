@@ -36,6 +36,8 @@ const Opcode = AllStandardOps;
 describe("FlowERC20 previewFlow tests", async function () {
   let integrity: FlowIntegrity;
   let flowFactory: FlowERC20Factory;
+  const ME = () => op(Opcode.THIS_ADDRESS);
+  const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
     const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
@@ -119,9 +121,6 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -301,9 +300,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 15));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A(),
@@ -480,9 +476,6 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
-
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -670,9 +663,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -831,9 +821,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
@@ -971,9 +958,6 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1125,9 +1109,6 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1293,8 +1274,6 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-
-    const YOU = () => op(Opcode.SENDER);
 
     // prettier-ignore
     const sourceFlowIO = concat([

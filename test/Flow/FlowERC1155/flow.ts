@@ -13,10 +13,10 @@ import {
   FlowERC1155ConfigStruct,
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  FlowTransferStructOutput,
   SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import * as Util from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
@@ -25,13 +25,11 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
+import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
 import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { Struct } from "../../../utils/types";
-import * as Util from "../../../utils";
-import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 
 const Opcode = AllStandardOps;
 
@@ -1852,33 +1850,8 @@ describe("FlowERC1155 flow tests", async function () {
   it("should receive Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
-    const you = signers[1];
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(1 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(2 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC1155_SENTINEL,
-      1,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-    ];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
@@ -1891,22 +1864,11 @@ describe("FlowERC1155 flow tests", async function () {
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_1155(),
       SENTINEL_1155(),
     ]);
@@ -1926,7 +1888,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     await signers[0].sendTransaction({
       to: flow.address,
-      value: ethers.BigNumber.from(flowTransfer.native[1].amount),
+      value: ethers.BigNumber.from(ethers.BigNumber.from(1 + sixZeros)),
     });
   });
 });

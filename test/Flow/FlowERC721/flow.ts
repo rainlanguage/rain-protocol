@@ -35,6 +35,8 @@ const Opcode = AllStandardOps;
 describe("FlowERC721 flow tests", async function () {
   let integrity: FlowIntegrity;
   let flowERC721Factory: FlowERC721Factory;
+  const YOU = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.THIS_ADDRESS);
 
   before(async () => {
     const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
@@ -106,8 +108,6 @@ describe("FlowERC721 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -541,9 +541,6 @@ describe("FlowERC721 flow tests", async function () {
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
@@ -733,9 +730,6 @@ describe("FlowERC721 flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
@@ -907,9 +901,6 @@ describe("FlowERC721 flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -1056,9 +1047,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1234,9 +1222,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-
-    const YOU = () => op(Opcode.SENDER);
-    const ME = () => op(Opcode.THIS_ADDRESS);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -1418,9 +1403,6 @@ describe("FlowERC721 flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -1591,9 +1573,6 @@ describe("FlowERC721 flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -1736,9 +1715,6 @@ describe("FlowERC721 flow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
-
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -1835,39 +1811,8 @@ describe("FlowERC721 flow tests", async function () {
   it("should receive Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
-    const you = signers[1];
 
-    const flowTransfer: FlowTransferStruct = {
-      native: [
-        {
-          from: you.address,
-          to: "", // Contract Address
-          amount: ethers.BigNumber.from(1 + sixZeros),
-        },
-        {
-          from: "", // Contract Address
-          to: you.address,
-          amount: ethers.BigNumber.from(2 + sixZeros),
-        },
-      ],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
-
-    const flowERC721IO: FlowERC721IOStruct = {
-      mints: [],
-      burns: [],
-      flow: flowTransfer,
-    };
-
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-      flowTransfer.native[0].amount,
-      flowTransfer.native[1].amount,
-    ];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
@@ -1877,25 +1822,12 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-
-    const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
-      YOU(),
-      ME(),
-      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
-      ME(),
-      YOU(),
-      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
       SENTINEL_721(),
       SENTINEL_721(),
     ]);
@@ -1916,7 +1848,7 @@ describe("FlowERC721 flow tests", async function () {
 
     await signers[0].sendTransaction({
       to: flow.address,
-      value: ethers.BigNumber.from(flowTransfer.native[1].amount),
+      value: ethers.BigNumber.from(ethers.BigNumber.from(1 + sixZeros)),
     });
   });
 });

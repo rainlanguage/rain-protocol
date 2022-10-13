@@ -53,6 +53,7 @@ describe("FlowERC1155 construction tests", async function () {
     ]);
 
     // prettier-ignore
+    // example source, only checking stack length in this test
     const sourceFlowIO = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
