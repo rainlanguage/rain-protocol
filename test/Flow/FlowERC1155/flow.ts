@@ -310,7 +310,7 @@ describe("FlowERC1155 flow tests", async function () {
       flow: flowTransferBurn,
     };
 
-    const constants = [
+    const constantsMint = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
       rebaseRatio,
@@ -318,6 +318,17 @@ describe("FlowERC1155 flow tests", async function () {
       tokenId,
       tokenAmount,
       flowTransferMint.native[0].amount,
+      flowTransferMint.native[1].amount,
+    ];
+
+    const constantsBurn = [
+      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC1155_SENTINEL,
+      rebaseRatio,
+      1,
+      tokenId,
+      tokenAmount,
+      flowTransferBurn.native[0].amount,
       flowTransferBurn.native[1].amount,
     ];
 
@@ -383,11 +394,11 @@ describe("FlowERC1155 flow tests", async function () {
       uri: "F1155",
       vmStateConfig: {
         sources,
-        constants,
+        constants: constantsMint,
       },
       flows: [
-        { sources: [CAN_FLOW(), sourceFlowIOMint], constants },
-        { sources: [CAN_FLOW(), sourceFlowIOBurn], constants },
+        { sources: [CAN_FLOW(), sourceFlowIOMint], constants: constantsMint },
+        { sources: [CAN_FLOW(), sourceFlowIOBurn], constants: constantsBurn },
       ],
     };
 
@@ -410,7 +421,6 @@ describe("FlowERC1155 flow tests", async function () {
 
     // prepare input Ether
     const youEtherBalance0 = await ethers.provider.getBalance(you.address);
-
     // -- PERFORM MINT --
 
     const flowStructMint = await flow

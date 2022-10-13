@@ -297,7 +297,7 @@ describe("FlowERC20 flow tests", async function () {
           amount: burnBurn,
         },
       ],
-      flow: flowTransferMint,
+      flow: flowTransferBurn,
     };
 
     const constantsMint = [
