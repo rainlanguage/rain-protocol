@@ -66,12 +66,14 @@ describe("FlowERC721 flow tests", async function () {
     const tokenId = 0;
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [{
-        account: you.address,
-        id: tokenId 
-      }], 
+      mints: [
+        {
+          account: you.address,
+          id: tokenId,
+        },
+      ],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const mintId = flowERC721IO.mints[0].id;
@@ -239,21 +241,25 @@ describe("FlowERC721 flow tests", async function () {
     // for mint flow (redeem native for erc20)
     const tokenId = 0;
     const flowERC721IOMint: FlowERC721IOStruct = {
-      mints: [{
-        account: you.address,
-        id: tokenId 
-      }], 
+      mints: [
+        {
+          account: you.address,
+          id: tokenId,
+        },
+      ],
       burns: [],
-      flow: flowTransferMint
+      flow: flowTransferMint,
     };
-    
+
     const flowERC721IOBurn: FlowERC721IOStruct = {
-      mints: [], 
-      burns: [{
-        account: you.address,
-        id: tokenId 
-      }],
-      flow: flowTransferBurn
+      mints: [],
+      burns: [
+        {
+          account: you.address,
+          id: tokenId,
+        },
+      ],
+      flow: flowTransferBurn,
     };
 
     const constants = [
@@ -279,10 +285,10 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIOMint = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -365,7 +371,10 @@ describe("FlowERC721 flow tests", async function () {
         value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
       });
 
-    compareStructs(flowStructMint, fillEmptyAddressERC721(flowERC721IOMint, flow.address));
+    compareStructs(
+      flowStructMint,
+      fillEmptyAddressERC721(flowERC721IOMint, flow.address)
+    );
 
     const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
       value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
@@ -390,7 +399,8 @@ describe("FlowERC721 flow tests", async function () {
       got       ${youEtherBalance1}`
     );
 
-    const expectedMeEtherBalance1 = flowTransferMint.native[0].amount as BigNumber;
+    const expectedMeEtherBalance1 = flowTransferMint.native[0]
+      .amount as BigNumber;
 
     assert(
       meEtherBalance1.eq(expectedMeEtherBalance1),
@@ -414,7 +424,10 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(burnFlowId, 1234);
 
-    compareStructs(flowStructBurn, fillEmptyAddressERC721(flowERC721IOBurn, flow.address));
+    compareStructs(
+      flowStructBurn,
+      fillEmptyAddressERC721(flowERC721IOBurn, flow.address)
+    );
 
     const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234);
 
@@ -487,14 +500,14 @@ describe("FlowERC721 flow tests", async function () {
           token: erc1155In.address,
           id: 0,
           amount: ethers.BigNumber.from(1 + sixZeros),
-        }
-      ]
+        },
+      ],
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -599,7 +612,10 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -672,15 +688,15 @@ describe("FlowERC721 flow tests", async function () {
           id: 0,
           amount: ethers.BigNumber.from(2 + sixZeros),
           from: "", // Contract Address
-          to:  you.address, 
+          to: you.address,
         },
       ],
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -718,7 +734,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
@@ -787,7 +803,10 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -852,9 +871,9 @@ describe("FlowERC721 flow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -942,13 +961,18 @@ describe("FlowERC721 flow tests", async function () {
     // prepare input ERC721
     await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
 
-    await erc20In.connect(you).approve(me.address, flowTransfer.erc20[0].amount);
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
 
     const flowStruct = await flow
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -986,7 +1010,7 @@ describe("FlowERC721 flow tests", async function () {
           from: you.address,
           to: "", // Contract Address
           amount: ethers.BigNumber.from(1 + sixZeros),
-        }
+        },
       ],
       erc20: [
         {
@@ -1000,9 +1024,9 @@ describe("FlowERC721 flow tests", async function () {
       erc1155: [],
     };
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1026,15 +1050,15 @@ describe("FlowERC721 flow tests", async function () {
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    
+
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-  
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -1085,7 +1109,10 @@ describe("FlowERC721 flow tests", async function () {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
@@ -1167,9 +1194,9 @@ describe("FlowERC721 flow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1209,7 +1236,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const YOU = () => op(Opcode.SENDER);
     const ME = () => op(Opcode.THIS_ADDRESS);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
@@ -1277,7 +1304,10 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1353,9 +1383,9 @@ describe("FlowERC721 flow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1386,10 +1416,10 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -1450,7 +1480,10 @@ describe("FlowERC721 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1523,9 +1556,9 @@ describe("FlowERC721 flow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1603,13 +1636,18 @@ describe("FlowERC721 flow tests", async function () {
     await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
     await erc20Out.transfer(me.address, flowTransfer.erc20[1].amount);
 
-    await erc20In.connect(you).approve(me.address, flowTransfer.erc20[0].amount);
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
 
     const flowStruct = await flow
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1671,9 +1709,9 @@ describe("FlowERC721 flow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1701,7 +1739,7 @@ describe("FlowERC721 flow tests", async function () {
     const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
-     SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
@@ -1754,7 +1792,10 @@ describe("FlowERC721 flow tests", async function () {
         value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
       });
 
-    compareStructs(flowStruct, fillEmptyAddressERC721(flowERC721IO, me.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
       value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
@@ -1814,9 +1855,9 @@ describe("FlowERC721 flow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [

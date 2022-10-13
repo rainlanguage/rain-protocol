@@ -72,9 +72,9 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -133,8 +133,14 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address), true);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
@@ -153,7 +159,6 @@ describe("FlowERC721 previewFlow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155B.initialize();
 
-   
     const flowTransfer: FlowTransferStruct = {
       native: [],
       erc20: [],
@@ -191,11 +196,10 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
-
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -250,7 +254,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
-    const sourceFlowIO = concat([ 
+    const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A(),
       YOU(),
@@ -299,9 +303,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address), true);
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
@@ -353,11 +363,11 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
-    
+
     const constants = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC721_SENTINEL,
@@ -395,10 +405,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-    
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-  
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -444,9 +454,14 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address));
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
@@ -501,11 +516,11 @@ describe("FlowERC721 previewFlow tests", async function () {
       erc721: [],
       erc1155: [],
     };
-    
+
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -607,9 +622,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address), true);
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
@@ -623,7 +644,6 @@ describe("FlowERC721 previewFlow tests", async function () {
     )) as ReserveTokenERC1155;
     await erc1155.initialize();
 
-    
     const flowTransfer: FlowTransferStruct = {
       native: [],
       erc20: [],
@@ -647,9 +667,9 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -669,7 +689,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    
+
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
@@ -726,9 +746,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address), true);
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
@@ -762,11 +788,10 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
-
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -783,7 +808,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-   
+
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
@@ -795,7 +820,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -833,9 +858,14 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address));
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
@@ -878,9 +908,9 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -915,10 +945,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -962,20 +992,21 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address));
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address)
+    );
   });
 
   it("should not flow if canFlow eval returns 0", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      0,
-    ];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 0];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
@@ -1032,23 +1063,19 @@ describe("FlowERC721 previewFlow tests", async function () {
     };
 
     const flowERC721IO: FlowERC721IOStruct = {
-      mints: [], 
+      mints: [],
       burns: [],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC721_SENTINEL,
-      1,
-    ];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-   
+
     // prettier-ignore
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1079,9 +1106,13 @@ describe("FlowERC721 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddressERC721(flowERC721IO, flow.address));
-
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddressERC721(flowERC721IO, flow.address)
+    );
   });
 });

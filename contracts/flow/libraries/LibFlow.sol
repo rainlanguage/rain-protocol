@@ -117,8 +117,8 @@ library LibFlow {
         address payable you_
     ) internal returns (FlowTransfer memory) {
         unchecked {
-            uint youToMe_ = 0;
-            uint meToYou_ = 0;
+            uint256 youToMe_ = 0;
+            uint256 meToYou_ = 0;
             NativeTransfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.native.length; i_++) {
                 transfer_ = flowTransfer_.native[i_];

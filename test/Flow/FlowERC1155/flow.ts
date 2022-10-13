@@ -1726,7 +1726,7 @@ describe("FlowERC1155 flow tests", async function () {
       erc721: [],
       erc1155: [],
     };
-    
+
     const flowERC1155IO: FlowERC1155IOStruct = {
       mints: [],
       burns: [],

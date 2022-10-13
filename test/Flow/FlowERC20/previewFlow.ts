@@ -18,7 +18,10 @@ import {
   ONE,
   sixZeros,
 } from "../../../utils/constants/bigNumber";
-import { RAIN_FLOW_ERC20_SENTINEL, RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
+import {
+  RAIN_FLOW_ERC20_SENTINEL,
+  RAIN_FLOW_SENTINEL,
+} from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
@@ -77,15 +80,15 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -106,15 +109,17 @@ describe("FlowERC20 previewFlow tests", async function () {
     const TRUE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const ONE_OP = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-   
+
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-   
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
@@ -162,8 +167,14 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address), true);
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
@@ -217,22 +228,22 @@ describe("FlowERC20 previewFlow tests", async function () {
         },
       ],
     };
-    
+
     const flowERC20IO: FlowERC20IOStruct = {
       mints: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
-    }
+      flow: flowTransfer,
+    };
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -251,7 +262,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       flowTransfer.erc1155[3].amount,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
-      RAIN_FLOW_ERC20_SENTINEL
+      RAIN_FLOW_ERC20_SENTINEL,
     ];
 
     const SENTINEL = () =>
@@ -285,11 +296,13 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 15));
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 15));
 
     const ME = () => op(Opcode.THIS_ADDRESS);
-    const YOU = () => op(Opcode.SENDER);  
+    const YOU = () => op(Opcode.SENDER);
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -349,10 +362,16 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address), true);
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address),
+      true
+    );
   });
-  
+
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -406,17 +425,16 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
-    }
-
+      flow: flowTransfer,
+    };
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -458,9 +476,11 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
-   
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
@@ -518,8 +538,14 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address), true);
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
@@ -532,7 +558,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     const erc20B = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await erc20B.initialize();
 
-    
     const flowTransfer: FlowTransferStruct = {
       native: [
         {
@@ -581,16 +606,16 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
-    }
+      flow: flowTransfer,
+    };
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -616,7 +641,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    
+
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -640,12 +665,14 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_B = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 12));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
-    
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 13));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 14));
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-  
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -706,8 +733,14 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address), true);
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
@@ -748,15 +781,15 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -779,7 +812,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-   
+
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
@@ -793,9 +826,11 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-   
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
@@ -823,7 +858,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     ]);
 
     const sources = [ONE(), ONE()];
-    
+
     const stateConfigStruct: StateConfigStruct = {
       sources,
       constants,
@@ -847,9 +882,14 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
@@ -888,15 +928,15 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -917,7 +957,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-   
+
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
@@ -927,12 +967,14 @@ describe("FlowERC20 previewFlow tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-  
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -979,9 +1021,14 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
 
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
@@ -1028,15 +1075,15 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1073,10 +1120,12 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
-   
+
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
@@ -1132,20 +1181,21 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
   });
 
   it("should not flow if canFlow eval returns 0", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC20_SENTINEL,
-      0,
-    ];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 0];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
@@ -1213,17 +1263,16 @@ describe("FlowERC20 previewFlow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
-
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -1240,9 +1289,11 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-   
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+
     const YOU = () => op(Opcode.SENDER);
 
     // prettier-ignore
@@ -1284,7 +1335,12 @@ describe("FlowERC20 previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowERC20IOPreview = await flow.connect(you).previewFlow(flowStates[1].id, 1234);
-    compareStructs(flowERC20IOPreview, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    const flowERC20IOPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[1].id, 1234);
+    compareStructs(
+      flowERC20IOPreview,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
   });
 });

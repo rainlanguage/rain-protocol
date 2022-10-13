@@ -336,7 +336,7 @@ describe("Flow flow tests", async function () {
     const flowStruct = await flow
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234);
-    
+
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
@@ -1195,10 +1195,12 @@ describe("Flow flow tests", async function () {
     const meBalance0 = await ethers.provider.getBalance(me.address);
 
     assert(meBalance0.eq(await flowTransfer.native[1].amount));
-    
-    const flowStruct = await flow.connect(you).callStatic.flow(flowStates[0].id, 1234, {
-      value: ethers.BigNumber.from(flowTransfer.native[0].amount),
-    });
+
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowStates[0].id, 1234, {
+        value: ethers.BigNumber.from(flowTransfer.native[0].amount),
+      });
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 

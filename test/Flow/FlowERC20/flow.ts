@@ -20,7 +20,10 @@ import {
   ONE,
   sixZeros,
 } from "../../../utils/constants/bigNumber";
-import { RAIN_FLOW_ERC20_SENTINEL, RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
+import {
+  RAIN_FLOW_ERC20_SENTINEL,
+  RAIN_FLOW_SENTINEL,
+} from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
@@ -70,20 +73,20 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(2),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(0),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const mint = flowERC20IO.mints[0].amount;
     const burn = flowERC20IO.burns[0].amount;
-    
+
     const constantsCanTransfer = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
@@ -114,9 +117,11 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
@@ -255,7 +260,7 @@ describe("FlowERC20 flow tests", async function () {
       erc1155: [],
     };
 
-        // for mint flow (redeem native for erc20)
+    // for mint flow (redeem native for erc20)
     const mintMint = ethers.BigNumber.from(2);
     const burnMint = ethers.BigNumber.from(0);
 
@@ -264,15 +269,15 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: mintMint,
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: burnMint,
-        }
+        },
       ],
-      flow: flowTransferMint
+      flow: flowTransferMint,
     };
 
     // for burn flow (redeem erc20 for native)
@@ -283,16 +288,16 @@ describe("FlowERC20 flow tests", async function () {
       mints: [
         {
           account: you.address,
-          amount: mintBurn
-        }
-      ], 
+          amount: mintBurn,
+        },
+      ],
       burns: [
         {
           account: you.address,
-          amount: burnBurn
-        }
+          amount: burnBurn,
+        },
       ],
-      flow: flowTransferMint
+      flow: flowTransferMint,
     };
 
     const constantsMint = [
@@ -303,9 +308,9 @@ describe("FlowERC20 flow tests", async function () {
       mintMint,
       burnMint,
       flowTransferMint.native[0].amount,
-      flowTransferMint.native[1].amount
+      flowTransferMint.native[1].amount,
     ];
- 
+
     const constantsBurn = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
@@ -319,7 +324,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-      const SENTINEL_ERC20 = () =>
+    const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
@@ -328,9 +333,11 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-     
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -407,7 +414,10 @@ describe("FlowERC20 flow tests", async function () {
         value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
       });
 
-    compareStructs(flowStructMint, fillEmptyAddressERC20(flowERC20IOMint, flow.address));
+    compareStructs(
+      flowStructMint,
+      fillEmptyAddressERC20(flowERC20IOMint, flow.address)
+    );
 
     const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
       value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
@@ -432,7 +442,8 @@ describe("FlowERC20 flow tests", async function () {
       got       ${youEtherBalance1}`
     );
 
-    const expectedMeEtherBalance1 = flowTransferMint.native[0].amount as BigNumber;
+    const expectedMeEtherBalance1 = flowTransferMint.native[0]
+      .amount as BigNumber;
 
     assert(
       meEtherBalance1.eq(expectedMeEtherBalance1),
@@ -460,7 +471,10 @@ describe("FlowERC20 flow tests", async function () {
       .connect(you)
       .callStatic.flow(burnFlowId, 1234);
 
-    compareStructs(flowStructBurn, fillEmptyAddressERC20(flowERC20IOBurn, flow.address));
+    compareStructs(
+      flowStructBurn,
+      fillEmptyAddressERC20(flowERC20IOBurn, flow.address)
+    );
 
     const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234);
 
@@ -535,8 +549,8 @@ describe("FlowERC20 flow tests", async function () {
           token: erc1155In.address,
           id: 0,
           amount: ethers.BigNumber.from(1 + sixZeros),
-        }
-      ]
+        },
+      ],
     };
 
     const flowERC20IO: FlowERC20IOStruct = {
@@ -544,16 +558,16 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
-    }
+      flow: flowTransfer,
+    };
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -571,7 +585,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-      const SENTINEL_ERC20 = () =>
+    const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
@@ -579,10 +593,12 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-      
+
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -675,7 +691,10 @@ describe("FlowERC20 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
 
     const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -758,15 +777,15 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -793,9 +812,11 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-   
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
@@ -810,7 +831,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-  
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
@@ -887,7 +908,10 @@ describe("FlowERC20 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -950,21 +974,21 @@ describe("FlowERC20 flow tests", async function () {
       ],
       erc1155: [],
     };
-    
+
     const flowERC20IO: FlowERC20IOStruct = {
       mints: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -992,9 +1016,11 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
@@ -1068,13 +1094,18 @@ describe("FlowERC20 flow tests", async function () {
     // prepare input ERC20
     await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
 
-    await erc20In.connect(you).approve(me.address, flowTransfer.erc20[0].amount);
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
 
     const flowStruct = await flow
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-    compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, flow.address));
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC20(flowERC20IO, flow.address)
+    );
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1112,7 +1143,7 @@ describe("FlowERC20 flow tests", async function () {
           from: you.address,
           to: "", // Contract Address
           amount: ethers.BigNumber.from(1 + sixZeros),
-        }
+        },
       ],
       erc20: [
         {
@@ -1131,17 +1162,17 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
-  
+
     const constants = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
@@ -1165,17 +1196,19 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    
+
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
-    
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
@@ -1323,15 +1356,15 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1361,8 +1394,10 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
@@ -1380,7 +1415,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
       FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
@@ -1536,17 +1571,16 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
-
 
     const constants = [
       RAIN_FLOW_SENTINEL,
@@ -1573,8 +1607,10 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
@@ -1584,7 +1620,7 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
-    
+
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
 
@@ -1656,7 +1692,7 @@ describe("FlowERC20 flow tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates[1].id, 1234);
 
-      compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
+    compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
 
@@ -1733,15 +1769,15 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1769,8 +1805,10 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
@@ -1784,7 +1822,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-  
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -1836,7 +1874,9 @@ describe("FlowERC20 flow tests", async function () {
     await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
     await erc20Out.transfer(me.address, flowTransfer.erc20[1].amount);
 
-    await erc20In.connect(you).approve(me.address, flowTransfer.erc20[0].amount);
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
 
     const flowStruct = await flow
       .connect(you)
@@ -1908,15 +1948,15 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -1942,8 +1982,10 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
@@ -2079,15 +2121,15 @@ describe("FlowERC20 flow tests", async function () {
         {
           account: you.address,
           amount: ethers.BigNumber.from(20 + eighteenZeros),
-        }
-      ], 
+        },
+      ],
       burns: [
         {
           account: you.address,
           amount: ethers.BigNumber.from(10 + eighteenZeros),
-        }
+        },
       ],
-      flow: flowTransfer
+      flow: flowTransfer,
     };
 
     const constants = [
@@ -2113,9 +2155,11 @@ describe("FlowERC20 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
-    const MINT_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const BURN_AMOUNT = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    
+    const MINT_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const BURN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -2123,7 +2167,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const ME = () => op(Opcode.THIS_ADDRESS);
     const YOU = () => op(Opcode.SENDER);
-    
+
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP

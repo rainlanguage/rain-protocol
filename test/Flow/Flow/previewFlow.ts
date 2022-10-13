@@ -114,9 +114,15 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address), true);
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC1155 (multi element arrays)", async () => {
@@ -263,9 +269,15 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
-    
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address), true);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
+
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address),
+      true
+    );
   });
 
   it("should preview defined flow IO for ERC721 (multi element arrays)", async () => {
@@ -391,9 +403,14 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC20 (multi element arrays)", async () => {
@@ -538,9 +555,14 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
-    
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
+
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC1155 (single element arrays)", async () => {
@@ -639,9 +661,14 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
-   
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
+
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC721 (single element arrays)", async () => {
@@ -730,9 +757,14 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address));
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address)
+    );
   });
 
   it("should preview defined flow IO for ERC20 (single element arrays)", async () => {
@@ -844,9 +876,15 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveVMStateEvent["args"][];
 
-    const flowTransferPreview = await flow.connect(you).previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow
+      .connect(you)
+      .previewFlow(flowStates[0].id, 1234);
 
-    compareStructs(flowTransferPreview, fillEmptyAddress(flowTransfer, flow.address), true);
+    compareStructs(
+      flowTransferPreview,
+      fillEmptyAddress(flowTransfer, flow.address),
+      true
+    );
   });
 
   it("should not flow if canFlow eval returns 0", async () => {

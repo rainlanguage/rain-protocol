@@ -998,11 +998,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC1155_SENTINEL,
-      0,
-    ];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 0];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
@@ -1063,12 +1059,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
       burns: [],
       flow: flowTransfer,
     };
-    
-    const constants = [
-      RAIN_FLOW_SENTINEL,
-      RAIN_FLOW_ERC1155_SENTINEL,
-      1,
-    ];
+
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC1155_SENTINEL, 1];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
