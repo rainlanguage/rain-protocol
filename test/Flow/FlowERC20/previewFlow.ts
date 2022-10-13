@@ -213,15 +213,15 @@ describe("FlowERC20 previewFlow tests", async function () {
           amount: 4,
         },
         {
-          from: "",
-          to: you.address, // Contract address
+          from: "", // Contract address
+          to: you.address,
           token: erc1155A.address,
           id: 5,
           amount: 6,
         },
         {
-          from: "",
-          to: you.address, // Contract address
+          from: "", // Contract address
+          to: you.address,
           token: erc1155B.address,
           id: 7,
           amount: 8,
@@ -767,8 +767,8 @@ describe("FlowERC20 previewFlow tests", async function () {
           amount: 2,
         },
         {
-          from: "",
-          to: you.address, // Contract address
+          from: "", // Contract address
+          to: you.address,
           token: erc1155.address,
           id: 3,
           amount: 4,

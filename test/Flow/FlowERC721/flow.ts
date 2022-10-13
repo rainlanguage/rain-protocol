@@ -862,8 +862,8 @@ describe("FlowERC721 flow tests", async function () {
       erc721: [
         {
           token: erc721Out.address,
-          from: "",
-          to: you.address, // Contract Address
+          from: "", // Contract address
+          to: you.address,
           id: 0,
         },
       ],
@@ -1184,8 +1184,8 @@ describe("FlowERC721 flow tests", async function () {
           amount: ethers.BigNumber.from(1 + sixZeros),
         },
         {
-          from: "",
-          to: you.address, // Contract address
+          from: "", // Contract address
+          to: you.address,
           token: erc1155Out.address,
           id: 0,
           amount: ethers.BigNumber.from(2 + sixZeros),
