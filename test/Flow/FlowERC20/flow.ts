@@ -455,12 +455,12 @@ describe("FlowERC20 flow tests", async function () {
 
     assert(me20Balance1.isZero());
     assert(
-      you20Balance1.eq(mintMint.mul(rebaseRatio)),
+      you20Balance1.eq(mintMint.mul(rebaseRatio).div(ONE)),
       `wrong sender balance minted
-      expected  ${mintMint.mul(rebaseRatio)}
+      expected  ${mintMint.mul(rebaseRatio).div(ONE)}
       got       ${you20Balance1}`
     );
-    assert(totalSupply1.eq(mintMint.mul(rebaseRatio)));
+    assert(totalSupply1.eq(mintMint.mul(rebaseRatio).div(ONE)));
 
     // -- PERFORM BURN --
 

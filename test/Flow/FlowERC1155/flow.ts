@@ -17,7 +17,11 @@ import {
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import * as Util from "../../../utils";
-import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
+import {
+  eighteenZeros,
+  ONE,
+  sixZeros,
+} from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -240,6 +244,8 @@ describe("FlowERC1155 flow tests", async function () {
     const deployer = signers[0];
     const you = signers[1];
 
+    const rebaseRatio = ONE;
+
     const flowTransferMint: FlowTransferStruct = {
       native: [
         {
@@ -307,11 +313,12 @@ describe("FlowERC1155 flow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
-      Util.ONE,
+      rebaseRatio,
+      1,
       tokenId,
       tokenAmount,
       flowTransferMint.native[0].amount,
-      flowTransferMint.native[1].amount,
+      flowTransferBurn.native[1].amount,
     ];
 
     const SENTINEL = () =>
@@ -321,19 +328,19 @@ describe("FlowERC1155 flow tests", async function () {
     const REBASE_RATIO = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const TOKEN_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const TOKEN_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const TOKEN_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIOMint = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -454,7 +461,7 @@ describe("FlowERC1155 flow tests", async function () {
     const you20Balance1 = await flow.balanceOf(you.address, tokenId);
 
     assert(me20Balance1.isZero());
-    assert(you20Balance1.eq(tokenAmount));
+    assert(you20Balance1.eq(tokenAmount.mul(rebaseRatio).div(ONE)));
 
     // -- PERFORM BURN --
 
