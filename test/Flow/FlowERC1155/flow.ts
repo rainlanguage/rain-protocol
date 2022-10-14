@@ -282,7 +282,7 @@ describe("FlowERC1155 flow tests", async function () {
       erc1155: [],
     };
 
-    // for mint flow (redeem native for erc20)
+    // for mint flow (redeem native for erc1155)
     const tokenId = 0;
     const tokenAmount = ethers.BigNumber.from(5 + eighteenZeros);
 
