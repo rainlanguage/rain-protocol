@@ -75,99 +75,31 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         return super.supportsInterface(interfaceId);
     }
 
-    function _rebaseRatio(VMState memory state_, uint256 id_)
-        internal
-        view
-        returns (uint256)
-    {
-        state_.context = LibUint256Array.arrayFrom(id_);
-        return state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT);
-    }
-
-    function balanceOf(address account_, uint256 id_)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
-        return
-            super.balanceOf(account_, id_).rebaseOutput(
-                _rebaseRatio(_loadVMState(CORE_SOURCE_ID), id_)
-            );
-    }
-
-    function _transferPreflight(
-        address from_,
-        address to_,
-        uint256[] memory ids_,
-        uint256[] memory amounts_
-    ) internal view virtual returns (uint256[] memory) {
-        unchecked {
-            VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
-            uint256[] memory amountsRebased_ = new uint256[](amounts_.length);
-            // @todo fix memory leak where each iteration we build new context arrays
-            // for both rebase and can transfer when we could just reuse them.
-            for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                uint256 id_ = ids_[i_];
-                uint256 amount_ = amounts_[i_];
-                amountsRebased_[i_] = amount_.rebaseInput(
-                    _rebaseRatio(state_, id_)
-                );
-
-                state_.context = LibUint256Array.arrayFrom(
-                    uint256(uint160(from_)),
-                    uint256(uint160(to_)),
-                    id_,
-                    amount_,
-                    amountsRebased_[i_]
-                );
-                require(
-                    state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
-                    "INVALID_TRANSFER"
-                );
-            }
-            return amountsRebased_;
-        }
-    }
-
-    function _safeTransferFrom(
-        address from_,
-        address to_,
-        uint256 id_,
-        uint256 amount_,
-        bytes memory data_
-    ) internal virtual override {
-        return
-            super._safeTransferFrom(
-                from_,
-                to_,
-                id_,
-                _transferPreflight(
-                    from_,
-                    to_,
-                    id_.arrayFrom(),
-                    amount_.arrayFrom()
-                )[0],
-                data_
-            );
-    }
-
-    function _safeBatchTransferFrom(
+    /// @inheritdoc ERC1155
+    function _beforeTokenTransfer(
+        address operator_,
         address from_,
         address to_,
         uint256[] memory ids_,
         uint256[] memory amounts_,
         bytes memory data_
     ) internal virtual override {
-        return
-            super._safeBatchTransferFrom(
-                from_,
-                to_,
-                ids_,
-                _transferPreflight(from_, to_, ids_, amounts_),
-                data_
-            );
+        unchecked {
+            VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
+            for (uint256 i_ = 0; i_ < ids_.length; i_++) {
+                state_.context = LibUint256Array.arrayFrom(
+                    uint256(uint160(operator_)),
+                    uint256(uint160(from_)),
+                    uint256(uint160(to_)),
+                    ids_[i_],
+                    amounts_[i_]
+                );
+                require(
+                    state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                    "INVALID_TRANSFER"
+                );
+            }
+        }
     }
 
     function _previewFlow(VMState memory state_)

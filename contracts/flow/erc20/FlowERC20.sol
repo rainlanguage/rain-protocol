@@ -40,7 +40,6 @@ struct FlowERC20IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 
 /// @title FlowERC20
@@ -87,95 +86,22 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
-    function totalSupply() public view virtual override returns (uint256) {
-        return
-            super.totalSupply().rebaseOutput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
-                    REBASE_RATIO_ENTRYPOINT
-                )
-            );
-    }
-
-    function balanceOf(address account_)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
-        return
-            super.balanceOf(account_).rebaseOutput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
-                    REBASE_RATIO_ENTRYPOINT
-                )
-            );
-    }
-
-    function _transferPreflight(
+    /// @inheritdoc ERC20
+    function _beforeTokenTransfer(
         address from_,
         address to_,
         uint256 amount_
-    ) internal view virtual returns (uint256 amountRebased_) {
+    ) internal virtual override {
         VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
-        amountRebased_ = amount_.rebaseInput(
-            state_.rebaseRatio(REBASE_RATIO_ENTRYPOINT)
-        );
+
         state_.context = LibUint256Array.arrayFrom(
             uint256(uint160(from_)),
             uint256(uint160(to_)),
-            amount_,
-            amountRebased_
+            amount_
         );
         require(
             state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
             "INVALID_TRANSFER"
-        );
-    }
-
-    /// @inheritdoc ERC20
-    function _transfer(
-        address from_,
-        address to_,
-        uint256 amount_
-    ) internal virtual override {
-        return
-            super._transfer(
-                from_,
-                to_,
-                _transferPreflight(msg.sender, to_, amount_)
-            );
-    }
-
-    /// @inheritdoc ERC20
-    function allowance(address owner_, address spender_)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
-        return
-            super.allowance(owner_, spender_).rebaseOutput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
-                    REBASE_RATIO_ENTRYPOINT
-                )
-            );
-    }
-
-    /// @inheritdoc ERC20
-    function _approve(
-        address owner_,
-        address spender_,
-        uint256 amount_
-    ) internal virtual override {
-        super._approve(
-            owner_,
-            spender_,
-            amount_.rebaseInput(
-                _loadVMState(CORE_SOURCE_ID).rebaseRatio(
-                    REBASE_RATIO_ENTRYPOINT
-                )
-            )
         );
     }
 
@@ -185,9 +111,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         virtual
         returns (FlowERC20IO memory)
     {
-        uint256 rebaseRatio_ = _loadVMState(CORE_SOURCE_ID).rebaseRatio(
-            REBASE_RATIO_ENTRYPOINT
-        );
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_);
@@ -199,11 +122,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         assembly ("memory-safe") {
             mstore(flowIO_, refs_)
         }
-        for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
-            flowIO_.mints[i_].amount = flowIO_.mints[i_].amount.rebaseInput(
-                rebaseRatio_
-            );
-        }
         (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
             RAIN_FLOW_ERC20_SENTINEL,
@@ -211,11 +129,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         );
         assembly ("memory-safe") {
             mstore(add(flowIO_, 0x20), refs_)
-        }
-        for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
-            flowIO_.burns[i_].amount = flowIO_.burns[i_].amount.rebaseInput(
-                rebaseRatio_
-            );
         }
         flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
 
