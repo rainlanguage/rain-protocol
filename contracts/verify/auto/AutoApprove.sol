@@ -3,14 +3,14 @@ pragma solidity =0.8.17;
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
-import "../../vm/runtime/StandardVM.sol";
+import "../../interpreter/runtime/StandardInterpreter.sol";
 import "../../array/LibUint256Array.sol";
-import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
+import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 
 uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
 uint256 constant LOCAL_OPS_LENGTH = 1;
 
-contract AutoApprove is VerifyCallback, StandardVM {
+contract AutoApprove is VerifyCallback, StandardInterpreter {
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -23,11 +23,11 @@ contract AutoApprove is VerifyCallback, StandardVM {
     /// @param config All initialized config.
     event Initialize(address sender, StateConfig config);
 
-    using LibVMState for VMState;
+    using LibInterpreterState for InterpreterState;
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
@@ -36,7 +36,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
         initializer
     {
         __VerifyCallback_init();
-        _saveVMState(stateConfig_);
+        _saveInterpreterState(stateConfig_);
 
         _transferOwnership(msg.sender);
 
@@ -52,7 +52,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[] memory context_ = new uint256[](2);
-            VMState memory state_ = _loadVMState();
+            InterpreterState memory state_ = _loadInterpreterState();
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
@@ -88,7 +88,7 @@ contract AutoApprove is VerifyCallback, StandardVM {
     }
 
     function opEvidenceDataApproved(
-        VMState memory,
+        InterpreterState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
@@ -101,13 +101,13 @@ contract AutoApprove is VerifyCallback, StandardVM {
         virtual
         override
         returns (
-            function(VMState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(VMState memory, Operand, StackTop)
+        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
             view
             returns (StackTop)[](1);
         localFnPtrs_[0] = opEvidenceDataApproved;

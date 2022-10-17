@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {RainVMIntegrity, StateConfig} from "../../vm/integrity/RainVMIntegrity.sol";
-import "../../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
+import {RainInterpreterIntegrity, StateConfig} from "../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../interpreter/runtime/StandardInterpreter.sol";
+import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
-import "../vm/FlowVM.sol";
+import "../interpreter/FlowInterpreter.sol";
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -24,7 +24,7 @@ uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
 struct FlowERC20Config {
     string name;
     string symbol;
-    StateConfig vmStateConfig;
+    StateConfig interpreterStateConfig;
     StateConfig[] flows;
 }
 
@@ -43,7 +43,7 @@ SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
-/// expressed as a rainVM script and the `claim` function is world-callable.
+/// expressed as an expression and the `claim` function is world-callable.
 /// Intended behaviour is to avoid sybils infinitely minting by putting the
 /// claim functionality behind a `TierV2` contract. The flow contract
 /// itself implements `ReadOnlyTier` and every time a claim is processed it
@@ -54,11 +54,11 @@ SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 /// claim and then diff it against the current block number.
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
+contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
-    using LibVMState for VMState;
+    using LibInterpreterState for InterpreterState;
     using FixedPointMath for uint256;
 
     /// Contract has initialized.
@@ -66,7 +66,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
 
-    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
@@ -75,12 +75,12 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveVMState(
+        _saveInterpreterState(
             CORE_SOURCE_ID,
-            config_.vmStateConfig,
+            config_.interpreterStateConfig,
             LibUint256Array.arrayFrom(1, 1)
         );
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
+        __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
     /// @inheritdoc ERC20
@@ -89,7 +89,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         address to_,
         uint256 amount_
     ) internal virtual override {
-        VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
+        InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
 
         state_.context = LibUint256Array.arrayFrom(
             uint256(uint160(from_)),
@@ -102,7 +102,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         );
     }
 
-    function _previewFlow(VMState memory state_)
+    function _previewFlow(InterpreterState memory state_)
         internal
         view
         virtual
@@ -133,7 +133,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     }
 
     function _flow(
-        VMState memory state_,
+        InterpreterState memory state_,
         uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {

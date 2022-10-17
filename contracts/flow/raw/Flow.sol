@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../vm/FlowVM.sol";
+import "../interpreter/FlowInterpreter.sol";
 import "../libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
@@ -13,23 +13,23 @@ struct FlowConfig {
     StateConfig[] flows;
 }
 
-contract Flow is ReentrancyGuard, FlowVM {
-    using LibVMState for VMState;
+contract Flow is ReentrancyGuard, FlowInterpreter {
+    using LibInterpreterState for InterpreterState;
 
     event Initialize(address sender, FlowConfig config);
 
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {}
+    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {}
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig calldata config_) external initializer {
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 4));
+        __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 4));
         emit Initialize(msg.sender, config_);
     }
 
-    function _previewFlow(VMState memory state_)
+    function _previewFlow(InterpreterState memory state_)
         internal
         view
         returns (FlowTransfer memory)
@@ -54,7 +54,7 @@ contract Flow is ReentrancyGuard, FlowVM {
         nonReentrant
         returns (FlowTransfer memory)
     {
-        VMState memory state_ = _loadFlowState(flow_, id_);
+        InterpreterState memory state_ = _loadFlowState(flow_, id_);
         FlowTransfer memory flowTransfer_ = _previewFlow(state_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));

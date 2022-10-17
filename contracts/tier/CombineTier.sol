@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import "../interpreter/runtime/StandardInterpreter.sol";
+import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../vm/integrity/RainVMIntegrity.sol";
+import "../interpreter/integrity/RainInterpreterIntegrity.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -29,18 +29,18 @@ struct CombineTierConfig {
 
 /// @title CombineTier
 /// @notice Allows combining the reports from any `ITierV2` contracts.
-/// The value at the top of the stack after executing the rain script will be
+/// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, StandardVM {
+contract CombineTier is TierV2, StandardInterpreter {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
-    using LibVMState for VMState;
+    using LibInterpreterState for InterpreterState;
 
     event Initialize(address sender, CombineTierConfig config);
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
@@ -49,7 +49,7 @@ contract CombineTier is TierV2, StandardVM {
         initializer
     {
         __TierV2_init();
-        _saveVMState(
+        _saveInterpreterState(
             config_.sourceConfig,
             LibUint256Array.arrayFrom(
                 MIN_FINAL_STACK_INDEX,
@@ -80,7 +80,7 @@ contract CombineTier is TierV2, StandardVM {
         returns (uint256)
     {
         return
-            _loadVMState(uint256(uint160(account_)).arrayFrom(context_))
+            _loadInterpreterState(uint256(uint160(account_)).arrayFrom(context_))
                 .eval(REPORT_ENTRYPOINT)
                 .peek();
     }
@@ -92,7 +92,7 @@ contract CombineTier is TierV2, StandardVM {
         uint256[] memory context_
     ) external view returns (uint256) {
         return
-            _loadVMState(
+            _loadInterpreterState(
                 LibUint256Array.arrayFrom(
                     uint256(uint160(account_)),
                     tier_,

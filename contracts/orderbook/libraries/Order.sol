@@ -2,8 +2,8 @@
 pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
-import "../../vm/runtime/RainVM.sol";
-import "../../vm/integrity/RainVMIntegrity.sol";
+import "../../interpreter/runtime/RainInterpreter.sol";
+import "../../interpreter/integrity/RainInterpreterIntegrity.sol";
 import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;
@@ -12,7 +12,7 @@ type OrderLiveness is uint256;
 struct OrderConfig {
     IO[] validInputs;
     IO[] validOutputs;
-    StateConfig vmStateConfig;
+    StateConfig interpreterStateConfig;
 }
 
 struct IO {
@@ -24,7 +24,7 @@ struct Order {
     address owner;
     IO[] validInputs;
     IO[] validOutputs;
-    bytes vmState;
+    bytes InterpreterState;
 }
 
 uint256 constant MIN_FINAL_STACK_INDEX = 2;
@@ -36,15 +36,15 @@ library LibOrder {
     using LibUint256Array for uint256;
 
     function fromOrderConfig(
-        IRainVMIntegrity vmIntegrity_,
-        function(IRainVMIntegrity, StateConfig memory, uint256[] memory)
+        IRainInterpreterIntegrity interpreterIntegrity_,
+        function(IRainInterpreterIntegrity, StateConfig memory, uint256[] memory)
             internal
             returns (bytes memory) buildStateBytes_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
         bytes memory stateBytes_ = buildStateBytes_(
-            vmIntegrity_,
-            config_.vmStateConfig,
+            interpreterIntegrity_,
+            config_.interpreterStateConfig,
             MIN_FINAL_STACK_INDEX.arrayFrom()
         );
         return
