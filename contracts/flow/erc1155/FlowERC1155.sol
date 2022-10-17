@@ -4,7 +4,6 @@ pragma solidity =0.8.17;
 import "../../sentinel/LibSentinel.sol";
 import "../../vm/runtime/LibVMState.sol";
 import "../libraries/LibFlow.sol";
-import "../libraries/LibRebase.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../vm/FlowVM.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
@@ -32,14 +31,11 @@ struct FlowERC1155IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant REBASE_RATIO_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
 
 contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     using LibVMState for VMState;
-    using LibRebase for VMState;
     using LibStackTop for StackTop;
-    using LibRebase for uint256;
     using LibUint256Array for uint256;
 
     event Initialize(address sender, FlowERC1155Config config);
@@ -82,7 +78,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         address to_,
         uint256[] memory ids_,
         uint256[] memory amounts_,
-        bytes memory data_
+        bytes memory
     ) internal virtual override {
         unchecked {
             VMState memory state_ = _loadVMState(CORE_SOURCE_ID);

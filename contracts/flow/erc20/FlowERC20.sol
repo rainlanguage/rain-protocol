@@ -11,7 +11,6 @@ import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
 import "../vm/FlowVM.sol";
-import "../libraries/LibRebase.sol";
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -61,8 +60,6 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
     using LibUint256Array for uint256;
     using LibVMState for VMState;
     using FixedPointMath for uint256;
-    using LibRebase for VMState;
-    using LibRebase for uint256;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
