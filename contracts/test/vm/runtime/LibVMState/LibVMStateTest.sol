@@ -78,7 +78,7 @@ contract LibVMStateTest is RainVM {
         view
         returns (bytes memory serialized_)
     {
-        (uint256 stackLength_, ) = IRainVMIntegrity(vmIntegrity)
+        (uint256 scratch_, uint256 stackLength_) = IRainVMIntegrity(vmIntegrity)
             .ensureIntegrity(
                 storageOpcodesRange(),
                 config_.sources,
@@ -86,7 +86,11 @@ contract LibVMStateTest is RainVM {
                 DEFAULT_MIN_FINAL_STACK.arrayFrom()
             );
 
-        serialized_ = config_.serialize(stackLength_, opcodeFunctionPointers());
+        serialized_ = config_.serialize(
+            scratch_,
+            stackLength_,
+            opcodeFunctionPointers()
+        );
     }
 
     function eval(StateConfig memory config_)

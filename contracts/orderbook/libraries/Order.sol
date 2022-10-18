@@ -24,7 +24,6 @@ struct Order {
     address owner;
     IO[] validInputs;
     IO[] validOutputs;
-    uint256 tracking;
     bytes vmState;
 }
 
@@ -40,10 +39,10 @@ library LibOrder {
         IRainVMIntegrity vmIntegrity_,
         function(IRainVMIntegrity, StateConfig memory, uint256[] memory)
             internal
-            returns (bytes memory, uint256) buildStateBytes_,
+            returns (bytes memory) buildStateBytes_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
-        (bytes memory stateBytes_, uint256 scratch_) = buildStateBytes_(
+        bytes memory stateBytes_ = buildStateBytes_(
             vmIntegrity_,
             config_.vmStateConfig,
             MIN_FINAL_STACK_INDEX.arrayFrom()
@@ -53,7 +52,6 @@ library LibOrder {
                 msg.sender,
                 config_.validInputs,
                 config_.validOutputs,
-                scratch_,
                 stateBytes_
             );
     }

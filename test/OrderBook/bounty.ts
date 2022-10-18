@@ -230,11 +230,10 @@ describe("OrderBook bounty", async function () {
     )) as AfterClearEvent["args"];
     const { bInput: bInput0 } = stateChange0;
 
-    const actualBounty0 = {
+    const _actualBounty0 = {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
-    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),

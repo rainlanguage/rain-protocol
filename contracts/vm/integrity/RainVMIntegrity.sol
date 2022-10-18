@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 import "../runtime/RainVM.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../../sstore2/SSTORE2.sol";
@@ -34,7 +34,7 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
         bytes[] memory sources_,
         uint256 constantsLength_,
         uint256[] memory finalStacks_
-    ) external view returns (uint256 stackLength_, uint256 scratch_) {
+    ) external view returns (uint256 scratch_, uint256 stackLength_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
             storageOpcodesRange_,
@@ -53,8 +53,8 @@ abstract contract RainVMIntegrity is IRainVMIntegrity {
             );
         }
         return (
-            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop),
-            integrityState_.scratch
+            integrityState_.scratch,
+            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
         );
     }
 }

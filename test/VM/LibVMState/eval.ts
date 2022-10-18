@@ -43,7 +43,9 @@ describe("LibVMState eval tests", async function () {
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
-      "eval of sourceIndex 1 did not move stackTop up 32 * 8 bytes"
+      `eval of sourceIndex 1 did not move stackTop up 32 * 8 bytes
+      expected  ${stackBottom_.add(32 * 8)}
+      got       ${stackTopAfter_}`
     );
   });
 
@@ -66,7 +68,9 @@ describe("LibVMState eval tests", async function () {
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32)),
-      "eval of default sourceIndex 0 did not move stackTop up 32 bytes"
+      `eval of default sourceIndex 0 did not move stackTop up 32 bytes
+      expected  ${stackBottom_.add(32)}
+      got       ${stackTopAfter_}`
     );
   });
 
@@ -91,7 +95,9 @@ describe("LibVMState eval tests", async function () {
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
-      "eval of sourceIndex 1 did not move stackTop up 32 * 8 bytes"
+      `eval of sourceIndex 1 did not move stackTop up 32 * 8 bytes
+      expected  ${stackBottom_.add(32 * 8)}
+      got       ${stackTopAfter_}`
     );
   });
 
@@ -111,7 +117,9 @@ describe("LibVMState eval tests", async function () {
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
-      "eval of sourceIndex 0 did not move stackTop up 32 * 8 bytes"
+      `eval of sourceIndex 0 did not move stackTop up 32 * 8 bytes
+      expected  ${stackBottom_.add(32 * 8)}
+      got       ${stackTopAfter_}`
     );
   });
 
@@ -130,7 +138,9 @@ describe("LibVMState eval tests", async function () {
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32)),
-      "eval of default sourceIndex 0 did not move stackTop up 32 bytes"
+      `eval of default sourceIndex 0 did not move stackTop up 32 bytes
+      expected  ${stackBottom_.add(32)}
+      got       ${stackTopAfter_}`
     );
   });
 });

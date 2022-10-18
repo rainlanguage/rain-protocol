@@ -267,6 +267,8 @@ describe("OrderBook many-to-many", async function () {
       bOutput: bOutputExpected0,
       aInput: fixedPointMul(askPrice, aOutputExpected0),
       bInput: fixedPointMul(bidPrice, bOutputExpected0),
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender0 === bountyBot.address);
@@ -320,6 +322,8 @@ describe("OrderBook many-to-many", async function () {
       bOutput: dOutputExpected1,
       aInput: fixedPointMul(askPrice, cOutputExpected1),
       bInput: fixedPointMul(bidPrice, dOutputExpected1),
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender1 === bountyBot.address);

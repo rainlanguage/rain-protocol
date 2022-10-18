@@ -5,6 +5,8 @@ import "./RainVM.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibBytes.sol";
 
+import "hardhat/console.sol";
+
 /// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
 
@@ -110,6 +112,74 @@ library LibStackTop {
             stackTopAfter_ := sub(stackTop_, 0x20)
             a_ := mload(stackTopAfter_)
         }
+    }
+
+    function consumeSentinel(
+        StackTop stackTop_,
+        StackTop stackBottom_,
+        uint256 sentinel_,
+        uint256 stepSize_
+    ) internal pure returns (StackTop, uint256[] memory) {
+        uint256[] memory array_;
+        assembly ("memory-safe") {
+            // Underflow is not allowed and pointing at position 0 in memory is
+            // corrupt behaviour anyway.
+            if iszero(stackBottom_) {
+                revert(0, 0)
+            }
+            let sentinelLocation_ := 0
+            let length_ := 0
+            let step_ := mul(stepSize_, 0x20)
+            for {
+                stackTop_ := sub(stackTop_, 0x20)
+                let end_ := sub(stackBottom_, 0x20)
+            } gt(stackTop_, end_) {
+                stackTop_ := sub(stackTop_, step_)
+                length_ := add(length_, stepSize_)
+            } {
+                if eq(sentinel_, mload(stackTop_)) {
+                    sentinelLocation_ := stackTop_
+                    break
+                }
+            }
+            // Sentinel MUST exist in the stack if consumer expects it to there.
+            if iszero(sentinelLocation_) {
+                revert(0, 0)
+            }
+            mstore(sentinelLocation_, length_)
+            array_ := sentinelLocation_
+        }
+        return (stackTop_, array_);
+    }
+
+    function consumeStructs(
+        StackTop stackTop_,
+        StackTop stackBottom_,
+        uint256 sentinel_,
+        uint256 structSize_
+    ) internal pure returns (StackTop, uint256[] memory) {
+        uint256[] memory tempArray_;
+        (stackTop_, tempArray_) = stackTop_.consumeSentinel(
+            stackBottom_,
+            sentinel_,
+            structSize_
+        );
+        uint256 structsLength_ = tempArray_.length / structSize_;
+        uint256[] memory refs_ = new uint256[](structsLength_);
+        assembly ("memory-safe") {
+            for {
+                let refCursor_ := add(refs_, 0x20)
+                let refEnd_ := add(refCursor_, mul(structsLength_, 0x20))
+                let tempCursor_ := add(tempArray_, 0x20)
+                let tempStepSize_ := mul(structSize_, 0x20)
+            } lt(refCursor_, refEnd_) {
+                refCursor_ := add(refCursor_, 0x20)
+                tempCursor_ := add(tempCursor_, tempStepSize_)
+            } {
+                mstore(refCursor_, tempCursor_)
+            }
+        }
+        return (stackTop_, refs_);
     }
 
     /// Write a value at the stack top location. Typically not useful if the

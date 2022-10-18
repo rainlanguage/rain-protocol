@@ -346,6 +346,8 @@ describe("OrderBook counterparty in context", async function () {
       bOutput: bOutputExpected,
       aInput: fixedPointMul(askPrice, aOutputExpected),
       bInput: fixedPointMul(bidPrice, bOutputExpected),
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender === bountyBot.address);

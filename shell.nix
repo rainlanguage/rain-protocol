@@ -1,9 +1,9 @@
 let
   pkgs = import
     (builtins.fetchTarball {
-      name = "nixos-unstable-2021-10-01";
-      url = "https://github.com/nixos/nixpkgs/archive/369ab30030d8c56fe87a06c1fe3b2c0e85ba6253.tar.gz";
-      sha256 = "1f1lw5qrd3549l4fq3w4bqz3b6415hwjks2pa9yqz9cfpjh13y7l";
+      name = "nixos-unstable-2022-09-26";
+      url = "https://github.com/nixos/nixpkgs/archive/fde244a8c7655bc28616864e2290ad9c95409c2c.tar.gz";
+      sha256 = "07mmm1kcbw96jggfzv8vyi471f0kazifl2ijjd9mgi2kl1j5cpzp";
     })
     { };
 

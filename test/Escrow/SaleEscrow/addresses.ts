@@ -16,6 +16,7 @@ import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20";
 import { Status } from "../../../utils/types/sale";
 import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
 import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
+import crypto from "crypto";
 
 let reserve: ReserveToken,
   redeemableERC20FactoryFactory: ContractFactory,
@@ -155,11 +156,11 @@ describe("SaleEscrow unchangeable addresses", async function () {
     const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(sale.address);
     const saleEscrowToken0 = await saleEscrowWrapper.getToken(sale.address);
 
-    const newReserve = ethers.Wallet.createRandom();
-    const newToken = ethers.Wallet.createRandom();
+    const newReserve = crypto.randomBytes(20).toString("hex");
+    const newToken = crypto.randomBytes(20).toString("hex");
 
-    await sale.setReserve(newReserve.address);
-    await sale.setToken(newToken.address);
+    await sale.setReserve(newReserve);
+    await sale.setToken(newToken);
 
     await saleEscrowWrapper.fetchReserve(sale.address);
     await saleEscrowWrapper.fetchToken(sale.address);
@@ -169,7 +170,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
 
     // sanity check
     assert(
-      saleEscrowReserve0 !== newReserve.address,
+      saleEscrowReserve0 !== newReserve,
       "for some miraculous reason the new reserve has same address as original reserve"
     );
     assert(
@@ -179,7 +180,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
 
     // sanity check
     assert(
-      saleEscrowToken0 !== newToken.address,
+      saleEscrowToken0 !== newToken,
       "for some miraculous reason the new token has same address as original token"
     );
     assert(
