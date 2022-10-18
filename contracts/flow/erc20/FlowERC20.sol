@@ -39,7 +39,7 @@ struct FlowERC20IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -66,7 +66,9 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 
@@ -75,11 +77,7 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveInterpreterState(
-            CORE_SOURCE_ID,
-            config_.interpreterStateConfig,
-            LibUint256Array.arrayFrom(1, 1)
-        );
+        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
         __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 

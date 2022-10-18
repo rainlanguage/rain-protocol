@@ -31,7 +31,7 @@ struct FlowERC1155IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
     using LibInterpreterState for InterpreterState;
@@ -40,7 +40,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
 
     event Initialize(address sender, FlowERC1155Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 
@@ -51,11 +53,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveInterpreterState(
-            CORE_SOURCE_ID,
-            config_.interpreterStateConfig,
-            LibUint256Array.arrayFrom(1, 1)
-        );
+        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
         __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
@@ -81,7 +79,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         bytes memory
     ) internal virtual override {
         unchecked {
-            InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
+            InterpreterState memory state_ = _loadInterpreterState(
+                CORE_SOURCE_ID
+            );
             for (uint256 i_ = 0; i_ < ids_.length; i_++) {
                 state_.context = LibUint256Array.arrayFrom(
                     uint256(uint160(operator_)),

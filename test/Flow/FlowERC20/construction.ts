@@ -41,11 +41,6 @@ describe("FlowERC20 construction tests", async function () {
     const constants = [1, 2, ONE];
 
     // prettier-ignore
-    const sourceRebaseRatio = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-    ]);
-
-    // prettier-ignore
     const sourceCanTransfer = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
@@ -81,7 +76,7 @@ describe("FlowERC20 construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // mint amount
     ]);
 
-    const sources = [sourceRebaseRatio, sourceCanTransfer];
+    const sources = [sourceCanTransfer];
 
     const configStruct: FlowERC20ConfigStruct = {
       name: "Flow ERC20",
