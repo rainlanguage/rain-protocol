@@ -1069,7 +1069,7 @@ describe("Flow flow tests", async function () {
     const youBalanceIn = await erc20In.balanceOf(you.address);
     const youBalanceOut = await erc20Out.balanceOf(you.address);
 
-    for (let erc20Transfer of flowStruct.erc20) {
+    for (const erc20Transfer of flowStruct.erc20) {
       if (erc20Transfer.to == me.address) {
         assert(
           meBalanceIn.eq(erc20Transfer.amount),

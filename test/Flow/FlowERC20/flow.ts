@@ -15,11 +15,7 @@ import {
   FlowERC20IOStruct,
   SaveVMStateEvent,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import {
-  eighteenZeros,
-  ONE,
-  sixZeros,
-} from "../../../utils/constants/bigNumber";
+import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -61,8 +57,6 @@ describe("FlowERC20 flow tests", async function () {
     const deployer = signers[0];
     const you = signers[1];
 
-    const rebaseRatio = ONE;
-
     const flowTransfer: FlowTransferStruct = {
       native: [],
       erc20: [],
@@ -93,7 +87,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      rebaseRatio,
       mint,
       burn,
       1,
@@ -103,7 +96,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      rebaseRatio,
       mint,
       burn,
       0,
@@ -116,16 +108,14 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -140,7 +130,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStructCanTransfer: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -193,25 +183,22 @@ describe("FlowERC20 flow tests", async function () {
       flowCannotTransfer
     )) as SaveVMStateEvent["args"][];
 
-    const signer1 = signers[1];
     const signerReceiver = signers[2];
 
     const _txFlowCanTransfer = await flowCanTransfer
-      .connect(signer1)
+      .connect(you)
       .flow(flowStatesCanTransfer[1].id, 1234);
 
     const _txFlowCannotTransfer = await flowCannotTransfer
-      .connect(signer1)
+      .connect(you)
       .flow(flowStatesCannotTransfer[1].id, 1234);
 
-    await flowCanTransfer
-      .connect(signer1)
-      .transfer(signerReceiver.address, mint);
+    await flowCanTransfer.connect(you).transfer(signerReceiver.address, mint);
 
     await assertError(
       async () =>
         await flowCannotTransfer
-          .connect(signer1)
+          .connect(you)
           .transfer(signerReceiver.address, mint),
       "INVALID_TRANSFER",
       "transferred when it should not"
@@ -222,8 +209,6 @@ describe("FlowERC20 flow tests", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
-
-    const rebaseRatio = ONE;
 
     const flowTransferMint: FlowTransferStruct = {
       native: [
@@ -304,7 +289,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      rebaseRatio,
       mintMint,
       burnMint,
       flowTransferMint.native[0].amount,
@@ -315,7 +299,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      rebaseRatio,
       mintBurn,
       burnBurn,
       flowTransferBurn.native[0].amount,
@@ -330,18 +313,16 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -362,7 +343,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -455,12 +436,12 @@ describe("FlowERC20 flow tests", async function () {
 
     assert(me20Balance1.isZero());
     assert(
-      you20Balance1.eq(mintMint.mul(rebaseRatio).div(ONE)),
+      you20Balance1.eq(mintMint),
       `wrong sender balance minted
-      expected  ${mintMint.mul(rebaseRatio).div(ONE)}
+      expected  ${mintMint}
       got       ${you20Balance1}`
     );
-    assert(totalSupply1.eq(mintMint.mul(rebaseRatio).div(ONE)));
+    assert(totalSupply1.eq(mintMint));
 
     // -- PERFORM BURN --
 
@@ -570,7 +551,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.native[0].amount,
@@ -588,25 +568,23 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -632,7 +610,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -786,7 +764,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.erc721[0].token,
@@ -804,24 +781,22 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -845,7 +820,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -986,7 +961,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.erc20[0].token,
@@ -1004,23 +978,21 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1043,7 +1015,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -1165,7 +1137,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.native[0].amount,
@@ -1181,21 +1152,19 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1217,7 +1186,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -1356,7 +1325,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.erc1155[0].token,
@@ -1376,27 +1344,25 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 11));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 10));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -1421,7 +1387,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -1568,7 +1534,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.erc721[0].token,
@@ -1586,22 +1551,20 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1624,7 +1587,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -1763,7 +1726,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.erc20[0].token,
@@ -1781,23 +1743,21 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
@@ -1820,7 +1780,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -1939,7 +1899,6 @@ describe("FlowERC20 flow tests", async function () {
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
       1,
-      ONE,
       flowERC20IO.mints[0].amount,
       flowERC20IO.burns[0].amount,
       flowTransfer.native[0].amount,
@@ -1955,18 +1914,16 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const MINT_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1987,7 +1944,7 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
@@ -2070,7 +2027,7 @@ describe("FlowERC20 flow tests", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 1, ONE];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 1];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
@@ -2081,8 +2038,6 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -2093,7 +2048,7 @@ describe("FlowERC20 flow tests", async function () {
       SENTINEL_ERC20(), // MINT END
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",

@@ -39,7 +39,7 @@ struct FlowERC20IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -75,11 +75,7 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveVMState(
-            CORE_SOURCE_ID,
-            config_.vmStateConfig,
-            LibUint256Array.arrayFrom(1, 1)
-        );
+        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
         __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 

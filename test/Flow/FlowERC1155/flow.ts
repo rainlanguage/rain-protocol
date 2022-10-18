@@ -16,12 +16,7 @@ import {
   SaveVMStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import * as Util from "../../../utils";
-import {
-  eighteenZeros,
-  ONE,
-  sixZeros,
-} from "../../../utils/constants/bigNumber";
+import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -61,29 +56,9 @@ describe("FlowERC1155 flow tests", async function () {
   it("should support transferPreflight hook", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
-    const you = signers[1];
-
-    const flowTransfer: FlowTransferStruct = {
-      native: [],
-      erc20: [],
-      erc721: [],
-      erc1155: [],
-    };
 
     const tokenId = 0;
     const tokenAmount = ethers.BigNumber.from(5 + eighteenZeros);
-
-    const flowERC1155IO: FlowERC1155IOStruct = {
-      mints: [
-        {
-          account: you.address,
-          id: tokenId,
-          amount: tokenAmount,
-        },
-      ],
-      burns: [],
-      flow: flowTransfer,
-    };
 
     const constantsCanTransfer = [
       RAIN_FLOW_SENTINEL,
@@ -92,7 +67,6 @@ describe("FlowERC1155 flow tests", async function () {
       tokenId,
       tokenAmount,
       1,
-      Util.ONE,
     ];
     const constantsCannotTransfer = [
       RAIN_FLOW_SENTINEL,
@@ -101,7 +75,6 @@ describe("FlowERC1155 flow tests", async function () {
       tokenId,
       tokenAmount,
       0,
-      Util.ONE,
     ];
 
     const SENTINEL = () =>
@@ -118,8 +91,6 @@ describe("FlowERC1155 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -133,7 +104,7 @@ describe("FlowERC1155 flow tests", async function () {
       TOKEN_AMOUNT(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStructCanTransfer: FlowERC1155ConfigStruct = {
       uri: "F1155",
@@ -244,8 +215,6 @@ describe("FlowERC1155 flow tests", async function () {
     const deployer = signers[0];
     const you = signers[1];
 
-    const rebaseRatio = ONE;
-
     const flowTransferMint: FlowTransferStruct = {
       native: [
         {
@@ -313,7 +282,6 @@ describe("FlowERC1155 flow tests", async function () {
     const constantsMint = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
-      rebaseRatio,
       1,
       tokenId,
       tokenAmount,
@@ -324,7 +292,6 @@ describe("FlowERC1155 flow tests", async function () {
     const constantsBurn = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC1155_SENTINEL,
-      rebaseRatio,
       1,
       tokenId,
       tokenAmount,
@@ -336,22 +303,20 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const TOKEN_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const TOKEN_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIOMint = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -388,7 +353,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(), // MINT SKIP
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: FlowERC1155ConfigStruct = {
       uri: "F1155",
@@ -471,7 +436,7 @@ describe("FlowERC1155 flow tests", async function () {
     const you20Balance1 = await flow.balanceOf(you.address, tokenId);
 
     assert(me20Balance1.isZero());
-    assert(you20Balance1.eq(tokenAmount.mul(rebaseRatio).div(ONE)));
+    assert(you20Balance1.eq(tokenAmount));
 
     // -- PERFORM BURN --
 
@@ -575,8 +540,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -613,7 +576,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -763,8 +726,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -800,7 +761,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -935,8 +896,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -969,7 +928,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1085,8 +1044,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -1116,7 +1073,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1255,8 +1212,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -1295,7 +1250,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1440,8 +1395,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -1474,7 +1427,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1611,8 +1564,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -1645,7 +1596,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1760,8 +1711,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -1787,7 +1736,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1874,8 +1823,6 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const REBASE_RATIO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
@@ -1890,7 +1837,7 @@ describe("FlowERC1155 flow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [REBASE_RATIO(), CAN_TRANSFER()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,

@@ -31,7 +31,7 @@ struct FlowERC1155IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     using LibVMState for VMState;
@@ -51,11 +51,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveVMState(
-            CORE_SOURCE_ID,
-            config_.vmStateConfig,
-            LibUint256Array.arrayFrom(1, 1)
-        );
+        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
         __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 

@@ -91,7 +91,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -113,7 +116,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -123,7 +126,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -221,7 +224,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -278,7 +284,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -288,7 +294,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -380,7 +386,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -425,7 +434,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -435,7 +444,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -534,7 +543,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -590,7 +602,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -600,7 +612,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -675,7 +687,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -709,7 +724,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -719,7 +734,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -789,7 +804,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -817,7 +835,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -827,7 +845,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -907,7 +925,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -946,7 +967,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -956,7 +977,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
@@ -1047,7 +1068,10 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -1059,7 +1083,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       SENTINEL_1155(),
     ]);
 
-    const sources = [ONE(), ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1069,7 +1093,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
       vmStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
