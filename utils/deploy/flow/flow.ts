@@ -20,7 +20,7 @@ import {
   FlowERC721,
   FlowERC721ConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { FlowConfigStruct } from "../../../typechain/contracts/flow/raw/Flow";
+import { FlowConfigStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../events";
 
 export const flowDeploy = async (

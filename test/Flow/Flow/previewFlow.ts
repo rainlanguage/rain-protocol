@@ -11,7 +11,7 @@ import {
   FlowConfigStruct,
   FlowTransferStruct,
   SaveVMStateEvent,
-} from "../../../typechain/contracts/flow/raw/Flow";
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basic";
