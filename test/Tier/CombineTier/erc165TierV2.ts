@@ -16,8 +16,12 @@ import {
   stakeDeploy,
 } from "../../../utils";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { ALWAYS } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;

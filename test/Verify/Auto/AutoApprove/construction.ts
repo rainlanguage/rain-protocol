@@ -14,8 +14,12 @@ import {
   verifyFactoryDeploy,
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {

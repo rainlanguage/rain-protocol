@@ -10,7 +10,7 @@ import {
 import {
   FlowERC20IOStruct,
   FlowTransferStruct,
-  SaveVMStateEvent,
+  SaveInterpreterStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -22,8 +22,12 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
@@ -145,7 +149,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_TRANSFER(), sourceFlowIO],
@@ -156,9 +160,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -340,7 +344,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -351,9 +355,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -516,7 +520,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -527,9 +531,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -711,7 +715,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -722,9 +726,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -860,7 +864,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -871,9 +875,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -999,7 +1003,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -1010,9 +1014,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -1159,7 +1163,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -1170,9 +1174,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
@@ -1220,7 +1224,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -1231,9 +1235,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
       async () => await flow.previewFlow(flowStates[1].id, 1234),
@@ -1317,7 +1321,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowFactory, {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_FLOW(), sourceFlowIO],
@@ -1328,9 +1332,9 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)

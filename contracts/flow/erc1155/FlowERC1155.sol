@@ -2,10 +2,10 @@
 pragma solidity =0.8.17;
 
 import "../../sentinel/LibSentinel.sol";
-import "../../vm/runtime/LibVMState.sol";
+import "../../interpreter/runtime/LibInterpreterState.sol";
 import "../libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "../vm/FlowVM.sol";
+import "../interpreter/FlowInterpreter.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
@@ -15,7 +15,7 @@ uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
 
 struct FlowERC1155Config {
     string uri;
-    StateConfig vmStateConfig;
+    StateConfig interpreterStateConfig;
     StateConfig[] flows;
 }
 
@@ -33,14 +33,16 @@ struct FlowERC1155IO {
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
-    using LibVMState for VMState;
+contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
+    using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
 
     event Initialize(address sender, FlowERC1155Config config);
 
-    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 
@@ -51,8 +53,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
+        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
+        __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
@@ -88,7 +90,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
             // Mint and burn access MUST be handled by CAN_FLOW.
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
-                VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
+                InterpreterState memory state_ = _loadInterpreterState(
+                    CORE_SOURCE_ID
+                );
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
                     state_.context = LibUint256Array.arrayFrom(
                         uint256(uint160(operator_)),
@@ -106,7 +110,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         }
     }
 
-    function _previewFlow(VMState memory state_)
+    function _previewFlow(InterpreterState memory state_)
         internal
         view
         returns (FlowERC1155IO memory)
@@ -135,7 +139,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
     }
 
     function _flow(
-        VMState memory state_,
+        InterpreterState memory state_,
         uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory) {

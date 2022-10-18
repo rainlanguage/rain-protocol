@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {RainVMIntegrity, StateConfig} from "../../vm/integrity/RainVMIntegrity.sol";
-import "../../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../../vm/ops/AllStandardOps.sol";
+import {RainInterpreterIntegrity, StateConfig} from "../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../interpreter/runtime/StandardInterpreter.sol";
+import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
-import "../vm/FlowVM.sol";
+import "../interpreter/FlowInterpreter.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
@@ -26,7 +26,7 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
 struct FlowERC721Config {
     string name;
     string symbol;
-    StateConfig vmStateConfig;
+    StateConfig interpreterStateConfig;
     StateConfig[] flows;
 }
 
@@ -44,11 +44,11 @@ struct FlowERC721IO {
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 /// @title FlowERC721
-contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
+contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
-    using LibVMState for VMState;
+    using LibInterpreterState for InterpreterState;
     using FixedPointMath for uint256;
 
     /// Contract has initialized.
@@ -56,7 +56,9 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC721Config config);
 
-    constructor(address vmIntegrity_) FlowVM(vmIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 
@@ -68,8 +70,8 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
-        _saveVMState(CORE_SOURCE_ID, config_.vmStateConfig);
-        __FlowVM_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
+        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
+        __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
@@ -94,7 +96,9 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
+            InterpreterState memory state_ = _loadInterpreterState(
+                CORE_SOURCE_ID
+            );
 
             state_.context = LibUint256Array.arrayFrom(
                 uint256(uint160(from_)),
@@ -108,7 +112,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
         }
     }
 
-    function _previewFlow(VMState memory state_)
+    function _previewFlow(InterpreterState memory state_)
         internal
         view
         returns (FlowERC721IO memory)
@@ -137,7 +141,7 @@ contract FlowERC721 is ReentrancyGuard, FlowVM, ERC721 {
     }
 
     function _flow(
-        VMState memory state_,
+        InterpreterState memory state_,
         uint256 flow_,
         uint256 id_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {

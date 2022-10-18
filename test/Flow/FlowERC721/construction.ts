@@ -6,8 +6,12 @@ import { InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowER
 import { FlowERC721ConfigStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
@@ -76,7 +80,7 @@ describe("FlowERC721 construction tests", async function () {
     const configStruct: FlowERC721ConfigStruct = {
       name: "Flow ERC721",
       symbol: "F721",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },

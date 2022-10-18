@@ -201,7 +201,7 @@ library Random {
                 // When we want to read ONLY the current item being considered
                 // from a full 32 byte `mload` we want to keep only the last
                 // 2 bytes.
-                let vMask_ := 0xFFFF
+                let valueMask_ := 0xFFFF
 
                 // Start at the end of the bytes array and work down towards 0.
                 // Don't need to shuffle index 0 because it will always be
@@ -217,9 +217,9 @@ library Random {
                     // index being shuffled.
                     let location_ := add(ptr_, mul(i_, 2))
                     let base_ := mload(location_)
-                    let v_ := and(base_, vMask_)
-                    if iszero(v_) {
-                        v_ := i_
+                    let value_ := and(base_, valueMask_)
+                    if iszero(value_) {
+                        value_ := i_
                     }
 
                     // Generate a "random" index by hashing the first value in
@@ -232,7 +232,7 @@ library Random {
                     // index that the current index will be swapped with.
                     let randomLocation_ := add(ptr_, mul(randomIndex_, 2))
                     let randomBase_ := mload(randomLocation_)
-                    let randomV_ := and(randomBase_, vMask_)
+                    let randomV_ := and(randomBase_, valueMask_)
                     if iszero(randomV_) {
                         randomV_ := randomIndex_
                     }
@@ -244,7 +244,10 @@ library Random {
                     // Merge the value from the current index with the read from
                     // the "random" index and save it back to the "random"
                     // index's location.
-                    mstore(randomLocation_, or(and(randomBase_, itemMask_), v_))
+                    mstore(
+                        randomLocation_,
+                        or(and(randomBase_, itemMask_), value_)
+                    )
                 }
             }
         }
