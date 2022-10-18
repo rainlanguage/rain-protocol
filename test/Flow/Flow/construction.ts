@@ -5,7 +5,7 @@ import { FlowFactory, FlowIntegrity } from "../../../typechain";
 import {
   FlowConfigStruct,
   InitializeEvent,
-} from "../../../typechain/contracts/flow/raw/Flow";
+} from "../../../typechain/contracts/flow/basic/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";

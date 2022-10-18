@@ -31,7 +31,7 @@ struct FlowERC1155IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
     using LibInterpreterState for InterpreterState;
@@ -51,11 +51,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveInterpreterState(
-            CORE_SOURCE_ID,
-            config_.interpreterStateConfig,
-            LibUint256Array.arrayFrom(1, 1)
-        );
+        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
         __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
@@ -78,22 +74,34 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         address to_,
         uint256[] memory ids_,
         uint256[] memory amounts_,
-        bytes memory
+        bytes memory data_
     ) internal virtual override {
         unchecked {
-            InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
-            for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                state_.context = LibUint256Array.arrayFrom(
-                    uint256(uint160(operator_)),
-                    uint256(uint160(from_)),
-                    uint256(uint160(to_)),
-                    ids_[i_],
-                    amounts_[i_]
-                );
-                require(
-                    state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
-                    "INVALID_TRANSFER"
-                );
+            super._beforeTokenTransfer(
+                operator_,
+                from_,
+                to_,
+                ids_,
+                amounts_,
+                data_
+            );
+            // Mint and burn access MUST be handled by CAN_FLOW.
+            // CAN_TRANSFER will only restrict subsequent transfers.
+            if (!(from_ == address(0) || to_ == address(0))) {
+                InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
+                for (uint256 i_ = 0; i_ < ids_.length; i_++) {
+                    state_.context = LibUint256Array.arrayFrom(
+                        uint256(uint160(operator_)),
+                        uint256(uint160(from_)),
+                        uint256(uint160(to_)),
+                        ids_[i_],
+                        amounts_[i_]
+                    );
+                    require(
+                        state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                        "INVALID_TRANSFER"
+                    );
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
-import {Evidence} from "./Verify.sol";
+import "./LibEvidence.sol";
 
 /// Deployers of `Verify` contracts (e.g. via `VerifyFactory`) may want to
 /// apply additional processing and/or restrictions to each of the basic

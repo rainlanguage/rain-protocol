@@ -39,7 +39,7 @@ struct FlowERC20IO {
     FlowTransfer flow;
 }
 
-SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -75,11 +75,7 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        _saveInterpreterState(
-            CORE_SOURCE_ID,
-            config_.interpreterStateConfig,
-            LibUint256Array.arrayFrom(1, 1)
-        );
+        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
         __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
     }
 
@@ -89,17 +85,22 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
         address to_,
         uint256 amount_
     ) internal virtual override {
-        InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
+        super._beforeTokenTransfer(from_, to_, amount_);
+        // Mint and burn access MUST be handled by CAN_FLOW.
+        // CAN_TRANSFER will only restrict subsequent transfers.
+        if (!(from_ == address(0) || to_ == address(0))) {
+            InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
 
-        state_.context = LibUint256Array.arrayFrom(
-            uint256(uint160(from_)),
-            uint256(uint160(to_)),
-            amount_
-        );
-        require(
-            state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
-            "INVALID_TRANSFER"
-        );
+            state_.context = LibUint256Array.arrayFrom(
+                uint256(uint160(from_)),
+                uint256(uint160(to_)),
+                amount_
+            );
+            require(
+                state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                "INVALID_TRANSFER"
+            );
+        }
     }
 
     function _previewFlow(InterpreterState memory state_)
