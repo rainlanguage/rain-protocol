@@ -11,9 +11,13 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
+import {
+  op,
+  memoryOperand,
+  MemoryType,
+} from "../../utils/interpreter/interpreter";
 import { assertError } from "../../utils/test/assertError";
 import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
@@ -67,7 +71,7 @@ describe("Sale canLive (start/end sale)", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreterStateConfig: {
           sources,
           constants,
         },

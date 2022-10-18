@@ -7,8 +7,12 @@ import {
   StandardIntegrity,
 } from "../../../typechain";
 import { getBlockTimestamp } from "../../../utils/hardhat";
-import { Opcode } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierV2 report time for tier op", async function () {
@@ -23,7 +27,7 @@ describe("TierV2 report time for tier op", async function () {
     const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
     await integrity.deployed();
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic vm contract
+    // deploy a basic interpreter contract
     const logic = (await logicFactory.deploy(
       integrity.address
     )) as AllStandardOpsTest;

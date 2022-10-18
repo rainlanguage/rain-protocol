@@ -4,7 +4,7 @@ export * from "./deploy";
 export * from "./events";
 export * from "./hardhat";
 export * from "./math";
-export * from "./rainvm";
+export * from "./interpreter";
 export * from "./test";
 export * from "./tier";
 export * from "./time";

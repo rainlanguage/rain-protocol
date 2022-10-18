@@ -11,8 +11,12 @@ import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { stakeDeploy } from "../../utils/deploy/stake";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
-import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { numArrayToReport } from "../../utils/tier";
 
 describe("Stake ITIERV2_REPORT Op", async function () {

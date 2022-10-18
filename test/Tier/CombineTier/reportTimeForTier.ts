@@ -15,8 +15,12 @@ import { max_uint32, stakeDeploy, THRESHOLDS } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
@@ -68,13 +72,13 @@ describe("CombineTier report time for tier script", async function () {
     const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
     await integrity.deployed();
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic vm contract
+    // deploy a basic interpreter contract
     logic = (await logicFactory.deploy(
       integrity.address
     )) as AllStandardOpsTest;
   });
 
-  it("should support returning report time for tier using VM script (e.g. constant timestamp value)", async () => {
+  it("should support returning report time for tier using Interpreter script (e.g. constant timestamp value)", async () => {
     const combineTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
       sourceConfig: {

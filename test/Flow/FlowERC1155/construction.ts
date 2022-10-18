@@ -6,8 +6,12 @@ import { InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowE
 import { FlowERC1155ConfigStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
@@ -71,7 +75,7 @@ describe("FlowERC1155 construction tests", async function () {
 
     const configStruct: FlowERC1155ConfigStruct = {
       uri: "F1155",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },

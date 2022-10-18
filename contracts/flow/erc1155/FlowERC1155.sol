@@ -40,7 +40,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
 
     event Initialize(address sender, FlowERC1155Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 

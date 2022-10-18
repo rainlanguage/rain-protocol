@@ -13,8 +13,12 @@ import {
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
 import { timewarp } from "../../../../utils/hardhat";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove evidence data approved op", async function () {

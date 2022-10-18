@@ -43,7 +43,7 @@ describe("SaleEscrow protection from draining", async function () {
       maximumSaleTimeout: 1000,
       maximumCooldownDuration: 1000,
       redeemableERC20Factory: redeemableERC20Factory.address,
-      vmIntegrity: integrity.address,
+      interpreterIntegrity: integrity.address,
     };
 
     saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});

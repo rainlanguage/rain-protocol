@@ -10,9 +10,13 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock, getBlockTimestamp } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { assertError } from "../../utils/test/assertError";
 import { Phase } from "../../utils/types/redeemableERC20";
 import { Status } from "../../utils/types/sale";
@@ -69,7 +73,7 @@ describe("Sale timeout", async function () {
           deployer,
           saleFactory,
           {
-            vmStateConfig: {
+            interpreterStateConfig: {
               sources,
               constants,
             },
@@ -95,7 +99,7 @@ describe("Sale timeout", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreterStateConfig: {
           sources,
           constants,
         },

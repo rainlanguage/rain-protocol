@@ -10,7 +10,7 @@ import {
 import {
   FlowERC721IOStruct,
   FlowTransferStruct,
-  SaveVMStateEvent,
+  SaveInterpreterStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { sixZeros } from "../../../utils/constants/bigNumber";
@@ -22,8 +22,12 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
@@ -122,15 +126,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -289,15 +293,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -437,15 +441,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -602,15 +606,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -723,15 +727,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -832,15 +836,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -963,15 +967,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -1015,15 +1019,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
       async () => await flow.previewFlow(flowStates[1].id, 1234),
@@ -1077,15 +1081,15 @@ describe("FlowERC721 previewFlow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowFactory, {
       name: "FlowERC721",
       symbol: "F721",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ONE(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)

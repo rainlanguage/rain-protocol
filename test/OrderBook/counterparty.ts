@@ -22,8 +22,12 @@ import {
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
@@ -57,7 +61,7 @@ describe("OrderBook counterparty in context", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it("should expose counterparty context to RainVM calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
+  it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -118,7 +122,7 @@ describe("OrderBook counterparty in context", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -154,7 +158,7 @@ describe("OrderBook counterparty in context", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
@@ -193,7 +197,7 @@ describe("OrderBook counterparty in context", async function () {
     const bidOrderConfigCarol: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: carolInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: carolOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSourceCarol],
         constants: bidConstantsCarol,
       },

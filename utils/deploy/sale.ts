@@ -85,7 +85,7 @@ export const saleDependenciesDeploy = async () => {
     maximumSaleTimeout: 10000,
     maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    vmIntegrity: integrity.address,
+    interpreterIntegrity: integrity.address,
   };
   const saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
   const saleFactory = (await saleFactoryFactory.deploy(

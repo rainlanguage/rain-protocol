@@ -10,7 +10,7 @@ import {
 import {
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  SaveVMStateEvent,
+  SaveInterpreterStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { sixZeros } from "../../../utils/constants/bigNumber";
@@ -22,8 +22,12 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import { getEvents } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
@@ -125,15 +129,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -293,15 +297,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -443,15 +447,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -611,15 +615,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -733,15 +737,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -844,15 +848,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -976,15 +980,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -1027,15 +1031,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [ZERO(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
       async () => await flow.previewFlow(flowStates[1].id, 1234),
@@ -1092,15 +1096,15 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowFactory, {
       uri: "F1155",
-      vmStateConfig: stateConfigStruct,
+      interpreterStateConfig: stateConfigStruct,
       flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
     });
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)

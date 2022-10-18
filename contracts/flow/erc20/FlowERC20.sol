@@ -66,7 +66,9 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 

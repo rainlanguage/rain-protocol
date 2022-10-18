@@ -21,8 +21,12 @@ import {
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import {
   compareSolStructs,
   compareStructs,
@@ -100,7 +104,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, vaultId: aliceOutputVault },
         { token: tokenD.address, vaultId: aliceOutputVault },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -142,7 +146,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, vaultId: bobInputVault },
         { token: tokenC.address, vaultId: bobInputVault },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
@@ -371,7 +375,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, vaultId: aliceVaultB },
         { token: tokenA.address, vaultId: aliceVaultA },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -413,7 +417,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, vaultId: bobVaultA },
         { token: tokenB.address, vaultId: bobVaultB },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },

@@ -17,7 +17,11 @@ import {
   stakeDeploy,
   Tier,
 } from "../../utils";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import type { ERC20PulleeTest } from "../../typechain";
 import {
   ERC20ConfigStruct,

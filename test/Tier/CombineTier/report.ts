@@ -21,8 +21,12 @@ import {
 } from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basic";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;
@@ -75,7 +79,7 @@ describe("CombineTier default report", async function () {
     await integrity.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic vm contract
+    // deploy a basic interpreter contract
     logic = (await logicFactory.deploy(
       integrity.address
     )) as AllStandardOpsTest;
