@@ -25,7 +25,7 @@ import "../interpreter/integrity/RainInterpreterIntegrity.sol";
 /// @param maximumCooldownDuration The cooldown duration set in initialize
 /// cannot exceed this. Avoids the "no refunds" situation where someone sets an
 /// infinite cooldown, then accidentally or maliciously the sale ends up in a
-/// state where it cannot end (bad "can end" expression), leading to trapped 
+/// state where it cannot end (bad "can end" expression), leading to trapped
 /// funds.
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
@@ -37,9 +37,9 @@ struct SaleConstructorConfig {
 }
 
 /// Everything required to configure (initialize) a Sale.
-/// @param canStartStateConfig State config for the expression that allows a 
+/// @param canStartStateConfig State config for the expression that allows a
 /// `Sale` to start.
-/// @param canEndStateConfig State config for the expression that allows a 
+/// @param canEndStateConfig State config for the expression that allows a
 /// `Sale` to end. IMPORTANT: A Sale can always end if/when its rTKN sells out,
 /// regardless of the result of this expression.
 /// @param calculatePriceStateConfig State config for the expression that defines
@@ -350,7 +350,11 @@ contract Sale is Cooldown, StandardInterpreter, ISale, ReentrancyGuard {
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
     /// evaluating the expression.
-    function _canLive(InterpreterState memory state_) internal view returns (bool) {
+    function _canLive(InterpreterState memory state_)
+        internal
+        view
+        returns (bool)
+    {
         unchecked {
             if (_remainingUnits < 1) {
                 return false;
@@ -501,11 +505,11 @@ contract Sale is Cooldown, StandardInterpreter, ISale, ReentrancyGuard {
             targetUnits_
         );
 
-        // The expression may return a larger max units than the target so we 
-        // have to cap it to prevent the sale selling more than requested. 
-        // Expressions SHOULD NOT exceed the target units as it may be confusing 
+        // The expression may return a larger max units than the target so we
+        // have to cap it to prevent the sale selling more than requested.
+        // Expressions SHOULD NOT exceed the target units as it may be confusing
         // to end users but it MUST be safe from the sale's perspective to do so.
-        // Expressions MAY return max units lower than the target units to 
+        // Expressions MAY return max units lower than the target units to
         // enforce per-user or other purchase limits.
         uint256 units_ = maxUnits_.min(targetUnits_);
         require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");

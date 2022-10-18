@@ -30,14 +30,18 @@ contract StandardInterpreter is RainInterpreter {
         return _saveInterpreterState(DEFAULT_SOURCE_ID, config_);
     }
 
-    function _saveInterpreterState(uint256 id_, StateConfig memory config_) internal {
+    function _saveInterpreterState(uint256 id_, StateConfig memory config_)
+        internal
+    {
         return _saveInterpreterState(id_, config_, DEFAULT_MIN_FINAL_STACK);
     }
 
-    function _saveInterpreterState(StateConfig memory config_, uint256 finalMinStack_)
-        internal
-    {
-        return _saveInterpreterState(DEFAULT_SOURCE_ID, config_, finalMinStack_);
+    function _saveInterpreterState(
+        StateConfig memory config_,
+        uint256 finalMinStack_
+    ) internal {
+        return
+            _saveInterpreterState(DEFAULT_SOURCE_ID, config_, finalMinStack_);
     }
 
     function _saveInterpreterState(
@@ -52,7 +56,8 @@ contract StandardInterpreter is RainInterpreter {
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) internal {
-        return _saveInterpreterState(DEFAULT_SOURCE_ID, config_, finalMinStacks_);
+        return
+            _saveInterpreterState(DEFAULT_SOURCE_ID, config_, finalMinStacks_);
     }
 
     function _saveInterpreterState(
@@ -69,11 +74,19 @@ contract StandardInterpreter is RainInterpreter {
         InterpreterStatePointers[id_] = SSTORE2.write(stateBytes_);
     }
 
-    function _loadInterpreterState() internal view returns (InterpreterState memory) {
+    function _loadInterpreterState()
+        internal
+        view
+        returns (InterpreterState memory)
+    {
         return _loadInterpreterState(DEFAULT_SOURCE_ID);
     }
 
-    function _loadInterpreterState(uint256 id_) internal view returns (InterpreterState memory) {
+    function _loadInterpreterState(uint256 id_)
+        internal
+        view
+        returns (InterpreterState memory)
+    {
         return _loadInterpreterState(id_, new uint256[](0));
     }
 

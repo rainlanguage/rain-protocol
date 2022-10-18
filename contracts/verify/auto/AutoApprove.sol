@@ -27,7 +27,9 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        StandardInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 

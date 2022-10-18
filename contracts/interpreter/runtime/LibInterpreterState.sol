@@ -221,8 +221,8 @@ library LibInterpreterState {
     }
 
     /// Given a source in opcodes compile to an equivalent source with real
-    /// function pointers for a given Interpreter contract. The "compilation" 
-    /// involves simply replacing the opcode with the pointer at the index of 
+    /// function pointers for a given Interpreter contract. The "compilation"
+    /// involves simply replacing the opcode with the pointer at the index of
     /// the opcode. i.e. opcode 4 will be replaced with `pointers_[4]`.
     /// Relies heavily on the integrity checks ensuring opcodes used are not OOB
     /// and that the pointers provided are valid and in the correct order.
@@ -262,7 +262,11 @@ library LibInterpreterState {
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_) internal view returns (StackTop) {
+    function eval(InterpreterState memory state_)
+        internal
+        view
+        returns (StackTop)
+    {
         return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);
     }
 
@@ -285,7 +289,7 @@ library LibInterpreterState {
     }
 
     /// Evaluates a Rain expression.
-    /// The main workhorse of the rain Interpreter, `eval` runs any core opcodes 
+    /// The main workhorse of the rain Interpreter, `eval` runs any core opcodes
     /// and dispatches anything it is unaware of to the implementing contract.
     /// For an expression to be useful the implementing contract must override
     /// `applyOp` and dispatch non-core opcodes to domain specific logic. This

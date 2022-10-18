@@ -153,7 +153,9 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackTop) view returns (StackTop)[]
+        function(InterpreterState memory, Operand, StackTop)
+            view
+            returns (StackTop)[]
             memory fns_
     ) internal pure returns (uint256[] memory is_) {
         assembly ("memory-safe") {

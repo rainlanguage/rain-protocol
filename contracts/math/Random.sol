@@ -244,7 +244,10 @@ library Random {
                     // Merge the value from the current index with the read from
                     // the "random" index and save it back to the "random"
                     // index's location.
-                    mstore(randomLocation_, or(and(randomBase_, itemMask_), value_))
+                    mstore(
+                        randomLocation_,
+                        or(and(randomBase_, itemMask_), value_)
+                    )
                 }
             }
         }

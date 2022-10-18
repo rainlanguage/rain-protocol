@@ -52,9 +52,9 @@ pragma solidity ^0.8.0;
 /// - Tier is unknown: `0xFF..` is in the report
 ///
 /// The reason `context` is specified as a list of values rather than arbitrary
-/// bytes is to allow clear and efficient compatibility with interpreter stacks. 
-/// Some N values can be taken from an interpreter stack and used directly as a 
-/// context, which would be difficult or impossible to ensure is safe for 
+/// bytes is to allow clear and efficient compatibility with interpreter stacks.
+/// Some N values can be taken from an interpreter stack and used directly as a
+/// context, which would be difficult or impossible to ensure is safe for
 /// arbitrary bytes.
 interface ITierV2 {
     /// Same as report but only returns the time for a single tier.

@@ -56,7 +56,9 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC721Config config);
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 
@@ -94,7 +96,9 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
+            InterpreterState memory state_ = _loadInterpreterState(
+                CORE_SOURCE_ID
+            );
 
             state_.context = LibUint256Array.arrayFrom(
                 uint256(uint160(from_)),

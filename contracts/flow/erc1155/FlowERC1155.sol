@@ -90,7 +90,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
             // Mint and burn access MUST be handled by CAN_FLOW.
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
-                InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
+                InterpreterState memory state_ = _loadInterpreterState(
+                    CORE_SOURCE_ID
+                );
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
                     state_.context = LibUint256Array.arrayFrom(
                         uint256(uint160(operator_)),

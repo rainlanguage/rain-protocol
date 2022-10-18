@@ -23,7 +23,9 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
     /// flow index => id => time
     mapping(uint256 => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {}
+    constructor(address interpreterIntegrity_)
+        StandardInterpreter(interpreterIntegrity_)
+    {}
 
     /// @param flows_ source and token config. Also controls delegated claims.
     // solhint-disable-next-line func-name-mixedcase
@@ -52,7 +54,11 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         return _loadInterpreterState(flow_, LibUint256Array.arrayFrom(id_));
     }
 
-    function flowStack(InterpreterState memory state_) internal view returns (StackTop) {
+    function flowStack(InterpreterState memory state_)
+        internal
+        view
+        returns (StackTop)
+    {
         require(state_.eval(CAN_FLOW_ENDPOINT).peek() > 0, "CANT_FLOW");
         return state_.eval(FLOW_ENDPOINT);
     }

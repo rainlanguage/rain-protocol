@@ -121,7 +121,9 @@ contract OrderBook is StandardInterpreter {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {}
+    constructor(address interpreterIntegrity_)
+        StandardInterpreter(interpreterIntegrity_)
+    {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal

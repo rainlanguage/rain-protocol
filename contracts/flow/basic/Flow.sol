@@ -21,7 +21,9 @@ contract Flow is ReentrancyGuard, FlowInterpreter {
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address interpreterIntegrity_) FlowInterpreter(interpreterIntegrity_) {}
+    constructor(address interpreterIntegrity_)
+        FlowInterpreter(interpreterIntegrity_)
+    {}
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig calldata config_) external initializer {

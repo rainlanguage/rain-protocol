@@ -22,7 +22,7 @@ library OpContext {
         Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        // Note that a expression with context can error at runtime due to OOB 
+        // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityState_.push(stackTop_);
     }

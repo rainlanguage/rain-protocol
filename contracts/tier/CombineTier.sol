@@ -40,7 +40,9 @@ contract CombineTier is TierV2, StandardInterpreter {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    constructor(address interpreterIntegrity_) StandardInterpreter(interpreterIntegrity_) {
+    constructor(address interpreterIntegrity_)
+        StandardInterpreter(interpreterIntegrity_)
+    {
         _disableInitializers();
     }
 
@@ -80,9 +82,9 @@ contract CombineTier is TierV2, StandardInterpreter {
         returns (uint256)
     {
         return
-            _loadInterpreterState(uint256(uint160(account_)).arrayFrom(context_))
-                .eval(REPORT_ENTRYPOINT)
-                .peek();
+            _loadInterpreterState(
+                uint256(uint160(account_)).arrayFrom(context_)
+            ).eval(REPORT_ENTRYPOINT).peek();
     }
 
     /// @inheritdoc ITierV2

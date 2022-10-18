@@ -91,7 +91,9 @@ contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            InterpreterState memory state_ = _loadInterpreterState(CORE_SOURCE_ID);
+            InterpreterState memory state_ = _loadInterpreterState(
+                CORE_SOURCE_ID
+            );
 
             state_.context = LibUint256Array.arrayFrom(
                 uint256(uint160(from_)),

@@ -21,11 +21,11 @@ struct StorageOpcodesRange {
 
 /// @title RainInterpreter
 /// @notice Interpreter for implementing and executing custom contract DSLs.
-/// Libraries and contracts map opcodes to `view` functionality then 
-/// `RainInterpreter` runs Rain expressions using these opcodes. Rain expressions 
-/// dispatch as pairs of bytes. The first byte is an opcode to run and the 
-/// second byte is a value the opcode can use contextually to inform how to run. 
-/// Typically opcodes will read/write to the stack to produce some meaningful 
+/// Libraries and contracts map opcodes to `view` functionality then
+/// `RainInterpreter` runs Rain expressions using these opcodes. Rain expressions
+/// dispatch as pairs of bytes. The first byte is an opcode to run and the
+/// second byte is a value the opcode can use contextually to inform how to run.
+/// Typically opcodes will read/write to the stack to produce some meaningful
 /// final state after all opcodes have been dispatched.
 ///
 /// The only thing required to run a Rain expression is a `State` struct to pass
@@ -67,16 +67,16 @@ struct StorageOpcodesRange {
 /// the `MathOps` opcode pack are provided. Future versions of `RainInterpreter` MAY
 /// implement lazy `if` and other similar patterns.
 ///
-/// The `eval` function is `view` because Rain expressions are expected to 
-/// compute results only without modifying any state. The contract wrapping the 
-/// Interpreter is free to mutate as usual. This model encourages exposing only 
-/// read-only functionality to end-user deployers who provide expressions to an 
-/// interpreter factory. Removing all writes removes a lot of potential 
-/// foot-guns for expression authors and allows contract authors to reason more 
+/// The `eval` function is `view` because Rain expressions are expected to
+/// compute results only without modifying any state. The contract wrapping the
+/// Interpreter is free to mutate as usual. This model encourages exposing only
+/// read-only functionality to end-user deployers who provide expressions to an
+/// interpreter factory. Removing all writes removes a lot of potential
+/// foot-guns for expression authors and allows contract authors to reason more
 /// clearly about the input/output of the wrapping solidity code.
 ///
-/// Internally `RainInterpreter` makes heavy use of unchecked math and assembly 
-/// logic as the opcode dispatch logic runs on a tight loop and so gas costs can 
+/// Internally `RainInterpreter` makes heavy use of unchecked math and assembly
+/// logic as the opcode dispatch logic runs on a tight loop and so gas costs can
 /// ramp up very quickly.
 abstract contract RainInterpreter {
     using Math for uint256;
@@ -103,10 +103,10 @@ abstract contract RainInterpreter {
     }
 
     /// Expose all the function pointers for every opcode as 2-byte pointers in
-    /// a bytes list. The implementing Interpreter MUST ensure each pointer is 
-    /// to a `function(uint256,uint256) view returns (uint256)` function as this 
-    /// is the ONLY supported signature for opcodes. Pointers for the core 
-    /// opcodes must be provided in the packed pointers list but will be ignored 
+    /// a bytes list. The implementing Interpreter MUST ensure each pointer is
+    /// to a `function(uint256,uint256) view returns (uint256)` function as this
+    /// is the ONLY supported signature for opcodes. Pointers for the core
+    /// opcodes must be provided in the packed pointers list but will be ignored
     /// at runtime.
     function opcodeFunctionPointers()
         internal

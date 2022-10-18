@@ -74,9 +74,11 @@ library AllStandardOps {
     using AllStandardOps for function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
-    using AllStandardOps for function(InterpreterState memory, Operand, StackTop)
-        view
-        returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(
+        InterpreterState memory,
+        Operand,
+        StackTop
+    ) view returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
 
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
 
@@ -213,7 +215,9 @@ library AllStandardOps {
     }
 
     function opcodeFunctionPointers(
-        function(InterpreterState memory, Operand, StackTop) view returns (StackTop)[]
+        function(InterpreterState memory, Operand, StackTop)
+            view
+            returns (StackTop)[]
             memory locals_
     )
         internal

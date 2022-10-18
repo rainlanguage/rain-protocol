@@ -60,7 +60,10 @@ contract LibInterpreterStateTest is RainInterpreter {
         DebugStyle debugStyle_,
         SourceIndex sourceIndex_
     ) external view returns (StackTop stackTop_, StackTop stackTopAfter_) {
-        InterpreterState memory deserialized_ = serDeserialize(config_, context_);
+        InterpreterState memory deserialized_ = serDeserialize(
+            config_,
+            context_
+        );
         stackTop_ = deserialized_.eval(sourceIndex_);
         stackTopAfter_ = deserialized_.debug(stackTop_, debugStyle_);
     }
@@ -78,8 +81,9 @@ contract LibInterpreterStateTest is RainInterpreter {
         view
         returns (bytes memory serialized_)
     {
-        (uint256 scratch_, uint256 stackLength_) = IRainInterpreterIntegrity(interpreterIntegrity)
-            .ensureIntegrity(
+        (uint256 scratch_, uint256 stackLength_) = IRainInterpreterIntegrity(
+            interpreterIntegrity
+        ).ensureIntegrity(
                 storageOpcodesRange(),
                 config_.sources,
                 config_.constants.length,

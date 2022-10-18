@@ -37,9 +37,11 @@ library LibOrder {
 
     function fromOrderConfig(
         IRainInterpreterIntegrity interpreterIntegrity_,
-        function(IRainInterpreterIntegrity, StateConfig memory, uint256[] memory)
-            internal
-            returns (bytes memory) buildStateBytes_,
+        function(
+            IRainInterpreterIntegrity,
+            StateConfig memory,
+            uint256[] memory
+        ) internal returns (bytes memory) buildStateBytes_,
         OrderConfig memory config_
     ) internal returns (Order memory) {
         bytes memory stateBytes_ = buildStateBytes_(
