@@ -11,8 +11,12 @@ import { Tier } from "../../utils/types/tier";
 import { StandardIntegrity } from "../../typechain";
 import { AllStandardOpsTest } from "../../typechain";
 import { concat } from "ethers/lib/utils";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
-import { Opcode } from "../../utils/rainvm/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {

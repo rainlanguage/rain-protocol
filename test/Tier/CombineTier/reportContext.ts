@@ -3,8 +3,8 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
 import { combineTierDeploy } from "../../../utils/deploy/combineTier";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { op } from "../../../utils/interpreter/interpreter";
 
 const Opcode = AllStandardOps;
 

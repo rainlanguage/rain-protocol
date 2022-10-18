@@ -13,8 +13,12 @@ import {
   verifyFactoryDeploy,
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;

@@ -12,8 +12,12 @@ import {
 import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
@@ -66,7 +70,7 @@ describe("OrderBook remove order", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },

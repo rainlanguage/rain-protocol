@@ -16,8 +16,12 @@ import {
 import { basicDeploy } from "../../utils/deploy/basic";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
@@ -75,7 +79,7 @@ describe("OrderBook add order", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -111,7 +115,7 @@ describe("OrderBook add order", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },

@@ -9,8 +9,12 @@ import {
 import { ONE } from "../../../utils/constants/bigNumber";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
@@ -81,7 +85,7 @@ describe("FlowERC20 construction tests", async function () {
     const configStruct: FlowERC20ConfigStruct = {
       name: "Flow ERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },

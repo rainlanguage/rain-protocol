@@ -9,9 +9,13 @@ import { basicDeploy } from "../../utils/deploy/basic";
 import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { assertError } from "../../utils/test/assertError";
 import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
@@ -67,7 +71,7 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -184,7 +188,7 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -305,7 +309,7 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -407,7 +411,7 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreterStateConfig: {
           sources,
           constants,
         },

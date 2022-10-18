@@ -6,7 +6,7 @@ import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
 import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
 import { getBlockTimestamp, timewarp } from "../../../../utils/hardhat";
-import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
@@ -14,7 +14,7 @@ import {
   selectLte,
   selectLteLogic,
   selectLteMode,
-} from "../../../../utils/rainvm/vm";
+} from "../../../../utils/interpreter/interpreter";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 

@@ -10,7 +10,7 @@ import {
 import {
   FlowConfigStruct,
   FlowTransferStruct,
-  SaveVMStateEvent,
+  SaveInterpreterStateEvent,
 } from "../../../typechain/contracts/flow/raw/Flow";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
@@ -18,8 +18,12 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
@@ -110,9 +114,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -263,9 +267,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -395,9 +399,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -545,9 +549,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -649,9 +653,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -743,9 +747,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -859,9 +863,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
@@ -938,9 +942,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
       async () => await flow.connect(you).previewFlow(flowStates[0].id, 1234),
@@ -986,9 +990,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
 

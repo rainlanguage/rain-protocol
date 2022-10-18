@@ -8,8 +8,12 @@ import {
 } from "../../../typechain/contracts/flow/raw/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/flow";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;

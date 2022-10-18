@@ -13,8 +13,12 @@ import {
   verifyFactoryDeploy,
 } from "../../../../utils/deploy/verify";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove afterAdd", async function () {
@@ -216,7 +220,7 @@ describe("AutoApprove afterAdd", async function () {
     assert(evidence.data === evidenceAdd, "wrong evidence data");
   });
 
-  it("should trigger afterAdd callback and automatically deny approval of sender when VM script returns 0", async () => {
+  it("should trigger afterAdd callback and automatically deny approval of sender when Interpreter script returns 0", async () => {
     const signers = await ethers.getSigners();
 
     const deployer = signers[1];
@@ -265,7 +269,7 @@ describe("AutoApprove afterAdd", async function () {
     );
   });
 
-  it("should trigger afterAdd callback and automatically approve sender when VM script returns 1", async () => {
+  it("should trigger afterAdd callback and automatically approve sender when Interpreter script returns 1", async () => {
     const signers = await ethers.getSigners();
 
     const deployer = signers[1];

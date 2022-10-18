@@ -13,7 +13,7 @@ import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/Fl
 import {
   FlowERC20ConfigStruct,
   FlowERC20IOStruct,
-  SaveVMStateEvent,
+  SaveInterpreterStateEvent,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
@@ -24,8 +24,12 @@ import { basicDeploy } from "../../../utils/deploy/basic";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
@@ -135,7 +139,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStructCanTransfer: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants: constantsCanTransfer,
       },
@@ -149,7 +153,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStructCannotTransfer: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants: constantsCannotTransfer,
       },
@@ -174,14 +178,14 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStatesCanTransfer = (await getEvents(
       flowCanTransfer.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flowCanTransfer
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
     const flowStatesCannotTransfer = (await getEvents(
       flowCannotTransfer.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flowCannotTransfer
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const signerReceiver = signers[2];
 
@@ -348,7 +352,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants: constantsMint, // only needed for REBASE_RATIO and CAN_TRANSFER, so could also be `constantsBurn` and produce same result
       },
@@ -366,9 +370,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const mintFlowId = flowStates[1].id;
     const burnFlowId = flowStates[2].id;
@@ -615,7 +619,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -630,9 +634,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -825,7 +829,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -840,9 +844,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -1020,7 +1024,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -1035,9 +1039,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -1191,7 +1195,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -1206,9 +1210,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -1392,7 +1396,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -1407,9 +1411,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -1592,7 +1596,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -1607,9 +1611,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -1785,7 +1789,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -1800,9 +1804,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -1949,7 +1953,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
@@ -1964,9 +1968,9 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveVMState",
+      "SaveInterpreterState",
       flow
-    )) as SaveVMStateEvent["args"][];
+    )) as SaveInterpreterStateEvent["args"][];
 
     const me = flow;
 
@@ -2053,7 +2057,7 @@ describe("FlowERC20 flow tests", async function () {
     const stateConfigStruct: FlowERC20ConfigStruct = {
       name: "FlowERC20",
       symbol: "F20",
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources,
         constants,
       },
