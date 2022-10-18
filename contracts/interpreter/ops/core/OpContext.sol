@@ -36,6 +36,11 @@ library OpContext {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         // The indexing syntax here enforces OOB checks at runtime.
-        return stackTop_.push(state_.context[Operand.unwrap(operand_)]);
+        return
+            stackTop_.push(
+                state_.context[Operand.unwrap(operand_) >> 8][
+                    Operand.unwrap(operand_) & uint256(type(uint8).max)
+                ]
+            );
     }
 }

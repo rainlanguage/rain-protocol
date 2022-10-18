@@ -147,6 +147,7 @@ contract Sale is Cooldown, StandardInterpreter, ISale, ReentrancyGuard {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -359,7 +360,7 @@ contract Sale is Cooldown, StandardInterpreter, ISale, ReentrancyGuard {
             if (_remainingUnits < 1) {
                 return false;
             }
-            state_.context = new uint256[](0);
+            state_.context = new uint256[](0).matrixFrom();
             return state_.eval(CAN_LIVE_ENTRYPOINT).peek() > 0;
         }
     }
@@ -403,7 +404,7 @@ contract Sale is Cooldown, StandardInterpreter, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        state_.context = targetUnits_.arrayFrom();
+        state_.context = targetUnits_.arrayFrom().matrixFrom();
         return state_.eval(CALCULATE_BUY_ENTRYPOINT).peek2();
     }
 
