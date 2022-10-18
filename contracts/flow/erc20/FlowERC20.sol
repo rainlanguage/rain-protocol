@@ -85,17 +85,22 @@ contract FlowERC20 is ReentrancyGuard, FlowVM, ERC20 {
         address to_,
         uint256 amount_
     ) internal virtual override {
-        VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
+        super._beforeTokenTransfer(from_, to_, amount_);
+        // Mint and burn access MUST be handled by CAN_FLOW.
+        // CAN_TRANSFER will only restrict subsequent transfers.
+        if (!(from_ == address(0) || to_ == address(0))) {
+            VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
 
-        state_.context = LibUint256Array.arrayFrom(
-            uint256(uint160(from_)),
-            uint256(uint160(to_)),
-            amount_
-        );
-        require(
-            state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
-            "INVALID_TRANSFER"
-        );
+            state_.context = LibUint256Array.arrayFrom(
+                uint256(uint160(from_)),
+                uint256(uint160(to_)),
+                amount_
+            );
+            require(
+                state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                "INVALID_TRANSFER"
+            );
+        }
     }
 
     function _previewFlow(VMState memory state_)

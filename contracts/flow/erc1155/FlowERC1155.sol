@@ -74,22 +74,34 @@ contract FlowERC1155 is ReentrancyGuard, FlowVM, ERC1155 {
         address to_,
         uint256[] memory ids_,
         uint256[] memory amounts_,
-        bytes memory
+        bytes memory data_
     ) internal virtual override {
         unchecked {
-            VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
-            for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                state_.context = LibUint256Array.arrayFrom(
-                    uint256(uint160(operator_)),
-                    uint256(uint160(from_)),
-                    uint256(uint160(to_)),
-                    ids_[i_],
-                    amounts_[i_]
-                );
-                require(
-                    state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
-                    "INVALID_TRANSFER"
-                );
+            super._beforeTokenTransfer(
+                operator_,
+                from_,
+                to_,
+                ids_,
+                amounts_,
+                data_
+            );
+            // Mint and burn access MUST be handled by CAN_FLOW.
+            // CAN_TRANSFER will only restrict subsequent transfers.
+            if (!(from_ == address(0) || to_ == address(0))) {
+                VMState memory state_ = _loadVMState(CORE_SOURCE_ID);
+                for (uint256 i_ = 0; i_ < ids_.length; i_++) {
+                    state_.context = LibUint256Array.arrayFrom(
+                        uint256(uint160(operator_)),
+                        uint256(uint160(from_)),
+                        uint256(uint160(to_)),
+                        ids_[i_],
+                        amounts_[i_]
+                    );
+                    require(
+                        state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                        "INVALID_TRANSFER"
+                    );
+                }
             }
         }
     }
