@@ -5,10 +5,10 @@ import type {
   AllStandardOpsTest,
   StandardIntegrity,
 } from "../../../../typechain";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
-import { op } from "../../../../utils/interpreter/interpreter";
-import { assertError } from "../../../../utils/test/assertError";
 import { flatten2D } from "../../../../utils/array/flatten";
+import { op } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
@@ -27,6 +27,32 @@ describe("RainInterpreter context", async function () {
     logic = (await logicFactory.deploy(
       integrity.address
     )) as AllStandardOpsTest;
+  });
+
+  it("should support context height up to 256", async () => {
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 0xff00)])];
+
+    await logic.initialize({ sources, constants });
+
+    const col: number[] = [1];
+    const context = new Array<number[]>(256).fill(col, 0, 256);
+    await logic.runContext(context);
+    const resultCol_ = await logic.stack();
+    assert(resultCol_, "should read context value at 0xff00");
+  });
+
+  it("should support context width up to 256", async () => {
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 0x00ff)])];
+
+    await logic.initialize({ sources, constants });
+
+    const row: number[] = new Array<number>(256).fill(1, 0, 256);
+    const context = [row];
+    await logic.runContext(context);
+    const resultRow_ = await logic.stack();
+    assert(resultRow_, "should read context value at 0x00ff");
   });
 
   it("should error if accessing memory outside of context memory range", async () => {
