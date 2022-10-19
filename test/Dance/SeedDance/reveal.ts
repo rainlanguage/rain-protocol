@@ -223,10 +223,10 @@ describe("SeedDance reveal", async function () {
     );
 
     assert(
-      canRevealUntil_.gt(START.add(timeBound.baseDuration)),
+      canRevealUntil_.gte(START.add(timeBound.baseDuration)),
       `wrong canRevealUntil timestamp
-      expected gt ${START.add(timeBound.baseDuration)}
-      got         ${canRevealUntil_}`
+      expected gte  ${START.add(timeBound.baseDuration)}
+      got           ${canRevealUntil_}`
     );
   });
 
