@@ -8,6 +8,7 @@ import type {
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { assertError } from "../../../../utils/test/assertError";
+import { flatten2D } from "../../../../utils/array/flatten";
 
 const Opcode = AllStandardOps;
 
@@ -43,7 +44,81 @@ describe("RainInterpreter context", async function () {
     );
   });
 
-  it("should return correct context value when specifying context operand", async () => {
+  it("should not necessarily require square context matrix", async () => {
+    const constants = [];
+    const sources = [
+      concat([
+        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0002),
+        op(Opcode.CONTEXT, 0x0003),
+        op(Opcode.CONTEXT, 0x0100),
+        op(Opcode.CONTEXT, 0x0101),
+        op(Opcode.CONTEXT, 0x0102),
+        op(Opcode.CONTEXT, 0x0103),
+        op(Opcode.CONTEXT, 0x0200),
+        op(Opcode.CONTEXT, 0x0201),
+        op(Opcode.CONTEXT, 0x0202), // OOB read
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants });
+
+    const context = [
+      [0, 1, 2, 3],
+      [4, 5, 6, 7],
+      [8, 9], // no value at (2,2)
+    ];
+
+    assertError(
+      async () => await logic.runContext(context),
+      "VM Exception while processing transaction: reverted with panic code 0x32 (Array accessed at an out-of-bounds or negative index)",
+      "did not trigger OOB read error"
+    );
+  });
+
+  it("should return correct context value when specifying context operand for 2D context", async () => {
+    const constants = [];
+    const sources = [
+      concat([
+        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0002),
+        op(Opcode.CONTEXT, 0x0003),
+        op(Opcode.CONTEXT, 0x0100),
+        op(Opcode.CONTEXT, 0x0101),
+        op(Opcode.CONTEXT, 0x0102),
+        op(Opcode.CONTEXT, 0x0103),
+        op(Opcode.CONTEXT, 0x0200),
+        op(Opcode.CONTEXT, 0x0201),
+      ]),
+    ];
+
+    await logic.initialize({ sources, constants });
+
+    const context = [
+      [0, 1, 2, 3],
+      [4, 5, 6, 7],
+      [8, 9],
+    ];
+
+    await logic.runContext(context);
+
+    const result_ = await logic.stack();
+
+    const expectedFlattenedContext = flatten2D(context);
+
+    expectedFlattenedContext.forEach((expectedValue, i_) => {
+      assert(
+        result_[i_].eq(expectedValue),
+        `wrong value was returned at index ${i_}
+        expected  ${expectedValue}
+        got       ${result_[i_]}`
+      );
+    });
+  });
+
+  it("should return correct context value when specifying context operand for 1D context", async () => {
     const constants = [];
     const sources = [
       concat([
@@ -55,19 +130,18 @@ describe("RainInterpreter context", async function () {
 
     await logic.initialize({ sources, constants });
 
-    const data = [[10, 20, 30]];
+    const context = [[10, 20, 30]];
 
-    await logic.runContext(data);
+    await logic.runContext(context);
 
-    const result = await logic.stack();
-    const expected = data;
+    const result_ = await logic.stack();
 
-    expected.forEach((expectedValue, index) => {
+    context[0].forEach((expectedValue, i_) => {
       assert(
-        result[index].eq(expectedValue),
-        `wrong value was returned at index ${index}
+        result_[i_].eq(expectedValue),
+        `wrong value was returned at index ${i_}
         expected  ${expectedValue}
-        got       ${result[index]}`
+        got       ${result_[i_]}`
       );
     });
   });
