@@ -841,7 +841,7 @@ describe("CombineTier default report", async function () {
       constants: [combineTierMain.address],
     });
 
-    await logic.connect(alice).runContext([alice.address, ...THRESHOLDS]);
+    await logic.connect(alice).runContext([[alice.address, ...THRESHOLDS]]);
 
     const result0 = await logic.stackTop();
 
@@ -861,7 +861,7 @@ describe("CombineTier default report", async function () {
     await tokenERC20.connect(alice).approve(stake1.address, depositAmount1);
     await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic.connect(alice).runContext([alice.address, ...THRESHOLDS]);
+    await logic.connect(alice).runContext([[alice.address, ...THRESHOLDS]]);
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;

@@ -49,7 +49,7 @@ describe("LibInterpreterState debug tests", async function () {
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
-    const context = [3, 5, 7, 9, 11];
+    const context = [[3, 5, 7, 9, 11]];
     const sourceIndex = 1;
 
     console.log("Begin Stack debug logs");
@@ -76,7 +76,7 @@ describe("LibInterpreterState debug tests", async function () {
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
-    const context = [3, 5, 7, 9, 11];
+    const context = [[3, 5, 7, 9, 11]];
     const sourceIndex = 0;
 
     console.log({ constants });
@@ -105,7 +105,7 @@ describe("LibInterpreterState debug tests", async function () {
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
-    const context = [3, 5, 7, 9, 11];
+    const context = [[3, 5, 7, 9, 11]];
     const sourceIndex = 0;
 
     console.log({ context });
@@ -140,7 +140,7 @@ describe("LibInterpreterState debug tests", async function () {
       ])
     ];
     const constants = [2, 4, 6, 8, 10];
-    const context = [3, 5, 7, 9, 11];
+    const context = [[3, 5, 7, 9, 11]];
     const sourceIndex = 0;
 
     const serialized_ = await libInterpreterState.callStatic.serialize({

@@ -34,7 +34,7 @@ describe("RainInterpreter context", async function () {
 
     await logic.initialize({ sources, constants });
 
-    const data = [10, 20, 30];
+    const data = [[10, 20, 30]];
 
     await assertError(
       async () => await logic.runContext(data),
@@ -55,7 +55,7 @@ describe("RainInterpreter context", async function () {
 
     await logic.initialize({ sources, constants });
 
-    const data = [10, 20, 30];
+    const data = [[10, 20, 30]];
 
     await logic.runContext(data);
 
@@ -78,7 +78,7 @@ describe("RainInterpreter context", async function () {
 
     await logic.initialize({ sources, constants });
 
-    const data = [42];
+    const data = [[42]];
 
     await logic.runContext(data);
 

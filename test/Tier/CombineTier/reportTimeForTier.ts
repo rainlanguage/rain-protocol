@@ -817,7 +817,7 @@ describe("CombineTier report time for tier script", async function () {
 
     await logic
       .connect(alice)
-      .runContext([alice.address, Tier.ONE, ...THRESHOLDS]);
+      .runContext([[alice.address, Tier.ONE, ...THRESHOLDS]]);
 
     const result0 = await logic.stackTop();
 
@@ -839,7 +839,7 @@ describe("CombineTier report time for tier script", async function () {
 
     await logic
       .connect(alice)
-      .runContext([alice.address, Tier.ONE, ...THRESHOLDS]);
+      .runContext([[alice.address, Tier.ONE, ...THRESHOLDS]]);
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;
