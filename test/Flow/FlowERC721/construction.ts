@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { FlowERC721Factory, FlowIntegrity } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowERC721ConfigStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
+import { flowERC721Deploy } from "../../../utils/deploy/flow/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {

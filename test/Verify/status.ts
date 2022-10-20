@@ -3,7 +3,7 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import { verifyDeploy } from "../../utils/deploy/verify/deploy";
 import { getBlockTimestamp } from "../../utils/hardhat";
 import { Status } from "../../utils/types/verify";
 

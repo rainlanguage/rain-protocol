@@ -5,8 +5,8 @@ import { StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { max_uint32, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { Tier } from "../../utils/types/tier";
 

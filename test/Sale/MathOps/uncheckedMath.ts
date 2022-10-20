@@ -10,8 +10,11 @@ import {
   ONE,
   RESERVE_ONE,
 } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../../utils/deploy/sale/deploy";
 import { createEmptyBlock } from "../../../utils/hardhat";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../../utils/interpreter/sale";

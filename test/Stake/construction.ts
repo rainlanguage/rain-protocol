@@ -6,8 +6,8 @@ import {
   StakeConfigStruct,
 } from "../../typechain/contracts/stake/Stake";
 import { zeroAddress } from "../../utils/constants/address";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";

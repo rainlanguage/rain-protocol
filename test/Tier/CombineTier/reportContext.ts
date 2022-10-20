@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
+import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { op } from "../../../utils/interpreter/interpreter";
 

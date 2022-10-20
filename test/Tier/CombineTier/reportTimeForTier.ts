@@ -12,8 +12,8 @@ import {
 } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import { max_uint32, stakeDeploy, THRESHOLDS } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {

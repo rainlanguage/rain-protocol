@@ -15,7 +15,7 @@ import {
   getEventArgs,
   stakeDeploy,
 } from "../../../utils";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
+import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,

@@ -3,8 +3,8 @@ import { ReserveToken18 } from "../../typechain";
 import { StakeFactory } from "../../typechain";
 import { ReportOMeter } from "../../typechain";
 import { sixZeros } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { assert } from "chai";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 

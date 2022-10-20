@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { ReadWriteTier, TierReportTest } from "../../../typechain";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierReport truncateTiersAbove", async function () {

@@ -22,7 +22,7 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs, getEvents } from "../../utils/events";
 import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
 import {

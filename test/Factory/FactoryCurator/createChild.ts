@@ -29,7 +29,7 @@ import {
   timewarp,
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";

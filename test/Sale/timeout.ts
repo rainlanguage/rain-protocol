@@ -6,8 +6,11 @@ import { PhaseScheduledEvent } from "../../typechain/contracts/phased/Phased";
 import { TimeoutEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock, getBlockTimestamp } from "../../utils/hardhat";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";

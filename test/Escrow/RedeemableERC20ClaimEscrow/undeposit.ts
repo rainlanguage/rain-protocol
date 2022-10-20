@@ -11,7 +11,7 @@ import { MockISale, RedeemableERC20Factory } from "../../../typechain";
 import { UndepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
 import { getEventArgs } from "../../../utils";
-import { deployGlobals } from "../../../utils/deploy/escrow";
+import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import { Status } from "../../../utils/types/sale";
 
 let claim: RedeemableERC20ClaimEscrow,
@@ -21,7 +21,7 @@ let claim: RedeemableERC20ClaimEscrow,
 
 describe("RedeemableERC20ClaimEscrow undeposit test", async function () {
   before(async () => {
-    ({ claim, readWriteTier } = await deployGlobals());
+    ({ claim, readWriteTier } = await escrowDeploy());
   });
 
   beforeEach(async () => {

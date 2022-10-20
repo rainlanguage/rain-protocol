@@ -9,13 +9,13 @@ import {
   Sale,
   SaleFactory,
   StandardIntegrity,
-} from "../../typechain";
+} from "../../../typechain";
 import {
   ConstructEvent,
   SaleConfigStruct,
   SaleRedeemableERC20ConfigStruct,
-} from "../../typechain/contracts/sale/Sale";
-import { getEventArgs } from "../events";
+} from "../../../typechain/contracts/sale/Sale";
+import { getEventArgs } from "../../events";
 
 export const saleDeploy = async (
   signers: SignerWithAddress[],

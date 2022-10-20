@@ -10,7 +10,7 @@ import {
   CurationConfigStruct,
   RegisterCurationEvent,
 } from "../../../typechain/contracts/factory/FactoryCurator";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../utils/events";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { Tier } from "../../../utils/types/tier";

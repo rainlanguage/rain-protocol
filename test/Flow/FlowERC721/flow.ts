@@ -21,8 +21,8 @@ import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowERC721Deploy } from "../../../utils/deploy/flow/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";

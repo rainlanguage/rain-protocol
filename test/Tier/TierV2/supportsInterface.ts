@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { TierV2Test } from "../../../typechain";
 import { zeroPad4 } from "../../../utils/bytes";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 
 describe("TierV2 supports erc165 interface", async function () {
   const erc165InterfaceID = ethers.BigNumber.from(0x01ffc9a7);

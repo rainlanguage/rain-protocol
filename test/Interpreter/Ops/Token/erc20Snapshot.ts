@@ -8,7 +8,7 @@ import type {
   StandardIntegrity,
 } from "../../../../typechain";
 import { SnapshotEvent } from "../../../../typechain/contracts/test/testToken/ReserveTokenERC20Snapshot";
-import { basicDeploy } from "../../../../utils/deploy/basic";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../../utils/events";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {

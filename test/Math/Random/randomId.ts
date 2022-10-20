@@ -5,7 +5,7 @@ import { ethers } from "hardhat";
 import type { RandomTest } from "../../../typechain";
 import { zeroPad32 } from "../../../utils";
 import { max_uint256 } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 
 /**
  * Calculate the exact same output from randomId function since is just a keccak256 hash from `_seed` + `_index`

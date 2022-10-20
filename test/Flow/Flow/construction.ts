@@ -6,7 +6,7 @@ import {
   FlowConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/basic/Flow";
-import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { flowDeploy } from "../../../utils/deploy/flow/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {

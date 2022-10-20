@@ -7,7 +7,7 @@ import {
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { ONE } from "../../../utils/constants/bigNumber";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { flowERC20Deploy } from "../../../utils/deploy/flow/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {

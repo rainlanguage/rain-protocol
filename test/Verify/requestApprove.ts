@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
 import { RequestApproveEvent } from "../../typechain/contracts/verify/Verify";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import { verifyDeploy } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 
 describe("Verify request approve", async function () {

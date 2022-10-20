@@ -3,7 +3,7 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { max_uint256 } from "../../../utils/constants";
 import { TIERS } from "../../../utils/constants/readWriteTier";
-import { deployReadWriteTier } from "../../../utils/deploy/readWriteTier";
+import { deployReadWriteTier } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { numArrayToReport, tierReport } from "../../../utils/tier";
 

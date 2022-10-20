@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import { verifyDeploy } from "../../utils/deploy/verify/deploy";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify admin", async function () {

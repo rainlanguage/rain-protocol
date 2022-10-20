@@ -4,14 +4,14 @@ import type {
   ReadWriteTier,
   RedeemableERC20ClaimEscrow,
   SaleFactory,
-} from "../../typechain";
+} from "../../../../typechain";
 import {
   RedeemableERC20ClaimEscrowWrapper,
   RedeemableERC20Factory,
-} from "../../typechain";
-import { SaleConstructorConfigStruct } from "../../typechain/contracts/sale/Sale";
+} from "../../../../typechain";
+import { SaleConstructorConfigStruct } from "../../../../typechain/contracts/sale/Sale";
 
-export const deployGlobals = async () => {
+export const escrowDeploy = async () => {
   const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
   const integrity = await integrityFactory.deploy();
   await integrity.deployed();

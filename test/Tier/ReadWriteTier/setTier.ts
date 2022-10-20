@@ -7,7 +7,7 @@ import {
   TIERS,
   uninitializedStatusAsNum,
 } from "../../../utils/constants/readWriteTier";
-import { deployReadWriteTier } from "../../../utils/deploy/readWriteTier";
+import { deployReadWriteTier } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { assertError } from "../../../utils/test/assertError";

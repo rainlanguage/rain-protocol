@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
+import { ReadWriteTier } from "../../../../typechain";
 
 export const deployReadWriteTier = async (): Promise<
   [SignerWithAddress[], ReadWriteTier]

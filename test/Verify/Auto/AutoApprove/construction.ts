@@ -6,13 +6,9 @@ import {
   StateConfigStruct,
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/autoApprove";
-import {
   verifyDeploy,
   verifyFactoryDeploy,
-} from "../../../../utils/deploy/verify";
+} from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import {
@@ -21,6 +17,10 @@ import {
   op,
 } from "../../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../../utils/test/compareStructs";
+import {
+  autoApproveDeploy,
+  autoApproveFactoryDeploy,
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 
 describe("AutoApprove construction", async function () {
   let autoApproveFactory: AutoApproveFactory;

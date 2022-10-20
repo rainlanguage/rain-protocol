@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type { CombineTier, ReadWriteTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
-import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
+import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {

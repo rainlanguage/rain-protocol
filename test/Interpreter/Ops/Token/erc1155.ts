@@ -7,7 +7,7 @@ import type {
   ReserveTokenERC1155,
   StandardIntegrity,
 } from "../../../../typechain";
-import { basicDeploy } from "../../../../utils/deploy/basic";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,

@@ -3,15 +3,11 @@ import { ethers } from "hardhat";
 import { AutoApproveFactory, ReserveTokenERC721 } from "../../../../typechain";
 import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
-import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/autoApprove";
-import { basicDeploy } from "../../../../utils/deploy/basic";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import {
   verifyDeploy,
   verifyFactoryDeploy,
-} from "../../../../utils/deploy/verify";
+} from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import {
@@ -19,6 +15,10 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import {
+  autoApproveDeploy,
+  autoApproveFactoryDeploy,
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;

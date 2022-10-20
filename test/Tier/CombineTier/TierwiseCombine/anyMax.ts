@@ -3,7 +3,7 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier, ReadWriteTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
-import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
+import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {

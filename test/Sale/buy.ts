@@ -8,8 +8,11 @@ import { SaleReentrant } from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { fourZeros, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";

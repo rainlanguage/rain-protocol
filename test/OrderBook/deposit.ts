@@ -8,7 +8,7 @@ import {
   DepositEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 

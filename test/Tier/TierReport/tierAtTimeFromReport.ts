@@ -3,7 +3,7 @@ import { assert } from "chai";
 import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { ReadWriteTier, TierReportTest } from "../../../typechain";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
 import { Tier } from "../../../utils/types/tier";
 

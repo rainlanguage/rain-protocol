@@ -18,8 +18,8 @@ import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowERC1155Deploy } from "../../../utils/deploy/flow/deploy";
 import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";

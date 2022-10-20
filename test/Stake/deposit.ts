@@ -4,8 +4,8 @@ import { ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { getBlockTimestamp, timewarp, zeroAddress } from "../../utils";
 import { eighteenZeros, sixZeros } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { getDeposits } from "../../utils/stake/deposits";
 import { assertError } from "../../utils/test/assertError";
 

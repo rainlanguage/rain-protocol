@@ -19,8 +19,8 @@ import {
   Tier,
   timewarp,
 } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,

@@ -1,9 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { Stake, StakeFactory } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { getEventArgs } from "../events";
+import { Stake, StakeFactory } from "../../../typechain";
+import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import { getEventArgs } from "../../events";
 
 export const stakeDeploy = async (
   deployer: SignerWithAddress,

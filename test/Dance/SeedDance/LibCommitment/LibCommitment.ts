@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { hexlify, keccak256, randomBytes } from "ethers/lib/utils";
 import type { LibCommitmentTest } from "../../../../typechain";
-import { basicDeploy } from "../../../../utils/deploy/basic";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 
 describe("SeedDance LibCommitment", async function () {
   let libCommitment: LibCommitmentTest;

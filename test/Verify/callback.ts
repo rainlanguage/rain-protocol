@@ -8,8 +8,8 @@ import {
   BanEvent,
   RemoveEvent,
 } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { verifyDeploy } from "../../utils/deploy/verify/deploy";
 import { getEvents } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 

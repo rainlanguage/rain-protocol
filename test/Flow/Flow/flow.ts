@@ -17,8 +17,8 @@ import {
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowDeploy } from "../../../utils/deploy/flow/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";

@@ -11,7 +11,7 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import { verifyDeploy } from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
