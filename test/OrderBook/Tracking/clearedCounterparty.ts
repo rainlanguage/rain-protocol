@@ -33,8 +33,8 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook tracking counterparty funds cleared", async function () {
-  const cOrderHash = op(Opcode.CONTEXT);
-  const cCounterparty = op(Opcode.CONTEXT, 1);
+  const cOrderHash = op(Opcode.CONTEXT, 0x0000);
+  const cCounterparty = op(Opcode.CONTEXT, 0x0001);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,

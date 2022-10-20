@@ -76,7 +76,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   });
 
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
 
   // prettier-ignore
   // return default report

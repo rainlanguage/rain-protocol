@@ -45,8 +45,8 @@ describe("AutoApprove ERC721 ownership", async function () {
     const signer1 = signers[4];
 
     const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const cAccount = op(Opcode.CONTEXT);
-    const cNftId = op(Opcode.CONTEXT, 1);
+    const cAccount = op(Opcode.CONTEXT, 0x0000);
+    const cNftId = op(Opcode.CONTEXT, 0x0001);
 
     const stateConfig: StateConfigStruct = {
       // prettier-ignore

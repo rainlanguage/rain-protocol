@@ -57,7 +57,7 @@ describe("RainInterpreter context", async function () {
 
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 3)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0x0003)])];
 
     await logic.initialize({ sources, constants });
 
@@ -148,9 +148,9 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [
       concat([
-        op(Opcode.CONTEXT),
-        op(Opcode.CONTEXT, 1),
-        op(Opcode.CONTEXT, 2),
+        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0002),
       ]),
     ];
 
@@ -174,7 +174,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support adding new data to stack at runtime via CONTEXT opcode", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
 
     await logic.initialize({ sources, constants });
 

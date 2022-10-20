@@ -31,7 +31,7 @@ describe("LibInterpreterState context tests", async function () {
     // prettier-ignore
     const sources = [
       concat([
-        op(Opcode.CONTEXT)
+        op(Opcode.CONTEXT, 0x0000)
       ])
     ];
     const constants = [];

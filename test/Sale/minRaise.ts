@@ -75,7 +75,7 @@ describe("Sale minimum raise", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
     ];
     const saleTimeout = 100;
     const [sale, token] = await saleDeploy(
@@ -300,7 +300,7 @@ describe("Sale minimum raise", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
     ];
     const saleTimeout = 100;
 

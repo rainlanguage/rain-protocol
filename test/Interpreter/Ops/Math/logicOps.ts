@@ -427,7 +427,7 @@ describe("RainInterpreter logic ops", async function () {
     // prettier-ignore
     const source2 = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 1
-      op(Opcode.CONTEXT), // 1
+      op(Opcode.CONTEXT, 0x0000), // 1
       op(Opcode.EQUAL_TO),
     ]);
 
@@ -447,7 +447,7 @@ describe("RainInterpreter logic ops", async function () {
     // prettier-ignore
     const source3 = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // id
-      op(Opcode.CONTEXT), // id
+      op(Opcode.CONTEXT, 0x0000), // id
       op(Opcode.EQUAL_TO),
     ]);
 

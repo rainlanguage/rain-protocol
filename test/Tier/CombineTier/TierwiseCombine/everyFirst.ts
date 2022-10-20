@@ -22,7 +22,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'every' logic and 'first' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT);
+  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
 
   // prettier-ignore
   // return default report
@@ -93,19 +93,19 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
     // prettier-ignore
     const vFuture = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vAlways = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vNever = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
@@ -173,10 +173,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
@@ -226,10 +226,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
       op(
         Opcode.SELECT_LTE,

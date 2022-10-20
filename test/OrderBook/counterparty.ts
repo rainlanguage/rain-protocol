@@ -37,7 +37,7 @@ import {
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.CONTEXT, 1);
+  const cCounterparty = op(Opcode.CONTEXT, 0x0001);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,

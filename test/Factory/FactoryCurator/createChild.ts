@@ -429,38 +429,38 @@ describe("FactoryCurator createChild", async function () {
     // prettier-ignore
     const sourceReportStake0 = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
-      op(Opcode.CONTEXT, 0), // address
-      op(Opcode.CONTEXT, 1), // TIER
-      op(Opcode.CONTEXT, 2), // THRESHOLD
-      op(Opcode.CONTEXT, 3),
-      op(Opcode.CONTEXT, 4),
-      op(Opcode.CONTEXT, 5),
-      op(Opcode.CONTEXT, 6),
-      op(Opcode.CONTEXT, 7),
-      op(Opcode.CONTEXT, 8),
-      op(Opcode.CONTEXT, 9),
+      op(Opcode.CONTEXT, 0x0000), // address
+      op(Opcode.CONTEXT, 0x0001), // TIER
+      op(Opcode.CONTEXT, 0x0100), // THRESHOLD
+      op(Opcode.CONTEXT, 0x0101),
+      op(Opcode.CONTEXT, 0x0102),
+      op(Opcode.CONTEXT, 0x0103),
+      op(Opcode.CONTEXT, 0x0104),
+      op(Opcode.CONTEXT, 0x0105),
+      op(Opcode.CONTEXT, 0x0106),
+      op(Opcode.CONTEXT, 0x0107),
     op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
   ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
-      op(Opcode.CONTEXT, 0), // address
-      op(Opcode.CONTEXT, 1), // TIER
-      op(Opcode.CONTEXT, 2), // THRESHOLD
-      op(Opcode.CONTEXT, 3),
-      op(Opcode.CONTEXT, 4),
-      op(Opcode.CONTEXT, 5),
-      op(Opcode.CONTEXT, 6),
-      op(Opcode.CONTEXT, 7),
-      op(Opcode.CONTEXT, 8),
-      op(Opcode.CONTEXT, 9),
+      op(Opcode.CONTEXT, 0x0000), // address
+      op(Opcode.CONTEXT, 0x0001), // TIER
+      op(Opcode.CONTEXT, 0x0100), // THRESHOLD
+      op(Opcode.CONTEXT, 0x0101),
+      op(Opcode.CONTEXT, 0x0102),
+      op(Opcode.CONTEXT, 0x0103),
+      op(Opcode.CONTEXT, 0x0104),
+      op(Opcode.CONTEXT, 0x0105),
+      op(Opcode.CONTEXT, 0x0106),
+      op(Opcode.CONTEXT, 0x0107),
     op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
   ]);
 
     const sourceReportDefault = concat([
       op(Opcode.THIS_ADDRESS),
-      op(Opcode.CONTEXT, 0),
+      op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT),
     ]);
 
