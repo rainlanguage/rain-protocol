@@ -7,7 +7,7 @@ import {
   TIERS,
   uninitializedStatusAsNum,
 } from "../../../utils/constants/readWriteTier";
-import { deployReadWriteTier } from "../../../utils/deploy/tier/readWriteTier/deploy";
+import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import { assertError } from "../../../utils/test/assertError";
@@ -16,7 +16,8 @@ import { Tier } from "../../../utils/types/tier";
 
 describe("ReadWriteTier setTier", async function () {
   it("should support setting tier directly", async () => {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
 
     const report0 = await readWriteTier.report(signers[1].address, []);
     const expectedReport0 = max_uint256;
@@ -50,7 +51,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will error if attempting to set tier to ZERO", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     await assertError(
       async () => {
         await readWriteTier.setTier(signers[0].address, 0);
@@ -61,7 +63,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will fill multiple tiers at a time", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     let expected = tierReport(hexlify(max_uint256));
     let expectedReport = numArrayToReport(expected);
     let o = 0;
@@ -102,7 +105,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will emit the tier to which it was upgraded if it is upgraded for the first time", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
 
     // change the status to two and check if event emitted
     const event0 = (await getEventArgs(
@@ -118,7 +122,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will return the current block number from level 0 to the new account tier if updated for the first time", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the status to three
     await readWriteTier.setTier(signers[0].address, 3);
     // check with the contract
@@ -131,7 +136,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will output the previous tier and the new updated tier", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the status to one
     await readWriteTier.setTier(signers[0].address, 1);
     // change the status to three
@@ -148,7 +154,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will return the previous block number at the lower tier if it is updated to a higher tier", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the status to one
     await readWriteTier.setTier(signers[0].address, 1);
     const previousTimestamp = await getBlockTimestamp();
@@ -161,7 +168,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will change the tier from higher to lower", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3);
     // change the tier to one
@@ -178,7 +186,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will return the previous block number at the current level if updating from a higher to a lower tier", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3);
     const previousTimestamp = await getBlockTimestamp();
@@ -191,7 +200,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will return the original block number if tier 1 is called again", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the tier to anything above 1
     await readWriteTier.setTier(
       signers[0].address,
@@ -207,7 +217,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will return original block number at current tier and the rest at uninitializedStatusAsNum after two continuous decrements", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the tier to three
     await readWriteTier.setTier(signers[0].address, 3);
     const originalBlock = await getBlockTimestamp();
@@ -226,7 +237,8 @@ describe("ReadWriteTier setTier", async function () {
   });
 
   it("will return two different block numbers if two consecutive increments occur, the high bits will be uninitializedStatusAsNum", async function () {
-    const [signers, readWriteTier] = await deployReadWriteTier();
+    const signers = await ethers.getSigners();
+    const readWriteTier = await readWriteTierDeploy();
     // change the tier to two
     await readWriteTier.setTier(signers[0].address, 2);
 

@@ -1,10 +1,12 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { RedeemableERC20Factory } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import {
+  ReadWriteTier,
+  RedeemableERC20Factory,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import {
   BuyEvent,
   EndEvent,
@@ -13,20 +15,20 @@ import {
 } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
 } from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import {
-  op,
   memoryOperand,
   MemoryType,
+  op,
 } from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
 import { Status } from "../../utils/types/sale";
@@ -46,8 +48,7 @@ describe("Sale minimum raise", async function () {
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {

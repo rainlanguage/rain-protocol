@@ -1,16 +1,12 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibUint256ArrayTest } from "../../../typechain";
+import { libUint256ArrayDeploy } from "../../../utils/deploy/test/libUint256Array/deploy";
 
 describe("LibUint256Array extend tests", async function () {
   let libUint256Array: LibUint256ArrayTest;
 
   before(async () => {
-    const libUint256ArrayFactory = await ethers.getContractFactory(
-      "LibUint256ArrayTest"
-    );
-    libUint256Array =
-      (await libUint256ArrayFactory.deploy()) as LibUint256ArrayTest;
+    libUint256Array = await libUint256ArrayDeploy();
   });
 
   it("should extend an array", async function () {

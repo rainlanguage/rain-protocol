@@ -25,6 +25,7 @@ import {
 import { assertError } from "../../utils/test/assertError";
 import { SaleStorage, Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -38,8 +39,7 @@ describe("Sale buy", async function () {
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should correctly generate receipts", async function () {

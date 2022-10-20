@@ -21,6 +21,7 @@ import {
   MemoryType,
 } from "../../utils/interpreter/interpreter";
 import { Tier } from "../../utils/types/tier";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -34,7 +35,7 @@ describe("Sale noticeboard", async function () {
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = await reserveDeploy();
   });
 
   it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {

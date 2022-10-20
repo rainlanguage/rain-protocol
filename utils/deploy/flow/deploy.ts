@@ -8,6 +8,7 @@ import {
   FlowERC721Factory,
   FlowFactory,
 } from "../../../typechain";
+import { FlowConfigStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import {
   FlowERC1155,
   FlowERC1155ConfigStruct,
@@ -20,7 +21,6 @@ import {
   FlowERC721,
   FlowERC721ConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { FlowConfigStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../events";
 
 export const flowDeploy = async (

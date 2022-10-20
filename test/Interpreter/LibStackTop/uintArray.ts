@@ -3,16 +3,14 @@ import { hexConcat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
+import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { Tuple } from "../../../utils/types";
 
 describe("LibStackTop uint array tests", async function () {
   let libStackTop: LibStackTopTest;
 
   before(async () => {
-    const libStackTopFactory = await ethers.getContractFactory(
-      "LibStackTopTest"
-    );
-    libStackTop = (await libStackTopFactory.deploy()) as LibStackTopTest;
+    libStackTop = await libStackTopDeploy();
   });
 
   it("should peek up", async function () {

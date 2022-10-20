@@ -1,69 +1,32 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+import crypto from "crypto";
 import { ethers } from "hardhat";
-import { IERC20Upgradeable as IERC20 } from "../../../typechain";
-import { MockISale } from "../../../typechain";
-import { ReadWriteTier } from "../../../typechain";
 import type { RedeemableERC20 } from "../../../typechain";
-import { RedeemableERC20Factory } from "../../../typechain";
-import { ReserveToken } from "../../../typechain";
-import { SaleEscrowWrapper } from "../../../typechain";
-import { SaleFactory } from "../../../typechain";
+import {
+  IERC20Upgradeable as IERC20,
+  MockISale,
+  ReadWriteTier,
+  ReserveToken,
+  SaleEscrowWrapper,
+} from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
+import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { Status } from "../../../utils/types/sale";
 import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
-import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
-import crypto from "crypto";
 
-let reserve: ReserveToken,
-  redeemableERC20FactoryFactory: ContractFactory,
-  redeemableERC20Factory: RedeemableERC20Factory,
-  readWriteTierFactory: ContractFactory,
-  readWriteTier: ReadWriteTier,
-  saleConstructorConfig: SaleConstructorConfigStruct,
-  saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory;
+let reserve: ReserveToken, readWriteTier: ReadWriteTier;
 
 describe("SaleEscrow unchangeable addresses", async function () {
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = await integrityFactory.deploy();
-    await integrity.deployed();
-
-    redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
-    await redeemableERC20Factory.deployed();
-
-    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
-
-    saleConstructorConfig = {
-      maximumSaleTimeout: 1000,
-      maximumCooldownDuration: 1000,
-      redeemableERC20Factory: redeemableERC20Factory.address,
-      interpreterIntegrity: integrity.address,
-    };
-
-    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleFactory = (await saleFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleFactory;
-    await saleFactory.deployed();
+    readWriteTier = await readWriteTierDeploy();
   });
 
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {

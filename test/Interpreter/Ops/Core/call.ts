@@ -18,24 +18,15 @@ import {
   Tier,
   timewarp,
 } from "../../../../utils";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("CALL Opcode test", async function () {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   it("should change the eval's scope using CALL opcode", async () => {

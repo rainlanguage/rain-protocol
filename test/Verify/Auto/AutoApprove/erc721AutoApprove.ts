@@ -5,20 +5,20 @@ import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/A
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import {
+  autoApproveDeploy,
+  autoApproveFactoryDeploy,
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
+import {
   verifyDeploy,
   verifyFactoryDeploy,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let autoApproveFactory: AutoApproveFactory;

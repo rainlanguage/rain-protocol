@@ -25,6 +25,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -41,7 +42,7 @@ describe("Sale unchecked math", async function () {
   beforeEach(async () => {
     signers = await ethers.getSigners();
 
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = await reserveDeploy();
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {

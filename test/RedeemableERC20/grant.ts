@@ -4,7 +4,9 @@ import type { ReadWriteTier } from "../../typechain";
 import type { RedeemableERC20 } from "../../typechain";
 import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
-import { Tier } from "../../utils";
+import { readWriteTierDeploy, Tier } from "../../utils";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 describe("RedeemableERC20 grant test", async function () {
   it("should grant alice sender then receiver and remain as both", async function () {
@@ -13,16 +15,12 @@ describe("RedeemableERC20 grant test", async function () {
     const owner = signers[0];
     const alice = signers[1];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.ONE;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -33,10 +31,7 @@ describe("RedeemableERC20 grant test", async function () {
       initialSupply: totalSupply,
     };
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -63,16 +58,12 @@ describe("RedeemableERC20 grant test", async function () {
     const owner = signers[0];
     const alice = signers[1];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.ONE;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -83,10 +74,7 @@ describe("RedeemableERC20 grant test", async function () {
       initialSupply: totalSupply,
     };
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -112,11 +100,7 @@ describe("RedeemableERC20 grant test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     const owner = signers[0];
     const alice = signers[1];
@@ -124,8 +108,8 @@ describe("RedeemableERC20 grant test", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.FOUR;
 
     await tier.setTier(alice.address, Tier.ONE);
@@ -139,10 +123,7 @@ describe("RedeemableERC20 grant test", async function () {
       initialSupply: totalSupply,
     };
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,

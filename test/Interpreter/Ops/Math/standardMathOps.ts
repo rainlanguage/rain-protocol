@@ -5,31 +5,22 @@ import type {
   AllStandardOpsTest,
   StandardIntegrity,
 } from "../../../../typechain";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter MathOps standard math", async () => {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   it("should perform a calculation using the block number as a value", async () => {

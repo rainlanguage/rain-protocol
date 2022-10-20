@@ -3,23 +3,20 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibIntegrityStateTest } from "../../../../typechain";
 import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/runtime/RainInterpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
+import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("LibIntegrityState ensureIntegrity tests", async function () {
   let libIntegrityState: LibIntegrityStateTest;
 
   before(async () => {
-    const libIntegrityStateFactory = await ethers.getContractFactory(
-      "LibIntegrityStateTest"
-    );
-    libIntegrityState =
-      (await libIntegrityStateFactory.deploy()) as LibIntegrityStateTest;
+    libIntegrityState = await libIntegrityStateDeploy();
   });
 
   it("should check the integrity of the specified source", async function () {

@@ -28,44 +28,24 @@ import {
   InitializeEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
+import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 const Opcode = AllStandardOps;
 
 describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   let erc20Pullee: ERC20PulleeTest;
   let reserve: ReserveToken;
   let redeemableERC20Config: ERC20ConfigStruct;
-  let integrity: StandardIntegrity;
-  let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
+    stakeFactory = await stakeFactoryDeploy();
 
-    // LogicFactory
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    erc20Pullee = await erc20PulleeDeploy();
 
-    // StakeFactory
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    erc20Pullee = (await erc20PulleeFactory.deploy()) as ERC20PulleeTest;
-    await erc20Pullee.deployed();
-
-    reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = await reserveDeploy();
 
     redeemableERC20Config = {
       name: "RedeemableERC20",
@@ -163,7 +143,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   it("should fail ERC165 check by passing invalid contract not inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
 
-    const tier = logic;
+    const tier = await allStandardOpsDeploy();
 
     const minimumTier = Tier.FOUR;
 

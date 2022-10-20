@@ -33,10 +33,10 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
     await stakeFactory.deployed();
 
-    const stateBuilderFactory = await ethers.getContractFactory(
+    const integrityFactory = await ethers.getContractFactory(
       "StandardIntegrity"
     );
-    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
+    stateBuilder = (await integrityFactory.deploy()) as StandardIntegrity;
     await stateBuilder.deployed();
 
     const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");

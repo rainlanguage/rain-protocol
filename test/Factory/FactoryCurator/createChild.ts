@@ -2,12 +2,11 @@ import { assert } from "chai";
 import { concat, defaultAbiCoder } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import type {
+  CombineTier,
   FactoryChildTest,
   FactoryCurator,
   FactoryTest,
-  CombineTier,
   ReadWriteTier,
-  ReserveToken,
   ReserveToken18,
   StakeFactory,
 } from "../../../typechain";
@@ -30,6 +29,7 @@ import {
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
@@ -45,8 +45,7 @@ describe("FactoryCurator createChild", async function () {
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -113,8 +112,7 @@ describe("FactoryCurator createChild", async function () {
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -189,8 +187,7 @@ describe("FactoryCurator createChild", async function () {
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -400,8 +397,7 @@ describe("FactoryCurator createChild", async function () {
     const deployer = signers[3];
 
     // Reserve token
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     // Stake contract
     const stakeFactoryFactory = await ethers.getContractFactory(

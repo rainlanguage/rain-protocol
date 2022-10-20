@@ -23,38 +23,28 @@ import {
 } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/deploy";
+import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import { flowIntegrityDeploy } from "../../../utils/deploy/flow/interpreter/integrity/flowIntegrity/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 flow tests", async function () {
-  let integrity: FlowIntegrity;
   let flowERC721Factory: FlowERC721Factory;
   const YOU = () => op(Opcode.SENDER);
   const ME = () => op(Opcode.THIS_ADDRESS);
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowERC721FactoryFactory = await ethers.getContractFactory(
-      "FlowERC721Factory",
-      {}
-    );
-    flowERC721Factory = (await flowERC721FactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC721Factory;
-    await flowERC721Factory.deployed();
+    flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
   it("should support transferPreflight hook", async () => {

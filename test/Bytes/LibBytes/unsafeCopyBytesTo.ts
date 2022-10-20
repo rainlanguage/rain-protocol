@@ -1,14 +1,13 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibBytesTest } from "../../../typechain";
 import { readBytes } from "../../../utils/bytes";
+import { libBytesDeploy } from "../../../utils/deploy/test/libBytes/deploy";
 
 describe("LibBytes unsafeCopyBytesTo tests", async function () {
   let libBytes: LibBytesTest;
 
   before(async () => {
-    const libBytesFactory = await ethers.getContractFactory("LibBytesTest");
-    libBytes = (await libBytesFactory.deploy()) as LibBytesTest;
+    libBytes = await libBytesDeploy();
   });
 
   it("should unsafe copy bytes to a location in memory", async function () {

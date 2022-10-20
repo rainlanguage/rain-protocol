@@ -5,31 +5,22 @@ import type {
   StandardIntegrity,
 } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter unchecked math", async () => {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {

@@ -1,17 +1,14 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { LibIntegrityStateTest } from "../../../../typechain";
+import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("LibIntegrityState applyFn tests", async function () {
   let libIntegrityState: LibIntegrityStateTest;
 
   before(async () => {
-    const libIntegrityStateFactory = await ethers.getContractFactory(
-      "LibIntegrityStateTest"
-    );
-    libIntegrityState =
-      (await libIntegrityStateFactory.deploy()) as LibIntegrityStateTest;
+    libIntegrityState = await libIntegrityStateDeploy();
   });
 
   it("should applyFnN function(uint256, uint256) internal view returns (uint256)", async function () {

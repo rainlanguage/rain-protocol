@@ -2,16 +2,13 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { LibIntegrityStateTest } from "../../../../typechain";
 import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/runtime/RainInterpreter";
+import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 
 describe("LibIntegrityState push tests", async function () {
   let libIntegrityState: LibIntegrityStateTest;
 
   before(async () => {
-    const libIntegrityStateFactory = await ethers.getContractFactory(
-      "LibIntegrityStateTest"
-    );
-    libIntegrityState =
-      (await libIntegrityStateFactory.deploy()) as LibIntegrityStateTest;
+    libIntegrityState = await libIntegrityStateDeploy();
   });
 
   it("should push n", async function () {

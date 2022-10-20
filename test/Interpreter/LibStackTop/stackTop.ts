@@ -1,15 +1,13 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain";
+import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 
 describe("LibStackTop stackTop tests", async function () {
   let libStackTop: LibStackTopTest;
 
   before(async () => {
-    const libStackTopFactory = await ethers.getContractFactory(
-      "LibStackTopTest"
-    );
-    libStackTop = (await libStackTopFactory.deploy()) as LibStackTopTest;
+    libStackTop = await libStackTopDeploy();
   });
 
   it("should go up 32 bytes", async () => {

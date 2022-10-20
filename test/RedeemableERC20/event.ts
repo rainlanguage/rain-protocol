@@ -7,17 +7,14 @@ import {
   TreasuryAssetEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { Tier } from "../../utils";
+import { readWriteTierDeploy, Tier } from "../../utils";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 
 describe("RedeemableERC20 event test", async function () {
   it("should emit Initialize event", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -26,8 +23,7 @@ describe("RedeemableERC20 event test", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 
@@ -67,11 +63,7 @@ describe("RedeemableERC20 event test", async function () {
   it("should emit TreasuryAsset event", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -84,8 +76,7 @@ describe("RedeemableERC20 event test", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 

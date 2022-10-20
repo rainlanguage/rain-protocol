@@ -1,24 +1,22 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE, sixZeros } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
 } from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import {
-  op,
   memoryOperand,
   MemoryType,
+  op,
 } from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
@@ -34,8 +32,7 @@ describe("Sale griefer", async function () {
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should work happily if griefer sends small amount of reserve to contracts and signers", async () => {

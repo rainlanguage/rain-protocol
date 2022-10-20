@@ -4,12 +4,14 @@ import type { ReadWriteTier } from "../../typechain";
 import { RedeemableERC20Reentrant } from "../../typechain";
 import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
-import { getBlockTimestamp, Tier } from "../../utils";
+import { getBlockTimestamp, readWriteTierDeploy, Tier } from "../../utils";
 import { Phase } from "../../utils/types/redeemableERC20";
 import {
   PhaseScheduledEvent,
   RedeemEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 
 describe("RedeemableERC20 redeem test", async function () {
   it("should guard against reentrancy if a treasury asset is malicious", async function () {
@@ -20,16 +22,11 @@ describe("RedeemableERC20 redeem test", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.ZERO;
 
@@ -105,22 +102,14 @@ describe("RedeemableERC20 redeem test", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -429,11 +418,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     const signer1 = signers[1];
     const signer2 = signers[2];
@@ -449,8 +434,7 @@ describe("RedeemableERC20 redeem test", async function () {
     await reserve1.initialize();
     await reserve2.initialize();
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 
@@ -545,22 +529,13 @@ describe("RedeemableERC20 redeem test", async function () {
   it("should allow transfer only if redeemer meets minimum tier level", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 
@@ -632,11 +607,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     const signer1 = signers[1];
     const signer2 = signers[2];
@@ -654,8 +625,7 @@ describe("RedeemableERC20 redeem test", async function () {
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 
@@ -856,22 +826,14 @@ describe("RedeemableERC20 redeem test", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
-    await reserve.initialize();
+    const reserve = await reserveDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);

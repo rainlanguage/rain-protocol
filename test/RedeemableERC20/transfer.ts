@@ -4,7 +4,9 @@ import type { ReadWriteTier } from "../../typechain";
 import type { RedeemableERC20 } from "../../typechain";
 import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
-import { Tier } from "../../utils";
+import { readWriteTierDeploy, Tier } from "../../utils";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 describe("RedeemableERC20 transfer test", async function () {
   it("should enforce 'hub and spoke' pattern for sending and receiving tokens during distribution phase", async function () {
@@ -26,16 +28,12 @@ describe("RedeemableERC20 transfer test", async function () {
     const carolSpoke = signers[3];
     const daveSpoke = signers[4];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.ONE;
 
     // spokes above min tier
@@ -50,10 +48,7 @@ describe("RedeemableERC20 transfer test", async function () {
       initialSupply: totalSupply,
     };
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -116,16 +111,12 @@ describe("RedeemableERC20 transfer test", async function () {
   it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
+
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -136,10 +127,7 @@ describe("RedeemableERC20 transfer test", async function () {
       initialSupply: totalSupply,
     };
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -167,16 +155,11 @@ describe("RedeemableERC20 transfer test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
+    const erc20Pullee = await erc20PulleeDeploy();
 
     const signer1 = signers[1];
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
+    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 
@@ -190,10 +173,7 @@ describe("RedeemableERC20 transfer test", async function () {
 
     await tier.setTier(signer1.address, Tier.FOUR);
 
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,

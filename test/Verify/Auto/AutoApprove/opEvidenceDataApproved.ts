@@ -4,22 +4,22 @@ import { AutoApproveFactory } from "../../../../typechain";
 import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
+  autoApproveDeploy,
+  autoApproveFactoryDeploy,
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
+import {
   verifyDeploy,
   verifyFactoryDeploy,
 } from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import { timewarp } from "../../../../utils/hardhat";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import { assertError } from "../../../../utils/test/assertError";
-import {
-  autoApproveDeploy,
-  autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 
 describe("AutoApprove evidence data approved op", async function () {
   let autoApproveFactory: AutoApproveFactory;

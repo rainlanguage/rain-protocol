@@ -2,37 +2,29 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC721Factory, FlowIntegrity } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { FlowERC721ConfigStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import {
+  FlowERC721ConfigStruct,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/deploy";
+import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import { flowIntegrityDeploy } from "../../../utils/deploy/flow/interpreter/integrity/flowIntegrity/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 construction tests", async function () {
-  let integrity: FlowIntegrity;
   let flowERC721Factory: FlowERC721Factory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowERC721FactoryFactory = await ethers.getContractFactory(
-      "FlowERC721Factory",
-      {}
-    );
-    flowERC721Factory = (await flowERC721FactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC721Factory;
-    await flowERC721Factory.deployed();
+    flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
   it("should initialize on the good path", async () => {
