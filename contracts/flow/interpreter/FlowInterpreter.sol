@@ -19,6 +19,7 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
+    using LibUint256Array for uint256[];
 
     /// flow index => id => time
     mapping(uint256 => mapping(uint256 => uint256)) private _flows;
@@ -51,7 +52,11 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         returns (InterpreterState memory)
     {
         require(id_ != CORE_SOURCE_ID, "CORE_SOURCE_ID");
-        return _loadInterpreterState(flow_, LibUint256Array.arrayFrom(id_));
+        return
+            _loadInterpreterState(
+                flow_,
+                LibUint256Array.arrayFrom(id_).matrixFrom()
+            );
     }
 
     function flowStack(InterpreterState memory state_)

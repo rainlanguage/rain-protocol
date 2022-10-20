@@ -37,6 +37,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
 
     event Initialize(address sender, FlowERC1155Config config);
 
@@ -94,13 +95,15 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
                     CORE_SOURCE_ID
                 );
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                    state_.context = LibUint256Array.arrayFrom(
-                        uint256(uint160(operator_)),
-                        uint256(uint160(from_)),
-                        uint256(uint160(to_)),
-                        ids_[i_],
-                        amounts_[i_]
-                    );
+                    state_.context = LibUint256Array
+                        .arrayFrom(
+                            uint256(uint160(operator_)),
+                            uint256(uint160(from_)),
+                            uint256(uint160(to_)),
+                            ids_[i_],
+                            amounts_[i_]
+                        )
+                        .matrixFrom();
                     require(
                         state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
                         "INVALID_TRANSFER"

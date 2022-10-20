@@ -42,7 +42,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0001),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -105,7 +105,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0001),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -171,7 +171,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0001),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),

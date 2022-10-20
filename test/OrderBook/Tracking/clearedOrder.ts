@@ -33,7 +33,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook tracking order funds cleared", async function () {
-  const cOrderHash = op(Opcode.CONTEXT);
+  const cOrderHash = op(Opcode.CONTEXT, 0x0000);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,

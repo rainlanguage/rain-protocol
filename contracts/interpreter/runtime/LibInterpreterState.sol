@@ -46,9 +46,11 @@ struct InterpreterState {
     StackTop stackBottom;
     StackTop constantsBottom;
     uint256 scratch;
-    uint256[] context;
+    uint256[][] context;
     bytes[] compiledSources;
 }
+
+string constant DEBUG_DELIMETER = "~~~";
 
 SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
 
@@ -72,11 +74,11 @@ library LibInterpreterState {
         returns (StackTop)[];
 
     function debugArray(uint256[] memory array_) internal view {
-        console.log("~~~");
+        console.log(DEBUG_DELIMETER);
         for (uint256 i_ = 0; i_ < array_.length; i_++) {
             console.log(i_, array_[i_]);
         }
-        console.log("***");
+        console.log(DEBUG_DELIMETER);
     }
 
     function debugStack(StackTop stackBottom_, StackTop stackTop_)
@@ -119,7 +121,9 @@ library LibInterpreterState {
             } else if (debugStyle_ == DebugStyle.Constant) {
                 debugArray(state_.constantsBottom.down().asUint256Array());
             } else {
-                debugArray(state_.context);
+                for (uint256 i_ = 0; i_ < state_.context.length; i_++) {
+                    debugArray(state_.context[i_]);
+                }
             }
         }
         return stackTop_;
@@ -166,7 +170,7 @@ library LibInterpreterState {
         }
     }
 
-    function deserialize(bytes memory serialized_, uint256[] memory context_)
+    function deserialize(bytes memory serialized_, uint256[][] memory context_)
         internal
         pure
         returns (InterpreterState memory)

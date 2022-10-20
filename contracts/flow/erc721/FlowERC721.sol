@@ -48,6 +48,7 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
     using FixedPointMath for uint256;
 
@@ -100,11 +101,13 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
                 CORE_SOURCE_ID
             );
 
-            state_.context = LibUint256Array.arrayFrom(
-                uint256(uint160(from_)),
-                uint256(uint160(to_)),
-                tokenId_
-            );
+            state_.context = LibUint256Array
+                .arrayFrom(
+                    uint256(uint160(from_)),
+                    uint256(uint160(to_)),
+                    tokenId_
+                )
+                .matrixFrom();
             require(
                 state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
                 "INVALID_TRANSFER"

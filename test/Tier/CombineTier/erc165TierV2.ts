@@ -26,7 +26,7 @@ import { ALWAYS } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;
 
-describe("CombineTier ERC165 Test", async function () {
+describe("CombineTier ERC165 tests", async function () {
   let integrity: StandardIntegrity;
   // let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
@@ -54,7 +54,7 @@ describe("CombineTier ERC165 Test", async function () {
   });
 
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT, 0);
+  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
 
   // prettier-ignore
   // return default report
@@ -83,7 +83,7 @@ describe("CombineTier ERC165 Test", async function () {
     // prettier-ignore
     const sourceReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
-        op(Opcode.CONTEXT, 0),
+        op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
@@ -125,7 +125,7 @@ describe("CombineTier ERC165 Test", async function () {
     // prettier-ignore
     const sourceReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
-        op(Opcode.CONTEXT, 0),
+        op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 

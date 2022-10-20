@@ -87,10 +87,10 @@ contract StandardInterpreter is RainInterpreter {
         view
         returns (InterpreterState memory)
     {
-        return _loadInterpreterState(id_, new uint256[](0));
+        return _loadInterpreterState(id_, new uint256[][](0));
     }
 
-    function _loadInterpreterState(uint256[] memory context_)
+    function _loadInterpreterState(uint256[][] memory context_)
         internal
         view
         returns (InterpreterState memory)
@@ -98,7 +98,7 @@ contract StandardInterpreter is RainInterpreter {
         return _loadInterpreterState(DEFAULT_SOURCE_ID, context_);
     }
 
-    function _loadInterpreterState(uint256 id_, uint256[] memory context_)
+    function _loadInterpreterState(uint256 id_, uint256[][] memory context_)
         internal
         view
         virtual

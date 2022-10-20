@@ -81,10 +81,13 @@ contract CombineTier is TierV2, StandardInterpreter {
         override
         returns (uint256)
     {
+        uint256[][] memory interpreterContext_ = new uint256[][](2);
+        interpreterContext_[0] = uint256(uint160(account_)).arrayFrom();
+        interpreterContext_[1] = context_;
         return
-            _loadInterpreterState(
-                uint256(uint160(account_)).arrayFrom(context_)
-            ).eval(REPORT_ENTRYPOINT).peek();
+            _loadInterpreterState(interpreterContext_)
+                .eval(REPORT_ENTRYPOINT)
+                .peek();
     }
 
     /// @inheritdoc ITierV2
@@ -93,13 +96,15 @@ contract CombineTier is TierV2, StandardInterpreter {
         uint256 tier_,
         uint256[] memory context_
     ) external view returns (uint256) {
+        uint256[][] memory interpreterContext_ = new uint256[][](2);
+        interpreterContext_[0] = LibUint256Array.arrayFrom(
+            uint256(uint160(account_)),
+            tier_
+        );
+        interpreterContext_[1] = context_;
         return
-            _loadInterpreterState(
-                LibUint256Array.arrayFrom(
-                    uint256(uint160(account_)),
-                    tier_,
-                    context_
-                )
-            ).eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
+            _loadInterpreterState(interpreterContext_)
+                .eval(REPORT_FOR_TIER_ENTRYPOINT)
+                .peek();
     }
 }

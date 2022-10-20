@@ -67,7 +67,7 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -304,7 +304,7 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const maliciousReserveFactory = await ethers.getContractFactory(
@@ -440,7 +440,7 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -543,7 +543,7 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -631,7 +631,7 @@ describe("Sale buy", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),

@@ -418,8 +418,8 @@ describe("CALL Opcode test", async function () {
 
     // prettier-ignore
     const sourceGetDiscountedPrice = concat([
-        op(Opcode.CONTEXT, 1), // PRICE
-          op(Opcode.CONTEXT, 0), // TIER
+        op(Opcode.CONTEXT, 0x0001), // PRICE
+          op(Opcode.CONTEXT, 0x0000), // TIER
         callGetDiscount, // This function takes TIER as an input and returns the discount that will be applied on the price
       op(Opcode.SUB, 2) // PRICE - DISCOUNT
     ]);
@@ -435,7 +435,7 @@ describe("CALL Opcode test", async function () {
       reportAlice,
       initialTimestamp + 5
     );
-    await logic.runContext([tierBlockReportAlice, assetPrice]);
+    await logic.runContext([[tierBlockReportAlice, assetPrice]]);
     const resultAlice = await logic.stackTop();
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
     assert(
@@ -450,7 +450,7 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 15
     );
 
-    await logic.runContext([tierBlockReportBob, assetPrice]);
+    await logic.runContext([[tierBlockReportBob, assetPrice]]);
     const resultBob = await logic.stackTop();
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
     assert(

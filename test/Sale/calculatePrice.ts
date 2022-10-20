@@ -80,7 +80,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
           vBasePrice,
               vFractionMultiplier,
@@ -222,7 +222,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
           vBasePrice,
               vFractionMultiplier,
@@ -412,10 +412,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -543,7 +543,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
@@ -675,7 +675,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
         op(Opcode.STORAGE, SaleStorage.RemainingUnits),
@@ -774,7 +774,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0000),
         // price
         // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),

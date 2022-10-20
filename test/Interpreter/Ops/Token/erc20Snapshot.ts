@@ -60,7 +60,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
     const sources = [
       concat([
           vTokenAddr,
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ERC20_SNAPSHOT_TOTAL_SUPPLY_AT)
       ]),
     ];
@@ -74,7 +74,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       tokenERC20Snapshot
     )) as SnapshotEvent["args"];
 
-    await logic.runContext([id]);
+    await logic.runContext([[id]]);
     const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20Snapshot.totalSupply();
     assert(
@@ -93,7 +93,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       concat([
           vTokenAddr,
           vSigner1,
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ERC20_SNAPSHOT_BALANCE_OF_AT)
       ]),
     ];
@@ -109,7 +109,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       tokenERC20Snapshot
     )) as SnapshotEvent["args"];
 
-    await logic.runContext([id]);
+    await logic.runContext([[id]]);
     const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

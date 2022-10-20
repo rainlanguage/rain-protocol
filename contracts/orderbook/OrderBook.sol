@@ -80,6 +80,7 @@ contract OrderBook is StandardInterpreter {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
+    using LibUint256Array for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
@@ -195,7 +196,7 @@ contract OrderBook is StandardInterpreter {
         )
     {
         InterpreterState memory state_ = order_.InterpreterState.deserialize(
-            EvalContext(order_.hash(), counterparty_).toContext()
+            EvalContext(order_.hash(), counterparty_).toContext().matrixFrom()
         );
         flag_ = IdempotentFlag.wrap(state_.scratch);
         (orderOutputMax_, orderIORatio_) = state_.eval().peek2();
