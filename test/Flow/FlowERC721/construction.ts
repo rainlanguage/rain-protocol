@@ -6,7 +6,7 @@ import {
   FlowERC721ConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/deploy";
+import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
 import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {

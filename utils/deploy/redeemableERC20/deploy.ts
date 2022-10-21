@@ -1,25 +1,18 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type {
-  RedeemableERC20,
-  RedeemableERC20Factory,
-} from "../../../typechain";
+import type { RedeemableERC20 } from "../../../typechain";
 import { RedeemableERC20ConfigStruct } from "../../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import { ImplementationEvent as ImplementationEventRedeemableERC20Factory } from "../../../typechain/contracts/redeemableERC20/RedeemableERC20Factory";
 import { zeroAddress } from "../../constants";
 import { getEventArgs } from "../../events";
+import { redeemableERC20FactoryDeploy } from "./redeemableERC20Factory/deploy";
 
 export const redeemableERC20Deploy = async (
   deployer: SignerWithAddress,
   config: RedeemableERC20ConfigStruct
 ) => {
-  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20Factory"
-  );
-  const redeemableERC20Factory =
-    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
-  await redeemableERC20Factory.deployed();
+  const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
 
   const { implementation } = (await getEventArgs(
     redeemableERC20Factory.deployTransaction,

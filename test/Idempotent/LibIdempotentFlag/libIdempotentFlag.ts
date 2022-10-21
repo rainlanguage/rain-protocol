@@ -1,6 +1,6 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibIdempotentFlagTest } from "../../../typechain";
+import { libIdempotentFlagDeploy } from "../../../utils/deploy/idempotent/libIdempotentFlag/deploy";
 
 enum FlagIndex {
   ZERO,
@@ -13,11 +13,7 @@ describe("LibIdempotentFlag tests", async function () {
   let libIdempotentFlag: LibIdempotentFlagTest;
 
   before(async () => {
-    const libIdempotentFlagFactory = await ethers.getContractFactory(
-      "LibIdempotentFlagTest"
-    );
-    libIdempotentFlag =
-      (await libIdempotentFlagFactory.deploy()) as LibIdempotentFlagTest;
+    libIdempotentFlag = await libIdempotentFlagDeploy();
   });
 
   it("should set and get flags at various indices", async function () {

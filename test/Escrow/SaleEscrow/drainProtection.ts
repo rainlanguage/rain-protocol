@@ -1,10 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import {
-  MockISale,
-  RedeemableERC20ClaimEscrow,
-  ReserveToken,
-} from "../../../typechain";
+import { MockISale, ReserveToken } from "../../../typechain";
+import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
 
@@ -16,11 +13,7 @@ describe("SaleEscrow protection from draining", async function () {
     const signer2 = signers[2];
 
     // Deploy global Claim contract
-    const rTKNClaimEscrowFactory = await ethers.getContractFactory(
-      "RedeemableERC20ClaimEscrow"
-    );
-    const rTKNClaimEscrow =
-      (await rTKNClaimEscrowFactory.deploy()) as RedeemableERC20ClaimEscrow;
+    const { claim: rTKNClaimEscrow } = await escrowDeploy();
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
     const reserve = (await tokenFactory.deploy()) as ReserveToken;

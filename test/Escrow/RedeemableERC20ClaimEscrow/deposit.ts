@@ -10,6 +10,7 @@ import type {
 import { MockISale } from "../../../typechain";
 import { DepositEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
+import { basicDeploy } from "../../../utils";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { Status } from "../../../utils/types/sale";
@@ -48,8 +49,8 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+
     await sale.setToken(redeemableERC20.address);
 
     const desiredUnitsAlice = totalTokenSupply;
@@ -136,8 +137,8 @@ describe("RedeemableERC20ClaimEscrow Deposit test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+
     await sale.setToken(redeemableERC20.address);
 
     const desiredUnitsAlice = totalTokenSupply;

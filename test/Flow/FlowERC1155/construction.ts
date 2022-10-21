@@ -6,7 +6,7 @@ import {
   FlowERC1155ConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/deploy";
+import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {

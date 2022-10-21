@@ -5,5 +5,8 @@ export const libUint256ArrayDeploy = async () => {
   const libUint256ArrayFactory = await ethers.getContractFactory(
     "LibUint256ArrayTest"
   );
-  return (await libUint256ArrayFactory.deploy()) as LibUint256ArrayTest;
+  const libUint256ArrayTest =
+    (await libUint256ArrayFactory.deploy()) as LibUint256ArrayTest;
+  await libUint256ArrayTest.deployed();
+  return libUint256ArrayTest;
 };

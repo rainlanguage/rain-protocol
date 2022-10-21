@@ -316,6 +316,7 @@ describe("Sale buy", async function () {
     );
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as SaleReentrant;
+    await maliciousReserve.deployed();
     await maliciousReserve.initialize();
     // If cooldown could be set to zero, reentrant buy calls would be possible.
     await assertError(

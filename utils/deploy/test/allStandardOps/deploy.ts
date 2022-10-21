@@ -6,5 +6,9 @@ export const allStandardOpsDeploy = async () => {
   const integrity = await standardIntegrityDeploy();
 
   const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-  return (await logicFactory.deploy(integrity.address)) as AllStandardOpsTest;
+  const logic = (await logicFactory.deploy(
+    integrity.address
+  )) as AllStandardOpsTest;
+  await logic.deployed();
+  return logic;
 };

@@ -3,5 +3,7 @@ import { LibBytesTest } from "../../../../typechain/contracts/test/bytes/LibByte
 
 export const libBytesDeploy = async () => {
   const libBytesFactory = await ethers.getContractFactory("LibBytesTest");
-  return (await libBytesFactory.deploy()) as LibBytesTest;
+  const libBytesTest = (await libBytesFactory.deploy()) as LibBytesTest;
+  await libBytesTest.deployed();
+  return libBytesTest;
 };

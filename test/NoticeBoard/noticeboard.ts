@@ -1,14 +1,10 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  NoticeBoard,
-  ReadWriteTier,
-  ReserveToken,
-  SaleFactory,
-} from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import { noticeboardDeploy } from "../../utils/deploy/noticeboard/deploy";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -92,8 +88,7 @@ describe("Sale noticeboard", async function () {
         distributionEndForwardingAddress: forwardingAddress.address,
       }
     );
-    const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");
-    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard;
+    const noticeboard = await noticeboardDeploy();
     const message = "foo";
     const notice = {
       subject: sale.address,

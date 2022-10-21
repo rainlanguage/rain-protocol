@@ -3,5 +3,8 @@ import { LibStackTopTest } from "../../../../typechain/contracts/test/interprete
 
 export const libStackTopDeploy = async () => {
   const libStackTopFactory = await ethers.getContractFactory("LibStackTopTest");
-  return (await libStackTopFactory.deploy()) as LibStackTopTest;
+  const libStackTopTest =
+    (await libStackTopFactory.deploy()) as LibStackTopTest;
+  await libStackTopTest.deployed();
+  return libStackTopTest;
 };

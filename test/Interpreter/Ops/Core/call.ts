@@ -1,11 +1,7 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  AllStandardOpsTest,
-  ReadWriteTier,
-  TierReportTest,
-} from "../../../../typechain";
+import type { AllStandardOpsTest, TierReportTest } from "../../../../typechain";
 import {
   AllStandardOps,
   basicDeploy,
@@ -14,6 +10,7 @@ import {
   memoryOperand,
   MemoryType,
   op,
+  readWriteTierDeploy,
   Tier,
   timewarp,
 } from "../../../../utils";
@@ -303,9 +300,8 @@ describe("CALL Opcode test", async function () {
     const [, alice, bob] = await ethers.getSigners();
 
     // Tier Factory
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
+    const readWriteTier = await readWriteTierDeploy();
+
     const tierReport = (await basicDeploy(
       "TierReportTest",
       {}

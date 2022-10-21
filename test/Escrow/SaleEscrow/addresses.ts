@@ -48,8 +48,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       distributionEndForwardingAddress: zeroAddress,
     })) as RedeemableERC20;
 
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISale", {})) as MockISale;
 
     await sale.setReserve(reserve.address);
     await sale.setToken(redeemableERC20.address);
@@ -91,8 +90,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISale", {})) as MockISale;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -153,8 +151,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISale", {})) as MockISale;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -214,8 +211,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying success status", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISale", {})) as MockISale;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",

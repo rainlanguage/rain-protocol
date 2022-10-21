@@ -1,13 +1,12 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibConvertTest } from "../../../typechain";
+import { libConvertDeploy } from "../../../utils/deploy/type/libConvert/deploy";
 
 describe("LibConvert toBytes tests", async function () {
   let libConvert: LibConvertTest;
 
   before(async () => {
-    const libConvertFactory = await ethers.getContractFactory("LibConvertTest");
-    libConvert = (await libConvertFactory.deploy()) as LibConvertTest;
+    libConvert = await libConvertDeploy();
   });
 
   it("converts an array of uints to bytes", async function () {

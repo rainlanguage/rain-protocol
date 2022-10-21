@@ -7,5 +7,6 @@ export const libIntegrityStateDeploy = async () => {
   );
   const libIntegrityState =
     (await libIntegrityStateFactory.deploy()) as LibIntegrityStateTest;
+  await libIntegrityState.deployed();
   return libIntegrityState;
 };

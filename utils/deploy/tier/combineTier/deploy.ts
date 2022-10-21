@@ -6,36 +6,37 @@ import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/Co
 import { ImplementationEvent as ImplementationEventCombineTierFactory } from "../../../../typechain/contracts/tier/CombineTierFactory";
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
+import { standardIntegrityDeploy } from "../../interpreter/integrity/standardIntegrity/deploy";
 
 export const combineTierDeploy = async (
   deployer: SignerWithAddress,
   config: CombineTierConfigStruct
 ) => {
-  const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
-  const integrity = await integrityFactory.deploy();
-  await integrity.deployed();
+  const integrity = await standardIntegrityDeploy();
 
-  const factoryFactory = await ethers.getContractFactory("CombineTierFactory");
-  const factory = (await factoryFactory.deploy(
+  const combineTierFactoryFactory = await ethers.getContractFactory(
+    "CombineTierFactory"
+  );
+  const combineTierFactory = (await combineTierFactoryFactory.deploy(
     integrity.address
   )) as CombineTierFactory;
-  await factory.deployed();
+  await combineTierFactory.deployed();
 
   const { implementation } = (await getEventArgs(
-    factory.deployTransaction,
+    combineTierFactory.deployTransaction,
     "Implementation",
-    factory
+    combineTierFactory
   )) as ImplementationEventCombineTierFactory["args"];
   assert(
     !(implementation === zeroAddress),
     "implementation combineTier factory zero address"
   );
 
-  const tx = await factory.createChildTyped(config);
+  const tx = await combineTierFactory.createChildTyped(config);
   const contract = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
-        (await getEventArgs(tx, "NewChild", factory)).child
+        (await getEventArgs(tx, "NewChild", combineTierFactory)).child
       ),
       20
     ),

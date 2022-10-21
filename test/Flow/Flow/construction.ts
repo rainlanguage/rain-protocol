@@ -7,7 +7,7 @@ import {
   InitializeEvent,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
-import { flowDeploy } from "../../../utils/deploy/flow/deploy";
+import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,

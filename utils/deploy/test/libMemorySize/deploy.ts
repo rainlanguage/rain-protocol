@@ -5,5 +5,8 @@ export const libMemorySizeDeploy = async () => {
   const libMemorySizeFactory = await ethers.getContractFactory(
     "LibMemorySizeTest"
   );
-  return (await libMemorySizeFactory.deploy()) as LibMemorySizeTest;
+  const libMemorySizeTest =
+    (await libMemorySizeFactory.deploy()) as LibMemorySizeTest;
+  await libMemorySizeTest.deployed();
+  return libMemorySizeTest;
 };

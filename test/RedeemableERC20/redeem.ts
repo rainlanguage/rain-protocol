@@ -45,9 +45,9 @@ describe("RedeemableERC20 redeem test", async function () {
     const maliciousReserveFactory = await ethers.getContractFactory(
       "RedeemableERC20Reentrant"
     );
-
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as RedeemableERC20Reentrant;
+    await maliciousReserve.deployed();
 
     await maliciousReserve.initialize();
 

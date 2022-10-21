@@ -27,6 +27,8 @@ export const stakeDeploy = async (
     deployer
   ) as Stake;
 
+  await stake.deployed();
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   stake.deployTransaction = txDeploy;

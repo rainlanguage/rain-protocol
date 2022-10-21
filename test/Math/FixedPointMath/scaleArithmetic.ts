@@ -1,22 +1,12 @@
 import { assert } from "chai";
-import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 
-import type { FixedPointMathTest } from "../../../typechain";
 import { eighteenZeros, ONE } from "../../../utils";
-
-let fixedPointMathTestFactory: ContractFactory;
+import { fixedPointMathDeploy } from "../../../utils/deploy/math/fixedPointMath/deploy";
 
 describe("FixedPointMathTest scaling during arithmetic op", async function () {
-  before(async () => {
-    fixedPointMathTestFactory = await ethers.getContractFactory(
-      "FixedPointMathTest"
-    );
-  });
-
   it("should scale a number by 18 order of magnitude while multiplying", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
+    const fixedPointMathTest = await fixedPointMathDeploy();
 
     const a_ = 5;
     const b_ = ONE.mul(2);
@@ -28,8 +18,7 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
   });
 
   it("should scale a number by 18 order of magnitude while dividing", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
+    const fixedPointMathTest = await fixedPointMathDeploy();
 
     const a_ = 60;
     const b_ = ethers.BigNumber.from("2" + eighteenZeros);

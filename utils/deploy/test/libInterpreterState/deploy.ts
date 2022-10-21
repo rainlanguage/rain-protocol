@@ -11,6 +11,6 @@ export const libInterpreterStateDeploy = async () => {
   const libInterpreterState = (await libInterpreterStateFactory.deploy(
     integrity.address
   )) as LibInterpreterStateTest;
-
+  await libInterpreterState.deployed();
   return libInterpreterState;
 };

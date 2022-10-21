@@ -8,7 +8,6 @@ import type {
   FactoryTest,
   ReadWriteTier,
   ReserveToken18,
-  StakeFactory,
 } from "../../../typechain";
 import {
   CurationConfigStruct,
@@ -29,6 +28,7 @@ import {
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
@@ -277,12 +277,7 @@ describe("FactoryCurator createChild", async function () {
     await reserve18.initialize();
 
     // Stake contract
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    const stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    const stakeFactory = await stakeFactoryDeploy();
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -400,12 +395,7 @@ describe("FactoryCurator createChild", async function () {
     const reserve = await reserveDeploy();
 
     // Stake contract
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    const stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    const stakeFactory = await stakeFactoryDeploy();
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",

@@ -2,20 +2,17 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import {
-  ReadWriteTier,
-  RedeemableERC20,
-  RedeemableERC20Factory,
-  Sale,
-  SaleFactory,
-  StandardIntegrity,
-} from "../../../typechain";
+import { RedeemableERC20, Sale, SaleFactory } from "../../../typechain";
 import {
   ConstructEvent,
   SaleConfigStruct,
   SaleRedeemableERC20ConfigStruct,
 } from "../../../typechain/contracts/sale/Sale";
 import { getEventArgs } from "../../events";
+import { standardIntegrityDeploy } from "../interpreter/integrity/standardIntegrity/deploy";
+import { redeemableERC20FactoryDeploy } from "../redeemableERC20/redeemableERC20Factory/deploy";
+import { readWriteTierDeploy } from "../tier/readWriteTier/deploy";
+import { saleFactoryDeploy } from "./saleFactory/deploy";
 
 export const saleDeploy = async (
   signers: SignerWithAddress[],
@@ -65,21 +62,9 @@ export const saleDeploy = async (
 };
 
 export const saleDependenciesDeploy = async () => {
-  const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
-  const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-  await integrity.deployed();
-
-  const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-    "RedeemableERC20Factory",
-    {}
-  );
-  const redeemableERC20Factory =
-    (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
-  await redeemableERC20Factory.deployed();
-
-  const readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-  const readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
-  await readWriteTier.deployed();
+  const integrity = await standardIntegrityDeploy();
+  const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
+  const readWriteTier = await readWriteTierDeploy();
 
   const saleConstructorConfig = {
     maximumSaleTimeout: 10000,
@@ -87,11 +72,8 @@ export const saleDependenciesDeploy = async () => {
     redeemableERC20Factory: redeemableERC20Factory.address,
     interpreterIntegrity: integrity.address,
   };
-  const saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-  const saleFactory = (await saleFactoryFactory.deploy(
-    saleConstructorConfig
-  )) as SaleFactory;
-  await saleFactory.deployed();
+
+  const saleFactory = await saleFactoryDeploy(saleConstructorConfig);
 
   const { implementation, sender } = await getEventArgs(
     saleFactory.deployTransaction,
@@ -119,12 +101,9 @@ export const saleDependenciesDeploy = async () => {
   );
 
   return {
-    redeemableERC20FactoryFactory,
     redeemableERC20Factory,
-    readWriteTierFactory,
     readWriteTier,
     saleConstructorConfig,
-    saleFactoryFactory,
     saleFactory,
     saleProxy,
     integrity,
