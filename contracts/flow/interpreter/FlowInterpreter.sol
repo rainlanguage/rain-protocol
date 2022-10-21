@@ -88,6 +88,7 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
 
             for (uint256 i_ = 0; i_ < signedContexts_.length; i_++) {
                 canSignContext_[1] = uint256(
+                    i_,
                     uint160(signedContexts_[i_].signer)
                 ).arrayFrom();
                 state_.context = canSignContext_;
