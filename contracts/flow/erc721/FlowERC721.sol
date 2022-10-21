@@ -72,7 +72,7 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
         _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
-        __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 6));
+        __FlowInterpreter_init(config_.flows, 6);
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
@@ -115,14 +115,14 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
         }
     }
 
-    function _previewFlow(InterpreterState memory state_)
+    function _previewFlow(InterpreterState memory state_, SignedContext[] memory signedContexts_)
         internal
         view
         returns (FlowERC721IO memory)
     {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
-        StackTop stackTop_ = flowStack(state_);
+        StackTop stackTop_ = flowStack(state_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             state_.stackBottom,
             RAIN_FLOW_ERC721_SENTINEL,
@@ -146,10 +146,11 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
     function _flow(
         InterpreterState memory state_,
         uint256 flow_,
-        uint256 id_
+        uint256 id_,
+        SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
-            FlowERC721IO memory flowIO_ = _previewFlow(state_);
+            FlowERC721IO memory flowIO_ = _previewFlow(state_, signedContexts_);
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
@@ -167,21 +168,21 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
         }
     }
 
-    function previewFlow(uint256 flow_, uint256 id_)
+    function previewFlow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
         external
         view
         virtual
         returns (FlowERC721IO memory)
     {
-        return _previewFlow(_loadFlowState(flow_, id_));
+        return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
     }
 
-    function flow(uint256 flow_, uint256 id_)
+    function flow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
         external
         payable
         virtual
         returns (FlowERC721IO memory)
     {
-        return _flow(_loadFlowState(flow_, id_), flow_, id_);
+        return _flow(_loadFlowState(flow_, id_), flow_, id_, signedContexts_);
     }
 }

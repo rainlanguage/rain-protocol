@@ -28,7 +28,7 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
-    using LibUint256Array for uint;
+    using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
     /// flow index => id => time
@@ -42,18 +42,19 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
     // solhint-disable-next-line func-name-mixedcase
     function __FlowInterpreter_init(
         StateConfig[] memory flows_,
-        uint256 memory flowFinalMinStack_
+        uint256 flowFinalMinStack_
     ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();
         // Can't be less than an empty standard flow of sentinels.
-        require(
-            flowFinalMinStack_ >= 4,
-            "BAD MIN STACKS LENGTH"
-        );
+        require(flowFinalMinStack_ >= 4, "BAD MIN STACKS LENGTH");
         for (uint256 i_ = 0; i_ < flows_.length; i_++) {
             uint256 id_ = uint256(keccak256(abi.encode(flows_[i_])));
-            _saveInterpreterState(id_, flows_[i_], LibUint256Array.arrayFrom(1, 1, flowFinalMinStack_));
+            _saveInterpreterState(
+                id_,
+                flows_[i_],
+                LibUint256Array.arrayFrom(1, 1, flowFinalMinStack_)
+            );
         }
     }
 
@@ -66,7 +67,7 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         return
             _loadInterpreterState(
                 flow_,
-                    LibUint256Array.arrayFrom(id_).matrixFrom()
+                LibUint256Array.arrayFrom(id_).matrixFrom()
             );
     }
 
@@ -74,26 +75,45 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         InterpreterState memory state_,
         SignedContext[] memory signedContexts_
     ) internal view returns (StackTop) {
-        uint[][] memory canSignContext_ = 
-        state_.context[1] = uint256(uint160(signedContext_.signer)).arrayFrom();
-        require(
-            state_.eval(CAN_SIGN_CONTEXT_ENTRYPOINT).peek() > 0,
-            "BAD_SIGNER"
-        );
-        require(
-            SignatureChecker.isValidSignatureNow(
-                signedContext_.signer,
-                ECDSA.toEthSignedMessageHash(
-                    keccak256(abi.encodePacked(signedContext_.context))
-                ),
-                signedContext_.signature
-            ),
-            "INVALID_SIGNATURE"
-        );
+        unchecked {
+            // Only context built by _loadFlowState is supported.
+            require(state_.context.length == 1, "UNEXPECTED_CONTEXT");
+            uint256[][] memory canSignContext_ = new uint256[][](2);
+            canSignContext_[0] = state_.context[0];
 
-        state_.context[1] = signedContext_.context;
-        require(state_.eval(CAN_FLOW_ENTRYPOINT).peek() > 0, "CANT_FLOW");
-        return state_.eval(FLOW_ENTRYPOINT);
+            uint256[][] memory flowContext_ = new uint256[][](
+                signedContexts_.length + 1
+            );
+            flowContext_[0] = state_.context[0];
+
+            for (uint256 i_ = 0; i_ < signedContexts_.length; i_++) {
+                canSignContext_[1] = uint256(
+                    uint160(signedContexts_[i_].signer)
+                ).arrayFrom();
+                state_.context = canSignContext_;
+                require(
+                    state_.eval(CAN_SIGN_CONTEXT_ENTRYPOINT).peek() > 0,
+                    "BAD_SIGNER"
+                );
+                require(
+                    SignatureChecker.isValidSignatureNow(
+                        signedContexts_[i_].signer,
+                        ECDSA.toEthSignedMessageHash(
+                            keccak256(
+                                abi.encodePacked(signedContexts_[i_].context)
+                            )
+                        ),
+                        signedContexts_[i_].signature
+                    ),
+                    "INVALID_SIGNATURE"
+                );
+                flowContext_[i_ + 1] = signedContexts_[i_].context;
+            }
+
+            state_.context = flowContext_;
+            require(state_.eval(CAN_FLOW_ENTRYPOINT).peek() > 0, "CANT_FLOW");
+            return state_.eval(FLOW_ENTRYPOINT);
+        }
     }
 
     function registerFlowTime(

@@ -31,25 +31,24 @@ contract Flow is ReentrancyGuard, FlowInterpreter {
         emit Initialize(msg.sender, config_);
     }
 
-    function _previewFlow(InterpreterState memory state_, SignedContext[] memory signedContexts_)
-        internal
-        view
-        returns (FlowTransfer memory)
-    {
+    function _previewFlow(
+        InterpreterState memory state_,
+        SignedContext[] memory signedContexts_
+    ) internal view returns (FlowTransfer memory) {
         StackTop stackTop_ = flowStack(state_, signedContexts_);
         return LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 
-    function previewFlow(uint256 flow_, uint256 id_)
+    function previewFlow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
         external
         view
         virtual
         returns (FlowTransfer memory)
     {
-        return _previewFlow(_loadFlowState(flow_, id_));
+        return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
     }
 
-    function flow(uint256 flow_, uint256 id_)
+    function flow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
         external
         payable
         virtual
@@ -57,7 +56,7 @@ contract Flow is ReentrancyGuard, FlowInterpreter {
         returns (FlowTransfer memory)
     {
         InterpreterState memory state_ = _loadFlowState(flow_, id_);
-        FlowTransfer memory flowTransfer_ = _previewFlow(state_);
+        FlowTransfer memory flowTransfer_ = _previewFlow(state_, signedContexts_);
         registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
         return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));
     }

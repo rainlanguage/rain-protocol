@@ -135,8 +135,12 @@ library LibUint256Array {
         return matrix_;
     }
 
-    function matrixFrom(uint[] memory a_, uint[] memory b_) internal pure returns (uint[][] memory) {
-        uint[][] memory matrix_ = new uint[][](2);
+    function matrixFrom(uint256[] memory a_, uint256[] memory b_)
+        internal
+        pure
+        returns (uint256[][] memory)
+    {
+        uint256[][] memory matrix_ = new uint256[][](2);
         assembly ("memory-safe") {
             mstore(add(matrix_, 0x20), a_)
             mstore(add(matrix_, 0x40), b_)
