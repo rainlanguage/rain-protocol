@@ -27,16 +27,16 @@ contract Flow is ReentrancyGuard, FlowInterpreter {
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig calldata config_) external initializer {
-        __FlowInterpreter_init(config_.flows, LibUint256Array.arrayFrom(1, 4));
+        __FlowInterpreter_init(config_.flows, 4);
         emit Initialize(msg.sender, config_);
     }
 
-    function _previewFlow(InterpreterState memory state_)
+    function _previewFlow(InterpreterState memory state_, SignedContext[] memory signedContexts_)
         internal
         view
         returns (FlowTransfer memory)
     {
-        StackTop stackTop_ = flowStack(state_);
+        StackTop stackTop_ = flowStack(state_, signedContexts_);
         return LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 

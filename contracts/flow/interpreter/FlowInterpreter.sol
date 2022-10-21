@@ -8,17 +8,27 @@ import "../../idempotent/LibIdempotentFlag.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
+import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
+import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
-uint256 constant ENTRYPOINTS_COUNT = 2;
-SourceIndex constant CAN_FLOW_ENDPOINT = SourceIndex.wrap(0);
-SourceIndex constant FLOW_ENDPOINT = SourceIndex.wrap(1);
+uint256 constant ENTRYPOINTS_COUNT = 3;
+SourceIndex constant CAN_SIGN_CONTEXT_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(2);
 
 uint256 constant CORE_SOURCE_ID = 0;
+
+struct SignedContext {
+    address signer;
+    bytes signature;
+    uint256[] context;
+}
 
 contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
+    using LibUint256Array for uint;
     using LibUint256Array for uint256[];
 
     /// flow index => id => time
@@ -32,17 +42,18 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
     // solhint-disable-next-line func-name-mixedcase
     function __FlowInterpreter_init(
         StateConfig[] memory flows_,
-        uint256[] memory flowsFinalMinStacks_
+        uint256 memory flowFinalMinStack_
     ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();
+        // Can't be less than an empty standard flow of sentinels.
         require(
-            flowsFinalMinStacks_.length == ENTRYPOINTS_COUNT,
+            flowFinalMinStack_ >= 4,
             "BAD MIN STACKS LENGTH"
         );
         for (uint256 i_ = 0; i_ < flows_.length; i_++) {
             uint256 id_ = uint256(keccak256(abi.encode(flows_[i_])));
-            _saveInterpreterState(id_, flows_[i_], flowsFinalMinStacks_);
+            _saveInterpreterState(id_, flows_[i_], LibUint256Array.arrayFrom(1, 1, flowFinalMinStack_));
         }
     }
 
@@ -55,17 +66,34 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         return
             _loadInterpreterState(
                 flow_,
-                LibUint256Array.arrayFrom(id_).matrixFrom()
+                    LibUint256Array.arrayFrom(id_).matrixFrom()
             );
     }
 
-    function flowStack(InterpreterState memory state_)
-        internal
-        view
-        returns (StackTop)
-    {
-        require(state_.eval(CAN_FLOW_ENDPOINT).peek() > 0, "CANT_FLOW");
-        return state_.eval(FLOW_ENDPOINT);
+    function flowStack(
+        InterpreterState memory state_,
+        SignedContext[] memory signedContexts_
+    ) internal view returns (StackTop) {
+        uint[][] memory canSignContext_ = 
+        state_.context[1] = uint256(uint160(signedContext_.signer)).arrayFrom();
+        require(
+            state_.eval(CAN_SIGN_CONTEXT_ENTRYPOINT).peek() > 0,
+            "BAD_SIGNER"
+        );
+        require(
+            SignatureChecker.isValidSignatureNow(
+                signedContext_.signer,
+                ECDSA.toEthSignedMessageHash(
+                    keccak256(abi.encodePacked(signedContext_.context))
+                ),
+                signedContext_.signature
+            ),
+            "INVALID_SIGNATURE"
+        );
+
+        state_.context[1] = signedContext_.context;
+        require(state_.eval(CAN_FLOW_ENTRYPOINT).peek() > 0, "CANT_FLOW");
+        return state_.eval(FLOW_ENTRYPOINT);
     }
 
     function registerFlowTime(
