@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
-import { AllStandardOpsTest, StandardIntegrity } from "../../../../typechain";
+import { AllStandardOpsTest } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {

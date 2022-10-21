@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
 import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";

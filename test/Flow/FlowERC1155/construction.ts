@@ -1,14 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC1155Factory, FlowIntegrity } from "../../../typechain";
+import { FlowERC1155Factory } from "../../../typechain";
 import {
   FlowERC1155ConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/deploy";
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
-import { flowIntegrityDeploy } from "../../../utils/deploy/flow/interpreter/integrity/flowIntegrity/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,

@@ -1,11 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../typechain";
-import { AllStandardOpsTest } from "../../typechain";
-import { CombineTier } from "../../typechain";
-import type { ReserveToken } from "../../typechain";
-import { StakeFactory } from "../../typechain";
+import type { ERC20PulleeTest, ReserveToken } from "../../typechain";
+import { CombineTier, StakeFactory } from "../../typechain";
+import {
+  ERC20ConfigStruct,
+  InitializeEvent,
+} from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
@@ -17,21 +19,15 @@ import {
   stakeDeploy,
   Tier,
 } from "../../utils";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import type { ERC20PulleeTest } from "../../typechain";
-import {
-  ERC20ConfigStruct,
-  InitializeEvent,
-} from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 const Opcode = AllStandardOps;
 
 describe("RedeemableERC20 ERC165_TierV2 test", async function () {

@@ -5,7 +5,6 @@ import type { CombineTier, ReadWriteTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../../utils/hardhat";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
@@ -14,6 +13,7 @@ import {
   selectLteLogic,
   selectLteMode,
 } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 

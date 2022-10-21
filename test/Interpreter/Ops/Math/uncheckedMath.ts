@@ -1,9 +1,5 @@
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
-import type {
-  AllStandardOpsTest,
-  StandardIntegrity,
-} from "../../../../typechain";
+import type { AllStandardOpsTest } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {

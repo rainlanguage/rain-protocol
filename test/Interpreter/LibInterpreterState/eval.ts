@@ -1,11 +1,6 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
-import type {
-  LibInterpreterStateTest,
-  StandardIntegrity,
-} from "../../../typechain";
-import { standardIntegrityDeploy } from "../../../utils/deploy/interpreter/integrity/standardIntegrity/deploy";
+import type { LibInterpreterStateTest } from "../../../typechain";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";

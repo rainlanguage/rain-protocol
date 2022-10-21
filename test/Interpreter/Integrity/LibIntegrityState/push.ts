@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibIntegrityStateTest } from "../../../../typechain";
 import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/runtime/RainInterpreter";
 import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";

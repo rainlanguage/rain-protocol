@@ -4,7 +4,6 @@ import { ethers } from "hardhat";
 import type {
   AllStandardOpsTest,
   ReadWriteTier,
-  StandardIntegrity,
   TierReportTest,
 } from "../../../../typechain";
 import {

@@ -4,7 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowERC721Factory,
-  FlowIntegrity,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
@@ -24,7 +23,6 @@ import {
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowERC721Deploy } from "../../../utils/deploy/flow/deploy";
 import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
-import { flowIntegrityDeploy } from "../../../utils/deploy/flow/interpreter/integrity/flowIntegrity/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import {

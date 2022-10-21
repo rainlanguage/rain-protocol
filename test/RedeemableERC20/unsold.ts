@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ERC20PulleeTest, ReadWriteTier } from "../../typechain";
-import type { ReserveToken } from "../../typechain";
+import type {
+  ERC20PulleeTest,
+  ReadWriteTier,
+  ReserveToken,
+} from "../../typechain";
 import * as Util from "../../utils";
 import { readWriteTierDeploy, Tier } from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";

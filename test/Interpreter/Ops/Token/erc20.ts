@@ -2,11 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  AllStandardOpsTest,
-  ReserveToken,
-  StandardIntegrity,
-} from "../../../../typechain";
+import type { AllStandardOpsTest, ReserveToken } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {

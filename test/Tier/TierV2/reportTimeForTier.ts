@@ -1,21 +1,16 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  AllStandardOpsTest,
-  ReadWriteTier,
-  StandardIntegrity,
-} from "../../../typechain";
+import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
+import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
-import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import { Tier } from "../../../utils/types/tier";
-import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
-import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 
 describe("TierV2 report time for tier op", async function () {
   it("should return ITierV2 report time for tier when using opcode", async () => {

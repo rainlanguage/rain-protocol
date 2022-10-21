@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain";
-import { StakeFactory } from "../../typechain";
+import { ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";

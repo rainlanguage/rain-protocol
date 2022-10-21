@@ -8,7 +8,6 @@ import {
   ReadWriteTier,
   ReserveToken,
   StakeFactory,
-  StandardIntegrity,
 } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import {
@@ -17,20 +16,19 @@ import {
   stakeDeploy,
   THRESHOLDS,
 } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
-import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
-import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
-import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
 
 const Opcode = AllStandardOps;
 

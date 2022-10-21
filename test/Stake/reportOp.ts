@@ -1,26 +1,26 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../typechain";
-import { AllStandardOpsTest } from "../../typechain";
-import { ReserveToken18 } from "../../typechain";
-import { StakeFactory } from "../../typechain";
+import {
+  AllStandardOpsTest,
+  ReserveToken18,
+  StakeFactory,
+} from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
-import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
+import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import { numArrayToReport } from "../../utils/tier";
-import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { standardIntegrityDeploy } from "../../utils/deploy/interpreter/integrity/standardIntegrity/deploy";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 
 describe("Stake ITIERV2_REPORT Op", async function () {
   let stakeFactory: StakeFactory;

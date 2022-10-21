@@ -2,8 +2,11 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook } from "../../../typechain";
-import type { OrderBookIntegrity, ReserveToken18 } from "../../../typechain";
+import type {
+  OrderBook,
+  OrderBookIntegrity,
+  ReserveToken18,
+} from "../../../typechain";
 import {
   AfterClearEvent,
   ClearConfigStruct,
@@ -20,16 +23,16 @@ import {
   ONE,
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { orderBookIntegrityDeploy } from "../../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { fixedPointDiv } from "../../../utils/math";
-import { OrderBookOpcode } from "../../../utils/interpreter/ops/orderBookOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { OrderBookOpcode } from "../../../utils/interpreter/ops/orderBookOps";
+import { fixedPointDiv } from "../../../utils/math";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { orderBookIntegrityDeploy } from "../../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
 const Opcode = OrderBookOpcode;
 

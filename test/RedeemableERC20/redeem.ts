@@ -1,17 +1,20 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ERC20PulleeTest, ReadWriteTier } from "../../typechain";
+import type {
+  ERC20PulleeTest,
+  ReadWriteTier,
+  ReserveToken,
+} from "../../typechain";
 import { RedeemableERC20Reentrant } from "../../typechain";
-import type { ReserveToken } from "../../typechain";
-import * as Util from "../../utils";
-import { getBlockTimestamp, readWriteTierDeploy, Tier } from "../../utils";
-import { Phase } from "../../utils/types/redeemableERC20";
 import {
   PhaseScheduledEvent,
   RedeemEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
-import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
+import * as Util from "../../utils";
+import { getBlockTimestamp, readWriteTierDeploy, Tier } from "../../utils";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
+import { Phase } from "../../utils/types/redeemableERC20";
 
 describe("RedeemableERC20 redeem test", async function () {
   let erc20Pullee: ERC20PulleeTest;

@@ -2,11 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
-import {
-  ReserveToken,
-  StakeFactory,
-  StandardIntegrity,
-} from "../../../typechain";
+import { ReserveToken, StakeFactory } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import { InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
 import {
@@ -15,16 +11,15 @@ import {
   getEventArgs,
   stakeDeploy,
 } from "../../../utils";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS } from "../../../utils/tier";
-import { standardIntegrityDeploy } from "../../../utils/deploy/interpreter/integrity/standardIntegrity/deploy";
-import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 
 const Opcode = AllStandardOps;
 

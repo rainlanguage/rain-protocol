@@ -4,7 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowFactory,
-  FlowIntegrity,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
@@ -20,7 +19,6 @@ import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { flowDeploy } from "../../../utils/deploy/flow/deploy";
-import { flowIntegrityDeploy } from "../../../utils/deploy/flow/interpreter/integrity/flowIntegrity/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {

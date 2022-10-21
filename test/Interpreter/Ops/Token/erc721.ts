@@ -5,7 +5,6 @@ import { ethers } from "hardhat";
 import type {
   AllStandardOpsTest,
   ReserveTokenERC721,
-  StandardIntegrity,
 } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";

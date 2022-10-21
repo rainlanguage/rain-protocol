@@ -1,12 +1,10 @@
+import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain";
-import { StakeFactory } from "../../typechain";
-import { ReportOMeter } from "../../typechain";
+import { ReportOMeter, ReserveToken18, StakeFactory } from "../../typechain";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
-import { assert } from "chai";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
 

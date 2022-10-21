@@ -5,7 +5,6 @@ import { ethers } from "hardhat";
 import type {
   AllStandardOpsTest,
   ReserveTokenERC20Snapshot,
-  StandardIntegrity,
 } from "../../../../typechain";
 import { SnapshotEvent } from "../../../../typechain/contracts/test/testToken/ReserveTokenERC20Snapshot";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";

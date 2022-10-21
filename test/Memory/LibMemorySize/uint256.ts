@@ -1,5 +1,4 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibMemorySizeTest } from "../../../typechain";
 import { randomUint256 } from "../../../utils/bytes";
 import { libMemorySizeDeploy } from "../../../utils/deploy/test/libMemorySize/deploy";

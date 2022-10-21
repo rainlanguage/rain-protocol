@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
+import { FlowERC20Factory } from "../../../typechain";
 import {
   FlowERC20ConfigStruct,
   InitializeEvent,
@@ -9,7 +9,6 @@ import {
 import { ONE } from "../../../utils/constants/bigNumber";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/deploy";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
-import { flowIntegrityDeploy } from "../../../utils/deploy/flow/interpreter/integrity/flowIntegrity/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
