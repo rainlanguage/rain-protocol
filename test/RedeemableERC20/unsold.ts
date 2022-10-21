@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain";
+import type { ERC20PulleeTest, ReadWriteTier } from "../../typechain";
 import type { ReserveToken } from "../../typechain";
 import * as Util from "../../utils";
 import { readWriteTierDeploy, Tier } from "../../utils";
@@ -8,14 +8,23 @@ import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 describe("RedeemableERC20 unsold token test", async function () {
+  let erc20Pullee: ERC20PulleeTest;
+  let tier: ReadWriteTier;
+  let reserve: ReserveToken;
+
+  before(async () => {
+    erc20Pullee = await erc20PulleeDeploy();
+    tier = await readWriteTierDeploy();
+  });
+
+  beforeEach(async () => {
+    reserve = await reserveDeploy();
+  });
+
   it("should forward unsold RedeemableERC20 (pTKN) to non-zero forwarding address", async function () {
     const signers = await ethers.getSigners();
 
     const forwardee = signers[2];
-
-    const erc20Pullee = await erc20PulleeDeploy();
-
-    const tier = await readWriteTierDeploy();
 
     const minimumTier = Tier.FOUR;
 
@@ -26,8 +35,6 @@ describe("RedeemableERC20 unsold token test", async function () {
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
-
-    const reserve = await reserveDeploy();
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -65,10 +72,6 @@ describe("RedeemableERC20 unsold token test", async function () {
   it("should burn unsold RedeemableERC20 (pTKN) when forwarding address set to address(0)", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20Pullee = await erc20PulleeDeploy();
-
-    const tier = await readWriteTierDeploy();
-
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -78,8 +81,6 @@ describe("RedeemableERC20 unsold token test", async function () {
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
-
-    const reserve = await reserveDeploy();
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,

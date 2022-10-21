@@ -14,6 +14,7 @@ import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import {
   getBlockTimestamp,
   max_uint256,
+  readWriteTierDeploy,
   stakeDeploy,
   THRESHOLDS,
   Tier,
@@ -28,6 +29,10 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { ALWAYS, NEVER, numArrayToReport } from "../../../utils/tier";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import { standardIntegrityDeploy } from "../../../utils/deploy/interpreter/integrity/standardIntegrity/deploy";
+import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -57,31 +62,10 @@ describe("CombineTier report tests", async function () {
     alice = signers[1];
     bob = signers[2];
 
-    tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    tokenERC20.initialize();
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
-
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic interpreter contract
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    tokenERC20 = await reserveDeploy();
+    readWriteTier = await readWriteTierDeploy();
+    stakeFactory = await stakeFactoryDeploy();
+    logic = await allStandardOpsDeploy();
   });
 
   it("should support a program which returns the default report", async () => {

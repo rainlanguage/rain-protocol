@@ -11,7 +11,12 @@ import {
   StandardIntegrity,
 } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
-import { max_uint32, stakeDeploy, THRESHOLDS } from "../../../utils";
+import {
+  max_uint32,
+  readWriteTierDeploy,
+  stakeDeploy,
+  THRESHOLDS,
+} from "../../../utils";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
@@ -23,6 +28,9 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -53,30 +61,10 @@ describe("CombineTier report time for tier tests", async function () {
     alice = signers[1];
     bob = signers[2];
 
-    tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    tokenERC20.initialize();
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
-
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic interpreter contract
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    tokenERC20 = await reserveDeploy();
+    readWriteTier = await readWriteTierDeploy();
+    stakeFactory = await stakeFactoryDeploy();
+    logic = await allStandardOpsDeploy();
   });
 
   it("should support returning report time for tier using Interpreter script (e.g. constant timestamp value)", async () => {

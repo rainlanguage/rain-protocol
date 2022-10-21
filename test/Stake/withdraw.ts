@@ -7,6 +7,7 @@ import { zeroAddress } from "../../utils";
 import { sixZeros, eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
 import { assertError } from "../../utils/test/assertError";
@@ -16,12 +17,7 @@ describe("Stake withdraw", async function () {
   let token: ReserveToken18;
 
   before(async () => {
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    stakeFactory = await stakeFactoryDeploy();
   });
 
   beforeEach(async () => {

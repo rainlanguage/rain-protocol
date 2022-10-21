@@ -18,31 +18,17 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let stateBuilder: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    stateBuilder = (await integrityFactory.deploy()) as StandardIntegrity;
-    await stateBuilder.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      stateBuilder.address
-    )) as AllStandardOpsTest;
+    stakeFactory = await stakeFactoryDeploy();
+    logic = await allStandardOpsDeploy();
   });
 
   beforeEach(async () => {

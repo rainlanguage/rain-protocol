@@ -7,6 +7,7 @@ import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
 
@@ -15,12 +16,7 @@ describe("Stake direct ledger analysis", async function () {
   let token: ReserveToken18;
 
   before(async () => {
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    stakeFactory = await stakeFactoryDeploy();
   });
 
   beforeEach(async () => {

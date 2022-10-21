@@ -4,18 +4,17 @@ import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
 import { RequestApproveEvent } from "../../typechain/contracts/verify/Verify";
-import { verifyDeploy } from "../../utils/deploy/verify/deploy";
+import {
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 
 describe("Verify request approve", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should allow anyone to add data to support verification", async function () {

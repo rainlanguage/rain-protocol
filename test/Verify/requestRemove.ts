@@ -4,7 +4,10 @@ import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
 import { RequestRemoveEvent } from "../../typechain/contracts/verify/Verify";
-import { verifyDeploy } from "../../utils/deploy/verify/deploy";
+import {
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 
@@ -12,11 +15,7 @@ describe("Verify request remove", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should allow anyone to submit data to support a request to remove an account", async function () {

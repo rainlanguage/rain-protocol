@@ -23,34 +23,16 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { ALWAYS } from "../../../utils/tier";
+import { standardIntegrityDeploy } from "../../../utils/deploy/interpreter/integrity/standardIntegrity/deploy";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("CombineTier ERC165 tests", async function () {
-  let integrity: StandardIntegrity;
-  // let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    // LogicFactory
-    // const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // logic = (await logicFactory.deploy(
-    //   integrity.address
-    // )) as AllStandardOpsTest;
-
-    // StakeFactory
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    stakeFactory = await stakeFactoryDeploy();
   });
 
   // report time for tier context

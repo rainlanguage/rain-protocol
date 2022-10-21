@@ -3,7 +3,10 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
-import { verifyDeploy } from "../../utils/deploy/verify/deploy";
+import {
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils/deploy/verify/deploy";
 import { getBlockTimestamp } from "../../utils/hardhat";
 import { Status } from "../../utils/types/verify";
 
@@ -11,11 +14,7 @@ describe("Verify status", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("statusAtTime should return correct status for any given state & block number", async function () {
