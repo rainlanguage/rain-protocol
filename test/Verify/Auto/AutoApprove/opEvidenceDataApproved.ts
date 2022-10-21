@@ -1,6 +1,6 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AutoApproveFactory } from "../../../../typechain";
+import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
 import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
@@ -23,9 +23,11 @@ import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove evidence data approved op", async function () {
   let autoApproveFactory: AutoApproveFactory;
+  let verifyFactory: VerifyFactory;
 
   before(async () => {
     autoApproveFactory = await autoApproveFactoryDeploy();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should allow checking if the given evidence e.g. approval time is after a given timestamp (e.g. 1 day in the past), and allowing it to be reused for another approval", async () => {
@@ -68,7 +70,6 @@ describe("AutoApprove evidence data approved op", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,
@@ -156,7 +157,6 @@ describe("AutoApprove evidence data approved op", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,

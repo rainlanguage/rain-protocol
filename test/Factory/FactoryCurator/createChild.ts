@@ -7,7 +7,9 @@ import type {
   FactoryCurator,
   FactoryTest,
   ReadWriteTier,
+  ReserveToken,
   ReserveToken18,
+  StakeFactory,
 } from "../../../typechain";
 import {
   CurationConfigStruct,
@@ -35,6 +37,17 @@ import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator createChild", async function () {
+  let reserve: ReserveToken;
+  let stakeFactory: StakeFactory;
+
+  before(async () => {
+    stakeFactory = await stakeFactoryDeploy();
+  });
+
+  beforeEach(async () => {
+    reserve = await reserveDeploy();
+  });
+
   it("should revert if user does not meet tier requirement", async () => {
     const signers = await ethers.getSigners();
 
@@ -44,8 +57,6 @@ describe("FactoryCurator createChild", async function () {
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    const reserve = await reserveDeploy();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -111,8 +122,6 @@ describe("FactoryCurator createChild", async function () {
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    const reserve = await reserveDeploy();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -186,8 +195,6 @@ describe("FactoryCurator createChild", async function () {
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    const reserve = await reserveDeploy();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -277,7 +284,6 @@ describe("FactoryCurator createChild", async function () {
     await reserve18.initialize();
 
     // Stake contract
-    const stakeFactory = await stakeFactoryDeploy();
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -392,10 +398,8 @@ describe("FactoryCurator createChild", async function () {
     const deployer = signers[3];
 
     // Reserve token
-    const reserve = await reserveDeploy();
 
     // Stake contract
-    const stakeFactory = await stakeFactoryDeploy();
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
