@@ -24,7 +24,7 @@ struct Order {
     address owner;
     IO[] validInputs;
     IO[] validOutputs;
-    bytes InterpreterState;
+    bytes interpreterState;
 }
 
 uint256 constant MIN_FINAL_STACK_INDEX = 2;

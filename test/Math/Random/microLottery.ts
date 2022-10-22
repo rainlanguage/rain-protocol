@@ -2,7 +2,7 @@ import { assert } from "chai";
 import type { Contract } from "ethers";
 import type { RandomTest } from "../../../typechain";
 import { assertError } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { prettyPrintMatrix } from "../../../utils/output/log";
 
 describe("Random Micro lottery", async function () {

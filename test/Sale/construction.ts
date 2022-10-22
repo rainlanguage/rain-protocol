@@ -1,19 +1,20 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import {
-  op,
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
+import {
   memoryOperand,
   MemoryType,
+  op,
 } from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
 import { Tier } from "../../utils/types/tier";
 

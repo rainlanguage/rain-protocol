@@ -1,12 +1,30 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain";
-import type { RedeemableERC20 } from "../../typechain";
-import type { ReserveToken } from "../../typechain";
+import type {
+  ERC20PulleeTest,
+  ReadWriteTier,
+  RedeemableERC20,
+  ReserveToken,
+} from "../../typechain";
 import * as Util from "../../utils";
-import { Tier } from "../../utils";
+import { readWriteTierDeploy, Tier } from "../../utils";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 
 describe("RedeemableERC20 transfer test", async function () {
+  let erc20Pullee: ERC20PulleeTest;
+  let tier: ReadWriteTier;
+  let reserve: ReserveToken;
+
+  before(async () => {
+    erc20Pullee = await erc20PulleeDeploy();
+    tier = await readWriteTierDeploy();
+  });
+
+  beforeEach(async () => {
+    reserve = await reserveDeploy();
+  });
+
   it("should enforce 'hub and spoke' pattern for sending and receiving tokens during distribution phase", async function () {
     // Copied from `RedeemableERC20.sol`
     //
@@ -26,16 +44,8 @@ describe("RedeemableERC20 transfer test", async function () {
     const carolSpoke = signers[3];
     const daveSpoke = signers[4];
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
-
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.ONE;
 
     // spokes above min tier
@@ -49,11 +59,6 @@ describe("RedeemableERC20 transfer test", async function () {
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const token = (await Util.redeemableERC20Deploy(owner, {
       reserve: reserve.address,
@@ -116,16 +121,8 @@ describe("RedeemableERC20 transfer test", async function () {
   it("should prevent tokens being sent to self (when user should be redeeming)", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
-
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -135,11 +132,6 @@ describe("RedeemableERC20 transfer test", async function () {
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,
@@ -167,16 +159,7 @@ describe("RedeemableERC20 transfer test", async function () {
 
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
-
     const signer1 = signers[1];
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     const minimumTier = Tier.FOUR;
 
@@ -189,11 +172,6 @@ describe("RedeemableERC20 transfer test", async function () {
     };
 
     await tier.setTier(signer1.address, Tier.FOUR);
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,

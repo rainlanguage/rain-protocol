@@ -1,12 +1,13 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { StackHeightTest, StandardIntegrity } from "../../../typechain";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { standardIntegrityDeploy } from "../../../utils/deploy/interpreter/integrity/standardIntegrity/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
@@ -15,11 +16,7 @@ describe("RainInterpreterIntegrity buildState", async function () {
   let integrity: StandardIntegrity;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
+    integrity = await standardIntegrityDeploy();
   });
 
   it("should enforce minimum stack height after eval", async () => {

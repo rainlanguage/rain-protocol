@@ -1,23 +1,29 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain";
-import type { ReserveToken } from "../../typechain";
+import type {
+  ERC20PulleeTest,
+  ReadWriteTier,
+  ReserveToken,
+} from "../../typechain";
 import {
   InitializeEvent,
   TreasuryAssetEvent,
 } from "../../typechain/contracts/redeemableERC20/RedeemableERC20";
 import * as Util from "../../utils";
-import { Tier } from "../../utils";
+import { readWriteTierDeploy, Tier } from "../../utils";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 
 describe("RedeemableERC20 event test", async function () {
+  let erc20Pullee: ERC20PulleeTest;
+  let tier: ReadWriteTier;
+
+  before(async () => {
+    erc20Pullee = await erc20PulleeDeploy();
+    tier = await readWriteTierDeploy();
+  });
+
   it("should emit Initialize event", async function () {
     const signers = await ethers.getSigners();
-
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
 
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
@@ -25,9 +31,6 @@ describe("RedeemableERC20 event test", async function () {
     )) as ReserveToken;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     const minimumTier = Tier.FOUR;
 
@@ -67,12 +70,6 @@ describe("RedeemableERC20 event test", async function () {
   it("should emit TreasuryAsset event", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
-
     const reserve1 = (await Util.basicDeploy(
       "ReserveToken",
       {}
@@ -83,9 +80,6 @@ describe("RedeemableERC20 event test", async function () {
     )) as ReserveToken;
 
     // Constructing the RedeemableERC20 sets the parameters but nothing stateful happens.
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
 
     const minimumTier = Tier.FOUR;
 

@@ -2,7 +2,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { ReadWriteTier, TierReportTest } from "../../../typechain";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierReport truncateTiersAbove", async function () {
@@ -13,9 +14,7 @@ describe("TierReport truncateTiersAbove", async function () {
   beforeEach(async () => {
     [, signer1] = await ethers.getSigners();
 
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
+    readWriteTier = await readWriteTierDeploy();
 
     tierReport = (await basicDeploy("TierReportTest", {})) as TierReportTest;
   });

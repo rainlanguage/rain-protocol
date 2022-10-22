@@ -2,10 +2,10 @@ import { assert } from "chai";
 import { concat, defaultAbiCoder } from "ethers/lib/utils";
 import { artifacts, ethers } from "hardhat";
 import type {
+  CombineTier,
   FactoryChildTest,
   FactoryCurator,
   FactoryTest,
-  CombineTier,
   ReadWriteTier,
   ReserveToken,
   ReserveToken18,
@@ -29,12 +29,25 @@ import {
   timewarp,
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
 describe("FactoryCurator createChild", async function () {
+  let reserve: ReserveToken;
+  let stakeFactory: StakeFactory;
+
+  before(async () => {
+    stakeFactory = await stakeFactoryDeploy();
+  });
+
+  beforeEach(async () => {
+    reserve = await reserveDeploy();
+  });
+
   it("should revert if user does not meet tier requirement", async () => {
     const signers = await ethers.getSigners();
 
@@ -44,9 +57,6 @@ describe("FactoryCurator createChild", async function () {
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -112,9 +122,6 @@ describe("FactoryCurator createChild", async function () {
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -188,9 +195,6 @@ describe("FactoryCurator createChild", async function () {
     const FEE = 100 + sixZeros;
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
-
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
 
     await reserve.transfer(signer1.address, FEE);
 
@@ -280,12 +284,6 @@ describe("FactoryCurator createChild", async function () {
     await reserve18.initialize();
 
     // Stake contract
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    const stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -400,16 +398,8 @@ describe("FactoryCurator createChild", async function () {
     const deployer = signers[3];
 
     // Reserve token
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
 
     // Stake contract
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    const stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",

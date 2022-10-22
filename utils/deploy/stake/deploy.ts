@@ -1,9 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { Stake, StakeFactory } from "../../typechain";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { getEventArgs } from "../events";
+import { Stake, StakeFactory } from "../../../typechain";
+import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import { getEventArgs } from "../../events";
 
 export const stakeDeploy = async (
   deployer: SignerWithAddress,
@@ -26,6 +26,8 @@ export const stakeDeploy = async (
     (await artifacts.readArtifact("Stake")).abi,
     deployer
   ) as Stake;
+
+  await stake.deployed();
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore

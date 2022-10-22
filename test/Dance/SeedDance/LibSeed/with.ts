@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { hexlify, randomBytes } from "ethers/lib/utils";
 import type { LibSeedTest } from "../../../../typechain";
-import { basicDeploy } from "../../../../utils/deploy/basic";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 
 describe("SeedDance LibSeed with", async function () {
   it("should generate new seed by hashing an existing seed with some value", async () => {

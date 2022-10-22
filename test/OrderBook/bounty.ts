@@ -17,7 +17,7 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv } from "../../utils/math";
 import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
@@ -27,6 +27,7 @@ import {
   op,
 } from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
+import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
 const Opcode = OrderBookOpcode;
 
@@ -46,12 +47,7 @@ describe("OrderBook bounty", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 

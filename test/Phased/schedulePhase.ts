@@ -1,6 +1,5 @@
 import { assert } from "chai";
-import type { PhasedScheduleTest } from "../../typechain";
-import type { PhasedTest } from "../../typechain";
+import type { PhasedScheduleTest, PhasedTest } from "../../typechain";
 import * as Util from "../../utils";
 import { getBlockTimestamp, max_uint32, timewarp } from "../../utils";
 import { Phase } from "../../utils/types/phased";

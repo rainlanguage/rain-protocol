@@ -1,19 +1,16 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  AllStandardOpsTest,
-  ReadWriteTier,
-  StandardIntegrity,
-} from "../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
+import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
+import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
-import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareTierReports } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
@@ -23,23 +20,8 @@ describe("TierV2 report op", async function () {
 
     const signer1 = signers[1];
 
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic interpreter contract
-    const logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
-
-    const readWriteTierFactory = await ethers.getContractFactory(
-      "ReadWriteTier"
-    );
-    const readWriteTier =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
+    const logic = await allStandardOpsDeploy();
+    const readWriteTier = await readWriteTierDeploy();
 
     await readWriteTier.setTier(signer1.address, Tier.FOUR);
     const setTierTimestamp = await getBlockTimestamp();

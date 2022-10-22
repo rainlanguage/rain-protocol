@@ -1,41 +1,30 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
+import { FlowERC20Factory } from "../../../typechain";
 import {
   FlowERC20ConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { ONE } from "../../../utils/constants/bigNumber";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
+import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC20 construction tests", async function () {
-  let integrity: FlowIntegrity;
   let flowERC20Factory: FlowERC20Factory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowERC20FactoryFactory = await ethers.getContractFactory(
-      "FlowERC20Factory",
-      {}
-    );
-    flowERC20Factory = (await flowERC20FactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC20Factory;
-    await flowERC20Factory.deployed();
+    flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
   it("should initialize on the good path", async () => {

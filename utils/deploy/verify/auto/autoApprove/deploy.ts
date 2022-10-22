@@ -1,13 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type { AutoApprove, AutoApproveFactory } from "../../typechain";
+import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
 import {
   ImplementationEvent as ImplementationEventAutoApproveFactory,
   StateConfigStruct,
-} from "../../typechain/contracts/verify/auto/AutoApproveFactory";
-import { zeroAddress } from "../constants";
-import { getEventArgs } from "../events";
+} from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
+import { zeroAddress } from "../../../../constants";
+import { getEventArgs } from "../../../../events";
 
 export const autoApproveFactoryDeploy = async () => {
   const integrityFactory = await ethers.getContractFactory(

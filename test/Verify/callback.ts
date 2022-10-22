@@ -8,8 +8,11 @@ import {
   BanEvent,
   RemoveEvent,
 } from "../../typechain/contracts/verify/Verify";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import {
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils/deploy/verify/deploy";
 import { getEvents } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 
@@ -17,11 +20,7 @@ describe("Verify callback", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should re-emit events associated with add, approve, ban and remove even if corresponding evidence has been deduped for the callback", async function () {

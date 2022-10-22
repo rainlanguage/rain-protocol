@@ -3,18 +3,19 @@ import { hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
-import { getBlockTimestamp, max_uint32, verifyDeploy } from "../../utils";
+import {
+  getBlockTimestamp,
+  max_uint32,
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils";
 import { Status } from "../../utils/types/verify";
 
 describe("Verify state", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should return correct state for a given account", async function () {

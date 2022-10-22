@@ -2,18 +2,15 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  AllStandardOpsTest,
-  ReserveToken,
-  StandardIntegrity,
-} from "../../../../typechain";
-import { basicDeploy } from "../../../../utils/deploy/basic";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import type { AllStandardOpsTest, ReserveToken } from "../../../../typechain";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
 
@@ -23,20 +20,10 @@ let signer1: SignerWithAddress;
 let tokenERC20: ReserveToken;
 
 describe("RainInterpreter ERC20 ops", async function () {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   beforeEach(async () => {

@@ -8,7 +8,7 @@ import {
   TimeBoundStructOutput,
 } from "../../../typechain/contracts/dance/SeedDance";
 import { assertError, kurtosis, Struct } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   generateRandomWallet,
