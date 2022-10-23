@@ -85,28 +85,12 @@ contract StandardInterpreter is RainInterpreter {
     function _loadInterpreterState(uint256 id_)
         internal
         view
-        returns (InterpreterState memory)
-    {
-        return _loadInterpreterState(id_, new uint256[][](0));
-    }
-
-    function _loadInterpreterState(uint256[][] memory context_)
-        internal
-        view
-        returns (InterpreterState memory)
-    {
-        return _loadInterpreterState(DEFAULT_SOURCE_ID, context_);
-    }
-
-    function _loadInterpreterState(uint256 id_, uint256[][] memory context_)
-        internal
-        view
         virtual
         returns (InterpreterState memory)
     {
         address pointer_ = InterpreterStatePointers[id_];
         require(pointer_ != address(0), "UNKNOWN_STATE");
-        return SSTORE2.read(pointer_).deserialize(context_);
+        return SSTORE2.read(pointer_).deserialize();
     }
 
     function localEvalFunctionPointers()

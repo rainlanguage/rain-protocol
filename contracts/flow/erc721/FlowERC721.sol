@@ -115,11 +115,10 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
         }
     }
 
-    function _previewFlow(InterpreterState memory state_, SignedContext[] memory signedContexts_)
-        internal
-        view
-        returns (FlowERC721IO memory)
-    {
+    function _previewFlow(
+        InterpreterState memory state_,
+        SignedContext[] memory signedContexts_
+    ) internal view returns (FlowERC721IO memory) {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_, signedContexts_);
@@ -168,21 +167,19 @@ contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
         }
     }
 
-    function previewFlow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
-        external
-        view
-        virtual
-        returns (FlowERC721IO memory)
-    {
+    function previewFlow(
+        uint256 flow_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external view virtual returns (FlowERC721IO memory) {
         return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
     }
 
-    function flow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
-        external
-        payable
-        virtual
-        returns (FlowERC721IO memory)
-    {
+    function flow(
+        uint256 flow_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external payable virtual returns (FlowERC721IO memory) {
         return _flow(_loadFlowState(flow_, id_), flow_, id_, signedContexts_);
     }
 }

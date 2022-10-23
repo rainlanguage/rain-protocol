@@ -46,6 +46,7 @@ struct InterpreterState {
     StackTop stackBottom;
     StackTop constantsBottom;
     uint256 scratch;
+    uint256 contextScratch;
     uint256[][] context;
     bytes[] compiledSources;
 }
@@ -132,6 +133,7 @@ library LibInterpreterState {
     function serialize(
         StateConfig memory config_,
         uint256 scratch_,
+        uint256 contextScratch_,
         uint256 stackLength_,
         function(InterpreterState memory, Operand, StackTop)
             internal
@@ -142,6 +144,7 @@ library LibInterpreterState {
         unchecked {
             uint256 size_ = 0;
             size_ += scratch_.size();
+            size_ += contextScratch_.size();
             size_ += stackLength_.size();
             size_ += config_.constants.size();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
@@ -159,6 +162,9 @@ library LibInterpreterState {
             // Copy scratch.
             cursor_ = cursor_.push(scratch_);
 
+            // Copy context scratch.
+            cursor_ = cursor_.push(contextScratch_);
+
             // Last the sources.
             bytes memory source_;
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
@@ -170,7 +176,7 @@ library LibInterpreterState {
         }
     }
 
-    function deserialize(bytes memory serialized_, uint256[][] memory context_)
+    function deserialize(bytes memory serialized_)
         internal
         pure
         returns (InterpreterState memory)
@@ -178,9 +184,10 @@ library LibInterpreterState {
         unchecked {
             InterpreterState memory state_;
 
-            // Context and the eval pointer are provided by the caller so no
-            // processing is needed for these.
-            state_.context = context_;
+            // Context will probably be overridden by the caller according to the
+            // context scratch that we deserialize so best to just set it empty
+            // here.
+            state_.context = new uint256[][](0);
 
             StackTop cursor_ = serialized_.asStackTop().up();
             // The end of processing is the end of the state bytes.
@@ -203,6 +210,9 @@ library LibInterpreterState {
 
             cursor_ = cursor_.up();
             state_.scratch = cursor_.peek();
+
+            cursor_ = cursor_.up();
+            state_.contextScratch = cursor_.peek();
 
             // Rebuild the sources array.
             uint256 i_ = 0;

@@ -5,6 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../runtime/LibStackTop.sol";
 import "../../runtime/LibInterpreterState.sol";
 import "../../integrity/LibIntegrityState.sol";
+import "../../../idempotent/LibIdempotentFlag.sol";
 
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly
@@ -19,9 +20,16 @@ library OpContext {
     /// Context pushes a single value to the stack from memory.
     function integrity(
         IntegrityState memory integrityState_,
-        Operand,
+        Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        uint256 column_ = Operand.unwrap(operand_) >> 8;
+        uint256 row_ = Operand.unwrap(operand_) & uint(type(uint8).max);
+        integrityState_.contextScratch = IdempotentFlag.unwrap(LibIdempotentFlag.set16x16(
+            IdempotentFlag.wrap(integrityState_.contextScratch),
+            column_,
+            row_
+        ));
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityState_.push(stackTop_);

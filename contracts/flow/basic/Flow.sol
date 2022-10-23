@@ -39,25 +39,29 @@ contract Flow is ReentrancyGuard, FlowInterpreter {
         return LibFlow.stackToFlow(state_.stackBottom, stackTop_);
     }
 
-    function previewFlow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
-        external
-        view
-        virtual
-        returns (FlowTransfer memory)
-    {
+    function previewFlow(
+        uint256 flow_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external view virtual returns (FlowTransfer memory) {
         return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
     }
 
-    function flow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
-        external
-        payable
-        virtual
-        nonReentrant
-        returns (FlowTransfer memory)
-    {
+    function flow(
+        uint256 flow_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
         InterpreterState memory state_ = _loadFlowState(flow_, id_);
-        FlowTransfer memory flowTransfer_ = _previewFlow(state_, signedContexts_);
-        registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
+        FlowTransfer memory flowTransfer_ = _previewFlow(
+            state_,
+            signedContexts_
+        );
+        registerFlowTime(
+            IdempotentFlag.wrap(state_.contextScratch),
+            flow_,
+            id_
+        );
         return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));
     }
 }

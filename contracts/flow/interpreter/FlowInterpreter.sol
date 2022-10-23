@@ -3,13 +3,15 @@ pragma solidity =0.8.17;
 
 import "../../interpreter/runtime/StandardInterpreter.sol";
 import "../libraries/LibFlow.sol";
-import "./FlowIntegrity.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+
+uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
+uint256 constant FLAG_ROW_FLOW_TIME = 1;
 
 uint256 constant ENTRYPOINTS_COUNT = 3;
 SourceIndex constant CAN_SIGN_CONTEXT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -58,17 +60,24 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         }
     }
 
-    function _loadFlowState(uint256 flow_, uint256 id_)
-        internal
-        view
-        returns (InterpreterState memory)
-    {
+    function _loadFlowState(
+        uint256 flow_,
+        uint256 id_
+    ) internal view returns (InterpreterState memory) {
         require(id_ != CORE_SOURCE_ID, "CORE_SOURCE_ID");
-        return
-            _loadInterpreterState(
-                flow_,
-                LibUint256Array.arrayFrom(id_).matrixFrom()
-            );
+        InterpreterState memory state_ = _loadInterpreterState(flow_);
+        // This column MUST match the flags tracked in the context grid.
+        state_.context = LibUint256Array
+            .arrayFrom(
+                id_,
+                loadFlowTime(
+                    IdempotentFlag.wrap(state_.contextScratch),
+                    flow_,
+                    id_
+                )
+            )
+            .matrixFrom();
+        return state_;
     }
 
     function flowStack(
@@ -89,7 +98,7 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
             for (uint256 i_ = 0; i_ < signedContexts_.length; i_++) {
                 canSignContext_[1] = LibUint256Array.arrayFrom(
                     i_,
-                    uint(uint160(signedContexts_[i_].signer))
+                    uint256(uint160(signedContexts_[i_].signer))
                 );
                 state_.context = canSignContext_;
                 require(
@@ -117,12 +126,23 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         }
     }
 
+    function loadFlowTime(
+        IdempotentFlag flag_,
+        uint256 flow_,
+        uint256 id_
+    ) internal view returns (uint256) {
+        return
+            flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)
+                ? _flows[flow_][id_]
+                : 0;
+    }
+
     function registerFlowTime(
         IdempotentFlag flag_,
         uint256 flow_,
         uint256 id_
     ) internal {
-        if (flag_.get(FLAG_INDEX_FLOW_TIME)) {
+        if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
             _flows[flow_][id_] = block.timestamp;
         }
     }
@@ -133,31 +153,6 @@ contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
         returns (uint256 flowTime_)
     {
         return _flows[flow_][id_];
-    }
-
-    function opFlowTime(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_flowTime);
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        override
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory localFnPtrs_
-        )
-    {
-        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
-            view
-            returns (StackTop)[](LOCAL_OPS_LENGTH);
-        localFnPtrs_[0] = opFlowTime;
     }
 
     receive() external payable virtual {}

@@ -195,9 +195,10 @@ contract OrderBook is StandardInterpreter {
             IdempotentFlag flag_
         )
     {
-        InterpreterState memory state_ = order_.InterpreterState.deserialize(
-            EvalContext(order_.hash(), counterparty_).toContext().matrixFrom()
-        );
+        InterpreterState memory state_ = order_.InterpreterState.deserialize();
+        state_.context = EvalContext(order_.hash(), counterparty_)
+            .toContext()
+            .matrixFrom();
         flag_ = IdempotentFlag.wrap(state_.scratch);
         (orderOutputMax_, orderIORatio_) = state_.eval().peek2();
 
