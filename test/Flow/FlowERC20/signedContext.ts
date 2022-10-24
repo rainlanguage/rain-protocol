@@ -1,6 +1,6 @@
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC20Factory, FlowIntegrity } from "../../../typechain";
+import { FlowERC20Factory } from "../../../typechain";
 import {
   SaveInterpreterStateEvent,
   SignedContextStruct,
@@ -11,6 +11,7 @@ import {
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
+import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
@@ -23,22 +24,10 @@ import { assertError } from "../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("FlowERC20 signed context tests", async function () {
-  let integrity: FlowIntegrity;
   let flowERC20Factory: FlowERC20Factory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowERC20FactoryFactory = await ethers.getContractFactory(
-      "FlowERC20Factory",
-      {}
-    );
-    flowERC20Factory = (await flowERC20FactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC20Factory;
-    await flowERC20Factory.deployed();
+    flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
   it("should validate multiple signed contexts", async () => {
