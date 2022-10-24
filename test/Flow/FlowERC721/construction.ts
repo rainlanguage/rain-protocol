@@ -33,6 +33,11 @@ describe("FlowERC721 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
+    const sourceCanSignContext = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    // prettier-ignore
     const sourceCanTransfer = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
@@ -75,7 +80,12 @@ describe("FlowERC721 construction tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
+      flows: [
+        {
+          sources: [sourceCanSignContext, sourceCanFlow, sourceFlowIO],
+          constants,
+        },
+      ],
     };
 
     const flow = await flowERC721Deploy(

@@ -89,6 +89,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -124,7 +126,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -162,11 +166,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[0].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
     // check input ERC1155 affected balances correctly
 
@@ -253,6 +257,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
@@ -286,7 +292,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -325,11 +333,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[0].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
     // check input ERC721 affected balances correctly
 
@@ -402,6 +410,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
@@ -432,7 +442,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -464,11 +476,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[0].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -534,6 +546,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -566,7 +580,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -587,13 +603,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, {
+      .callStatic.flow(flowStates[0].id, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
+    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, [], {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
     });
 
@@ -685,6 +701,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
@@ -721,7 +739,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -758,11 +778,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct: FlowTransferStructOutput = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[0].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -850,6 +870,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
@@ -880,7 +902,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -912,11 +936,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[0].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -997,6 +1021,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
@@ -1027,7 +1053,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -1050,11 +1078,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234);
+      .callStatic.flow(flowStates[0].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1126,6 +1154,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -1150,7 +1180,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -1176,13 +1208,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, {
+      .callStatic.flow(flowStates[0].id, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
-    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, {
+    const txFlow = await flow.connect(you).flow(flowStates[0].id, 1234, [], {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
     });
 
@@ -1224,6 +1256,8 @@ describe("Flow flow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
@@ -1238,7 +1272,9 @@ describe("Flow flow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);

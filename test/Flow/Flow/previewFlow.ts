@@ -71,6 +71,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -95,7 +97,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -108,7 +112,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -189,6 +193,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A = () =>
@@ -248,7 +254,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -261,7 +269,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -334,6 +342,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN_A = () =>
@@ -380,7 +390,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -393,7 +405,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -472,6 +484,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -530,7 +544,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -543,7 +559,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -598,6 +614,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
@@ -634,7 +652,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -647,7 +667,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -698,6 +718,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
@@ -728,7 +750,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -741,7 +765,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -802,6 +826,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -844,7 +870,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -857,7 +885,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234);
+      .previewFlow(flowStates[0].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -899,6 +927,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
@@ -923,7 +953,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -935,7 +967,8 @@ describe("Flow previewFlow tests", async function () {
     )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
-      async () => await flow.connect(you).previewFlow(flowStates[0].id, 1234),
+      async () =>
+        await flow.connect(you).previewFlow(flowStates[0].id, 1234, []),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -956,6 +989,8 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
@@ -971,7 +1006,9 @@ describe("Flow previewFlow tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
@@ -982,7 +1019,11 @@ describe("Flow previewFlow tests", async function () {
       flow
     )) as SaveInterpreterStateEvent["args"][];
 
-    const flowTransferPreview = await flow.previewFlow(flowStates[0].id, 1234);
+    const flowTransferPreview = await flow.previewFlow(
+      flowStates[0].id,
+      1234,
+      []
+    );
 
     compareStructs(flowTransferPreview, flowTransfer);
   });
