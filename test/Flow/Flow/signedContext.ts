@@ -38,6 +38,95 @@ describe("Flow signed context tests", async function () {
     await flowFactory.deployed();
   });
 
+  it("should validate multiple signed contexts", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const goodSigner = signers[1];
+    const badSigner = signers[2];
+
+    const constants = [RAIN_FLOW_SENTINEL, 1];
+
+    const SENTINEL = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+
+    const sourceFlowIO = concat([
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE END
+    ]);
+
+    const sources = [];
+
+    const flowConfigStruct: FlowConfigStruct = {
+      stateConfig: { sources, constants },
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
+    };
+
+    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
+      "SaveInterpreterState",
+      flow
+    )) as SaveInterpreterStateEvent["args"][];
+
+    const context0 = [1, 2, 3];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await goodSigner.signMessage(arrayify(hash0));
+
+    const context1 = [4, 5, 6];
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await goodSigner.signMessage(arrayify(hash1));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: goodSigner.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+      {
+        signer: goodSigner.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    await flow
+      .connect(goodSigner)
+      .flow(flowStates[0].id, 1234, signedContexts0, {});
+
+    // with bad signature in second signed context
+    const badSignature = await badSigner.signMessage(arrayify(hash1));
+    const signedContexts1: SignedContextStruct[] = [
+      {
+        signer: goodSigner.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+      {
+        signer: goodSigner.address,
+        signature: badSignature,
+        context: context0,
+      },
+    ];
+
+    await assertError(
+      async () =>
+        await flow
+          .connect(goodSigner)
+          .flow(flowStates[0].id, 1234, signedContexts1, {}),
+      "INVALID_SIGNATURE",
+      "did not error with signature from incorrect signer"
+    );
+  });
+
   it("should validate a signed context", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
