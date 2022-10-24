@@ -13,7 +13,6 @@ import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/uti
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
 uint256 constant FLAG_ROW_FLOW_TIME = 1;
 
-uint256 constant ENTRYPOINTS_COUNT = 3;
 SourceIndex constant CAN_SIGN_CONTEXT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(2);
