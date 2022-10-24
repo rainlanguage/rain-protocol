@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../../interpreter/runtime/StandardInterpreter.sol";
 import "../libraries/LibFlow.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -25,19 +24,18 @@ struct SignedContext {
     uint256[] context;
 }
 
-contract FlowInterpreter is ERC721Holder, ERC1155Holder, StandardInterpreter {
+contract FlowCommon is ERC721Holder, ERC1155Holder {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
+    IExpressionDeployer internal _expressionDeployer;
+    IInterpreter internal _interpreter;
+
     /// flow index => id => time
     mapping(uint256 => mapping(uint256 => uint256)) private _flows;
-
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {}
 
     /// @param flows_ source and token config. Also controls delegated claims.
     // solhint-disable-next-line func-name-mixedcase
