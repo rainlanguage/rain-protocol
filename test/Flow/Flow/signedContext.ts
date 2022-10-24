@@ -7,7 +7,7 @@ import {
   SignedContextStruct,
 } from "../../../typechain/contracts/flow/basic/Flow";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
-import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,

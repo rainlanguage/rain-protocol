@@ -10,7 +10,7 @@ import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getEvents } from "../../../utils/events";
 import {
   memoryOperand,
