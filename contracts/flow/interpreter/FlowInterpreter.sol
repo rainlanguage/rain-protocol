@@ -11,7 +11,6 @@ import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts
 import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
-uint256 constant ENTRYPOINTS_COUNT = 3;
 SourceIndex constant CAN_SIGN_CONTEXT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CAN_FLOW_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(2);
