@@ -325,7 +325,7 @@ library LibInterpreterState {
             assembly ("memory-safe") {
                 cursor_ := mload(
                     add(
-                        mload(add(state_, 0x80)),
+                        mload(add(state_, 0xA0)),
                         add(0x20, mul(0x20, sourceIndex_))
                     )
                 )
