@@ -85,6 +85,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -118,7 +120,7 @@ describe("FlowERC1155 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants: constantsCanTransfer,
         },
       ],
@@ -131,7 +133,7 @@ describe("FlowERC1155 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants: constantsCannotTransfer,
         },
       ],
@@ -164,11 +166,11 @@ describe("FlowERC1155 flow tests", async function () {
 
     const _txFlowCanTransfer = await flowCanTransfer
       .connect(signer1)
-      .flow(flowStatesCanTransfer[1].id, 1234);
+      .flow(flowStatesCanTransfer[1].id, 1234, []);
 
     const _txFlowCannotTransfer = await flowCannotTransfer
       .connect(signer1)
-      .flow(flowStatesCannotTransfer[1].id, 1234);
+      .flow(flowStatesCannotTransfer[1].id, 1234, []);
 
     // check minting worked
     const balanceCan0 = await flowCanTransfer.balanceOf(
@@ -309,6 +311,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -366,8 +370,14 @@ describe("FlowERC1155 flow tests", async function () {
         constants: constantsMint,
       },
       flows: [
-        { sources: [CAN_FLOW(), sourceFlowIOMint], constants: constantsMint },
-        { sources: [CAN_FLOW(), sourceFlowIOBurn], constants: constantsBurn },
+        {
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIOMint],
+          constants: constantsMint,
+        },
+        {
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIOBurn],
+          constants: constantsBurn,
+        },
       ],
     };
 
@@ -394,7 +404,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStructMint = await flow
       .connect(you)
-      .callStatic.flow(mintFlowId, 1234, {
+      .callStatic.flow(mintFlowId, 1234, [], {
         value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
       });
 
@@ -403,7 +413,7 @@ describe("FlowERC1155 flow tests", async function () {
       fillEmptyAddressERC1155(flowERC1155IOMint, me.address)
     );
 
-    const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
+    const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, [], {
       value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
     });
 
@@ -446,14 +456,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStructBurn = await flow
       .connect(you)
-      .callStatic.flow(burnFlowId, 1234);
+      .callStatic.flow(burnFlowId, 1234, []);
 
     compareStructs(
       flowStructBurn,
       fillEmptyAddressERC1155(flowERC1155IOBurn, me.address)
     );
 
-    const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234);
+    const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234, []);
 
     const { gasUsed: gasUsedBurn } = await txFlowBurn.wait();
     const { gasPrice: gasPriceBurn } = txFlowBurn;
@@ -546,6 +556,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -590,7 +602,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -626,14 +640,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     // check input ERC1155 affected balances correctly
 
@@ -732,6 +746,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -775,7 +791,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -812,14 +830,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     // check input ERC721 affected balances correctly
 
@@ -902,6 +920,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -942,7 +962,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -972,14 +994,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     // check input ERC721 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -1050,6 +1072,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1087,7 +1111,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1106,7 +1132,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234, {
+      .callStatic.flow(flowStates[1].id, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1115,7 +1141,7 @@ describe("FlowERC1155 flow tests", async function () {
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, [], {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
     });
 
@@ -1218,6 +1244,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1264,7 +1292,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1299,14 +1329,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -1401,6 +1431,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1441,7 +1473,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1471,14 +1505,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1570,6 +1604,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1610,7 +1646,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1631,14 +1669,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1717,6 +1755,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1750,7 +1790,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1774,7 +1816,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234, {
+      .callStatic.flow(flowStates[1].id, 1234, [], {
         value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
       });
 
@@ -1783,7 +1825,7 @@ describe("FlowERC1155 flow tests", async function () {
       fillEmptyAddressERC1155(flowERC1155IO, me.address)
     );
 
-    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, [], {
       value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
     });
 
@@ -1829,6 +1871,8 @@ describe("FlowERC1155 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1851,7 +1895,9 @@ describe("FlowERC1155 flow tests", async function () {
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     await signers[0].sendTransaction({

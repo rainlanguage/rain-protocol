@@ -95,7 +95,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -116,7 +121,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -127,7 +132,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -138,7 +145,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
     compareStructs(
       flowTransferPreview,
       fillEmptyAddressERC721(flowERC721IO, flow.address),
@@ -226,7 +233,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -283,7 +295,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -294,7 +306,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -305,7 +319,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -386,7 +400,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN_A = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -431,7 +450,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -442,7 +461,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -453,7 +474,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -540,7 +561,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -596,7 +622,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -607,7 +633,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -618,7 +646,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -682,7 +710,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -717,7 +750,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -728,7 +761,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -739,7 +774,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -798,7 +833,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -826,7 +866,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -837,7 +877,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -848,7 +890,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -917,7 +959,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -957,7 +1004,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -968,7 +1015,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -979,7 +1028,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -997,7 +1046,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -1009,7 +1063,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1020,7 +1074,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1030,7 +1086,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowStates[1].id, 1234),
+      async () => await flow.previewFlow(flowStates[1].id, 1234, []),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -1059,7 +1115,12 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -1071,7 +1132,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       SENTINEL_721(),
     ]);
 
-    const sources = [ONE()];
+    const sources = [CAN_TRANSFER()];
 
     const stateConfigStruct: StateConfigStruct = {
       sources,
@@ -1082,7 +1143,9 @@ describe("FlowERC721 previewFlow tests", async function () {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
-      flows: [{ sources: [ONE(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     });
 
     const flowStates = (await getEvents(
@@ -1093,7 +1156,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowTransferPreview,

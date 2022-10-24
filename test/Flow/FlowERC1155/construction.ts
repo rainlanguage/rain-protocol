@@ -42,12 +42,12 @@ describe("FlowERC1155 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceRebaseRatio = concat([
+    const sourceCanTransfer = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
-    const sourceCanTransfer = concat([
+    const sourceCanSignContext = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
@@ -71,7 +71,7 @@ describe("FlowERC1155 construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
     ]);
 
-    const sources = [sourceRebaseRatio, sourceCanTransfer];
+    const sources = [sourceCanTransfer];
 
     const configStruct: FlowERC1155ConfigStruct = {
       uri: "F1155",
@@ -79,7 +79,12 @@ describe("FlowERC1155 construction tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
+      flows: [
+        {
+          sources: [sourceCanSignContext, sourceCanFlow, sourceFlowIO],
+          constants,
+        },
+      ],
     };
 
     const flow = await flowERC1155Deploy(
