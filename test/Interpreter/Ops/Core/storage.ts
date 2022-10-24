@@ -1,12 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
-import type {
-  AllStandardOpsTest,
-  StandardIntegrity,
-} from "../../../../typechain";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import type { AllStandardOpsTest } from "../../../../typechain";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
@@ -14,20 +11,10 @@ const Opcode = AllStandardOps;
 // Contains tests for RainInterpreter, the constant RainInterpreter ops as well as Math ops via AllStandardOpsTest contract.
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainInterpreter storage", async function () {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   it("should error when attempting to read stored value outside STORAGE opcode range", async () => {

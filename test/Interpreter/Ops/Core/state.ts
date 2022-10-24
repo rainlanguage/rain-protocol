@@ -1,10 +1,7 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  AllStandardOpsTest,
-  StandardIntegrity,
-} from "../../../../typechain";
+import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -13,24 +10,15 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("STATE Opcode test", async function () {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   it("should read a value from CONSTANT and place it on the STACK", async () => {

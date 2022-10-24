@@ -1,25 +1,26 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../../typechain";
-import { ReserveToken } from "../../../typechain";
-import { SaleFactory } from "../../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,
   ONE,
   RESERVE_ONE,
 } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
-import { createEmptyBlock } from "../../../utils/hardhat";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../../utils/interpreter/sale";
 import {
-  op,
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
+import { createEmptyBlock } from "../../../utils/hardhat";
+import {
   memoryOperand,
   MemoryType,
+  op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../../utils/interpreter/sale";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
@@ -38,7 +39,7 @@ describe("Sale unchecked math", async function () {
   beforeEach(async () => {
     signers = await ethers.getSigners();
 
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = await reserveDeploy();
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {

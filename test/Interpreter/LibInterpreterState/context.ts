@@ -1,10 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
-import type {
-  LibInterpreterStateTest,
-  StandardIntegrity,
-} from "../../../typechain";
+import type { LibInterpreterStateTest } from "../../../typechain";
+import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 
@@ -12,19 +9,7 @@ describe("LibInterpreterState context tests", async function () {
   let libInterpreterState: LibInterpreterStateTest;
 
   before(async () => {
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const interpreterIntegrity =
-      (await stateBuilderFactory.deploy()) as StandardIntegrity;
-    await interpreterIntegrity.deployed();
-
-    const libInterpreterStateFactory = await ethers.getContractFactory(
-      "LibInterpreterStateTest"
-    );
-    libInterpreterState = (await libInterpreterStateFactory.deploy(
-      interpreterIntegrity.address
-    )) as LibInterpreterStateTest;
+    libInterpreterState = await libInterpreterStateDeploy();
   });
 
   it("should store a 2D context upon deserializing", async () => {

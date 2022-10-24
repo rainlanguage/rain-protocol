@@ -4,7 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowERC20Factory,
-  FlowIntegrity,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
@@ -20,40 +19,29 @@ import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
+import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC20 flow tests", async function () {
-  let integrity: FlowIntegrity;
   let flowERC20Factory: FlowERC20Factory;
   const ME = () => op(Opcode.THIS_ADDRESS);
   const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowERC20Factory",
-      {}
-    );
-    flowERC20Factory = (await flowFactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC20Factory;
-    await flowERC20Factory.deployed();
+    flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
   it("should support transferPreflight hook", async () => {
@@ -110,6 +98,8 @@ describe("FlowERC20 flow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -145,7 +135,7 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants: constantsCanTransfer,
         },
       ],
@@ -159,7 +149,7 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants: constantsCannotTransfer,
         },
       ],
@@ -191,11 +181,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const _txFlowCanTransfer = await flowCanTransfer
       .connect(you)
-      .flow(flowStatesCanTransfer[1].id, 1234);
+      .flow(flowStatesCanTransfer[1].id, 1234, []);
 
     const _txFlowCannotTransfer = await flowCannotTransfer
       .connect(you)
-      .flow(flowStatesCannotTransfer[1].id, 1234);
+      .flow(flowStatesCannotTransfer[1].id, 1234, []);
 
     await flowCanTransfer.connect(you).transfer(signerReceiver.address, mint);
 
@@ -315,6 +305,8 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -357,8 +349,14 @@ describe("FlowERC20 flow tests", async function () {
         constants: constantsMint, // only needed for REBASE_RATIO and CAN_TRANSFER, so could also be `constantsBurn` and produce same result
       },
       flows: [
-        { sources: [CAN_FLOW(), sourceFlowIO], constants: constantsMint },
-        { sources: [CAN_FLOW(), sourceFlowIO], constants: constantsBurn },
+        {
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          constants: constantsMint,
+        },
+        {
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          constants: constantsBurn,
+        },
       ],
     };
 
@@ -392,7 +390,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStructMint = await flow
       .connect(you)
-      .callStatic.flow(mintFlowId, 1234, {
+      .callStatic.flow(mintFlowId, 1234, [], {
         value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
       });
 
@@ -401,7 +399,7 @@ describe("FlowERC20 flow tests", async function () {
       fillEmptyAddressERC20(flowERC20IOMint, flow.address)
     );
 
-    const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, {
+    const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, [], {
       value: ethers.BigNumber.from(flowTransferMint.native[0].amount),
     });
 
@@ -451,14 +449,14 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStructBurn = await flow
       .connect(you)
-      .callStatic.flow(burnFlowId, 1234);
+      .callStatic.flow(burnFlowId, 1234, []);
 
     compareStructs(
       flowStructBurn,
       fillEmptyAddressERC20(flowERC20IOBurn, flow.address)
     );
 
-    const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234);
+    const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234, []);
 
     const { gasUsed: gasUsedBurn } = await txFlowBurn.wait();
     const { gasPrice: gasPriceBurn } = txFlowBurn;
@@ -570,6 +568,8 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -623,7 +623,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -665,14 +667,14 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC20(flowERC20IO, flow.address)
     );
 
-    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     // check input ERC1155 affected balances correctly
 
@@ -783,6 +785,8 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const MINT_AMOUNT = () =>
@@ -833,7 +837,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -876,14 +882,14 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC20(flowERC20IO, flow.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     // check input ERC721 affected balances correctly
 
@@ -980,6 +986,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1028,7 +1036,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -1064,14 +1074,14 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowStruct,
       fillEmptyAddressERC20(flowERC20IO, flow.address)
     );
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -1154,6 +1164,8 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1199,7 +1211,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -1224,13 +1238,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234, {
+      .callStatic.flow(flowStates[1].id, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
-    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, [], {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
     });
 
@@ -1346,6 +1360,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1400,7 +1416,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -1441,11 +1459,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -1553,6 +1571,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1600,7 +1620,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -1636,11 +1658,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1745,6 +1767,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1793,7 +1817,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -1820,11 +1846,11 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234);
+      .callStatic.flow(flowStates[1].id, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
-    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234);
+    const _txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1916,6 +1942,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1957,7 +1985,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(
@@ -1987,13 +2017,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].id, 1234, {
+      .callStatic.flow(flowStates[1].id, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
-    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, {
+    const txFlow = await flow.connect(you).flow(flowStates[1].id, 1234, [], {
       value: ethers.BigNumber.from(flowTransfer.native[0].amount),
     });
 
@@ -2040,6 +2070,8 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -2061,7 +2093,9 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [CAN_FLOW(), sourceFlowIO], constants }],
+      flows: [
+        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
+      ],
     };
 
     const flow = await flowERC20Deploy(

@@ -1,40 +1,29 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory, FlowIntegrity } from "../../../typechain";
+import { FlowFactory } from "../../../typechain";
 import {
   FlowConfigStruct,
   InitializeEvent,
 } from "../../../typechain/contracts/flow/basic/Flow";
-import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("Flow construction tests", async function () {
-  let integrity: FlowIntegrity;
   let flowFactory: FlowFactory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowFactory",
-      {}
-    );
-    flowFactory = (await flowFactoryFactory.deploy(
-      integrity.address
-    )) as FlowFactory;
-    await flowFactory.deployed();
+    flowFactory = await flowFactoryDeploy();
   });
 
   it("should initialize on the good path", async () => {
@@ -42,6 +31,11 @@ describe("Flow construction tests", async function () {
     const deployer = signers[0];
 
     const constants = [1, 2];
+
+    // prettier-ignore
+    const sourceCanSignContext = concat([
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+    ]);
 
     // prettier-ignore
     const sourceCanFlow = concat([
@@ -70,7 +64,12 @@ describe("Flow construction tests", async function () {
 
     const flowConfigStruct: FlowConfigStruct = {
       stateConfig: { sources, constants },
-      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
+      flows: [
+        {
+          sources: [sourceCanSignContext, sourceCanFlow, sourceFlowIO],
+          constants,
+        },
+      ],
     };
 
     const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);

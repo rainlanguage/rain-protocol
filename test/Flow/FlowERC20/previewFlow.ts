@@ -2,7 +2,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowERC20Factory,
-  FlowIntegrity,
   ReserveToken,
   ReserveTokenERC1155,
   ReserveTokenERC721,
@@ -18,40 +17,29 @@ import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowERC20Deploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
+import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC20 previewFlow tests", async function () {
-  let integrity: FlowIntegrity;
-  let flowFactory: FlowERC20Factory;
+  let flowERC20Factory: FlowERC20Factory;
   const ME = () => op(Opcode.THIS_ADDRESS);
   const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowERC20Factory",
-      {}
-    );
-    flowFactory = (await flowFactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC20Factory;
-    await flowFactory.deployed();
+    flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
   it("should preview defined flow IO for native Ether", async () => {
@@ -107,6 +95,11 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -146,13 +139,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_TRANSFER(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -166,7 +159,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -266,6 +259,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const SENTINEL_ERC20 = () =>
@@ -341,13 +336,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -361,7 +356,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -453,6 +448,8 @@ describe("FlowERC20 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -517,13 +514,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -537,7 +534,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -637,6 +634,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -712,13 +711,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -732,7 +731,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -808,6 +807,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -861,13 +862,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -881,7 +882,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -953,6 +954,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -1000,13 +1003,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -1020,7 +1023,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1102,6 +1105,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -1160,13 +1165,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -1180,7 +1185,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1199,6 +1204,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -1221,13 +1228,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -1240,7 +1247,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as SaveInterpreterStateEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowStates[1].id, 1234),
+      async () => await flow.previewFlow(flowStates[1].id, 1234, []),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -1287,6 +1294,8 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
+    const CAN_SIGN_CONTEXT = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
@@ -1318,13 +1327,13 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowFactory, {
+    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
       interpreterStateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_FLOW(), sourceFlowIO],
+          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
           constants,
         },
       ],
@@ -1338,7 +1347,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234);
+      .previewFlow(flowStates[1].id, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address)

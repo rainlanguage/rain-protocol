@@ -5,15 +5,15 @@ import { ethers } from "hardhat";
 import type {
   AllStandardOpsTest,
   ReserveTokenERC721,
-  StandardIntegrity,
 } from "../../../../typechain";
-import { basicDeploy } from "../../../../utils/deploy/basic";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
 
@@ -24,20 +24,10 @@ let signer1: SignerWithAddress;
 let tokenERC721: ReserveTokenERC721;
 
 describe("RainInterpreter ERC721 ops", async function () {
-  let integrity: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    logic = await allStandardOpsDeploy();
   });
 
   beforeEach(async () => {

@@ -1,38 +1,29 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowERC1155Factory, FlowIntegrity } from "../../../typechain";
-import { InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { FlowERC1155ConfigStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
+import { FlowERC1155Factory } from "../../../typechain";
+import {
+  FlowERC1155ConfigStruct,
+  InitializeEvent,
+} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
 import { getEventArgs } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC1155 construction tests", async function () {
-  let integrity: FlowIntegrity;
   let flowERC1155Factory: FlowERC1155Factory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowERC1155FactoryFactory = await ethers.getContractFactory(
-      "FlowERC1155Factory",
-      {}
-    );
-    flowERC1155Factory = (await flowERC1155FactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC1155Factory;
-    await flowERC1155Factory.deployed();
+    flowERC1155Factory = await flowERC1155FactoryDeploy();
   });
 
   it("should initialize on the good path", async () => {
@@ -42,12 +33,12 @@ describe("FlowERC1155 construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceRebaseRatio = concat([
+    const sourceCanTransfer = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
-    const sourceCanTransfer = concat([
+    const sourceCanSignContext = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
@@ -71,7 +62,7 @@ describe("FlowERC1155 construction tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel1155
     ]);
 
-    const sources = [sourceRebaseRatio, sourceCanTransfer];
+    const sources = [sourceCanTransfer];
 
     const configStruct: FlowERC1155ConfigStruct = {
       uri: "F1155",
@@ -79,7 +70,12 @@ describe("FlowERC1155 construction tests", async function () {
         sources,
         constants,
       },
-      flows: [{ sources: [sourceCanFlow, sourceFlowIO], constants }],
+      flows: [
+        {
+          sources: [sourceCanSignContext, sourceCanFlow, sourceFlowIO],
+          constants,
+        },
+      ],
     };
 
     const flow = await flowERC1155Deploy(

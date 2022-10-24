@@ -1,16 +1,13 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
+import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 
 describe("LibStackTop applyFn tests", async function () {
   let libStackTop: LibStackTopTest;
 
   before(async () => {
-    const libStackTopFactory = await ethers.getContractFactory(
-      "LibStackTopTest"
-    );
-    libStackTop = (await libStackTopFactory.deploy()) as LibStackTopTest;
+    libStackTop = await libStackTopDeploy();
   });
 
   it("should applyFn for `function(uint256) internal view returns (uint256)`", async () => {

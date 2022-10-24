@@ -1,24 +1,18 @@
 import { assert } from "chai";
-import type { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-
-import type { FixedPointMathTest } from "../../../typechain";
+import { FixedPointMathTest } from "../../../typechain/contracts/test/math/FixedPointMath/FixedPointMathTest";
 import { eighteenZeros, sixZeros, tenZeros } from "../../../utils";
-
-let fixedPointMathTestFactory: ContractFactory;
+import { fixedPointMathDeploy } from "../../../utils/deploy/math/fixedPointMath/deploy";
 
 describe("FixedPointMathTest scaling a number", async function () {
+  let fixedPointMathTest: FixedPointMathTest;
+
   before(async () => {
-    fixedPointMathTestFactory = await ethers.getContractFactory(
-      "FixedPointMathTest"
-    );
+    fixedPointMathTest = await fixedPointMathDeploy();
   });
 
   // Scale 18
   it("should scale a fixed point decimal UP to scale 18", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + sixZeros);
     const aDecimals_ = 8; // 0.01
 
@@ -28,9 +22,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a fixed point decimal DOWN to scale 18", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
     const aDecimals_ = 24; // 1.0
 
@@ -40,9 +31,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a 0 order of magnitude decimal to scale 18", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1);
     const aDecimals_ = 0; // 1.0
 
@@ -53,9 +41,6 @@ describe("FixedPointMathTest scaling a number", async function () {
 
   // Scale N
   it("should scale a fixed point decimal UP to scale N", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const targetDecimals_ = 20;
 
@@ -65,9 +50,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a fixed point decimal DOWN to scale N", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const targetDecimals_ = 8;
 
@@ -77,9 +59,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a number by 18 OOM in situ [scaleN]", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1);
     const targetDecimals_ = 18;
 
@@ -90,9 +69,6 @@ describe("FixedPointMathTest scaling a number", async function () {
 
   // Scale By
   it("should scale a fixed point decimal UP by scale N", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const scaleBy_ = 2;
 
@@ -102,9 +78,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a fixed point decimal DOWN by scale N", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + sixZeros + "00");
     const scaleBy_ = -2;
 
@@ -114,9 +87,6 @@ describe("FixedPointMathTest scaling a number", async function () {
   });
 
   it("should scale a 18 order of magnitude decimal by scale 0", async () => {
-    const fixedPointMathTest =
-      (await fixedPointMathTestFactory.deploy()) as FixedPointMathTest;
-
     const a_ = ethers.BigNumber.from(1 + eighteenZeros);
     const scaleBy_ = 0;
 

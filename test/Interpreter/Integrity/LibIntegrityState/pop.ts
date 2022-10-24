@@ -1,20 +1,16 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibIntegrityStateTest } from "../../../../typechain";
 import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/runtime/RainInterpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
+import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("LibIntegrityState pop tests", async function () {
   let libIntegrityState: LibIntegrityStateTest;
 
   before(async () => {
-    const libIntegrityStateFactory = await ethers.getContractFactory(
-      "LibIntegrityStateTest"
-    );
-    libIntegrityState =
-      (await libIntegrityStateFactory.deploy()) as LibIntegrityStateTest;
+    libIntegrityState = await libIntegrityStateDeploy();
   });
 
   // pop n

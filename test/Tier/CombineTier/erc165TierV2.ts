@@ -2,11 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
-import {
-  ReserveToken,
-  StakeFactory,
-  StandardIntegrity,
-} from "../../../typechain";
+import { ReserveToken, StakeFactory } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import { InitializeEvent } from "../../../typechain/contracts/tier/CombineTier";
 import {
@@ -15,42 +11,23 @@ import {
   getEventArgs,
   stakeDeploy,
 } from "../../../utils";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;
 
 describe("CombineTier ERC165 tests", async function () {
-  let integrity: StandardIntegrity;
-  // let logic: AllStandardOpsTest;
   let stakeFactory: StakeFactory;
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-
-    // LogicFactory
-    // const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // logic = (await logicFactory.deploy(
-    //   integrity.address
-    // )) as AllStandardOpsTest;
-
-    // StakeFactory
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    stakeFactory = await stakeFactoryDeploy();
   });
 
   // report time for tier context

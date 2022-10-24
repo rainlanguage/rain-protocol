@@ -4,17 +4,13 @@ import { ethers } from "hardhat";
 import type { Verify, VerifyTier } from "../../../typechain";
 import { VerifyFactory } from "../../../typechain";
 import * as Util from "../../../utils";
-import { getBlockTimestamp } from "../../../utils";
+import { getBlockTimestamp, verifyFactoryDeploy } from "../../../utils";
 
 describe("VerifyTier verify", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should correctly verify tier", async function () {
