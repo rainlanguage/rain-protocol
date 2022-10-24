@@ -4,52 +4,40 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowFactory,
-  FlowIntegrity,
   ReserveToken18,
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import {
   FlowConfigStruct,
   FlowTransferStruct,
   SaveInterpreterStateEvent,
 } from "../../../typechain/contracts/flow/basic/Flow";
+import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowDeploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("Flow flow tests", async function () {
-  let integrity: FlowIntegrity;
   let flowFactory: FlowFactory;
   const ME = () => op(Opcode.THIS_ADDRESS);
   const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowFactory",
-      {}
-    );
-    flowFactory = (await flowFactoryFactory.deploy(
-      integrity.address
-    )) as FlowFactory;
-    await flowFactory.deployed();
+    flowFactory = await flowFactoryDeploy();
   });
 
   it("should flow for erc1155<->native on the good path", async () => {

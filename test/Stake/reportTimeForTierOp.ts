@@ -1,48 +1,35 @@
 import { assert } from "chai";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain";
-import { StakeFactory } from "../../typechain";
+import {
+  AllStandardOpsTest,
+  ReserveToken18,
+  StakeFactory,
+} from "../../typechain";
+import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { max_uint32, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
-import { Tier } from "../../utils/types/tier";
-import { StandardIntegrity } from "../../typechain";
-import { AllStandardOpsTest } from "../../typechain";
-import { concat } from "ethers/lib/utils";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
 import { Opcode } from "../../utils/interpreter/ops/allStandardOps";
-import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { Tier } from "../../utils/types/tier";
 
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let stateBuilder: StandardIntegrity;
   let logic: AllStandardOpsTest;
 
   before(async () => {
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const stateBuilderFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    stateBuilder = (await stateBuilderFactory.deploy()) as StandardIntegrity;
-    await stateBuilder.deployed();
-
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    logic = (await logicFactory.deploy(
-      stateBuilder.address
-    )) as AllStandardOpsTest;
+    stakeFactory = await stakeFactoryDeploy();
+    logic = await allStandardOpsDeploy();
   });
 
   beforeEach(async () => {

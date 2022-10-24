@@ -9,17 +9,14 @@ import {
   getBlockTimestamp,
   getEventArgs,
   verifyDeploy,
+  verifyFactoryDeploy,
 } from "../../utils";
 
 describe("Verify ban", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should allow banner to preemptively ban an account before it is added, which also triggers add callback before ban callback", async function () {

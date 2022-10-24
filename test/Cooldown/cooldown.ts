@@ -9,6 +9,7 @@ import {
   max_uint32,
   timewarp,
 } from "../../utils";
+import { cooldownDeploy } from "../../utils/deploy/test/cooldown/deploy";
 
 describe("Cooldown modifier test", async function () {
   let cooldownTest: CooldownTest;
@@ -19,8 +20,7 @@ describe("Cooldown modifier test", async function () {
     const signers = await ethers.getSigners();
     alice = signers[0];
     bob = signers[1];
-    const CooldownTestFactory = await ethers.getContractFactory("CooldownTest");
-    cooldownTest = (await CooldownTestFactory.deploy()) as CooldownTest;
+    cooldownTest = await cooldownDeploy();
   });
 
   it("should set the cooldown for alice", async function () {

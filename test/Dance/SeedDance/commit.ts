@@ -3,7 +3,7 @@ import { keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { SeedDanceTest } from "../../../typechain";
 import { CommitEvent } from "../../../typechain/contracts/dance/SeedDance";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../utils/events";
 import { assertError } from "../../../utils/test/assertError";
 

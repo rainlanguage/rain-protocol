@@ -19,7 +19,7 @@ contract StandardInterpreter is RainInterpreter {
     address internal immutable interpreterIntegrity;
 
     /// Address of the immutable Rain expression deployed as a `InterpreterState`.
-    mapping(uint256 => address) internal InterpreterStatePointers;
+    mapping(uint256 => address) internal interpreterStatePointers;
 
     constructor(address interpreterIntegrity_) {
         self = address(this);
@@ -71,7 +71,7 @@ contract StandardInterpreter is RainInterpreter {
             finalMinStacks_
         );
         emit SaveInterpreterState(msg.sender, id_, config_);
-        InterpreterStatePointers[id_] = SSTORE2.write(stateBytes_);
+        interpreterStatePointers[id_] = SSTORE2.write(stateBytes_);
     }
 
     function _loadInterpreterState()
@@ -104,7 +104,7 @@ contract StandardInterpreter is RainInterpreter {
         virtual
         returns (InterpreterState memory)
     {
-        address pointer_ = InterpreterStatePointers[id_];
+        address pointer_ = interpreterStatePointers[id_];
         require(pointer_ != address(0), "UNKNOWN_STATE");
         return SSTORE2.read(pointer_).deserialize(context_);
     }

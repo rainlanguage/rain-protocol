@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { RandomTest } from "../../../typechain";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 
 describe("Random shuffleIdAtIndex", async function () {
   let random: RandomTest;

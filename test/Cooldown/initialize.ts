@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import type { CooldownTest } from "../../typechain";
 import { assertError, getEventArgs, max_uint32 } from "../../utils";
+import { cooldownDeploy } from "../../utils/deploy/test/cooldown/deploy";
 
 describe("Cooldown initialize test", async function () {
   let cooldownTest: CooldownTest;
@@ -11,8 +12,7 @@ describe("Cooldown initialize test", async function () {
   beforeEach(async () => {
     const signers = await ethers.getSigners();
     alice = signers[0];
-    const CooldownTestFactory = await ethers.getContractFactory("CooldownTest");
-    cooldownTest = (await CooldownTestFactory.deploy()) as CooldownTest;
+    cooldownTest = await cooldownDeploy();
   });
 
   it("should initialize the Cooldown contract", async function () {

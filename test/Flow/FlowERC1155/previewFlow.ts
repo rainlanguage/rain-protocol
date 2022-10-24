@@ -2,7 +2,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowERC1155Factory,
-  FlowIntegrity,
   ReserveToken,
   ReserveTokenERC1155,
   ReserveTokenERC721,
@@ -18,40 +17,29 @@ import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowERC1155Deploy } from "../../../utils/deploy/flow/flow";
-import { fillEmptyAddressERC1155 } from "../../../utils/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
+import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
 import { getEvents } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { fillEmptyAddressERC1155 } from "../../../utils/flow";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC1155 previewFlow tests", async function () {
-  let integrity: FlowIntegrity;
-  let flowFactory: FlowERC1155Factory;
+  let flowERC1155Factory: FlowERC1155Factory;
   const ME = () => op(Opcode.THIS_ADDRESS);
   const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowERC1155Factory",
-      {}
-    );
-    flowFactory = (await flowFactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC1155Factory;
-    await flowFactory.deployed();
+    flowERC1155Factory = await flowERC1155FactoryDeploy();
   });
 
   it("should preview defined flow IO for native Ether", async () => {
@@ -129,7 +117,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -301,7 +289,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -455,7 +443,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -627,7 +615,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -753,7 +741,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -868,7 +856,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -1004,7 +992,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -1062,7 +1050,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [
@@ -1131,7 +1119,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC1155Deploy(deployer, flowFactory, {
+    const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
       interpreterStateConfig: stateConfigStruct,
       flows: [

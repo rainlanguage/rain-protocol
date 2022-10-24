@@ -1,23 +1,33 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import type { ReadWriteTier } from "../../typechain";
-import type { ReserveToken } from "../../typechain";
+import type {
+  ERC20PulleeTest,
+  ReadWriteTier,
+  ReserveToken,
+} from "../../typechain";
 import * as Util from "../../utils";
-import { Tier } from "../../utils";
+import { readWriteTierDeploy, Tier } from "../../utils";
+import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { Phase } from "../../utils/types/redeemableERC20";
 
 describe("RedeemableERC20 endDistribution test", async function () {
+  let erc20Pullee: ERC20PulleeTest;
+  let tier: ReadWriteTier;
+  let reserve: ReserveToken;
+
+  before(async () => {
+    erc20Pullee = await erc20PulleeDeploy();
+    tier = await readWriteTierDeploy();
+  });
+
+  beforeEach(async () => {
+    reserve = await reserveDeploy();
+  });
+
   it("should only allow sender with DISTRIBUTOR_BURNER role to call endDistribution", async function () {
     const signers = await ethers.getSigners();
 
-    const erc20PulleeFactory = await ethers.getContractFactory(
-      "ERC20PulleeTest"
-    );
-    const erc20Pullee = await erc20PulleeFactory.deploy();
-    await erc20Pullee.deployed();
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    const tier = (await tierFactory.deploy()) as ReadWriteTier;
     const minimumTier = Tier.FOUR;
 
     const totalSupply = ethers.BigNumber.from("5000" + Util.eighteenZeros);
@@ -27,11 +37,6 @@ describe("RedeemableERC20 endDistribution test", async function () {
       distributor: erc20Pullee.address,
       initialSupply: totalSupply,
     };
-
-    const reserve = (await Util.basicDeploy(
-      "ReserveToken",
-      {}
-    )) as ReserveToken;
 
     const redeemableERC20 = await Util.redeemableERC20Deploy(signers[0], {
       reserve: reserve.address,

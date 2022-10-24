@@ -6,8 +6,9 @@ import {
   StakeConfigStruct,
 } from "../../typechain/contracts/stake/Stake";
 import { zeroAddress } from "../../utils/constants/address";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getEventArgs } from "../../utils/events";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
@@ -17,12 +18,7 @@ describe("Stake construction", async function () {
   let token: ReserveToken;
 
   before(async () => {
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
+    stakeFactory = await stakeFactoryDeploy();
   });
 
   beforeEach(async () => {

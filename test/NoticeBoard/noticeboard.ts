@@ -1,22 +1,23 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { NoticeBoard } from "../../typechain";
-import { ReadWriteTier } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
-import { getEventArgs } from "../../utils/events";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
+import { noticeboardDeploy } from "../../utils/deploy/noticeboard/deploy";
 import {
-  op,
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
+import { getEventArgs } from "../../utils/events";
+import {
   memoryOperand,
   MemoryType,
+  op,
 } from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -31,7 +32,7 @@ describe("Sale noticeboard", async function () {
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = await reserveDeploy();
   });
 
   it("should allow anon to add to NoticeBoard and associate a NewNotice with this sale", async () => {
@@ -87,8 +88,7 @@ describe("Sale noticeboard", async function () {
         distributionEndForwardingAddress: forwardingAddress.address,
       }
     );
-    const noticeboardFactory = await ethers.getContractFactory("NoticeBoard");
-    const noticeboard = (await noticeboardFactory.deploy()) as NoticeBoard;
+    const noticeboard = await noticeboardDeploy();
     const message = "foo";
     const notice = {
       subject: sale.address,

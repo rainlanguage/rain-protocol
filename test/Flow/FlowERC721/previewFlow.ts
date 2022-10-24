@@ -2,7 +2,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowERC721Factory,
-  FlowIntegrity,
   ReserveToken,
   ReserveTokenERC1155,
   ReserveTokenERC721,
@@ -18,40 +17,29 @@ import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
 } from "../../../utils/constants/sentinel";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { flowERC721Deploy } from "../../../utils/deploy/flow/flow";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
+import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
 describe("FlowERC721 previewFlow tests", async function () {
-  let integrity: FlowIntegrity;
-  let flowFactory: FlowERC721Factory;
+  let flowERC721Factory: FlowERC721Factory;
   const ME = () => op(Opcode.THIS_ADDRESS);
   const YOU = () => op(Opcode.SENDER);
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory("FlowIntegrity");
-    integrity = (await integrityFactory.deploy()) as FlowIntegrity;
-    await integrity.deployed();
-
-    const flowFactoryFactory = await ethers.getContractFactory(
-      "FlowERC721Factory",
-      {}
-    );
-    flowFactory = (await flowFactoryFactory.deploy(
-      integrity.address
-    )) as FlowERC721Factory;
-    await flowFactory.deployed();
+    flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
   it("should preview defined flow IO for native Ether", async () => {
@@ -128,7 +116,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -302,7 +290,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -457,7 +445,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -629,7 +617,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -757,7 +745,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -873,7 +861,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -1011,7 +999,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -1070,7 +1058,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,
@@ -1139,7 +1127,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowFactory, {
+    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
       interpreterStateConfig: stateConfigStruct,

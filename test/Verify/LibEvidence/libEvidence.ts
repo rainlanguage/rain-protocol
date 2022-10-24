@@ -1,16 +1,14 @@
 import { ethers } from "hardhat";
 import type { LibEvidenceTest } from "../../../typechain";
 import { EvidenceStruct } from "../../../typechain/contracts/test/verify/LibEvidence/LibEvidenceTest";
+import { libEvidenceDeploy } from "../../../utils/deploy/verify/libEvidence/deploy";
 import { compareStructs } from "../../../utils/test/compareStructs";
 
 describe("LibEvidence tests", async function () {
   let libEvidence: LibEvidenceTest;
 
   before(async () => {
-    const libEvidenceFactory = await ethers.getContractFactory(
-      "LibEvidenceTest"
-    );
-    libEvidence = (await libEvidenceFactory.deploy()) as LibEvidenceTest;
+    libEvidence = await libEvidenceDeploy();
   });
 
   it("should update several refs with evidence", async function () {

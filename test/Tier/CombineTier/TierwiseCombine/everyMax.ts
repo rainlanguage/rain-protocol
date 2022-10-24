@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CombineTier, ReadWriteTier } from "../../../../typechain";
+import type { CombineTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
-import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
+import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
+import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
-import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
@@ -15,6 +15,7 @@ import {
   selectLteLogic,
   selectLteMode,
 } from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS, NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 
@@ -101,13 +102,8 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
   it("should correctly combine ReadWriteTier tier contracts with every and max selector", async () => {
     const signers = await ethers.getSigners();
 
-    const readWriteTierFactory = await ethers.getContractFactory(
-      "ReadWriteTier"
-    );
-    const readWriteTierRight =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier;
-    const readWriteTierLeft =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier;
+    const readWriteTierRight = await readWriteTierDeploy();
+    const readWriteTierLeft = await readWriteTierDeploy();
 
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report

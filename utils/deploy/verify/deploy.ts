@@ -1,11 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
-import type { Verify, VerifyFactory } from "../../typechain";
-import { VerifyConfigStruct } from "../../typechain/contracts/verify/Verify";
-import { ImplementationEvent as ImplementationEventVerifyFactory } from "../../typechain/contracts/verify/VerifyFactory";
-import { zeroAddress } from "../constants";
-import { getEventArgs } from "../events";
+import type { Verify, VerifyFactory } from "../../../typechain";
+import { VerifyConfigStruct } from "../../../typechain/contracts/verify/Verify";
+import { ImplementationEvent as ImplementationEventVerifyFactory } from "../../../typechain/contracts/verify/VerifyFactory";
+import { zeroAddress } from "../../constants";
+import { getEventArgs } from "../../events";
 
 export const verifyFactoryDeploy = async () => {
   const verifyFactoryFactory = await ethers.getContractFactory("VerifyFactory");

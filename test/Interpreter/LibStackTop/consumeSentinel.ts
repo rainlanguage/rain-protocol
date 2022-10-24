@@ -3,16 +3,14 @@ import { keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackTopTest } from "../../../typechain";
 import { SENTINEL_HIGH_BITS } from "../../../utils/constants/sentinel";
+import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { assertError } from "../../../utils/test/assertError";
 
 describe("LibStackTop consumeSentinel tests", async function () {
   let libStackTop: LibStackTopTest;
 
   before(async () => {
-    const libStackTopFactory = await ethers.getContractFactory(
-      "LibStackTopTest"
-    );
-    libStackTop = (await libStackTopFactory.deploy()) as LibStackTopTest;
+    libStackTop = await libStackTopDeploy();
   });
 
   it("should consume sentinels successively with different step sizes", async () => {

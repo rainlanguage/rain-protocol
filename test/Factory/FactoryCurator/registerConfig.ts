@@ -4,13 +4,13 @@ import type {
   FactoryCurator,
   FactoryTest,
   ReadWriteTier,
-  ReserveToken,
 } from "../../../typechain";
 import {
   CurationConfigStruct,
   RegisterCurationEvent,
 } from "../../../typechain/contracts/factory/FactoryCurator";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { Tier } from "../../../utils/types/tier";
@@ -23,7 +23,7 @@ describe("FactoryCurator registerConfig", async function () {
 
     const factoryTest = (await basicDeploy("FactoryTest", {})) as FactoryTest;
 
-    const reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    const reserve = await reserveDeploy();
 
     const readWriteTier = (await basicDeploy(
       "ReadWriteTier",
