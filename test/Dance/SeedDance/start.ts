@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { hexlify, randomBytes } from "ethers/lib/utils";
+import { hexValue, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { SeedDanceTest } from "../../../typechain";
 import { StartEvent } from "../../../typechain/contracts/dance/SeedDance";
@@ -29,7 +29,7 @@ describe("SeedDance start", async function () {
 
     assert(sender_ === signers[0].address, "wrong signer in Start event");
     assert(
-      hexlify(initialSeed_) === hexlify(initialSeed),
+      hexValue(initialSeed_) === hexValue(initialSeed),
       "wrong signer in Start event"
     );
 

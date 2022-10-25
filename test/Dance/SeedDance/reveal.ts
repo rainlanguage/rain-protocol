@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { hexlify, keccak256, randomBytes } from "ethers/lib/utils";
+import { hexValue, keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibSeedTest, SeedDanceTest } from "../../../typechain";
 import {
@@ -270,14 +270,14 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed_) != hexlify(initialSeed),
+      hexValue(newSeed_) != hexValue(initialSeed),
       "Seed is not changed after reveal"
     );
 
     assert(sender_ === signer1.address, "Wrong signer in RevealEvent");
 
     assert(
-      hexlify(secret_) === hexlify(commitmentSecret),
+      hexValue(secret_) === hexValue(commitmentSecret),
       "Wrong secret revealed"
     );
   });
@@ -332,21 +332,21 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed1_) != hexlify(initialSeed),
+      hexValue(newSeed1_) != hexValue(initialSeed),
       "SharedSeed is not changed after reveal 1"
     );
 
     const expectedSeed1 = await libSeed.with(sharedSeed1_, commitmentSecret1);
     assert(
-      hexlify(newSeed1_) === hexlify(expectedSeed1),
+      hexValue(newSeed1_) === hexValue(expectedSeed1),
       "newSeed1_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender1_ === signer1.address, "Wrong signer1 in RevealEvent");
 
-    console.log(hexlify(secret1_), "\n", hexlify(commitmentSecret1));
+    console.log(hexValue(secret1_), "\n", hexValue(commitmentSecret1));
     assert(
-      hexlify(secret1_) === hexlify(commitmentSecret1),
+      hexValue(secret1_) === hexValue(commitmentSecret1),
       "Wrong secret1 revealed"
     );
 
@@ -365,21 +365,21 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed2_) != hexlify(sharedSeed2_),
+      hexValue(newSeed2_) != hexValue(sharedSeed2_),
       "SharedSeed is not changed after reveal 2"
     );
 
     const expectedSeed2 = await libSeed.with(sharedSeed2_, commitmentSecret2);
     assert(
-      hexlify(newSeed2_) === hexlify(expectedSeed2),
+      hexValue(newSeed2_) === hexValue(expectedSeed2),
       "newSeed2_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender2_ === signer2.address, "Wrong signer2 in RevealEvent");
 
-    console.log(hexlify(secret2_), "\n", hexlify(commitmentSecret2));
+    console.log(hexValue(secret2_), "\n", hexValue(commitmentSecret2));
     assert(
-      hexlify(secret2_) === hexlify(commitmentSecret2),
+      hexValue(secret2_) === hexValue(commitmentSecret2),
       "Wrong secret2 revealed"
     );
 
@@ -399,21 +399,21 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed3_) != hexlify(sharedSeed3_),
+      hexValue(newSeed3_) != hexValue(sharedSeed3_),
       "SharedSeed is not changed after reveal 3"
     );
 
     const expectedSeed3 = await libSeed.with(sharedSeed3_, commitmentSecret3);
     assert(
-      hexlify(newSeed3_) === hexlify(expectedSeed3),
+      hexValue(newSeed3_) === hexValue(expectedSeed3),
       "newSeed3_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender3_ === signer3.address, "Wrong signer3 in RevealEvent");
 
-    console.log(hexlify(secret3_), "\n", hexlify(commitmentSecret3));
+    console.log(hexValue(secret3_), "\n", hexValue(commitmentSecret3));
     assert(
-      hexlify(secret3_) === hexlify(commitmentSecret3),
+      hexValue(secret3_) === hexValue(commitmentSecret3),
       "Wrong secret3 revealed"
     );
   });
@@ -458,14 +458,14 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed_) != hexlify(initialSeed),
+      hexValue(newSeed_) != hexValue(initialSeed),
       "Seed is not changed after reveal"
     );
 
     assert(sender_ === signer1.address, "Wrong signer in RevealEvent");
 
     assert(
-      hexlify(secret_) === hexlify(commitmentSecret),
+      hexValue(secret_) === hexValue(commitmentSecret),
       "Wrong secret revealed"
     );
 

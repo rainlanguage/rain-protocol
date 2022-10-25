@@ -84,8 +84,10 @@ contract CombineTier is TierV2, StandardInterpreter {
         uint256[][] memory interpreterContext_ = new uint256[][](2);
         interpreterContext_[0] = uint256(uint160(account_)).arrayFrom();
         interpreterContext_[1] = context_;
+        InterpreterState memory state_ = _loadInterpreterState();
+        state_.context = interpreterContext_;
         return
-            _loadInterpreterState(interpreterContext_)
+            state_
                 .eval(REPORT_ENTRYPOINT)
                 .peek();
     }
@@ -102,9 +104,10 @@ contract CombineTier is TierV2, StandardInterpreter {
             tier_
         );
         interpreterContext_[1] = context_;
+        InterpreterState memory state_ = _loadInterpreterState();
+        state_.context = interpreterContext_;
         return
-            _loadInterpreterState(interpreterContext_)
-                .eval(REPORT_FOR_TIER_ENTRYPOINT)
+            state_.eval(REPORT_FOR_TIER_ENTRYPOINT)
                 .peek();
     }
 }

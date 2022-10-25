@@ -16,30 +16,52 @@ describe("RainInterpreter context", async function () {
     logic = await allStandardOpsDeploy();
   });
 
-  it("should support context height up to 256", async () => {
+  it("should support context height [COLUMN] up to 16", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0xff00)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0x0F00)])];
 
     await logic.initialize({ sources, constants });
 
     const col: number[] = [1];
-    const context = new Array<number[]>(256).fill(col, 0, 256);
+    const context = new Array<number[]>(16).fill(col, 0, 256);
     await logic.runContext(context);
     const resultCol_ = await logic.stack();
     assert(resultCol_, "should read context value at 0xff00");
   });
 
-  it("should support context width up to 256", async () => {
+  it("should support context width [ROW] up to 16", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x00ff)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0x000F)])];
 
     await logic.initialize({ sources, constants });
 
-    const row: number[] = new Array<number>(256).fill(1, 0, 256);
+    const row: number[] = new Array<number>(16).fill(1, 0, 256);
     const context = [row];
     await logic.runContext(context);
     const resultRow_ = await logic.stack();
     assert(resultRow_, "should read context value at 0x00ff");
+  });
+  
+  it("should error if accessing OOB COLUMN", async () => {
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 0x1000)])];
+
+    await assertError(
+      async () => await logic.initialize({ sources, constants }),
+      "OOB_COLUMN",
+      "did not error when accessing OOB COLUMN"
+    );
+  });
+
+  it("should error if accessing OOB ROW", async () => {
+    const constants = [];
+    const sources = [concat([op(Opcode.CONTEXT, 0x0010)])];
+
+    await assertError(
+      async () =>await logic.initialize({ sources, constants }),
+      "OOB_ROW",
+      "did not error when accessing OOB ROW"
+    );
   });
 
   it("should error if accessing memory outside of context memory range", async () => {

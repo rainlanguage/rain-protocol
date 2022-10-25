@@ -73,7 +73,8 @@ contract LibInterpreterStateTest is RainInterpreter {
         uint256[][] memory context_
     ) public view returns (InterpreterState memory state_) {
         bytes memory serialized_ = serialize(config_);
-        state_ = serialized_.deserialize(context_);
+        state_ = serialized_.deserialize();
+        state_.context = context_;
     }
 
     function serialize(StateConfig memory config_)
@@ -81,9 +82,11 @@ contract LibInterpreterStateTest is RainInterpreter {
         view
         returns (bytes memory serialized_)
     {
-        (uint256 scratch_, uint256 stackLength_) = IRainInterpreterIntegrity(
-            interpreterIntegrity
-        ).ensureIntegrity(
+        (
+            uint256 scratch_,
+            uint256 contextScratch_,
+            uint256 stackLength_
+        ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
                 storageOpcodesRange(),
                 config_.sources,
                 config_.constants.length,
@@ -92,6 +95,7 @@ contract LibInterpreterStateTest is RainInterpreter {
 
         serialized_ = config_.serialize(
             scratch_,
+            contextScratch_,
             stackLength_,
             opcodeFunctionPointers()
         );

@@ -63,7 +63,8 @@ contract AllStandardOpsTest is StandardInterpreter {
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[][] memory context_) public {
-        InterpreterState memory state_ = _loadInterpreterState(context_);
+        InterpreterState memory state_ = _loadInterpreterState();
+        state_.context = context_;
         StackTop stackTop_ = state_.eval();
         // Never actually do this, state is gigantic so can't live in storage.
         // This is just being done to make testing easier than trying to read

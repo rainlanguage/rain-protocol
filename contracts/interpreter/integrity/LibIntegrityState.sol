@@ -13,7 +13,9 @@ struct IntegrityState {
     uint256 contextLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
+    // @todo remove scratch in favour of contextScratch.
     uint256 scratch;
+    uint256 contextScratch;
     function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop)[] integrityFunctionPointers;

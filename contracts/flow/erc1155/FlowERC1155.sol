@@ -113,11 +113,10 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         }
     }
 
-    function _previewFlow(InterpreterState memory state_, SignedContext[] memory signedContexts_)
-        internal
-        view
-        returns (FlowERC1155IO memory)
-    {
+    function _previewFlow(
+        InterpreterState memory state_,
+        SignedContext[] memory signedContexts_
+    ) internal view returns (FlowERC1155IO memory) {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
         StackTop stackTop_ = flowStack(state_, signedContexts_);
@@ -148,7 +147,10 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory) {
         unchecked {
-            FlowERC1155IO memory flowIO_ = _previewFlow(state_, signedContexts_);
+            FlowERC1155IO memory flowIO_ = _previewFlow(
+                state_,
+                signedContexts_
+            );
             registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
@@ -171,21 +173,19 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         }
     }
 
-    function previewFlow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
-        external
-        view
-        virtual
-        returns (FlowERC1155IO memory)
-    {
+    function previewFlow(
+        uint256 flow_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external view virtual returns (FlowERC1155IO memory) {
         return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
     }
 
-    function flow(uint256 flow_, uint256 id_, SignedContext[] memory signedContexts_)
-        external
-        payable
-        virtual
-        returns (FlowERC1155IO memory)
-    {
+    function flow(
+        uint256 flow_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external payable virtual returns (FlowERC1155IO memory) {
         return _flow(_loadFlowState(flow_, id_), flow_, id_, signedContexts_);
     }
 }

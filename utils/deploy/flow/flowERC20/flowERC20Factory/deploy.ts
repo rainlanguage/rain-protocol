@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
 import { FlowERC20Factory } from "../../../../../typechain/contracts/flow/erc20/FlowERC20Factory";
-import { flowIntegrityDeploy } from "../../interpreter/integrity/flowIntegrity/deploy";
+import { standardIntegrityDeploy } from "../../../interpreter/integrity/standardIntegrity/deploy";
 
 export const flowERC20FactoryDeploy = async () => {
-  const integrity = await flowIntegrityDeploy();
+  const integrity = await standardIntegrityDeploy();
 
   const flowFactoryFactory = await ethers.getContractFactory(
     "FlowERC20Factory",

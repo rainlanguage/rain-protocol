@@ -129,8 +129,11 @@ abstract contract RainInterpreter {
         uint256[] memory finalStacks_
     ) internal view returns (bytes memory) {
         unchecked {
-            (uint256 scratch_, uint256 stackLength_) = interpreterIntegrity_
-                .ensureIntegrity(
+            (
+                uint256 scratch_,
+                uint256 contextScratch_,
+                uint256 stackLength_
+            ) = interpreterIntegrity_.ensureIntegrity(
                     storageOpcodesRange(),
                     config_.sources,
                     config_.constants.length,
@@ -140,6 +143,7 @@ abstract contract RainInterpreter {
             return
                 config_.serialize(
                     scratch_,
+                    contextScratch_,
                     stackLength_,
                     opcodeFunctionPointers()
                 );
