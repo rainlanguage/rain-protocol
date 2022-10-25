@@ -26,8 +26,8 @@ uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
 struct FlowERC721Config {
     string name;
     string symbol;
-    StateConfig interpreterStateConfig;
-    StateConfig[] flows;
+    StateConfig stateConfig;
+    FlowCommonConfig flowConfig;
 }
 
 struct ERC721SupplyChange {
@@ -57,11 +57,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC721Config config);
 
-    constructor(address interpreterIntegrity_)
-        FlowInterpreter(interpreterIntegrity_)
-    {
-        _disableInitializers();
-    }
+    address internal _expression;
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(FlowERC721Config calldata config_)
@@ -71,8 +67,14 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
-        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
-        __FlowInterpreter_init(config_.flows, 6);
+        // Ignoring context scratch here as we never use it, all context is
+        // provided unconditionally.
+        (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
+            config_.stateConfig,
+            LibUint256Array.arrayFrom(1)
+        );
+        _expression = expression_;
+        __FlowCommon_init(config_.flowConfig);
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
@@ -97,11 +99,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            InterpreterState memory state_ = _loadInterpreterState(
-                CORE_SOURCE_ID
-            );
-
-            state_.context = LibUint256Array
+            uint[][] memory context_ = LibUint256Array
                 .arrayFrom(
                     uint256(uint160(from_)),
                     uint256(uint160(to_)),
@@ -109,21 +107,22 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 )
                 .matrixFrom();
             require(
-                state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                _interpreter.eval(_expression, CAN_TRANSFER_ENTRYPOINT, context_).asStackTopAfter().peek() > 0,
                 "INVALID_TRANSFER"
             );
         }
     }
 
     function _previewFlow(
-        InterpreterState memory state_,
+        address flow_,
+        uint id_,
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowERC721IO memory) {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
-        StackTop stackTop_ = flowStack(state_, signedContexts_);
+        (StackTop stackBottom_, StackTop stackTop_) = flowStack(flow_, id_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
-            state_.stackBottom,
+            stackBottom_,
             RAIN_FLOW_ERC721_SENTINEL,
             2
         );
@@ -131,26 +130,25 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             mstore(flowIO_, refs_)
         }
         (stackTop_, refs_) = stackTop_.consumeStructs(
-            state_.stackBottom,
+            stackBottom_,
             RAIN_FLOW_ERC721_SENTINEL,
             2
         );
         assembly ("memory-safe") {
             mstore(add(flowIO_, 0x20), refs_)
         }
-        flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
+        flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
         return flowIO_;
     }
 
     function _flow(
-        InterpreterState memory state_,
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
-            FlowERC721IO memory flowIO_ = _previewFlow(state_, signedContexts_);
-            registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
+            FlowERC721IO memory flowIO_ = _previewFlow(flow_, id_, signedContexts_);
+            registerFlowTime(_flowContextScratches[flow_], flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }
@@ -168,18 +166,18 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     }
 
     function previewFlow(
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
-        return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
+        return _previewFlow(flow_, id_, signedContexts_);
     }
 
     function flow(
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC721IO memory) {
-        return _flow(_loadFlowState(flow_, id_), flow_, id_, signedContexts_);
+        return _flow(flow_, id_, signedContexts_);
     }
 }

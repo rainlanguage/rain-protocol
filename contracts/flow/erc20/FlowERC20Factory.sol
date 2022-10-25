@@ -14,7 +14,7 @@ contract FlowERC20Factory is Factory {
 
     /// Build the reference implementation to clone for each child.
     constructor(address interpreterIntegrity_) {
-        address implementation_ = address(new FlowERC20(interpreterIntegrity_));
+        address implementation_ = address(new FlowERC20());
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

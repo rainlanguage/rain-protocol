@@ -10,9 +10,6 @@ contract Flow is ReentrancyGuard, FlowCommon {
 
     event Initialize(address sender, FlowCommonConfig config);
 
-    /// flow index => id => time
-    mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
-
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowCommonConfig calldata config_)
         external
@@ -22,37 +19,29 @@ contract Flow is ReentrancyGuard, FlowCommon {
         emit Initialize(msg.sender, config_);
     }
 
-    function _previewFlow(
-        InterpreterState memory state_,
-        SignedContext[] memory signedContexts_
-    ) internal view returns (FlowTransfer memory) {
-        StackTop stackTop_ = flowStack(state_, signedContexts_);
-        return LibFlow.stackToFlow(state_.stackBottom, stackTop_);
+    function _previewFlow(address flow_, uint id_, SignedContext[] memory signedContexts_)
+        internal
+        view
+        returns (FlowTransfer memory)
+    {
+        return LibFlow.stackToFlow(flowStack(flow_, id_, signedContexts_));
     }
 
     function previewFlow(
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowTransfer memory) {
-        return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
+        return _previewFlow(flow_, id_, signedContexts_);
     }
 
     function flow(
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external payable virtual nonReentrant returns (FlowTransfer memory) {
-        InterpreterState memory state_ = _loadFlowState(flow_, id_);
-        FlowTransfer memory flowTransfer_ = _previewFlow(
-            state_,
-            signedContexts_
-        );
-        registerFlowTime(
-            IdempotentFlag.wrap(state_.contextScratch),
-            flow_,
-            id_
-        );
+        FlowTransfer memory flowTransfer_ = _previewFlow(signedContexts_);
+        registerFlowTime(flow_, id_);
         return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));
     }
 }

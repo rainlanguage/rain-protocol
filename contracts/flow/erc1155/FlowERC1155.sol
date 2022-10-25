@@ -14,8 +14,8 @@ uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
 
 struct FlowERC1155Config {
     string uri;
-    StateConfig interpreterStateConfig;
-    StateConfig[] flows;
+    StateConfig stateConfig;
+    FlowCommonConfig flowConfig;
 }
 
 struct ERC1155SupplyChange {
@@ -32,19 +32,15 @@ struct FlowERC1155IO {
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
-    using LibInterpreterState for InterpreterState;
+contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     using LibStackTop for StackTop;
+    using LibStackTop for uint[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
     event Initialize(address sender, FlowERC1155Config config);
 
-    constructor(address interpreterIntegrity_)
-        FlowInterpreter(interpreterIntegrity_)
-    {
-        _disableInitializers();
-    }
+    address internal _expression;
 
     function initialize(FlowERC1155Config calldata config_)
         external
@@ -53,8 +49,14 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        _saveInterpreterState(CORE_SOURCE_ID, config_.interpreterStateConfig);
-        __FlowInterpreter_init(config_.flows, 6);
+        // Ignoring context scratch here as we never use it, all context is
+        // provided unconditionally.
+        (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
+            config_.stateConfig,
+            1
+        );
+        _expression = expression_;
+        __FlowCommon_init(config_.flowConfig);
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
@@ -90,11 +92,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
             // Mint and burn access MUST be handled by CAN_FLOW.
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
-                InterpreterState memory state_ = _loadInterpreterState(
-                    CORE_SOURCE_ID
-                );
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
-                    state_.context = LibUint256Array
+                    uint256[][] memory context_ = LibUint256Array
                         .arrayFrom(
                             uint256(uint160(operator_)),
                             uint256(uint160(from_)),
@@ -104,7 +103,14 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
                         )
                         .matrixFrom();
                     require(
-                        state_.eval(CAN_TRANSFER_ENTRYPOINT).peek() > 0,
+                        _interpreter
+                            .eval(
+                                _expression,
+                                CAN_TRANSFER_ENTRYPOINT,
+                                context_
+                            )
+                            .asStackTopAfter()
+                            .peek() > 0,
                         "INVALID_TRANSFER"
                     );
                 }
@@ -177,7 +183,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC1155IO memory) {
-        return _previewFlow(_loadFlowState(flow_, id_), signedContexts_);
+        return _previewFlow(signedContexts_);
     }
 
     function flow(
@@ -185,6 +191,6 @@ contract FlowERC1155 is ReentrancyGuard, FlowInterpreter, ERC1155 {
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC1155IO memory) {
-        return _flow(_loadFlowState(flow_, id_), flow_, id_, signedContexts_);
+        return _flow(flow_, id_, signedContexts_);
     }
 }

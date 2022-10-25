@@ -678,6 +678,12 @@ library LibStackTop {
         }
     }
 
+    function asStackTopAfter(uint[] memory array_) internal pure returns (StackTop stackTop_) {
+        assembly ("memory-safe") {
+            stackTop_ := add(array_, add(0x20, mul(mload(array_), 0x20)))
+        }
+    }
+
     /// Cast `bytes` to a stack top. The stack top will point to the length of
     /// the `bytes`, NOT the first byte.
     /// @param bytes_ The `bytes` to cast to a stack top.
