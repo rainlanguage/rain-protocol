@@ -2,6 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "./runtime/StandardInterpreter.sol";
+import "./ops/OpChainlinkOraclePrice.sol";
 
 contract RainterpreterV1 is IInterpreter, RainInterpreter {
     using LibStackTop for StackTop;
@@ -32,6 +33,23 @@ contract RainterpreterV1 is IInterpreter, RainInterpreter {
                 memory localFnPtrs_
         )
     {}
+
+    function localEvalFunctionPointers()
+        internal
+        pure
+        override
+        returns (
+            function(InterpreterState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory localFnPtrs_
+        )
+    {
+        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
+            view
+            returns (StackTop)[](1);
+        localFnPtrs_[0] = OpChainlinkOraclePrice.price;
+    }
 
     /// @inheritdoc RainInterpreter
     function opcodeFunctionPointers()
