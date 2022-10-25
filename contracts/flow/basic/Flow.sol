@@ -1,33 +1,24 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../interpreter/FlowInterpreter.sol";
+import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-struct FlowConfig {
-    // This is NOT USED by `Flow` but removing it causes the compiler to fail to
-    // compile the code with optimizations. Removing this seems to cause the EVM
-    // stack to overflow.
-    StateConfig stateConfig;
-    StateConfig[] flows;
-}
-
-contract Flow is ReentrancyGuard, FlowInterpreter {
+contract Flow is ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
 
-    event Initialize(address sender, FlowConfig config);
+    event Initialize(address sender, FlowCommonConfig config);
 
     /// flow index => id => time
     mapping(SourceIndex => mapping(uint256 => uint256)) private _flows;
 
-    constructor(address interpreterIntegrity_)
-        FlowInterpreter(interpreterIntegrity_)
-    {}
-
     /// @param config_ allowed flows set at initialization.
-    function initialize(FlowConfig calldata config_) external initializer {
-        __FlowInterpreter_init(config_.flows, 4);
+    function initialize(FlowCommonConfig calldata config_)
+        external
+        initializer
+    {
+        __FlowCommon_init(config_);
         emit Initialize(msg.sender, config_);
     }
 

@@ -86,10 +86,7 @@ contract CombineTier is TierV2, StandardInterpreter {
         interpreterContext_[1] = context_;
         InterpreterState memory state_ = _loadInterpreterState();
         state_.context = interpreterContext_;
-        return
-            state_
-                .eval(REPORT_ENTRYPOINT)
-                .peek();
+        return state_.eval(REPORT_ENTRYPOINT).peek();
     }
 
     /// @inheritdoc ITierV2
@@ -106,8 +103,6 @@ contract CombineTier is TierV2, StandardInterpreter {
         interpreterContext_[1] = context_;
         InterpreterState memory state_ = _loadInterpreterState();
         state_.context = interpreterContext_;
-        return
-            state_.eval(REPORT_FOR_TIER_ENTRYPOINT)
-                .peek();
+        return state_.eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
     }
 }

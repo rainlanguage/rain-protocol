@@ -11,7 +11,6 @@ import "../../sstore2/SSTORE2.sol";
 import "../integrity/IRainInterpreterIntegrity.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-type SourceIndex is uint256;
 type Operand is uint256;
 
 struct StorageOpcodesRange {

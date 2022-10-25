@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {RainInterpreterIntegrity, StateConfig} from "../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../interpreter/IExpressionDeployer.sol";
 import "../../interpreter/runtime/StandardInterpreter.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -10,7 +10,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
-import "../interpreter/FlowInterpreter.sol";
+import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 
@@ -44,7 +44,7 @@ struct FlowERC721IO {
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 /// @title FlowERC721
-contract FlowERC721 is ReentrancyGuard, FlowInterpreter, ERC721 {
+contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;

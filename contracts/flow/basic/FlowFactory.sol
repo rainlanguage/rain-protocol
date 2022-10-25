@@ -2,9 +2,9 @@
 pragma solidity =0.8.17;
 
 import {Factory} from "../../factory/Factory.sol";
-import {Flow, FlowConfig} from "./Flow.sol";
+import {Flow, FlowCommonConfig} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
-import {StateConfig, LibInterpreterState} from "../../interpreter/runtime/LibInterpreterState.sol";
+import {LibInterpreterState} from "../../interpreter/runtime/LibInterpreterState.sol";
 
 /// @title FlowFactory
 /// @notice Factory for deploying and registering `Flow` contracts.
@@ -39,7 +39,7 @@ contract FlowFactory is Factory {
     ///
     /// @param config_ `Flow` constructor configuration.
     /// @return New `Flow` child contract address.
-    function createChildTyped(FlowConfig memory config_)
+    function createChildTyped(FlowCommonConfig memory config_)
         external
         returns (Flow)
     {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {RainInterpreterIntegrity, StateConfig} from "../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../interpreter/IExpressionDeployer.sol";
 import "../../interpreter/runtime/StandardInterpreter.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -10,7 +10,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
-import "../interpreter/FlowInterpreter.sol";
+import "../FlowCommon.sol";
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -54,7 +54,7 @@ SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 /// claim and then diff it against the current block number.
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
-contract FlowERC20 is ReentrancyGuard, FlowInterpreter, ERC20 {
+contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
