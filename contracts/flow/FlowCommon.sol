@@ -192,7 +192,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
         }
     }
 
-    function _flowTime(uint256 flow_, uint256 id_)
+    function _flowTime(address flow_, uint256 id_)
         internal
         view
         returns (uint256 flowTime_)

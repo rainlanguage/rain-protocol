@@ -78,8 +78,9 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         // provided unconditionally.
         (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
             config_.stateConfig,
-            1
+            LibUint256Array.arrayFrom(1)
         );
+        _expression = expression_;
         __FlowCommon_init(config_.flowConfig);
     }
 
@@ -119,7 +120,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         FlowERC20IO memory flowIO_;
         (StackTop stackBottom_, StackTop stackTop_) = flowStack(flow_, id_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
-            state_.stackBottom,
+            stackBottom_,
             RAIN_FLOW_ERC20_SENTINEL,
             2
         );
@@ -127,7 +128,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             mstore(flowIO_, refs_)
         }
         (stackTop_, refs_) = stackTop_.consumeStructs(
-            state_.stackBottom,
+            stackBottom_,
             RAIN_FLOW_ERC20_SENTINEL,
             2
         );
@@ -144,7 +145,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
-        FlowERC20IO memory flowIO_ = _previewFlow(signedContexts_);
+        FlowERC20IO memory flowIO_ = _previewFlow(flow_, id_, signedContexts_);
         registerFlowTime(_flowContextScratches[flow_], flow_, id_);
         for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
             _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);

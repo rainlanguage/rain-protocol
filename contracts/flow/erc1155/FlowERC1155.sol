@@ -53,7 +53,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         // provided unconditionally.
         (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
             config_.stateConfig,
-            1
+            LibUint256Array.arrayFrom(1)
         );
         _expression = expression_;
         __FlowCommon_init(config_.flowConfig);
@@ -119,14 +119,15 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     }
 
     function _previewFlow(
-        InterpreterState memory state_,
+        address flow_,
+        uint id_,
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowERC1155IO memory) {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
-        StackTop stackTop_ = flowStack(state_, signedContexts_);
+        (StackTop stackBottom_, StackTop stackTop_) = flowStack(flow_, id_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
-            state_.stackBottom,
+            stackBottom_,
             RAIN_FLOW_ERC1155_SENTINEL,
             3
         );
@@ -134,29 +135,29 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             mstore(flowIO_, refs_)
         }
         (stackTop_, refs_) = stackTop_.consumeStructs(
-            state_.stackBottom,
+            stackBottom_,
             RAIN_FLOW_ERC1155_SENTINEL,
             3
         );
         assembly ("memory-safe") {
             mstore(add(flowIO_, 0x20), refs_)
         }
-        flowIO_.flow = LibFlow.stackToFlow(state_.stackBottom, stackTop_);
+        flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
         return flowIO_;
     }
 
     function _flow(
-        InterpreterState memory state_,
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory) {
         unchecked {
             FlowERC1155IO memory flowIO_ = _previewFlow(
-                state_,
+                flow_,
+                id_,
                 signedContexts_
             );
-            registerFlowTime(IdempotentFlag.wrap(state_.scratch), flow_, id_);
+            registerFlowTime(_flowContextScratches[flow_], flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
                 _mint(
@@ -179,15 +180,15 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     }
 
     function previewFlow(
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC1155IO memory) {
-        return _previewFlow(signedContexts_);
+        return _previewFlow(flow_, id_, signedContexts_);
     }
 
     function flow(
-        uint256 flow_,
+        address flow_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC1155IO memory) {

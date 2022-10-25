@@ -14,6 +14,7 @@ contract RainterpreterV1 is IInterpreter, RainInterpreter {
         uint256[][] memory context_
     ) external view returns (uint256[] memory) {
         InterpreterState memory state_ = SSTORE2.read(statePointer_).deserialize();
+        state_.context = context_;
         StackTop stackTop_ = state_.eval(entrypoint_);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(stackLength_);
