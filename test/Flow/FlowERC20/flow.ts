@@ -9,11 +9,7 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import {
-  FlowERC20ConfigStruct,
-  FlowERC20IOStruct,
-  SaveInterpreterStateEvent,
-} from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { FlowERC20IOStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
@@ -32,6 +28,7 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowERC20Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -126,10 +123,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStructCanTransfer: FlowERC20ConfigStruct = {
+    const stateConfigStructCanTransfer: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsCanTransfer,
       },
@@ -140,10 +137,10 @@ describe("FlowERC20 flow tests", async function () {
         },
       ],
     };
-    const stateConfigStructCannotTransfer: FlowERC20ConfigStruct = {
+    const stateConfigStructCannotTransfer: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsCannotTransfer,
       },
@@ -341,10 +338,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsMint, // only needed for REBASE_RATIO and CAN_TRANSFER, so could also be `constantsBurn` and produce same result
       },
@@ -616,10 +613,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -830,10 +827,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -1029,10 +1026,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -1204,10 +1201,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -1409,10 +1406,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -1613,10 +1610,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -1810,10 +1807,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -1978,10 +1975,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -2086,10 +2083,10 @@ describe("FlowERC20 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20ConfigStruct = {
+    const stateConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },

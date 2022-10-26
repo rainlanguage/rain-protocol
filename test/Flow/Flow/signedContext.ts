@@ -1,11 +1,7 @@
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory } from "../../../typechain";
-import {
-  FlowConfigStruct,
-  SaveInterpreterStateEvent,
-  SignedContextStruct,
-} from "../../../typechain/contracts/flow/basic/Flow";
+import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
@@ -17,6 +13,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
+import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -51,7 +48,7 @@ describe("Flow signed context tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -140,7 +137,7 @@ describe("Flow signed context tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -215,7 +212,7 @@ describe("Flow signed context tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },

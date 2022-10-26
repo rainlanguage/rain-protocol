@@ -9,7 +9,6 @@ import {
 import {
   FlowERC20IOStruct,
   FlowTransferStruct,
-  SaveInterpreterStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -142,7 +141,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -339,7 +338,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -517,7 +516,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -714,7 +713,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -865,7 +864,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -1006,7 +1005,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -1168,7 +1167,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -1231,7 +1230,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
@@ -1330,7 +1329,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         {
           sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],

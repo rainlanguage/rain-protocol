@@ -8,11 +8,7 @@ import {
   ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
-import {
-  FlowConfigStruct,
-  FlowTransferStruct,
-  SaveInterpreterStateEvent,
-} from "../../../typechain/contracts/flow/basic/Flow";
+import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
@@ -28,6 +24,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -124,7 +121,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -290,7 +287,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -440,7 +437,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -578,7 +575,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -737,7 +734,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -900,7 +897,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -1051,7 +1048,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -1178,7 +1175,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
@@ -1270,7 +1267,7 @@ describe("Flow flow tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },

@@ -9,10 +9,8 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC1155ConfigStruct,
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  SaveInterpreterStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -33,6 +31,7 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowERC1155Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -100,9 +99,9 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStructCanTransfer: FlowERC1155ConfigStruct = {
+    const stateConfigStructCanTransfer: FlowERC1155Config = {
       uri: "F1155",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsCanTransfer,
       },
@@ -113,9 +112,9 @@ describe("FlowERC1155 flow tests", async function () {
         },
       ],
     };
-    const stateConfigStructCannotTransfer: FlowERC1155ConfigStruct = {
+    const stateConfigStructCannotTransfer: FlowERC1155Config = {
       uri: "F1155",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsCannotTransfer,
       },
@@ -351,9 +350,9 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC1155ConfigStruct = {
+    const stateConfigStruct: FlowERC1155Config = {
       uri: "F1155",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsMint,
       },
@@ -589,7 +588,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -778,7 +777,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -949,7 +948,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1098,7 +1097,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1279,7 +1278,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1460,7 +1459,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1633,7 +1632,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1777,7 +1776,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1882,7 +1881,7 @@ describe("FlowERC1155 flow tests", async function () {
 
     const flow = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],

@@ -9,10 +9,8 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
-  FlowERC721ConfigStruct,
   FlowERC721IOStruct,
   FlowTransferStruct,
-  SaveInterpreterStateEvent,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -33,6 +31,7 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowERC721Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -116,10 +115,10 @@ describe("FlowERC721 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStructCanTransfer: FlowERC721ConfigStruct = {
+    const stateConfigStructCanTransfer: FlowERC721Config = {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsCanTransfer,
       },
@@ -130,10 +129,10 @@ describe("FlowERC721 flow tests", async function () {
         },
       ],
     };
-    const stateConfigStructCannotTransfer: FlowERC721ConfigStruct = {
+    const stateConfigStructCannotTransfer: FlowERC721Config = {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsCannotTransfer,
       },
@@ -322,10 +321,10 @@ describe("FlowERC721 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC721ConfigStruct = {
+    const stateConfigStruct: FlowERC721Config = {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants: constantsMint, // only needed for CAN_TRANSFER
       },
@@ -575,7 +574,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -766,7 +765,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -940,7 +939,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1090,7 +1089,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1272,7 +1271,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1454,7 +1453,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1628,7 +1627,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1772,7 +1771,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],
@@ -1878,7 +1877,7 @@ describe("FlowERC721 flow tests", async function () {
     const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      interpreterStateConfig: stateConfigStruct,
+      stateConfig: stateConfigStruct,
       flows: [
         { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
       ],

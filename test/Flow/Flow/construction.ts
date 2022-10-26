@@ -2,12 +2,9 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory } from "../../../typechain";
-import {
-  FlowConfigStruct,
-  InitializeEvent,
-} from "../../../typechain/contracts/flow/basic/Flow";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import { InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
+import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
@@ -16,6 +13,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -62,7 +60,7 @@ describe("Flow construction tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfig: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         {
@@ -72,7 +70,7 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const flow = await flowDeploy(deployer, flowFactory, flowConfig);
 
     const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
@@ -82,6 +80,6 @@ describe("Flow construction tests", async function () {
 
     assert(sender === flowFactory.address, "wrong sender in Initialize event");
 
-    compareStructs(config, flowConfigStruct);
+    compareStructs(config, flowConfig);
   });
 });

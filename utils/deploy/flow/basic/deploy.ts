@@ -1,16 +1,36 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { Flow, FlowFactory } from "../../../../typechain";
+import { Flow, FlowFactory, RainterpreterV1 } from "../../../../typechain";
 import { FlowConfigStruct } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
+import { FlowConfig } from "../../../types/flow";
+import { basicDeploy } from "../../basicDeploy";
 
 export const flowDeploy = async (
   deployer: SignerWithAddress,
   flowFactory: FlowFactory,
-  flowConfigStruct: FlowConfigStruct,
+  flowConfig: FlowConfig,
   ...args: Overrides[]
 ): Promise<Flow> => {
+  // TODO: Deploy contract which implements `IExpressionDeployer`
+  const expressionDeployer = { address: "" };
+
+  const interpreter = (await basicDeploy(
+    "RainterpreterV1",
+    {}
+  )) as RainterpreterV1;
+
+  const flowConfigStruct: FlowConfigStruct = {
+    stateConfig: flowConfig.stateConfig,
+    flowConfig: {
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      flows: flowConfig.flows,
+      flowFinalMinStack: 4,
+    },
+  };
+
   const txDeploy = await flowFactory.createChildTyped(
     flowConfigStruct,
     ...args

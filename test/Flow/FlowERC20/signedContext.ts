@@ -1,11 +1,7 @@
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC20Factory } from "../../../typechain";
-import {
-  SaveInterpreterStateEvent,
-  SignedContextStruct,
-} from "../../../typechain/contracts/flow/basic/Flow";
-import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -20,6 +16,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
+import { FlowERC20Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -61,10 +58,10 @@ describe("FlowERC20 signed context tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const flowConfigStruct: FlowERC20ConfigStruct = {
+    const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -153,10 +150,10 @@ describe("FlowERC20 signed context tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const flowConfigStruct: FlowERC20ConfigStruct = {
+    const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
@@ -257,10 +254,10 @@ describe("FlowERC20 signed context tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const flowConfigStruct: FlowERC20ConfigStruct = {
+    const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
