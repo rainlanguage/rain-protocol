@@ -17,6 +17,7 @@ import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { timewarp } from "../../../utils/hardhat";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -124,6 +125,7 @@ describe("Flow context tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
+      op(Opcode.BLOCK_TIMESTAMP),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
@@ -182,6 +184,8 @@ describe("Flow context tests", async function () {
       .connect(you)
       .approve(me.address, flowStructFull.erc20[0].amount);
 
+    console.log("FLOW 0");
+
     const flowStruct0 = await flow
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234, []);
@@ -229,6 +233,8 @@ describe("Flow context tests", async function () {
 
     // next flow (reduced amount)
 
+    console.log("WARP 12 HOURS");
+
     await timewarp(86400 / 2);
 
     // Ensure parties hold enough ERC20 for this flow
@@ -237,6 +243,8 @@ describe("Flow context tests", async function () {
     await erc20In
       .connect(you)
       .approve(me.address, flowStructReduced.erc20[0].amount);
+
+    console.log("FLOW 1");
 
     const flowStruct1 = await flow
       .connect(you)
@@ -288,6 +296,8 @@ describe("Flow context tests", async function () {
 
     // final flow (full amount beyond 24 hours since last flow time)
 
+    console.log("WARP 24 HOURS");
+
     await timewarp(86400 + 100);
 
     // Ensure parties hold enough ERC20 for this flow
@@ -297,11 +307,13 @@ describe("Flow context tests", async function () {
       .connect(you)
       .approve(me.address, flowStructFull.erc20[0].amount);
 
+    console.log("FLOW 2");
+
     const flowStruct2 = await flow
       .connect(you)
       .callStatic.flow(flowStates[0].id, 1234, []);
 
-    // compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
+    compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
 
     const _txFlow2 = await flow.connect(you).flow(flowStates[0].id, 1234, []);
 
@@ -310,32 +322,19 @@ describe("Flow context tests", async function () {
     const youBalanceIn2 = await erc20In.balanceOf(you.address);
     const youBalanceOut2 = await erc20Out.balanceOf(you.address);
 
-    console.log({
-      meBalanceIn2,
-      meBalanceOut2,
-      youBalanceIn2,
-      youBalanceOut2,
-    });
-
     for (const erc20Transfer2 of flowStruct2.erc20) {
       if (erc20Transfer2.to == me.address) {
         assert(
-          meBalanceIn2.eq(
-            erc20Transfer2.amount.add(meBalanceIn0).add(meBalanceIn1)
-          ),
+          meBalanceIn2.eq(erc20Transfer2.amount.add(meBalanceIn1)),
           `wrong balance for me (flow contract)
-          expected  ${erc20Transfer2.amount.add(meBalanceIn0).add(meBalanceIn1)}
+          expected  ${erc20Transfer2.amount.add(meBalanceIn1)}
           got       ${meBalanceIn2}`
         );
       } else if (erc20Transfer2.to == you.address) {
         assert(
-          youBalanceOut2.eq(
-            erc20Transfer2.amount.add(youBalanceOut0).add(youBalanceOut1)
-          ),
+          youBalanceOut2.eq(erc20Transfer2.amount.add(youBalanceOut1)),
           `wrong balance for you (signer1 contract)
-          expected  ${erc20Transfer2.amount
-            .add(youBalanceOut0)
-            .add(youBalanceOut1)}
+          expected  ${erc20Transfer2.amount.add(youBalanceOut1)}
           got       ${youBalanceOut2}`
         );
       }
