@@ -8,7 +8,7 @@ import "./LibStackTop.sol";
 import "./LibInterpreterState.sol";
 import "../../array/LibUint256Array.sol";
 import "../../sstore2/SSTORE2.sol";
-import "../integrity/IRainInterpreterIntegrity.sol";
+import "../deploy/IRainInterpreterIntegrity.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 type Operand is uint256;

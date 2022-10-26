@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../runtime/RainInterpreter.sol";
+import "../run/RainInterpreter.sol";
 import "./LibIntegrityState.sol";
 
 interface IRainInterpreterIntegrity {

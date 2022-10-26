@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {StandardInterpreter} from "../../../../interpreter/runtime/StandardInterpreter.sol";
+import {StandardInterpreter} from "../../../../interpreter/run/StandardInterpreter.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
-import "../../../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../../../interpreter/deploy/RainInterpreterIntegrity.sol";
 
 uint256 constant STORAGE_OPCODES_LENGTH = 3;
 

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpERC20SnapshotTotalSupplyAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.totalSupplyAt`.

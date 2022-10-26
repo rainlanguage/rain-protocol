@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "./runtime/StandardInterpreter.sol";
+import "../run/RainInterpreter.sol";
 
 contract RainterpreterV1 is IInterpreter, RainInterpreter {
     using LibStackTop for StackTop;

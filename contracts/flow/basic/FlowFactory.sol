@@ -4,7 +4,7 @@ pragma solidity =0.8.17;
 import {Factory} from "../../factory/Factory.sol";
 import {Flow, FlowConfig} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
-import {LibInterpreterState} from "../../interpreter/runtime/LibInterpreterState.sol";
+import {LibInterpreterState} from "../../interpreter/run/LibInterpreterState.sol";
 
 /// @title FlowFactory
 /// @notice Factory for deploying and registering `Flow` contracts.

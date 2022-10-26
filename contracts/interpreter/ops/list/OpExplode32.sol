@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../runtime/LibStackTop.sol";
+import "../../run/LibStackTop.sol";
 import "../../../array/LibUint256Array.sol";
-import "../../runtime/LibInterpreterState.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../run/LibInterpreterState.sol";
+import "../../deploy/LibIntegrityState.sol";
 
 /// @title OpExplode
 /// @notice Opcode for exploding a single value into 8x 32 bit integers.

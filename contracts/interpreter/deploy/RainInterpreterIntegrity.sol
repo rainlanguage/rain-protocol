@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
-import "../runtime/RainInterpreter.sol";
+import "../run/RainInterpreter.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../../sstore2/SSTORE2.sol";
-import "../runtime/LibStackTop.sol";
+import "../run/LibStackTop.sol";
 import "./LibIntegrityState.sol";
 import "./IRainInterpreterIntegrity.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
@@ -35,7 +35,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
         uint256 constantsLength_,
         uint256[] memory finalStacks_
     )
-        external
+        public
         view
         returns (
             uint256 scratch_,

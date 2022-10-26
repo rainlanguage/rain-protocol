@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/runtime/LibInterpreterState.sol";
-import "../../../../interpreter/runtime/LibStackTop.sol";
+import "../../../../interpreter/run/LibInterpreterState.sol";
+import "../../../../interpreter/run/LibStackTop.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
 import "../../../../array/LibUint256Array.sol";

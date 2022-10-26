@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/integrity/LibIntegrityState.sol";
+import "../../../../interpreter/deploy/LibIntegrityState.sol";
 import "../../../../debug/LibDebug.sol";
 import "../../../../type/LibCast.sol";
-import "../../../../interpreter/integrity/StandardIntegrity.sol";
+import "../../../../interpreter/deploy/StandardIntegrity.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 
 /// @title LibIntegrityStateTest

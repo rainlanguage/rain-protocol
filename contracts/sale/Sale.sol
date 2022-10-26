@@ -4,7 +4,7 @@ pragma solidity =0.8.17;
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
-import "../interpreter/runtime/StandardInterpreter.sol";
+import "../interpreter/run/StandardInterpreter.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISale.sol";
@@ -16,7 +16,7 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
-import "../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../interpreter/deploy/RainInterpreterIntegrity.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed

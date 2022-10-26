@@ -4,7 +4,7 @@ pragma solidity =0.8.17;
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
-import "../runtime/RainInterpreter.sol";
+import "../run/RainInterpreter.sol";
 import "./core/OpCall.sol";
 import "./core/OpContext.sol";
 import "./core/OpDebug.sol";

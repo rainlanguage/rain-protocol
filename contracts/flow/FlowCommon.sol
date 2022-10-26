@@ -3,8 +3,8 @@ pragma solidity =0.8.17;
 
 import "./libraries/LibFlow.sol";
 import "../idempotent/LibIdempotentFlag.sol";
-import "../interpreter/IExpressionDeployer.sol";
-import "../interpreter/IInterpreter.sol";
+import "../interpreter/deploy/IExpressionDeployer.sol";
+import "../interpreter/run/IInterpreter.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";

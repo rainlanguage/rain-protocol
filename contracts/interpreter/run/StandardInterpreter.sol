@@ -3,7 +3,7 @@ pragma solidity =0.8.17;
 
 import "./LibInterpreterState.sol";
 import "./RainInterpreter.sol";
-import "../integrity/RainInterpreterIntegrity.sol";
+import "../deploy/RainInterpreterIntegrity.sol";
 import "../ops/AllStandardOps.sol";
 
 uint256 constant DEFAULT_SOURCE_ID = 0;

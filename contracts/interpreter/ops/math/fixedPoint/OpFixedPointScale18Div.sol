@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpFixedPointScale18Div
 /// @notice Opcode for performing scale 18 fixed point division.

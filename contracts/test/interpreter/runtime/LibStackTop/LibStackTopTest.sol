@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/runtime/LibStackTop.sol";
+import "../../../../interpreter/run/LibStackTop.sol";
 import "../../../../debug/LibDebug.sol";
 import "../../../../memory/LibMemorySize.sol";
 
