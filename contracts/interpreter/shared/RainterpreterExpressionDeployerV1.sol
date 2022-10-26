@@ -10,12 +10,16 @@ bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(0);
 
 contract RainterpreterExpressionDeployerV1 is StandardIntegrity, IExpressionDeployer {
     using LibInterpreterState for StateConfig;
+
+    event ValidInterpreter(address sender, address interpreter);
     event SaveInterpreterState(address sender, StateConfig config);
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
     /// MISTAKES. IT CANNOT PREVENT EITHER A MALICIOUS INTERPRETER OR DEPLOYER
     /// FROM BEING EXECUTED.
     constructor (address interpreter_) {
+        // Guard against serializing incorrect function pointers, which would
+        // cause undefined runtime behaviour for corrupted opcodes.
         bytes memory functionPointers_ = IInterpreter(interpreter_).functionPointers();
         console.logBytes(functionPointers_);
         require(
@@ -23,12 +27,17 @@ contract RainterpreterExpressionDeployerV1 is StandardIntegrity, IExpressionDepl
             "BAD_POINTERS"
         );
 
+        // Guard against an interpreter with unknown/untrusted bytecode that
+        // could run arbitrary logic even if the function pointers are identical
+        // to the known/trusted interpreter.
         bytes32 interpreterHash_;
         assembly ("memory-safe") {
             interpreterHash_ := extcodehash(interpreter_)
         }
         console.logBytes(abi.encodePacked(interpreterHash_));
         require(interpreterHash_ == INTERPRETER_BYTECODE_HASH, "BAD_INTERPRETER_HASH");
+
+        emit ValidInterpreter(msg.sender, interpreter_);
     }
 
     function deployExpression(
