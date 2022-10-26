@@ -17,7 +17,6 @@ import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { timewarp } from "../../../utils/hardhat";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
