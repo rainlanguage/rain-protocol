@@ -5,6 +5,7 @@ import "../run/IInterpreter.sol";
 import "../deploy/IExpressionDeployer.sol";
 import "./LibStackTop.sol";
 import "../../type/LibCast.sol";
+import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
@@ -67,6 +68,7 @@ library LibInterpreterState {
     using LibCast for function(InterpreterState memory, Operand, StackTop)
         view
         returns (StackTop)[];
+    using LibConvert for uint[];
 
     function debugArray(uint256[] memory array_) internal view {
         console.log(DEBUG_DELIMETER);
@@ -129,11 +131,7 @@ library LibInterpreterState {
         uint256 scratch_,
         uint256 contextScratch_,
         uint256 stackLength_,
-        function(InterpreterState memory, Operand, StackTop)
-            internal
-            view
-            returns (StackTop)[]
-            memory opcodeFunctionPointers_
+        bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
@@ -163,7 +161,7 @@ library LibInterpreterState {
             bytes memory source_;
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 source_ = config_.sources[i_];
-                compile(source_, opcodeFunctionPointers_.asUint256Array());
+                compile(source_, opcodeFunctionPointers_);
                 cursor_ = cursor_.unalignedPushWithLength(source_);
             }
             return serialized_;
@@ -237,7 +235,7 @@ library LibInterpreterState {
     /// Hopefully it goes without saying that the list of pointers MUST NOT be
     /// user defined, otherwise any source can be compiled with a completely
     /// different mapping between opcodes and dispatched functions.
-    function compile(bytes memory source_, uint256[] memory pointers_)
+    function compile(bytes memory source_, bytes memory pointers_)
         internal
         pure
     {
@@ -260,7 +258,7 @@ library LibInterpreterState {
                         mload(
                             add(
                                 pointersBottom_,
-                                mul(and(data_, replaceMask_), 0x20)
+                                mul(and(data_, replaceMask_), 2)
                             )
                         )
                     )

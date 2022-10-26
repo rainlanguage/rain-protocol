@@ -23,4 +23,22 @@ library LibConvert {
             mstore(bytes_, mul(0x20, mload(bytes_)))
         }
     }
+
+    function unsafeTo16BitBytes(uint[] memory is_) internal pure returns (bytes memory bytes_) {
+        assembly ("memory-safe") {
+            let replaceMask_ := 0xFFFF
+            let preserveMask_ := not(replaceMask_)
+            for {
+                let cursor_ := add(is_, 0x20)
+                let end_ := add(cursor_, mul(mload(is_), 0x20))
+                let bytesCursor_ := add(bytes_, 0x22)
+            } lt(cursor_, end_) {
+                cursor_ := add(cursor_, 0x20)
+                bytesCursor_ := add(bytesCursor_, 0x02)
+            } {
+                let data_ := mload(bytesCursor_)
+                mstore(bytesCursor_, or(and(preserveMask_, data_), mload(cursor_)))
+            }
+        }
+    }
 }

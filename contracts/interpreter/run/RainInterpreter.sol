@@ -89,6 +89,8 @@ abstract contract RainInterpreter {
         internal
         view
         returns (StackTop);
+    using LibCast for function(InterpreterState memory, Operand, StackTop) internal view returns (StackTop)[];
+    using LibConvert for uint[];
     using LibInterpreterState for StateConfig;
 
     /// Default is to disallow all storage access to opcodes.
@@ -144,7 +146,7 @@ abstract contract RainInterpreter {
                     scratch_,
                     contextScratch_,
                     stackLength_,
-                    opcodeFunctionPointers()
+                    opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
                 );
         }
     }

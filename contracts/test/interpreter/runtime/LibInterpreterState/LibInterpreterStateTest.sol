@@ -18,6 +18,8 @@ contract LibInterpreterStateTest is RainInterpreter {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibCast for function(InterpreterState memory, Operand, StackTop) view returns (StackTop)[];
+    using LibConvert for uint[];
 
     address internal immutable interpreterIntegrity;
 
@@ -97,7 +99,7 @@ contract LibInterpreterStateTest is RainInterpreter {
             scratch_,
             contextScratch_,
             stackLength_,
-            opcodeFunctionPointers()
+            opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
         );
     }
 
