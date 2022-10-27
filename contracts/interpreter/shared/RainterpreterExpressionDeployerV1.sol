@@ -22,7 +22,8 @@ contract RainterpreterExpressionDeployerV1 is
     event DeployExpression(
         address sender,
         StateConfig config,
-        address expressionAddress
+        address expressionAddress,
+        uint contextScratch
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -58,7 +59,7 @@ contract RainterpreterExpressionDeployerV1 is
     function deployExpression(
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
-    ) external returns (address expressionAddress, uint256 contextScratch) {
+    ) external returns (address, uint256) {
         (
             uint256 scratch_,
             uint256 contextScratch_,
@@ -77,7 +78,9 @@ contract RainterpreterExpressionDeployerV1 is
             OPCODE_FUNCTION_POINTERS
         );
 
-        emit DeployExpression(msg.sender, config_, expressionAddress);
-        return (SSTORE2.write(stateBytes_), contextScratch_);
+        address expressionAddress_ = SSTORE2.write(stateBytes_);
+
+        emit DeployExpression(msg.sender, config_, expressionAddress_, contextScratch_);
+        return (expressionAddress_, contextScratch_);
     }
 }
