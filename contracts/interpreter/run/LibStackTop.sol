@@ -678,7 +678,11 @@ library LibStackTop {
         }
     }
 
-    function asStackTopAfter(uint[] memory array_) internal pure returns (StackTop stackTop_) {
+    function asStackTopAfter(uint256[] memory array_)
+        internal
+        pure
+        returns (StackTop stackTop_)
+    {
         assembly ("memory-safe") {
             stackTop_ := add(array_, add(0x20, mul(mload(array_), 0x20)))
         }

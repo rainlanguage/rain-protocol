@@ -76,10 +76,9 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         __ERC20_init(config_.name, config_.symbol);
         // Ignoring context scratch here as we never use it, all context is
         // provided unconditionally.
-        (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
-            config_.stateConfig,
-            LibUint256Array.arrayFrom(1)
-        );
+        (address expression_, ) = IExpressionDeployer(
+            config_.flowConfig.expressionDeployer
+        ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
         __FlowCommon_init(config_.flowConfig);
     }
@@ -113,12 +112,16 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     function _previewFlow(
         address flow_,
-        uint id_,
+        uint256 id_,
         SignedContext[] memory signedContexts_
     ) internal view virtual returns (FlowERC20IO memory) {
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
-        (StackTop stackBottom_, StackTop stackTop_) = flowStack(flow_, id_, signedContexts_);
+        (StackTop stackBottom_, StackTop stackTop_) = flowStack(
+            flow_,
+            id_,
+            signedContexts_
+        );
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC20_SENTINEL,

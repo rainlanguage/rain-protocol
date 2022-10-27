@@ -24,21 +24,33 @@ library LibConvert {
         }
     }
 
-    function unsafeTo16BitBytes(uint[] memory is_) internal pure returns (bytes memory bytes_) {
-        assembly ("memory-safe") {
-            let replaceMask_ := 0xFFFF
-            let preserveMask_ := not(replaceMask_)
-            for {
-                let cursor_ := add(is_, 0x20)
-                let end_ := add(cursor_, mul(mload(is_), 0x20))
-                let bytesCursor_ := add(bytes_, 0x22)
-            } lt(cursor_, end_) {
-                cursor_ := add(cursor_, 0x20)
-                bytesCursor_ := add(bytesCursor_, 0x02)
-            } {
-                let data_ := mload(bytesCursor_)
-                mstore(bytesCursor_, or(and(preserveMask_, data_), mload(cursor_)))
+    function unsafeTo16BitBytes(uint256[] memory is_)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        unchecked {
+            // We will keep 2 bytes (16 bits) from each integer.
+            bytes memory bytes_ = new bytes(is_.length * 2);
+            assembly ("memory-safe") {
+                let replaceMask_ := 0xFFFF
+                let preserveMask_ := not(replaceMask_)
+                for {
+                    let cursor_ := add(is_, 0x20)
+                    let end_ := add(cursor_, mul(mload(is_), 0x20))
+                    let bytesCursor_ := add(bytes_, 0x02)
+                } lt(cursor_, end_) {
+                    cursor_ := add(cursor_, 0x20)
+                    bytesCursor_ := add(bytesCursor_, 0x02)
+                } {
+                    let data_ := mload(bytesCursor_)
+                    mstore(
+                        bytesCursor_,
+                        or(and(preserveMask_, data_), mload(cursor_))
+                    )
+                }
             }
+            return bytes_;
         }
     }
 }

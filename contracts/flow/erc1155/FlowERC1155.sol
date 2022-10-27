@@ -34,7 +34,7 @@ SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
 
 contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     using LibStackTop for StackTop;
-    using LibStackTop for uint[];
+    using LibStackTop for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -51,10 +51,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         __ERC1155_init(config_.uri);
         // Ignoring context scratch here as we never use it, all context is
         // provided unconditionally.
-        (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
-            config_.stateConfig,
-            LibUint256Array.arrayFrom(1)
-        );
+        (address expression_, ) = IExpressionDeployer(
+            config_.flowConfig.expressionDeployer
+        ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
         __FlowCommon_init(config_.flowConfig);
     }
@@ -120,12 +119,16 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     function _previewFlow(
         address flow_,
-        uint id_,
+        uint256 id_,
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowERC1155IO memory) {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
-        (StackTop stackBottom_, StackTop stackTop_) = flowStack(flow_, id_, signedContexts_);
+        (StackTop stackBottom_, StackTop stackTop_) = flowStack(
+            flow_,
+            id_,
+            signedContexts_
+        );
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC1155_SENTINEL,

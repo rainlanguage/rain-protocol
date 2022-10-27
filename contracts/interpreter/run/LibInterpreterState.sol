@@ -68,7 +68,7 @@ library LibInterpreterState {
     using LibCast for function(InterpreterState memory, Operand, StackTop)
         view
         returns (StackTop)[];
-    using LibConvert for uint[];
+    using LibConvert for uint256[];
 
     function debugArray(uint256[] memory array_) internal view {
         console.log(DEBUG_DELIMETER);

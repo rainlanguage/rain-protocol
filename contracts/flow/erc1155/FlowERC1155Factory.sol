@@ -14,9 +14,7 @@ contract FlowERC1155Factory is Factory {
 
     /// Build the reference implementation to clone for each child.
     constructor() {
-        address implementation_ = address(
-            new FlowERC1155()
-        );
+        address implementation_ = address(new FlowERC1155());
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

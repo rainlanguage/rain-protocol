@@ -4,12 +4,12 @@ pragma solidity ^0.8.15;
 import "../deploy/IExpressionDeployer.sol";
 import "../deploy/StandardIntegrity.sol";
 
-bytes constant OPCODE_FUNCTION_POINTERS = hex"";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"07d5082a087e08a008f8092f094d095c096a09780986095c099409a209b009bf09cd09db09e909f70a7a0a890a980aa70ab60ac50b0e0b200b2e0b600b6e0b7c0b8a0b990ba80bb70bc60bd50be40bf30c020c110c200c2f0c3e0c4d0c5b0cc3";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x4be7d57a5cdc25d41e18fd6f98354de6d430dcf7b073b48faaa2841e358b89c3
+    0x94ad3a45e23c98b382f9eaa21052da52bc9640940143afdc27cf24e3ad327f3f
 );
 
 contract RainterpreterExpressionDeployerV1 is
@@ -33,7 +33,6 @@ contract RainterpreterExpressionDeployerV1 is
         // cause undefined runtime behaviour for corrupted opcodes.
         bytes memory functionPointers_ = IInterpreter(interpreter_)
             .functionPointers();
-        console.logBytes32(OPCODE_FUNCTION_POINTERS_HASH);
         console.logBytes(functionPointers_);
         require(
             keccak256(functionPointers_) == OPCODE_FUNCTION_POINTERS_HASH,
@@ -47,7 +46,6 @@ contract RainterpreterExpressionDeployerV1 is
         assembly ("memory-safe") {
             interpreterHash_ := extcodehash(interpreter_)
         }
-        console.logBytes32(INTERPRETER_BYTECODE_HASH);
         console.logBytes(abi.encodePacked(interpreterHash_));
         require(
             interpreterHash_ == INTERPRETER_BYTECODE_HASH,

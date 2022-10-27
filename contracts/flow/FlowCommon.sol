@@ -39,7 +39,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
     using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
-    using LibStackTop for uint[];
+    using LibStackTop for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -70,10 +70,15 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
             (
                 address expressionAddress_,
                 uint256 contextScratch_
-            ) = IExpressionDeployer(config_.expressionDeployer).deployExpression(
-                    config_.flows[i_],
-                    LibUint256Array.arrayFrom(1, 1, config_.flowFinalMinStack)
-                );
+            ) = IExpressionDeployer(config_.expressionDeployer)
+                    .deployExpression(
+                        config_.flows[i_],
+                        LibUint256Array.arrayFrom(
+                            1,
+                            1,
+                            config_.flowFinalMinStack
+                        )
+                    );
             // The context scratch MUST set at least one flag otherwise
             // `_buildFlowContext` will refuse to build a context for it.
             // The ID is always set in the context so there's no harm in always
@@ -93,7 +98,10 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
 
         // THIS IS A CRITICAL SECURITY CHECK. REMOVING THIS ALLOWS ARBITRARY
         // EXPRESSIONS TO BE BUILT AND RUN AS FLOWS.
-        require(IdempotentFlag.unwrap(contextScratch_) > 0, "UNREGISTERED_FLOW");
+        require(
+            IdempotentFlag.unwrap(contextScratch_) > 0,
+            "UNREGISTERED_FLOW"
+        );
 
         // This column MUST match the flags tracked in the context grid.
         return
@@ -162,32 +170,32 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
                     .peek() > 0,
                 "CANT_FLOW"
             );
-            uint[] memory stack_ = interpreter_.eval(flow_, FLOW_ENTRYPOINT, flowContext_);
+            uint256[] memory stack_ = interpreter_.eval(
+                flow_,
+                FLOW_ENTRYPOINT,
+                flowContext_
+            );
             return (stack_.asStackTopUp(), stack_.asStackTopAfter());
         }
     }
 
-    function loadFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
-        internal
-        view
-        returns (uint256)
-    {
+    function loadFlowTime(
+        IdempotentFlag flag_,
+        address flow_,
+        uint256 id_
+    ) internal view returns (uint256) {
         return
-            flag_.get16x16(
-                FLAG_COLUMN_FLOW_TIME,
-                FLAG_ROW_FLOW_TIME
-            )
+            flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)
                 ? _flowTimes[flow_][id_]
                 : 0;
     }
 
-    function registerFlowTime(IdempotentFlag flag_, address flow_, uint256 id_) internal {
-        if (
-            flag_.get16x16(
-                FLAG_COLUMN_FLOW_TIME,
-                FLAG_ROW_FLOW_TIME
-            )
-        ) {
+    function registerFlowTime(
+        IdempotentFlag flag_,
+        address flow_,
+        uint256 id_
+    ) internal {
+        if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
             _flowTimes[flow_][id_] = block.timestamp;
         }
     }

@@ -69,10 +69,9 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         __ERC721_init(config_.name, config_.symbol);
         // Ignoring context scratch here as we never use it, all context is
         // provided unconditionally.
-        (address expression_, ) = IExpressionDeployer(config_.flowConfig.expressionDeployer).deployExpression(
-            config_.stateConfig,
-            LibUint256Array.arrayFrom(1)
-        );
+        (address expression_, ) = IExpressionDeployer(
+            config_.flowConfig.expressionDeployer
+        ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
         __FlowCommon_init(config_.flowConfig);
     }
@@ -99,7 +98,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            uint[][] memory context_ = LibUint256Array
+            uint256[][] memory context_ = LibUint256Array
                 .arrayFrom(
                     uint256(uint160(from_)),
                     uint256(uint160(to_)),
@@ -107,7 +106,10 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 )
                 .matrixFrom();
             require(
-                _interpreter.eval(_expression, CAN_TRANSFER_ENTRYPOINT, context_).asStackTopAfter().peek() > 0,
+                _interpreter
+                    .eval(_expression, CAN_TRANSFER_ENTRYPOINT, context_)
+                    .asStackTopAfter()
+                    .peek() > 0,
                 "INVALID_TRANSFER"
             );
         }
@@ -115,12 +117,16 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function _previewFlow(
         address flow_,
-        uint id_,
+        uint256 id_,
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowERC721IO memory) {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
-        (StackTop stackBottom_, StackTop stackTop_) = flowStack(flow_, id_, signedContexts_);
+        (StackTop stackBottom_, StackTop stackTop_) = flowStack(
+            flow_,
+            id_,
+            signedContexts_
+        );
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC721_SENTINEL,
@@ -147,7 +153,11 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
-            FlowERC721IO memory flowIO_ = _previewFlow(flow_, id_, signedContexts_);
+            FlowERC721IO memory flowIO_ = _previewFlow(
+                flow_,
+                id_,
+                signedContexts_
+            );
             registerFlowTime(_flowContextScratches[flow_], flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
