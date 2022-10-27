@@ -21,7 +21,7 @@ describe("Flow deployExpression tests", async function () {
     flowFactory = await flowFactoryDeploy();
   });
 
-  it.only("should deploy expression", async function () {
+  it("should deploy expression", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 

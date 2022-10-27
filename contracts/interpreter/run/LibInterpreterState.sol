@@ -244,25 +244,20 @@ library LibInterpreterState {
                 let replaceMask_ := 0xFFFF
                 let preserveMask_ := not(replaceMask_)
                 let sourceLength_ := mload(source_)
-                let pointersBottom_ := add(pointers_, 0x20)
+                let pointersBottom_ := add(pointers_, 2)
                 let cursor_ := add(source_, 2)
                 let end_ := add(source_, sourceLength_)
             } lt(cursor_, end_) {
                 cursor_ := add(cursor_, 4)
             } {
                 let data_ := mload(cursor_)
-                mstore(
-                    cursor_,
-                    or(
-                        and(data_, preserveMask_),
-                        mload(
-                            add(
-                                pointersBottom_,
-                                mul(and(data_, replaceMask_), 2)
-                            )
-                        )
+                let pointer_ := and(
+                    replaceMask_,
+                    mload(
+                        add(pointersBottom_, mul(2, and(data_, replaceMask_)))
                     )
                 )
+                mstore(cursor_, or(and(data_, preserveMask_), pointer_))
             }
         }
     }

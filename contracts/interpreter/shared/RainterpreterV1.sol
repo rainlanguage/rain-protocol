@@ -29,9 +29,7 @@ contract RainterpreterV1 is IInterpreter, RainInterpreter {
     }
 
     function functionPointers() external view returns (bytes memory) {
-        return opcodeFunctionPointers()
-            .asUint256Array()
-            .unsafeTo16BitBytes();
+        return opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes();
     }
 
     function localEvalFunctionPointers()

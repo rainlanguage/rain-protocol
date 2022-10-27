@@ -9,8 +9,9 @@ bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x94ad3a45e23c98b382f9eaa21052da52bc9640940143afdc27cf24e3ad327f3f
+    0xc689eefb42c4ba4ba6687152c159eb5b73677a4c52b88f589f0be3b526260cf4
 );
+uint256 constant INTEGRITY_CHECK = 1;
 
 contract RainterpreterExpressionDeployerV1 is
     StandardIntegrity,
@@ -23,37 +24,41 @@ contract RainterpreterExpressionDeployerV1 is
         address sender,
         StateConfig config,
         address expressionAddress,
-        uint contextScratch
+        uint256 contextScratch
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
     /// MISTAKES. IT CANNOT PREVENT EITHER A MALICIOUS INTERPRETER OR DEPLOYER
     /// FROM BEING EXECUTED.
     constructor(address interpreter_) {
-        // Guard against serializing incorrect function pointers, which would
-        // cause undefined runtime behaviour for corrupted opcodes.
-        bytes memory functionPointers_ = IInterpreter(interpreter_)
-            .functionPointers();
-        console.logBytes(functionPointers_);
-        require(
-            keccak256(functionPointers_) == OPCODE_FUNCTION_POINTERS_HASH,
-            "BAD_POINTERS"
-        );
+        if (INTEGRITY_CHECK > 0) {
+            // Guard against serializing incorrect function pointers, which would
+            // cause undefined runtime behaviour for corrupted opcodes.
+            bytes memory functionPointers_ = IInterpreter(interpreter_)
+                .functionPointers();
+            console.logBytes(functionPointers_);
+            require(
+                keccak256(functionPointers_) == OPCODE_FUNCTION_POINTERS_HASH,
+                "BAD_POINTERS"
+            );
 
-        // Guard against an interpreter with unknown/untrusted bytecode that
-        // could run arbitrary logic even if the function pointers are identical
-        // to the known/trusted interpreter.
-        bytes32 interpreterHash_;
-        assembly ("memory-safe") {
-            interpreterHash_ := extcodehash(interpreter_)
+            // Guard against an interpreter with unknown/untrusted bytecode that
+            // could run arbitrary logic even if the function pointers are identical
+            // to the known/trusted interpreter.
+            bytes32 interpreterHash_;
+            assembly ("memory-safe") {
+                interpreterHash_ := extcodehash(interpreter_)
+            }
+            console.logBytes(abi.encodePacked(interpreterHash_));
+            require(
+                interpreterHash_ == INTERPRETER_BYTECODE_HASH,
+                "BAD_INTERPRETER_HASH"
+            );
+
+            emit ValidInterpreter(msg.sender, interpreter_);
+        } else {
+            console.log("!!!DEPLOYER INTEGRITY CHECK DISABLED!!!");
         }
-        console.logBytes(abi.encodePacked(interpreterHash_));
-        require(
-            interpreterHash_ == INTERPRETER_BYTECODE_HASH,
-            "BAD_INTERPRETER_HASH"
-        );
-
-        emit ValidInterpreter(msg.sender, interpreter_);
     }
 
     function deployExpression(
@@ -80,7 +85,12 @@ contract RainterpreterExpressionDeployerV1 is
 
         address expressionAddress_ = SSTORE2.write(stateBytes_);
 
-        emit DeployExpression(msg.sender, config_, expressionAddress_, contextScratch_);
+        emit DeployExpression(
+            msg.sender,
+            config_,
+            expressionAddress_,
+            contextScratch_
+        );
         return (expressionAddress_, contextScratch_);
     }
 }
