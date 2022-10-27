@@ -1,14 +1,15 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { FlowERC20Factory, RainterpreterV1 } from "../../../../typechain";
+import { FlowERC20Factory } from "../../../../typechain";
 import {
   FlowERC20,
   FlowERC20ConfigStruct,
 } from "../../../../typechain/contracts/flow/erc20/FlowERC20";
 import { getEventArgs } from "../../../events";
 import { FlowERC20Config } from "../../../types/flow";
-import { basicDeploy } from "../../basicDeploy";
+import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployerV1/deploy";
+import { rainterpreterV1Deploy } from "../../interpreter/shared/rainterpreterV1/deploy";
 
 export const flowERC20Deploy = async (
   deployer: SignerWithAddress,
@@ -16,13 +17,10 @@ export const flowERC20Deploy = async (
   flowERC20Config: FlowERC20Config,
   ...args: Overrides[]
 ): Promise<FlowERC20> => {
-  // TODO: Deploy contract which implements `IExpressionDeployer`
-  const expressionDeployer = { address: "" };
-
-  const interpreter = (await basicDeploy(
-    "RainterpreterV1",
-    {}
-  )) as RainterpreterV1;
+  const interpreter = await rainterpreterV1Deploy();
+  const expressionDeployer = await rainterpreterExpressionDeployerV1(
+    interpreter
+  );
 
   const flowERC20ConfigStruct: FlowERC20ConfigStruct = {
     stateConfig: flowERC20Config.stateConfig,

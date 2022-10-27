@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { StandardIntegrity } from "../../../../../typechain/contracts/interpreter/integrity/StandardIntegrity";
+import { StandardIntegrity } from "../../../../../typechain";
 
 export const standardIntegrityDeploy = async () => {
   const integrityFactory = await ethers.getContractFactory("StandardIntegrity");
