@@ -58,7 +58,7 @@ contract RainterpreterExpressionDeployerV1 is
     function deployExpression(
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
-    ) external returns (address expressionAddress, uint256 contextScratch) {
+    ) external returns (address expressionAddress_, uint256 contextScratch) {
         (
             uint256 scratch_,
             uint256 contextScratch_,
@@ -77,7 +77,8 @@ contract RainterpreterExpressionDeployerV1 is
             OPCODE_FUNCTION_POINTERS
         );
 
-        emit DeployExpression(msg.sender, config_, expressionAddress);
-        return (SSTORE2.write(stateBytes_), contextScratch_);
+        (expressionAddress_, ) = (SSTORE2.write(stateBytes_), contextScratch_);
+        emit DeployExpression(msg.sender, config_, expressionAddress_);
+        return (expressionAddress_, contextScratch_);
     }
 }
