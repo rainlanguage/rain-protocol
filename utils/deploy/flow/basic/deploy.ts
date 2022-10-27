@@ -1,11 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import {
-  Flow,
-  FlowFactory,
-  RainterpreterExpressionDeployerV1,
-} from "../../../../typechain";
+import { Flow, FlowFactory } from "../../../../typechain";
 import { FlowConfigStruct } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
