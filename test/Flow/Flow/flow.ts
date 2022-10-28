@@ -129,12 +129,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -297,12 +301,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -449,12 +457,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -589,12 +601,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -750,12 +766,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -915,12 +935,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -1068,12 +1092,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -1197,12 +1225,16 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
-      flow
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const me = flow;
@@ -1291,7 +1323,7 @@ describe("Flow flow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     await signers[0].sendTransaction({
       to: flow.address,

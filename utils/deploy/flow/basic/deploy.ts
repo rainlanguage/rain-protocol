@@ -13,7 +13,7 @@ export const flowDeploy = async (
   flowFactory: FlowFactory,
   flowConfig: FlowConfig,
   ...args: Overrides[]
-): Promise<Flow> => {
+) => {
   const interpreter = await rainterpreterV1Deploy();
   const expressionDeployer = await rainterpreterExpressionDeployerV1(
     interpreter
@@ -51,5 +51,5 @@ export const flowDeploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return flow;
+  return { flow, interpreter, expressionDeployer };
 };

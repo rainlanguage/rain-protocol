@@ -23,6 +23,7 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployerV1";
 
 const Opcode = AllStandardOps;
 
@@ -99,17 +100,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -256,17 +261,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -392,17 +401,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -546,17 +559,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -654,17 +671,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -752,17 +773,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -872,17 +897,21 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].id, 1234, []);
+      .previewFlow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -955,17 +984,23 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     await assertError(
       async () =>
-        await flow.connect(you).previewFlow(flowStates[0].id, 1234, []),
+        await flow
+          .connect(you)
+          .previewFlow(flowStates[0].expressionAddress, 1234, []),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -1008,16 +1043,20 @@ describe("Flow previewFlow tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow.previewFlow(
-      flowStates[0].id,
+      flowStates[0].expressionAddress,
       1234,
       []
     );

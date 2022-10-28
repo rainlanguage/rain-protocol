@@ -70,7 +70,7 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfig);
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfig);
 
     const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
