@@ -31,8 +31,8 @@ const Opcode = AllStandardOps;
 
 describe("Flow flow tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.THIS_ADDRESS);
-  const YOU = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.SENDER);
+  const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();

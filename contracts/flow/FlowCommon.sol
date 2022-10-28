@@ -106,6 +106,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
         // This column MUST match the flags tracked in the context grid.
         return
             LibUint256Array.arrayFrom(
+                uint(uint160(msg.sender)),
                 id_,
                 loadFlowTime(contextScratch_, flow_, id_)
             );
