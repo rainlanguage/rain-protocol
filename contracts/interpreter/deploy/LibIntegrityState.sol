@@ -5,7 +5,7 @@ import "../run/RainInterpreter.sol";
 import "../run/LibStackTop.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "../run/IInterpreter.sol";
+import "../run/IInterpreterV1.sol";
 
 struct IntegrityState {
     // Sources first as we read it in assembly.

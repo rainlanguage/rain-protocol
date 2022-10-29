@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../deploy/IExpressionDeployer.sol";
+import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 
 bytes constant OPCODE_FUNCTION_POINTERS = hex"07d5082a087e08a008f8092f094d095c096a09780986095c099409a209b009bf09cd09db09e909f70a7a0a890a980aa70ab60ac50b0e0b200b2e0b600b6e0b7c0b8a0b990ba80bb70bc60bd50be40bf30c020c110c200c2f0c3e0c4d0c5b0cc3";
@@ -13,9 +13,9 @@ bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
 );
 uint256 constant INTEGRITY_CHECK = 1;
 
-contract RainterpreterExpressionDeployerV1 is
+contract RainterpreterExpressionDeployer is
     StandardIntegrity,
-    IExpressionDeployer
+    IExpressionDeployerV1
 {
     using LibInterpreterState for StateConfig;
 
@@ -34,7 +34,7 @@ contract RainterpreterExpressionDeployerV1 is
         if (INTEGRITY_CHECK > 0) {
             // Guard against serializing incorrect function pointers, which would
             // cause undefined runtime behaviour for corrupted opcodes.
-            bytes memory functionPointers_ = IInterpreter(interpreter_)
+            bytes memory functionPointers_ = IInterpreterV1(interpreter_)
                 .functionPointers();
             console.logBytes(functionPointers_);
             require(

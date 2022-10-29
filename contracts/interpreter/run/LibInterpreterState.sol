@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../run/IInterpreter.sol";
-import "../deploy/IExpressionDeployer.sol";
+import "../run/IInterpreterV1.sol";
+import "../deploy/IExpressionDeployerV1.sol";
 import "./LibStackTop.sol";
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";

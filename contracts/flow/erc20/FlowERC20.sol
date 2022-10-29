@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../../interpreter/deploy/IExpressionDeployer.sol";
+import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/StandardInterpreter.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -76,7 +76,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         __ERC20_init(config_.name, config_.symbol);
         // Ignoring context scratch here as we never use it, all context is
         // provided unconditionally.
-        (address expression_, ) = IExpressionDeployer(
+        (address expression_, ) = IExpressionDeployerV1(
             config_.flowConfig.expressionDeployer
         ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;

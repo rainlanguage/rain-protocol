@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 
-contract RainterpreterV1 is IInterpreter, RainInterpreter {
+contract Rainterpreter is IInterpreterV1, RainInterpreter {
     using LibStackTop for StackTop;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;

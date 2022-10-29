@@ -9,7 +9,7 @@ struct StateConfig {
     uint256[] constants;
 }
 
-interface IExpressionDeployer {
+interface IExpressionDeployerV1 {
     // function ensureIntegrity(
     //     bytes[] memory sources,
     //     uint256 constantsLength,

@@ -3,8 +3,8 @@ pragma solidity =0.8.17;
 
 import "./libraries/LibFlow.sol";
 import "../idempotent/LibIdempotentFlag.sol";
-import "../interpreter/deploy/IExpressionDeployer.sol";
-import "../interpreter/run/IInterpreter.sol";
+import "../interpreter/deploy/IExpressionDeployerV1.sol";
+import "../interpreter/run/IInterpreterV1.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
@@ -42,7 +42,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
-    IInterpreter internal _interpreter;
+    IInterpreterV1 internal _interpreter;
 
     /// flow expression pointer => context scratch
     mapping(address => IdempotentFlag) internal _flowContextScratches;
@@ -65,12 +65,12 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             config_.flowFinalMinStack >= MIN_FLOW_SENTINELS,
             "BAD MIN STACKS LENGTH"
         );
-        _interpreter = IInterpreter(config_.interpreter);
+        _interpreter = IInterpreterV1(config_.interpreter);
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
             (
                 address expressionAddress_,
                 uint256 contextScratch_
-            ) = IExpressionDeployer(config_.expressionDeployer)
+            ) = IExpressionDeployerV1(config_.expressionDeployer)
                     .deployExpression(
                         config_.flows[i_],
                         LibUint256Array.arrayFrom(
@@ -148,7 +148,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             flowContext_[0] = flowBaseContext_;
             flowContext_[1] = signers_;
 
-            IInterpreter interpreter_ = _interpreter;
+            IInterpreterV1 interpreter_ = _interpreter;
 
             uint256[] memory stack_ = interpreter_.eval(
                 flow_,
