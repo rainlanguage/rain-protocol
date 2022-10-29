@@ -14,10 +14,8 @@ library OpHash {
     using LibCast for uint256[];
     using LibIntegrityState for IntegrityState;
 
-    function _hash(
-        uint256[] memory values_
-    ) internal pure returns (uint256) {
-        return uint(keccak256(abi.encodePacked(values_)));
+    function _hash(uint256[] memory values_) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(values_)));
     }
 
     function integrity(
@@ -26,11 +24,7 @@ library OpHash {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         return
-            integrityState_.applyFn(
-                stackTop_,
-                _hash,
-                Operand.unwrap(operand_)
-            );
+            integrityState_.applyFn(stackTop_, _hash, Operand.unwrap(operand_));
     }
 
     // Stack the return of `balanceOfBatch`.

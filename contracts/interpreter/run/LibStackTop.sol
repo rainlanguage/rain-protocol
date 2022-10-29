@@ -535,9 +535,13 @@ library LibStackTop {
         return stackTop_;
     }
 
-    function applyFn(StackTop stackTop_, function(uint[] memory) internal view returns (uint) fn_, uint length_) internal view returns (StackTop stackTopAfter_) {
-        (uint a_, uint[] memory tail_) = stackTop_.list(length_);
-        uint b_ = fn_(tail_);
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256[] memory) internal view returns (uint256) fn_,
+        uint256 length_
+    ) internal view returns (StackTop stackTopAfter_) {
+        (uint256 a_, uint256[] memory tail_) = stackTop_.list(length_);
+        uint256 b_ = fn_(tail_);
         return tail_.asStackTop().push(a_).push(b_);
     }
 
