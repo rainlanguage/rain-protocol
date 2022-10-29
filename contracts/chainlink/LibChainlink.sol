@@ -10,7 +10,7 @@ library LibChainlink {
     using FixedPointMath for uint256;
 
     function price(address feed_, uint256 staleAfter_)
-        external
+        internal
         view
         returns (uint256 price_)
     {
