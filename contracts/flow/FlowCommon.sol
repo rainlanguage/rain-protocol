@@ -106,7 +106,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
         // This column MUST match the flags tracked in the context grid.
         return
             LibUint256Array.arrayFrom(
-                uint(uint160(msg.sender)),
+                uint256(uint160(msg.sender)),
                 id_,
                 loadFlowTime(contextScratch_, flow_, id_)
             );
@@ -123,32 +123,13 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
                 id_
             );
 
-            uint256[][] memory canSignContext_ = new uint256[][](2);
-            canSignContext_[0] = flowBaseContext_;
-
+            uint256[] memory signers_ = new uint256[](signedContexts_.length);
             uint256[][] memory flowContext_ = new uint256[][](
-                signedContexts_.length + 1
+                signedContexts_.length + 2
             );
-            flowContext_[0] = flowBaseContext_;
-
-            IInterpreter interpreter_ = _interpreter;
-
             for (uint256 i_ = 0; i_ < signedContexts_.length; i_++) {
-                canSignContext_[1] = LibUint256Array.arrayFrom(
-                    i_,
-                    uint256(uint160(signedContexts_[i_].signer))
-                );
-                require(
-                    interpreter_
-                        .eval(
-                            flow_,
-                            CAN_SIGN_CONTEXT_ENTRYPOINT,
-                            canSignContext_
-                        )
-                        .asStackTopAfter()
-                        .peek() > 0,
-                    "BAD_SIGNER"
-                );
+                signers_[i_] = uint256(uint160(signedContexts_[i_].signer));
+
                 require(
                     SignatureChecker.isValidSignatureNow(
                         signedContexts_[i_].signer,
@@ -161,9 +142,21 @@ contract FlowCommon is ERC721Holder, ERC1155Holder {
                     ),
                     "INVALID_SIGNATURE"
                 );
-                flowContext_[i_ + 1] = signedContexts_[i_].context;
+                flowContext_[i_ + 2] = signedContexts_[i_].context;
             }
 
+            flowContext_[0] = flowBaseContext_;
+            flowContext_[1] = signers_;
+
+            IInterpreter interpreter_ = _interpreter;
+
+            require(
+                interpreter_
+                    .eval(flow_, CAN_SIGN_CONTEXT_ENTRYPOINT, flowContext_)
+                    .asStackTopAfter()
+                    .peek() > 0,
+                "BAD_SIGNER"
+            );
             require(
                 interpreter_
                     .eval(flow_, CAN_FLOW_ENTRYPOINT, flowContext_)
