@@ -6,6 +6,7 @@ export enum AllStandardOps {
   LOOP_N,
   STATE,
   STORAGE,
+  HASH,
   ERC20_BALANCE_OF,
   ERC20_TOTAL_SUPPLY,
   ERC20_SNAPSHOT_BALANCE_OF_AT,

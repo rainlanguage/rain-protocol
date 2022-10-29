@@ -535,6 +535,12 @@ library LibStackTop {
         return stackTop_;
     }
 
+    function applyFn(StackTop stackTop_, function(uint[] memory) internal view returns (uint) fn_, uint length_) internal view returns (StackTop stackTopAfter_) {
+        (uint a_, uint[] memory tail_) = stackTop_.list(length_);
+        uint b_ = fn_(tail_);
+        return tail_.asStackTop().push(a_).push(b_);
+    }
+
     /// Execute a function, reading and writing inputs and outputs on the stack.
     /// The caller MUST ensure this does not result in unsafe reads and writes.
     /// @param stackTop_ The stack top to read and write to.

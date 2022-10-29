@@ -12,6 +12,7 @@ import "./core/OpStorage.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpState.sol";
+import "./crypto/OpHash.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
 import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
@@ -55,7 +56,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 49;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 50;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -167,6 +168,7 @@ library AllStandardOps {
                     OpLoopN.integrity,
                     OpState.integrity,
                     OpStorage.integrity,
+                    OpHash.integrity,
                     OpERC20BalanceOf.integrity,
                     OpERC20TotalSupply.integrity,
                     OpERC20SnapshotBalanceOfAt.integrity,
@@ -245,6 +247,7 @@ library AllStandardOps {
                     OpLoopN.loopN,
                     OpState.state,
                     OpStorage.storageRead,
+                    OpHash.hash,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
