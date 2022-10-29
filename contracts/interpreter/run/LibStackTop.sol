@@ -461,6 +461,26 @@ library LibStackTop {
         }
     }
 
+    function applyFnN(
+        StackTop stackTop_,
+        function(uint256) internal view fn_,
+        uint256 n_
+    ) internal view returns (StackTop stackTopAfter_) {
+        uint256 cursor_;
+        uint256 a_;
+        assembly ("memory-safe") {
+            stackTopAfter_ := sub(stackTop_, mul(n_, 0x20))
+            cursor_ := stackTopAfter_
+        }
+        while (cursor_ < StackTop.unwrap(stackTop_)) {
+            assembly ("memory-safe") {
+                a_ := mload(cursor_)
+                cursor_ := add(cursor_, 0x20)
+            }
+            fn_(a_);
+        }
+    }
+
     /// Execute a function, reading and writing inputs and outputs on the stack.
     /// The caller MUST ensure this does not result in unsafe reads and writes.
     /// @param stackTop_ The stack top to read and write to.

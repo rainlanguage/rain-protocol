@@ -20,6 +20,7 @@ import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
 import "./erc1155/OpERC1155BalanceOf.sol";
 import "./erc1155/OpERC1155BalanceOfBatch.sol";
+import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
@@ -54,7 +55,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 48;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 49;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -174,6 +175,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
+                    OpEnsure.integrity,
                     OpBlockNumber.integrity,
                     OpCaller.integrity,
                     OpThisAddress.integrity,
@@ -251,6 +253,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.ownerOf,
                     OpERC1155BalanceOf.balanceOf,
                     OpERC1155BalanceOfBatch.balanceOfBatch,
+                    OpEnsure.ensure,
                     OpBlockNumber.blockNumber,
                     OpCaller.caller,
                     OpThisAddress.thisAddress,
