@@ -5,6 +5,7 @@ import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../run/RainInterpreter.sol";
+import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
 import "./core/OpContext.sol";
 import "./core/OpDebug.sol";
@@ -56,7 +57,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 50;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 51;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -161,6 +162,7 @@ library AllStandardOps {
                 returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
                     OpContext.integrity,
                     OpDebug.integrity,
@@ -239,6 +241,7 @@ library AllStandardOps {
                 returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    OpChainlinkOraclePrice.price,
                     // solhint-disable-next-line avoid-low-level-calls
                     OpCall.call,
                     OpContext.context,

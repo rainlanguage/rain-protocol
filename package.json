@@ -46,6 +46,7 @@
     "typechain": "^8.1.0"
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.5.1",
     "@openzeppelin/contracts-upgradeable": "=4.7.3"
   },
   "overrides": {
