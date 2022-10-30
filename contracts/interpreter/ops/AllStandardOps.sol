@@ -51,13 +51,18 @@ import "./math/OpMin.sol";
 import "./math/OpMod.sol";
 import "./math/OpMul.sol";
 import "./math/OpSub.sol";
+import "./rain/ISaleV2/OpISaleV2RemainingTokenInventory.sol";
+import "./rain/ISaleV2/OpISaleV2Reserve.sol";
+import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
+import "./rain/ISaleV2/OpISaleV2Token.sol";
+import "./rain/ISaleV2/OpISaleV2TotalReserveReceived.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 51;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 56;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -208,6 +213,11 @@ library AllStandardOps {
                     OpMod.integrity,
                     OpMul.integrity,
                     OpSub.integrity,
+                    OpISaleV2RemainingTokenInventory.integrity,
+                    OpISaleV2Reserve.integrity,
+                    OpISaleV2SaleStatus.integrity,
+                    OpISaleV2Token.integrity,
+                    OpISaleV2TotalReserveReceived.integrity,
                     OpITierV2Report.integrity,
                     OpITierV2ReportTimeForTier.integrity,
                     OpSaturatingDiff.integrity,
@@ -288,6 +298,11 @@ library AllStandardOps {
                     OpMod.mod,
                     OpMul.mul,
                     OpSub.sub,
+                    OpISaleV2RemainingTokenInventory.run,
+                    OpISaleV2Reserve.run,
+                    OpISaleV2SaleStatus.run,
+                    OpISaleV2Token.run,
+                    OpISaleV2TotalReserveReceived.run,
                     OpITierV2Report.report,
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,

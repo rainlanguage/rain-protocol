@@ -17,14 +17,21 @@ enum SaleStatus {
     Fail
 }
 
-interface ISale {
+interface ISaleV2 {
     /// Returns the address of the token being sold in the sale.
     /// MUST NOT change during the lifecycle of the sale contract.
     function token() external view returns (address);
 
+    function remainingTokenInventory() external view returns (uint256);
+
     /// Returns the address of the token that sale prices are denominated in.
     /// MUST NOT change during the lifecycle of the sale contract.
     function reserve() external view returns (address);
+
+    /// total reserve taken in to the sale contract via. buys. Does NOT
+    /// include any reserve sent directly to the sale contract outside the
+    /// standard buy/refund loop, e.g. due to a dusting attack.
+    function totalReserveReceived() external view returns (uint256);
 
     /// Returns the current `SaleStatus` of the sale.
     /// Represents a linear progression of the sale through its major lifecycle
