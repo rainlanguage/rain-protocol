@@ -138,8 +138,6 @@ SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
 uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
 
-uint256 constant STORAGE_OPCODES_LENGTH = 4;
-
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     using Math for uint256;
