@@ -31,7 +31,6 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
-import { SaleStorage } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -93,11 +92,11 @@ describe("Sale calculate price", async function () {
         // price
           vBasePrice,
               vFractionMultiplier,
-                op(Opcode.STORAGE, SaleStorage.Token),
+                op(Opcode.ISALEV2_TOKEN),
                 op(Opcode.SENDER),
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-              op(Opcode.STORAGE, SaleStorage.Token),
+              op(Opcode.ISALEV2_TOKEN),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
@@ -237,11 +236,11 @@ describe("Sale calculate price", async function () {
         // price
           vBasePrice,
               vFractionMultiplier,
-                op(Opcode.STORAGE, SaleStorage.Reserve),
+                op(Opcode.ISALEV2_RESERVE),
                 op(Opcode.SENDER),
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-              op(Opcode.STORAGE, SaleStorage.Reserve),
+              op(Opcode.ISALEV2_RESERVE),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
@@ -563,7 +562,7 @@ describe("Sale calculate price", async function () {
         op(Opcode.CONTEXT, 0x0000),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveReceived),
+        op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -697,7 +696,7 @@ describe("Sale calculate price", async function () {
         op(Opcode.CONTEXT, 0x0000),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.RemainingTokenInventory),
+        op(Opcode.ISALEV2_REMAINING_TOKEN_INVENTORY),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,

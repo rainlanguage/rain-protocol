@@ -31,16 +31,6 @@ describe("Flow construction tests", async function () {
     const constants = [1, 2];
 
     // prettier-ignore
-    const sourceCanSignContext = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-    ]);
-
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-    ]);
-
-    // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
@@ -64,7 +54,7 @@ describe("Flow construction tests", async function () {
       stateConfig: { sources, constants },
       flows: [
         {
-          sources: [sourceCanSignContext, sourceCanFlow, sourceFlowIO],
+          sources: [sourceFlowIO],
           constants,
         },
       ],

@@ -96,11 +96,6 @@ describe("FlowERC20 flow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
@@ -133,7 +128,7 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants: constantsCanTransfer,
         },
       ],
@@ -147,7 +142,7 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants: constantsCannotTransfer,
         },
       ],
@@ -309,10 +304,6 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -354,11 +345,11 @@ describe("FlowERC20 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants: constantsMint,
         },
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants: constantsBurn,
         },
       ],
@@ -572,10 +563,6 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -627,9 +614,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -791,10 +776,6 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const BURN_AMOUNT = () =>
@@ -843,9 +824,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -994,10 +973,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1044,9 +1019,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -1174,10 +1147,6 @@ describe("FlowERC20 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1221,9 +1190,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -1372,10 +1339,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1428,9 +1391,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -1585,10 +1546,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1634,9 +1591,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -1783,10 +1738,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1833,9 +1784,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -1960,10 +1909,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const MINT_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -2003,9 +1948,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow, expressionDeployer } = await flowERC20Deploy(
@@ -2090,10 +2033,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -2113,9 +2052,7 @@ describe("FlowERC20 flow tests", async function () {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const { flow } = await flowERC20Deploy(

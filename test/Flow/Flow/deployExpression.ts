@@ -29,10 +29,6 @@ describe("Flow deployExpression tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -45,9 +41,7 @@ describe("Flow deployExpression tests", async function () {
 
     const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
     const _flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);

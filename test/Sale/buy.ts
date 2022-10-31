@@ -27,7 +27,7 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
-import { SaleStorage, Status } from "../../utils/types/sale";
+import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -656,7 +656,7 @@ describe("Sale buy", async function () {
         op(Opcode.CONTEXT, 0x0000),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveReceived),
+        op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,

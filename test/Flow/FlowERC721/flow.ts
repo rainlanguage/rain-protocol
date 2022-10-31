@@ -91,12 +91,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-
     const TOKEN_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
@@ -125,7 +119,7 @@ describe("FlowERC721 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants: constantsCanTransfer,
         },
       ],
@@ -139,7 +133,7 @@ describe("FlowERC721 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants: constantsCannotTransfer,
         },
       ],
@@ -282,10 +276,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const TOKEN_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_INPUT_NATIVE = () =>
@@ -337,11 +327,11 @@ describe("FlowERC721 flow tests", async function () {
       },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIOMint],
+          sources: [sourceFlowIOMint],
           constants: constantsMint,
         },
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIOBurn],
+          sources: [sourceFlowIOBurn],
           constants: constantsBurn,
         },
       ],
@@ -536,10 +526,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -587,7 +573,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -736,10 +722,6 @@ describe("FlowERC721 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -787,7 +769,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -922,11 +904,6 @@ describe("FlowERC721 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
@@ -970,7 +947,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1084,10 +1061,6 @@ describe("FlowERC721 flow tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1129,7 +1102,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1266,11 +1239,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
@@ -1320,7 +1288,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1463,10 +1431,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -1511,7 +1475,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1646,11 +1610,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
@@ -1694,7 +1653,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1807,10 +1766,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
@@ -1847,7 +1802,7 @@ describe("FlowERC721 flow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1932,10 +1887,6 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1959,7 +1910,7 @@ describe("FlowERC721 flow tests", async function () {
       stateConfig: stateConfigStruct,
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants,
         },
       ],

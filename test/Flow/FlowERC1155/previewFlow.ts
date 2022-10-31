@@ -85,10 +85,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
@@ -125,7 +121,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -227,10 +223,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -304,7 +296,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -400,10 +392,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -465,7 +453,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -568,10 +556,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -644,7 +628,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -723,10 +707,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -777,7 +757,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -851,10 +831,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -899,7 +875,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -983,10 +959,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1042,7 +1014,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1077,10 +1049,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -1107,7 +1075,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
@@ -1152,10 +1120,6 @@ describe("FlowERC1155 previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_1155 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
@@ -1184,7 +1148,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
         stateConfig: stateConfigStruct,
         flows: [
           {
-            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            sources: [sourceFlowIO],
             constants,
           },
         ],
