@@ -329,7 +329,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             if (remainingTokenInventory < 1) {
                 return false;
             }
-            uint256[][] memory context_ = new uint256[][](0);
+            uint256[][] memory context_ = LibUint256Array.arrayFrom(uint(uint160(msg.sender))).matrixFrom();
             return
                 IInterpreterV1(interpreter)
                     .eval(expression, CAN_LIVE_ENTRYPOINT, context_)
@@ -377,7 +377,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                 .eval(
                     expression,
                     CALCULATE_BUY_ENTRYPOINT,
-                    targetUnits_.arrayFrom().matrixFrom()
+                    LibUint256Array.arrayFrom(uint(uint160(msg.sender)), targetUnits_).matrixFrom()
                 )
                 .asStackTopAfter()
                 .peek2();
