@@ -8,8 +8,8 @@ import {
 } from "../../../../typechain/contracts/flow/erc20/FlowERC20";
 import { getEventArgs } from "../../../events";
 import { FlowERC20Config } from "../../../types/flow";
-import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployerV1/deploy";
-import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreterV1/deploy";
+import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
 export const flowERC20Deploy = async (
   deployer: SignerWithAddress,

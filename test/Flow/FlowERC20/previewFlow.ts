@@ -23,6 +23,7 @@ import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flo
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC20 } from "../../../utils/flow";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -35,8 +36,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC20 previewFlow tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
-  const ME = () => op(Opcode.THIS_ADDRESS);
-  const YOU = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.SENDER);
+  const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowERC20Factory = await flowERC20FactoryDeploy();
@@ -1214,8 +1215,8 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.ENSURE),
       CAN_FLOW(),
+      op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP

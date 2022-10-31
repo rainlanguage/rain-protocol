@@ -5,8 +5,8 @@ import { Flow, FlowFactory } from "../../../../typechain";
 import { FlowConfigStruct } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
-import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployerV1/deploy";
-import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreterV1/deploy";
+import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
 export const flowDeploy = async (
   deployer: SignerWithAddress,

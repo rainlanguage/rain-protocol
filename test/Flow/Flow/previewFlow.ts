@@ -919,8 +919,8 @@ describe("Flow previewFlow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const sourceFlowIO = concat([
-      op(Opcode.ENSURE),
       CAN_FLOW(),
+      op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
