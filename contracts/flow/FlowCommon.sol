@@ -74,8 +74,6 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
                     .deployExpression(
                         config_.flows[i_],
                         LibUint256Array.arrayFrom(
-                            1,
-                            1,
                             config_.flowFinalMinStack
                         )
                     );
