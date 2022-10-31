@@ -2,7 +2,12 @@ import type {
   AggregatorV3Interface,
   AllStandardOpsTest,
 } from "../../../../typechain";
-import { AllStandardOps, op } from "../../../../utils";
+import {
+  AllStandardOps,
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
@@ -31,8 +36,17 @@ describe("CHAINLINK_PRICE Opcode test", async function () {
     });
     fakeChainlinkOracle.decimals.returns(18);
 
-    const sources = [concat([op(Opcode.CHAINLINK_PRICE)])];
-    const constants = [];
+    const feed = fakeChainlinkOracle.address;
+    const staleAfter = 10000;
+
+    const sources = [
+      concat([
+        op(Opcode.CHAINLINK_PRICE),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      ]),
+    ];
+    const constants = [feed, staleAfter];
 
     await logic.initialize({
       sources,
