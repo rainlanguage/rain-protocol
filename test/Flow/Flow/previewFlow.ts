@@ -878,7 +878,7 @@ describe("Flow previewFlow tests", async function () {
     );
   });
 
-  it("should not flow if canFlow eval returns 0", async () => {
+  it("should not flow if it does not meet 'ensure' requirement", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
@@ -911,12 +911,16 @@ describe("Flow previewFlow tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const CAN_FLOW = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     const sourceFlowIO = concat([
+      op(Opcode.ENSURE),
+      CAN_FLOW(),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
@@ -953,7 +957,7 @@ describe("Flow previewFlow tests", async function () {
         await flow
           .connect(you)
           .previewFlow(flowStates[0].expressionAddress, 1234, []),
-      "CANT_FLOW",
+      "",
       "flowed when it should not"
     );
   });

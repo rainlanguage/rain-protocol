@@ -1197,22 +1197,25 @@ describe("FlowERC20 previewFlow tests", async function () {
     );
   });
 
-  it("should not flow if canFlow eval returns 0", async () => {
+  it("should not flow if it does not meet 'ensure' requirement", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 0];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 0, 1];
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_TRANSFER = () =>
+    const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const CAN_TRANSFER = () =>
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sourceFlowIO = concat([
+      op(Opcode.ENSURE),
+      CAN_FLOW(),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
@@ -1253,7 +1256,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     await assertError(
       async () =>
         await flow.previewFlow(flowStates[1].expressionAddress, 1234, []),
-      "CANT_FLOW",
+      "",
       "flowed when it should not"
     );
   });
