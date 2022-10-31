@@ -232,6 +232,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
     constructor(SaleConstructorConfig memory config_) {
         _disableInitializers();
+
+        // uint256 slot_;
+        // assembly ("memory-safe") {
+        //     slot_ := remainingTokenInventory.slot
+        // }
+        // console.log("remainingTokenInventory slot", slot_);
+
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;

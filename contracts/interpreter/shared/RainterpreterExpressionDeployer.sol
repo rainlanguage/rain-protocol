@@ -76,10 +76,6 @@ contract RainterpreterExpressionDeployer is
                 finalMinStacks_
             );
 
-        console.logBytes(config_.sources[0]);
-        console.logBytes(config_.sources[1]);
-        console.logBytes(config_.sources[2]);
-
         bytes memory stateBytes_ = config_.serialize(
             scratch_,
             contextScratch_,

@@ -656,7 +656,7 @@ describe("Sale buy", async function () {
         op(Opcode.CONTEXT, 0x0000),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
+        op(Opcode.STORAGE, SaleStorage.TotalReserveReceived),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,

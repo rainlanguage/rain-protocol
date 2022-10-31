@@ -563,7 +563,7 @@ describe("Sale calculate price", async function () {
         op(Opcode.CONTEXT, 0x0000),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
+        op(Opcode.STORAGE, SaleStorage.TotalReserveReceived),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -697,7 +697,7 @@ describe("Sale calculate price", async function () {
         op(Opcode.CONTEXT, 0x0000),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.RemainingUnits),
+        op(Opcode.STORAGE, SaleStorage.RemainingTokenInventory),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
