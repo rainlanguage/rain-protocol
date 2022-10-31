@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { LibIntegrityStateTest } from "../../../../typechain";
-import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/runtime/RainInterpreter";
+import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/run/RainInterpreter";
 import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";

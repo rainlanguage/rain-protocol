@@ -1,7 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE, sixZeros } from "../../utils/constants/bigNumber";
 import {
@@ -25,10 +31,13 @@ const Opcode = AllStandardOps;
 describe("Sale griefer", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -77,6 +86,8 @@ describe("Sale griefer", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,

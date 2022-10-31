@@ -1,4 +1,4 @@
-import { StateConfigStruct } from "../../typechain/contracts/interpreter/runtime/StandardInterpreter";
+import { StateConfigStruct } from "../../typechain/contracts/interpreter/run/StandardInterpreter";
 
 export type FlowConfig = {
   stateConfig: StateConfigStruct;

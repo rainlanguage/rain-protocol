@@ -2,6 +2,7 @@ import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC1155Factory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -69,7 +70,7 @@ describe("FlowERC1155 signed context tests", async function () {
       ],
     };
 
-    const flow = await flowERC1155Deploy(
+    const { flow, expressionDeployer } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
       flowConfigStruct
@@ -77,9 +78,9 @@ describe("FlowERC1155 signed context tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
@@ -104,7 +105,7 @@ describe("FlowERC1155 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowStates[1].id, 1234, signedContexts0, {});
+      .flow(flowStates[1].expressionAddress, 1234, signedContexts0, {});
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -125,7 +126,7 @@ describe("FlowERC1155 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowStates[1].id, 1234, signedContexts1, {}),
+          .flow(flowStates[1].expressionAddress, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
@@ -173,7 +174,7 @@ describe("FlowERC1155 signed context tests", async function () {
       ],
     };
 
-    const flow = await flowERC1155Deploy(
+    const { flow, expressionDeployer } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
       flowConfigStruct
@@ -181,9 +182,9 @@ describe("FlowERC1155 signed context tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const context = [1, 2, 3];
     const hash = solidityKeccak256(["uint256[]"], [context]);
@@ -200,7 +201,7 @@ describe("FlowERC1155 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowStates[1].id, 1234, signedContexts0, {});
+      .flow(flowStates[1].expressionAddress, 1234, signedContexts0, {});
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
@@ -216,7 +217,7 @@ describe("FlowERC1155 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowStates[1].id, 1234, signedContexts1, {}),
+          .flow(flowStates[1].expressionAddress, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
@@ -263,7 +264,7 @@ describe("FlowERC1155 signed context tests", async function () {
       ],
     };
 
-    const flow = await flowERC1155Deploy(
+    const { flow, expressionDeployer } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
       flowConfigStruct
@@ -271,9 +272,9 @@ describe("FlowERC1155 signed context tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const signedContexts: SignedContextStruct[] = [
       {
@@ -287,12 +288,12 @@ describe("FlowERC1155 signed context tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .flow(flowStates[1].id, 1234, signedContexts, {}),
+          .flow(flowStates[1].expressionAddress, 1234, signedContexts, {}),
       "BAD_SIGNER",
       "did not prevent signed context validation when CAN_SIGN_CONTEXT set to false"
     );
 
     // no signed contexts does not throw error
-    await flow.connect(you).flow(flowStates[1].id, 1234, [], {});
+    await flow.connect(you).flow(flowStates[1].expressionAddress, 1234, [], {});
   });
 });

@@ -11,6 +11,7 @@ import {
   FlowTransferStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
@@ -115,24 +116,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
     compareStructs(
       flowTransferPreview,
       fillEmptyAddressERC721(flowERC721IO, flow.address),
@@ -289,24 +297,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -444,24 +459,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -616,24 +638,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -744,24 +773,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -860,24 +896,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -998,24 +1041,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -1057,23 +1107,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowStates[1].id, 1234, []),
+      async () =>
+        await flow.previewFlow(flowStates[1].expressionAddress, 1234, []),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -1126,24 +1184,31 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC721Deploy(deployer, flowERC721Factory, {
-      name: "FlowERC721",
-      symbol: "F721",
-      stateConfig: stateConfigStruct,
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      {
+        name: "FlowERC721",
+        symbol: "F721",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,

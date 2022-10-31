@@ -9,15 +9,15 @@ import {
 import { getEventArgs } from "../../../events";
 import { FlowERC1155Config } from "../../../types/flow";
 import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployerV1/deploy";
-import { rainterpreterV1Deploy } from "../../interpreter/shared/rainterpreterV1/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreterV1/deploy";
 
 export const flowERC1155Deploy = async (
   deployer: SignerWithAddress,
   flowERC1155Factory: FlowERC1155Factory,
   flowERC1155Config: FlowERC1155Config,
   ...args: Overrides[]
-): Promise<FlowERC1155> => {
-  const interpreter = await rainterpreterV1Deploy();
+) => {
+  const interpreter = await rainterpreterDeploy();
   const expressionDeployer = await rainterpreterExpressionDeployerV1(
     interpreter
   );
@@ -55,5 +55,5 @@ export const flowERC1155Deploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return flow;
+  return { flow, interpreter, expressionDeployer };
 };

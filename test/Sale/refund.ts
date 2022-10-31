@@ -1,7 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { max_uint256, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
@@ -28,10 +34,13 @@ const Opcode = AllStandardOps;
 describe("Sale refund", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -73,6 +82,8 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -190,6 +201,8 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -311,6 +324,8 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -413,6 +428,8 @@ describe("Sale refund", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,

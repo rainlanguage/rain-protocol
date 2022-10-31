@@ -11,6 +11,7 @@ import {
   FlowTransferStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
@@ -138,27 +139,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -335,27 +340,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -513,27 +522,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -710,27 +723,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -861,27 +878,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1002,27 +1023,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1164,27 +1189,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1227,26 +1256,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowStates[1].id, 1234, []),
+      async () =>
+        await flow.previewFlow(flowStates[1].expressionAddress, 1234, []),
       "CANT_FLOW",
       "flowed when it should not"
     );
@@ -1326,27 +1360,31 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const flow = await flowERC20Deploy(deployer, flowERC20Factory, {
-      name: "FlowERC20",
-      symbol: "F20",
-      stateConfig: stateConfigStruct,
-      flows: [
-        {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
-          constants,
-        },
-      ],
-    });
+    const { flow, expressionDeployer } = await flowERC20Deploy(
+      deployer,
+      flowERC20Factory,
+      {
+        name: "FlowERC20",
+        symbol: "F20",
+        stateConfig: stateConfigStruct,
+        flows: [
+          {
+            sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+            constants,
+          },
+        ],
+      }
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].id, 1234, []);
+      .previewFlow(flowStates[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address)

@@ -89,7 +89,7 @@ describe("FlowERC20 construction tests", async function () {
       ],
     };
 
-    const flow = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       configStruct

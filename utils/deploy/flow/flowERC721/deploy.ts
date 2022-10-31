@@ -9,15 +9,15 @@ import {
 import { getEventArgs } from "../../../events";
 import { FlowERC721Config } from "../../../types/flow";
 import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployerV1/deploy";
-import { rainterpreterV1Deploy } from "../../interpreter/shared/rainterpreterV1/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreterV1/deploy";
 
 export const flowERC721Deploy = async (
   deployer: SignerWithAddress,
   flowERC721Factory: FlowERC721Factory,
   flowERC721Config: FlowERC721Config,
   ...args: Overrides[]
-): Promise<FlowERC721> => {
-  const interpreter = await rainterpreterV1Deploy();
+) => {
+  const interpreter = await rainterpreterDeploy();
   const expressionDeployer = await rainterpreterExpressionDeployerV1(
     interpreter
   );
@@ -56,5 +56,5 @@ export const flowERC721Deploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return flow;
+  return { flow, interpreter, expressionDeployer };
 };

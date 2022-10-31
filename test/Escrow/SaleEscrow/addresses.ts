@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import type { RedeemableERC20 } from "../../../typechain";
 import {
   IERC20Upgradeable as IERC20,
-  MockISale,
+  MockISaleV2,
   ReadWriteTier,
   ReserveToken,
   SaleEscrowWrapper,
@@ -48,7 +48,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       distributionEndForwardingAddress: zeroAddress,
     })) as RedeemableERC20;
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setReserve(reserve.address);
     await sale.setToken(redeemableERC20.address);
@@ -90,7 +90,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -151,7 +151,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -211,7 +211,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying success status", async function () {
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
