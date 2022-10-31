@@ -29,14 +29,14 @@ import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/
 import { flow } from "../../../typechain/contracts";
 
 import fs from 'fs'
-const flowABI = JSON.parse(fs.readFileSync('artifacts/contracts/flow/basic/Flow.sol/Flow.json', 'utf-8'))
 
 const Opcode = AllStandardOps;
 
-describe("Flow flow_A tests", async function () {
+describe("Flow multiCall tests", async function () {
   let flowFactory: FlowFactory;
   const ME = () => op(Opcode.SENDER);
   const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const flowABI = JSON.parse(fs.readFileSync('artifacts/contracts/flow/basic/Flow.sol/Flow.json', 'utf-8'))
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();
