@@ -24,11 +24,11 @@ library OpSub {
             integrityState_.applyFnN(stackTop_, _sub, Operand.unwrap(operand_));
     }
 
-    function sub(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    function sub(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop stackTopAfter_)
+    {
         return stackTop_.applyFnN(_sub, Operand.unwrap(operand_));
     }
 }

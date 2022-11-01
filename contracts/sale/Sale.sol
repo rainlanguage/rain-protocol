@@ -183,8 +183,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// stuck in a pending or active status due to buggy expressions.
     uint256 private immutable maximumSaleTimeout;
 
-    address expression;
-    address interpreter;
+    address private expression;
+    address private interpreter;
 
     /// @inheritdoc ISaleV2
     uint256 public remainingTokenInventory;

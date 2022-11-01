@@ -24,11 +24,11 @@ library OpDiv {
             integrityState_.applyFnN(stackTop_, _div, Operand.unwrap(operand_));
     }
 
-    function div(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    function div(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop stackTopAfter_)
+    {
         return stackTop_.applyFnN(_div, Operand.unwrap(operand_));
     }
 }

@@ -24,11 +24,11 @@ library OpExp {
             integrityState_.applyFnN(stackTop_, _exp, Operand.unwrap(operand_));
     }
 
-    function exp(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    function exp(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop stackTopAfter_)
+    {
         return stackTop_.applyFnN(_exp, Operand.unwrap(operand_));
     }
 }

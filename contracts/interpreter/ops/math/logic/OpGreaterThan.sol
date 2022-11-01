@@ -28,11 +28,11 @@ library OpGreaterThan {
         return integrityState_.applyFn(stackTop_, _greaterThan);
     }
 
-    function greaterThan(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function greaterThan(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_greaterThan);
     }
 }

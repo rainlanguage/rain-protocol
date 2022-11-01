@@ -25,11 +25,11 @@ library OpERC20TotalSupply {
     }
 
     // Stack the return of `totalSupply`.
-    function totalSupply(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function totalSupply(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_totalSupply);
     }
 }

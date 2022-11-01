@@ -1,11 +1,9 @@
 import { assert } from "chai";
-import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   AllStandardOps,
-  assertError,
   memoryOperand,
   MemoryType,
   op,
@@ -29,7 +27,7 @@ describe("HASH Opcode test", async function () {
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.HASH, 3), 
+      op(Opcode.HASH, 3),
     ]);
     await logic.initialize({
       sources: [source],
@@ -59,7 +57,7 @@ describe("HASH Opcode test", async function () {
     const source = concat([
         op(Opcode.CONTEXT, 0x0000),
         op(Opcode.CONTEXT, 0x0001),
-      op(Opcode.HASH, 2), 
+      op(Opcode.HASH, 2),
     ]);
     await logic.initialize({
       sources: [source],
@@ -80,13 +78,12 @@ describe("HASH Opcode test", async function () {
   });
 
   it("should hash a single value", async () => {
-    
     const constants = [ethers.constants.MaxUint256];
 
     // prettier-ignore
     const source = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.HASH, 1), 
+      op(Opcode.HASH, 1),
     ]);
     await logic.initialize({
       sources: [source],

@@ -89,11 +89,11 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     }
 
     /// @inheritdoc ERC721
-    function _beforeTokenTransfer(
-        address from_,
-        address to_,
-        uint256 tokenId_
-    ) internal virtual override {
+    function _beforeTokenTransfer(address from_, address to_, uint256 tokenId_)
+        internal
+        virtual
+        override
+    {
         super._beforeTokenTransfer(from_, to_, tokenId_);
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.

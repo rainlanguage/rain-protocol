@@ -1,7 +1,5 @@
 import { assert } from "chai";
-import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
 import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   AllStandardOps,
@@ -92,7 +90,7 @@ describe("ENSURE Opcode test", async function () {
 
     assert(result2.eq(0), `returned wrong value from eager if, got ${result2}`);
   });
-  
+
   it("should revert the transaction if it fails ensure opcode condition", async () => {
     const constants = [0, 1, 2, 3];
 
@@ -124,12 +122,12 @@ describe("ENSURE Opcode test", async function () {
     );
     const source1 = concat([
       // 2 ? 2 : 3
-            v2,
-            v0,
-            v3,
-        op(Opcode.EAGER_IF),
+      v2,
+      v0,
+      v3,
+      op(Opcode.EAGER_IF),
       op(Opcode.ENSURE, 1),
-      v3
+      v3,
     ]);
 
     await logic.initialize({
@@ -165,5 +163,4 @@ describe("ENSURE Opcode test", async function () {
       "did not revert even after failing the ensure opcode condition"
     );
   });
-
 });

@@ -38,19 +38,19 @@ contract LibStackTopTest {
         return a_ + b_;
     }
 
-    function summer3(
-        uint256 a_,
-        uint256 b_,
-        uint256 c_
-    ) internal pure returns (uint256) {
+    function summer3(uint256 a_, uint256 b_, uint256 c_)
+        internal
+        pure
+        returns (uint256)
+    {
         return a_ + b_ + c_;
     }
 
-    function multiplier2(
-        Operand operand_,
-        uint256 a_,
-        uint256 b_
-    ) internal pure returns (uint256) {
+    function multiplier2(Operand operand_, uint256 a_, uint256 b_)
+        internal
+        pure
+        returns (uint256)
+    {
         return (a_ + b_) * Operand.unwrap(operand_);
     }
 
@@ -287,22 +287,20 @@ contract LibStackTopTest {
         );
     }
 
-    function set(
-        bytes memory bytes_,
-        uint256 a_,
-        uint256 n_
-    ) external returns (StackTop) {
+    function set(bytes memory bytes_, uint256 a_, uint256 n_)
+        external
+        returns (StackTop)
+    {
         LibDebug.dumpMemory();
         bytes_.asStackTop().up(n_).set(a_);
         LibDebug.dumpMemory();
         return bytes_.asStackTop();
     }
 
-    function set(
-        uint256[] memory array_,
-        uint256 a_,
-        uint256 n_
-    ) external returns (StackTop) {
+    function set(uint256[] memory array_, uint256 a_, uint256 n_)
+        external
+        returns (StackTop)
+    {
         LibDebug.dumpMemory();
         array_.asStackTop().up(n_).set(a_);
         LibDebug.dumpMemory();
@@ -472,11 +470,7 @@ contract LibStackTopTest {
 
     function toIndex(uint256[] memory array0_, uint256[] memory array1_)
         external
-        returns (
-            uint256 index_,
-            StackTop stackBottom_,
-            StackTop stackTop_
-        )
+        returns (uint256 index_, StackTop stackBottom_, StackTop stackTop_)
     {
         stackBottom_ = array0_.asStackTop();
         stackTop_ = array1_.asStackTop();

@@ -37,11 +37,11 @@ library LibUint256Array {
         return array_;
     }
 
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256 c_
-    ) internal pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256 c_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         uint256[] memory array_ = new uint256[](3);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -51,12 +51,11 @@ library LibUint256Array {
         return array_;
     }
 
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256 c_,
-        uint256 d_
-    ) internal pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256 c_, uint256 d_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         uint256[] memory array_ = new uint256[](4);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -109,11 +108,11 @@ library LibUint256Array {
     /// @param b_ The second item of the new array.
     /// @param tail_ The tail of the new array.
     /// @return The new array.
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256[] memory tail_
-    ) internal pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256[] memory tail_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         uint256[] memory array_ = new uint256[](2);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)

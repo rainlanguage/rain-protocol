@@ -31,11 +31,11 @@ library OpERC20SnapshotTotalSupplyAt {
     }
 
     /// Stack `totalSupplyAt`.
-    function totalSupplyAt(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function totalSupplyAt(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_totalSupplyAt);
     }
 }
