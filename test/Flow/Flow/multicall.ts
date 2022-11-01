@@ -274,12 +274,6 @@ describe("Flow multiCall tests", async function () {
       fillEmptyAddress(flowTransfer_B, flow_A.address)
     );
 
-    // CALLING FLOWS
-    // A
-    // await flow_A.connect(you).flow(flowStates_A[0].expressionAddress, 1234, []);
-    // B
-    // await flow_B.connect(you).flow(flowStates_B[0].expressionAddress, 1234, []);
-
     const iFlow = new ethers.utils.Interface(flowABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
       flowStates_A[0].expressionAddress,
