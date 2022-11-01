@@ -1,15 +1,8 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  FlowERC20Factory,
-} from "../../../typechain/contracts/flow/erc20";
+import { FlowERC20Factory } from "../../../typechain/contracts/flow/erc20";
 
-import {
-  FlowERC20ConfigStruct,
-  SaveInterpreterStateEvent,
-} from "../../../typechain/contracts/flow/erc20/FlowERC20";
-
-import{ } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import {} from "../../../typechain/contracts/flow/erc20/FlowERC20";
 
 import {
   RAIN_FLOW_ERC20_SENTINEL,
@@ -26,6 +19,8 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import { assertError } from "../../../utils";
+import { FlowERC20Config } from "../../../utils/types/flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 
 const Opcode = AllStandardOps;
 
@@ -36,7 +31,6 @@ describe("FlowERC20 flow tests", async function () {
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
-
   it("should flow for lichess", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -45,7 +39,7 @@ describe("FlowERC20 flow tests", async function () {
     const constants = [
       RAIN_FLOW_SENTINEL,
       RAIN_FLOW_ERC20_SENTINEL,
-      (10**(18)).toString(),
+      (10 ** 18).toString(),
       0,
       1,
     ];
@@ -57,19 +51,23 @@ describe("FlowERC20 flow tests", async function () {
 
     const CAN_SIGN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    
-    const ONE = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const ZERO = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-      
-    const CHESS_WINNER_ADDRESS = () =>
-      op(Opcode.CONTEXT, 0x0100);
+
+    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const ZERO = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+
+    const CHESS_WINNER_ADDRESS = () => op(Opcode.CONTEXT, 0x0100);
 
     const CANNOT_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    
+
+    // prettier-ignore
     const sourceFlow_WIN = concat([
+          // CAN FLOW
+          op(Opcode.CONTEXT, 0x0002),
+          ZERO(),
+        op(Opcode.EQUAL_TO),
+      op(Opcode.ENSURE, 1),
+      // FLOW
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
@@ -79,26 +77,20 @@ describe("FlowERC20 flow tests", async function () {
       CHESS_WINNER_ADDRESS(), // ADDRESS
       ONE(), // MINT AMOUNT
     ]);
-    
-    const sourceCanFlowWin = concat([
-      op(Opcode.CONTEXT, 0x0001),
-      ZERO(),
-      // op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // ITierV2 contract stake0
-      op(Opcode.EQUAL_TO),
-    ]);
-   
-    // WIN FLOW 
-    const flow_WIN_ConfigStruct: FlowERC20ConfigStruct = {
+    // WIN FLOW
+    const flow_WIN_ConfigStruct: FlowERC20Config = {
       name: "FlowWINERC20",
       symbol: "FWIN20",
-      interpreterStateConfig: {
-        sources:  [CANNOT_TRANSFER()],
+      stateConfig: {
+        sources: [CANNOT_TRANSFER()],
         constants,
       },
-      flows: [{ sources: [CAN_SIGN(), sourceCanFlowWin, sourceFlow_WIN], constants }],
+      flows: [
+        { sources: [sourceFlow_WIN], constants },
+      ],
     };
-    
-    const flow_WIN = await flowERC20Deploy(
+
+    const { flow: flow_WIN, expressionDeployer: expressionDeployer_WIN}  = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       flow_WIN_ConfigStruct
@@ -106,39 +98,48 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStates_WIN = (await getEvents(
       flow_WIN.deployTransaction,
-      "SaveInterpreterState",
-      flow_WIN
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer_WIN
+    )) as DeployExpressionEvent["args"][];
 
-    
     // CONTEXT
     // [WINNER_ADDRESS, CHESS_IS_BEATEN, IS_IMPROVED, XP_AMOUNT]
     const isBeatenGrandMaster = true;
     const isImproved = true;
     const xpAmount = 100;
-    const context = [you.address, Number(isBeatenGrandMaster), Number(isImproved), xpAmount, flowStates_WIN[1].id];
-    const messageHash = ethers.utils.solidityKeccak256(['uint256[]'], [context]);
+    const context = [
+      you.address,
+      Number(isBeatenGrandMaster),
+      Number(isImproved),
+      xpAmount,
+      flowStates_WIN[1].expressionAddress,
+    ];
+    const messageHash = ethers.utils.solidityKeccak256(
+      ["uint256[]"],
+      [context]
+    );
 
     const signedContext = {
       signer: you.address,
       signature: you.signMessage(ethers.utils.arrayify(messageHash)),
-      context: context
-    }
+      context: context,
+    };
 
     // Flowing once
-    await flow_WIN.connect(you).flow(flowStates_WIN[1].id, 9999, [signedContext]);
-    
+    await flow_WIN
+      .connect(you)
+      .flow(flowStates_WIN[1].expressionAddress, 9999, [signedContext]);
+
     // Flowing again with the same ID
 
     await assertError(
-        async () =>
-        await flow_WIN.connect(you).flow(flowStates_WIN[1].id, 9999, [signedContext]),
-        "CANT_FLOW",
-        "Flow for the same id_ is not restricted"
-      );
+      async () =>
+        await flow_WIN
+          .connect(you)
+          .flow(flowStates_WIN[1].expressionAddress, 9999, [signedContext]),
+      "Transaction reverted without a reason string",
+      "Flow for the same id_ is not restricted"
+    );
 
-    // // PRINTING VALUES
-    // console.log("YOU WIN TOKENS : ", await (await flow_WIN.balanceOf(you.address)).toString());
   });
- 
 });

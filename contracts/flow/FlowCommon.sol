@@ -11,6 +11,7 @@ import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-u
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "hardhat/console.sol";
 
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
@@ -99,6 +100,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             "UNREGISTERED_FLOW"
         );
 
+        console.log("FLOW TIME = %d", loadFlowTime(contextScratch_, flow_, id_));
         // This column MUST match the flags tracked in the context grid.
         return
             LibUint256Array.arrayFrom(
@@ -169,7 +171,12 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     function registerFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
         internal
     {
+        console.log("get16x16 = ");
+        
+        console.logBool(flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME));
+
         if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
+            console.log("Registering flow for flag_ = %d, address flow_ = %d, id_ = %d", IdempotentFlag.unwrap(flag_), uint256(uint160(flow_)), id_);
             _flowTimes[flow_][id_] = block.timestamp;
         }
     }

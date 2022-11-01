@@ -4,10 +4,9 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory, ReserveToken18 } from "../../../typechain";
 import {
-  FlowConfigStruct,
   FlowTransferStruct,
-  SaveInterpreterStateEvent,
 } from "../../../typechain/contracts/flow/basic/Flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
@@ -24,13 +23,14 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
 describe("Flow context tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.THIS_ADDRESS);
-  const YOU = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.CALLER);
+  const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();
@@ -103,10 +103,6 @@ describe("Flow context tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
@@ -120,7 +116,7 @@ describe("Flow context tests", async function () {
     const ONE_DAY = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -156,23 +152,27 @@ describe("Flow context tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO],
+          sources: [sourceFlowIO],
           constants,
         },
       ],
     };
 
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const me = flow;
 
@@ -187,11 +187,11 @@ describe("Flow context tests", async function () {
 
     const flowStruct0 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, []);
+      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
 
-    const _txFlow0 = await flow.connect(you).flow(flowStates[0].id, 1234, []);
+    const _txFlow0 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -247,14 +247,14 @@ describe("Flow context tests", async function () {
 
     const flowStruct1 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, []);
+      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct1,
       fillEmptyAddress(flowStructReduced, flow.address)
     );
 
-    const _txFlow1 = await flow.connect(you).flow(flowStates[0].id, 1234, []);
+    const _txFlow1 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
 
     const meBalanceIn1 = await erc20In.balanceOf(me.address);
     const meBalanceOut1 = await erc20Out.balanceOf(me.address);
@@ -310,11 +310,11 @@ describe("Flow context tests", async function () {
 
     const flowStruct2 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, []);
+      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
 
-    const _txFlow2 = await flow.connect(you).flow(flowStates[0].id, 1234, []);
+    const _txFlow2 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
 
     const meBalanceIn2 = await erc20In.balanceOf(me.address);
     const meBalanceOut2 = await erc20Out.balanceOf(me.address);
@@ -399,8 +399,6 @@ describe("Flow context tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
@@ -410,15 +408,12 @@ describe("Flow context tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0001);
-
-    // prettier-ignore
-    const sourceCanFlow = concat([
-        CONTEXT_FLOW_TIME(),
-      op(Opcode.ISZERO), // can flow if no registered flow time
-    ]);
+    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     const sourceFlowIO = concat([
+        CONTEXT_FLOW_TIME(),
+        op(Opcode.ISZERO), // can flow if no registered flow time
+      op(Opcode.ENSURE,1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
@@ -435,23 +430,27 @@ describe("Flow context tests", async function () {
 
     const sources = [];
 
-    const flowConfigStruct: FlowConfigStruct = {
+    const flowConfigStruct: FlowConfig = {
       stateConfig: { sources, constants },
       flows: [
         {
-          sources: [CAN_SIGN_CONTEXT(), sourceCanFlow, sourceFlowIO],
+          sources: [sourceFlowIO],
           constants,
         },
       ],
     };
-
-    const flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+  
+    const { flow, expressionDeployer } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct
+    );
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const me = flow;
 
@@ -464,11 +463,11 @@ describe("Flow context tests", async function () {
 
     const flowStruct0 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].id, 1234, []);
+      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow0 = await flow.connect(you).flow(flowStates[0].id, 1234, []);
+    const _txFlow0 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -508,8 +507,8 @@ describe("Flow context tests", async function () {
     );
 
     await assertError(
-      async () => await flow.connect(you).flow(flowStates[0].id, 1234, []),
-      "CANT_FLOW",
+      async () => await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []),
+      "Transaction reverted without a reason string",
       "did not prevent flow when a flow time already registered"
     );
   });
