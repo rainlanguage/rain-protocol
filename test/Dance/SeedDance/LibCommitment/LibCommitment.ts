@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { hexValue, keccak256, randomBytes } from "ethers/lib/utils";
+import { hexValue, hexZeroPad, keccak256, randomBytes } from "ethers/lib/utils";
 import type { LibCommitmentTest } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 
@@ -16,8 +16,8 @@ describe("SeedDance LibCommitment", async function () {
   it("should check commitment equality", async () => {
     for (let i = 0; i < 100; i++) {
       // commitments
-      const a_0 = hexValue(randomBytes(32));
-      const b_0 = hexValue(randomBytes(32));
+      const a_0 = hexZeroPad(randomBytes(32), 32);
+      const b_0 = hexZeroPad(randomBytes(32), 32);
 
       const eq0 = await libCommitment.eq(a_0, b_0);
       assert(!eq0, "equality returned false positive");
@@ -28,8 +28,11 @@ describe("SeedDance LibCommitment", async function () {
   });
 
   it("should produce commitment from secret in the `fromSecret` EXAMPLE IMPLEMENTATION where the secret is hashed", async () => {
-    const secret = hexValue(randomBytes(32));
-    const commitment = hexValue(await libCommitment.fromSecret(secret));
+    const secret = hexZeroPad(randomBytes(32), 32);
+    const commitment = hexZeroPad(
+      hexValue(await libCommitment.fromSecret(secret)),
+      32
+    );
     const expectedCommitment = keccak256(secret);
 
     assert(

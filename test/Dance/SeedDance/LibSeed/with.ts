@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { hexValue, randomBytes } from "ethers/lib/utils";
+import { hexValue, hexZeroPad, randomBytes } from "ethers/lib/utils";
 import type { LibSeedTest } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 
@@ -8,17 +8,23 @@ describe("SeedDance LibSeed with", async function () {
     const libSeed = (await basicDeploy("LibSeedTest", {})) as LibSeedTest;
 
     for (let i = 0; i < 100; i++) {
-      const originalSeed = hexValue(randomBytes(32));
-      const val = hexValue(randomBytes(32));
+      const originalSeed = hexZeroPad(randomBytes(32), 32);
+      const val = hexZeroPad(randomBytes(32), 32);
 
-      const newSeed0 = hexValue(await libSeed.with(originalSeed, val));
+      const newSeed0 = hexZeroPad(
+        hexValue(await libSeed.with(originalSeed, val)),
+        32
+      );
 
       assert(
         originalSeed !== newSeed0,
         "did not hash seed with val to produce new output seed"
       );
 
-      const newSeed1 = hexValue(await libSeed.with(originalSeed, val));
+      const newSeed1 = hexZeroPad(
+        hexValue(await libSeed.with(originalSeed, val)),
+        32
+      );
 
       assert(
         newSeed0 === newSeed1,
