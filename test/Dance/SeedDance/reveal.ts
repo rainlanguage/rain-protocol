@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { hexValue, keccak256, randomBytes } from "ethers/lib/utils";
+import { hexValue, hexZeroPad, keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibSeedTest, SeedDanceTest } from "../../../typechain";
 import {
@@ -270,14 +270,14 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexValue(newSeed_) != hexValue(initialSeed),
+      hexZeroPad(hexValue(newSeed_), 32) != hexZeroPad(initialSeed, 32),
       "Seed is not changed after reveal"
     );
 
     assert(sender_ === signer1.address, "Wrong signer in RevealEvent");
 
     assert(
-      hexValue(secret_) === hexValue(commitmentSecret),
+      hexZeroPad(hexValue(secret_), 32) === hexZeroPad(commitmentSecret, 32),
       "Wrong secret revealed"
     );
   });
@@ -332,21 +332,26 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexValue(newSeed1_) != hexValue(initialSeed),
+      hexZeroPad(hexValue(newSeed1_), 32) != hexZeroPad(initialSeed, 32),
       "SharedSeed is not changed after reveal 1"
     );
 
     const expectedSeed1 = await libSeed.with(sharedSeed1_, commitmentSecret1);
     assert(
-      hexValue(newSeed1_) === hexValue(expectedSeed1),
+      hexZeroPad(hexValue(newSeed1_), 32) ===
+        hexZeroPad(hexValue(expectedSeed1), 32),
       "newSeed1_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender1_ === signer1.address, "Wrong signer1 in RevealEvent");
 
-    console.log(hexValue(secret1_), "\n", hexValue(commitmentSecret1));
+    console.log(
+      hexZeroPad(hexValue(secret1_), 32),
+      "\n",
+      hexZeroPad(commitmentSecret1, 32)
+    );
     assert(
-      hexValue(secret1_) === hexValue(commitmentSecret1),
+      hexZeroPad(hexValue(secret1_), 32) === hexZeroPad(commitmentSecret1, 32),
       "Wrong secret1 revealed"
     );
 
@@ -365,21 +370,27 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexValue(newSeed2_) != hexValue(sharedSeed2_),
+      hexZeroPad(hexValue(newSeed2_), 32) !=
+        hexZeroPad(hexValue(sharedSeed2_), 32),
       "SharedSeed is not changed after reveal 2"
     );
 
     const expectedSeed2 = await libSeed.with(sharedSeed2_, commitmentSecret2);
     assert(
-      hexValue(newSeed2_) === hexValue(expectedSeed2),
+      hexZeroPad(hexValue(newSeed2_), 32) ===
+        hexZeroPad(hexValue(expectedSeed2), 32),
       "newSeed2_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender2_ === signer2.address, "Wrong signer2 in RevealEvent");
 
-    console.log(hexValue(secret2_), "\n", hexValue(commitmentSecret2));
+    console.log(
+      hexZeroPad(hexValue(secret2_), 32),
+      "\n",
+      hexZeroPad(commitmentSecret2, 32)
+    );
     assert(
-      hexValue(secret2_) === hexValue(commitmentSecret2),
+      hexZeroPad(hexValue(secret2_), 32) === hexZeroPad(commitmentSecret2, 32),
       "Wrong secret2 revealed"
     );
 
@@ -399,21 +410,27 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexValue(newSeed3_) != hexValue(sharedSeed3_),
+      hexZeroPad(hexValue(newSeed3_), 32) !=
+        hexZeroPad(hexValue(sharedSeed3_), 32),
       "SharedSeed is not changed after reveal 3"
     );
 
     const expectedSeed3 = await libSeed.with(sharedSeed3_, commitmentSecret3);
     assert(
-      hexValue(newSeed3_) === hexValue(expectedSeed3),
+      hexZeroPad(hexValue(newSeed3_), 32) ===
+        hexZeroPad(hexValue(expectedSeed3), 32),
       "newSeed3_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender3_ === signer3.address, "Wrong signer3 in RevealEvent");
 
-    console.log(hexValue(secret3_), "\n", hexValue(commitmentSecret3));
+    console.log(
+      hexZeroPad(hexValue(secret3_), 32),
+      "\n",
+      hexZeroPad(commitmentSecret3, 32)
+    );
     assert(
-      hexValue(secret3_) === hexValue(commitmentSecret3),
+      hexZeroPad(hexValue(secret3_), 32) === hexZeroPad(commitmentSecret3, 32),
       "Wrong secret3 revealed"
     );
   });
@@ -458,14 +475,14 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexValue(newSeed_) != hexValue(initialSeed),
+      hexZeroPad(hexValue(newSeed_), 32) != hexZeroPad(initialSeed, 32),
       "Seed is not changed after reveal"
     );
 
     assert(sender_ === signer1.address, "Wrong signer in RevealEvent");
 
     assert(
-      hexValue(secret_) === hexValue(commitmentSecret),
+      hexZeroPad(hexValue(secret_), 32) === hexZeroPad(commitmentSecret, 32),
       "Wrong secret revealed"
     );
 

@@ -53,11 +53,11 @@ library Random {
     /// One benefit of the micro lottery approach is that it can be exposed by
     /// the implementing contract as a "preview" public function, where it can
     /// be called offchain to inspect any ID for any seed without paying gas.
-    function microLottery(
-        uint256 seed_,
-        uint256 max_,
-        uint256 n_
-    ) internal pure returns (uint256 item_) {
+    function microLottery(uint256 seed_, uint256 max_, uint256 n_)
+        internal
+        pure
+        returns (uint256 item_)
+    {
         unchecked {
             require(n_ < max_, "MAX_N");
             require(max_ <= type(uint8).max, "MAX_MAX");

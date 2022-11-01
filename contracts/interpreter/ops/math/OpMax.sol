@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../runtime/LibStackTop.sol";
-import "../../runtime/LibInterpreterState.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../run/LibStackTop.sol";
+import "../../run/LibInterpreterState.sol";
+import "../../deploy/LibIntegrityState.sol";
 
 /// @title OpMax
 /// @notice Opcode to stack the maximum of N numbers.
@@ -24,11 +24,11 @@ library OpMax {
             integrityState_.applyFnN(stackTop_, _max, Operand.unwrap(operand_));
     }
 
-    function max(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    function max(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop stackTopAfter_)
+    {
         return stackTop_.applyFnN(_max, Operand.unwrap(operand_));
     }
 }

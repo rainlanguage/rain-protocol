@@ -18,7 +18,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context height [COLUMN] up to 16", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x0F00)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0x0f00)])];
 
     await logic.initialize({ sources, constants });
 
@@ -31,7 +31,7 @@ describe("RainInterpreter context", async function () {
 
   it("should support context width [ROW] up to 16", async () => {
     const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x000F)])];
+    const sources = [concat([op(Opcode.CONTEXT, 0x000f)])];
 
     await logic.initialize({ sources, constants });
 
@@ -41,7 +41,7 @@ describe("RainInterpreter context", async function () {
     const resultRow_ = await logic.stack();
     assert(resultRow_, "should read context value at 0x00ff");
   });
-  
+
   it("should error if accessing OOB COLUMN", async () => {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x1000)])];
@@ -58,7 +58,7 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x0010)])];
 
     await assertError(
-      async () =>await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }),
       "OOB_ROW",
       "did not error when accessing OOB ROW"
     );

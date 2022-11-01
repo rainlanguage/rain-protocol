@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/runtime/LibInterpreterState.sol";
-import "../../../../interpreter/runtime/LibStackTop.sol";
+import "../../../../interpreter/run/LibInterpreterState.sol";
+import "../../../../interpreter/run/LibStackTop.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
 import "../../../../array/LibUint256Array.sol";
@@ -18,6 +18,10 @@ contract LibInterpreterStateTest is RainInterpreter {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibCast for function(InterpreterState memory, Operand, StackTop)
+        view
+        returns (StackTop)[];
+    using LibConvert for uint256[];
 
     address internal immutable interpreterIntegrity;
 
@@ -97,7 +101,7 @@ contract LibInterpreterStateTest is RainInterpreter {
             scratch_,
             contextScratch_,
             stackLength_,
-            opcodeFunctionPointers()
+            opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
         );
     }
 

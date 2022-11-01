@@ -2,6 +2,8 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
   ReadWriteTier,
   RedeemableERC20Factory,
   ReserveToken,
@@ -40,11 +42,18 @@ describe("Sale minimum raise", async function () {
   let reserve: ReserveToken,
     redeemableERC20Factory: RedeemableERC20Factory,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ redeemableERC20Factory, readWriteTier, saleFactory } =
-      await saleDependenciesDeploy());
+    ({
+      redeemableERC20Factory,
+      readWriteTier,
+      saleFactory,
+      interpreter,
+      expressionDeployer,
+    } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -79,7 +88,7 @@ describe("Sale minimum raise", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const saleTimeout = 100;
     const [sale, token] = await saleDeploy(
@@ -87,6 +96,8 @@ describe("Sale minimum raise", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -304,11 +315,13 @@ describe("Sale minimum raise", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const saleTimeout = 100;
 
     const saleConfig = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       interpreterStateConfig: {
         sources,
         constants,

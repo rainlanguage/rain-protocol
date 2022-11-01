@@ -2,10 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC1155Factory } from "../../../typechain";
-import {
-  FlowERC1155ConfigStruct,
-  InitializeEvent,
-} from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { InitializeEvent } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy";
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -16,6 +13,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { FlowERC1155Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -38,16 +36,6 @@ describe("FlowERC1155 construction tests", async function () {
     ]);
 
     // prettier-ignore
-    const sourceCanSignContext = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-    ]);
-
-    // prettier-ignore
-    const sourceCanFlow = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-    ]);
-
-    // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // sentinel
@@ -64,21 +52,21 @@ describe("FlowERC1155 construction tests", async function () {
 
     const sources = [sourceCanTransfer];
 
-    const configStruct: FlowERC1155ConfigStruct = {
+    const configStruct: FlowERC1155Config = {
       uri: "F1155",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
       flows: [
         {
-          sources: [sourceCanSignContext, sourceCanFlow, sourceFlowIO],
+          sources: [sourceFlowIO],
           constants,
         },
       ],
     };
 
-    const flow = await flowERC1155Deploy(
+    const { flow } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
       configStruct

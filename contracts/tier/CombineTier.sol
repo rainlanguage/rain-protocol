@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../interpreter/runtime/StandardInterpreter.sol";
+import "../interpreter/run/StandardInterpreter.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../interpreter/deploy/RainInterpreterIntegrity.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -86,10 +86,7 @@ contract CombineTier is TierV2, StandardInterpreter {
         interpreterContext_[1] = context_;
         InterpreterState memory state_ = _loadInterpreterState();
         state_.context = interpreterContext_;
-        return
-            state_
-                .eval(REPORT_ENTRYPOINT)
-                .peek();
+        return state_.eval(REPORT_ENTRYPOINT).peek();
     }
 
     /// @inheritdoc ITierV2
@@ -106,8 +103,6 @@ contract CombineTier is TierV2, StandardInterpreter {
         interpreterContext_[1] = context_;
         InterpreterState memory state_ = _loadInterpreterState();
         state_.context = interpreterContext_;
-        return
-            state_.eval(REPORT_FOR_TIER_ENTRYPOINT)
-                .peek();
+        return state_.eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
     }
 }

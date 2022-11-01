@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../interpreter/integrity/LibIntegrityState.sol";
+import "../../../../interpreter/deploy/LibIntegrityState.sol";
 import "../../../../debug/LibDebug.sol";
 import "../../../../type/LibCast.sol";
-import "../../../../interpreter/integrity/StandardIntegrity.sol";
+import "../../../../interpreter/deploy/StandardIntegrity.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 
 /// @title LibIntegrityStateTest
@@ -207,19 +207,11 @@ contract LibIntegrityStateTest is StandardIntegrity {
         return 0;
     }
 
-    function _fn3(
-        Operand,
-        uint256,
-        uint256
-    ) internal pure returns (uint256) {
+    function _fn3(Operand, uint256, uint256) internal pure returns (uint256) {
         return 0;
     }
 
-    function _fn4(
-        uint256,
-        uint256,
-        uint256
-    ) internal pure returns (uint256) {
+    function _fn4(uint256, uint256, uint256) internal pure returns (uint256) {
         return 0;
     }
 
@@ -227,28 +219,27 @@ contract LibIntegrityStateTest is StandardIntegrity {
         return 0;
     }
 
-    function _fn6(
-        uint256,
-        uint256,
-        uint256[] memory
-    ) internal pure returns (uint256) {
+    function _fn6(uint256, uint256, uint256[] memory)
+        internal
+        pure
+        returns (uint256)
+    {
         return 0;
     }
 
-    function _fn7(
-        uint256,
-        uint256,
-        uint256,
-        uint256[] memory
-    ) internal pure returns (uint256) {
+    function _fn7(uint256, uint256, uint256, uint256[] memory)
+        internal
+        pure
+        returns (uint256)
+    {
         return 0;
     }
 
-    function _fn8(
-        uint256,
-        uint256[] memory,
-        uint256[] memory
-    ) internal pure returns (uint256[] memory) {
+    function _fn8(uint256, uint256[] memory, uint256[] memory)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         return new uint256[](3); // arbitrary length
     }
 

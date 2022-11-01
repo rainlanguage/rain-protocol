@@ -2,8 +2,8 @@
 pragma solidity =0.8.17;
 
 import "../../../../array/LibUint256Array.sol";
-import "../../../../interpreter/runtime/StandardInterpreter.sol";
-import "../../../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../../../interpreter/run/StandardInterpreter.sol";
+import "../../../../interpreter/deploy/RainInterpreterIntegrity.sol";
 import {AllStandardOps} from "../../../../interpreter/ops/AllStandardOps.sol";
 
 uint256 constant MIN_FINAL_STACK_INDEX = 2;

@@ -4,13 +4,29 @@ import { artifacts, ethers } from "hardhat";
 import { Flow, FlowFactory } from "../../../../typechain";
 import { FlowConfigStruct } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
+import { FlowConfig } from "../../../types/flow";
+import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
 export const flowDeploy = async (
   deployer: SignerWithAddress,
   flowFactory: FlowFactory,
-  flowConfigStruct: FlowConfigStruct,
+  flowConfig: FlowConfig,
   ...args: Overrides[]
-): Promise<Flow> => {
+) => {
+  const interpreter = await rainterpreterDeploy();
+  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+
+  const flowConfigStruct: FlowConfigStruct = {
+    stateConfig: flowConfig.stateConfig,
+    flowConfig: {
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      flows: flowConfig.flows,
+      flowFinalMinStack: 4,
+    },
+  };
+
   const txDeploy = await flowFactory.createChildTyped(
     flowConfigStruct,
     ...args
@@ -33,5 +49,5 @@ export const flowDeploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return flow;
+  return { flow, interpreter, expressionDeployer };
 };

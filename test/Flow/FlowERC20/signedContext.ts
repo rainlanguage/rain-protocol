@@ -1,11 +1,8 @@
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC20Factory } from "../../../typechain";
-import {
-  SaveInterpreterStateEvent,
-  SignedContextStruct,
-} from "../../../typechain/contracts/flow/basic/Flow";
-import { FlowERC20ConfigStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
+import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -20,6 +17,7 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
+import { FlowERC20Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -45,10 +43,6 @@ describe("FlowERC20 signed context tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -61,19 +55,17 @@ describe("FlowERC20 signed context tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const flowConfigStruct: FlowERC20ConfigStruct = {
+    const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const flow = await flowERC20Deploy(
+    const { flow, expressionDeployer } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       flowConfigStruct
@@ -81,9 +73,9 @@ describe("FlowERC20 signed context tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const context = [1, 2, 3];
     const hash = solidityKeccak256(["uint256[]"], [context]);
@@ -100,7 +92,7 @@ describe("FlowERC20 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowStates[1].id, 1234, signedContexts0, {});
+      .flow(flowStates[1].expressionAddress, 1234, signedContexts0, {});
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
@@ -116,7 +108,7 @@ describe("FlowERC20 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowStates[1].id, 1234, signedContexts1, {}),
+          .flow(flowStates[1].expressionAddress, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
@@ -137,10 +129,6 @@ describe("FlowERC20 signed context tests", async function () {
 
     const CAN_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -153,19 +141,17 @@ describe("FlowERC20 signed context tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const flowConfigStruct: FlowERC20ConfigStruct = {
+    const flowConfigStruct: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
-      interpreterStateConfig: {
+      stateConfig: {
         sources,
         constants,
       },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
+      flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const flow = await flowERC20Deploy(
+    const { flow, expressionDeployer } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       flowConfigStruct
@@ -173,9 +159,9 @@ describe("FlowERC20 signed context tests", async function () {
 
     const flowStates = (await getEvents(
       flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
+      "DeployExpression",
+      expressionDeployer
+    )) as DeployExpressionEvent["args"][];
 
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
@@ -200,7 +186,7 @@ describe("FlowERC20 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowStates[1].id, 1234, signedContexts0, {});
+      .flow(flowStates[1].expressionAddress, 1234, signedContexts0, {});
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -221,84 +207,9 @@ describe("FlowERC20 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowStates[1].id, 1234, signedContexts1, {}),
+          .flow(flowStates[1].expressionAddress, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
-  });
-
-  it("should support expression which gates whether sender can validate their signed context", async () => {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const you = signers[1];
-
-    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC20_SENTINEL, 0, 1];
-
-    const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const SENTINEL_ERC20 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-
-    const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const CAN_FLOW = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-      SENTINEL_ERC20(), // BURN END
-      SENTINEL_ERC20(), // MINT END
-    ]);
-
-    const sources = [CAN_TRANSFER()];
-
-    const flowConfigStruct: FlowERC20ConfigStruct = {
-      name: "Flow ERC20",
-      symbol: "F20",
-      interpreterStateConfig: {
-        sources,
-        constants,
-      },
-      flows: [
-        { sources: [CAN_SIGN_CONTEXT(), CAN_FLOW(), sourceFlowIO], constants },
-      ],
-    };
-
-    const flow = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      flowConfigStruct
-    );
-
-    const flowStates = (await getEvents(
-      flow.deployTransaction,
-      "SaveInterpreterState",
-      flow
-    )) as SaveInterpreterStateEvent["args"][];
-
-    const signedContexts: SignedContextStruct[] = [
-      {
-        signer: you.address,
-        signature: new Uint8Array(),
-        context: [],
-      },
-    ];
-
-    await assertError(
-      async () =>
-        await flow
-          .connect(you)
-          .flow(flowStates[1].id, 1234, signedContexts, {}),
-      "BAD_SIGNER",
-      "did not prevent signed context validation when CAN_SIGN_CONTEXT set to false"
-    );
-
-    // no signed contexts does not throw error
-    await flow.connect(you).flow(flowStates[1].id, 1234, [], {});
   });
 });

@@ -8,19 +8,15 @@ import {RedeemableERC20} from "../../../redeemableERC20/RedeemableERC20.sol";
 contract ERC20PulleeTest {
     using SafeERC20 for IERC20;
 
-    function approve(
-        address token_,
-        address recipient_,
-        uint256 amount_
-    ) external {
+    function approve(address token_, address recipient_, uint256 amount_)
+        external
+    {
         IERC20(token_).safeIncreaseAllowance(recipient_, amount_);
     }
 
-    function transfer(
-        address token_,
-        address recipient_,
-        uint256 amount_
-    ) external {
+    function transfer(address token_, address recipient_, uint256 amount_)
+        external
+    {
         IERC20(token_).transfer(recipient_, amount_);
     }
 
@@ -36,11 +32,9 @@ contract ERC20PulleeTest {
         RedeemableERC20(token_).grantReceiver(receiver_);
     }
 
-    function redeem(
-        address token_,
-        IERC20[] calldata assets_,
-        uint256 amount_
-    ) external {
+    function redeem(address token_, IERC20[] calldata assets_, uint256 amount_)
+        external
+    {
         RedeemableERC20(token_).redeem(assets_, amount_);
     }
 }

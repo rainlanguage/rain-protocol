@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../runtime/LibStackTop.sol";
+import "../../../run/LibStackTop.sol";
 import "../../../../type/LibCast.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
@@ -24,11 +24,11 @@ library OpIsZero {
         return integrityState_.applyFn(stackTop_, _isZero);
     }
 
-    function isZero(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function isZero(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_isZero);
     }
 }
