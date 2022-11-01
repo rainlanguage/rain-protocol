@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../runtime/LibStackTop.sol";
+import "../../../run/LibStackTop.sol";
 import "../../../../type/LibCast.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpEqualTo
 /// @notice Opcode to compare the top two stack values.
@@ -24,11 +24,11 @@ library OpEqualTo {
         return integrityState_.applyFn(stackTop_, _equalTo);
     }
 
-    function equalTo(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function equalTo(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_equalTo);
     }
 }

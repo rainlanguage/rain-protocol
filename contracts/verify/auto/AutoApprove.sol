@@ -3,7 +3,7 @@ pragma solidity =0.8.17;
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
-import "../../interpreter/runtime/StandardInterpreter.sol";
+import "../../interpreter/run/StandardInterpreter.sol";
 import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 

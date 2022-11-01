@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpERC20SnapshotBalanceOfAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.balanceOfAt`.
@@ -13,11 +13,11 @@ library OpERC20SnapshotBalanceOfAt {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _balanceOfAt(
-        uint256 token_,
-        uint256 account_,
-        uint256 snapshotId_
-    ) internal view returns (uint256) {
+    function _balanceOfAt(uint256 token_, uint256 account_, uint256 snapshotId_)
+        internal
+        view
+        returns (uint256)
+    {
         return
             ERC20Snapshot(address(uint160(token_))).balanceOfAt(
                 address(uint160(account_)),
@@ -34,11 +34,11 @@ library OpERC20SnapshotBalanceOfAt {
     }
 
     /// Stack `balanceOfAt`.
-    function balanceOfAt(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function balanceOfAt(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_balanceOfAt);
     }
 }

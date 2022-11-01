@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
-import "../../runtime/LibStackTop.sol";
-import "../../runtime/LibInterpreterState.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../run/LibStackTop.sol";
+import "../../run/LibInterpreterState.sol";
+import "../../deploy/LibIntegrityState.sol";
 
 library OpSaturatingDiff {
     using LibStackTop for StackTop;

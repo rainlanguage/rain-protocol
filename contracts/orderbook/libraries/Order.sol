@@ -2,8 +2,8 @@
 pragma solidity ^0.8.15;
 
 import "../OrderBook.sol";
-import "../../interpreter/runtime/RainInterpreter.sol";
-import "../../interpreter/integrity/RainInterpreterIntegrity.sol";
+import "../../interpreter/run/RainInterpreter.sol";
+import "../../interpreter/deploy/RainInterpreterIntegrity.sol";
 import "../../array/LibUint256Array.sol";
 
 type OrderHash is uint256;

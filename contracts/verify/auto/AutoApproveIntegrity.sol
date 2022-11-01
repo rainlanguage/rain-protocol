@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../../interpreter/integrity/StandardIntegrity.sol";
+import "../../interpreter/deploy/StandardIntegrity.sol";
 import "./AutoApprove.sol";
 import "../../type/LibCast.sol";
 

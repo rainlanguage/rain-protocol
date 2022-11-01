@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpFixedPointScale18Div
 /// @notice Opcode for performing scale 18 fixed point division.
@@ -13,11 +13,11 @@ library OpFixedPointScale18Div {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _scale18Div(
-        Operand operand_,
-        uint256 a_,
-        uint256 b_
-    ) internal pure returns (uint256) {
+    function _scale18Div(Operand operand_, uint256 a_, uint256 b_)
+        internal
+        pure
+        returns (uint256)
+    {
         return a_.scale18(Operand.unwrap(operand_)).fixedPointDiv(b_);
     }
 

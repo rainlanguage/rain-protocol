@@ -6,7 +6,7 @@ import type {
   RedeemableERC20ClaimEscrow,
   ReserveToken,
 } from "../../../typechain";
-import { MockISale } from "../../../typechain";
+import { MockISaleV2 } from "../../../typechain";
 import {
   DepositEvent,
   WithdrawEvent,
@@ -52,7 +52,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setToken(redeemableERC20.address);
 
@@ -143,7 +143,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
     const alice = signers[4];
     const bob = signers[5];
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {

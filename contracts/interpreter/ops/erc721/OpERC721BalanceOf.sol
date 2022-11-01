@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "../../runtime/LibStackTop.sol";
-import "../../runtime/LibInterpreterState.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../run/LibStackTop.sol";
+import "../../run/LibInterpreterState.sol";
+import "../../deploy/LibIntegrityState.sol";
 
 /// @title OpERC721BalanceOf
 /// @notice Opcode for getting the current erc721 balance of an account.
@@ -32,11 +32,11 @@ library OpERC721BalanceOf {
     }
 
     // Stack the return of `balanceOf`.
-    function balanceOf(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function balanceOf(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_balanceOf);
     }
 }

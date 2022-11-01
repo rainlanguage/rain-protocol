@@ -11,11 +11,11 @@ contract RandomTest {
 
     uint256 private val;
 
-    function microLottery(
-        uint256 seed_,
-        uint256 max_,
-        uint256 n_
-    ) external pure returns (uint256 item_) {
+    function microLottery(uint256 seed_, uint256 max_, uint256 n_)
+        external
+        pure
+        returns (uint256 item_)
+    {
         // uint256 a_ = gasleft();
         item_ = Random.microLottery(seed_, max_, n_);
         // uint256 b_ = gasleft();

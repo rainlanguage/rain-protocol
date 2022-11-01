@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../runtime/LibStackTop.sol";
+import "../../../run/LibStackTop.sol";
 import "../../../../type/LibCast.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpLessThan
 /// @notice Opcode to compare the top two stack values.
@@ -24,11 +24,11 @@ library OpLessThan {
         return integrityState_.applyFn(stackTop_, _lessThan);
     }
 
-    function lessThan(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function lessThan(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_lessThan);
     }
 }

@@ -1,7 +1,13 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,
@@ -30,10 +36,13 @@ describe("Sale unchecked math", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory,
-    signers: SignerWithAddress[];
+    signers: SignerWithAddress[],
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -89,6 +98,8 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -171,6 +182,8 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -245,6 +258,8 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -324,6 +339,8 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,

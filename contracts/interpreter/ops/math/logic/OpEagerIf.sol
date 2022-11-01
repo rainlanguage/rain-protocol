@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpEagerIf
 /// @notice Opcode for selecting a value based on a condition.
@@ -10,11 +10,11 @@ library OpEagerIf {
     using LibIntegrityState for IntegrityState;
     using LibStackTop for StackTop;
 
-    function _eagerIf(
-        uint256 a_,
-        uint256[] memory bs_,
-        uint256[] memory cs_
-    ) internal pure returns (uint256[] memory) {
+    function _eagerIf(uint256 a_, uint256[] memory bs_, uint256[] memory cs_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         return a_ > 0 ? bs_ : cs_;
     }
 

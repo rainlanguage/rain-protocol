@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
@@ -23,11 +23,11 @@ library OpAny {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    function any(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        pure
+        returns (StackTop)
+    {
         StackTop bottom_ = stackTop_.down(Operand.unwrap(operand_));
         for (
             StackTop i_ = bottom_;

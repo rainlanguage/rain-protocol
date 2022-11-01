@@ -4,7 +4,8 @@ pragma solidity =0.8.17;
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
-import "../runtime/RainInterpreter.sol";
+import "../run/RainInterpreter.sol";
+import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
 import "./core/OpContext.sol";
 import "./core/OpDebug.sol";
@@ -12,6 +13,7 @@ import "./core/OpStorage.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpState.sol";
+import "./crypto/OpHash.sol";
 import "./erc20/OpERC20BalanceOf.sol";
 import "./erc20/OpERC20TotalSupply.sol";
 import "./erc20/snapshot/OpERC20SnapshotBalanceOfAt.sol";
@@ -20,6 +22,7 @@ import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
 import "./erc1155/OpERC1155BalanceOf.sol";
 import "./erc1155/OpERC1155BalanceOfBatch.sol";
+import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpCaller.sol";
 import "./evm/OpThisAddress.sol";
@@ -48,13 +51,18 @@ import "./math/OpMin.sol";
 import "./math/OpMod.sol";
 import "./math/OpMul.sol";
 import "./math/OpSub.sol";
+import "./rain/ISaleV2/OpISaleV2RemainingTokenInventory.sol";
+import "./rain/ISaleV2/OpISaleV2Reserve.sol";
+import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
+import "./rain/ISaleV2/OpISaleV2Token.sol";
+import "./rain/ISaleV2/OpISaleV2TotalReserveReceived.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 48;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 56;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -159,6 +167,7 @@ library AllStandardOps {
                 returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
                     OpContext.integrity,
                     OpDebug.integrity,
@@ -166,6 +175,7 @@ library AllStandardOps {
                     OpLoopN.integrity,
                     OpState.integrity,
                     OpStorage.integrity,
+                    OpHash.integrity,
                     OpERC20BalanceOf.integrity,
                     OpERC20TotalSupply.integrity,
                     OpERC20SnapshotBalanceOfAt.integrity,
@@ -174,6 +184,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
+                    OpEnsure.integrity,
                     OpBlockNumber.integrity,
                     OpCaller.integrity,
                     OpThisAddress.integrity,
@@ -202,6 +213,11 @@ library AllStandardOps {
                     OpMod.integrity,
                     OpMul.integrity,
                     OpSub.integrity,
+                    OpISaleV2RemainingTokenInventory.integrity,
+                    OpISaleV2Reserve.integrity,
+                    OpISaleV2SaleStatus.integrity,
+                    OpISaleV2Token.integrity,
+                    OpISaleV2TotalReserveReceived.integrity,
                     OpITierV2Report.integrity,
                     OpITierV2ReportTimeForTier.integrity,
                     OpSaturatingDiff.integrity,
@@ -235,6 +251,7 @@ library AllStandardOps {
                 returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    OpChainlinkOraclePrice.price,
                     // solhint-disable-next-line avoid-low-level-calls
                     OpCall.call,
                     OpContext.context,
@@ -243,6 +260,7 @@ library AllStandardOps {
                     OpLoopN.loopN,
                     OpState.state,
                     OpStorage.storageRead,
+                    OpHash.hash,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
                     OpERC20SnapshotBalanceOfAt.balanceOfAt,
@@ -251,6 +269,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.ownerOf,
                     OpERC1155BalanceOf.balanceOf,
                     OpERC1155BalanceOfBatch.balanceOfBatch,
+                    OpEnsure.ensure,
                     OpBlockNumber.blockNumber,
                     OpCaller.caller,
                     OpThisAddress.thisAddress,
@@ -279,6 +298,11 @@ library AllStandardOps {
                     OpMod.mod,
                     OpMul.mul,
                     OpSub.sub,
+                    OpISaleV2RemainingTokenInventory.run,
+                    OpISaleV2Reserve.run,
+                    OpISaleV2SaleStatus.run,
+                    OpISaleV2Token.run,
+                    OpISaleV2TotalReserveReceived.run,
                     OpITierV2Report.report,
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,

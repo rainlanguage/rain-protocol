@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { MockISale, ReserveToken } from "../../../typechain";
+import { MockISaleV2, ReserveToken } from "../../../typechain";
 import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
@@ -24,12 +24,12 @@ describe("SaleEscrow protection from draining", async function () {
 
     await reserve.initialize();
     await rTKN.initialize();
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale1 = (await saleFactory.deploy()) as MockISale;
-    const sale2 = (await saleFactory.deploy()) as MockISale;
+    const saleFactory = await ethers.getContractFactory("MockISaleV2");
+    const sale1 = (await saleFactory.deploy()) as MockISaleV2;
+    const sale2 = (await saleFactory.deploy()) as MockISaleV2;
 
     // Two identical successful sales with some tokens to distribute.
-    const sales: Array<MockISale> = [sale1, sale2];
+    const sales: Array<MockISaleV2> = [sale1, sale2];
     for (const sale of sales) {
       await sale.deployed();
       await sale.setReserve(reserve.address);

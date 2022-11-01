@@ -26,11 +26,11 @@ contract TierV2Test is TierV2 {
     }
 
     /// @inheritdoc ITierV2
-    function reportTimeForTier(
-        address,
-        uint256,
-        uint256[] calldata
-    ) external view returns (uint256) {
+    function reportTimeForTier(address, uint256, uint256[] calldata)
+        external
+        view
+        returns (uint256)
+    {
         return block.timestamp;
     }
 }

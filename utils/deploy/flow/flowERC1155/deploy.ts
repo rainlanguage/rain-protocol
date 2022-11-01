@@ -7,15 +7,32 @@ import {
   FlowERC1155ConfigStruct,
 } from "../../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { getEventArgs } from "../../../events";
+import { FlowERC1155Config } from "../../../types/flow";
+import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
 export const flowERC1155Deploy = async (
   deployer: SignerWithAddress,
   flowERC1155Factory: FlowERC1155Factory,
-  stateConfigStruct: FlowERC1155ConfigStruct,
+  flowERC1155Config: FlowERC1155Config,
   ...args: Overrides[]
-): Promise<FlowERC1155> => {
+) => {
+  const interpreter = await rainterpreterDeploy();
+  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+
+  const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
+    stateConfig: flowERC1155Config.stateConfig,
+    flowConfig: {
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      flows: flowERC1155Config.flows,
+      flowFinalMinStack: 4,
+    },
+    uri: flowERC1155Config.uri,
+  };
+
   const txDeploy = await flowERC1155Factory.createChildTyped(
-    stateConfigStruct,
+    flowERC1155ConfigStruct,
     ...args
   );
 
@@ -36,5 +53,5 @@ export const flowERC1155Deploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return flow;
+  return { flow, interpreter, expressionDeployer };
 };

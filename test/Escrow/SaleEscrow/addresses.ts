@@ -1,10 +1,10 @@
 import { assert } from "chai";
-import crypto from "crypto";
+import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { RedeemableERC20 } from "../../../typechain";
 import {
   IERC20Upgradeable as IERC20,
-  MockISale,
+  MockISaleV2,
   ReadWriteTier,
   ReserveToken,
   SaleEscrowWrapper,
@@ -48,7 +48,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       distributionEndForwardingAddress: zeroAddress,
     })) as RedeemableERC20;
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setReserve(reserve.address);
     await sale.setToken(redeemableERC20.address);
@@ -90,7 +90,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -117,8 +117,8 @@ describe("SaleEscrow unchangeable addresses", async function () {
     const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(sale.address);
     const saleEscrowToken0 = await saleEscrowWrapper.getToken(sale.address);
 
-    const newReserve = crypto.randomBytes(20).toString("hex");
-    const newToken = crypto.randomBytes(20).toString("hex");
+    const newReserve = hexlify(randomBytes(20));
+    const newToken = hexlify(randomBytes(20));
 
     await sale.setReserve(newReserve);
     await sale.setToken(newToken);
@@ -151,7 +151,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -211,7 +211,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying success status", async function () {
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",

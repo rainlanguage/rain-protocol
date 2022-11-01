@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../runtime/LibStackTop.sol";
-import "../../runtime/LibInterpreterState.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../run/LibStackTop.sol";
+import "../../run/LibInterpreterState.sol";
+import "../../deploy/LibIntegrityState.sol";
 
 /// @title OpMul
 /// @notice Opcode for multiplying N numbers.
@@ -24,11 +24,11 @@ library OpMul {
             integrityState_.applyFnN(stackTop_, _mul, Operand.unwrap(operand_));
     }
 
-    function mul(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    function mul(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop stackTopAfter_)
+    {
         return stackTop_.applyFnN(_mul, Operand.unwrap(operand_));
     }
 }

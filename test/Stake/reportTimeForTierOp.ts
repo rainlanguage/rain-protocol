@@ -60,7 +60,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time0
     const source0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
@@ -78,7 +78,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time1
     const source1 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context - TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1),
@@ -97,7 +97,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time2
     const source2 = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.SENDER), // Address
+      op(Opcode.CALLER), // Address
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length),
@@ -116,7 +116,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time3
     const source3 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -136,7 +136,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time4
     const source4 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -157,7 +157,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time5
     const source5 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -179,7 +179,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time6
     const source6 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -202,7 +202,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time7
     const source7 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -248,7 +248,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // Address
+        op(Opcode.CALLER), // Address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ]);
@@ -290,7 +290,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // Passing context data in constants
     const source = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // address
+        op(Opcode.CALLER), // address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
@@ -343,7 +343,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // Passing context data in constants
     const source = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // address
+        op(Opcode.CALLER), // address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
@@ -445,7 +445,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     const source = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // address
+        op(Opcode.CALLER), // address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
@@ -536,7 +536,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     const source = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // address
+        op(Opcode.CALLER), // address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),

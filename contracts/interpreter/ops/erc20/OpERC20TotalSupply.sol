@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../runtime/LibStackTop.sol";
-import "../../runtime/LibInterpreterState.sol";
-import "../../integrity/LibIntegrityState.sol";
+import "../../run/LibStackTop.sol";
+import "../../run/LibInterpreterState.sol";
+import "../../deploy/LibIntegrityState.sol";
 
 /// @title OpERC20TotalSupply
 /// @notice Opcode for ERC20 `totalSupply`.
@@ -25,11 +25,11 @@ library OpERC20TotalSupply {
     }
 
     // Stack the return of `totalSupply`.
-    function totalSupply(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function totalSupply(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_totalSupply);
     }
 }

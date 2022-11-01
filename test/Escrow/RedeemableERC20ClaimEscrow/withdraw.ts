@@ -7,7 +7,7 @@ import type {
   RedeemableERC20ClaimEscrowWrapper,
   ReserveToken,
 } from "../../../typechain";
-import { MockISale } from "../../../typechain";
+import { MockISaleV2 } from "../../../typechain";
 import { WithdrawEvent } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
 import { basicDeploy, getEventArgs } from "../../../utils";
@@ -50,7 +50,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setToken(redeemableERC20.address);
 
@@ -153,7 +153,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setToken(redeemableERC20.address);
 
@@ -303,7 +303,7 @@ describe("RedeemableERC20ClaimEscrow Withdraw test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const sale = (await basicDeploy("MockISale", {})) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setToken(redeemableERC20.address);
 

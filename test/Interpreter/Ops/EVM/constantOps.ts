@@ -49,7 +49,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
     const source = concat([
       // (SENDER)
-      op(Opcode.SENDER),
+      op(Opcode.CALLER),
     ]);
 
     await logic.initialize({

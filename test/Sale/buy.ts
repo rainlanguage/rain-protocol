@@ -2,6 +2,8 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
   ReadWriteTier,
   ReserveToken,
   SaleFactory,
@@ -25,7 +27,7 @@ import {
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
-import { SaleStorage, Status } from "../../utils/types/sale";
+import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -33,10 +35,13 @@ const Opcode = AllStandardOps;
 describe("Sale buy", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -71,13 +76,15 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -221,6 +228,8 @@ describe("Sale buy", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -308,7 +317,7 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const maliciousReserveFactory = await ethers.getContractFactory(
@@ -326,6 +335,8 @@ describe("Sale buy", async function () {
           deployer,
           saleFactory,
           {
+            interpreter: interpreter.address,
+            expressionDeployer: expressionDeployer.address,
             interpreterStateConfig: {
               sources,
               constants,
@@ -352,6 +363,8 @@ describe("Sale buy", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -445,13 +458,15 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -548,13 +563,15 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,
@@ -636,10 +653,11 @@ describe("Sale buy", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
+        op(Opcode.CALLER),
+        op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -651,6 +669,8 @@ describe("Sale buy", async function () {
       deployer,
       saleFactory,
       {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
         interpreterStateConfig: {
           sources,
           constants,

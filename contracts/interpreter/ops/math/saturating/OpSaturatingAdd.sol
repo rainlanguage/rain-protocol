@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
-import "../../../runtime/LibStackTop.sol";
-import "../../../runtime/LibInterpreterState.sol";
-import "../../../integrity/LibIntegrityState.sol";
+import "../../../run/LibStackTop.sol";
+import "../../../run/LibInterpreterState.sol";
+import "../../../deploy/LibIntegrityState.sol";
 
 /// @title OpSaturatingAdd
 /// @notice Opcode for adding N numbers with saturating addition.
