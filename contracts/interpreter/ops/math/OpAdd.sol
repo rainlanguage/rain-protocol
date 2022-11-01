@@ -25,11 +25,11 @@ library OpAdd {
             integrityState_.applyFnN(stackTop_, _add, Operand.unwrap(operand_));
     }
 
-    function add(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function add(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFnN(_add, Operand.unwrap(operand_));
     }
 }

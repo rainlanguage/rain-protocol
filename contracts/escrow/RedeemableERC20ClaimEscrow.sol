@@ -252,11 +252,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param token_ The `IERC20` token to deposit to the escrow.
     /// @param amount_ The amount of token to despoit. Requires depositor has
     /// approved at least this amount to succeed.
-    function depositPending(
-        address sale_,
-        address token_,
-        uint256 amount_
-    ) external {
+    function depositPending(address sale_, address token_, uint256 amount_)
+        external
+    {
         require(amount_ > 0, "ZERO_DEPOSIT");
         require(escrowStatus(sale_) == EscrowStatus.Pending, "NOT_PENDING");
         pendingDeposits[sale_][token_][msg.sender] += amount_;
@@ -317,11 +315,9 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param sale_ The sale to sweep all pending deposits for.
     /// @param token_ The token to sweep into registered deposits.
     /// @param depositor_ The depositor to sweep registered deposits under.
-    function sweepPending(
-        address sale_,
-        address token_,
-        address depositor_
-    ) external {
+    function sweepPending(address sale_, address token_, address depositor_)
+        external
+    {
         uint256 amount_ = pendingDeposits[sale_][token_][depositor_];
         delete pendingDeposits[sale_][token_][depositor_];
         emit Sweep(
@@ -358,11 +354,7 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param token_ The `IERC20` token to deposit to the escrow.
     /// @param amount_ The amount of token to deposit. Requires depositor has
     /// approved at least this amount to succeed.
-    function deposit(
-        address sale_,
-        address token_,
-        uint256 amount_
-    ) external {
+    function deposit(address sale_, address token_, uint256 amount_) external {
         registerDeposit(sale_, token_, msg.sender, amount_);
         IERC20(token_).safeTransferFrom(msg.sender, address(this), amount_);
     }
@@ -441,11 +433,7 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param token_ The token to `withdraw`.
     /// @param supply_ The total supply of the sale token at time of deposit
     /// to process this withdrawal against.
-    function withdraw(
-        address sale_,
-        address token_,
-        uint256 supply_
-    ) external {
+    function withdraw(address sale_, address token_, uint256 supply_) external {
         // Can only withdraw when the `Trust` reports success.
         require(escrowStatus(sale_) == EscrowStatus.Success, "NOT_SUCCESS");
 

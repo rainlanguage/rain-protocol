@@ -28,11 +28,11 @@ library OpChainlinkOraclePrice {
         return integrityState_.applyFn(stackTop_, _price);
     }
 
-    function price(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function price(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_price);
     }
 }

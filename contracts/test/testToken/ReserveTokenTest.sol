@@ -37,11 +37,11 @@ contract ReserveTokenTest is ERC20 {
     }
 
     /// Enforces the freeze list.
-    function _beforeTokenTransfer(
-        address,
-        address receiver_,
-        uint256
-    ) internal view override {
+    function _beforeTokenTransfer(address, address receiver_, uint256)
+        internal
+        view
+        override
+    {
         require(receiver_ == address(0) || !(freezables[receiver_]), "FROZEN");
     }
 }

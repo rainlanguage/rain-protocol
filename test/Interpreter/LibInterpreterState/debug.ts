@@ -28,7 +28,7 @@ describe("LibInterpreterState debug tests", async function () {
       ]),
       concat([
         op(Opcode.BLOCK_NUMBER, 0),
-        op(Opcode.SENDER, 0),
+        op(Opcode.CALLER, 0),
         op(Opcode.THIS_ADDRESS, 0),
         op(Opcode.BLOCK_TIMESTAMP, 0),
       ])
@@ -119,7 +119,7 @@ describe("LibInterpreterState debug tests", async function () {
       ]),
       concat([
         op(Opcode.BLOCK_NUMBER, 0),
-        op(Opcode.SENDER, 0),
+        op(Opcode.CALLER, 0),
         op(Opcode.THIS_ADDRESS, 0),
         op(Opcode.BLOCK_TIMESTAMP, 0),
       ])

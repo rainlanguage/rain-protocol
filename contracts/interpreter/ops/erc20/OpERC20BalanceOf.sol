@@ -32,11 +32,11 @@ library OpERC20BalanceOf {
     }
 
     /// Stack `balanceOf`.
-    function balanceOf(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function balanceOf(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_balanceOf);
     }
 }

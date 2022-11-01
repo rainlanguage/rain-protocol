@@ -24,11 +24,11 @@ library OpMin {
             integrityState_.applyFnN(stackTop_, _min, Operand.unwrap(operand_));
     }
 
-    function min(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+    function min(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop stackTopAfter_)
+    {
         return stackTop_.applyFnN(_min, Operand.unwrap(operand_));
     }
 }

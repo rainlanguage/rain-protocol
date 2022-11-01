@@ -23,11 +23,11 @@ library OpAny {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(
-        InterpreterState memory,
-        Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    function any(InterpreterState memory, Operand operand_, StackTop stackTop_)
+        internal
+        pure
+        returns (StackTop)
+    {
         StackTop bottom_ = stackTop_.down(Operand.unwrap(operand_));
         for (
             StackTop i_ = bottom_;

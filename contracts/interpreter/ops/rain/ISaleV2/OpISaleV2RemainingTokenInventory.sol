@@ -25,11 +25,11 @@ library OpISaleV2RemainingTokenInventory {
     }
 
     /// Stack `remainingTokenInventory`.
-    function run(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function run(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(f);
     }
 }

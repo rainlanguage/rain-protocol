@@ -31,7 +31,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   // prettier-ignore
   const source = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.SENDER), // address
+      op(Opcode.CALLER), // address
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
@@ -69,7 +69,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // address
+        op(Opcode.CALLER), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
 
@@ -557,7 +557,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.SENDER), // address
+        op(Opcode.CALLER), // address
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
@@ -581,7 +581,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // Passing context data in constants
     const source1 = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.SENDER), // address
+      op(Opcode.CALLER), // address
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),

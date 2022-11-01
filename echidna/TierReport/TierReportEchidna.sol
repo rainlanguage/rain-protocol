@@ -67,11 +67,9 @@ contract TierReportEchidna {
         }
     }
 
-    function UpdateTimeAtTier(
-        uint256 _report,
-        uint256 _tier,
-        uint32 _timestamp
-    ) external {
+    function UpdateTimeAtTier(uint256 _report, uint256 _tier, uint32 _timestamp)
+        external
+    {
         try
             _tierReportTest.updateTimeAtTier(_report, _tier, _timestamp)
         returns (uint256 reportCalculated) {

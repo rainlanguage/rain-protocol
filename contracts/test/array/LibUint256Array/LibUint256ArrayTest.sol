@@ -23,20 +23,19 @@ contract LibUint256ArrayTest {
         return LibUint256Array.arrayFrom(a_, b_);
     }
 
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256 c_
-    ) external pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256 c_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
         return LibUint256Array.arrayFrom(a_, b_, c_);
     }
 
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256 c_,
-        uint256 d_
-    ) external pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256 c_, uint256 d_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
         return LibUint256Array.arrayFrom(a_, b_, c_, d_);
     }
 
@@ -58,11 +57,11 @@ contract LibUint256ArrayTest {
         return LibUint256Array.arrayFrom(a_, tail_);
     }
 
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256[] memory tail_
-    ) external pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256[] memory tail_)
+        external
+        pure
+        returns (uint256[] memory)
+    {
         return LibUint256Array.arrayFrom(a_, b_, tail_);
     }
 

@@ -73,9 +73,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             ) = IExpressionDeployerV1(config_.expressionDeployer)
                     .deployExpression(
                         config_.flows[i_],
-                        LibUint256Array.arrayFrom(
-                            config_.flowFinalMinStack
-                        )
+                        LibUint256Array.arrayFrom(config_.flowFinalMinStack)
                     );
             // The context scratch MUST set at least one flag otherwise
             // `_buildFlowContext` will refuse to build a context for it.
@@ -157,22 +155,20 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         }
     }
 
-    function loadFlowTime(
-        IdempotentFlag flag_,
-        address flow_,
-        uint256 id_
-    ) internal view returns (uint256) {
+    function loadFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
+        internal
+        view
+        returns (uint256)
+    {
         return
             flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)
                 ? _flowTimes[flow_][id_]
                 : 0;
     }
 
-    function registerFlowTime(
-        IdempotentFlag flag_,
-        address flow_,
-        uint256 id_
-    ) internal {
+    function registerFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
+        internal
+    {
         if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
             _flowTimes[flow_][id_] = block.timestamp;
         }

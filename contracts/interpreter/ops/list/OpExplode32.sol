@@ -20,11 +20,11 @@ library OpExplode32 {
         return integrityState_.push(integrityState_.pop(stackTop_), 8);
     }
 
-    function explode32(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    function explode32(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        pure
+        returns (StackTop)
+    {
         (StackTop location_, uint256 i_) = stackTop_.pop();
         uint256 mask_ = uint256(type(uint32).max);
         return

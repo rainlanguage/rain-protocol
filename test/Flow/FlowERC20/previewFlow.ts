@@ -35,8 +35,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC20 previewFlow tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
-  const ME = () => op(Opcode.THIS_ADDRESS);
-  const YOU = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.CALLER);
+  const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowERC20Factory = await flowERC20FactoryDeploy();
@@ -258,10 +258,6 @@ describe("FlowERC20 previewFlow tests", async function () {
     const SENTINEL = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_SIGN_CONTEXT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const CAN_FLOW = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 16));
@@ -1214,8 +1210,8 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.ENSURE),
       CAN_FLOW(),
+      op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP

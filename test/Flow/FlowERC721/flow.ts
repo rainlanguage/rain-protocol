@@ -38,8 +38,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC721 flow tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
-  const YOU = () => op(Opcode.SENDER);
-  const ME = () => op(Opcode.THIS_ADDRESS);
+  const ME = () => op(Opcode.CALLER);
+  const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowERC721Factory = await flowERC721FactoryDeploy();
@@ -278,9 +278,9 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const TOKEN_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const FLOWIO_INPUT_NATIVE = () =>
+    const FLOWIO_INPUT_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
-    const FLOWIO_OUTPUT_NATIVE = () =>
+    const FLOWIO_OUTPUT_NATIVE_AMOUNT = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIOMint = concat([
@@ -288,15 +288,15 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(),
       SENTINEL(),
       SENTINEL(),
-      op(Opcode.SENDER),
-      op(Opcode.THIS_ADDRESS),
-      FLOWIO_INPUT_NATIVE(),
-      op(Opcode.THIS_ADDRESS),
-      op(Opcode.SENDER),
-      FLOWIO_OUTPUT_NATIVE(),
+      YOU(),
+      ME(),
+      FLOWIO_INPUT_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWIO_OUTPUT_NATIVE_AMOUNT(),
       SENTINEL_721(),
       SENTINEL_721(),
-      op(Opcode.SENDER),
+      YOU(),
       TOKEN_ID(), // mint
     ]);
     const sourceFlowIOBurn = concat([
@@ -304,14 +304,14 @@ describe("FlowERC721 flow tests", async function () {
       SENTINEL(),
       SENTINEL(),
       SENTINEL(),
-      op(Opcode.SENDER),
-      op(Opcode.THIS_ADDRESS),
-      FLOWIO_INPUT_NATIVE(),
-      op(Opcode.THIS_ADDRESS),
-      op(Opcode.SENDER),
-      FLOWIO_OUTPUT_NATIVE(),
+      YOU(),
+      ME(),
+      FLOWIO_INPUT_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWIO_OUTPUT_NATIVE_AMOUNT(),
       SENTINEL_721(),
-      op(Opcode.SENDER),
+      YOU(),
       TOKEN_ID(), // burn
       SENTINEL_721(),
     ]);

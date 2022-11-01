@@ -35,8 +35,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC1155 previewFlow tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
-  const ME = () => op(Opcode.THIS_ADDRESS);
-  const YOU = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.CALLER);
+  const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowERC1155Factory = await flowERC1155FactoryDeploy();
@@ -1054,8 +1054,8 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.ENSURE),
       CAN_FLOW(),
+      op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP

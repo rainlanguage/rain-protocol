@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import crypto from "crypto";
+import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { RedeemableERC20 } from "../../../typechain";
 import {
@@ -117,8 +117,8 @@ describe("SaleEscrow unchangeable addresses", async function () {
     const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(sale.address);
     const saleEscrowToken0 = await saleEscrowWrapper.getToken(sale.address);
 
-    const newReserve = crypto.randomBytes(20).toString("hex");
-    const newToken = crypto.randomBytes(20).toString("hex");
+    const newReserve = hexlify(randomBytes(20));
+    const newToken = hexlify(randomBytes(20));
 
     await sale.setReserve(newReserve);
     await sale.setToken(newToken);

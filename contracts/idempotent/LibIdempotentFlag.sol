@@ -31,21 +31,23 @@ library LibIdempotentFlag {
         _;
     }
 
-    function get16x16(
-        IdempotentFlag flag_,
-        uint256 column_,
-        uint256 row_
-    ) internal pure only16x16(column_, row_) returns (bool) {
+    function get16x16(IdempotentFlag flag_, uint256 column_, uint256 row_)
+        internal
+        pure
+        only16x16(column_, row_)
+        returns (bool)
+    {
         unchecked {
             return flag_.get(column_ * 16 + row_);
         }
     }
 
-    function set16x16(
-        IdempotentFlag flag_,
-        uint256 column_,
-        uint256 row_
-    ) internal pure only16x16(column_, row_) returns (IdempotentFlag) {
+    function set16x16(IdempotentFlag flag_, uint256 column_, uint256 row_)
+        internal
+        pure
+        only16x16(column_, row_)
+        returns (IdempotentFlag)
+    {
         unchecked {
             return flag_.set(column_ * 16 + row_);
         }

@@ -19,11 +19,11 @@ library OpTimestamp {
         return integrityState_.push(stackTop_);
     }
 
-    function timestamp(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function timestamp(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.push(block.timestamp);
     }
 }

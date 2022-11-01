@@ -29,11 +29,11 @@ library OpERC721OwnerOf {
     }
 
     // Stack the return of `ownerOf`.
-    function ownerOf(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+    function ownerOf(InterpreterState memory, Operand, StackTop stackTop_)
+        internal
+        view
+        returns (StackTop)
+    {
         return stackTop_.applyFn(_ownerOf);
     }
 }
