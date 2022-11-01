@@ -127,6 +127,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             id_,
             signedContexts_
         );
+        // mints
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC721_SENTINEL,
@@ -135,6 +136,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         assembly ("memory-safe") {
             mstore(flowIO_, refs_)
         }
+        // burns
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC721_SENTINEL,
