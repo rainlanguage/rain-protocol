@@ -4,7 +4,6 @@ import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { AllStandardOpsTest, Sale } from "../../../../typechain";
 import {
   AllStandardOps,
-  eighteenZeros,
   memoryOperand,
   MemoryType,
   op,
