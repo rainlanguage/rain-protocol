@@ -5,7 +5,7 @@ import { Flow, FlowFactory } from "../../../../typechain";
 import { FlowConfigStruct } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
-import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
 export const flowDeploy = async (
@@ -15,9 +15,7 @@ export const flowDeploy = async (
   ...args: Overrides[]
 ) => {
   const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerV1(
-    interpreter
-  );
+  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
 
   const flowConfigStruct: FlowConfigStruct = {
     stateConfig: flowConfig.stateConfig,

@@ -88,14 +88,16 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
           vBasePrice,
               vFractionMultiplier,
+                  op(Opcode.CALLER),
                 op(Opcode.ISALEV2_TOKEN),
-                op(Opcode.SENDER),
+                op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
+                  op(Opcode.CALLER),
               op(Opcode.ISALEV2_TOKEN),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
@@ -232,14 +234,16 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
           vBasePrice,
               vFractionMultiplier,
+                  op(Opcode.CALLER),
                 op(Opcode.ISALEV2_RESERVE),
-                op(Opcode.SENDER),
+                op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
+                  op(Opcode.CALLER),
               op(Opcode.ISALEV2_RESERVE),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
@@ -426,10 +430,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -559,9 +563,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
+        op(Opcode.CALLER),
         op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
@@ -693,9 +698,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
+        op(Opcode.CALLER),
         op(Opcode.ISALEV2_REMAINING_TOKEN_INVENTORY),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
@@ -794,7 +800,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0000),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),

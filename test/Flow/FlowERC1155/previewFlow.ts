@@ -35,9 +35,9 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC1155 previewFlow tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
-  const ME = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.CALLER);
   const YOU = () => op(Opcode.CONTEXT, 0x0000);
-  
+
   before(async () => {
     flowERC1155Factory = await flowERC1155FactoryDeploy();
   });

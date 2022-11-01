@@ -28,15 +28,20 @@ import { FlowConfig } from "../../../utils/types/flow";
 import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { flow } from "../../../typechain/contracts";
 
-import fs from 'fs'
+import fs from "fs";
 
 const Opcode = AllStandardOps;
 
 describe("Flow multiCall tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.CALLER);
   const YOU = () => op(Opcode.CONTEXT, 0x0000);
-  const flowABI = JSON.parse(fs.readFileSync('artifacts/contracts/flow/basic/Flow.sol/Flow.json', 'utf-8'))
+  const flowABI = JSON.parse(
+    fs.readFileSync(
+      "artifacts/contracts/flow/basic/Flow.sol/Flow.json",
+      "utf-8"
+    )
+  );
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();
@@ -57,20 +62,19 @@ describe("Flow multiCall tests", async function () {
       {}
     )) as ReserveTokenERC721;
     await erc721Out.initialize();
-    
+
     const erc721In = (await basicDeploy(
-        "ReserveTokenERC721",
-        {}
-      )) as ReserveTokenERC721;
+      "ReserveTokenERC721",
+      {}
+    )) as ReserveTokenERC721;
     await erc721In.initialize();
-  
-      const erc1155Out = (await basicDeploy(
-        "ReserveTokenERC1155",
-        {}
-      )) as ReserveTokenERC1155;
+
+    const erc1155Out = (await basicDeploy(
+      "ReserveTokenERC1155",
+      {}
+    )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
 
-      
     const flowTransfer_A: FlowTransferStruct = {
       native: [],
       erc20: [
@@ -128,81 +132,78 @@ describe("Flow multiCall tests", async function () {
     ]);
 
     // FLOW_B
-    
-    const flowTransfer_B: FlowTransferStruct = {
-        native: [],
-        erc20: [],
-        erc721: [
-            {
-            token: erc721In.address,
-            from: you.address,
-            to: "", // Contract Address
-            id: 0,
-            },
-        ],
-        erc1155: [
-            {
-            token: erc1155Out.address,
-            id: 0,
-            amount: ethers.BigNumber.from(2 + sixZeros),
-            from: "", // Contract address
-            to: you.address,
-            },
-        ],
-        };
 
-        const constants_B = [
-        RAIN_FLOW_SENTINEL,
-        1,
-        flowTransfer_B.erc721[0].token,
-        flowTransfer_B.erc721[0].id,
-        flowTransfer_B.erc1155[0].token,
-        flowTransfer_B.erc1155[0].id,
-        flowTransfer_B.erc1155[0].amount,
+    const flowTransfer_B: FlowTransferStruct = {
+      native: [],
+      erc20: [],
+      erc721: [
+        {
+          token: erc721In.address,
+          from: you.address,
+          to: "", // Contract Address
+          id: 0,
+        },
+      ],
+      erc1155: [
+        {
+          token: erc1155Out.address,
+          id: 0,
+          amount: ethers.BigNumber.from(2 + sixZeros),
+          from: "", // Contract address
+          to: you.address,
+        },
+      ],
+    };
+
+    const constants_B = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer_B.erc721[0].token,
+      flowTransfer_B.erc721[0].id,
+      flowTransfer_B.erc1155[0].token,
+      flowTransfer_B.erc1155[0].id,
+      flowTransfer_B.erc1155[0].amount,
     ];
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO_B = concat([
-        SENTINEL(), // ERC1155 END
-        FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
-        ME(),
-        YOU(),
-        FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
-        FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
-        SENTINEL(), // ERC721 END
-        FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
-        YOU(),
-        ME(),
-        FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
-        SENTINEL(), // ERC20 SKIP
-        SENTINEL(), // NATIVE SKIP
+      SENTINEL(), // ERC1155 END
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
+      SENTINEL(), // ERC721 END
+      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE SKIP
     ]);
-  
+
     const sources = [];
 
     const flowConfigStruct_A: FlowConfig = {
       stateConfig: { sources, constants: constants_A },
       flows: [
-            { sources: [sourceFlowIO_A], constants: constants_A },
-            { sources: [sourceFlowIO_B], constants: constants_B }
-        ],
+        { sources: [sourceFlowIO_A], constants: constants_A },
+        { sources: [sourceFlowIO_B], constants: constants_B },
+      ],
     };
 
-    const { flow: flow_A, expressionDeployer: expressionDeployer_A } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct_A
-    );
+    const { flow: flow_A, expressionDeployer: expressionDeployer_A } =
+      await flowDeploy(deployer, flowFactory, flowConfigStruct_A);
 
     const flowStates_A = (await getEvents(
       flow_A.deployTransaction,
@@ -233,8 +234,10 @@ describe("Flow multiCall tests", async function () {
       .connect(you)
       .callStatic.flow(flowStates_A[0].expressionAddress, 1234, []);
 
-    compareStructs(flowStruct, fillEmptyAddress(flowTransfer_A, flow_A.address));
-
+    compareStructs(
+      flowStruct,
+      fillEmptyAddress(flowTransfer_A, flow_A.address)
+    );
 
     // FLOW ERC721  -- ERC1155
 
@@ -260,23 +263,36 @@ describe("Flow multiCall tests", async function () {
       flowTransfer_B.erc721[0].id
     );
 
-    await erc721In.connect(you).approve(me_A.address, flowTransfer_B.erc721[0].id);
+    await erc721In
+      .connect(you)
+      .approve(me_A.address, flowTransfer_B.erc721[0].id);
 
     const flowStruct_B = await flow_A
       .connect(you)
       .callStatic.flow(flowStates_A[1].expressionAddress, 1234, []);
 
-    compareStructs(flowStruct_B, fillEmptyAddress(flowTransfer_B, flow_A.address));
+    compareStructs(
+      flowStruct_B,
+      fillEmptyAddress(flowTransfer_B, flow_A.address)
+    );
 
-    // CALLING FLOWS 
+    // CALLING FLOWS
     // A
     // await flow_A.connect(you).flow(flowStates_A[0].expressionAddress, 1234, []);
     // // B
     // await flow_B.connect(you).flow(flowStates_B[0].expressionAddress, 1234, []);
-    
-    const iFlow = new ethers.utils.Interface(flowABI.abi)
-    const encode_flowA = iFlow.encodeFunctionData("flow", [flowStates_A[0].expressionAddress, 1234, []]);
-    const encode_flowB = iFlow.encodeFunctionData("flow", [flowStates_A[1].expressionAddress, 1234, []]);
+
+    const iFlow = new ethers.utils.Interface(flowABI.abi);
+    const encode_flowA = iFlow.encodeFunctionData("flow", [
+      flowStates_A[0].expressionAddress,
+      1234,
+      [],
+    ]);
+    const encode_flowB = iFlow.encodeFunctionData("flow", [
+      flowStates_A[1].expressionAddress,
+      1234,
+      [],
+    ]);
 
     // MULTI CALL
     await flow_A.connect(you).multicall([encode_flowA, encode_flowB]);

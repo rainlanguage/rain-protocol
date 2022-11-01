@@ -74,7 +74,7 @@ describe("Sale canLive (start/end sale)", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,

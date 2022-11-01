@@ -8,7 +8,7 @@ import {
 } from "../../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { getEventArgs } from "../../../events";
 import { FlowERC1155Config } from "../../../types/flow";
-import { rainterpreterExpressionDeployerV1 } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 
 export const flowERC1155Deploy = async (
@@ -18,9 +18,7 @@ export const flowERC1155Deploy = async (
   ...args: Overrides[]
 ) => {
   const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerV1(
-    interpreter
-  );
+  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
 
   const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
     stateConfig: flowERC1155Config.stateConfig,

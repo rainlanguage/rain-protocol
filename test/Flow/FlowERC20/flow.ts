@@ -35,7 +35,7 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC20 flow tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
-  const ME = () => op(Opcode.SENDER);
+  const ME = () => op(Opcode.CALLER);
   const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
