@@ -23,15 +23,15 @@ import { FlowERC20Config } from "../../../utils/types/flow";
 import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 
 const Opcode = AllStandardOps;
-
-describe("FlowERC20 flow tests", async function () {
+const YOU = () => op(Opcode.CONTEXT, 0x0000);
+describe("FlowERC20 flowTime tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
 
   before(async () => {
     flowERC20Factory = await flowERC20FactoryDeploy();
   });
 
-  it("should flow for lichess", async () => {
+  it("should not flow more than once for the same id_", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
@@ -49,23 +49,18 @@ describe("FlowERC20 flow tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
 
-    const CAN_SIGN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-
     const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const ZERO = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-
-    const CHESS_WINNER_ADDRESS = () => op(Opcode.CONTEXT, 0x0100);
 
     const CANNOT_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    
+    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     // prettier-ignore
-    const sourceFlow_WIN = concat([
+    const sourceFlow = concat([
           // CAN FLOW
-          op(Opcode.CONTEXT, 0x0002),
-          ZERO(),
-        op(Opcode.EQUAL_TO),
+          CONTEXT_FLOW_TIME(),
+        op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
       // FLOW
       SENTINEL(), // ERC1155 SKIP
@@ -74,69 +69,47 @@ describe("FlowERC20 flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
       SENTINEL_ERC20(), // BURN SKIP
       SENTINEL_ERC20(), // MINT END
-      CHESS_WINNER_ADDRESS(), // ADDRESS
+      YOU(), // ADDRESS
       ONE(), // MINT AMOUNT
     ]);
+    
     // WIN FLOW
-    const flow_WIN_ConfigStruct: FlowERC20Config = {
-      name: "FlowWINERC20",
+    const flow_ConfigStruct: FlowERC20Config = {
+      name: "FlowERC20",
       symbol: "FWIN20",
       stateConfig: {
         sources: [CANNOT_TRANSFER()],
         constants,
       },
       flows: [
-        { sources: [sourceFlow_WIN], constants },
+        { sources: [sourceFlow], constants },
       ],
     };
 
-    const { flow: flow_WIN, expressionDeployer: expressionDeployer_WIN}  = await flowERC20Deploy(
+    const { flow: flow, expressionDeployer: expressionDeployer}  = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
-      flow_WIN_ConfigStruct
+      flow_ConfigStruct
     );
 
-    const flowStates_WIN = (await getEvents(
-      flow_WIN.deployTransaction,
+    const flowStates = (await getEvents(
+      flow.deployTransaction,
       "DeployExpression",
-      expressionDeployer_WIN
+      expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
-    // CONTEXT
-    // [WINNER_ADDRESS, CHESS_IS_BEATEN, IS_IMPROVED, XP_AMOUNT]
-    const isBeatenGrandMaster = true;
-    const isImproved = true;
-    const xpAmount = 100;
-    const context = [
-      you.address,
-      Number(isBeatenGrandMaster),
-      Number(isImproved),
-      xpAmount,
-      flowStates_WIN[1].expressionAddress,
-    ];
-    const messageHash = ethers.utils.solidityKeccak256(
-      ["uint256[]"],
-      [context]
-    );
-
-    const signedContext = {
-      signer: you.address,
-      signature: you.signMessage(ethers.utils.arrayify(messageHash)),
-      context: context,
-    };
-
     // Flowing once
-    await flow_WIN
+    await flow
       .connect(you)
-      .flow(flowStates_WIN[1].expressionAddress, 9999, [signedContext]);
+      .flow(flowStates[1].expressionAddress, 9999, []);
 
     // Flowing again with the same ID
 
     await assertError(
       async () =>
-        await flow_WIN
+        await flow
           .connect(you)
-          .flow(flowStates_WIN[1].expressionAddress, 9999, [signedContext]),
+          .flow(flowStates[1].expressionAddress, 9999, []),
       "Transaction reverted without a reason string",
       "Flow for the same id_ is not restricted"
     );
