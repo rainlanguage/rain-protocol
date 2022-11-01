@@ -277,7 +277,7 @@ describe("Flow multiCall tests", async function () {
     // CALLING FLOWS
     // A
     // await flow_A.connect(you).flow(flowStates_A[0].expressionAddress, 1234, []);
-    // // B
+    // B
     // await flow_B.connect(you).flow(flowStates_B[0].expressionAddress, 1234, []);
 
     const iFlow = new ethers.utils.Interface(flowABI.abi);
