@@ -43,7 +43,13 @@ library LibOrder {
         internal
         returns (Order memory)
     {
-        (address expressionAddress, uint256 contextScratch) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(config_.interpreterStateConfig, MIN_FINAL_STACK_INDEX.arrayFrom());
+        (
+            address expressionAddress,
+            uint256 contextScratch
+        ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
+                config_.interpreterStateConfig,
+                MIN_FINAL_STACK_INDEX.arrayFrom()
+            );
         return
             Order(
                 msg.sender,

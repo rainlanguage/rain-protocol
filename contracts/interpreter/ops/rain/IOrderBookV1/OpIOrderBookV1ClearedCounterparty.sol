@@ -12,8 +12,21 @@ library OpIOrderBookV1ClearedCounterparty {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function f(uint256 orderbook_, uint orderHash_, uint counterparty_) internal view returns (uint256) {
-        return uint256(uint160(IOrderBookV1(address(uint160(orderbook_))).clearedCounterparty(orderHash_, address(uint160(counterparty_)))));
+    function f(uint256 orderbook_, uint orderHash_, uint counterparty_)
+        internal
+        view
+        returns (uint256)
+    {
+        return
+            uint256(
+                uint160(
+                    IOrderBookV1(address(uint160(orderbook_)))
+                        .clearedCounterparty(
+                            orderHash_,
+                            address(uint160(counterparty_))
+                        )
+                )
+            );
     }
 
     function integrity(

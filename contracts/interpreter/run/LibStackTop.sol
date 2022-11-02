@@ -512,6 +512,38 @@ library LibStackTop {
     /// The caller MUST ensure this does not result in unsafe reads and writes.
     /// @param stackTop_ The stack top to read and write to.
     /// @param fn_ The function to run on the stack.
+    /// @return The new stack top above the outputs of fn_.
+    function applyFn(
+        StackTop stackTop_,
+        function(uint256, uint256, uint256, uint)
+            internal
+            view
+            returns (uint256) fn_
+    ) internal view returns (StackTop) {
+        uint256 a_;
+        uint256 b_;
+        uint256 c_;
+        uint d_;
+        uint256 location_;
+        assembly ("memory-safe") {
+            stackTop_ := sub(stackTop_, 0x60)
+            location_ := sub(stackTop_, 0x20)
+            a_ := mload(location_)
+            b_ := mload(stackTop_)
+            c_ := mload(add(stackTop_, 0x20))
+            d_ := mload(add(stackTop_, 0x40))
+        }
+        a_ = fn_(a_, b_, c_, d_);
+        assembly ("memory-safe") {
+            mstore(location_, a_)
+        }
+        return stackTop_;
+    }
+
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
     /// @param operand_ Operand is passed from the source instead of the stack.
     /// @return The new stack top above the outputs of fn_.
     function applyFn(

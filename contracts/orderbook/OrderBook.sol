@@ -95,15 +95,14 @@ contract OrderBook is IOrderBookV1 {
 
     // order hash => order liveness
     mapping(uint => OrderLiveness) private orders;
-    // depositor => token => vault id => token amount.
+    /// @inheritdoc IOrderBookV1
     mapping(address => mapping(address => mapping(uint256 => uint256)))
-        private vaults;
+        public vaultBalance;
 
     /// @inheritdoc IOrderBookV1
     mapping(uint => uint256) public clearedOrder;
     /// @inheritdoc IOrderBookV1
-    mapping(uint => mapping(address => uint256))
-        public clearedCounterparty;
+    mapping(uint => mapping(address => uint256)) public clearedCounterparty;
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -114,7 +113,8 @@ contract OrderBook is IOrderBookV1 {
     }
 
     function deposit(DepositConfig calldata config_) external {
-        vaults[msg.sender][config_.token][config_.vaultId] += config_.amount;
+        vaultBalance[msg.sender][config_.token][config_.vaultId] += config_
+            .amount;
         emit Deposit(msg.sender, config_);
         IERC20(config_.token).safeTransferFrom(
             msg.sender,
@@ -128,11 +128,11 @@ contract OrderBook is IOrderBookV1 {
     /// is less than the current vault balance then the vault will be cleared
     /// to 0 rather than the withdraw transaction reverting.
     function withdraw(WithdrawConfig calldata config_) external {
-        uint256 vaultBalance_ = vaults[msg.sender][config_.token][
+        uint256 vaultBalance_ = vaultBalance[msg.sender][config_.token][
             config_.vaultId
         ];
         uint256 withdrawAmount_ = config_.amount.min(vaultBalance_);
-        vaults[msg.sender][config_.token][config_.vaultId] =
+        vaultBalance[msg.sender][config_.token][config_.vaultId] =
             vaultBalance_ -
             withdrawAmount_;
         emit Withdraw(msg.sender, config_, withdrawAmount_);
@@ -161,29 +161,37 @@ contract OrderBook is IOrderBookV1 {
         Order memory order_,
         uint256 outputIOIndex_,
         address counterparty_
-    )
-        internal
-        view
-        returns (
-            uint256 orderOutputMax_,
-            uint256 orderIORatio_
-        )
-    {
+    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_) {
         uint orderHash_ = order_.hash();
-        uint[][] memory context_ = LibUint256Array.arrayFrom(
-            orderHash_,
-            uint(uint160(msg.sender)),
-            uint(uint160(counterparty_)),
-            IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_ORDER, FLAG_ROW_CLEARED_ORDER) ? clearedOrder[orderHash_] : 0,
-            IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_COUNTERPARTY, FLAG_ROW_CLEARED_COUNTERPARTY) ? clearedCounterparty[orderHash_][counterparty_] : 0
-        ).matrixFrom();
-        (orderOutputMax_, orderIORatio_) = IInterpreterV1(order_.interpreter).eval(order_.expression, ORDER_ENTRYPOINT, context_).asStackTopAfter().peek2();
+        uint[][] memory context_ = LibUint256Array
+            .arrayFrom(
+                orderHash_,
+                uint(uint160(msg.sender)),
+                uint(uint160(counterparty_)),
+                IdempotentFlag.wrap(order_.contextScratch).get16x16(
+                    FLAG_COLUMN_CLEARED_ORDER,
+                    FLAG_ROW_CLEARED_ORDER
+                )
+                    ? clearedOrder[orderHash_]
+                    : 0,
+                IdempotentFlag.wrap(order_.contextScratch).get16x16(
+                    FLAG_COLUMN_CLEARED_COUNTERPARTY,
+                    FLAG_ROW_CLEARED_COUNTERPARTY
+                )
+                    ? clearedCounterparty[orderHash_][counterparty_]
+                    : 0
+            )
+            .matrixFrom();
+        (orderOutputMax_, orderIORatio_) = IInterpreterV1(order_.interpreter)
+            .eval(order_.expression, ORDER_ENTRYPOINT, context_)
+            .asStackTopAfter()
+            .peek2();
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
         IO memory outputIO_ = order_.validOutputs[outputIOIndex_];
         orderOutputMax_ = orderOutputMax_.min(
-            vaults[order_.owner][outputIO_.token][outputIO_.vaultId]
+            vaultBalance[order_.owner][outputIO_.token][outputIO_.vaultId]
         );
     }
 
@@ -198,15 +206,25 @@ contract OrderBook is IOrderBookV1 {
         IO memory io_;
         if (input_ > 0) {
             io_ = order_.validInputs[inputIOIndex_];
-            vaults[order_.owner][io_.token][io_.vaultId] += input_;
+            vaultBalance[order_.owner][io_.token][io_.vaultId] += input_;
         }
         if (output_ > 0) {
             io_ = order_.validOutputs[outputIOIndex_];
-            vaults[order_.owner][io_.token][io_.vaultId] -= output_;
-            if (IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_ORDER, FLAG_ROW_CLEARED_ORDER)) {
+            vaultBalance[order_.owner][io_.token][io_.vaultId] -= output_;
+            if (
+                IdempotentFlag.wrap(order_.contextScratch).get16x16(
+                    FLAG_COLUMN_CLEARED_ORDER,
+                    FLAG_ROW_CLEARED_ORDER
+                )
+            ) {
                 clearedOrder[order_.hash()] += output_;
             }
-            if (IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_COUNTERPARTY, FLAG_ROW_CLEARED_COUNTERPARTY)) {
+            if (
+                IdempotentFlag.wrap(order_.contextScratch).get16x16(
+                    FLAG_COLUMN_CLEARED_COUNTERPARTY,
+                    FLAG_ROW_CLEARED_COUNTERPARTY
+                )
+            ) {
                 clearedCounterparty[order_.hash()][counterparty_] += output_;
             }
         }
@@ -363,12 +381,12 @@ contract OrderBook is IOrderBookV1 {
             uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
             uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
             if (aBounty_ > 0) {
-                vaults[msg.sender][
+                vaultBalance[msg.sender][
                     a_.validOutputs[clearConfig_.aOutputIOIndex].token
                 ][clearConfig_.aBountyVaultId] += aBounty_;
             }
             if (bBounty_ > 0) {
-                vaults[msg.sender][
+                vaultBalance[msg.sender][
                     b_.validOutputs[clearConfig_.bOutputIOIndex].token
                 ][clearConfig_.bBountyVaultId] += bBounty_;
             }
@@ -376,5 +394,4 @@ contract OrderBook is IOrderBookV1 {
 
         emit AfterClear(stateChange_);
     }
-
 }

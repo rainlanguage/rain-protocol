@@ -203,6 +203,17 @@ library LibIntegrityState {
     function applyFn(
         IntegrityState memory integrityState_,
         StackTop stackTop_,
+        function(uint256, uint256, uint256, uint)
+            internal
+            view
+            returns (uint256)
+    ) internal pure returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, 4));
+    }
+
+    function applyFn(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_,
         function(uint256[] memory) internal view returns (uint256),
         uint256 length_
     ) internal pure returns (StackTop) {

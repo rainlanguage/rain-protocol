@@ -6,13 +6,13 @@ import "../../../run/LibStackTop.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityState.sol";
 
-/// @title OpIOrderBookV1ClearedOrder
-/// @notice Opcode for IOrderBookV1 `clearedOrder`.
-library OpIOrderBookV1ClearedOrder {
+/// @title OpIOrderBookV1VaultBalance
+/// @notice Opcode for IOrderBookV1 `vaultBalance`.
+library OpIOrderBookV1VaultBalance {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function f(uint256 orderbook_, uint orderHash_)
+    function f(uint256 orderbook_, uint owner_, uint token_, uint id_)
         internal
         view
         returns (uint256)
@@ -20,8 +20,10 @@ library OpIOrderBookV1ClearedOrder {
         return
             uint256(
                 uint160(
-                    IOrderBookV1(address(uint160(orderbook_))).clearedOrder(
-                        orderHash_
+                    IOrderBookV1(address(uint160(orderbook_))).vaultBalance(
+                        address(uint160(owner_)),
+                        address(uint160(token_)),
+                        id_
                     )
                 )
             );
