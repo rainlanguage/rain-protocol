@@ -87,7 +87,6 @@ contract LibInterpreterStateTest is RainInterpreter {
         returns (bytes memory serialized_)
     {
         (
-            uint256 scratch_,
             uint256 contextScratch_,
             uint256 stackLength_
         ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
@@ -98,7 +97,6 @@ contract LibInterpreterStateTest is RainInterpreter {
             );
 
         serialized_ = config_.serialize(
-            scratch_,
             contextScratch_,
             stackLength_,
             opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()

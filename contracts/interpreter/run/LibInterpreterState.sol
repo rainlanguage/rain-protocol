@@ -128,14 +128,12 @@ library LibInterpreterState {
 
     function serialize(
         StateConfig memory config_,
-        uint256 scratch_,
         uint256 contextScratch_,
         uint256 stackLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
-            size_ += scratch_.size();
             size_ += contextScratch_.size();
             size_ += stackLength_.size();
             size_ += config_.constants.size();
@@ -150,9 +148,6 @@ library LibInterpreterState {
 
             // Then the constants.
             cursor_ = cursor_.pushWithLength(config_.constants);
-
-            // Copy scratch.
-            cursor_ = cursor_.push(scratch_);
 
             // Copy context scratch.
             cursor_ = cursor_.push(contextScratch_);
@@ -199,9 +194,6 @@ library LibInterpreterState {
             cursor_ = cursor_.up();
             state_.constantsBottom = cursor_;
             cursor_ = cursor_.up(cursor_.peek());
-
-            cursor_ = cursor_.up();
-            state_.scratch = cursor_.peek();
 
             cursor_ = cursor_.up();
             state_.contextScratch = cursor_.peek();

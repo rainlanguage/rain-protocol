@@ -66,7 +66,6 @@ contract RainterpreterExpressionDeployer is
         uint256[] memory finalMinStacks_
     ) external returns (address, uint256) {
         (
-            uint256 scratch_,
             uint256 contextScratch_,
             uint256 stackLength_
         ) = ensureIntegrity(
@@ -77,7 +76,6 @@ contract RainterpreterExpressionDeployer is
             );
 
         bytes memory stateBytes_ = config_.serialize(
-            scratch_,
             contextScratch_,
             stackLength_,
             OPCODE_FUNCTION_POINTERS

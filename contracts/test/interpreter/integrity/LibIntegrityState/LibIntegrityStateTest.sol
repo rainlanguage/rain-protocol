@@ -46,7 +46,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -71,7 +70,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(0), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -99,7 +97,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -121,7 +118,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -143,7 +139,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -165,7 +160,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -188,7 +182,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -256,7 +249,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -272,7 +264,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -288,7 +279,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -304,7 +294,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -320,7 +309,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -336,7 +324,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -356,7 +343,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -376,7 +362,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -396,7 +381,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // contextScratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -416,7 +400,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // contextScratch
             integrityFunctionPointers() // integrityFunctionPointers
         );

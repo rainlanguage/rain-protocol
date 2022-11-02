@@ -38,7 +38,6 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
         public
         view
         returns (
-            uint256 scratch_,
             uint256 contextScratch_,
             uint256 stackLength_
         )
@@ -51,7 +50,6 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             StackTop.wrap(0),
             StackTop.wrap(0),
             0,
-            0,
             integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
@@ -62,7 +60,6 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             );
         }
         return (
-            integrityState_.scratch,
             integrityState_.contextScratch,
             integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
         );
