@@ -99,7 +99,7 @@ describe("FlowERC1155 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0, {});
+      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0);
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -194,7 +194,7 @@ describe("FlowERC1155 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0, {});
+      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0);
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));

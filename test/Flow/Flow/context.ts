@@ -14,6 +14,7 @@ import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { timewarp } from "../../../utils/hardhat";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -119,6 +120,9 @@ describe("Flow context tests", async function () {
     // prettier-ignore
     const sourceFlowIO = concat([
       op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
+      CONTEXT_FLOW_TIME(),
+      op(Opcode.DEBUG, Debug.StatePacked),
+
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
@@ -415,6 +419,10 @@ describe("Flow context tests", async function () {
     const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     const sourceFlowIO = concat([
+      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
+      CONTEXT_FLOW_TIME(),
+      op(Opcode.DEBUG, Debug.StatePacked),
+
       CONTEXT_FLOW_TIME(),
       op(Opcode.ISZERO), // can flow if no registered flow time
       op(Opcode.ENSURE, 1),
@@ -514,7 +522,9 @@ describe("Flow context tests", async function () {
 
     await assertError(
       async () =>
-        await flow.connect(you).flow(flowExpressions[0].expressionAddress, 1234, []),
+        await flow
+          .connect(you)
+          .flow(flowExpressions[0].expressionAddress, 1234, []),
       "Transaction reverted without a reason string",
       "did not prevent flow when a flow time already registered"
     );

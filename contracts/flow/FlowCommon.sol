@@ -16,7 +16,7 @@ import "hardhat/console.sol";
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
-uint256 constant FLAG_ROW_FLOW_TIME = 1;
+uint256 constant FLAG_ROW_FLOW_TIME = 2;
 
 uint256 constant MIN_FLOW_SENTINELS = 4;
 
@@ -100,7 +100,6 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             "UNREGISTERED_FLOW"
         );
 
-        console.log("FLOW TIME = %d", loadFlowTime(contextScratch_, flow_, id_));
         // This column MUST match the flags tracked in the context grid.
         return
             LibUint256Array.arrayFrom(
@@ -157,26 +156,23 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         }
     }
 
-    function loadFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
-        internal
-        view
-        returns (uint256)
-    {
+    function loadFlowTime(
+        IdempotentFlag flag_,
+        address flow_,
+        uint256 id_
+    ) internal view returns (uint256) {
         return
             flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)
                 ? _flowTimes[flow_][id_]
                 : 0;
     }
 
-    function registerFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
-        internal
-    {
-        console.log("get16x16 = ");
-        
-        console.logBool(flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME));
-
+    function registerFlowTime(
+        IdempotentFlag flag_,
+        address flow_,
+        uint256 id_
+    ) internal {
         if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
-            console.log("Registering flow for flag_ = %d, address flow_ = %d, id_ = %d", IdempotentFlag.unwrap(flag_), uint256(uint160(flow_)), id_);
             _flowTimes[flow_][id_] = block.timestamp;
         }
     }
