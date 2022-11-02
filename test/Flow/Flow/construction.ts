@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
+
 import { FlowFactory } from "../../../typechain";
 import { InitializeEvent } from "../../../typechain/contracts/flow/basic/Flow";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";

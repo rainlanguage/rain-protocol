@@ -71,7 +71,7 @@ describe("FlowERC20 signed context tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -92,7 +92,7 @@ describe("FlowERC20 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowStates[1].expressionAddress, 1234, signedContexts0, {});
+      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0);
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
@@ -108,7 +108,12 @@ describe("FlowERC20 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowStates[1].expressionAddress, 1234, signedContexts1, {}),
+          .flow(
+            flowExpressions[1].expressionAddress,
+            1234,
+            signedContexts1,
+            {}
+          ),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
@@ -157,7 +162,7 @@ describe("FlowERC20 signed context tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -186,7 +191,7 @@ describe("FlowERC20 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowStates[1].expressionAddress, 1234, signedContexts0, {});
+      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0);
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -207,7 +212,12 @@ describe("FlowERC20 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowStates[1].expressionAddress, 1234, signedContexts1, {}),
+          .flow(
+            flowExpressions[1].expressionAddress,
+            1234,
+            signedContexts1,
+            {}
+          ),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );

@@ -11,11 +11,12 @@ import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-u
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "hardhat/console.sol";
 
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
 uint256 constant FLAG_COLUMN_FLOW_TIME = 0;
-uint256 constant FLAG_ROW_FLOW_TIME = 1;
+uint256 constant FLAG_ROW_FLOW_TIME = 2;
 
 uint256 constant MIN_FLOW_SENTINELS = 4;
 

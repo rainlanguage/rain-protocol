@@ -9,11 +9,12 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
+import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {
@@ -24,7 +25,6 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 
 import fs from "fs";
 
@@ -203,7 +203,7 @@ describe("Flow multiCall tests", async function () {
     const { flow: flow_A, expressionDeployer: expressionDeployer_A } =
       await flowDeploy(deployer, flowFactory, flowConfigStruct_A);
 
-    const flowStates_A = (await getEvents(
+    const flowExpressions_A = (await getEvents(
       flow_A.deployTransaction,
       "DeployExpression",
       expressionDeployer_A
@@ -230,7 +230,7 @@ describe("Flow multiCall tests", async function () {
 
     const flowStruct = await flow_A
       .connect(you)
-      .callStatic.flow(flowStates_A[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions_A[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct,
@@ -267,27 +267,21 @@ describe("Flow multiCall tests", async function () {
 
     const flowStruct_B = await flow_A
       .connect(you)
-      .callStatic.flow(flowStates_A[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions_A[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_B,
       fillEmptyAddress(flowTransfer_B, flow_A.address)
     );
 
-    // CALLING FLOWS
-    // A
-    // await flow_A.connect(you).flow(flowStates_A[0].expressionAddress, 1234, []);
-    // B
-    // await flow_B.connect(you).flow(flowStates_B[0].expressionAddress, 1234, []);
-
     const iFlow = new ethers.utils.Interface(flowABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowStates_A[0].expressionAddress,
+      flowExpressions_A[0].expressionAddress,
       1234,
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowStates_A[1].expressionAddress,
+      flowExpressions_A[1].expressionAddress,
       1234,
       [],
     ]);
