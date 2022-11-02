@@ -10,11 +10,12 @@ import {
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
+import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {
@@ -25,7 +26,6 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 
 const Opcode = AllStandardOps;
 
@@ -129,7 +129,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -162,13 +162,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, []);
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     // check input ERC1155 affected balances correctly
 
@@ -295,7 +295,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -329,13 +329,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, []);
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     // check input ERC721 affected balances correctly
 
@@ -445,7 +445,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -472,13 +472,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, []);
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -583,7 +583,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -599,7 +599,7 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, [], {
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -607,7 +607,7 @@ describe("Flow flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, [], {
+      .flow(flowExpressions[0].expressionAddress, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -742,7 +742,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -774,13 +774,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct: FlowTransferStructOutput = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, []);
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -905,7 +905,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -932,13 +932,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, []);
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1056,7 +1056,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -1074,13 +1074,13 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, []);
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1183,7 +1183,7 @@ describe("Flow flow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -1204,7 +1204,7 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, [], {
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1212,7 +1212,7 @@ describe("Flow flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowStates[0].expressionAddress, 1234, [], {
+      .flow(flowExpressions[0].expressionAddress, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 

@@ -1,11 +1,8 @@
-import { assert } from "chai";
-import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   FlowERC1155Factory,
   ReserveToken18,
-  ReserveTokenERC1155,
   ReserveTokenERC721,
 } from "../../../typechain";
 import {
@@ -14,7 +11,7 @@ import {
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
-import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
+import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC1155_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -32,7 +29,6 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import { FlowERC1155Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
@@ -111,13 +107,13 @@ describe("FlowERC1155 flowTime tests", async function () {
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
-    
+
     const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     const sourceFlowIO = concat([
-          // CAN FLOW
-          CONTEXT_FLOW_TIME(),
-        op(Opcode.ISZERO),
+      // CAN FLOW
+      CONTEXT_FLOW_TIME(),
+      op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 END
@@ -157,7 +153,7 @@ describe("FlowERC1155 flowTime tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -184,7 +180,7 @@ describe("FlowERC1155 flowTime tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct,
@@ -193,11 +189,13 @@ describe("FlowERC1155 flowTime tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowStates[1].expressionAddress, 1234, []);
+      .flow(flowExpressions[1].expressionAddress, 1234, []);
 
     await assertError(
       async () =>
-        await flow.connect(you).flow(flowStates[1].expressionAddress, 9999, []),
+        await flow
+          .connect(you)
+          .flow(flowExpressions[1].expressionAddress, 9999, []),
       "Transaction reverted without a reason string",
       "Flow for the same id_ is not restricted"
     );

@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
+import fs from "fs";
 import { ethers } from "hardhat";
 import {
   FlowERC20Factory,
@@ -29,7 +30,6 @@ import {
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowERC20Config } from "../../../utils/types/flow";
-import fs from "fs";
 
 const Opcode = AllStandardOps;
 
@@ -270,7 +270,7 @@ describe("FlowERC20 multicall tests", async function () {
       stateConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -322,7 +322,7 @@ describe("FlowERC20 multicall tests", async function () {
       .approve(me.address, flowTransfer_B.erc20[0].amount);
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_A,
@@ -331,7 +331,7 @@ describe("FlowERC20 multicall tests", async function () {
 
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowStates[2].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[2].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_B,
@@ -340,12 +340,12 @@ describe("FlowERC20 multicall tests", async function () {
 
     const iFlow = new ethers.utils.Interface(flowERC20ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowStates[1].expressionAddress,
+      flowExpressions[1].expressionAddress,
       1234,
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowStates[2].expressionAddress,
+      flowExpressions[2].expressionAddress,
       1234,
       [],
     ]);

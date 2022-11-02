@@ -1,9 +1,6 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC20Factory } from "../../../typechain/contracts/flow/erc20";
-
-import {} from "../../../typechain/contracts/flow/erc20/FlowERC20";
-
 import {
   RAIN_FLOW_ERC20_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -12,15 +9,15 @@ import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getEvents } from "../../../utils/events";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { assertError } from "../../../utils";
+import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
-import { assertError } from "../../../utils";
 import { FlowERC20Config } from "../../../utils/types/flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 
 const Opcode = AllStandardOps;
 const YOU = () => op(Opcode.CONTEXT, 0x0000);
@@ -53,7 +50,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
     const CANNOT_TRANSFER = () =>
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    
+
     const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     // prettier-ignore
@@ -72,7 +69,7 @@ describe("FlowERC20 flowTime tests", async function () {
       YOU(), // ADDRESS
       ONE(), // MINT AMOUNT
     ]);
-    
+
     // WIN FLOW
     const flow_ConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -81,18 +78,13 @@ describe("FlowERC20 flowTime tests", async function () {
         sources: [CANNOT_TRANSFER()],
         constants,
       },
-      flows: [
-        { sources: [sourceFlow], constants },
-      ],
+      flows: [{ sources: [sourceFlow], constants }],
     };
 
-    const { flow: flow, expressionDeployer: expressionDeployer}  = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      flow_ConfigStruct
-    );
+    const { flow: flow, expressionDeployer: expressionDeployer } =
+      await flowERC20Deploy(deployer, flowERC20Factory, flow_ConfigStruct);
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -101,7 +93,7 @@ describe("FlowERC20 flowTime tests", async function () {
     // Flowing once
     await flow
       .connect(you)
-      .flow(flowStates[1].expressionAddress, 9999, []);
+      .flow(flowExpressions[1].expressionAddress, 9999, []);
 
     // Flowing again with the same ID
 
@@ -109,10 +101,9 @@ describe("FlowERC20 flowTime tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .flow(flowStates[1].expressionAddress, 9999, []),
+          .flow(flowExpressions[1].expressionAddress, 9999, []),
       "Transaction reverted without a reason string",
       "Flow for the same id_ is not restricted"
     );
-
   });
 });

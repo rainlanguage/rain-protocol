@@ -7,11 +7,12 @@ import {
   ReserveTokenERC721,
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
+import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import {
@@ -23,7 +24,6 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 
 const Opcode = AllStandardOps;
 
@@ -100,7 +100,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -108,7 +108,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -255,7 +255,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -263,7 +263,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -389,7 +389,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -397,7 +397,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -541,7 +541,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -549,7 +549,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -647,7 +647,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -655,7 +655,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -743,7 +743,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -751,7 +751,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -861,7 +861,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -869,7 +869,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[0].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -946,7 +946,7 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -956,7 +956,7 @@ describe("Flow previewFlow tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .previewFlow(flowStates[0].expressionAddress, 1234, []),
+          .previewFlow(flowExpressions[0].expressionAddress, 1234, []),
       "",
       "flowed when it should not"
     );
@@ -999,14 +999,14 @@ describe("Flow previewFlow tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
     )) as DeployExpressionEvent["args"][];
 
     const flowTransferPreview = await flow.previewFlow(
-      flowStates[0].expressionAddress,
+      flowExpressions[0].expressionAddress,
       1234,
       []
     );

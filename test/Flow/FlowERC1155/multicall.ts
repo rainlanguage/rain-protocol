@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
+import fs from "fs";
 import { ethers } from "hardhat";
 import {
   FlowERC1155Factory,
@@ -31,7 +32,6 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import fs from "fs";
 
 const Opcode = AllStandardOps;
 
@@ -65,8 +65,7 @@ describe("FlowERC1155 multiCall tests", async function () {
       {}
     )) as ReserveTokenERC1155;
     await erc1155Out.initialize();
-    
-    
+
     const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await erc20In.initialize();
 
@@ -241,7 +240,7 @@ describe("FlowERC1155 multiCall tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -271,7 +270,9 @@ describe("FlowERC1155 multiCall tests", async function () {
       flowTransfer_A.erc721[0].id
     );
 
-    await erc721In.connect(you).approve(me.address, flowTransfer_A.erc721[0].id);
+    await erc721In
+      .connect(you)
+      .approve(me.address, flowTransfer_A.erc721[0].id);
 
     // prepare output ERC721
 
@@ -292,16 +293,16 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_A,
       fillEmptyAddressERC1155(flowERC1155IO_A, me.address)
     );
-    
+
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowStates[2].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[2].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_B,
@@ -311,12 +312,12 @@ describe("FlowERC1155 multiCall tests", async function () {
     // MultiCall
     const iFlow = new ethers.utils.Interface(flowERC1155ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowStates[1].expressionAddress,
+      flowExpressions[1].expressionAddress,
       1234,
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowStates[2].expressionAddress,
+      flowExpressions[2].expressionAddress,
       1234,
       [],
     ]);
@@ -347,7 +348,6 @@ describe("FlowERC1155 multiCall tests", async function () {
     assert(me1155BalanceOut.isZero());
     assert(you1155BalanceOut.eq(flowTransfer_A.erc1155[0].amount as BigNumber));
 
-    
     // check input ERC721 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
     const you20BalanceIn = await erc20In.balanceOf(you.address);
@@ -364,6 +364,4 @@ describe("FlowERC1155 multiCall tests", async function () {
     assert(you721BalanceOut.eq(1));
     assert(owner721Out === you.address);
   });
-
-
 });

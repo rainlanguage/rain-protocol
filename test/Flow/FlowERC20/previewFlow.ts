@@ -151,7 +151,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -159,7 +159,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -348,7 +348,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -356,7 +356,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -526,7 +526,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -534,7 +534,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -723,7 +723,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -731,7 +731,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -874,7 +874,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -882,7 +882,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1015,7 +1015,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -1023,7 +1023,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1177,7 +1177,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -1185,7 +1185,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1243,7 +1243,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -1251,7 +1251,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     await assertError(
       async () =>
-        await flow.previewFlow(flowStates[1].expressionAddress, 1234, []),
+        await flow.previewFlow(flowExpressions[1].expressionAddress, 1234, []),
       "",
       "flowed when it should not"
     );
@@ -1343,7 +1343,7 @@ describe("FlowERC20 previewFlow tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -1351,7 +1351,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowStates[1].expressionAddress, 1234, []);
+      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address)

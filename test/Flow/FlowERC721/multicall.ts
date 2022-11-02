@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
+import fs from "fs";
 import { ethers } from "hardhat";
 import {
   FlowERC721Factory,
@@ -31,7 +32,6 @@ import {
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../utils/test/compareStructs";
-import fs from "fs";
 
 const Opcode = AllStandardOps;
 
@@ -243,7 +243,7 @@ describe("FlowERC721 multicall tests", async function () {
       }
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -279,7 +279,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowStates[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_A,
@@ -303,7 +303,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowStates[2].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[2].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct_B,
@@ -313,12 +313,12 @@ describe("FlowERC721 multicall tests", async function () {
     // MultiCall
     const iFlow = new ethers.utils.Interface(flowERC721ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowStates[1].expressionAddress,
+      flowExpressions[1].expressionAddress,
       1234,
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowStates[2].expressionAddress,
+      flowExpressions[2].expressionAddress,
       1234,
       [],
     ]);
@@ -326,7 +326,6 @@ describe("FlowERC721 multicall tests", async function () {
     // MULTI CALL
     await flow.connect(you).multicall([encode_flowA, encode_flowB]);
     // check input ERC721 affected balances correctly
-
 
     // check input ERC721 affected balances correctly
     const me721BalanceIn = await erc721In.balanceOf(me.address);

@@ -3,9 +3,7 @@ import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory, ReserveToken18 } from "../../../typechain";
-import {
-  FlowTransferStruct,
-} from "../../../typechain/contracts/flow/basic/Flow";
+import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
@@ -120,7 +118,7 @@ describe("Flow context tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP),
+      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
@@ -139,7 +137,7 @@ describe("Flow context tests", async function () {
               ONE_DAY(),
             op(Opcode.ADD, 2),
           op(Opcode.LESS_THAN), // is current timestamp within 24 hour window?
-          FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduce
+          FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduced
           FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(), // else full
         op(Opcode.EAGER_IF),
       op(Opcode.EAGER_IF),
@@ -168,7 +166,7 @@ describe("Flow context tests", async function () {
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -187,11 +185,13 @@ describe("Flow context tests", async function () {
 
     const flowStruct0 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
 
-    const _txFlow0 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
+    const _txFlow0 = await flow
+      .connect(you)
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -247,14 +247,16 @@ describe("Flow context tests", async function () {
 
     const flowStruct1 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(
       flowStruct1,
       fillEmptyAddress(flowStructReduced, flow.address)
     );
 
-    const _txFlow1 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
+    const _txFlow1 = await flow
+      .connect(you)
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn1 = await erc20In.balanceOf(me.address);
     const meBalanceOut1 = await erc20Out.balanceOf(me.address);
@@ -310,11 +312,13 @@ describe("Flow context tests", async function () {
 
     const flowStruct2 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
 
-    const _txFlow2 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
+    const _txFlow2 = await flow
+      .connect(you)
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn2 = await erc20In.balanceOf(me.address);
     const meBalanceOut2 = await erc20Out.balanceOf(me.address);
@@ -411,9 +415,9 @@ describe("Flow context tests", async function () {
     const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     const sourceFlowIO = concat([
-        CONTEXT_FLOW_TIME(),
-        op(Opcode.ISZERO), // can flow if no registered flow time
-      op(Opcode.ENSURE,1),
+      CONTEXT_FLOW_TIME(),
+      op(Opcode.ISZERO), // can flow if no registered flow time
+      op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
@@ -439,14 +443,14 @@ describe("Flow context tests", async function () {
         },
       ],
     };
-  
+
     const { flow, expressionDeployer } = await flowDeploy(
       deployer,
       flowFactory,
       flowConfigStruct
     );
 
-    const flowStates = (await getEvents(
+    const flowExpressions = (await getEvents(
       flow.deployTransaction,
       "DeployExpression",
       expressionDeployer
@@ -463,11 +467,13 @@ describe("Flow context tests", async function () {
 
     const flowStruct0 = await flow
       .connect(you)
-      .callStatic.flow(flowStates[0].expressionAddress, 1234, []);
+      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowTransfer, flow.address));
 
-    const _txFlow0 = await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []);
+    const _txFlow0 = await flow
+      .connect(you)
+      .flow(flowExpressions[0].expressionAddress, 1234, []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -507,7 +513,8 @@ describe("Flow context tests", async function () {
     );
 
     await assertError(
-      async () => await flow.connect(you).flow(flowStates[0].expressionAddress, 1234, []),
+      async () =>
+        await flow.connect(you).flow(flowExpressions[0].expressionAddress, 1234, []),
       "Transaction reverted without a reason string",
       "did not prevent flow when a flow time already registered"
     );
