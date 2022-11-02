@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "./IOrderBookV1.sol";
 import "../interpreter/run/StandardInterpreter.sol";
 import "../interpreter/run/LibStackTop.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -10,7 +11,11 @@ import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./libraries/Order.sol";
 import "../idempotent/LibIdempotentFlag.sol";
-import "./OrderBookIntegrity.sol";
+
+uint constant FLAG_COLUMN_CLEARED_ORDER = 0;
+uint constant FLAG_ROW_CLEARED_ORDER = 3;
+uint constant FLAG_COLUMN_CLEARED_COUNTERPARTY = 0;
+uint constant FLAG_ROW_CLEARED_COUNTERPARTY = 4;
 
 struct DepositConfig {
     address token;
@@ -31,11 +36,6 @@ struct ClearConfig {
     uint256 bOutputIOIndex;
     uint256 aBountyVaultId;
     uint256 bBountyVaultId;
-}
-
-struct EvalContext {
-    OrderHash orderHash;
-    address counterparty;
 }
 
 struct ClearStateChange {
@@ -62,21 +62,7 @@ struct TakeOrdersConfig {
     TakeOrderConfig[] orders;
 }
 
-uint256 constant LOCAL_OPS_LENGTH = 2;
-
-library LibEvalContext {
-    function toContext(EvalContext memory evalContext_)
-        internal
-        pure
-        returns (uint256[] memory context_)
-    {
-        context_ = new uint256[](2);
-        context_[0] = OrderHash.unwrap(evalContext_.orderHash);
-        context_[1] = uint256(uint160(evalContext_.counterparty));
-    }
-}
-
-contract OrderBook is StandardInterpreter {
+contract OrderBook is IOrderBookV1 {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
@@ -86,7 +72,6 @@ contract OrderBook is StandardInterpreter {
     using FixedPointMath for uint256;
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
-    using LibEvalContext for EvalContext;
     using LibInterpreterState for InterpreterState;
     using LibIdempotentFlag for IdempotentFlag;
 
@@ -109,22 +94,16 @@ contract OrderBook is StandardInterpreter {
     );
 
     // order hash => order liveness
-    mapping(OrderHash => OrderLiveness) private orders;
+    mapping(uint => OrderLiveness) private orders;
     // depositor => token => vault id => token amount.
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         private vaults;
 
-    // funds were cleared from the hashed order to anyone.
-    mapping(OrderHash => uint256) private clearedOrder;
-    // funds were cleared from the owner of the hashed order.
-    // order owner is the counterparty funds were cleared to.
-    // order hash => order owner => token amount
-    mapping(OrderHash => mapping(address => uint256))
-        private clearedCounterparty;
-
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {}
+    /// @inheritdoc IOrderBookV1
+    mapping(uint => uint256) public clearedOrder;
+    /// @inheritdoc IOrderBookV1
+    mapping(uint => mapping(address => uint256))
+        public clearedCounterparty;
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -161,12 +140,8 @@ contract OrderBook is StandardInterpreter {
     }
 
     function addOrder(OrderConfig calldata orderConfig_) external {
-        Order memory order_ = LibOrder.fromOrderConfig(
-            IRainInterpreterIntegrity(interpreterIntegrity),
-            buildStateBytes,
-            orderConfig_
-        );
-        OrderHash orderHash_ = order_.hash();
+        Order memory order_ = LibOrder.fromOrderConfig(orderConfig_);
+        uint orderHash_ = order_.hash();
         if (orders[orderHash_].isDead()) {
             orders[orderHash_] = ORDER_LIVE;
             emit OrderLive(msg.sender, order_);
@@ -175,7 +150,7 @@ contract OrderBook is StandardInterpreter {
 
     function removeOrder(Order calldata order_) external {
         require(msg.sender == order_.owner, "OWNER");
-        OrderHash orderHash_ = order_.hash();
+        uint orderHash_ = order_.hash();
         if (orders[orderHash_].isLive()) {
             orders[orderHash_] = ORDER_DEAD;
             emit OrderDead(msg.sender, order_);
@@ -191,16 +166,18 @@ contract OrderBook is StandardInterpreter {
         view
         returns (
             uint256 orderOutputMax_,
-            uint256 orderIORatio_,
-            IdempotentFlag flag_
+            uint256 orderIORatio_
         )
     {
-        InterpreterState memory state_ = order_.interpreterState.deserialize();
-        state_.context = EvalContext(order_.hash(), counterparty_)
-            .toContext()
-            .matrixFrom();
-        flag_ = IdempotentFlag.wrap(state_.scratch);
-        (orderOutputMax_, orderIORatio_) = state_.eval().peek2();
+        uint orderHash_ = order_.hash();
+        uint[][] memory context_ = LibUint256Array.arrayFrom(
+            orderHash_,
+            uint(uint160(msg.sender)),
+            uint(uint160(counterparty_)),
+            IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_ORDER, FLAG_ROW_CLEARED_ORDER) ? clearedOrder[orderHash_] : 0,
+            IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_COUNTERPARTY, FLAG_ROW_CLEARED_COUNTERPARTY) ? clearedCounterparty[orderHash_][counterparty_] : 0
+        ).matrixFrom();
+        (orderOutputMax_, orderIORatio_) = IInterpreterV1(order_.interpreter).eval(order_.expression, ORDER_ENTRYPOINT, context_).asStackTopAfter().peek2();
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -216,8 +193,7 @@ contract OrderBook is StandardInterpreter {
         uint256 inputIOIndex_,
         uint256 input_,
         uint256 outputIOIndex_,
-        uint256 output_,
-        IdempotentFlag flag_
+        uint256 output_
     ) internal {
         IO memory io_;
         if (input_ > 0) {
@@ -227,10 +203,10 @@ contract OrderBook is StandardInterpreter {
         if (output_ > 0) {
             io_ = order_.validOutputs[outputIOIndex_];
             vaults[order_.owner][io_.token][io_.vaultId] -= output_;
-            if (flag_.get(FLAG_INDEX_CLEARED_ORDER)) {
+            if (IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_ORDER, FLAG_ROW_CLEARED_ORDER)) {
                 clearedOrder[order_.hash()] += output_;
             }
-            if (flag_.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
+            if (IdempotentFlag.wrap(order_.contextScratch).get16x16(FLAG_COLUMN_CLEARED_COUNTERPARTY, FLAG_ROW_CLEARED_COUNTERPARTY)) {
                 clearedCounterparty[order_.hash()][counterparty_] += output_;
             }
         }
@@ -260,8 +236,7 @@ contract OrderBook is StandardInterpreter {
 
             (
                 uint256 orderOutputMax_,
-                uint256 orderIORatio_,
-                IdempotentFlag flag_
+                uint256 orderIORatio_
             ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
 
             // Skip orders that are too expensive rather than revert as we have
@@ -284,8 +259,7 @@ contract OrderBook is StandardInterpreter {
                     takeOrder_.inputIOIndex,
                     output_,
                     takeOrder_.outputIOIndex,
-                    input_,
-                    flag_
+                    input_
                 );
                 emit TakeOrder(msg.sender, takeOrder_, input_, output_);
             }
@@ -339,12 +313,12 @@ contract OrderBook is StandardInterpreter {
             // Interpreter execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            (aOutputMax_, aIORatio_, stateChange_.aFlag) = _calculateOrderIO(
+            (aOutputMax_, aIORatio_) = _calculateOrderIO(
                 a_,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (bOutputMax_, bIORatio_, stateChange_.bFlag) = _calculateOrderIO(
+            (bOutputMax_, bIORatio_) = _calculateOrderIO(
                 b_,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
@@ -372,8 +346,7 @@ contract OrderBook is StandardInterpreter {
             clearConfig_.aInputIOIndex,
             stateChange_.aInput,
             clearConfig_.aOutputIOIndex,
-            stateChange_.aOutput,
-            stateChange_.aFlag
+            stateChange_.aOutput
         );
         _recordVaultIO(
             b_,
@@ -381,8 +354,7 @@ contract OrderBook is StandardInterpreter {
             clearConfig_.bInputIOIndex,
             stateChange_.bInput,
             clearConfig_.bOutputIOIndex,
-            stateChange_.bOutput,
-            stateChange_.bFlag
+            stateChange_.bOutput
         );
 
         {
@@ -405,55 +377,4 @@ contract OrderBook is StandardInterpreter {
         emit AfterClear(stateChange_);
     }
 
-    function _opOrderFundsCleared(uint256 orderHash_)
-        internal
-        view
-        returns (uint256)
-    {
-        return clearedOrder[OrderHash.wrap(orderHash_)];
-    }
-
-    function opOrderFundsCleared(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_opOrderFundsCleared);
-    }
-
-    function _orderCounterpartyFundsCleared(
-        uint256 orderHash_,
-        uint256 counterparty_
-    ) internal view returns (uint256) {
-        return
-            clearedCounterparty[OrderHash.wrap(orderHash_)][
-                address(uint160(counterparty_))
-            ];
-    }
-
-    function opOrderCounterpartyFundsCleared(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_orderCounterpartyFundsCleared);
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        override
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory localFnPtrs_
-        )
-    {
-        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
-            view
-            returns (StackTop)[](2);
-        localFnPtrs_[0] = opOrderFundsCleared;
-        localFnPtrs_[1] = opOrderCounterpartyFundsCleared;
-    }
 }

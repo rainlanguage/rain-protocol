@@ -6,13 +6,14 @@ import "../../interpreter/run/RainInterpreter.sol";
 import "../../interpreter/deploy/RainInterpreterIntegrity.sol";
 import "../../array/LibUint256Array.sol";
 
-type OrderHash is uint256;
 type OrderLiveness is uint256;
 
 struct OrderConfig {
+    address expressionDeployer;
+    address interpreter;
+    StateConfig interpreterStateConfig;
     IO[] validInputs;
     IO[] validOutputs;
-    StateConfig interpreterStateConfig;
 }
 
 struct IO {
@@ -22,11 +23,14 @@ struct IO {
 
 struct Order {
     address owner;
+    address interpreter;
+    address expression;
+    uint contextScratch;
     IO[] validInputs;
     IO[] validOutputs;
-    bytes interpreterState;
 }
 
+SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 2;
 
 OrderLiveness constant ORDER_DEAD = OrderLiveness.wrap(0);
@@ -35,26 +39,19 @@ OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
 library LibOrder {
     using LibUint256Array for uint256;
 
-    function fromOrderConfig(
-        IRainInterpreterIntegrity interpreterIntegrity_,
-        function(
-            IRainInterpreterIntegrity,
-            StateConfig memory,
-            uint256[] memory
-        ) internal returns (bytes memory) buildStateBytes_,
-        OrderConfig memory config_
-    ) internal returns (Order memory) {
-        bytes memory stateBytes_ = buildStateBytes_(
-            interpreterIntegrity_,
-            config_.interpreterStateConfig,
-            MIN_FINAL_STACK_INDEX.arrayFrom()
-        );
+    function fromOrderConfig(OrderConfig memory config_)
+        internal
+        returns (Order memory)
+    {
+        (address expressionAddress, uint256 contextScratch) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(config_.interpreterStateConfig, MIN_FINAL_STACK_INDEX.arrayFrom());
         return
             Order(
                 msg.sender,
+                config_.interpreter,
+                expressionAddress,
+                contextScratch,
                 config_.validInputs,
-                config_.validOutputs,
-                stateBytes_
+                config_.validOutputs
             );
     }
 
@@ -68,7 +65,7 @@ library LibOrder {
             OrderLiveness.unwrap(liveness_) == OrderLiveness.unwrap(ORDER_DEAD);
     }
 
-    function hash(Order memory order_) internal pure returns (OrderHash) {
-        return OrderHash.wrap(uint256(keccak256(abi.encode(order_))));
+    function hash(Order memory order_) internal pure returns (uint) {
+        return uint256(keccak256(abi.encode(order_)));
     }
 }
