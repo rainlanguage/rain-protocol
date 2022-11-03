@@ -102,7 +102,7 @@ let
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
     # Change the version
-    solcVersion='0.8.15';
+    solcVersion='0.8.17';
     if [[ $(solc-select use $solcVersion) =~ "You need to install '$solcVersion' prior to using it." ]]; then
       solc-select install $solcVersion;
       solc-select use $solcVersion;
