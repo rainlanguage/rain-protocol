@@ -148,7 +148,7 @@ automated security scanner.
 Echidna is a powerful tool designed for fuzzing/property-based testing of Ethereum smarts contracts.
 Read more about Echidna [here](https://github.com/crytic/echidna).
 
-Run `echidna-test` from inside the nix shell. Echidna will start fuzzing the contracts as declared in `contracts/test/echidna`.
+Use `run-echidna` from inside the nix shell. Echidna will start fuzzing the contracts as declared in `echidna` folder.
 
 ### Build and serve documentation site
 
