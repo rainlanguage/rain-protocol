@@ -7,6 +7,7 @@ import type { OrderBookIntegrity, ReserveToken18 } from "../../../typechain";
 import {
   AfterClearEvent,
   ClearConfigStruct,
+  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
@@ -18,17 +19,22 @@ import {
   max_uint256,
   ONE,
 } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../utils/events";
 import { fixedPointDiv } from "../../../utils/math";
-import { OrderBookOpcode } from "../../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { compareStructs } from "../../../utils/test/compareStructs";
+import { orderBookIntegrityDeploy } from "../../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook tracking order funds cleared", async function () {
-  const cOrderHash = op(Opcode.CONTEXT);
+  const cOrderHash = op(Opcode.CONTEXT, 0x0000);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -43,16 +49,11 @@ describe("OrderBook tracking order funds cleared", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it("should expose tracked data to RainVM calculations (e.g. asker throttles output of their tokens to 5 tokens per block)", async function () {
+  it("should expose tracked data to RainInterpreter calculations (e.g. asker throttles output of their tokens to 5 tokens per block)", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -97,7 +98,7 @@ describe("OrderBook tracking order funds cleared", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -134,7 +135,7 @@ describe("OrderBook tracking order funds cleared", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
@@ -230,13 +231,23 @@ describe("OrderBook tracking order funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange0: ClearStateChangeStruct = {
+      aOutput: 45,
+      bOutput: 4050,
+      aInput: 4050,
+      bInput: 44,
+      aFlag: 1,
+      bFlag: 0,
+    };
+    compareStructs(stateChange0, expectedStateChange0);
+
     const { bInput: bInput0 } = stateChange0;
 
-    const actualBounty0 = {
+    const _actualBounty0 = {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
-    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),
@@ -273,13 +284,23 @@ describe("OrderBook tracking order funds cleared", async function () {
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
+
+    const expectedStateChange1: ClearStateChangeStruct = {
+      aOutput: 10,
+      bOutput: 900,
+      aInput: 900,
+      bInput: 9,
+      aFlag: 1,
+      bFlag: 0,
+    };
+    compareStructs(stateChange1, expectedStateChange1);
+
     const { bInput: bInput1 } = stateChange1;
 
-    const actualBounty1 = {
+    const _actualBounty1 = {
       a: stateChange1.aOutput.sub(stateChange1.bInput),
       b: stateChange1.bOutput.sub(stateChange1.aInput),
     };
-    console.log({ actualBounty1 });
 
     assert(
       bInput1.eq(expectedOutputAmount1),

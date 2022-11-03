@@ -1,12 +1,12 @@
-import { ethers } from "hardhat";
-import { ReserveToken18 } from "../../typechain";
-import { StakeFactory } from "../../typechain";
-import { ReportOMeter } from "../../typechain";
-import { sixZeros } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { stakeDeploy } from "../../utils/deploy/stake";
 import { assert } from "chai";
+import { ethers } from "hardhat";
+import { ReportOMeter, ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
+import { sixZeros } from "../../utils/constants/bigNumber";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { stakeDeploy } from "../../utils/deploy/stake/deploy";
+import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
+import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
 
 describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
@@ -14,19 +14,8 @@ describe("Stake many successive deposits and withdraws", async function () {
   let token: ReserveToken18;
 
   before(async () => {
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const reportOMeterFactory = await ethers.getContractFactory(
-      "ReportOMeter",
-      {}
-    );
-    reportOMeter = (await reportOMeterFactory.deploy()) as ReportOMeter;
-    await reportOMeter.deployed();
+    stakeFactory = await stakeFactoryDeploy();
+    reportOMeter = await reportOMeterDeploy();
   });
 
   beforeEach(async () => {

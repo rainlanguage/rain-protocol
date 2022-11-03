@@ -1,9 +1,9 @@
 let
   pkgs = import
     (builtins.fetchTarball {
-      name = "nixos-unstable-2021-10-01";
-      url = "https://github.com/nixos/nixpkgs/archive/369ab30030d8c56fe87a06c1fe3b2c0e85ba6253.tar.gz";
-      sha256 = "1f1lw5qrd3549l4fq3w4bqz3b6415hwjks2pa9yqz9cfpjh13y7l";
+      name = "nixos-unstable-2022-09-26";
+      url = "https://github.com/nixos/nixpkgs/archive/fde244a8c7655bc28616864e2290ad9c95409c2c.tar.gz";
+      sha256 = "07mmm1kcbw96jggfzv8vyi471f0kazifl2ijjd9mgi2kl1j5cpzp";
     })
     { };
 
@@ -87,9 +87,7 @@ let
     hardhat test
   '';
 
-  echidna-test = pkgs.writeShellScriptBin "echidna-test" ''
-    # By now, we will use the `echidna-test` file in the repo
-
+  run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
       configFile=''${file%%.*}.yaml;
@@ -98,13 +96,13 @@ let
         configFile=echidna/default.yaml;
       fi;
 
-      ./echidna-test $file --contract "$(basename -s .sol $file)" --config $configFile
+      echidna-test $file --contract "$(basename -s .sol $file)" --config $configFile
     '
   '';
 
   init-solc = pkgs.writeShellScriptBin "init-solc" ''
     # Change the version
-    solcVersion='0.8.15';
+    solcVersion='0.8.17';
     if [[ $(solc-select use $solcVersion) =~ "You need to install '$solcVersion' prior to using it." ]]; then
       solc-select install $solcVersion;
       solc-select use $solcVersion;
@@ -173,7 +171,7 @@ pkgs.stdenv.mkDerivation {
     prettier-check
     prettier-write
     security-check
-    echidna-test
+    run-echidna
     ci-test
     ci-lint
     cut-dist
@@ -185,6 +183,7 @@ pkgs.stdenv.mkDerivation {
     init-solc
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
+    pkgs.echidna
   ];
 
   shellHook = ''

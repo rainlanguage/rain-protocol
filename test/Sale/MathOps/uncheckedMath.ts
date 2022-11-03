@@ -1,21 +1,32 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../../typechain";
-import { ReserveToken } from "../../../typechain";
-import { SaleFactory } from "../../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,
   ONE,
   RESERVE_ONE,
 } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../../utils/deploy/sale";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { createEmptyBlock } from "../../../utils/hardhat";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../../utils/interpreter/sale";
 import { assertError } from "../../../utils/test/assertError";
 import { Tier } from "../../../utils/types/tier";
 
@@ -25,16 +36,19 @@ describe("Sale unchecked math", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory,
-    signers: SignerWithAddress[];
+    signers: SignerWithAddress[],
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
     signers = await ethers.getSigners();
 
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
+    reserve = await reserveDeploy();
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
@@ -71,7 +85,7 @@ describe("Sale unchecked math", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
         vHalfMaxUInt256,
         vTwo,
       op(Opcode.EXP, 2)
@@ -84,7 +98,9 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -153,7 +169,7 @@ describe("Sale unchecked math", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
         vHalfMaxUInt256,
         vThree,
       op(Opcode.MUL, 2)
@@ -166,7 +182,9 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -227,7 +245,7 @@ describe("Sale unchecked math", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
         vZero,
         vOne,
       op(Opcode.SUB, 2)
@@ -240,7 +258,9 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -306,7 +326,7 @@ describe("Sale unchecked math", async function () {
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.CONTEXT),
+      op(Opcode.CONTEXT, 0x0000),
         vMaxUInt256,
         vOne,
       op(Opcode.ADD, 2)
@@ -319,7 +339,9 @@ describe("Sale unchecked math", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },

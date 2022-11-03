@@ -1,19 +1,30 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import { BuyEvent, RefundEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
 import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
@@ -23,15 +34,17 @@ const Opcode = AllStandardOps;
 describe("Sale claim fees", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should prevent recipient claiming fees on failed raise, allowing buyers to refund their tokens", async function () {
@@ -62,14 +75,16 @@ describe("Sale claim fees", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -199,14 +214,16 @@ describe("Sale claim fees", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },

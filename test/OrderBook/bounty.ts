@@ -17,17 +17,22 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
+import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook bounty", async function () {
-  const cOrderHash = op(Opcode.CONTEXT);
+  const cOrderHash = op(Opcode.CONTEXT, 0x0000);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -42,12 +47,7 @@ describe("OrderBook bounty", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
@@ -95,7 +95,7 @@ describe("OrderBook bounty", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -132,7 +132,7 @@ describe("OrderBook bounty", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
@@ -230,11 +230,10 @@ describe("OrderBook bounty", async function () {
     )) as AfterClearEvent["args"];
     const { bInput: bInput0 } = stateChange0;
 
-    const actualBounty0 = {
+    const _actualBounty0 = {
       a: stateChange0.aOutput.sub(stateChange0.bInput),
       b: stateChange0.bOutput.sub(stateChange0.aInput),
     };
-    console.log({ actualBounty0 });
 
     assert(
       bInput0.eq(expectedOutputAmount0),

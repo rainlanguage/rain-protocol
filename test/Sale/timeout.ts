@@ -1,18 +1,31 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import { PhaseScheduledEvent } from "../../typechain/contracts/phased/Phased";
 import { TimeoutEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock, getBlockTimestamp } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
 import { Phase } from "../../utils/types/redeemableERC20";
 import { Status } from "../../utils/types/sale";
@@ -23,10 +36,13 @@ const Opcode = AllStandardOps;
 describe("Sale timeout", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -60,7 +76,7 @@ describe("Sale timeout", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     await assertError(
       async () =>
@@ -69,7 +85,9 @@ describe("Sale timeout", async function () {
           deployer,
           saleFactory,
           {
-            vmStateConfig: {
+            interpreter: interpreter.address,
+            expressionDeployer: expressionDeployer.address,
+            interpreterStateConfig: {
               sources,
               constants,
             },
@@ -95,7 +113,9 @@ describe("Sale timeout", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },

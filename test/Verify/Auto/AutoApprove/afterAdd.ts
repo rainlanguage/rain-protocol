@@ -1,27 +1,33 @@
 import { assert } from "chai";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AutoApproveFactory } from "../../../../typechain";
+import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
 import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/autoApprove";
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
   verifyDeploy,
   verifyFactoryDeploy,
-} from "../../../../utils/deploy/verify";
+} from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove afterAdd", async function () {
   let autoApproveFactory: AutoApproveFactory;
+  let verifyFactory: VerifyFactory;
 
   before(async () => {
     autoApproveFactory = await autoApproveFactoryDeploy();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should automatically approve sender iff AutoApprove has APPROVER role", async () => {
@@ -38,7 +44,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0001),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -52,7 +58,6 @@ describe("AutoApprove afterAdd", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,
@@ -101,7 +106,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0001),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -115,7 +120,6 @@ describe("AutoApprove afterAdd", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,
@@ -167,7 +171,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0001),
             op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -181,7 +185,6 @@ describe("AutoApprove afterAdd", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,
@@ -216,7 +219,7 @@ describe("AutoApprove afterAdd", async function () {
     assert(evidence.data === evidenceAdd, "wrong evidence data");
   });
 
-  it("should trigger afterAdd callback and automatically deny approval of sender when VM script returns 0", async () => {
+  it("should trigger afterAdd callback and automatically deny approval of sender when Interpreter script returns 0", async () => {
     const signers = await ethers.getSigners();
 
     const deployer = signers[1];
@@ -235,7 +238,6 @@ describe("AutoApprove afterAdd", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,
@@ -265,7 +267,7 @@ describe("AutoApprove afterAdd", async function () {
     );
   });
 
-  it("should trigger afterAdd callback and automatically approve sender when VM script returns 1", async () => {
+  it("should trigger afterAdd callback and automatically approve sender when Interpreter script returns 1", async () => {
     const signers = await ethers.getSigners();
 
     const deployer = signers[1];
@@ -284,7 +286,6 @@ describe("AutoApprove afterAdd", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,

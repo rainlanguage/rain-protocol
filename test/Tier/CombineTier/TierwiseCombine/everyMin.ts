@@ -1,12 +1,12 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { CombineTier, ReadWriteTier } from "../../../../typechain";
+import type { CombineTier } from "../../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
-import { combineTierDeploy } from "../../../../utils/deploy/combineTier";
+import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
+import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
-import { AllStandardOps } from "../../../../utils/rainvm/ops/allStandardOps";
 import {
   memoryOperand,
   MemoryType,
@@ -14,7 +14,8 @@ import {
   selectLte,
   selectLteLogic,
   selectLteMode,
-} from "../../../../utils/rainvm/vm";
+} from "../../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS, NEVER } from "../../../../utils/tier";
 import { Tier } from "../../../../utils/types/tier";
 
@@ -22,7 +23,7 @@ const Opcode = AllStandardOps;
 
 describe("CombineTier tierwise combine report with 'every' logic and 'min' mode", async function () {
   // report time for tier context
-  const ctxAccount = op(Opcode.CONTEXT);
+  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
 
   // prettier-ignore
   // return default report
@@ -65,10 +66,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
@@ -101,13 +102,8 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
   it("should correctly combine ReadWriteTier tier contracts with every and min selector", async () => {
     const signers = await ethers.getSigners();
 
-    const readWriteTierFactory = await ethers.getContractFactory(
-      "ReadWriteTier"
-    );
-    const readWriteTierRight =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier;
-    const readWriteTierLeft =
-      (await readWriteTierFactory.deploy()) as ReadWriteTier;
+    const readWriteTierRight = await readWriteTierDeploy();
+    const readWriteTierLeft = await readWriteTierDeploy();
 
     const constants = [
       ethers.BigNumber.from(readWriteTierRight.address), // right report
@@ -118,10 +114,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.CONTEXT),
+          op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
       op(
         Opcode.SELECT_LTE,

@@ -1,14 +1,13 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibCastTest } from "../../../typechain";
 import { randomUint256 } from "../../../utils/bytes";
+import { libCastDeploy } from "../../../utils/deploy/type/libCast/deploy";
 
 describe("LibCast asUint256 tests", async function () {
   let libCast: LibCastTest;
 
   before(async () => {
-    const libCastFactory = await ethers.getContractFactory("LibCastTest");
-    libCast = (await libCastFactory.deploy()) as LibCastTest;
+    libCast = await libCastDeploy();
   });
 
   it("retypes `function(uint256) view returns (uint256)` to uint256 pointer", async function () {

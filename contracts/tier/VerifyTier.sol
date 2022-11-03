@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import "./TierV2.sol";
 import "../verify/libraries/VerifyConstants.sol";
@@ -61,11 +61,11 @@ contract VerifyTier is TierV2 {
     }
 
     /// @inheritdoc ITierV2
-    function reportTimeForTier(
-        address account_,
-        uint256,
-        uint256[] calldata
-    ) external view returns (uint256) {
+    function reportTimeForTier(address account_, uint256, uint256[] calldata)
+        external
+        view
+        returns (uint256)
+    {
         State memory state_ = verify.state(account_);
         if (
             // This is comparing an enum variant so it must be equal.

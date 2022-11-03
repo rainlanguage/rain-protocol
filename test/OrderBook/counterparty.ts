@@ -19,21 +19,26 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
+import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
 const Opcode = OrderBookOpcode;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.CONTEXT, 1);
+  const cCounterparty = op(Opcode.CONTEXT, 0x0001);
 
   let orderBookFactory: ContractFactory,
     tokenA: ReserveToken18,
@@ -48,16 +53,11 @@ describe("OrderBook counterparty in context", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it("should expose counterparty context to RainVM calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
+  it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -118,7 +118,7 @@ describe("OrderBook counterparty in context", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -154,7 +154,7 @@ describe("OrderBook counterparty in context", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
@@ -193,7 +193,7 @@ describe("OrderBook counterparty in context", async function () {
     const bidOrderConfigCarol: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: carolInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: carolOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSourceCarol],
         constants: bidConstantsCarol,
       },
@@ -346,6 +346,8 @@ describe("OrderBook counterparty in context", async function () {
       bOutput: bOutputExpected,
       aInput: fixedPointMul(askPrice, aOutputExpected),
       bInput: fixedPointMul(bidPrice, bOutputExpected),
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender === bountyBot.address);

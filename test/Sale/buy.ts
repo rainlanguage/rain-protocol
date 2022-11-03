@@ -1,22 +1,33 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
-import { SaleReentrant } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+  SaleReentrant,
+} from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { fourZeros, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
-import { SaleStorage, Status } from "../../utils/types/sale";
+import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -24,15 +35,17 @@ const Opcode = AllStandardOps;
 describe("Sale buy", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should correctly generate receipts", async function () {
@@ -63,14 +76,16 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -213,7 +228,9 @@ describe("Sale buy", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -300,7 +317,7 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const cooldownDuration = 5;
     const maliciousReserveFactory = await ethers.getContractFactory(
@@ -308,6 +325,7 @@ describe("Sale buy", async function () {
     );
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as SaleReentrant;
+    await maliciousReserve.deployed();
     await maliciousReserve.initialize();
     // If cooldown could be set to zero, reentrant buy calls would be possible.
     await assertError(
@@ -317,7 +335,9 @@ describe("Sale buy", async function () {
           deployer,
           saleFactory,
           {
-            vmStateConfig: {
+            interpreter: interpreter.address,
+            expressionDeployer: expressionDeployer.address,
+            interpreterStateConfig: {
               sources,
               constants,
             },
@@ -343,7 +363,9 @@ describe("Sale buy", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -436,14 +458,16 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -539,14 +563,16 @@ describe("Sale buy", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -591,7 +617,7 @@ describe("Sale buy", async function () {
     );
   });
 
-  it("should support multiple successive buys (same logic as the following total reserve in test)", async function () {
+  it("should support multiple successive buys", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const recipient = signers[1];
@@ -627,10 +653,11 @@ describe("Sale buy", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
+        op(Opcode.CALLER),
+        op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -642,7 +669,9 @@ describe("Sale buy", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -668,6 +697,21 @@ describe("Sale buy", async function () {
     await sale.start();
     const desiredUnits0 = totalTokenSupply.div(10);
     const expectedPrice0 = basePrice.add(0);
+
+    const [actualMaxUnits0_, actualPrice0_] = await sale.calculateBuy(
+      desiredUnits0
+    );
+
+    assert(
+      expectedPrice0.eq(actualPrice0_),
+      `wrong price returned from Sale._calculateBuy()
+      expected  ${expectedPrice0}
+      got       ${actualPrice0_}
+      -
+      maxUnits      ${actualMaxUnits0_}
+      desiredUnits  ${desiredUnits0}`
+    );
+
     const expectedCost0 = expectedPrice0.mul(desiredUnits0).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost0.add(fee));

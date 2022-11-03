@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
-import "../sale/ISale.sol";
+import "../sale/ISaleV2.sol";
 
 /// Represents the 3 possible statuses an escrow could care about.
 /// Either the escrow takes no action or consistently allows a success/fail
@@ -40,7 +40,7 @@ contract SaleEscrow {
     function reserve(address sale_) internal returns (address) {
         address reserve_ = reserves[sale_];
         if (reserve_ == address(0)) {
-            address saleReserve_ = address(ISale(sale_).reserve());
+            address saleReserve_ = address(ISaleV2(sale_).reserve());
             require(saleReserve_ != address(0), "0_RESERVE");
             reserves[sale_] = saleReserve_;
             reserve_ = saleReserve_;
@@ -57,7 +57,7 @@ contract SaleEscrow {
     function token(address sale_) internal returns (address) {
         address token_ = tokens[sale_];
         if (token_ == address(0)) {
-            address saleToken_ = address(ISale(sale_).token());
+            address saleToken_ = address(ISaleV2(sale_).token());
             require(saleToken_ != address(0), "0_TOKEN");
             tokens[sale_] = saleToken_;
             token_ = saleToken_;
@@ -81,7 +81,7 @@ contract SaleEscrow {
         // We have never seen a success/fail outcome so need to ask the `ISale`
         // for the distribution status.
         else {
-            SaleStatus saleStatus_ = ISale(sale_).saleStatus();
+            SaleStatus saleStatus_ = ISaleV2(sale_).saleStatus();
             // Success maps to success.
             if (saleStatus_ == SaleStatus.Success) {
                 escrowStatuses[sale_] = EscrowStatus.Success;

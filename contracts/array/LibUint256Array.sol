@@ -37,6 +37,53 @@ library LibUint256Array {
         return array_;
     }
 
+    function arrayFrom(uint256 a_, uint256 b_, uint256 c_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
+        uint256[] memory array_ = new uint256[](3);
+        assembly ("memory-safe") {
+            mstore(add(array_, 0x20), a_)
+            mstore(add(array_, 0x40), b_)
+            mstore(add(array_, 0x60), c_)
+        }
+        return array_;
+    }
+
+    function arrayFrom(uint256 a_, uint256 b_, uint256 c_, uint256 d_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
+        uint256[] memory array_ = new uint256[](4);
+        assembly ("memory-safe") {
+            mstore(add(array_, 0x20), a_)
+            mstore(add(array_, 0x40), b_)
+            mstore(add(array_, 0x60), c_)
+            mstore(add(array_, 0x80), d_)
+        }
+        return array_;
+    }
+
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_,
+        uint256 d_,
+        uint256 e_
+    ) internal pure returns (uint256[] memory) {
+        uint256[] memory array_ = new uint256[](5);
+        assembly ("memory-safe") {
+            mstore(add(array_, 0x20), a_)
+            mstore(add(array_, 0x40), b_)
+            mstore(add(array_, 0x60), c_)
+            mstore(add(array_, 0x80), d_)
+            mstore(add(array_, 0xA0), e_)
+        }
+        return array_;
+    }
+
     /// Building arrays from literal components is a common task that introduces
     /// boilerplate that is either inefficient or error prone.
     /// @param a_ The head of the new array.
@@ -61,11 +108,11 @@ library LibUint256Array {
     /// @param b_ The second item of the new array.
     /// @param tail_ The tail of the new array.
     /// @return The new array.
-    function arrayFrom(
-        uint256 a_,
-        uint256 b_,
-        uint256[] memory tail_
-    ) internal pure returns (uint256[] memory) {
+    function arrayFrom(uint256 a_, uint256 b_, uint256[] memory tail_)
+        internal
+        pure
+        returns (uint256[] memory)
+    {
         uint256[] memory array_ = new uint256[](2);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -73,6 +120,18 @@ library LibUint256Array {
         }
         array_.extend(tail_);
         return array_;
+    }
+
+    function matrixFrom(uint256[] memory a_)
+        internal
+        pure
+        returns (uint256[][] memory)
+    {
+        uint256[][] memory matrix_ = new uint256[][](1);
+        assembly ("memory-safe") {
+            mstore(add(matrix_, 0x20), a_)
+        }
+        return matrix_;
     }
 
     /// Solidity provides no way to change the length of in-memory arrays but

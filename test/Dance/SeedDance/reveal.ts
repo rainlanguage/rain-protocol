@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { hexlify, keccak256, randomBytes } from "ethers/lib/utils";
+import { hexValue, hexZeroPad, keccak256, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibSeedTest, SeedDanceTest } from "../../../typechain";
 import {
@@ -8,7 +8,7 @@ import {
   TimeBoundStructOutput,
 } from "../../../typechain/contracts/dance/SeedDance";
 import { assertError, kurtosis, Struct } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basic";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../../utils/events";
 import {
   generateRandomWallet,
@@ -35,7 +35,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -69,7 +69,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer3).commit(commitment3);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1000000, // high number to reduce flakiness where canRevealUntil timestamps overlap, just so we can test that we are, in fact, getting a random spread of timestamps
     };
 
@@ -142,7 +142,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 100, // we always lose a second, so need minimum of `1`
     };
 
@@ -175,7 +175,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -208,7 +208,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 100, // we always lose a second, so need minimum of `1`
     };
 
@@ -223,10 +223,10 @@ describe("SeedDance reveal", async function () {
     );
 
     assert(
-      canRevealUntil_.gt(START.add(timeBound.baseDuration)),
+      canRevealUntil_.gte(START.add(timeBound.baseDuration)),
       `wrong canRevealUntil timestamp
-      expected gt ${START.gt(timeBound.baseDuration)}
-      got         ${canRevealUntil_}`
+      expected gte  ${START.add(timeBound.baseDuration)}
+      got           ${canRevealUntil_}`
     );
   });
 
@@ -243,7 +243,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -270,14 +270,14 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed_) != hexlify(initialSeed),
+      hexZeroPad(hexValue(newSeed_), 32) != hexZeroPad(initialSeed, 32),
       "Seed is not changed after reveal"
     );
 
     assert(sender_ === signer1.address, "Wrong signer in RevealEvent");
 
     assert(
-      hexlify(secret_) === hexlify(commitmentSecret),
+      hexZeroPad(hexValue(secret_), 32) === hexZeroPad(commitmentSecret, 32),
       "Wrong secret revealed"
     );
   });
@@ -305,7 +305,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer3).commit(commitment3);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -332,21 +332,26 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed1_) != hexlify(initialSeed),
+      hexZeroPad(hexValue(newSeed1_), 32) != hexZeroPad(initialSeed, 32),
       "SharedSeed is not changed after reveal 1"
     );
 
     const expectedSeed1 = await libSeed.with(sharedSeed1_, commitmentSecret1);
     assert(
-      hexlify(newSeed1_) === hexlify(expectedSeed1),
+      hexZeroPad(hexValue(newSeed1_), 32) ===
+        hexZeroPad(hexValue(expectedSeed1), 32),
       "newSeed1_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender1_ === signer1.address, "Wrong signer1 in RevealEvent");
 
-    console.log(hexlify(secret1_), "\n", hexlify(commitmentSecret1));
+    console.log(
+      hexZeroPad(hexValue(secret1_), 32),
+      "\n",
+      hexZeroPad(commitmentSecret1, 32)
+    );
     assert(
-      hexlify(secret1_) === hexlify(commitmentSecret1),
+      hexZeroPad(hexValue(secret1_), 32) === hexZeroPad(commitmentSecret1, 32),
       "Wrong secret1 revealed"
     );
 
@@ -365,21 +370,27 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed2_) != hexlify(sharedSeed2_),
+      hexZeroPad(hexValue(newSeed2_), 32) !=
+        hexZeroPad(hexValue(sharedSeed2_), 32),
       "SharedSeed is not changed after reveal 2"
     );
 
     const expectedSeed2 = await libSeed.with(sharedSeed2_, commitmentSecret2);
     assert(
-      hexlify(newSeed2_) === hexlify(expectedSeed2),
+      hexZeroPad(hexValue(newSeed2_), 32) ===
+        hexZeroPad(hexValue(expectedSeed2), 32),
       "newSeed2_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender2_ === signer2.address, "Wrong signer2 in RevealEvent");
 
-    console.log(hexlify(secret2_), "\n", hexlify(commitmentSecret2));
+    console.log(
+      hexZeroPad(hexValue(secret2_), 32),
+      "\n",
+      hexZeroPad(commitmentSecret2, 32)
+    );
     assert(
-      hexlify(secret2_) === hexlify(commitmentSecret2),
+      hexZeroPad(hexValue(secret2_), 32) === hexZeroPad(commitmentSecret2, 32),
       "Wrong secret2 revealed"
     );
 
@@ -399,21 +410,27 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed3_) != hexlify(sharedSeed3_),
+      hexZeroPad(hexValue(newSeed3_), 32) !=
+        hexZeroPad(hexValue(sharedSeed3_), 32),
       "SharedSeed is not changed after reveal 3"
     );
 
     const expectedSeed3 = await libSeed.with(sharedSeed3_, commitmentSecret3);
     assert(
-      hexlify(newSeed3_) === hexlify(expectedSeed3),
+      hexZeroPad(hexValue(newSeed3_), 32) ===
+        hexZeroPad(hexValue(expectedSeed3), 32),
       "newSeed3_ was not produced with `LibSeed.with()`"
     );
 
     assert(sender3_ === signer3.address, "Wrong signer3 in RevealEvent");
 
-    console.log(hexlify(secret3_), "\n", hexlify(commitmentSecret3));
+    console.log(
+      hexZeroPad(hexValue(secret3_), 32),
+      "\n",
+      hexZeroPad(commitmentSecret3, 32)
+    );
     assert(
-      hexlify(secret3_) === hexlify(commitmentSecret3),
+      hexZeroPad(hexValue(secret3_), 32) === hexZeroPad(commitmentSecret3, 32),
       "Wrong secret3 revealed"
     );
   });
@@ -431,7 +448,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 
@@ -458,14 +475,14 @@ describe("SeedDance reveal", async function () {
     )) as RevealEvent["args"];
 
     assert(
-      hexlify(newSeed_) != hexlify(initialSeed),
+      hexZeroPad(hexValue(newSeed_), 32) != hexZeroPad(initialSeed, 32),
       "Seed is not changed after reveal"
     );
 
     assert(sender_ === signer1.address, "Wrong signer in RevealEvent");
 
     assert(
-      hexlify(secret_) === hexlify(commitmentSecret),
+      hexZeroPad(hexValue(secret_), 32) === hexZeroPad(commitmentSecret, 32),
       "Wrong secret revealed"
     );
 
@@ -564,7 +581,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer3).commit(commitment3);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 10,
     };
 
@@ -644,7 +661,7 @@ describe("SeedDance reveal", async function () {
     const initialSeed = randomBytes(32);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: MAX_EXTRATIME,
     };
 
@@ -696,7 +713,7 @@ describe("SeedDance reveal", async function () {
     await seedDance.connect(signer1).commit(commitment1);
 
     const timeBound: Struct<TimeBoundStructOutput> = {
-      baseDuration: 60,
+      baseDuration: 600,
       maxExtraTime: 1, // we always lose a second, so need minimum of `1`
     };
 

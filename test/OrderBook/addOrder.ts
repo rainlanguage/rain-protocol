@@ -2,8 +2,11 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook } from "../../typechain";
-import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import type {
+  OrderBook,
+  OrderBookIntegrity,
+  ReserveToken18,
+} from "../../typechain";
 import {
   OrderConfigStruct,
   OrderLiveEvent,
@@ -13,11 +16,16 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 import { getEventArgs } from "../../utils/events";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
 import { fixedPointDiv } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
@@ -34,12 +42,7 @@ describe("OrderBook add order", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
@@ -75,7 +78,7 @@ describe("OrderBook add order", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -111,7 +114,7 @@ describe("OrderBook add order", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },

@@ -100,7 +100,7 @@ git commits directly.
 In package.json this can be done by adding a line like the following to
 the dependencies:
 
-```
+```json
 "@beehiveinnovation/rain-protocol": "git+https://github.com/beehive-innovation/rain-protocol.git#<COMMIT_HASH_HERE>",
 ```
 
@@ -112,15 +112,15 @@ decisions are your own.
 
 Audits from omniscia can be found:
 
-- https://omniscia.io/beehive-rain-protocol-round-2/
-- https://omniscia.io/beehive-rain-protocol/
+- <https://omniscia.io/beehive-rain-protocol-round-2/>
+- <https://omniscia.io/beehive-rain-protocol/>
 
 It is STRONGLY RECOMMENDED that downstream consumers lock their dependencies to
 a specific commit rather than rely on branch/tag names.
 
 ## Installation
 
-We strongly recommend using the nix shell https://nix.dev/tutorials/install-nix
+We strongly recommend using the nix shell <https://nix.dev/tutorials/install-nix>
 
 Once you have installed nix you can simply run `nix-shell` from the root of
 this repository and it will ensure a compatible version of npm is on your path
@@ -148,7 +148,7 @@ automated security scanner.
 Echidna is a powerful tool designed for fuzzing/property-based testing of Ethereum smarts contracts.
 Read more about Echidna [here](https://github.com/crytic/echidna).
 
-Run `echidna-test` from inside the nix shell. Echidna will start fuzzing the contracts as declared in `contracts/test/echidna`.
+Use `run-echidna` from inside the nix shell. Echidna will start fuzzing the contracts as declared in `echidna` folder.
 
 ### Build and serve documentation site
 
@@ -156,7 +156,7 @@ Inside the nix-shell run `docs-dev`. If you want to see search functionality,
 you'll need to manually build and serve with `docs-build` and then `docs-serve`
 since search indexing only runs for production builds.
 
-Navigate to http://localhost:3000/ to view the docs site generated with
+Navigate to <http://localhost:3000/> to view the docs site generated with
 Docusaurus.
 
 Documentation files are written in Markdown and can be found under the `docs/`

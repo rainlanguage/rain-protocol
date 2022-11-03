@@ -8,15 +8,25 @@ import {
   ReadWriteTier,
   ReserveToken,
   StakeFactory,
-  StandardIntegrity,
 } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
-import { max_uint32, stakeDeploy, THRESHOLDS } from "../../../utils";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { combineTierDeploy } from "../../../utils/deploy/combineTier";
+import {
+  max_uint32,
+  readWriteTierDeploy,
+  stakeDeploy,
+  THRESHOLDS,
+} from "../../../utils";
+import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
+import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
+import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
-import { AllStandardOps } from "../../../utils/rainvm/ops/allStandardOps";
-import { memoryOperand, MemoryType, op } from "../../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { numArrayToReport } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
@@ -31,14 +41,15 @@ let readWriteTier: ReadWriteTier;
 let stakeFactory: StakeFactory;
 let logic: AllStandardOpsTest;
 
-describe("CombineTier report time for tier script", async function () {
+describe("CombineTier report time for tier tests", async function () {
+  const ctxAccount = op(Opcode.CONTEXT, 0x0000);
   const CONST_REPORT_TIME_FOR_TIER = 123;
 
   // prettier-ignore
   // return default report
   const sourceReportDefault = concat([
       op(Opcode.THIS_ADDRESS),
-      op(Opcode.CONTEXT, 0),
+      ctxAccount,
     op(Opcode.ITIERV2_REPORT),
   ]);
 
@@ -48,33 +59,13 @@ describe("CombineTier report time for tier script", async function () {
     alice = signers[1];
     bob = signers[2];
 
-    tokenERC20 = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    tokenERC20.initialize();
-
-    const tierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await tierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
-
-    const stakeFactoryFactory = await ethers.getContractFactory(
-      "StakeFactory",
-      {}
-    );
-    stakeFactory = (await stakeFactoryFactory.deploy()) as StakeFactory;
-    await stakeFactory.deployed();
-
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = (await integrityFactory.deploy()) as StandardIntegrity;
-    await integrity.deployed();
-    const logicFactory = await ethers.getContractFactory("AllStandardOpsTest");
-    // deploy a basic vm contract
-    logic = (await logicFactory.deploy(
-      integrity.address
-    )) as AllStandardOpsTest;
+    tokenERC20 = await reserveDeploy();
+    readWriteTier = await readWriteTierDeploy();
+    stakeFactory = await stakeFactoryDeploy();
+    logic = await allStandardOpsDeploy();
   });
 
-  it("should support returning report time for tier using VM script (e.g. constant timestamp value)", async () => {
+  it("should support returning report time for tier using Interpreter script (e.g. constant timestamp value)", async () => {
     const combineTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
       sourceConfig: {
@@ -114,8 +105,8 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceMain = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
-      op(Opcode.CONTEXT, 0), // SENDER
-      op(Opcode.CONTEXT, 1), // tier
+      op(Opcode.CONTEXT, 0x0000), // SENDER
+      op(Opcode.CONTEXT, 0x0001), // tier
     op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
@@ -143,7 +134,7 @@ describe("CombineTier report time for tier script", async function () {
     );
   });
 
-  it("should query the report of another CombineTier contract using a non TierV2 contract wrapped in a CombineTier contract.", async () => {
+  it("should query the report of another CombineTier contract using a non TierV2 contract wrapped in a CombineTier contract", async () => {
     const vAlice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
     const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // Transferring bob
@@ -190,17 +181,17 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceMain = concat([
             op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
-            op(Opcode.CONTEXT, 0),
-            op(Opcode.CONTEXT, 1),
+            op(Opcode.CONTEXT, 0x0000),
+            op(Opcode.CONTEXT, 0x0001),
           op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 0),
         op(Opcode.ISZERO),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant,1)),
-          op(Opcode.CONTEXT, 0),
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0000),
+          op(Opcode.CONTEXT, 0x0001),
         op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 0),
           op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
-          op(Opcode.CONTEXT, 0),
-          op(Opcode.CONTEXT, 1),
+          op(Opcode.CONTEXT, 0x0000),
+          op(Opcode.CONTEXT, 0x0001),
         op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 0),
       op(Opcode.EAGER_IF)
     ]);
@@ -246,7 +237,7 @@ describe("CombineTier report time for tier script", async function () {
     );
   });
 
-  it("should query the report of a contract inheriting TierV2.", async () => {
+  it("should query the report of a contract inheriting TierV2", async () => {
     // Set Bob's status
     await readWriteTier.setTier(bob.address, Tier.ONE);
     const expectedResultBob = await getBlockTimestamp();
@@ -260,16 +251,16 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceAliceReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // Contract address
-        op(Opcode.CONTEXT, 0), // account
-        op(Opcode.CONTEXT, 1), // tier
+        op(Opcode.CONTEXT, 0x0000), // account
+        op(Opcode.CONTEXT, 0x0001), // tier
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ])
 
     // prettier-ignore
     const sourceBobReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // Contract address
-        op(Opcode.CONTEXT, 2), // account
-        op(Opcode.CONTEXT, 1), // tier
+        op(Opcode.CONTEXT, 0x0100), // account
+        op(Opcode.CONTEXT, 0x0001), // tier
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ])
     // ================================ LOGIC TEST
@@ -337,16 +328,16 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceAliceReport = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // Alice's Report
-      op(Opcode.CONTEXT, 0),
-      op(Opcode.CONTEXT, 1),
+      op(Opcode.CONTEXT, 0x0000),
+      op(Opcode.CONTEXT, 0x0001),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ])
 
     // prettier-ignore
     const sourceBobReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // Bob's Report
-        op(Opcode.CONTEXT, 2),
-        op(Opcode.CONTEXT, 1),
+        op(Opcode.CONTEXT, 0x0100),
+        op(Opcode.CONTEXT, 0x0001),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ])
 
@@ -357,10 +348,10 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceMain = concat([
           sourceAliceReport,
-          op(Opcode.CONTEXT, 3), // Alice's expected report
+          op(Opcode.CONTEXT, 0x0101), // Alice's expected report
         op(Opcode.EQUAL_TO),
           sourceBobReport,
-          op(Opcode.CONTEXT, 4), // Bob's expected report
+          op(Opcode.CONTEXT, 0x0102), // Bob's expected report
         op(Opcode.EQUAL_TO),
       op(Opcode.EVERY, 2)
     ]);
@@ -430,32 +421,32 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceAliceReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0), // address
-        op(Opcode.CONTEXT, 1), // TIER
-        op(Opcode.CONTEXT, 5), // Context [ THRESHOLD ]
-        op(Opcode.CONTEXT, 6),
-        op(Opcode.CONTEXT, 7),
-        op(Opcode.CONTEXT, 8),
-        op(Opcode.CONTEXT, 9),
-        op(Opcode.CONTEXT, 10),
-        op(Opcode.CONTEXT, 11),
-        op(Opcode.CONTEXT, 12),
+        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0001), // TIER
+        op(Opcode.CONTEXT, 0x0103), // THRESHOLDS
+        op(Opcode.CONTEXT, 0x0104),
+        op(Opcode.CONTEXT, 0x0105),
+        op(Opcode.CONTEXT, 0x0106),
+        op(Opcode.CONTEXT, 0x0107),
+        op(Opcode.CONTEXT, 0x0108),
+        op(Opcode.CONTEXT, 0x0109),
+        op(Opcode.CONTEXT, 0x010a),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceBobReport = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 3), // address
-        op(Opcode.CONTEXT, 1), // address
-        op(Opcode.CONTEXT, 5), // Context [ THRESHOLD ]
-        op(Opcode.CONTEXT, 6),
-        op(Opcode.CONTEXT, 7),
-        op(Opcode.CONTEXT, 8),
-        op(Opcode.CONTEXT, 9),
-        op(Opcode.CONTEXT, 10),
-        op(Opcode.CONTEXT, 11),
-        op(Opcode.CONTEXT, 12),
+        op(Opcode.CONTEXT, 0x0101), // address
+        op(Opcode.CONTEXT, 0x0001), // TIER
+        op(Opcode.CONTEXT, 0x0103), // THRESHOLDS
+        op(Opcode.CONTEXT, 0x0104),
+        op(Opcode.CONTEXT, 0x0105),
+        op(Opcode.CONTEXT, 0x0106),
+        op(Opcode.CONTEXT, 0x0107),
+        op(Opcode.CONTEXT, 0x0108),
+        op(Opcode.CONTEXT, 0x0109),
+        op(Opcode.CONTEXT, 0x010a),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
     ]);
 
@@ -464,10 +455,10 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceMain = concat([
           sourceAliceReport,
-          op(Opcode.CONTEXT, 2), // Alice's expected report
+          op(Opcode.CONTEXT, 0x0100), // Alice's expected report
         op(Opcode.EQUAL_TO),
           sourceBobReport,
-          op(Opcode.CONTEXT, 4), // Bob's expected report
+          op(Opcode.CONTEXT, 0x0102), // Bob's expected report
         op(Opcode.EQUAL_TO),
       op(Opcode.EVERY, 2)
     ]);
@@ -515,32 +506,32 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceReportStake0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract stake0
-        op(Opcode.CONTEXT, 0), // address
-        op(Opcode.CONTEXT, 1), // TIER
-        op(Opcode.CONTEXT, 2), // THRESHOLD
-        op(Opcode.CONTEXT, 3),
-        op(Opcode.CONTEXT, 4),
-        op(Opcode.CONTEXT, 5),
-        op(Opcode.CONTEXT, 6),
-        op(Opcode.CONTEXT, 7),
-        op(Opcode.CONTEXT, 8),
-        op(Opcode.CONTEXT, 9),
+        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0001), // TIER
+        op(Opcode.CONTEXT, 0x0100), // THRESHOLDS
+        op(Opcode.CONTEXT, 0x0101),
+        op(Opcode.CONTEXT, 0x0102),
+        op(Opcode.CONTEXT, 0x0103),
+        op(Opcode.CONTEXT, 0x0104),
+        op(Opcode.CONTEXT, 0x0105),
+        op(Opcode.CONTEXT, 0x0106),
+        op(Opcode.CONTEXT, 0x0107),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,1)), // ITierV2 contract stake1
-        op(Opcode.CONTEXT, 0), // address
-        op(Opcode.CONTEXT, 1), // TIER
-        op(Opcode.CONTEXT, 2), // THRESHOLD
-        op(Opcode.CONTEXT, 3),
-        op(Opcode.CONTEXT, 4),
-        op(Opcode.CONTEXT, 5),
-        op(Opcode.CONTEXT, 6),
-        op(Opcode.CONTEXT, 7),
-        op(Opcode.CONTEXT, 8),
-        op(Opcode.CONTEXT, 9),
+        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0001), // TIER
+        op(Opcode.CONTEXT, 0x0100), // THRESHOLDS
+        op(Opcode.CONTEXT, 0x0101),
+        op(Opcode.CONTEXT, 0x0102),
+        op(Opcode.CONTEXT, 0x0103),
+        op(Opcode.CONTEXT, 0x0104),
+        op(Opcode.CONTEXT, 0x0105),
+        op(Opcode.CONTEXT, 0x0106),
+        op(Opcode.CONTEXT, 0x0107),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
     ]);
 
@@ -639,16 +630,16 @@ describe("CombineTier report time for tier script", async function () {
       // prettier-ignore
       const sourceReportStake = concat([
           op(Opcode.STATE, memoryOperand(MemoryType.Constant,i)), // ITierV2 contract stake0
-          op(Opcode.CONTEXT, 0), // address
-          op(Opcode.CONTEXT, 1), // Tier
-          op(Opcode.CONTEXT, 2),
-          op(Opcode.CONTEXT, 3),
-          op(Opcode.CONTEXT, 4),
-          op(Opcode.CONTEXT, 5),
-          op(Opcode.CONTEXT, 6),
-          op(Opcode.CONTEXT, 7),
-          op(Opcode.CONTEXT, 8),
-          op(Opcode.CONTEXT, 9),
+          op(Opcode.CONTEXT, 0x0000), // address
+          op(Opcode.CONTEXT, 0x0001), // Tier
+          op(Opcode.CONTEXT, 0x0100), // THRESHOLDS
+          op(Opcode.CONTEXT, 0x0101),
+          op(Opcode.CONTEXT, 0x0102),
+          op(Opcode.CONTEXT, 0x0103),
+          op(Opcode.CONTEXT, 0x0104),
+          op(Opcode.CONTEXT, 0x0105),
+          op(Opcode.CONTEXT, 0x0106),
+          op(Opcode.CONTEXT, 0x0107),
         op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,POSITION_max_uint32)), // max_uint32
         op(Opcode.LESS_THAN)
@@ -738,32 +729,32 @@ describe("CombineTier report time for tier script", async function () {
     // prettier-ignore
     const sourceReportStake0 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)), // ITierV2 contract stake0
-        op(Opcode.CONTEXT, 0), // address
-        op(Opcode.CONTEXT, 1), // TIER
-        op(Opcode.CONTEXT, 2), // THRESHOLD
-        op(Opcode.CONTEXT, 3),
-        op(Opcode.CONTEXT, 4),
-        op(Opcode.CONTEXT, 5),
-        op(Opcode.CONTEXT, 6),
-        op(Opcode.CONTEXT, 7),
-        op(Opcode.CONTEXT, 8),
-        op(Opcode.CONTEXT, 9),
+        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0001), // TIER
+        op(Opcode.CONTEXT, 0x0100), // THRESHOLDS
+        op(Opcode.CONTEXT, 0x0101),
+        op(Opcode.CONTEXT, 0x0102),
+        op(Opcode.CONTEXT, 0x0103),
+        op(Opcode.CONTEXT, 0x0104),
+        op(Opcode.CONTEXT, 0x0105),
+        op(Opcode.CONTEXT, 0x0106),
+        op(Opcode.CONTEXT, 0x0107),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
     ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
         op(Opcode.STATE, memoryOperand(MemoryType.Constant,1)), // ITierV2 contract stake1
-        op(Opcode.CONTEXT, 0), // address
-        op(Opcode.CONTEXT, 1), // TIER
-        op(Opcode.CONTEXT, 2), // THRESHOLD
-        op(Opcode.CONTEXT, 3),
-        op(Opcode.CONTEXT, 4),
-        op(Opcode.CONTEXT, 5),
-        op(Opcode.CONTEXT, 6),
-        op(Opcode.CONTEXT, 7),
-        op(Opcode.CONTEXT, 8),
-        op(Opcode.CONTEXT, 9),
+        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0001), // TIER
+        op(Opcode.CONTEXT, 0x0100), // THRESHOLDS
+        op(Opcode.CONTEXT, 0x0101),
+        op(Opcode.CONTEXT, 0x0102),
+        op(Opcode.CONTEXT, 0x0103),
+        op(Opcode.CONTEXT, 0x0104),
+        op(Opcode.CONTEXT, 0x0105),
+        op(Opcode.CONTEXT, 0x0106),
+        op(Opcode.CONTEXT, 0x0107),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
     ]);
 
@@ -793,16 +784,16 @@ describe("CombineTier report time for tier script", async function () {
 
     const sourceMain = concat([
       op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // CombineTier contract
-      op(Opcode.CONTEXT, 0), // Sender
-      op(Opcode.CONTEXT, 1), // TIER
-      op(Opcode.CONTEXT, 2),
-      op(Opcode.CONTEXT, 3),
-      op(Opcode.CONTEXT, 4),
-      op(Opcode.CONTEXT, 5),
-      op(Opcode.CONTEXT, 6),
-      op(Opcode.CONTEXT, 7),
-      op(Opcode.CONTEXT, 8),
-      op(Opcode.CONTEXT, 9),
+      op(Opcode.CONTEXT, 0x0000), // address
+      op(Opcode.CONTEXT, 0x0001), // TIER
+      op(Opcode.CONTEXT, 0x0002), // THRESHOLDS
+      op(Opcode.CONTEXT, 0x0003),
+      op(Opcode.CONTEXT, 0x0004),
+      op(Opcode.CONTEXT, 0x0005),
+      op(Opcode.CONTEXT, 0x0006),
+      op(Opcode.CONTEXT, 0x0007),
+      op(Opcode.CONTEXT, 0x0008),
+      op(Opcode.CONTEXT, 0x0009),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
@@ -813,7 +804,7 @@ describe("CombineTier report time for tier script", async function () {
 
     await logic
       .connect(alice)
-      .runContext([alice.address, Tier.ONE, ...THRESHOLDS]);
+      .runContext([[alice.address, Tier.ONE, ...THRESHOLDS]]);
 
     const result0 = await logic.stackTop();
 
@@ -835,7 +826,7 @@ describe("CombineTier report time for tier script", async function () {
 
     await logic
       .connect(alice)
-      .runContext([alice.address, Tier.ONE, ...THRESHOLDS]);
+      .runContext([[alice.address, Tier.ONE, ...THRESHOLDS]]);
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;

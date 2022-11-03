@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
 import "../math/FixedPointMath.sol";
-import "../vm/runtime/StandardVM.sol";
-import {AllStandardOps} from "../vm/ops/AllStandardOps.sol";
+import "../interpreter/run/StandardInterpreter.sol";
+import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
-import "./ISale.sol";
+import "./ISaleV2.sol";
 import {RedeemableERC20, RedeemableERC20Config} from "../redeemableERC20/RedeemableERC20.sol";
 import {RedeemableERC20Factory} from "../redeemableERC20/RedeemableERC20Factory.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -16,7 +16,7 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
-import "../vm/integrity/RainVMIntegrity.sol";
+import "../interpreter/deploy/RainInterpreterIntegrity.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -25,23 +25,24 @@ import "../vm/integrity/RainVMIntegrity.sol";
 /// @param maximumCooldownDuration The cooldown duration set in initialize
 /// cannot exceed this. Avoids the "no refunds" situation where someone sets an
 /// infinite cooldown, then accidentally or maliciously the sale ends up in a
-/// state where it cannot end (bad "can end" script), leading to trapped funds.
+/// state where it cannot end (bad "can end" expression), leading to trapped
+/// funds.
 /// @param redeemableERC20Factory The factory contract that creates redeemable
 /// erc20 tokens that the `Sale` can mint, sell and burn.
 struct SaleConstructorConfig {
     uint256 maximumSaleTimeout;
     uint256 maximumCooldownDuration;
     RedeemableERC20Factory redeemableERC20Factory;
-    address vmIntegrity;
+    address interpreterIntegrity;
 }
 
 /// Everything required to configure (initialize) a Sale.
-/// @param canStartStateConfig State config for the script that allows a Sale
-/// to start.
-/// @param canEndStateConfig State config for the script that allows a Sale to
-/// end. IMPORTANT: A Sale can always end if/when its rTKN sells out,
-/// regardless of the result of this script.
-/// @param calculatePriceStateConfig State config for the script that defines
+/// @param canStartStateConfig State config for the expression that allows a
+/// `Sale` to start.
+/// @param canEndStateConfig State config for the expression that allows a
+/// `Sale` to end. IMPORTANT: A Sale can always end if/when its rTKN sells out,
+/// regardless of the result of this expression.
+/// @param calculatePriceStateConfig State config for the expression that defines
 /// the current price quoted by a Sale.
 /// @param recipient The recipient of the proceeds of a Sale, if/when the Sale
 /// is successful.
@@ -52,12 +53,14 @@ struct SaleConstructorConfig {
 /// @param cooldownDuration forwarded to `Cooldown` contract initialization.
 /// @param minimumRaise defines the amount of reserve required to raise that
 /// defines success/fail of the sale. Reaching the minimum raise DOES NOT cause
-/// the raise to end early (unless the "can end" script allows it of course).
+/// the raise to end early (unless the "can end" expression allows it of course).
 /// @param dustSize The minimum amount of rTKN that must remain in the Sale
 /// contract unless it is all purchased, clearing the raise to 0 stock and thus
 /// ending the raise.
 struct SaleConfig {
-    StateConfig vmStateConfig;
+    address expressionDeployer;
+    address interpreter;
+    StateConfig interpreterStateConfig;
     address recipient;
     address reserve;
     uint256 saleTimeout;
@@ -135,17 +138,16 @@ SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
 uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
 
-uint256 constant STORAGE_OPCODES_LENGTH = 4;
-
 // solhint-disable-next-line max-states-count
-contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
+contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibVMState for VMState;
+    using LibInterpreterState for InterpreterState;
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
 
     /// Contract is constructing.
     /// @param sender `msg.sender` of the contract deployer.
@@ -178,32 +180,26 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
 
     /// @dev the saleTimeout cannot exceed this. Prevents downstream contracts
     /// that require a finalization such as escrows from getting permanently
-    /// stuck in a pending or active status due to buggy scripts.
+    /// stuck in a pending or active status due to buggy expressions.
     uint256 private immutable maximumSaleTimeout;
 
-    /// *** STORAGE OPCODES START ***
+    address private expression;
+    address private interpreter;
 
-    /// @dev remaining rTKN units to sell. MAY NOT be the rTKN balance of the
-    /// Sale contract if rTKN has been sent directly to the sale contract
-    /// outside the standard buy/refund loop.
-    uint256 private _remainingUnits;
+    /// @inheritdoc ISaleV2
+    uint256 public remainingTokenInventory;
 
-    /// @dev total reserve taken in to the sale contract via. buys. Does NOT
-    /// include any reserve sent directly to the sale contract outside the
-    /// standard buy/refund loop.
-    uint256 private _totalReserveIn;
+    /// @inheritdoc ISaleV2
+    uint256 public totalReserveReceived;
 
-    /// Minted rTKN for each sale.
-    /// Exposed via. `ISale.token()`.
-    /// Represented as uint NOT address so that it is VM safe.
-    uint256 private _token;
+    /// @inheritdoc ISaleV2
+    address public token;
 
-    /// @dev as per `SaleConfig`.
-    /// Exposed via. `ISale.reserve()`.
-    /// Represented as uint NOT address so that it is VM safe.
-    uint256 private _reserve;
+    /// @inheritdoc ISaleV2
+    address public reserve;
 
-    /// *** STORAGE OPCODES END ***
+    /// @inheritdoc ISaleV2
+    SaleStatus public saleStatus;
 
     /// Factory responsible for minting rTKN.
     RedeemableERC20Factory private immutable redeemableERC20Factory;
@@ -215,8 +211,6 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// @dev as per `SaleConfig`.
     uint256 private dustSize;
 
-    /// @dev the current sale status exposed as `ISale.saleStatus`.
-    SaleStatus private _saleStatus;
     /// @dev the current sale can always end in failure at this time even if
     /// it did not start. Provided it did not already end of course.
     uint256 private saleTimeoutStamp;
@@ -236,10 +230,15 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// Fee recipient => unclaimed fees.
     mapping(address => uint256) private fees;
 
-    constructor(SaleConstructorConfig memory config_)
-        StandardVM(config_.vmIntegrity)
-    {
+    constructor(SaleConstructorConfig memory config_) {
         _disableInitializers();
+
+        // uint256 slot_;
+        // assembly ("memory-safe") {
+        //     slot_ := remainingTokenInventory.slot
+        // }
+        // console.log("remainingTokenInventory slot", slot_);
+
         maximumSaleTimeout = config_.maximumSaleTimeout;
 
         redeemableERC20Factory = config_.redeemableERC20Factory;
@@ -266,22 +265,28 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        _saveVMState(
-            config_.vmStateConfig,
-            LibUint256Array.arrayFrom(
-                CAN_LIVE_MIN_FINAL_STACK_INDEX,
-                CALCULATE_BUY_MIN_FINAL_STACK_INDEX
-            )
-        );
+        (
+            address expression_, // Sale doesn't use conditional context so we don't need the scratch.
+
+        ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
+                config_.interpreterStateConfig,
+                LibUint256Array.arrayFrom(
+                    CAN_LIVE_MIN_FINAL_STACK_INDEX,
+                    CALCULATE_BUY_MIN_FINAL_STACK_INDEX
+                )
+            );
+        expression = expression_;
+        interpreter = config_.interpreter;
+
         recipient = config_.recipient;
 
         dustSize = config_.dustSize;
 
         // just making this explicit during initialization in case it ever
         // takes a nonzero value somehow due to refactor.
-        _saleStatus = SaleStatus.Pending;
+        saleStatus = SaleStatus.Pending;
 
-        _reserve = uint256(uint160(config_.reserve));
+        reserve = config_.reserve;
 
         // The distributor of the rTKN is always set to the sale contract.
         // It is an error for the deployer to attempt to set the distributor.
@@ -291,7 +296,9 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         );
         saleRedeemableERC20Config_.erc20Config.distributor = address(this);
 
-        _remainingUnits = saleRedeemableERC20Config_.erc20Config.initialSupply;
+        remainingTokenInventory = saleRedeemableERC20Config_
+            .erc20Config
+            .initialSupply;
 
         address token_ = redeemableERC20Factory.createChild(
             abi.encode(
@@ -304,85 +311,54 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
                 )
             )
         );
-        _token = uint256(uint160(token_));
+        token = token_;
 
         emit Initialize(msg.sender, config_, address(token_));
     }
 
-    /// @inheritdoc RainVM
-    function storageOpcodesRange()
-        public
-        pure
-        override
-        returns (StorageOpcodesRange memory storageOpcodesRange_)
-    {
-        uint256 slot_;
-        assembly {
-            slot_ := _remainingUnits.slot
-        }
-        storageOpcodesRange_ = StorageOpcodesRange(
-            slot_,
-            STORAGE_OPCODES_LENGTH
-        );
-    }
-
-    /// @inheritdoc ISale
-    function token() external view returns (address) {
-        return address(uint160(_token));
-    }
-
-    /// @inheritdoc ISale
-    function reserve() external view returns (address) {
-        return address(uint160(_reserve));
-    }
-
-    /// @inheritdoc ISale
-    function saleStatus() external view returns (SaleStatus) {
-        return _saleStatus;
-    }
-
     /// Can the Sale live?
-    /// Evals the "can live" script.
+    /// Evals the "can live" expression.
     /// If a non zero value is returned then the sale can move from pending to
     /// active, or remain active.
     /// If a zero value is returned the sale can remain pending or move from
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
-    /// evaluating the script.
-    function _canLive(VMState memory state_) internal view returns (bool) {
+    /// evaluating the expression.
+    function _canLive() internal view returns (bool) {
         unchecked {
-            if (_remainingUnits < 1) {
+            if (remainingTokenInventory < 1) {
                 return false;
             }
-            state_.context = new uint256[](0);
-            return state_.eval(CAN_LIVE_ENTRYPOINT).peek() > 0;
+            uint256[][] memory context_ = LibUint256Array
+                .arrayFrom(uint256(uint160(msg.sender)))
+                .matrixFrom();
+            return
+                IInterpreterV1(interpreter)
+                    .eval(expression, CAN_LIVE_ENTRYPOINT, context_)
+                    .asStackTopAfter()
+                    .peek() > 0;
         }
     }
 
     function _start() internal {
-        _saleStatus = SaleStatus.Active;
+        saleStatus = SaleStatus.Active;
         emit Start(msg.sender);
     }
 
     function _end() internal {
-        bool success_ = _totalReserveIn >= minimumRaise;
+        bool success_ = totalReserveReceived >= minimumRaise;
         SaleStatus endStatus_ = success_ ? SaleStatus.Success : SaleStatus.Fail;
 
-        _remainingUnits = 0;
-        _saleStatus = endStatus_;
+        remainingTokenInventory = 0;
+        saleStatus = endStatus_;
         emit End(msg.sender, endStatus_);
-        RedeemableERC20(address(uint160(_token))).endDistribution(
-            address(this)
-        );
+        RedeemableERC20(token).endDistribution(address(this));
 
         // Only send reserve to recipient if the raise is a success.
         // If the raise is NOT a success then everyone can refund their reserve
         // deposited individually.
         if (success_) {
-            IERC20(address(uint160(_reserve))).safeTransfer(
-                recipient,
-                _totalReserveIn
-            );
+            IERC20(reserve).safeTransfer(recipient, totalReserveReceived);
         }
     }
 
@@ -390,16 +366,25 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// Offchain users MAY call this directly or calculate the outcome
     /// themselves.
     function canLive() external view returns (bool) {
-        return _canLive(_loadVMState());
+        return _canLive();
     }
 
-    function _calculateBuy(VMState memory state_, uint256 targetUnits_)
+    function _calculateBuy(uint256 targetUnits_)
         internal
         view
         returns (uint256, uint256)
     {
-        state_.context = targetUnits_.arrayFrom();
-        return state_.eval(CALCULATE_BUY_ENTRYPOINT).peek2();
+        return
+            IInterpreterV1(interpreter)
+                .eval(
+                    expression,
+                    CALCULATE_BUY_ENTRYPOINT,
+                    LibUint256Array
+                        .arrayFrom(uint256(uint160(msg.sender)), targetUnits_)
+                        .matrixFrom()
+                )
+                .asStackTopAfter()
+                .peek2();
     }
 
     function calculateBuy(uint256 targetUnits_)
@@ -407,7 +392,7 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         view
         returns (uint256, uint256)
     {
-        return _calculateBuy(_loadVMState(), targetUnits_);
+        return _calculateBuy(targetUnits_);
     }
 
     /// Start the sale (move from pending to active).
@@ -415,8 +400,8 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// optional for anon to call outside of a purchase.
     /// `canStart` MUST return true.
     function start() external {
-        require(_saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        require(_canLive(_loadVMState()), "NOT_LIVE");
+        require(saleStatus == SaleStatus.Pending, "NOT_PENDING");
+        require(_canLive(), "NOT_LIVE");
         _start();
     }
 
@@ -425,8 +410,8 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// optional for anon to call outside of a purchase.
     /// `canEnd` MUST return true.
     function end() external {
-        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        require(!_canLive(_loadVMState()), "LIVE");
+        require(saleStatus == SaleStatus.Active, "NOT_ACTIVE");
+        require(!_canLive(), "LIVE");
         _end();
     }
 
@@ -441,18 +426,15 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     function timeout() external {
         require(saleTimeoutStamp < block.timestamp, "EARLY_TIMEOUT");
         require(
-            _saleStatus == SaleStatus.Pending ||
-                _saleStatus == SaleStatus.Active,
+            saleStatus == SaleStatus.Pending || saleStatus == SaleStatus.Active,
             "ALREADY_ENDED"
         );
 
         // Mimic `end` with a failed state but `Timeout` event.
-        _remainingUnits = 0;
-        _saleStatus = SaleStatus.Fail;
+        remainingTokenInventory = 0;
+        saleStatus = SaleStatus.Fail;
         emit Timeout(msg.sender);
-        RedeemableERC20(address(uint160(_token))).endDistribution(
-            address(this)
-        );
+        RedeemableERC20(token).endDistribution(address(this));
     }
 
     /// Main entrypoint to the sale. Sells rTKN in exchange for reserve token.
@@ -475,37 +457,32 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
             "MINIMUM_OVER_DESIRED"
         );
 
-        // This state is loaded once and shared between 2x `_canLive` calls and
-        // a `_calculateBuy` call.
-        VMState memory state_ = _loadVMState();
-
         // Start or end the sale as required.
-        if (_canLive(state_)) {
-            if (_saleStatus == SaleStatus.Pending) {
+        if (_canLive()) {
+            if (saleStatus == SaleStatus.Pending) {
                 _start();
             }
         } else {
-            if (_saleStatus == SaleStatus.Active) {
+            if (saleStatus == SaleStatus.Active) {
                 _end();
             }
         }
 
         // Check the status AFTER possibly modifying it to ensure the potential
         // modification is respected.
-        require(_saleStatus == SaleStatus.Active, "NOT_ACTIVE");
+        require(saleStatus == SaleStatus.Active, "NOT_ACTIVE");
 
-        uint256 targetUnits_ = config_.desiredUnits.min(_remainingUnits);
-        (uint256 maxUnits_, uint256 price_) = _calculateBuy(
-            state_,
-            targetUnits_
+        uint256 targetUnits_ = config_.desiredUnits.min(
+            remainingTokenInventory
         );
+        (uint256 maxUnits_, uint256 price_) = _calculateBuy(targetUnits_);
 
-        // The script may return a larger max units than the target so we have
-        // to cap it to prevent the sale selling more than requested. Scripts
-        // SHOULD NOT exceed the target units as it may be confusing to end
-        // users but it MUST be safe from the sale's perspective to do so.
-        // Scripts MAY return max units lower than the target units to enforce
-        // per-user or other purchase limits.
+        // The expression may return a larger max units than the target so we
+        // have to cap it to prevent the sale selling more than requested.
+        // Expressions SHOULD NOT exceed the target units as it may be confusing
+        // to end users but it MUST be safe from the sale's perspective to do so.
+        // Expressions MAY return max units lower than the target units to
+        // enforce per-user or other purchase limits.
         uint256 units_ = maxUnits_.min(targetUnits_);
         require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
@@ -531,31 +508,31 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
         // outside of a `buy` call. This also means we don't support reserve
         // tokens with balances that can change outside of transfers
         // (e.g. rebase).
-        _remainingUnits -= units_;
-        _totalReserveIn += cost_;
+        remainingTokenInventory -= units_;
+        totalReserveReceived += cost_;
 
         // This happens before `end` so that the transfer from happens before
         // the transfer to.
         // `end` changes state so `buy` needs to be nonReentrant.
-        IERC20(address(uint160(_reserve))).safeTransferFrom(
+        IERC20(reserve).safeTransferFrom(
             msg.sender,
             address(this),
             cost_ + config_.fee
         );
         // This happens before `end` so that the transfer happens before the
         // distributor is burned and token is frozen.
-        IERC20(address(uint160(_token))).safeTransfer(msg.sender, units_);
+        IERC20(token).safeTransfer(msg.sender, units_);
 
         emit Buy(msg.sender, config_, receipt_);
 
         // Enforce the status of the sale after the purchase.
         // The sale ending AFTER the purchase does NOT rollback the purchase,
         // it simply prevents further purchases.
-        if (_canLive(state_)) {
+        if (_canLive()) {
             // This prevents the sale from being left with so little stock that
             // nobody else will want to clear it out. E.g. the dust might be
             // worth significantly less than the price of gas to call `buy`.
-            require(_remainingUnits >= dustSize, "DUST");
+            require(remainingTokenInventory >= dustSize, "DUST");
         } else {
             _end();
         }
@@ -573,10 +550,10 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// ends and is a failure.
     /// @param receipt_ The receipt of the buy to rollback.
     function refund(Receipt calldata receipt_) external {
-        require(_saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
+        require(saleStatus != SaleStatus.Success, "REFUND_SUCCESS");
         // If the sale failed then cooldowns do NOT apply. Everyone should
         // immediately refund all their receipts.
-        if (_saleStatus != SaleStatus.Fail) {
+        if (saleStatus != SaleStatus.Fail) {
             refundCooldown();
         }
 
@@ -586,21 +563,18 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
 
         uint256 cost_ = receipt_.price.fixedPointMul(receipt_.units);
 
-        _totalReserveIn -= cost_;
-        _remainingUnits += receipt_.units;
+        totalReserveReceived -= cost_;
+        remainingTokenInventory += receipt_.units;
         fees[receipt_.feeRecipient] -= receipt_.fee;
 
         emit Refund(msg.sender, receipt_);
 
-        IERC20(address(uint160(_token))).safeTransferFrom(
+        IERC20(token).safeTransferFrom(
             msg.sender,
             address(this),
             receipt_.units
         );
-        IERC20(address(uint160(_reserve))).safeTransfer(
-            msg.sender,
-            cost_ + receipt_.fee
-        );
+        IERC20(reserve).safeTransfer(msg.sender, cost_ + receipt_.fee);
     }
 
     /// After a sale ends in success all fees collected for a recipient can be
@@ -610,14 +584,11 @@ contract Sale is Cooldown, StandardVM, ISale, ReentrancyGuard {
     /// @param recipient_ The recipient to claim fees for. Does NOT need to be
     /// the `msg.sender`.
     function claimFees(address recipient_) external {
-        require(_saleStatus == SaleStatus.Success, "NOT_SUCCESS");
+        require(saleStatus == SaleStatus.Success, "NOT_SUCCESS");
         uint256 amount_ = fees[recipient_];
         if (amount_ > 0) {
             delete fees[recipient_];
-            IERC20(address(uint160(_reserve))).safeTransfer(
-                recipient_,
-                amount_
-            );
+            IERC20(reserve).safeTransfer(recipient_, amount_);
         }
     }
 }
