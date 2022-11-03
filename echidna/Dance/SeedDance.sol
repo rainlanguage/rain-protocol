@@ -4,7 +4,6 @@ pragma solidity =0.8.17;
 import {SeedDance, Seed} from "../../contracts/dance/SeedDance.sol";
 
 import {SeedDanceTest} from "../../contracts/test/dance/SeedDance/SeedDanceTest.sol";
-import "hardhat/console.sol";
 
 // TODO: Continue implementing a valid test flow
 
