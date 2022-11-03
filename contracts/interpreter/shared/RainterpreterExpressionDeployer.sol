@@ -4,12 +4,12 @@ pragma solidity ^0.8.15;
 import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 
-bytes constant OPCODE_FUNCTION_POINTERS = hex"081d082b088008d408f6094e098509a309b209c109cf09dd09eb09c109f90a070a150a240a330a410a4f0a5d0a6b0aee0afd0b0c0b1b0b2a0b390b820b940ba20bd40be20bf00bfe0c0d0c1c0c2b0c3a0c490c580c670c760c850c940ca30cb10cbf0ccd0cdb0ce90cf80d070d150d7f";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"082c083a088f08e30905095d099409b209c109d009de09ec09fa09d00a080a160a240a330a420a500a5e0a6c0a7a0afd0b0c0b1b0b2a0b390b480b910ba30bb10be30bf10bff0c0d0c1c0c2b0c3a0c490c580c670c760c850c940ca30cb20cc00cce0cdc0cea0cf80d060d140d220d310d400d4e0db8";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x2b4248b9be0943364b68e5a7bdb4cfe6218e70a4c4058d47104cdecff6f2ebb1
+    0xa8451c31ccda1e67d5b0b0bb7a095446169797563647cab699c5dd529a99eecb
 );
 uint256 constant INTEGRITY_CHECK = 1;
 
@@ -65,15 +65,12 @@ contract RainterpreterExpressionDeployer is
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) external returns (address, uint256) {
-        (
-            uint256 contextScratch_,
-            uint256 stackLength_
-        ) = ensureIntegrity(
-                StorageOpcodesRange(0, 0),
-                config_.sources,
-                config_.constants.length,
-                finalMinStacks_
-            );
+        (uint256 contextScratch_, uint256 stackLength_) = ensureIntegrity(
+            StorageOpcodesRange(0, 0),
+            config_.sources,
+            config_.constants.length,
+            finalMinStacks_
+        );
 
         bytes memory stateBytes_ = config_.serialize(
             contextScratch_,

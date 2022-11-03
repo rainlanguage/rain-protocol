@@ -2,8 +2,12 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook } from "../../typechain";
-import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import type {
+  OrderBook,
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReserveToken18,
+} from "../../typechain";
 import {
   AfterClearEvent,
   ClearConfigStruct,
@@ -19,29 +23,31 @@ import {
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
-import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
-const Opcode = OrderBookOpcode;
+const Opcode = AllStandardOps;
 
 describe("OrderBook many-to-many", async function () {
-  let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18,
-    tokenB: ReserveToken18,
-    tokenC: ReserveToken18,
-    tokenD: ReserveToken18,
-    integrity: OrderBookIntegrity;
+  let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
+  let tokenB: ReserveToken18;
+  let tokenC: ReserveToken18;
+  let tokenD: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -55,8 +61,9 @@ describe("OrderBook many-to-many", async function () {
   });
 
   before(async () => {
-    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   it("should add many ask and bid orders and clear the orders", async function () {
@@ -66,9 +73,7 @@ describe("OrderBook many-to-many", async function () {
     const bob = signers[2];
     const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -92,6 +97,8 @@ describe("OrderBook many-to-many", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, vaultId: aliceInputVault },
         { token: tokenC.address, vaultId: aliceInputVault },
@@ -134,6 +141,8 @@ describe("OrderBook many-to-many", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, vaultId: bobOutputVault },
         { token: tokenD.address, vaultId: bobOutputVault },
@@ -339,9 +348,7 @@ describe("OrderBook many-to-many", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceVaultA = ethers.BigNumber.from(1);
     const aliceVaultB = ethers.BigNumber.from(2);
@@ -363,6 +370,8 @@ describe("OrderBook many-to-many", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, vaultId: aliceVaultA },
         { token: tokenB.address, vaultId: aliceVaultB },
@@ -405,6 +414,8 @@ describe("OrderBook many-to-many", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, vaultId: bobVaultB },
         { token: tokenA.address, vaultId: bobVaultA },

@@ -2,8 +2,12 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook } from "../../typechain";
-import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import type {
+  OrderBook,
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+} from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AfterClearEvent,
   ClearConfigStruct,
@@ -22,7 +26,6 @@ import {
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
 import {
   memoryOperand,
   MemoryType,
@@ -33,17 +36,20 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 
-const Opcode = OrderBookOpcode;
+const Opcode = AllStandardOps;
 
 describe("OrderBook counterparty in context", async function () {
-  const cCounterparty = op(Opcode.CONTEXT, 0x0001);
+  const cCounterparty = op(Opcode.CONTEXT, 0x0002);
 
-  let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18,
-    tokenB: ReserveToken18,
-    integrity: OrderBookIntegrity;
+  let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
+  let tokenB: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -53,8 +59,9 @@ describe("OrderBook counterparty in context", async function () {
   });
 
   before(async () => {
-    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
@@ -65,9 +72,7 @@ describe("OrderBook counterparty in context", async function () {
     const carol = signers[3];
     const bountyBot = signers[4];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -116,6 +121,8 @@ describe("OrderBook counterparty in context", async function () {
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
@@ -152,6 +159,8 @@ describe("OrderBook counterparty in context", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
@@ -191,6 +200,8 @@ describe("OrderBook counterparty in context", async function () {
       vBidPriceCarol,
     ]);
     const bidOrderConfigCarol: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenB.address, vaultId: carolInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: carolOutputVault }],
       interpreterStateConfig: {
