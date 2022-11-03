@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.15;
+pragma solidity =0.8.17;
 
 import {Random} from "../../contracts/math/Random.sol";
 import "../../contracts/sstore2/SSTORE2.sol";
 
 contract RamdonTest {
-    function microLottery(
-        uint256 seed_,
-        uint256 max_,
-        uint256 n_
-    ) external pure returns (uint256 item_) {
+    function microLottery(uint256 seed_, uint256 max_, uint256 n_)
+        external
+        pure
+        returns (uint256 item_)
+    {
         return Random.microLottery(seed_, max_, n_);
     }
 
@@ -52,11 +52,7 @@ contract RandomEchidna {
     }
 
     // Fuzz test to microLottery function catching the reverts
-    function MicroLottery(
-        uint256 seed_,
-        uint256 max_,
-        uint256 n_
-    ) external {
+    function MicroLottery(uint256 seed_, uint256 max_, uint256 n_) external {
         try _randomTest.microLottery(seed_, max_, n_) returns (
             uint256 outputValue1_
         ) {
@@ -105,11 +101,7 @@ contract RandomEchidna {
     // Fuzz test to ShuffleIdAtIndex function
     // Limitation input to uint8 and uint16 values to be able to reproduce a valid and complete run without expending
     // a large amount of gas and CPU power while processing
-    function ShuffleIdAtIndex(
-        uint8 seed_,
-        uint8 len_,
-        uint16 index_
-    ) external {
+    function ShuffleIdAtIndex(uint8 seed_, uint8 len_, uint16 index_) external {
         uint256 seed = seed_;
         uint256 len = len_;
         uint256 index = index_;
