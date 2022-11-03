@@ -94,7 +94,7 @@ describe("OrderBook tracking order funds cleared", async function () {
           op(Opcode.SUB, 2),
           v5,
         op(Opcode.MUL, 2),
-          op(Opcode.THIS_ADDRESS),
+          op(Opcode.CALLER),
           cOrderHash,
         op(Opcode.IORDERBOOKV1_CLEARED_ORDER),
       op(Opcode.SUB, 2),
