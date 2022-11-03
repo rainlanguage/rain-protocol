@@ -1,10 +1,14 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { RedeemableERC20Factory } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  RedeemableERC20Factory,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import {
   BuyEvent,
   EndEvent,
@@ -13,13 +17,20 @@ import {
 } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
 import { Status } from "../../utils/types/sale";
@@ -31,16 +42,22 @@ describe("Sale minimum raise", async function () {
   let reserve: ReserveToken,
     redeemableERC20Factory: RedeemableERC20Factory,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ redeemableERC20Factory, readWriteTier, saleFactory } =
-      await saleDependenciesDeploy());
+    ({
+      redeemableERC20Factory,
+      readWriteTier,
+      saleFactory,
+      interpreter,
+      expressionDeployer,
+    } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should have status of Success if minimum raise met, and also ensure that refunding is disallowed", async function () {
@@ -71,7 +88,7 @@ describe("Sale minimum raise", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const saleTimeout = 100;
     const [sale, token] = await saleDeploy(
@@ -79,7 +96,9 @@ describe("Sale minimum raise", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -296,12 +315,14 @@ describe("Sale minimum raise", async function () {
     const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT), vBasePrice]),
+      concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
     ];
     const saleTimeout = 100;
 
     const saleConfig = {
-      vmStateConfig: {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreterStateConfig: {
         sources,
         constants,
       },

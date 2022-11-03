@@ -1,9 +1,13 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReadWriteTier } from "../../typechain";
-import { ReserveToken } from "../../typechain";
-import { SaleFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReadWriteTier,
+  ReserveToken,
+  SaleFactory,
+} from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import {
@@ -12,15 +16,21 @@ import {
   RESERVE_ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
-import { saleDependenciesDeploy, saleDeploy } from "../../utils/deploy/sale";
+import {
+  saleDependenciesDeploy,
+  saleDeploy,
+} from "../../utils/deploy/sale/deploy";
+import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
-import { AllStandardOps } from "../../utils/rainvm/ops/allStandardOps";
-import { betweenBlockNumbersSource } from "../../utils/rainvm/sale";
-import { op, memoryOperand, MemoryType } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
 import { assertError } from "../../utils/test/assertError";
-import { SaleStorage } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -28,15 +38,17 @@ const Opcode = AllStandardOps;
 describe("Sale calculate price", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory;
+    saleFactory: SaleFactory,
+    interpreter: Rainterpreter,
+    expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
-    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   it("should dynamically calculate price (discount off base price based on proportion of ERC20 token currently held by buyer)", async function () {
@@ -76,15 +88,17 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
           vBasePrice,
               vFractionMultiplier,
-                op(Opcode.STORAGE, SaleStorage.Token),
-                op(Opcode.SENDER),
+                  op(Opcode.CALLER),
+                op(Opcode.ISALEV2_TOKEN),
+                op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-              op(Opcode.STORAGE, SaleStorage.Token),
+                  op(Opcode.CALLER),
+              op(Opcode.ISALEV2_TOKEN),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
@@ -95,7 +109,9 @@ describe("Sale calculate price", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -218,15 +234,17 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
           vBasePrice,
               vFractionMultiplier,
-                op(Opcode.STORAGE, SaleStorage.Reserve),
-                op(Opcode.SENDER),
+                  op(Opcode.CALLER),
+                op(Opcode.ISALEV2_RESERVE),
+                op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-              op(Opcode.STORAGE, SaleStorage.Reserve),
+                  op(Opcode.CALLER),
+              op(Opcode.ISALEV2_RESERVE),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
@@ -237,7 +255,9 @@ describe("Sale calculate price", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -349,7 +369,9 @@ describe("Sale calculate price", async function () {
           deployer,
           saleFactory,
           {
-            vmStateConfig: {
+            interpreter: interpreter.address,
+            expressionDeployer: expressionDeployer.address,
+            interpreterStateConfig: {
               sources,
               constants,
             },
@@ -408,10 +430,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -423,7 +445,9 @@ describe("Sale calculate price", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -539,10 +563,11 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.TotalReserveIn),
+        op(Opcode.CALLER),
+        op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -554,7 +579,9 @@ describe("Sale calculate price", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -671,10 +698,11 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
-        op(Opcode.STORAGE, SaleStorage.RemainingUnits),
+        op(Opcode.CALLER),
+        op(Opcode.ISALEV2_REMAINING_TOKEN_INVENTORY),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -686,7 +714,9 @@ describe("Sale calculate price", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },
@@ -770,7 +800,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT),
+        op(Opcode.CONTEXT, 0x0001),
         // price
         // (BLOCK_NUMBER 75 +)
         op(Opcode.BLOCK_NUMBER),
@@ -783,7 +813,9 @@ describe("Sale calculate price", async function () {
       deployer,
       saleFactory,
       {
-        vmStateConfig: {
+        interpreter: interpreter.address,
+        expressionDeployer: expressionDeployer.address,
+        interpreterStateConfig: {
           sources,
           constants,
         },

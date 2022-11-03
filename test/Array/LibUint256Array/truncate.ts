@@ -1,17 +1,13 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibUint256ArrayTest } from "../../../typechain";
+import { libUint256ArrayDeploy } from "../../../utils/deploy/test/libUint256Array/deploy";
 import { assertError } from "../../../utils/test/assertError";
 
 describe("LibUint256Array truncate tests", async function () {
   let libUint256Array: LibUint256ArrayTest;
 
   before(async () => {
-    const libUint256ArrayFactory = await ethers.getContractFactory(
-      "LibUint256ArrayTest"
-    );
-    libUint256Array =
-      (await libUint256ArrayFactory.deploy()) as LibUint256ArrayTest;
+    libUint256Array = await libUint256ArrayDeploy();
   });
 
   it("should truncate an array", async function () {

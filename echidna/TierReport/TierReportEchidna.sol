@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import {TierReport} from "../../contracts/tier/libraries/TierReport.sol";
 import {TierConstants} from "../../contracts/tier/libraries/TierConstants.sol";
@@ -67,11 +67,9 @@ contract TierReportEchidna {
         }
     }
 
-    function UpdateTimeAtTier(
-        uint256 _report,
-        uint256 _tier,
-        uint32 _timestamp
-    ) external {
+    function UpdateTimeAtTier(uint256 _report, uint256 _tier, uint32 _timestamp)
+        external
+    {
         try
             _tierReportTest.updateTimeAtTier(_report, _tier, _timestamp)
         returns (uint256 reportCalculated) {

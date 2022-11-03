@@ -1,16 +1,13 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibMemorySizeTest } from "../../../typechain";
 import { randomUint256 } from "../../../utils/bytes";
+import { libMemorySizeDeploy } from "../../../utils/deploy/test/libMemorySize/deploy";
 
 describe("LibMemorySize uint256 tests", async function () {
   let libMemorySize: LibMemorySizeTest;
 
   before(async () => {
-    const libMemorySizeFactory = await ethers.getContractFactory(
-      "LibMemorySizeTest"
-    );
-    libMemorySize = (await libMemorySizeFactory.deploy()) as LibMemorySizeTest;
+    libMemorySize = await libMemorySizeDeploy();
   });
 
   it("returns uint256 memory size", async function () {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import {Factory} from "../../factory/Factory.sol";
 import "./AutoApprove.sol";
@@ -14,8 +14,10 @@ contract AutoApproveFactory is Factory {
     address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address vmIntegrity_) {
-        address implementation_ = address(new AutoApprove(vmIntegrity_));
+    constructor(address interpreterIntegrity_) {
+        address implementation_ = address(
+            new AutoApprove(interpreterIntegrity_)
+        );
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

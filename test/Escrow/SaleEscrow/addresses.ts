@@ -1,68 +1,32 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { IERC20Upgradeable as IERC20 } from "../../../typechain";
-import { MockISale } from "../../../typechain";
-import { ReadWriteTier } from "../../../typechain";
 import type { RedeemableERC20 } from "../../../typechain";
-import { RedeemableERC20Factory } from "../../../typechain";
-import { ReserveToken } from "../../../typechain";
-import { SaleEscrowWrapper } from "../../../typechain";
-import { SaleFactory } from "../../../typechain";
+import {
+  IERC20Upgradeable as IERC20,
+  MockISaleV2,
+  ReadWriteTier,
+  ReserveToken,
+  SaleEscrowWrapper,
+} from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import { ONE } from "../../../utils/constants/bigNumber";
-import { basicDeploy } from "../../../utils/deploy/basic";
-import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { redeemableERC20Deploy } from "../../../utils/deploy/redeemableERC20/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
+import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { Status } from "../../../utils/types/sale";
 import { EscrowStatus, SaleStatus } from "../../../utils/types/saleEscrow";
-import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
 
-let reserve: ReserveToken,
-  redeemableERC20FactoryFactory: ContractFactory,
-  redeemableERC20Factory: RedeemableERC20Factory,
-  readWriteTierFactory: ContractFactory,
-  readWriteTier: ReadWriteTier,
-  saleConstructorConfig: SaleConstructorConfigStruct,
-  saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory;
+let reserve: ReserveToken, readWriteTier: ReadWriteTier;
 
 describe("SaleEscrow unchangeable addresses", async function () {
   beforeEach(async () => {
-    reserve = (await basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
+    reserve = await reserveDeploy();
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = await integrityFactory.deploy();
-    await integrity.deployed();
-
-    redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
-    await redeemableERC20Factory.deployed();
-
-    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
-
-    saleConstructorConfig = {
-      maximumSaleTimeout: 1000,
-      maximumCooldownDuration: 1000,
-      redeemableERC20Factory: redeemableERC20Factory.address,
-      vmIntegrity: integrity.address,
-    };
-
-    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleFactory = (await saleFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleFactory;
-    await saleFactory.deployed();
+    readWriteTier = await readWriteTierDeploy();
   });
 
   it("should return reserve and token addresses, and escrow status of Pending, after Sale initialisation", async function () {
@@ -84,8 +48,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
       distributionEndForwardingAddress: zeroAddress,
     })) as RedeemableERC20;
 
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     await sale.setReserve(reserve.address);
     await sale.setToken(redeemableERC20.address);
@@ -127,8 +90,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying reserve and token addresses", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -155,11 +117,11 @@ describe("SaleEscrow unchangeable addresses", async function () {
     const saleEscrowReserve0 = await saleEscrowWrapper.getReserve(sale.address);
     const saleEscrowToken0 = await saleEscrowWrapper.getToken(sale.address);
 
-    const newReserve = ethers.Wallet.createRandom();
-    const newToken = ethers.Wallet.createRandom();
+    const newReserve = hexlify(randomBytes(20));
+    const newToken = hexlify(randomBytes(20));
 
-    await sale.setReserve(newReserve.address);
-    await sale.setToken(newToken.address);
+    await sale.setReserve(newReserve);
+    await sale.setToken(newToken);
 
     await saleEscrowWrapper.fetchReserve(sale.address);
     await saleEscrowWrapper.fetchToken(sale.address);
@@ -169,7 +131,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
 
     // sanity check
     assert(
-      saleEscrowReserve0 !== newReserve.address,
+      saleEscrowReserve0 !== newReserve,
       "for some miraculous reason the new reserve has same address as original reserve"
     );
     assert(
@@ -179,7 +141,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
 
     // sanity check
     assert(
-      saleEscrowToken0 !== newToken.address,
+      saleEscrowToken0 !== newToken,
       "for some miraculous reason the new token has same address as original token"
     );
     assert(
@@ -189,8 +151,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying fail status", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",
@@ -250,8 +211,7 @@ describe("SaleEscrow unchangeable addresses", async function () {
   });
 
   it("should prevent 'malicious' sale contract from modifying success status", async function () {
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const saleEscrowWrapper = (await basicDeploy(
       "SaleEscrowWrapper",

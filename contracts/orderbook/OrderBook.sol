@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
-import "../vm/runtime/StandardVM.sol";
-import "../vm/runtime/LibStackTop.sol";
+import "../interpreter/run/StandardInterpreter.sol";
+import "../interpreter/run/LibStackTop.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
-import "../vm/ops/AllStandardOps.sol";
+import "../interpreter/ops/AllStandardOps.sol";
 import "./libraries/Order.sol";
+import "../idempotent/LibIdempotentFlag.sol";
+import "./OrderBookIntegrity.sol";
 
 struct DepositConfig {
     address token;
@@ -41,6 +43,8 @@ struct ClearStateChange {
     uint256 bOutput;
     uint256 aInput;
     uint256 bInput;
+    IdempotentFlag aFlag;
+    IdempotentFlag bFlag;
 }
 
 struct TakeOrderConfig {
@@ -59,8 +63,6 @@ struct TakeOrdersConfig {
 }
 
 uint256 constant LOCAL_OPS_LENGTH = 2;
-uint256 constant TRACKING_FLAG_CLEARED_ORDER = 0x1;
-uint256 constant TRACKING_FLAG_CLEARED_COUNTERPARTY = 0x2;
 
 library LibEvalContext {
     function toContext(EvalContext memory evalContext_)
@@ -74,17 +76,19 @@ library LibEvalContext {
     }
 }
 
-contract OrderBook is StandardVM {
-    using LibVMState for bytes;
+contract OrderBook is StandardInterpreter {
+    using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
+    using LibUint256Array for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
     using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibEvalContext for EvalContext;
-    using LibVMState for VMState;
+    using LibInterpreterState for InterpreterState;
+    using LibIdempotentFlag for IdempotentFlag;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -118,7 +122,9 @@ contract OrderBook is StandardVM {
     mapping(OrderHash => mapping(address => uint256))
         private clearedCounterparty;
 
-    constructor(address vmIntegrity_) StandardVM(vmIntegrity_) {}
+    constructor(address interpreterIntegrity_)
+        StandardInterpreter(interpreterIntegrity_)
+    {}
 
     function _isTracked(uint256 tracking_, uint256 mask_)
         internal
@@ -156,7 +162,7 @@ contract OrderBook is StandardVM {
 
     function addOrder(OrderConfig calldata orderConfig_) external {
         Order memory order_ = LibOrder.fromOrderConfig(
-            IRainVMIntegrity(vmIntegrity),
+            IRainInterpreterIntegrity(interpreterIntegrity),
             buildStateBytes,
             orderConfig_
         );
@@ -180,11 +186,21 @@ contract OrderBook is StandardVM {
         Order memory order_,
         uint256 outputIOIndex_,
         address counterparty_
-    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_) {
-        VMState memory vmState_ = order_.vmState.deserialize(
-            EvalContext(order_.hash(), counterparty_).toContext()
-        );
-        (orderOutputMax_, orderIORatio_) = vmState_.eval().peek2();
+    )
+        internal
+        view
+        returns (
+            uint256 orderOutputMax_,
+            uint256 orderIORatio_,
+            IdempotentFlag flag_
+        )
+    {
+        InterpreterState memory state_ = order_.interpreterState.deserialize();
+        state_.context = EvalContext(order_.hash(), counterparty_)
+            .toContext()
+            .matrixFrom();
+        flag_ = IdempotentFlag.wrap(state_.scratch);
+        (orderOutputMax_, orderIORatio_) = state_.eval().peek2();
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -200,7 +216,8 @@ contract OrderBook is StandardVM {
         uint256 inputIOIndex_,
         uint256 input_,
         uint256 outputIOIndex_,
-        uint256 output_
+        uint256 output_,
+        IdempotentFlag flag_
     ) internal {
         IO memory io_;
         if (input_ > 0) {
@@ -210,12 +227,10 @@ contract OrderBook is StandardVM {
         if (output_ > 0) {
             io_ = order_.validOutputs[outputIOIndex_];
             vaults[order_.owner][io_.token][io_.vaultId] -= output_;
-            if (_isTracked(order_.tracking, TRACKING_FLAG_CLEARED_ORDER)) {
+            if (flag_.get(FLAG_INDEX_CLEARED_ORDER)) {
                 clearedOrder[order_.hash()] += output_;
             }
-            if (
-                _isTracked(order_.tracking, TRACKING_FLAG_CLEARED_COUNTERPARTY)
-            ) {
+            if (flag_.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
                 clearedCounterparty[order_.hash()][counterparty_] += output_;
             }
         }
@@ -245,7 +260,8 @@ contract OrderBook is StandardVM {
 
             (
                 uint256 orderOutputMax_,
-                uint256 orderIORatio_
+                uint256 orderIORatio_,
+                IdempotentFlag flag_
             ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
 
             // Skip orders that are too expensive rather than revert as we have
@@ -268,7 +284,8 @@ contract OrderBook is StandardVM {
                     takeOrder_.inputIOIndex,
                     output_,
                     takeOrder_.outputIOIndex,
-                    input_
+                    input_,
+                    flag_
                 );
                 emit TakeOrder(msg.sender, takeOrder_, input_, output_);
             }
@@ -292,8 +309,6 @@ contract OrderBook is StandardVM {
         Order memory b_,
         ClearConfig calldata clearConfig_
     ) external {
-        OrderHash aHash_ = a_.hash();
-        OrderHash bHash_ = b_.hash();
         {
             require(a_.owner != b_.owner, "SAME_OWNER");
             require(
@@ -306,30 +321,30 @@ contract OrderBook is StandardVM {
                     a_.validInputs[clearConfig_.aInputIOIndex].token,
                 "TOKEN_MISMATCH"
             );
-            require(orders[aHash_].isLive(), "A_NOT_LIVE");
-            require(orders[bHash_].isLive(), "B_NOT_LIVE");
+            require(orders[a_.hash()].isLive(), "A_NOT_LIVE");
+            require(orders[b_.hash()].isLive(), "B_NOT_LIVE");
         }
 
         ClearStateChange memory stateChange_;
 
         {
-            // IORatio is input per output for both a_ and b_.
+            // `IORatio` is input per output for both `a_` and `b_`.
             uint256 aIORatio_;
             uint256 bIORatio_;
-            // a_ and b_ can both set a maximum output from the VM.
+            // `a_` and `b_` can both set a maximum output from the Interpreter.
             uint256 aOutputMax_;
             uint256 bOutputMax_;
 
-            // emit the Clear event before a_ and b_ are mutated due to the
-            // VM execution in eval.
+            // emit the Clear event before `a_` and `b_` are mutated due to the
+            // Interpreter execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            (aOutputMax_, aIORatio_) = _calculateOrderIO(
+            (aOutputMax_, aIORatio_, stateChange_.aFlag) = _calculateOrderIO(
                 a_,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (bOutputMax_, bIORatio_) = _calculateOrderIO(
+            (bOutputMax_, bIORatio_, stateChange_.bFlag) = _calculateOrderIO(
                 b_,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
@@ -357,7 +372,8 @@ contract OrderBook is StandardVM {
             clearConfig_.aInputIOIndex,
             stateChange_.aInput,
             clearConfig_.aOutputIOIndex,
-            stateChange_.aOutput
+            stateChange_.aOutput,
+            stateChange_.aFlag
         );
         _recordVaultIO(
             b_,
@@ -365,7 +381,8 @@ contract OrderBook is StandardVM {
             clearConfig_.bInputIOIndex,
             stateChange_.bInput,
             clearConfig_.bOutputIOIndex,
-            stateChange_.bOutput
+            stateChange_.bOutput,
+            stateChange_.bFlag
         );
 
         {
@@ -397,7 +414,7 @@ contract OrderBook is StandardVM {
     }
 
     function opOrderFundsCleared(
-        VMState memory,
+        InterpreterState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
@@ -415,7 +432,7 @@ contract OrderBook is StandardVM {
     }
 
     function opOrderCounterpartyFundsCleared(
-        VMState memory,
+        InterpreterState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
@@ -427,13 +444,13 @@ contract OrderBook is StandardVM {
         pure
         override
         returns (
-            function(VMState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
                 memory localFnPtrs_
         )
     {
-        localFnPtrs_ = new function(VMState memory, Operand, StackTop)
+        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
             view
             returns (StackTop)[](2);
         localFnPtrs_[0] = opOrderFundsCleared;

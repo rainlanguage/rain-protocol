@@ -3,18 +3,17 @@ import { ethers } from "hardhat";
 import type { Verify } from "../../typechain";
 import { VerifyFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import {
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils/deploy/verify/deploy";
 import { assertError } from "../../utils/test/assertError";
 
 describe("Verify admin", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should allow admins to grant others the same admin role", async function () {

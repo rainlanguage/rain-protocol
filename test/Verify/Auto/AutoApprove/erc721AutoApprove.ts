@@ -1,27 +1,37 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { AutoApproveFactory, ReserveTokenERC721 } from "../../../../typechain";
+import {
+  AutoApproveFactory,
+  ReserveTokenERC721,
+  VerifyFactory,
+} from "../../../../typechain";
 import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
+import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/autoApprove";
-import { basicDeploy } from "../../../../utils/deploy/basic";
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
   verifyDeploy,
   verifyFactoryDeploy,
-} from "../../../../utils/deploy/verify";
+} from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 
 describe("AutoApprove ERC721 ownership", async function () {
-  let autoApproveFactory: AutoApproveFactory;
   let tokenERC721: ReserveTokenERC721;
+  let autoApproveFactory: AutoApproveFactory;
+  let verifyFactory: VerifyFactory;
 
   before(async () => {
     autoApproveFactory = await autoApproveFactoryDeploy();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   beforeEach(async () => {
@@ -41,8 +51,8 @@ describe("AutoApprove ERC721 ownership", async function () {
     const signer1 = signers[4];
 
     const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const cAccount = op(Opcode.CONTEXT);
-    const cNftId = op(Opcode.CONTEXT, 1);
+    const cAccount = op(Opcode.CONTEXT, 0x0000);
+    const cNftId = op(Opcode.CONTEXT, 0x0001);
 
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
@@ -63,7 +73,6 @@ describe("AutoApprove ERC721 ownership", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     const verify = await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,

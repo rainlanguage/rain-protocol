@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { AutoApproveFactory } from "../../../../typechain";
+import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
 import {
   InitializeEvent,
   StateConfigStruct,
@@ -8,21 +8,27 @@ import {
 import {
   autoApproveDeploy,
   autoApproveFactoryDeploy,
-} from "../../../../utils/deploy/autoApprove";
+} from "../../../../utils/deploy/verify/auto/autoApprove/deploy";
 import {
   verifyDeploy,
   verifyFactoryDeploy,
-} from "../../../../utils/deploy/verify";
+} from "../../../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../../../utils/events";
-import { Opcode } from "../../../../utils/rainvm/ops/autoApproveOps";
-import { memoryOperand, MemoryType, op } from "../../../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils/interpreter/interpreter";
+import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {
   let autoApproveFactory: AutoApproveFactory;
+  let verifyFactory: VerifyFactory;
 
   before(async () => {
     autoApproveFactory = await autoApproveFactoryDeploy();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should construct and initialize correctly", async () => {
@@ -67,7 +73,6 @@ describe("AutoApprove construction", async function () {
       stateConfig
     );
 
-    const verifyFactory = await verifyFactoryDeploy();
     await verifyDeploy(deployer, verifyFactory, {
       admin: admin.address,
       callback: autoApprove.address,

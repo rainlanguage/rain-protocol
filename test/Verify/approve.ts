@@ -9,17 +9,14 @@ import {
   getBlockTimestamp,
   getEventArgs,
   verifyDeploy,
+  verifyFactoryDeploy,
 } from "../../utils";
 
 describe("Verify approve", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should not grant approver ability to remove or ban if they only have APPROVER role", async function () {

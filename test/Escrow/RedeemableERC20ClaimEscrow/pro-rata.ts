@@ -6,37 +6,29 @@ import type {
   RedeemableERC20ClaimEscrow,
   ReserveToken,
 } from "../../../typechain";
-import { MockISale, RedeemableERC20Factory } from "../../../typechain";
+import { MockISaleV2 } from "../../../typechain";
 import {
   DepositEvent,
   WithdrawEvent,
 } from "../../../typechain/contracts/escrow/RedeemableERC20ClaimEscrow";
 import * as Util from "../../../utils";
-import { getEventArgs } from "../../../utils";
-import { deployGlobals } from "../../../utils/deploy/escrow";
+import { basicDeploy, getEventArgs } from "../../../utils";
+import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
+import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { Status } from "../../../utils/types/sale";
 
 let claim: RedeemableERC20ClaimEscrow,
   reserve: ReserveToken,
-  redeemableERC20Factory: RedeemableERC20Factory,
   readWriteTier: ReadWriteTier;
 
 describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
   before(async () => {
-    ({ claim, readWriteTier } = await deployGlobals());
+    ({ claim, readWriteTier } = await escrowDeploy());
   });
 
   beforeEach(async () => {
     // some other token to put into the escrow
-    reserve = (await Util.basicDeploy("ReserveToken", {})) as ReserveToken;
-    await reserve.initialize();
-    const redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
-    await redeemableERC20Factory.deployed();
+    reserve = await reserveDeploy();
   });
 
   it("should allocate token withdrawals pro rata (sender's proportion of RedeemableERC20 total supply)", async function () {
@@ -60,8 +52,8 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
       distributionEndForwardingAddress: Util.zeroAddress,
     })) as RedeemableERC20;
 
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
+
     await sale.setToken(redeemableERC20.address);
 
     const desiredUnitsAlice = totalTokenSupply.div(4); // 25%
@@ -151,8 +143,7 @@ describe("RedeemableERC20ClaimEscrow pro-rata test", async function () {
     const alice = signers[4];
     const bob = signers[5];
 
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale = (await saleFactory.deploy()) as MockISale;
+    const sale = (await basicDeploy("MockISaleV2", {})) as MockISaleV2;
 
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(Util.ONE);
     const redeemableERC20Config = {

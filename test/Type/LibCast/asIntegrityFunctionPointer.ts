@@ -1,14 +1,13 @@
 import { assert } from "chai";
-import { ethers } from "hardhat";
 import type { LibCastTest } from "../../../typechain";
 import { randomUint256 } from "../../../utils/bytes";
+import { libCastDeploy } from "../../../utils/deploy/type/libCast/deploy";
 
 describe("LibCast asIntegrityFunctionPointer tests", async function () {
   let libCast: LibCastTest;
 
   before(async () => {
-    const libCastFactory = await ethers.getContractFactory("LibCastTest");
-    libCast = (await libCastFactory.deploy()) as LibCastTest;
+    libCast = await libCastDeploy();
   });
 
   it("retypes an integer to an integrity function pointer without corrupting memory", async function () {

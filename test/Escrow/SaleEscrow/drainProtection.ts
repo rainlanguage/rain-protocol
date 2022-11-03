@@ -1,58 +1,11 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import { MockISale } from "../../../typechain";
-import { ReadWriteTier } from "../../../typechain";
-import { RedeemableERC20ClaimEscrow } from "../../../typechain";
-import { RedeemableERC20Factory } from "../../../typechain";
-import { ReserveToken } from "../../../typechain";
-import { SaleFactory } from "../../../typechain";
-import { SaleConstructorConfigStruct } from "../../../typechain/contracts/sale/Sale";
+import { MockISaleV2, ReserveToken } from "../../../typechain";
+import { escrowDeploy } from "../../../utils/deploy/escrow/redeemableERC20ClaimEscrow/deploy";
 import { assertError } from "../../../utils/test/assertError";
 import { SaleStatus } from "../../../utils/types/saleEscrow";
 
-let redeemableERC20FactoryFactory: ContractFactory,
-  redeemableERC20Factory: RedeemableERC20Factory,
-  readWriteTierFactory: ContractFactory,
-  readWriteTier: ReadWriteTier,
-  saleConstructorConfig: SaleConstructorConfigStruct,
-  saleFactoryFactory: ContractFactory,
-  saleFactory: SaleFactory;
-
 describe("SaleEscrow protection from draining", async function () {
-  before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "StandardIntegrity"
-    );
-    const integrity = await integrityFactory.deploy();
-    await integrity.deployed();
-
-    redeemableERC20FactoryFactory = await ethers.getContractFactory(
-      "RedeemableERC20Factory",
-      {}
-    );
-    redeemableERC20Factory =
-      (await redeemableERC20FactoryFactory.deploy()) as RedeemableERC20Factory;
-    await redeemableERC20Factory.deployed();
-
-    readWriteTierFactory = await ethers.getContractFactory("ReadWriteTier");
-    readWriteTier = (await readWriteTierFactory.deploy()) as ReadWriteTier;
-    await readWriteTier.deployed();
-
-    saleConstructorConfig = {
-      maximumSaleTimeout: 1000,
-      maximumCooldownDuration: 1000,
-      redeemableERC20Factory: redeemableERC20Factory.address,
-      vmIntegrity: integrity.address,
-    };
-
-    saleFactoryFactory = await ethers.getContractFactory("SaleFactory", {});
-    saleFactory = (await saleFactoryFactory.deploy(
-      saleConstructorConfig
-    )) as SaleFactory;
-    await saleFactory.deployed();
-  });
-
   it("if a sale creates a redeemable token that doesn't freeze, it should not be possible to drain the RedeemableERC20ClaimEscrow by repeatedly claiming after moving the same funds somewhere else (in the case of failed Sale)", async function () {
     const signers = await ethers.getSigners();
 
@@ -60,11 +13,7 @@ describe("SaleEscrow protection from draining", async function () {
     const signer2 = signers[2];
 
     // Deploy global Claim contract
-    const rTKNClaimEscrowFactory = await ethers.getContractFactory(
-      "RedeemableERC20ClaimEscrow"
-    );
-    const rTKNClaimEscrow =
-      (await rTKNClaimEscrowFactory.deploy()) as RedeemableERC20ClaimEscrow;
+    const { claim: rTKNClaimEscrow } = await escrowDeploy();
 
     const tokenFactory = await ethers.getContractFactory("ReserveToken");
     const reserve = (await tokenFactory.deploy()) as ReserveToken;
@@ -75,12 +24,12 @@ describe("SaleEscrow protection from draining", async function () {
 
     await reserve.initialize();
     await rTKN.initialize();
-    const saleFactory = await ethers.getContractFactory("MockISale");
-    const sale1 = (await saleFactory.deploy()) as MockISale;
-    const sale2 = (await saleFactory.deploy()) as MockISale;
+    const saleFactory = await ethers.getContractFactory("MockISaleV2");
+    const sale1 = (await saleFactory.deploy()) as MockISaleV2;
+    const sale2 = (await saleFactory.deploy()) as MockISaleV2;
 
     // Two identical successful sales with some tokens to distribute.
-    const sales: Array<MockISale> = [sale1, sale2];
+    const sales: Array<MockISaleV2> = [sale1, sale2];
     for (const sale of sales) {
       await sale.deployed();
       await sale.setReserve(reserve.address);

@@ -11,7 +11,10 @@ import {
   REMOVER,
   REMOVER_ADMIN,
 } from "../../utils/constants/verify";
-import { verifyDeploy } from "../../utils/deploy/verify";
+import {
+  verifyDeploy,
+  verifyFactoryDeploy,
+} from "../../utils/deploy/verify/deploy";
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
@@ -19,11 +22,7 @@ describe("Verify construction", async function () {
   let verifyFactory: VerifyFactory;
 
   before(async () => {
-    const verifyFactoryFactory = await ethers.getContractFactory(
-      "VerifyFactory"
-    );
-    verifyFactory = (await verifyFactoryFactory.deploy()) as VerifyFactory;
-    await verifyFactory.deployed();
+    verifyFactory = await verifyFactoryDeploy();
   });
 
   it("should construct and initialize correctly", async function () {

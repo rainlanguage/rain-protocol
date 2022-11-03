@@ -18,15 +18,20 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
 import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
+import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 
 const Opcode = OrderBookOpcode;
 
@@ -50,12 +55,7 @@ describe("OrderBook many-to-many", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
@@ -100,7 +100,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, vaultId: aliceOutputVault },
         { token: tokenD.address, vaultId: aliceOutputVault },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -142,7 +142,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, vaultId: bobInputVault },
         { token: tokenC.address, vaultId: bobInputVault },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
@@ -267,6 +267,8 @@ describe("OrderBook many-to-many", async function () {
       bOutput: bOutputExpected0,
       aInput: fixedPointMul(askPrice, aOutputExpected0),
       bInput: fixedPointMul(bidPrice, bOutputExpected0),
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender0 === bountyBot.address);
@@ -320,6 +322,8 @@ describe("OrderBook many-to-many", async function () {
       bOutput: dOutputExpected1,
       aInput: fixedPointMul(askPrice, cOutputExpected1),
       bInput: fixedPointMul(bidPrice, dOutputExpected1),
+      aFlag: 0,
+      bFlag: 0,
     };
 
     assert(clearSender1 === bountyBot.address);
@@ -367,7 +371,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, vaultId: aliceVaultB },
         { token: tokenA.address, vaultId: aliceVaultA },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -409,7 +413,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, vaultId: bobVaultA },
         { token: tokenB.address, vaultId: bobVaultB },
       ],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },

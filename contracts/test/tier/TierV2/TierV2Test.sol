@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.15;
+pragma solidity =0.8.17;
 
 import {TierV2} from "../../../tier/TierV2.sol";
 import {ITierV2} from "../../../tier/ITierV2.sol";
@@ -26,11 +26,11 @@ contract TierV2Test is TierV2 {
     }
 
     /// @inheritdoc ITierV2
-    function reportTimeForTier(
-        address,
-        uint256,
-        uint256[] calldata
-    ) external view returns (uint256) {
+    function reportTimeForTier(address, uint256, uint256[] calldata)
+        external
+        view
+        returns (uint256)
+    {
         return block.timestamp;
     }
 }

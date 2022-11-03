@@ -22,10 +22,15 @@ import {
   max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basic";
+import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
 import { getEventArgs, getEvents } from "../../utils/events";
-import { OrderBookOpcode } from "../../utils/rainvm/ops/orderBookOps";
-import { memoryOperand, MemoryType, op } from "../../utils/rainvm/vm";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../utils/interpreter/interpreter";
+import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = OrderBookOpcode;
@@ -44,12 +49,7 @@ describe("OrderBook take orders", async function () {
   });
 
   before(async () => {
-    const integrityFactory = await ethers.getContractFactory(
-      "OrderBookIntegrity"
-    );
-    integrity = (await integrityFactory.deploy()) as OrderBookIntegrity;
-    await integrity.deployed();
-
+    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
@@ -90,7 +90,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -98,7 +98,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -218,7 +218,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -226,7 +226,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -376,7 +376,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -384,7 +384,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -520,7 +520,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -528,7 +528,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
@@ -698,7 +698,7 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      vmStateConfig: {
+      interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
