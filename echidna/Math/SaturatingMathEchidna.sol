@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CAL
-pragma solidity 0.8.17;
+pragma solidity =0.8.17;
 
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
 
 /// @title SaturingMathEchidna
 /// Wrapper around the `SaturatingMath` library for echidna fuzz testing.
 contract SaturatingMathEchidna {
-    function checkSaturatingAdd(uint256 a, uint256 b) external pure {
+    function SaturatingAdd(uint256 a, uint256 b) external pure {
         uint256 c = SaturatingMath.saturatingAdd(a, b);
 
         if (a >= b) {
@@ -16,7 +16,7 @@ contract SaturatingMathEchidna {
         }
     }
 
-    function checkSaturatingSub(uint256 a, uint256 b) external pure {
+    function SaturatingSub(uint256 a, uint256 b) external pure {
         uint256 c = SaturatingMath.saturatingSub(a, b);
 
         if (a > b) {
@@ -26,7 +26,7 @@ contract SaturatingMathEchidna {
         }
     }
 
-    function checkSaturatingMul(uint256 a, uint256 b) external pure {
+    function SaturatingMul(uint256 a, uint256 b) external pure {
         uint256 c = SaturatingMath.saturatingMul(a, b);
 
         if (a == 0 || b == 0) {
