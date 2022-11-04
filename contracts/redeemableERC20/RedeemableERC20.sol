@@ -136,7 +136,7 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// The minimum supply enforced by the constructor is "one" token which is
     /// `10 ** 18`.
     /// The minimum supply does not prevent subsequent redemption/burning.
-    uint256 private constant MINIMUM_INITIAL_SUPPLY = 10**18;
+    uint256 private constant MINIMUM_INITIAL_SUPPLY = 10 ** 18;
 
     /// Tier contract that produces the report that `minimumTier` is checked
     /// against.
@@ -162,10 +162,9 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// Mint the full ERC20 token supply and configure basic transfer
     /// restrictions. Initializes all base contracts.
     /// @param config_ Initialized configuration.
-    function initialize(RedeemableERC20Config calldata config_)
-        external
-        initializer
-    {
+    function initialize(
+        RedeemableERC20Config calldata config_
+    ) external initializer {
         initializePhased();
 
         tier = ITierV2(config_.tier);
@@ -269,11 +268,9 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// tokens to exist before the trading pool can be built.
     /// @param distributor_ The distributor according to the admin.
     /// BURN the tokens if `address(0)`.
-    function endDistribution(address distributor_)
-        external
-        onlyPhase(PHASE_DISTRIBUTING)
-        onlyAdmin
-    {
+    function endDistribution(
+        address distributor_
+    ) external onlyPhase(PHASE_DISTRIBUTING) onlyAdmin {
         schedulePhase(PHASE_FROZEN, block.timestamp);
         address forwardTo_ = distributionEndForwardingAddress;
         uint256 distributorBalance_ = balanceOf(distributor_);
@@ -292,10 +289,10 @@ contract RedeemableERC20 is Initializable, Phased, ERC20Redeem {
     /// empty or incomplete then tokens will be permanently burned for no
     /// reason by the caller and the remaining funds will be effectively
     /// redistributed to everyone else.
-    function redeem(IERC20[] calldata treasuryAssets_, uint256 redeemAmount_)
-        external
-        onlyPhase(PHASE_FROZEN)
-    {
+    function redeem(
+        IERC20[] calldata treasuryAssets_,
+        uint256 redeemAmount_
+    ) external onlyPhase(PHASE_FROZEN) {
         _redeem(treasuryAssets_, redeemAmount_);
     }
 

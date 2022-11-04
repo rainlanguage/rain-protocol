@@ -29,11 +29,11 @@ library OpHash {
 
     // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function hash(InterpreterState memory, Operand operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function hash(
+        InterpreterState memory,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_hash, Operand.unwrap(operand_));
     }
 }

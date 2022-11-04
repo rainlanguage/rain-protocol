@@ -9,11 +9,10 @@ library LibChainlink {
     using SafeCast for int256;
     using FixedPointMath for uint256;
 
-    function price(address feed_, uint256 staleAfter_)
-        internal
-        view
-        returns (uint256 price_)
-    {
+    function price(
+        address feed_,
+        uint256 staleAfter_
+    ) internal view returns (uint256 price_) {
         (, int256 answer_, , uint256 updatedAt_, ) = AggregatorV3Interface(
             feed_
         ).latestRoundData();

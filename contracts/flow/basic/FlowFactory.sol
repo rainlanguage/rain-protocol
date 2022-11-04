@@ -21,12 +21,9 @@ contract FlowFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
         address clone_ = Clones.clone(implementation);
         Flow(payable(clone_)).initialize(config_);
@@ -39,10 +36,9 @@ contract FlowFactory is Factory {
     ///
     /// @param config_ `Flow` constructor configuration.
     /// @return New `Flow` child contract address.
-    function createChildTyped(FlowConfig memory config_)
-        external
-        returns (Flow)
-    {
+    function createChildTyped(
+        FlowConfig memory config_
+    ) external returns (Flow) {
         return Flow(payable(createChild(abi.encode(config_))));
     }
 }

@@ -13,11 +13,10 @@ library OpFixedPointScaleN {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _scaleN(Operand operand_, uint256 a_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _scaleN(
+        Operand operand_,
+        uint256 a_
+    ) internal pure returns (uint256) {
         return a_.scaleN(Operand.unwrap(operand_));
     }
 

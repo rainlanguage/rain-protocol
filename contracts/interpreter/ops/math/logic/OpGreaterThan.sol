@@ -12,11 +12,10 @@ library OpGreaterThan {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _greaterThan(uint256 a_, uint256 b_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _greaterThan(
+        uint256 a_,
+        uint256 b_
+    ) internal pure returns (uint256) {
         return (a_ > b_).asUint256();
     }
 
@@ -28,11 +27,11 @@ library OpGreaterThan {
         return integrityState_.applyFn(stackTop_, _greaterThan);
     }
 
-    function greaterThan(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function greaterThan(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_greaterThan);
     }
 }

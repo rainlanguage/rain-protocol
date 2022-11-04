@@ -40,16 +40,15 @@ contract CombineTier is TierV2, StandardInterpreter {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {
+    constructor(
+        address interpreterIntegrity_
+    ) StandardInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
-    function initialize(CombineTierConfig calldata config_)
-        external
-        initializer
-    {
+    function initialize(
+        CombineTierConfig calldata config_
+    ) external initializer {
         __TierV2_init();
         _saveInterpreterState(
             config_.sourceConfig,
@@ -74,13 +73,10 @@ contract CombineTier is TierV2, StandardInterpreter {
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_, uint256[] memory context_)
-        external
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function report(
+        address account_,
+        uint256[] memory context_
+    ) external view virtual override returns (uint256) {
         uint256[][] memory interpreterContext_ = new uint256[][](2);
         interpreterContext_[0] = uint256(uint160(account_)).arrayFrom();
         interpreterContext_[1] = context_;

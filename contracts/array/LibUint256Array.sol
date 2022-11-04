@@ -24,11 +24,10 @@ library LibUint256Array {
     /// @param a_ the first integer to build an array around.
     /// @param b_ the second integer to build an array around.
     /// @return the newly allocated array including a_ and b_ as the only items.
-    function arrayFrom(uint256 a_, uint256 b_)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](2);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -37,11 +36,11 @@ library LibUint256Array {
         return array_;
     }
 
-    function arrayFrom(uint256 a_, uint256 b_, uint256 c_)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](3);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -51,11 +50,12 @@ library LibUint256Array {
         return array_;
     }
 
-    function arrayFrom(uint256 a_, uint256 b_, uint256 c_, uint256 d_)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_,
+        uint256 d_
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](4);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -89,11 +89,10 @@ library LibUint256Array {
     /// @param a_ The head of the new array.
     /// @param tail_ The tail of the new array.
     /// @return The new array.
-    function arrayFrom(uint256 a_, uint256[] memory tail_)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256[] memory tail_
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](1);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -108,11 +107,11 @@ library LibUint256Array {
     /// @param b_ The second item of the new array.
     /// @param tail_ The tail of the new array.
     /// @return The new array.
-    function arrayFrom(uint256 a_, uint256 b_, uint256[] memory tail_)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256[] memory tail_
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](2);
         assembly ("memory-safe") {
             mstore(add(array_, 0x20), a_)
@@ -122,11 +121,9 @@ library LibUint256Array {
         return array_;
     }
 
-    function matrixFrom(uint256[] memory a_)
-        internal
-        pure
-        returns (uint256[][] memory)
-    {
+    function matrixFrom(
+        uint256[] memory a_
+    ) internal pure returns (uint256[][] memory) {
         uint256[][] memory matrix_ = new uint256[][](1);
         assembly ("memory-safe") {
             mstore(add(matrix_, 0x20), a_)
@@ -144,10 +141,10 @@ library LibUint256Array {
     /// no new allocation or copying of data either.
     /// @param array_ The array to truncate.
     /// @param newLength_ The new length of the array after truncation.
-    function truncate(uint256[] memory array_, uint256 newLength_)
-        internal
-        pure
-    {
+    function truncate(
+        uint256[] memory array_,
+        uint256 newLength_
+    ) internal pure {
         require(newLength_ <= array_.length, "OOB_TRUNCATE");
         assembly ("memory-safe") {
             mstore(array_, newLength_)
@@ -169,10 +166,10 @@ library LibUint256Array {
     /// i.e. the `new` keyword MUST appear in the same code block as `extend`.
     /// @param base_ The base integer array that will be extended by `extend_`.
     /// @param extend_ The integer array that extends `base_`.
-    function extend(uint256[] memory base_, uint256[] memory extend_)
-        internal
-        pure
-    {
+    function extend(
+        uint256[] memory base_,
+        uint256[] memory extend_
+    ) internal pure {
         uint256 freeMemoryPointer_;
         assembly ("memory-safe") {
             // Solidity stores free memory pointer at 0x40
@@ -214,10 +211,10 @@ library LibUint256Array {
     /// length at the start of the array in memory.
     /// @param outputCursor_ Location in memory that the values will be copied
     /// to linearly.
-    function unsafeCopyValuesTo(uint256[] memory inputs_, uint256 outputCursor_)
-        internal
-        pure
-    {
+    function unsafeCopyValuesTo(
+        uint256[] memory inputs_,
+        uint256 outputCursor_
+    ) internal pure {
         uint256 inputCursor_;
         assembly ("memory-safe") {
             inputCursor_ := add(inputs_, 0x20)
@@ -237,11 +234,10 @@ library LibUint256Array {
     /// @param length_ Number of 32 byte words to copy starting at
     /// `inputCursor_` to the items of the newly allocated array.
     /// @return The newly allocated `uint256[]` array.
-    function copyToNewUint256Array(uint256 inputCursor_, uint256 length_)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function copyToNewUint256Array(
+        uint256 inputCursor_,
+        uint256 length_
+    ) internal pure returns (uint256[] memory) {
         uint256[] memory outputs_ = new uint256[](length_);
         uint256 outputCursor_;
         assembly ("memory-safe") {

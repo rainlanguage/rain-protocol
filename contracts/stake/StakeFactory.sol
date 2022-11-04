@@ -20,12 +20,9 @@ contract StakeFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         StakeConfig memory config_ = abi.decode(data_, (StakeConfig));
         address clone_ = Clones.clone(implementation);
         Stake(clone_).initialize(config_);
@@ -38,10 +35,9 @@ contract StakeFactory is Factory {
     ///
     /// @param config_ `Stake` initializer configuration.
     /// @return New `Stake` child contract.
-    function createChildTyped(StakeConfig memory config_)
-        external
-        returns (Stake)
-    {
+    function createChildTyped(
+        StakeConfig memory config_
+    ) external returns (Stake) {
         return Stake(createChild(abi.encode(config_)));
     }
 }

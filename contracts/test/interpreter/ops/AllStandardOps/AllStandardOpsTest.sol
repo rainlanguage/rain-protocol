@@ -27,9 +27,9 @@ contract AllStandardOpsTest is StandardInterpreter {
     uint256[] private _stack;
     uint256 private _stackIndex;
 
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {}
+    constructor(
+        address interpreterIntegrity_
+    ) StandardInterpreter(interpreterIntegrity_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.

@@ -21,7 +21,9 @@ library LibCast {
     /// Retype an integer to an opcode function pointer.
     /// @param i_ The integer to cast to an opcode function pointer.
     /// @return fn_ The opcode function pointer.
-    function asOpFunctionPointer(uint256 i_)
+    function asOpFunctionPointer(
+        uint256 i_
+    )
         internal
         pure
         returns (
@@ -39,7 +41,9 @@ library LibCast {
     /// @param is_ The array of integers to cast to an array of opcode fuction
     /// pointers.
     /// @return fns_ The array of opcode function pointers.
-    function asOpcodeFunctionPointers(uint256[] memory is_)
+    function asOpcodeFunctionPointers(
+        uint256[] memory is_
+    )
         internal
         pure
         returns (
@@ -57,7 +61,9 @@ library LibCast {
     /// Retype an integer to an integrity function pointer.
     /// @param i_ The integer to cast to an integrity function pointer.
     /// @return fn_ The integrity function pointer.
-    function asIntegrityFunctionPointer(uint256 i_)
+    function asIntegrityFunctionPointer(
+        uint256 i_
+    )
         internal
         pure
         returns (
@@ -75,7 +81,9 @@ library LibCast {
     /// Retype an integer to a pointer to the interpreter eval function.
     /// @param i_ The integer to cast to the eval function.
     /// @return fn_ The eval function.
-    function asEvalFunctionPointer(uint256 i_)
+    function asEvalFunctionPointer(
+        uint256 i_
+    )
         internal
         pure
         returns (
@@ -103,11 +111,9 @@ library LibCast {
     /// so MUST ONLY be called in an appropriate context once restored.
     /// @param fn_ The stack move function pointer to integerify.
     /// @return i_ The integer of the function pointer.
-    function asUint256(function(uint256) view returns (uint256) fn_)
-        internal
-        pure
-        returns (uint256 i_)
-    {
+    function asUint256(
+        function(uint256) view returns (uint256) fn_
+    ) internal pure returns (uint256 i_) {
         assembly ("memory-safe") {
             i_ := fn_
         }
@@ -171,17 +177,17 @@ library LibCast {
         }
     }
 
-    function asAddresses(uint256[] memory is_)
-        internal
-        pure
-        returns (address[] memory addresses_)
-    {
+    function asAddresses(
+        uint256[] memory is_
+    ) internal pure returns (address[] memory addresses_) {
         assembly ("memory-safe") {
             addresses_ := is_
         }
     }
 
-    function asIntegrityPointers(uint256[] memory is_)
+    function asIntegrityPointers(
+        uint256[] memory is_
+    )
         internal
         pure
         returns (

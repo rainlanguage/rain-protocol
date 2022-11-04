@@ -252,9 +252,11 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param token_ The `IERC20` token to deposit to the escrow.
     /// @param amount_ The amount of token to despoit. Requires depositor has
     /// approved at least this amount to succeed.
-    function depositPending(address sale_, address token_, uint256 amount_)
-        external
-    {
+    function depositPending(
+        address sale_,
+        address token_,
+        uint256 amount_
+    ) external {
         require(amount_ > 0, "ZERO_DEPOSIT");
         require(escrowStatus(sale_) == EscrowStatus.Pending, "NOT_PENDING");
         pendingDeposits[sale_][token_][msg.sender] += amount_;
@@ -315,9 +317,11 @@ contract RedeemableERC20ClaimEscrow is SaleEscrow {
     /// @param sale_ The sale to sweep all pending deposits for.
     /// @param token_ The token to sweep into registered deposits.
     /// @param depositor_ The depositor to sweep registered deposits under.
-    function sweepPending(address sale_, address token_, address depositor_)
-        external
-    {
+    function sweepPending(
+        address sale_,
+        address token_,
+        address depositor_
+    ) external {
         uint256 amount_ = pendingDeposits[sale_][token_][depositor_];
         delete pendingDeposits[sale_][token_][depositor_];
         emit Sweep(

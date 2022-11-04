@@ -12,11 +12,11 @@ library OpIOrderBookV1ClearedCounterparty {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function f(uint256 orderbook_, uint orderHash_, uint counterparty_)
-        internal
-        view
-        returns (uint256)
-    {
+    function f(
+        uint256 orderbook_,
+        uint orderHash_,
+        uint counterparty_
+    ) internal view returns (uint256) {
         return
             uint256(
                 uint160(
@@ -37,11 +37,11 @@ library OpIOrderBookV1ClearedCounterparty {
         return integrityState_.applyFn(stackTop_, f);
     }
 
-    function run(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function run(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(f);
     }
 }

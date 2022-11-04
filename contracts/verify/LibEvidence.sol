@@ -23,11 +23,9 @@ library LibEvidence {
         }
     }
 
-    function asEvidences(uint256[] memory refs_)
-        internal
-        pure
-        returns (Evidence[] memory evidences_)
-    {
+    function asEvidences(
+        uint256[] memory refs_
+    ) internal pure returns (Evidence[] memory evidences_) {
         assembly ("memory-safe") {
             evidences_ := refs_
         }

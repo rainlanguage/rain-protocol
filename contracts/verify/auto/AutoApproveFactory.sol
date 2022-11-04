@@ -26,12 +26,9 @@ contract AutoApproveFactory is Factory {
     /// attempting to call the autoapprover callbacks, otherwise every
     /// callback will revert.
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         StateConfig memory config_ = abi.decode(data_, (StateConfig));
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
@@ -45,10 +42,9 @@ contract AutoApproveFactory is Factory {
     ///
     /// @param config_ initialize configuration.
     /// @return New `AutoApprove` child contract.
-    function createChildTyped(StateConfig memory config_)
-        external
-        returns (AutoApprove)
-    {
+    function createChildTyped(
+        StateConfig memory config_
+    ) external returns (AutoApprove) {
         return AutoApprove(createChild(abi.encode(config_)));
     }
 }

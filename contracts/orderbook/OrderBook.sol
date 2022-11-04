@@ -104,11 +104,10 @@ contract OrderBook is IOrderBookV1 {
     /// @inheritdoc IOrderBookV1
     mapping(uint => mapping(address => uint256)) public clearedCounterparty;
 
-    function _isTracked(uint256 tracking_, uint256 mask_)
-        internal
-        pure
-        returns (bool)
-    {
+    function _isTracked(
+        uint256 tracking_,
+        uint256 mask_
+    ) internal pure returns (bool) {
         return (tracking_ & mask_) > 0;
     }
 
@@ -230,10 +229,9 @@ contract OrderBook is IOrderBookV1 {
         }
     }
 
-    function takeOrders(TakeOrdersConfig calldata takeOrders_)
-        external
-        returns (uint256 totalInput_, uint256 totalOutput_)
-    {
+    function takeOrders(
+        TakeOrdersConfig calldata takeOrders_
+    ) external returns (uint256 totalInput_, uint256 totalOutput_) {
         uint256 i_ = 0;
         TakeOrderConfig memory takeOrder_;
         Order memory order_;

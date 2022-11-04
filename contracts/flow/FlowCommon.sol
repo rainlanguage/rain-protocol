@@ -55,10 +55,9 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     }
 
     // solhint-disable-next-line func-name-mixedcase
-    function __FlowCommon_init(FlowCommonConfig memory config_)
-        internal
-        onlyInitializing
-    {
+    function __FlowCommon_init(
+        FlowCommonConfig memory config_
+    ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();
         __Multicall_init();
@@ -86,11 +85,10 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         }
     }
 
-    function _buildFlowBaseContext(address flow_, uint256 id_)
-        internal
-        view
-        returns (uint256[] memory)
-    {
+    function _buildFlowBaseContext(
+        address flow_,
+        uint256 id_
+    ) internal view returns (uint256[] memory) {
         IdempotentFlag contextScratch_ = _flowContextScratches[flow_];
 
         // THIS IS A CRITICAL SECURITY CHECK. REMOVING THIS ALLOWS ARBITRARY
@@ -156,30 +154,31 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         }
     }
 
-    function loadFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
-        internal
-        view
-        returns (uint256)
-    {
+    function loadFlowTime(
+        IdempotentFlag flag_,
+        address flow_,
+        uint256 id_
+    ) internal view returns (uint256) {
         return
             flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)
                 ? _flowTimes[flow_][id_]
                 : 0;
     }
 
-    function registerFlowTime(IdempotentFlag flag_, address flow_, uint256 id_)
-        internal
-    {
+    function registerFlowTime(
+        IdempotentFlag flag_,
+        address flow_,
+        uint256 id_
+    ) internal {
         if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
             _flowTimes[flow_][id_] = block.timestamp;
         }
     }
 
-    function _flowTime(address flow_, uint256 id_)
-        internal
-        view
-        returns (uint256 flowTime_)
-    {
+    function _flowTime(
+        address flow_,
+        uint256 id_
+    ) internal view returns (uint256 flowTime_) {
         return _flowTimes[flow_][id_];
     }
 

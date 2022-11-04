@@ -12,11 +12,9 @@ library LibConvert {
     /// the length in situ as the integer array length is measured in 32 byte
     /// increments while the length of `bytes` is the literal number of bytes.
     /// @return bytes_ The integer array converted to `bytes` data.
-    function toBytes(uint256[] memory is_)
-        internal
-        pure
-        returns (bytes memory bytes_)
-    {
+    function toBytes(
+        uint256[] memory is_
+    ) internal pure returns (bytes memory bytes_) {
         assembly ("memory-safe") {
             bytes_ := is_
             // Length in bytes is 32x the length in uint256
@@ -24,11 +22,9 @@ library LibConvert {
         }
     }
 
-    function unsafeTo16BitBytes(uint256[] memory is_)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function unsafeTo16BitBytes(
+        uint256[] memory is_
+    ) internal pure returns (bytes memory) {
         unchecked {
             // We will keep 2 bytes (16 bits) from each integer.
             bytes memory bytes_ = new bytes(is_.length * 2);

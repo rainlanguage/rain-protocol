@@ -12,11 +12,12 @@ library OpIOrderBookV1VaultBalance {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function f(uint256 orderbook_, uint owner_, uint token_, uint id_)
-        internal
-        view
-        returns (uint256)
-    {
+    function f(
+        uint256 orderbook_,
+        uint owner_,
+        uint token_,
+        uint id_
+    ) internal view returns (uint256) {
         return
             uint256(
                 uint160(
@@ -37,11 +38,11 @@ library OpIOrderBookV1VaultBalance {
         return integrityState_.applyFn(stackTop_, f);
     }
 
-    function run(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function run(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(f);
     }
 }

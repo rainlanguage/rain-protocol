@@ -23,12 +23,9 @@ contract PhasedTest is Phased {
     /// modifier argument.
     /// @param phase_ Modifier MUST error if current phase is not `phase_`.
     /// @return Always true if not error.
-    function runsOnlyPhase(uint256 phase_)
-        external
-        view
-        onlyPhase(phase_)
-        returns (bool)
-    {
+    function runsOnlyPhase(
+        uint256 phase_
+    ) external view onlyPhase(phase_) returns (bool) {
         return true;
     }
 
@@ -37,12 +34,9 @@ contract PhasedTest is Phased {
     /// @param phase_ Modifier MUST error if current phase is not AT LEAST
     /// `phase_`.
     /// @return Always true if not error.
-    function runsOnlyAtLeastPhase(uint256 phase_)
-        external
-        view
-        onlyAtLeastPhase(phase_)
-        returns (bool)
-    {
+    function runsOnlyAtLeastPhase(
+        uint256 phase_
+    ) external view onlyAtLeastPhase(phase_) returns (bool) {
         return true;
     }
 

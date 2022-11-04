@@ -10,11 +10,9 @@ contract LibCommitmentTest {
         eq_ = LibCommitment.eq(a_, b_);
     }
 
-    function fromSecret(Secret secret_)
-        external
-        pure
-        returns (Commitment commitment_)
-    {
+    function fromSecret(
+        Secret secret_
+    ) external pure returns (Commitment commitment_) {
         commitment_ = LibCommitment.fromSecret(secret_);
     }
 

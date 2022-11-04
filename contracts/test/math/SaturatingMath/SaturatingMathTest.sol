@@ -13,11 +13,10 @@ contract SaturatingMathTest {
     /// @param a_ First term.
     /// @param b_ Second term.
     /// @return Minimum of a_ + b_ and max uint256.
-    function saturatingAdd(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
+    function saturatingAdd(
+        uint256 a_,
+        uint256 b_
+    ) external pure returns (uint256) {
         unchecked {
             return a_.saturatingAdd(b_);
         }
@@ -28,11 +27,10 @@ contract SaturatingMathTest {
     /// @param a_ Minuend.
     /// @param b_ Subtrahend.
     /// @return a_ - b_ if a_ greater than b_, else 0.
-    function saturatingSub(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
+    function saturatingSub(
+        uint256 a_,
+        uint256 b_
+    ) external pure returns (uint256) {
         unchecked {
             return a_.saturatingSub(b_);
         }
@@ -43,11 +41,10 @@ contract SaturatingMathTest {
     /// @param a_ First term.
     /// @param b_ Second term.
     /// @return Minimum of a_ * b_ and max uint256.
-    function saturatingMul(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
+    function saturatingMul(
+        uint256 a_,
+        uint256 b_
+    ) external pure returns (uint256) {
         unchecked {
             return a_.saturatingMul(b_);
         }

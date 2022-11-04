@@ -20,12 +20,9 @@ contract FlowERC20Factory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         FlowERC20Config memory config_ = abi.decode(data_, (FlowERC20Config));
         address clone_ = Clones.clone(implementation);
         FlowERC20(payable(clone_)).initialize(config_);
@@ -38,10 +35,9 @@ contract FlowERC20Factory is Factory {
     ///
     /// @param config_ `FlowERC20` constructor configuration.
     /// @return New `FlowERC20` child contract address.
-    function createChildTyped(FlowERC20Config memory config_)
-        external
-        returns (FlowERC20)
-    {
+    function createChildTyped(
+        FlowERC20Config memory config_
+    ) external returns (FlowERC20) {
         return FlowERC20(payable(createChild(abi.encode(config_))));
     }
 }

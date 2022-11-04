@@ -24,11 +24,11 @@ library OpLessThan {
         return integrityState_.applyFn(stackTop_, _lessThan);
     }
 
-    function lessThan(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function lessThan(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_lessThan);
     }
 }

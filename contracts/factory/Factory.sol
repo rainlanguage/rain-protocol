@@ -33,10 +33,9 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// arguments and pass them to this function directly.
     ///
     /// @param data_ ABI encoded data to pass to child contract constructor.
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        returns (address);
+    function _createChild(
+        bytes memory data_
+    ) internal virtual returns (address);
 
     /// Implements `IFactory`.
     ///
@@ -46,13 +45,9 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     ///
     /// @param data_ Encoded data to pass down to child contract constructor.
     /// @return New child contract address.
-    function createChild(bytes memory data_)
-        public
-        virtual
-        override
-        nonReentrant
-        returns (address)
-    {
+    function createChild(
+        bytes memory data_
+    ) public virtual override nonReentrant returns (address) {
         // Create child contract using hook.
         address child_ = _createChild(data_);
         // Ensure the child at this address has not previously been deployed.
@@ -71,13 +66,9 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     /// @param maybeChild_ Address of child contract to look up.
     /// @return Returns `true` if address is a contract created by this
     /// contract factory, otherwise `false`.
-    function isChild(address maybeChild_)
-        external
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function isChild(
+        address maybeChild_
+    ) external view virtual override returns (bool) {
         return contracts[maybeChild_];
     }
 }

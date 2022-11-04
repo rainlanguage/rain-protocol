@@ -42,10 +42,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     address internal _expression;
 
-    function initialize(FlowERC1155Config calldata config_)
-        external
-        initializer
-    {
+    function initialize(
+        FlowERC1155Config calldata config_
+    ) external initializer {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
@@ -60,13 +59,9 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
     /// multiple base contracts.
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC1155, ERC1155Receiver)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155, ERC1155Receiver) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 

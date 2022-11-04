@@ -118,11 +118,10 @@ contract Phased {
     /// @param phase_ Determine the relevant block number for this phase.
     /// @return timestamp_ The timestamp for the phase according to
     /// `phaseTimes_`.
-    function timeForPhase(uint32[MAX_PHASE] memory phaseTimes_, uint256 phase_)
-        public
-        pure
-        returns (uint256 timestamp_)
-    {
+    function timeForPhase(
+        uint32[MAX_PHASE] memory phaseTimes_,
+        uint256 phase_
+    ) public pure returns (uint256 timestamp_) {
         timestamp_ = phase_ > 0 ? phaseTimes_[phase_ - 1] : 0;
     }
 

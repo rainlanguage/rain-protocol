@@ -16,7 +16,7 @@ contract ReserveToken is ERC20, ERC20Burnable {
     // Stables such as USDT and USDC commonly have 6 decimals.
     uint256 public constant DECIMALS = 6;
     // One _billion_ dollars 👷😈.
-    uint256 public constant TOTAL_SUPPLY = 10**(DECIMALS + 9);
+    uint256 public constant TOTAL_SUPPLY = 10 ** (DECIMALS + 9);
 
     /// Define and mint the erc20 token.
     function initialize() external initializer {

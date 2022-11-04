@@ -13,11 +13,11 @@ library OpFixedPointScale18Mul {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _scale18Mul(Operand operand_, uint256 a_, uint256 b_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _scale18Mul(
+        Operand operand_,
+        uint256 a_,
+        uint256 b_
+    ) internal pure returns (uint256) {
         return a_.scale18(Operand.unwrap(operand_)).fixedPointMul(b_);
     }
 
