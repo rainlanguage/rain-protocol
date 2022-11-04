@@ -11,7 +11,6 @@ import type {
 import {
   AfterClearEvent,
   ClearConfigStruct,
-  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,

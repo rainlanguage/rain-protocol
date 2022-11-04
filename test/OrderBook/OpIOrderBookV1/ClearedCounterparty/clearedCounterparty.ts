@@ -1,7 +1,6 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { ethers } from "hardhat";
 import { AllStandardOpsTest, OrderBook } from "../../../../typechain";
 import {
   AllStandardOps,
