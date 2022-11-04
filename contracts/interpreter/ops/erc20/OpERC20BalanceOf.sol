@@ -12,11 +12,10 @@ library OpERC20BalanceOf {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _balanceOf(uint256 token_, uint256 account_)
-        internal
-        view
-        returns (uint256)
-    {
+    function _balanceOf(
+        uint256 token_,
+        uint256 account_
+    ) internal view returns (uint256) {
         return
             IERC20(address(uint160(token_))).balanceOf(
                 address(uint160(account_))
@@ -32,11 +31,11 @@ library OpERC20BalanceOf {
     }
 
     /// Stack `balanceOf`.
-    function balanceOf(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function balanceOf(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_balanceOf);
     }
 }

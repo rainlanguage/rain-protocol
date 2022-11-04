@@ -5,35 +5,32 @@ import {Random} from "../../contracts/math/Random.sol";
 import "../../contracts/sstore2/SSTORE2.sol";
 
 contract RamdonTest {
-    function microLottery(uint256 seed_, uint256 max_, uint256 n_)
-        external
-        pure
-        returns (uint256 item_)
-    {
+    function microLottery(
+        uint256 seed_,
+        uint256 max_,
+        uint256 n_
+    ) external pure returns (uint256 item_) {
         return Random.microLottery(seed_, max_, n_);
     }
 
-    function randomId(uint256 seed_, uint256 index_)
-        external
-        pure
-        returns (uint256 item_)
-    {
+    function randomId(
+        uint256 seed_,
+        uint256 index_
+    ) external pure returns (uint256 item_) {
         return Random.randomId(seed_, index_);
     }
 
-    function shuffle(uint256 seed_, uint256 len_)
-        external
-        pure
-        returns (bytes memory shuffled_)
-    {
+    function shuffle(
+        uint256 seed_,
+        uint256 len_
+    ) external pure returns (bytes memory shuffled_) {
         return Random.shuffle(seed_, len_);
     }
 
-    function shuffleIdAtIndex(address ptr_, uint256 index_)
-        external
-        view
-        returns (uint256 id_)
-    {
+    function shuffleIdAtIndex(
+        address ptr_,
+        uint256 index_
+    ) external view returns (uint256 id_) {
         return Random.shuffleIdAtIndex(ptr_, index_);
     }
 }

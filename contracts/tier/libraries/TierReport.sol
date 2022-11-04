@@ -41,11 +41,10 @@ library TierReport {
     /// @param report_ A report as per `ITierV2`.
     /// @param timestamp_ The timestamp to check the tiers against.
     /// @return tier_ The highest tier held since `timestamp_` as per `report`.
-    function tierAtTimeFromReport(uint256 report_, uint256 timestamp_)
-        internal
-        pure
-        returns (uint256 tier_)
-    {
+    function tierAtTimeFromReport(
+        uint256 report_,
+        uint256 timestamp_
+    ) internal pure returns (uint256 tier_) {
         unchecked {
             for (tier_ = 0; tier_ < 8; tier_++) {
                 if (uint32(uint256(report_ >> (tier_ * 32))) > timestamp_) {
@@ -64,12 +63,10 @@ library TierReport {
     /// @param report_ The report to read a timestamp from.
     /// @param tier_ The Tier to read the timestamp for.
     /// @return timestamp_ The timestamp the tier has been held since.
-    function reportTimeForTier(uint256 report_, uint256 tier_)
-        internal
-        pure
-        maxTier(tier_)
-        returns (uint256 timestamp_)
-    {
+    function reportTimeForTier(
+        uint256 report_,
+        uint256 tier_
+    ) internal pure maxTier(tier_) returns (uint256 timestamp_) {
         unchecked {
             // ZERO is a special case. Everyone has always been at least ZERO,
             // since block 0.
@@ -87,12 +84,10 @@ library TierReport {
     /// @param report_ Report to truncate with high bit 1s.
     /// @param tier_ Tier to truncate above (exclusive).
     /// @return Truncated report.
-    function truncateTiersAbove(uint256 report_, uint256 tier_)
-        internal
-        pure
-        maxTier(tier_)
-        returns (uint256)
-    {
+    function truncateTiersAbove(
+        uint256 report_,
+        uint256 tier_
+    ) internal pure maxTier(tier_) returns (uint256) {
         unchecked {
             uint256 offset_ = tier_ * 32;
             uint256 mask_ = (TierConstants.NEVER_REPORT >> offset_) << offset_;

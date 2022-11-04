@@ -24,11 +24,11 @@ library OpMax {
             integrityState_.applyFnN(stackTop_, _max, Operand.unwrap(operand_));
     }
 
-    function max(InterpreterState memory, Operand operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop stackTopAfter_)
-    {
+    function max(
+        InterpreterState memory,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop stackTopAfter_) {
         return stackTop_.applyFnN(_max, Operand.unwrap(operand_));
     }
 }

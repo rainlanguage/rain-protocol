@@ -15,22 +15,19 @@ contract TierV2Test is TierV2 {
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
-    function report(address, uint256[] memory)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function report(
+        address,
+        uint256[] memory
+    ) public view virtual override returns (uint256) {
         return TierConstants.NEVER_REPORT;
     }
 
     /// @inheritdoc ITierV2
-    function reportTimeForTier(address, uint256, uint256[] calldata)
-        external
-        view
-        returns (uint256)
-    {
+    function reportTimeForTier(
+        address,
+        uint256,
+        uint256[] calldata
+    ) external view returns (uint256) {
         return block.timestamp;
     }
 }

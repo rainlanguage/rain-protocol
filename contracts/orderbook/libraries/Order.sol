@@ -39,10 +39,9 @@ OrderLiveness constant ORDER_LIVE = OrderLiveness.wrap(1);
 library LibOrder {
     using LibUint256Array for uint256;
 
-    function fromOrderConfig(OrderConfig memory config_)
-        internal
-        returns (Order memory)
-    {
+    function fromOrderConfig(
+        OrderConfig memory config_
+    ) internal returns (Order memory) {
         (
             address expressionAddress,
             uint256 contextScratch

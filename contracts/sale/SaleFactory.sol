@@ -21,12 +21,9 @@ contract SaleFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         (
             SaleConfig memory config_,
             SaleRedeemableERC20Config memory saleRedeemableERC20Config_

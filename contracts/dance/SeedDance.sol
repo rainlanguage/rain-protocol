@@ -33,11 +33,10 @@ library LibSeed {
     /// @param val_ Can be literally any uint as the hashing will ensure the
     /// returned seed is unpredictable.
     /// @return newSeed_ The result of applying `val_` to `seed_`.
-    function with(Seed seed_, uint256 val_)
-        internal
-        pure
-        returns (Seed newSeed_)
-    {
+    function with(
+        Seed seed_,
+        uint256 val_
+    ) internal pure returns (Seed newSeed_) {
         newSeed_ = Seed.wrap(uint256(keccak256(abi.encodePacked(seed_, val_))));
     }
 }
@@ -62,11 +61,9 @@ library LibCommitment {
     /// DO NOT REUSE SECRETS, GENERATE A NEW ONE FOR EVERY COMMITMENT.
     /// Of course, you MAY send a secret if and only if it is being revealed as
     /// part of a dance.
-    function fromSecret(Secret secret_)
-        internal
-        pure
-        returns (Commitment commitment_)
-    {
+    function fromSecret(
+        Secret secret_
+    ) internal pure returns (Commitment commitment_) {
         commitment_ = Commitment.wrap(
             uint256(keccak256(abi.encodePacked(secret_)))
         );

@@ -15,27 +15,27 @@ contract LibUint256ArrayTest {
         return LibUint256Array.arrayFrom(a_);
     }
 
-    function arrayFrom(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_
+    ) external pure returns (uint256[] memory) {
         return LibUint256Array.arrayFrom(a_, b_);
     }
 
-    function arrayFrom(uint256 a_, uint256 b_, uint256 c_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_
+    ) external pure returns (uint256[] memory) {
         return LibUint256Array.arrayFrom(a_, b_, c_);
     }
 
-    function arrayFrom(uint256 a_, uint256 b_, uint256 c_, uint256 d_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256 c_,
+        uint256 d_
+    ) external pure returns (uint256[] memory) {
         return LibUint256Array.arrayFrom(a_, b_, c_, d_);
     }
 
@@ -49,36 +49,33 @@ contract LibUint256ArrayTest {
         return LibUint256Array.arrayFrom(a_, b_, c_, d_, e_);
     }
 
-    function arrayFrom(uint256 a_, uint256[] memory tail_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256[] memory tail_
+    ) external pure returns (uint256[] memory) {
         return LibUint256Array.arrayFrom(a_, tail_);
     }
 
-    function arrayFrom(uint256 a_, uint256 b_, uint256[] memory tail_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function arrayFrom(
+        uint256 a_,
+        uint256 b_,
+        uint256[] memory tail_
+    ) external pure returns (uint256[] memory) {
         return LibUint256Array.arrayFrom(a_, b_, tail_);
     }
 
-    function truncate(uint256[] memory array_, uint256 newLength_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function truncate(
+        uint256[] memory array_,
+        uint256 newLength_
+    ) external pure returns (uint256[] memory) {
         array_.truncate(newLength_);
         return array_;
     }
 
-    function extend(uint256[] memory base_, uint256[] memory extend_)
-        external
-        pure
-        returns (uint256[] memory baseCopy_)
-    {
+    function extend(
+        uint256[] memory base_,
+        uint256[] memory extend_
+    ) external pure returns (uint256[] memory baseCopy_) {
         baseCopy_ = new uint256[](base_.length);
         LibUint256Array.unsafeCopyValuesTo(
             base_,
@@ -88,11 +85,9 @@ contract LibUint256ArrayTest {
         return baseCopy_;
     }
 
-    function unsafeCopyValuesTo(uint256[] memory inputs_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function unsafeCopyValuesTo(
+        uint256[] memory inputs_
+    ) external pure returns (uint256[] memory) {
         uint256[] memory outputs_ = new uint256[](inputs_.length);
         LibUint256Array.unsafeCopyValuesTo(
             inputs_,
@@ -101,11 +96,9 @@ contract LibUint256ArrayTest {
         return outputs_;
     }
 
-    function copyToNewUint256Array(uint256[] memory inputs_)
-        external
-        pure
-        returns (uint256[] memory)
-    {
+    function copyToNewUint256Array(
+        uint256[] memory inputs_
+    ) external pure returns (uint256[] memory) {
         uint256 inputCursor_;
         assembly ("memory-safe") {
             inputCursor_ := add(inputs_, 0x20)

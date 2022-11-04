@@ -10,11 +10,10 @@ contract TierReportTest {
     /// Wraps `TierReport.tierAtTimeFromReport`.
     /// @param report_ Forwarded to TierReport.
     /// @param timestamp_ Forwarded to TierReport.
-    function tierAtTimeFromReport(uint256 report_, uint256 timestamp_)
-        external
-        pure
-        returns (uint256)
-    {
+    function tierAtTimeFromReport(
+        uint256 report_,
+        uint256 timestamp_
+    ) external pure returns (uint256) {
         unchecked {
             return TierReport.tierAtTimeFromReport(report_, timestamp_);
         }
@@ -23,11 +22,10 @@ contract TierReportTest {
     /// Wraps `TierReport.reportForTier`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function reportTimeForTier(uint256 report_, uint256 tier_)
-        external
-        pure
-        returns (uint256)
-    {
+    function reportTimeForTier(
+        uint256 report_,
+        uint256 tier_
+    ) external pure returns (uint256) {
         unchecked {
             return TierReport.reportTimeForTier(report_, tier_);
         }
@@ -36,11 +34,10 @@ contract TierReportTest {
     /// Wraps `TierReport.truncateTiersAbove`.
     /// @param report_ Forwarded to TierReport.
     /// @param tier_ Forwarded to TierReport.
-    function truncateTiersAbove(uint256 report_, uint256 tier_)
-        external
-        pure
-        returns (uint256)
-    {
+    function truncateTiersAbove(
+        uint256 report_,
+        uint256 tier_
+    ) external pure returns (uint256) {
         unchecked {
             return TierReport.truncateTiersAbove(report_, tier_);
         }

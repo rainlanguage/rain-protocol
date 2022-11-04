@@ -30,9 +30,10 @@ contract StandardInterpreter is RainInterpreter {
         return _saveInterpreterState(DEFAULT_SOURCE_ID, config_);
     }
 
-    function _saveInterpreterState(uint256 id_, StateConfig memory config_)
-        internal
-    {
+    function _saveInterpreterState(
+        uint256 id_,
+        StateConfig memory config_
+    ) internal {
         return _saveInterpreterState(id_, config_, DEFAULT_MIN_FINAL_STACK);
     }
 
@@ -82,12 +83,9 @@ contract StandardInterpreter is RainInterpreter {
         return _loadInterpreterState(DEFAULT_SOURCE_ID);
     }
 
-    function _loadInterpreterState(uint256 id_)
-        internal
-        view
-        virtual
-        returns (InterpreterState memory)
-    {
+    function _loadInterpreterState(
+        uint256 id_
+    ) internal view virtual returns (InterpreterState memory) {
         address pointer_ = interpreterStatePointers[id_];
         require(pointer_ != address(0), "UNKNOWN_STATE");
         return SSTORE2.read(pointer_).deserialize();

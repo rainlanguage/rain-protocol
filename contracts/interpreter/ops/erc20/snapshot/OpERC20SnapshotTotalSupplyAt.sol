@@ -13,11 +13,10 @@ library OpERC20SnapshotTotalSupplyAt {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _totalSupplyAt(uint256 token_, uint256 snapshotId_)
-        internal
-        view
-        returns (uint256)
-    {
+    function _totalSupplyAt(
+        uint256 token_,
+        uint256 snapshotId_
+    ) internal view returns (uint256) {
         return
             ERC20Snapshot(address(uint160(token_))).totalSupplyAt(snapshotId_);
     }
@@ -31,11 +30,11 @@ library OpERC20SnapshotTotalSupplyAt {
     }
 
     /// Stack `totalSupplyAt`.
-    function totalSupplyAt(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function totalSupplyAt(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_totalSupplyAt);
     }
 }

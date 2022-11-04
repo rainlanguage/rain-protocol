@@ -19,11 +19,11 @@ library OpCaller {
         return integrityState_.push(stackTop_);
     }
 
-    function caller(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function caller(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(uint256(uint160(msg.sender)));
     }
 }

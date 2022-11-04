@@ -27,16 +27,15 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
 
     mapping(uint256 => uint256) private _approvedEvidenceData;
 
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {
+    constructor(
+        address interpreterIntegrity_
+    ) StandardInterpreter(interpreterIntegrity_) {
         _disableInitializers();
     }
 
-    function initialize(StateConfig calldata stateConfig_)
-        external
-        initializer
-    {
+    function initialize(
+        StateConfig calldata stateConfig_
+    ) external initializer {
         __VerifyCallback_init();
         _saveInterpreterState(stateConfig_);
 
@@ -45,11 +44,10 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
         emit Initialize(msg.sender, stateConfig_);
     }
 
-    function afterAdd(address, Evidence[] calldata evidences_)
-        external
-        virtual
-        override
-    {
+    function afterAdd(
+        address,
+        Evidence[] calldata evidences_
+    ) external virtual override {
         unchecked {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
@@ -81,11 +79,9 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
         }
     }
 
-    function _evidenceDataApproved(uint256 evidenceData_)
-        internal
-        view
-        returns (uint256)
-    {
+    function _evidenceDataApproved(
+        uint256 evidenceData_
+    ) internal view returns (uint256) {
         return _approvedEvidenceData[evidenceData_];
     }
 

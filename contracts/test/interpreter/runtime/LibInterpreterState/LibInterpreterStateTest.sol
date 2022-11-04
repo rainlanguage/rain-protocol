@@ -81,11 +81,9 @@ contract LibInterpreterStateTest is RainInterpreter {
         state_.context = context_;
     }
 
-    function serialize(StateConfig memory config_)
-        public
-        view
-        returns (bytes memory serialized_)
-    {
+    function serialize(
+        StateConfig memory config_
+    ) public view returns (bytes memory serialized_) {
         (
             uint256 contextScratch_,
             uint256 stackLength_
@@ -103,11 +101,9 @@ contract LibInterpreterStateTest is RainInterpreter {
         );
     }
 
-    function eval(StateConfig memory config_)
-        external
-        view
-        returns (StackTop stackTopAfter_, uint256 stackBottom_)
-    {
+    function eval(
+        StateConfig memory config_
+    ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
             new uint256[][](0) // context
@@ -117,11 +113,10 @@ contract LibInterpreterStateTest is RainInterpreter {
         stackTopAfter_ = state_.eval();
     }
 
-    function eval(StateConfig memory config_, SourceIndex sourceIndex_)
-        external
-        view
-        returns (StackTop stackTopAfter_, uint256 stackBottom_)
-    {
+    function eval(
+        StateConfig memory config_,
+        SourceIndex sourceIndex_
+    ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
             new uint256[][](0) // context
@@ -131,11 +126,9 @@ contract LibInterpreterStateTest is RainInterpreter {
         stackTopAfter_ = state_.eval(sourceIndex_);
     }
 
-    function evalStackTop(StateConfig memory config_)
-        external
-        view
-        returns (StackTop stackTopAfter_, uint256 stackBottom_)
-    {
+    function evalStackTop(
+        StateConfig memory config_
+    ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
             new uint256[][](0) // context
@@ -145,11 +138,10 @@ contract LibInterpreterStateTest is RainInterpreter {
         stackTopAfter_ = state_.eval(state_.stackBottom); // just use normal stackBottom for testing
     }
 
-    function evalStackTop(StateConfig memory config_, SourceIndex sourceIndex_)
-        external
-        view
-        returns (StackTop stackTopAfter_, uint256 stackBottom_)
-    {
+    function evalStackTop(
+        StateConfig memory config_,
+        SourceIndex sourceIndex_
+    ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
             new uint256[][](0) // context

@@ -24,11 +24,11 @@ library OpIsZero {
         return integrityState_.applyFn(stackTop_, _isZero);
     }
 
-    function isZero(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function isZero(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_isZero);
     }
 }

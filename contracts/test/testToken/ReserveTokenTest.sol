@@ -9,14 +9,14 @@ import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/tok
 contract ReserveTokenTest is ERC20 {
     /// How many tokens to mint initially.
     // One _billion_ dollars 👷😈
-    uint256 public constant INITIAL_MINT = 10**9;
+    uint256 public constant INITIAL_MINT = 10 ** 9;
 
     /// Test against frozen assets, for example USDC can do this.
     mapping(address => bool) public freezables;
 
     constructor() {
         __ERC20_init("USD Classic", "USDCC");
-        _mint(msg.sender, INITIAL_MINT * 10**18);
+        _mint(msg.sender, INITIAL_MINT * 10 ** 18);
     }
 
     /// Anyone in the world can freeze any address on our test asset.
@@ -37,11 +37,11 @@ contract ReserveTokenTest is ERC20 {
     }
 
     /// Enforces the freeze list.
-    function _beforeTokenTransfer(address, address receiver_, uint256)
-        internal
-        view
-        override
-    {
+    function _beforeTokenTransfer(
+        address,
+        address receiver_,
+        uint256
+    ) internal view override {
         require(receiver_ == address(0) || !(freezables[receiver_]), "FROZEN");
     }
 }

@@ -33,11 +33,11 @@ contract RedeemableERC20ClaimEscrowWrapper is RedeemableERC20ClaimEscrow {
         return deposits[trust_][token_][depositor_][supply_];
     }
 
-    function getTotalDeposits(address trust_, address token_, uint256 supply_)
-        external
-        view
-        returns (uint256)
-    {
+    function getTotalDeposits(
+        address trust_,
+        address token_,
+        uint256 supply_
+    ) external view returns (uint256) {
         return totalDeposits[trust_][token_][supply_];
     }
 }

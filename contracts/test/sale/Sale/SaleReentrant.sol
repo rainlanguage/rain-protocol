@@ -19,9 +19,10 @@ contract SaleReentrant is ReserveToken {
     /// Set the contract to attempt to reenter.
     /// @param sale_ Sale contract to reeenter.
     /// @param config_ BuyConfig for reentrant buy call.
-    function addReentrantTarget(Sale sale_, BuyConfig calldata config_)
-        external
-    {
+    function addReentrantTarget(
+        Sale sale_,
+        BuyConfig calldata config_
+    ) external {
         sale = sale_;
         buyConfig = config_;
     }

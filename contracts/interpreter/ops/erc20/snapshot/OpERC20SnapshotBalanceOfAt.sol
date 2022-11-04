@@ -13,11 +13,11 @@ library OpERC20SnapshotBalanceOfAt {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _balanceOfAt(uint256 token_, uint256 account_, uint256 snapshotId_)
-        internal
-        view
-        returns (uint256)
-    {
+    function _balanceOfAt(
+        uint256 token_,
+        uint256 account_,
+        uint256 snapshotId_
+    ) internal view returns (uint256) {
         return
             ERC20Snapshot(address(uint160(token_))).balanceOfAt(
                 address(uint160(account_)),
@@ -34,11 +34,11 @@ library OpERC20SnapshotBalanceOfAt {
     }
 
     /// Stack `balanceOfAt`.
-    function balanceOfAt(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function balanceOfAt(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_balanceOfAt);
     }
 }

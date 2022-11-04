@@ -53,11 +53,11 @@ library Random {
     /// One benefit of the micro lottery approach is that it can be exposed by
     /// the implementing contract as a "preview" public function, where it can
     /// be called offchain to inspect any ID for any seed without paying gas.
-    function microLottery(uint256 seed_, uint256 max_, uint256 n_)
-        internal
-        pure
-        returns (uint256 item_)
-    {
+    function microLottery(
+        uint256 seed_,
+        uint256 max_,
+        uint256 n_
+    ) internal pure returns (uint256 item_) {
         unchecked {
             require(n_ < max_, "MAX_N");
             require(max_ <= type(uint8).max, "MAX_MAX");
@@ -175,11 +175,10 @@ library Random {
     /// length in bytes as each item is uint16.
     /// @return shuffled_ The shuffled items as bytes in memory, length will be
     /// 2x `len_` as each item is 16 bits.
-    function shuffle(uint256 seed_, uint256 len_)
-        internal
-        pure
-        returns (bytes memory shuffled_)
-    {
+    function shuffle(
+        uint256 seed_,
+        uint256 len_
+    ) internal pure returns (bytes memory shuffled_) {
         unchecked {
             // Allocate all the items up front as empty bytes.
             shuffled_ = new bytes(len_ * 2);
@@ -260,11 +259,10 @@ library Random {
     /// @return id_ The shuffled ID associated with the passed index. Internally
     /// is only 2-bytes, i.e. uint16 but is returned as uint256 as e.g. NFT IDs
     /// etc. are typically uint256 values.
-    function shuffleIdAtIndex(address ptr_, uint256 index_)
-        internal
-        view
-        returns (uint256 id_)
-    {
+    function shuffleIdAtIndex(
+        address ptr_,
+        uint256 index_
+    ) internal view returns (uint256 id_) {
         unchecked {
             uint256 offset_ = index_ * 2;
             bytes memory idBytes_ = SSTORE2.read(ptr_, offset_, offset_ + 2);
@@ -325,11 +323,10 @@ library Random {
     /// @param index_ The index to calculate the output ID for.
     /// @param id_ The output ID corresponding to the input and seed, will be
     /// across the entire range [0, 2^256 - 1].
-    function randomId(uint256 seed_, uint256 index_)
-        internal
-        pure
-        returns (uint256 id_)
-    {
+    function randomId(
+        uint256 seed_,
+        uint256 index_
+    ) internal pure returns (uint256 id_) {
         assembly ("memory-safe") {
             mstore(0, seed_)
             mstore(0x20, index_)

@@ -34,14 +34,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
         bytes[] memory sources_,
         uint256 constantsLength_,
         uint256[] memory finalStacks_
-    )
-        public
-        view
-        returns (
-            uint256 contextScratch_,
-            uint256 stackLength_
-        )
-    {
+    ) public view returns (uint256 contextScratch_, uint256 stackLength_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
             storageOpcodesRange_,

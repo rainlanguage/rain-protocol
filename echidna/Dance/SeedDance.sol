@@ -37,11 +37,9 @@ contract SeedDanceEchidna {
         }
     }
 
-    function _getReason(bytes memory reason_)
-        private
-        view
-        returns (bytes memory)
-    {
+    function _getReason(
+        bytes memory reason_
+    ) private view returns (bytes memory) {
         bytes memory dataError = new bytes(4);
         for (uint256 i = 0; i < 4; i++) {
             dataError[i] = reason_[i];

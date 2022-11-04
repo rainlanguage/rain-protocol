@@ -84,11 +84,10 @@ library LibIntegrityState {
         }
     }
 
-    function push(IntegrityState memory integrityState_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function push(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up();
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
@@ -119,11 +118,10 @@ library LibIntegrityState {
         );
     }
 
-    function pop(IntegrityState memory integrityState_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function pop(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.down();
         integrityState_.popUnderflowCheck(stackTopAfter_);
     }

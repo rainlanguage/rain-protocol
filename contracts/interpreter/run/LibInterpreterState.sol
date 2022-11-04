@@ -78,11 +78,10 @@ library LibInterpreterState {
         console.log(DEBUG_DELIMETER);
     }
 
-    function debugStack(StackTop stackBottom_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function debugStack(
+        StackTop stackBottom_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         uint256 length_ = stackBottom_.toIndex(stackTop_);
         debugArray(
             StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(
@@ -92,11 +91,10 @@ library LibInterpreterState {
         return stackTop_;
     }
 
-    function debugStack(InterpreterState memory state_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function debugStack(
+        InterpreterState memory state_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return debugStack(state_.stackBottom, stackTop_);
     }
 
@@ -163,11 +161,9 @@ library LibInterpreterState {
         }
     }
 
-    function deserialize(bytes memory serialized_)
-        internal
-        pure
-        returns (InterpreterState memory)
-    {
+    function deserialize(
+        bytes memory serialized_
+    ) internal pure returns (InterpreterState memory) {
         unchecked {
             InterpreterState memory state_;
 
@@ -227,10 +223,10 @@ library LibInterpreterState {
     /// Hopefully it goes without saying that the list of pointers MUST NOT be
     /// user defined, otherwise any source can be compiled with a completely
     /// different mapping between opcodes and dispatched functions.
-    function compile(bytes memory source_, bytes memory pointers_)
-        internal
-        pure
-    {
+    function compile(
+        bytes memory source_,
+        bytes memory pointers_
+    ) internal pure {
         assembly ("memory-safe") {
             for {
                 let replaceMask_ := 0xFFFF
@@ -255,29 +251,25 @@ library LibInterpreterState {
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function eval(
+        InterpreterState memory state_
+    ) internal view returns (StackTop) {
         return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_, SourceIndex sourceIndex_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function eval(
+        InterpreterState memory state_,
+        SourceIndex sourceIndex_
+    ) internal view returns (StackTop) {
         return state_.eval(sourceIndex_, state_.stackBottom);
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function eval(
+        InterpreterState memory state_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return state_.eval(DEFAULT_SOURCE_INDEX, stackTop_);
     }
 

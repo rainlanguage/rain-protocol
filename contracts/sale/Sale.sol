@@ -369,11 +369,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         return _canLive();
     }
 
-    function _calculateBuy(uint256 targetUnits_)
-        internal
-        view
-        returns (uint256, uint256)
-    {
+    function _calculateBuy(
+        uint256 targetUnits_
+    ) internal view returns (uint256, uint256) {
         return
             IInterpreterV1(interpreter)
                 .eval(
@@ -387,11 +385,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                 .peek2();
     }
 
-    function calculateBuy(uint256 targetUnits_)
-        external
-        view
-        returns (uint256, uint256)
-    {
+    function calculateBuy(
+        uint256 targetUnits_
+    ) external view returns (uint256, uint256) {
         return _calculateBuy(targetUnits_);
     }
 
@@ -446,11 +442,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// The receipt is _logged_ rather than returned as it cannot be used in
     /// same block for a refund anyway due to cooldowns.
     /// @param config_ All parameters to configure the purchase.
-    function buy(BuyConfig memory config_)
-        external
-        onlyAfterCooldown
-        nonReentrant
-    {
+    function buy(
+        BuyConfig memory config_
+    ) external onlyAfterCooldown nonReentrant {
         require(0 < config_.minimumUnits, "0_MINIMUM");
         require(
             config_.minimumUnits <= config_.desiredUnits,

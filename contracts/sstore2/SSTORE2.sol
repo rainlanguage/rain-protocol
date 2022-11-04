@@ -54,11 +54,10 @@ library SSTORE2 {
     @param _start number of bytes to skip
     @return data read from `_pointer` contract
   */
-    function read(address _pointer, uint256 _start)
-        internal
-        view
-        returns (bytes memory)
-    {
+    function read(
+        address _pointer,
+        uint256 _start
+    ) internal view returns (bytes memory) {
         return Bytecode.codeAt(_pointer, _start + 1, type(uint256).max);
     }
 
@@ -71,11 +70,11 @@ library SSTORE2 {
     @param _end index before which to end extraction
     @return data read from `_pointer` contract
   */
-    function read(address _pointer, uint256 _start, uint256 _end)
-        internal
-        view
-        returns (bytes memory)
-    {
+    function read(
+        address _pointer,
+        uint256 _start,
+        uint256 _end
+    ) internal view returns (bytes memory) {
         return Bytecode.codeAt(_pointer, _start + 1, _end + 1);
     }
 }
