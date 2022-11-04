@@ -54,7 +54,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             config_.flowConfig.expressionDeployer
         ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
-        __FlowCommon_init(config_.flowConfig);
+        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on

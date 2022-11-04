@@ -80,7 +80,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             config_.flowConfig.expressionDeployer
         ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
-        __FlowCommon_init(config_.flowConfig);
+        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
     /// @inheritdoc ERC20
