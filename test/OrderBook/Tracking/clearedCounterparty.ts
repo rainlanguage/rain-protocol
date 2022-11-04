@@ -27,6 +27,7 @@ import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/ra
 import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -90,6 +91,26 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     // prettier-ignore
     const askSource = concat([
+        op(Opcode.CALLER),
+        cOrderHash,
+        cCounterparty,
+      op(Opcode.IORDERBOOKV1_CLEARED_COUNTERPARTY),
+
+            // outputMax = (currentBlock - askBlock) * 5 - bidderCleared
+            // 5 tokens available per block
+            op(Opcode.BLOCK_NUMBER),
+            vAskBlock,
+          op(Opcode.SUB, 2),
+          v5,
+        op(Opcode.MUL, 2),
+          op(Opcode.CALLER),
+          cOrderHash,
+          cCounterparty,
+        op(Opcode.IORDERBOOKV1_CLEARED_COUNTERPARTY),
+      op(Opcode.SUB, 2),
+
+      op(Opcode.DEBUG, Debug.StatePacked),
+
       // outputMax = (currentBlock - askBlock) * 5 - bidderCleared
       // 5 tokens available per block
             op(Opcode.BLOCK_NUMBER),
