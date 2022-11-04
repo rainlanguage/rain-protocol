@@ -116,12 +116,12 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
+    const { order: askConfigAlice } = (await getEventArgs(
       txAskOrderLiveAlice,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
+    const { order: askConfigBob } = (await getEventArgs(
       txAskOrderLiveBob,
       "OrderLive",
       orderBook
@@ -246,12 +246,12 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
+    const { order: askConfigAlice } = (await getEventArgs(
       txAskOrderLiveAlice,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
+    const { order: askConfigBob } = (await getEventArgs(
       txAskOrderLiveBob,
       "OrderLive",
       orderBook
@@ -406,12 +406,12 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
+    const { order: askConfigAlice } = (await getEventArgs(
       txAskOrderLiveAlice,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
+    const { order: askConfigBob } = (await getEventArgs(
       txAskOrderLiveBob,
       "OrderLive",
       orderBook
@@ -552,12 +552,12 @@ describe("OrderBook take orders", async function () {
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
+    const { order: askConfigAlice } = (await getEventArgs(
       txAskOrderLiveAlice,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
+    const { order: askConfigBob } = (await getEventArgs(
       txAskOrderLiveBob,
       "OrderLive",
       orderBook
@@ -719,7 +719,7 @@ describe("OrderBook take orders", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { config: askConfig } = (await getEventArgs(
+    const { order: askConfig } = (await getEventArgs(
       txAskOrderLive,
       "OrderLive",
       orderBook

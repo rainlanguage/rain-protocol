@@ -92,7 +92,7 @@ describe("OrderBook add order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, config: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askConfig } = (await getEventArgs(
       txAskOrderLive,
       "OrderLive",
       orderBook
@@ -130,7 +130,7 @@ describe("OrderBook add order", async function () {
       .connect(bob)
       .addOrder(bidOrderConfig);
 
-    const { sender: bidSender, config: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
       txBidOrderLive,
       "OrderLive",
       orderBook

@@ -141,7 +141,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender_, config: askOrder_ } = (await getEventArgs(
+    const { sender: askSender_, order: askOrder_ } = (await getEventArgs(
       txAskOrderLive,
       "OrderLive",
       orderBook
@@ -206,7 +206,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       .connect(bob)
       .addOrder(bobOrderConfig);
 
-    const { sender: bobSender_, config: bobOrder_ } = (await getEventArgs(
+    const { sender: bobSender_, order: bobOrder_ } = (await getEventArgs(
       txBobOrderLive,
       "OrderLive",
       orderBook
@@ -271,7 +271,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       .connect(carol)
       .addOrder(carolOrderConfig);
 
-    const { sender: carolSender_, config: carolOrder_ } = (await getEventArgs(
+    const { sender: carolSender_, order: carolOrder_ } = (await getEventArgs(
       txCarolOrderLive,
       "OrderLive",
       orderBook

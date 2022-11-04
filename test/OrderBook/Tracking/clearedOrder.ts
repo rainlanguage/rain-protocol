@@ -115,7 +115,7 @@ describe("OrderBook tracking order funds cleared", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender_, config: askOrder_ } = (await getEventArgs(
+    const { sender: askSender_, order: askOrder_ } = (await getEventArgs(
       txAskOrderLive,
       "OrderLive",
       orderBook
@@ -180,7 +180,7 @@ describe("OrderBook tracking order funds cleared", async function () {
       .connect(bob)
       .addOrder(bidOrderConfig);
 
-    const { sender: bidSender_, config: bidOrder_ } = (await getEventArgs(
+    const { sender: bidSender_, order: bidOrder_ } = (await getEventArgs(
       txBidOrderLive,
       "OrderLive",
       orderBook

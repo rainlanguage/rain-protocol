@@ -26,7 +26,6 @@ export const flowERC721Deploy = async (
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       flows: flowERC721Config.flows,
-      flowFinalMinStack: 4,
     },
     name: flowERC721Config.name,
     symbol: flowERC721Config.symbol,

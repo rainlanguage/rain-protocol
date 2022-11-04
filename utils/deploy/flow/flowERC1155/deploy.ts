@@ -26,7 +26,6 @@ export const flowERC1155Deploy = async (
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       flows: flowERC1155Config.flows,
-      flowFinalMinStack: 4,
     },
     uri: flowERC1155Config.uri,
   };

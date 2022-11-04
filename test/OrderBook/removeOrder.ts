@@ -84,12 +84,11 @@ describe("OrderBook remove order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askLiveSender, config: askLiveConfig } =
-      (await getEventArgs(
-        txAskOrderLive,
-        "OrderLive",
-        orderBook
-      )) as OrderLiveEvent["args"];
+    const { sender: askLiveSender, order: askLiveConfig } = (await getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
 
     assert(askLiveSender === alice.address, "wrong sender");
     compareStructs(askLiveConfig, askOrderConfig);
@@ -100,12 +99,11 @@ describe("OrderBook remove order", async function () {
       .connect(alice)
       .removeOrder(askLiveConfig);
 
-    const { sender: askDeadSender, config: askDeadConfig } =
-      (await getEventArgs(
-        txAskOrderDead,
-        "OrderDead",
-        orderBook
-      )) as OrderDeadEvent["args"];
+    const { sender: askDeadSender, order: askDeadConfig } = (await getEventArgs(
+      txAskOrderDead,
+      "OrderDead",
+      orderBook
+    )) as OrderDeadEvent["args"];
 
     assert(askDeadSender === alice.address, "wrong sender");
     compareStructs(askDeadConfig, askOrderConfig);

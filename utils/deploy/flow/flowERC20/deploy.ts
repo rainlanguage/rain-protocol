@@ -26,7 +26,6 @@ export const flowERC20Deploy = async (
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       flows: flowERC20Config.flows,
-      flowFinalMinStack: 4,
     },
     name: flowERC20Config.name,
     symbol: flowERC20Config.symbol,
