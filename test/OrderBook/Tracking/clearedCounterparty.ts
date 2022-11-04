@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
+import { BigNumber, ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
@@ -11,7 +11,6 @@ import type {
 import {
   AfterClearEvent,
   ClearConfigStruct,
-  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
@@ -121,53 +120,105 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, config: askConfig } = (await getEventArgs(
+    const { sender: askSender_, config: askOrder_ } = (await getEventArgs(
       txAskOrderLive,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
 
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    assert(askSender_ === alice.address, "wrong sender");
+    assert(askOrder_.owner === askSender_, "wrong owner");
+    assert(
+      askOrder_.expression.length === 42,
+      "wrong expression address length"
+    );
+    askOrderConfig.validInputs.forEach((validInput, i_) => {
+      assert(
+        validInput.token === askOrder_.validInputs[i_].token,
+        "invalid input token"
+      );
+      assert(
+        (validInput.vaultId as BigNumber).eq(askOrder_.validInputs[i_].vaultId),
+        "invalid input vaultId"
+      );
+    });
+    askOrderConfig.validOutputs.forEach((validOutput, i_) => {
+      assert(
+        validOutput.token === askOrder_.validOutputs[i_].token,
+        "invalid output token"
+      );
+      assert(
+        (validOutput.vaultId as BigNumber).eq(
+          askOrder_.validOutputs[i_].vaultId
+        ),
+        "invalid output vaultId"
+      );
+    });
 
     // BID ORDER - BOB
 
-    const bidOutputMax = max_uint256;
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [bidOutputMax, bidPrice];
-    const vBidOutputMax = op(
+    const bobOutputMax = max_uint256;
+    const bobPrice = fixedPointDiv(ONE, askPrice);
+    const bobConstants = [bobOutputMax, bobPrice];
+    const vBobOutputMax = op(
       Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vBobPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidPrice,
+    const bobSource = concat([
+      vBobOutputMax,
+      vBobPrice,
     ]);
-    const bidOrderConfig: OrderConfigStruct = {
+    const bobOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
-        sources: [bidSource],
-        constants: bidConstants,
+        sources: [bobSource],
+        constants: bobConstants,
       },
     };
 
-    const txBidOrderLive = await orderBook
+    const txBobOrderLive = await orderBook
       .connect(bob)
-      .addOrder(bidOrderConfig);
+      .addOrder(bobOrderConfig);
 
-    const { sender: bidSender, config: bobConfig } = (await getEventArgs(
-      txBidOrderLive,
+    const { sender: bobSender_, config: bobOrder_ } = (await getEventArgs(
+      txBobOrderLive,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
 
-    assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bobConfig, bidOrderConfig);
+    assert(bobSender_ === bob.address, "wrong sender");
+    assert(bobOrder_.owner === bobSender_, "wrong owner");
+    assert(
+      bobOrder_.expression.length === 42,
+      "wrong expression address length"
+    );
+    bobOrderConfig.validInputs.forEach((validInput, i_) => {
+      assert(
+        validInput.token === bobOrder_.validInputs[i_].token,
+        "invalid input token"
+      );
+      assert(
+        (validInput.vaultId as BigNumber).eq(bobOrder_.validInputs[i_].vaultId),
+        "invalid input vaultId"
+      );
+    });
+    bobOrderConfig.validOutputs.forEach((validOutput, i_) => {
+      assert(
+        validOutput.token === bobOrder_.validOutputs[i_].token,
+        "invalid output token"
+      );
+      assert(
+        (validOutput.vaultId as BigNumber).eq(
+          bobOrder_.validOutputs[i_].vaultId
+        ),
+        "invalid output vaultId"
+      );
+    });
 
     // BID ORDER - CAROL
 
@@ -199,14 +250,42 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
       .connect(carol)
       .addOrder(carolOrderConfig);
 
-    const { sender: carolSender, config: carolConfig } = (await getEventArgs(
+    const { sender: carolSender_, config: carolOrder_ } = (await getEventArgs(
       txCarolOrderLive,
       "OrderLive",
       orderBook
     )) as OrderLiveEvent["args"];
 
-    assert(carolSender === carol.address, "wrong sender");
-    compareStructs(carolConfig, carolOrderConfig);
+    assert(carolSender_ === carol.address, "wrong sender");
+    assert(carolOrder_.owner === carolSender_, "wrong owner");
+    assert(
+      carolOrder_.expression.length === 42,
+      "wrong expression address length"
+    );
+    carolOrderConfig.validInputs.forEach((validInput, i_) => {
+      assert(
+        validInput.token === carolOrder_.validInputs[i_].token,
+        "invalid input token"
+      );
+      assert(
+        (validInput.vaultId as BigNumber).eq(
+          carolOrder_.validInputs[i_].vaultId
+        ),
+        "invalid input vaultId"
+      );
+    });
+    carolOrderConfig.validOutputs.forEach((validOutput, i_) => {
+      assert(
+        validOutput.token === carolOrder_.validOutputs[i_].token,
+        "invalid output token"
+      );
+      assert(
+        (validOutput.vaultId as BigNumber).eq(
+          carolOrder_.validOutputs[i_].vaultId
+        ),
+        "invalid output vaultId"
+      );
+    });
 
     // DEPOSITS
 
@@ -300,22 +379,12 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bobConfig, clearConfig);
+      .clear(askOrder_, bobOrder_, clearConfig);
     const { stateChange: stateChange0 } = (await getEventArgs(
       txClearOrder0,
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
-
-    const expectedStateChange0: ClearStateChangeStruct = {
-      aOutput: 65,
-      bOutput: 5850,
-      aInput: 5850,
-      bInput: 64,
-      aFlag: 2,
-      bFlag: 0,
-    };
-    compareStructs(stateChange0, expectedStateChange0);
 
     const { bInput: bInput0 } = stateChange0;
 
@@ -353,22 +422,12 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bobConfig, clearConfig);
+      .clear(askOrder_, bobOrder_, clearConfig);
     const { stateChange: stateChange1 } = (await getEventArgs(
       txClearOrder1,
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
-
-    const expectedStateChange1: ClearStateChangeStruct = {
-      aOutput: 10,
-      bOutput: 900,
-      aInput: 900,
-      bInput: 9,
-      aFlag: 2,
-      bFlag: 0,
-    };
-    compareStructs(stateChange1, expectedStateChange1);
 
     const { bInput: bInput1 } = stateChange1;
 
@@ -401,22 +460,12 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder2 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, carolConfig, clearConfig);
+      .clear(askOrder_, carolOrder_, clearConfig);
     const { stateChange: stateChange2 } = (await getEventArgs(
       txClearOrder2,
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
-
-    const expectedStateChange2: ClearStateChangeStruct = {
-      aOutput: 85,
-      bOutput: 7650,
-      aInput: 7650,
-      bInput: 84,
-      aFlag: 2,
-      bFlag: 0,
-    };
-    compareStructs(stateChange2, expectedStateChange2);
 
     const { bInput: bInput2 } = stateChange2;
 
@@ -454,22 +503,12 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
 
     const txClearOrder3 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, carolConfig, clearConfig);
+      .clear(askOrder_, carolOrder_, clearConfig);
     const { stateChange: stateChange3 } = (await getEventArgs(
       txClearOrder3,
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
-
-    const expectedStateChange3: ClearStateChangeStruct = {
-      aOutput: 10,
-      bOutput: 900,
-      aInput: 900,
-      bInput: 9,
-      aFlag: 2,
-      bFlag: 0,
-    };
-    compareStructs(stateChange3, expectedStateChange3);
 
     const { bInput: bInput3 } = stateChange3;
 
