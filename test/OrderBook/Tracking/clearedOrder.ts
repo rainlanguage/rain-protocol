@@ -87,6 +87,8 @@ describe("OrderBook tracking order funds cleared", async function () {
     const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     // prettier-ignore
     const askSource = concat([
+      cOrderHash,
+
         op(Opcode.CALLER),
         cOrderHash,
       op(Opcode.IORDERBOOKV1_CLEARED_ORDER),

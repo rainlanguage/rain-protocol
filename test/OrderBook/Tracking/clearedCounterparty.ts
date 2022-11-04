@@ -91,6 +91,9 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
     // prettier-ignore
     const askSource = concat([
+      cOrderHash,
+      cCounterparty,
+
         op(Opcode.CALLER),
         cOrderHash,
         cCounterparty,
