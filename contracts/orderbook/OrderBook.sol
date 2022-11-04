@@ -43,8 +43,6 @@ struct ClearStateChange {
     uint256 bOutput;
     uint256 aInput;
     uint256 bInput;
-    IdempotentFlag aFlag;
-    IdempotentFlag bFlag;
 }
 
 struct TakeOrderConfig {
