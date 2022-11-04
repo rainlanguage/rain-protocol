@@ -82,8 +82,8 @@ contract OrderBook is IOrderBookV1 {
     /// config amount if the vault does not have the funds available to cover
     /// the config amount.
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
-    event OrderLive(address sender, Order config);
-    event OrderDead(address sender, Order config);
+    event OrderLive(address sender, Order order);
+    event OrderDead(address sender, Order order);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
     event TakeOrder(
