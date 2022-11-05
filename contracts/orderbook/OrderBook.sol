@@ -80,8 +80,8 @@ contract OrderBook is IOrderBookV1 {
     /// config amount if the vault does not have the funds available to cover
     /// the config amount.
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
-    event OrderLive(address sender, Order order);
-    event OrderDead(address sender, Order order);
+    event OrderLive(address sender, Order order, uint orderHash);
+    event OrderDead(address sender, Order order, uint orderHash);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
     event TakeOrder(
@@ -141,7 +141,7 @@ contract OrderBook is IOrderBookV1 {
         uint orderHash_ = order_.hash();
         if (orders[orderHash_].isDead()) {
             orders[orderHash_] = ORDER_LIVE;
-            emit OrderLive(msg.sender, order_);
+            emit OrderLive(msg.sender, order_, orderHash_);
         }
     }
 
@@ -150,7 +150,7 @@ contract OrderBook is IOrderBookV1 {
         uint orderHash_ = order_.hash();
         if (orders[orderHash_].isLive()) {
             orders[orderHash_] = ORDER_DEAD;
-            emit OrderDead(msg.sender, order_);
+            emit OrderDead(msg.sender, order_, orderHash_);
         }
     }
 

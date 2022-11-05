@@ -60,6 +60,149 @@ describe("OrderBook tracking order funds cleared", async function () {
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
+  it("should record cleared order funds", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+    const bobInputVault = ethers.BigNumber.from(1);
+    const bobOutputVault = ethers.BigNumber.from(2);
+    const bountyBotVaultA = ethers.BigNumber.from(1);
+    const bountyBotVaultB = ethers.BigNumber.from(2);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+    };
+
+    const txAskOrderLive = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askConfig, orderHash: askOrderHash_ } = (await getEventArgs(
+      txAskOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // BID ORDER
+
+    const bidPrice = fixedPointDiv(ONE, askPrice);
+    const bidConstants = [max_uint256, bidPrice];
+    const vBidOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidPrice,
+    ]);
+    const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
+      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
+      interpreterStateConfig: {
+        sources: [bidSource],
+        constants: bidConstants,
+      },
+    };
+
+    const txBidOrderLive = await orderBook
+      .connect(bob)
+      .addOrder(bidOrderConfig);
+
+    const { order: bidConfig } = (await getEventArgs(
+      txBidOrderLive,
+      "OrderLive",
+      orderBook
+    )) as OrderLiveEvent["args"];
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    await orderBook.connect(alice).deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    await orderBook.connect(bob).deposit(depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const clearConfig: ClearConfigStruct = {
+      aInputIOIndex: 0,
+      aOutputIOIndex: 0,
+      bInputIOIndex: 0,
+      bOutputIOIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
+    };
+
+    await orderBook.connect(bountyBot).clear(askConfig, bidConfig, clearConfig);
+
+    const clearedOrderValue_ = await orderBook.clearedOrder(askOrderHash_);
+
+    const expectedClearedOrderValue_ =
+      depositConfigStructAlice.amount as BigNumber;
+
+    assert(
+      clearedOrderValue_.eq(expectedClearedOrderValue_),
+      `wrong cleared value
+      expected  ${expectedClearedOrderValue_}
+      got       ${clearedOrderValue_}`
+    );
+  });
+
   it("should expose tracked data to RainInterpreter calculations (e.g. asker throttles output of their tokens to 5 tokens per block)", async function () {
     const signers = await ethers.getSigners();
 
