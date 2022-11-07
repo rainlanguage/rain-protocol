@@ -1,3 +1,4 @@
+import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
@@ -22,6 +23,7 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { betweenBlockNumbersSource } from "../../utils/interpreter/sale";
+import { Status } from "../../utils/types/sale";
 import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
@@ -129,6 +131,14 @@ describe("Sale saleStatus", async function () {
       saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
 
+    const saleStatusCanEnd = await sale.saleStatus();
+    assert(
+      saleStatusCanEnd === Status.ACTIVE,
+      `wrong status
+      expected  ${Status.ACTIVE}
+      got       ${saleStatusCanEnd}`
+    );
+
     // give signer1 reserve to cover 1 unit
     await reserve.transfer(
       signer1.address,
@@ -146,6 +156,14 @@ describe("Sale saleStatus", async function () {
       desiredUnits: 1,
       maximumPrice: staticPrice,
     });
+
+    const saleStatusEnd = await sale.saleStatus();
+    assert(
+      saleStatusEnd === Status.FAIL,
+      `wrong status
+      expected  ${Status.FAIL}
+      got       ${saleStatusEnd}`
+    );
 
     // Don't end sale directly
     // await sale.end();
