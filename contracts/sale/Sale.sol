@@ -459,6 +459,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         } else {
             if (saleStatus == SaleStatus.Active) {
                 _end();
+                // Return early so that the state change of active to ended can
+                // take effect. Otherwise it will rollback as "NOT_ACTIVE" below
+                // leaving the sale active even though it should have ended here.
+                return;
             }
         }
 
