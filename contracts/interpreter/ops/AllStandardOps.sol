@@ -51,8 +51,6 @@ import "./math/OpMin.sol";
 import "./math/OpMod.sol";
 import "./math/OpMul.sol";
 import "./math/OpSub.sol";
-import "./rain/IOrderBookV1/OpIOrderBookV1ClearedCounterparty.sol";
-import "./rain/IOrderBookV1/OpIOrderBookV1ClearedOrder.sol";
 import "./rain/IOrderBookV1/OpIOrderBookV1VaultBalance.sol";
 import "./rain/ISaleV2/OpISaleV2RemainingTokenInventory.sol";
 import "./rain/ISaleV2/OpISaleV2Reserve.sol";
@@ -65,7 +63,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 57;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -216,8 +214,6 @@ library AllStandardOps {
                     OpMod.integrity,
                     OpMul.integrity,
                     OpSub.integrity,
-                    OpIOrderBookV1ClearedCounterparty.integrity,
-                    OpIOrderBookV1ClearedOrder.integrity,
                     OpIOrderBookV1VaultBalance.integrity,
                     OpISaleV2RemainingTokenInventory.integrity,
                     OpISaleV2Reserve.integrity,
@@ -304,8 +300,6 @@ library AllStandardOps {
                     OpMod.mod,
                     OpMul.mul,
                     OpSub.sub,
-                    OpIOrderBookV1ClearedCounterparty.run,
-                    OpIOrderBookV1ClearedOrder.run,
                     OpIOrderBookV1VaultBalance.run,
                     OpISaleV2RemainingTokenInventory.run,
                     OpISaleV2Reserve.run,

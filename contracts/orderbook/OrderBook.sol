@@ -10,12 +10,6 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./libraries/Order.sol";
-import "../idempotent/LibIdempotentFlag.sol";
-
-uint constant FLAG_COLUMN_CLEARED_ORDER = 0;
-uint constant FLAG_ROW_CLEARED_ORDER = 3;
-uint constant FLAG_COLUMN_CLEARED_COUNTERPARTY = 0;
-uint constant FLAG_ROW_CLEARED_COUNTERPARTY = 4;
 
 struct DepositConfig {
     address token;
@@ -97,11 +91,6 @@ contract OrderBook is IOrderBookV1 {
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
 
-    /// @inheritdoc IOrderBookV1
-    mapping(uint => uint256) public clearedOrder;
-    /// @inheritdoc IOrderBookV1
-    mapping(uint => mapping(address => uint256)) public clearedCounterparty;
-
     function _isTracked(
         uint256 tracking_,
         uint256 mask_
@@ -164,19 +153,7 @@ contract OrderBook is IOrderBookV1 {
             .arrayFrom(
                 orderHash_,
                 uint(uint160(msg.sender)),
-                uint(uint160(counterparty_)),
-                IdempotentFlag.wrap(order_.contextScratch).get16x16(
-                    FLAG_COLUMN_CLEARED_ORDER,
-                    FLAG_ROW_CLEARED_ORDER
-                )
-                    ? clearedOrder[orderHash_]
-                    : 0,
-                IdempotentFlag.wrap(order_.contextScratch).get16x16(
-                    FLAG_COLUMN_CLEARED_COUNTERPARTY,
-                    FLAG_ROW_CLEARED_COUNTERPARTY
-                )
-                    ? clearedCounterparty[orderHash_][counterparty_]
-                    : 0
+                uint(uint160(counterparty_))
             )
             .matrixFrom();
         (orderOutputMax_, orderIORatio_) = IInterpreterV1(order_.interpreter)
@@ -194,7 +171,6 @@ contract OrderBook is IOrderBookV1 {
 
     function _recordVaultIO(
         Order memory order_,
-        address counterparty_,
         uint256 inputIOIndex_,
         uint256 input_,
         uint256 outputIOIndex_,
@@ -208,22 +184,6 @@ contract OrderBook is IOrderBookV1 {
         if (output_ > 0) {
             io_ = order_.validOutputs[outputIOIndex_];
             vaultBalance[order_.owner][io_.token][io_.vaultId] -= output_;
-            if (
-                IdempotentFlag.wrap(order_.contextScratch).get16x16(
-                    FLAG_COLUMN_CLEARED_ORDER,
-                    FLAG_ROW_CLEARED_ORDER
-                )
-            ) {
-                clearedOrder[order_.hash()] += output_;
-            }
-            if (
-                IdempotentFlag.wrap(order_.contextScratch).get16x16(
-                    FLAG_COLUMN_CLEARED_COUNTERPARTY,
-                    FLAG_ROW_CLEARED_COUNTERPARTY
-                )
-            ) {
-                clearedCounterparty[order_.hash()][counterparty_] += output_;
-            }
         }
     }
 
@@ -269,7 +229,6 @@ contract OrderBook is IOrderBookV1 {
 
                 _recordVaultIO(
                     order_,
-                    msg.sender,
                     takeOrder_.inputIOIndex,
                     output_,
                     takeOrder_.outputIOIndex,
@@ -356,7 +315,6 @@ contract OrderBook is IOrderBookV1 {
 
         _recordVaultIO(
             a_,
-            b_.owner,
             clearConfig_.aInputIOIndex,
             stateChange_.aInput,
             clearConfig_.aOutputIOIndex,
@@ -364,7 +322,6 @@ contract OrderBook is IOrderBookV1 {
         );
         _recordVaultIO(
             b_,
-            a_.owner,
             clearConfig_.bInputIOIndex,
             stateChange_.bInput,
             clearConfig_.bOutputIOIndex,

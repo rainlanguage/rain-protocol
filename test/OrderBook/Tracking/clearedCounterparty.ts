@@ -38,7 +38,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook tracking counterparty funds cleared", async function () {
+describe.only("OrderBook tracking counterparty funds cleared", async function () {
   const cOrderHash = op(Opcode.CONTEXT, 0x0000);
   const cCounterparty = op(Opcode.CONTEXT, 0x0002);
 
@@ -61,7 +61,7 @@ describe("OrderBook tracking counterparty funds cleared", async function () {
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
-  it("should record cleared counterparty funds", async function () {
+  it.only("should record cleared counterparty funds", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];

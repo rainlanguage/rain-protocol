@@ -8,15 +8,4 @@ interface IOrderBookV1 {
         address token,
         uint id
     ) external view returns (uint balance);
-
-    /// funds were cleared from the hashed order to anyone.
-    function clearedOrder(uint orderHash) external view returns (uint cleared);
-
-    /// funds were cleared from the owner of the hashed order.
-    /// order owner is the counterparty funds were cleared to.
-    /// order hash => order owner => token amount
-    function clearedCounterparty(
-        uint orderHash,
-        address counterparty
-    ) external view returns (uint cleared);
 }

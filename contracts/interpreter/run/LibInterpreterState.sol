@@ -40,8 +40,7 @@ enum DebugStyle {
 struct InterpreterState {
     StackTop stackBottom;
     StackTop constantsBottom;
-    uint256 scratch;
-    uint256 contextScratch;
+    uint256 contextReads;
     uint256[][] context;
     bytes[] compiledSources;
 }
@@ -192,7 +191,7 @@ library LibInterpreterState {
             cursor_ = cursor_.up(cursor_.peek());
 
             cursor_ = cursor_.up();
-            state_.contextScratch = cursor_.peek();
+            state_.contextReads = cursor_.peek();
 
             // Rebuild the sources array.
             uint256 i_ = 0;
