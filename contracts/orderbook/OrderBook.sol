@@ -103,16 +103,17 @@ contract OrderBook is IOrderBookV1 {
     /// config amount if the vault does not have the funds available to cover
     /// the config amount.
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
-    event OrderLive(address sender, Order order, uint orderHash);
-    event OrderDead(address sender, Order order, uint orderHash);
-    event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
-    event AfterClear(ClearStateChange stateChange);
+    event AddOrder(address sender, Order order, uint orderHash);
+    event RemoveOrder(address sender, Order order, uint orderHash);
     event TakeOrder(
         address sender,
         TakeOrderConfig takeOrder,
         uint256 input,
         uint256 output
     );
+    event OrderMissing(address sender, address owner, uint orderHash_);
+    event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
+    event AfterClear(ClearStateChange stateChange);
 
     // order hash => order liveness
     mapping(uint => uint) private orders;
@@ -163,14 +164,14 @@ contract OrderBook is IOrderBookV1 {
         );
         uint orderHash_ = order_.hash();
         orders[orderHash_] = 1;
-        emit OrderLive(msg.sender, order_, orderHash_);
+        emit AddOrder(msg.sender, order_, orderHash_);
     }
 
     function removeOrder(Order calldata order_) external {
         require(msg.sender == order_.owner, "OWNER");
         uint orderHash_ = order_.hash();
         delete (orders[orderHash_]);
-        emit OrderDead(msg.sender, order_, orderHash_);
+        emit RemoveOrder(msg.sender, order_, orderHash_);
     }
 
     function _calculateOrderIO(
@@ -227,44 +228,53 @@ contract OrderBook is IOrderBookV1 {
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
-            require(
-                order_.validInputs[takeOrder_.inputIOIndex].token ==
-                    takeOrders_.output,
-                "TOKEN_MISMATCH"
-            );
-            require(
-                order_.validOutputs[takeOrder_.outputIOIndex].token ==
-                    takeOrders_.input,
-                "TOKEN_MISMATCH"
-            );
-
-            (
-                uint256 orderOutputMax_,
-                uint256 orderIORatio_
-            ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
-
-            // Skip orders that are too expensive rather than revert as we have
-            // no way of knowing if a specific order becomes too expensive
-            // between submitting to mempool and execution, but other orders may
-            // be valid so we want to take advantage of those if possible.
-            if (
-                orderIORatio_ <= takeOrders_.maximumIORatio &&
-                orderOutputMax_ > 0
-            ) {
-                uint256 input_ = remainingInput_.min(orderOutputMax_);
-                uint256 output_ = input_.fixedPointMul(orderIORatio_);
-
-                remainingInput_ -= input_;
-                totalOutput_ += output_;
-
-                _recordVaultIO(
-                    order_,
-                    takeOrder_.inputIOIndex,
-                    output_,
-                    takeOrder_.outputIOIndex,
-                    input_
+            uint orderHash_ = order_.hash();
+            if (orders[orderHash_] == 0) {
+                emit OrderMissing(msg.sender, order_.owner, orderHash_);
+            } else {
+                require(
+                    order_.validInputs[takeOrder_.inputIOIndex].token ==
+                        takeOrders_.output,
+                    "TOKEN_MISMATCH"
                 );
-                emit TakeOrder(msg.sender, takeOrder_, input_, output_);
+                require(
+                    order_.validOutputs[takeOrder_.outputIOIndex].token ==
+                        takeOrders_.input,
+                    "TOKEN_MISMATCH"
+                );
+
+                (
+                    uint256 orderOutputMax_,
+                    uint256 orderIORatio_
+                ) = _calculateOrderIO(
+                        order_,
+                        takeOrder_.outputIOIndex,
+                        msg.sender
+                    );
+
+                // Skip orders that are too expensive rather than revert as we have
+                // no way of knowing if a specific order becomes too expensive
+                // between submitting to mempool and execution, but other orders may
+                // be valid so we want to take advantage of those if possible.
+                if (
+                    orderIORatio_ <= takeOrders_.maximumIORatio &&
+                    orderOutputMax_ > 0
+                ) {
+                    uint256 input_ = remainingInput_.min(orderOutputMax_);
+                    uint256 output_ = input_.fixedPointMul(orderIORatio_);
+
+                    remainingInput_ -= input_;
+                    totalOutput_ += output_;
+
+                    _recordVaultIO(
+                        order_,
+                        takeOrder_.inputIOIndex,
+                        output_,
+                        takeOrder_.outputIOIndex,
+                        input_
+                    );
+                    emit TakeOrder(msg.sender, takeOrder_, input_, output_);
+                }
             }
 
             unchecked {

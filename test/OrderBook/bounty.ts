@@ -58,7 +58,7 @@ describe("OrderBook bounty", async function () {
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
-  it("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
+  it.only("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
