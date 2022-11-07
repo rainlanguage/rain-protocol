@@ -16,6 +16,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 2;
 struct OrderConfig {
     address expressionDeployer;
     address interpreter;
+    uint32 expiresAfter;
     StateConfig interpreterStateConfig;
     IO[] validInputs;
     IO[] validOutputs;
@@ -30,6 +31,7 @@ struct Order {
     address owner;
     address interpreter;
     address expression;
+    uint32 expiresAfter;
     IO[] validInputs;
     IO[] validOutputs;
 }
@@ -111,13 +113,14 @@ contract OrderBook is IOrderBookV1 {
         uint256 input,
         uint256 output
     );
-    event OrderNotFound(address sender, address owner, uint orderHash_);
-    event OrderZeroAmount(address sender, address owner, uint orderHash_);
-    event OrderExceedsMaxRatio(address sender, address owner, uint orderHash_);
-    event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
+    event OrderNotFound(address sender, address owner, uint orderHash);
+    event OrderZeroAmount(address sender, address owner, uint orderHash);
+    event OrderExceedsMaxRatio(address sender, address owner, uint orderHash);
+    event OrderExpired(address sender, address owner, uint orderHash);
+    event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
 
-    // order hash => order liveness
+    // order hash => order expire at
     mapping(uint => uint) private orders;
     /// @inheritdoc IOrderBookV1
     mapping(address => mapping(address => mapping(uint256 => uint256)))
@@ -161,11 +164,12 @@ contract OrderBook is IOrderBookV1 {
             msg.sender,
             config_.interpreter,
             expressionAddress,
+            config_.expiresAfter,
             config_.validInputs,
             config_.validOutputs
         );
         uint orderHash_ = order_.hash();
-        orders[orderHash_] = 1;
+        orders[orderHash_] = order_.expiresAfter;
         emit AddOrder(msg.sender, order_, orderHash_);
     }
 
@@ -258,7 +262,10 @@ contract OrderBook is IOrderBookV1 {
                 // no way of knowing if a specific order becomes too expensive
                 // between submitting to mempool and execution, but other orders may
                 // be valid so we want to take advantage of those if possible.
-                if (orderIORatio_ > takeOrders_.maximumIORatio) {
+                if (order_.expiresAfter < block.timestamp) {
+                    emit OrderExpired(msg.sender, order_.owner, orderHash_);
+                }
+                else if (orderIORatio_ > takeOrders_.maximumIORatio) {
                     emit OrderExceedsMaxRatio(
                         msg.sender,
                         order_.owner,
@@ -315,6 +322,8 @@ contract OrderBook is IOrderBookV1 {
                     a_.validInputs[clearConfig_.aInputIOIndex].token,
                 "TOKEN_MISMATCH"
             );
+            require(a_.expiresAfter >= block.timestamp, "A_EXPIRED");
+            require(b_.expiresAfter >= block.timestamp, "B_EXPIRED");
             require(orders[a_.hash()] > 0, "A_NOT_LIVE");
             require(orders[b_.hash()] > 0, "B_NOT_LIVE");
         }
