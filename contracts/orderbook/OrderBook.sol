@@ -91,13 +91,6 @@ contract OrderBook is IOrderBookV1 {
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
 
-    function _isTracked(
-        uint256 tracking_,
-        uint256 mask_
-    ) internal pure returns (bool) {
-        return (tracking_ & mask_) > 0;
-    }
-
     function deposit(DepositConfig calldata config_) external {
         vaultBalance[msg.sender][config_.token][config_.vaultId] += config_
             .amount;
