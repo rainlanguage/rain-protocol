@@ -112,6 +112,8 @@ contract OrderBook is IOrderBookV1 {
         uint256 output
     );
     event OrderNotFound(address sender, address owner, uint orderHash_);
+    event OrderZeroAmount(address sender, address owner, uint orderHash_);
+    event OrderExceedsMaxRatio(address sender, address owner, uint orderHash_);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
 
@@ -256,10 +258,15 @@ contract OrderBook is IOrderBookV1 {
                 // no way of knowing if a specific order becomes too expensive
                 // between submitting to mempool and execution, but other orders may
                 // be valid so we want to take advantage of those if possible.
-                if (
-                    orderIORatio_ <= takeOrders_.maximumIORatio &&
-                    orderOutputMax_ > 0
-                ) {
+                if (orderIORatio_ > takeOrders_.maximumIORatio) {
+                    emit OrderExceedsMaxRatio(
+                        msg.sender,
+                        order_.owner,
+                        orderHash_
+                    );
+                } else if (orderOutputMax_ == 0) {
+                    emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
+                } else {
                     uint256 input_ = remainingInput_.min(orderOutputMax_);
                     uint256 output_ = input_.fixedPointMul(orderIORatio_);
 
