@@ -25,7 +25,6 @@ struct Order {
     address owner;
     address interpreter;
     address expression;
-    uint contextScratch;
     IO[] validInputs;
     IO[] validOutputs;
 }
@@ -44,7 +43,6 @@ library LibOrder {
     ) internal returns (Order memory) {
         (
             address expressionAddress,
-            uint256 contextScratch
         ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
                 config_.interpreterStateConfig,
                 MIN_FINAL_STACK_INDEX.arrayFrom()
@@ -54,7 +52,6 @@ library LibOrder {
                 msg.sender,
                 config_.interpreter,
                 expressionAddress,
-                contextScratch,
                 config_.validInputs,
                 config_.validOutputs
             );
