@@ -4,12 +4,12 @@ pragma solidity ^0.8.15;
 import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 
-bytes constant OPCODE_FUNCTION_POINTERS = hex"082c083a088f08e30905095d099409b209c109d009de09ec09fa09d00a080a160a240a330a420a500a5e0a6c0a7a0afd0b0c0b1b0b2a0b390b480b910ba30bb10be30bf10bff0c0d0c1c0c2b0c3a0c490c580c670c760c850c940ca30cb20cc00cce0cdc0cea0cf80d060d140d220d310d400d4e0db8";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"080c081a086f08c308e5093d0974099209a109b009be09cc09da09b009e809f60a040a130a220a300a3e0a4c0a5a0add0aec0afb0b0a0b190b280b710b830b910bc30bd10bdf0bed0bfc0c0b0c1a0c290c380c470c560c650c740c830c920ca00cae0cbc0cca0cd80ce60cf50d040d120d7c";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x590da94afe85f033d8ece6f776f6854e7aa071e312d65d58d6d533b2c23018d6
+    0xab57aa64a7de0b4db32b89164c35e4f6877205a7961ed379b26d1f078dba07e1
 );
 
 contract RainterpreterExpressionDeployer is
