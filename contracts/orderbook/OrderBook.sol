@@ -9,7 +9,30 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
-import "./libraries/Order.sol";
+
+SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
+uint256 constant MIN_FINAL_STACK_INDEX = 2;
+
+struct OrderConfig {
+    address expressionDeployer;
+    address interpreter;
+    StateConfig interpreterStateConfig;
+    IO[] validInputs;
+    IO[] validOutputs;
+}
+
+struct IO {
+    address token;
+    uint256 vaultId;
+}
+
+struct Order {
+    address owner;
+    address interpreter;
+    address expression;
+    IO[] validInputs;
+    IO[] validOutputs;
+}
 
 struct DepositConfig {
     address token;
@@ -54,6 +77,12 @@ struct TakeOrdersConfig {
     TakeOrderConfig[] orders;
 }
 
+library LibOrder {
+    function hash(Order memory order_) internal pure returns (uint) {
+        return uint256(keccak256(abi.encode(order_)));
+    }
+}
+
 contract OrderBook is IOrderBookV1 {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
@@ -62,10 +91,10 @@ contract OrderBook is IOrderBookV1 {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
-    using LibOrder for OrderLiveness;
     using LibOrder for Order;
     using LibInterpreterState for InterpreterState;
     using LibIdempotentFlag for IdempotentFlag;
+    using LibUint256Array for uint;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -86,7 +115,7 @@ contract OrderBook is IOrderBookV1 {
     );
 
     // order hash => order liveness
-    mapping(uint => OrderLiveness) private orders;
+    mapping(uint => uint) private orders;
     /// @inheritdoc IOrderBookV1
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
@@ -118,22 +147,30 @@ contract OrderBook is IOrderBookV1 {
         IERC20(config_.token).safeTransfer(msg.sender, withdrawAmount_);
     }
 
-    function addOrder(OrderConfig calldata orderConfig_) external {
-        Order memory order_ = LibOrder.fromOrderConfig(orderConfig_);
+    function addOrder(OrderConfig calldata config_) external {
+        (address expressionAddress, ) = IExpressionDeployerV1(
+            config_.expressionDeployer
+        ).deployExpression(
+                config_.interpreterStateConfig,
+                MIN_FINAL_STACK_INDEX.arrayFrom()
+            );
+        Order memory order_ = Order(
+            msg.sender,
+            config_.interpreter,
+            expressionAddress,
+            config_.validInputs,
+            config_.validOutputs
+        );
         uint orderHash_ = order_.hash();
-        if (orders[orderHash_].isDead()) {
-            orders[orderHash_] = ORDER_LIVE;
-            emit OrderLive(msg.sender, order_, orderHash_);
-        }
+        orders[orderHash_] = 1;
+        emit OrderLive(msg.sender, order_, orderHash_);
     }
 
     function removeOrder(Order calldata order_) external {
         require(msg.sender == order_.owner, "OWNER");
         uint orderHash_ = order_.hash();
-        if (orders[orderHash_].isLive()) {
-            orders[orderHash_] = ORDER_DEAD;
-            emit OrderDead(msg.sender, order_, orderHash_);
-        }
+        delete (orders[orderHash_]);
+        emit OrderDead(msg.sender, order_, orderHash_);
     }
 
     function _calculateOrderIO(
@@ -261,8 +298,8 @@ contract OrderBook is IOrderBookV1 {
                     a_.validInputs[clearConfig_.aInputIOIndex].token,
                 "TOKEN_MISMATCH"
             );
-            require(orders[a_.hash()].isLive(), "A_NOT_LIVE");
-            require(orders[b_.hash()].isLive(), "B_NOT_LIVE");
+            require(orders[a_.hash()] > 0, "A_NOT_LIVE");
+            require(orders[b_.hash()] > 0, "B_NOT_LIVE");
         }
 
         ClearStateChange memory stateChange_;
