@@ -111,7 +111,7 @@ contract OrderBook is IOrderBookV1 {
         uint256 input,
         uint256 output
     );
-    event OrderMissing(address sender, address owner, uint orderHash_);
+    event OrderNotFound(address sender, address owner, uint orderHash_);
     event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
 
@@ -230,7 +230,7 @@ contract OrderBook is IOrderBookV1 {
             order_ = takeOrder_.order;
             uint orderHash_ = order_.hash();
             if (orders[orderHash_] == 0) {
-                emit OrderMissing(msg.sender, order_.owner, orderHash_);
+                emit OrderNotFound(msg.sender, order_.owner, orderHash_);
             } else {
                 require(
                     order_.validInputs[takeOrder_.inputIOIndex].token ==
