@@ -9,6 +9,7 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
+import "./OrderBookFlashLender.sol";
 
 SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
 uint256 constant MIN_FINAL_STACK_INDEX = 2;
@@ -85,7 +86,7 @@ library LibOrder {
     }
 }
 
-contract OrderBook is IOrderBookV1 {
+contract OrderBook is IOrderBookV1, OrderBookFlashLender {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
@@ -150,7 +151,7 @@ contract OrderBook is IOrderBookV1 {
             vaultBalance_ -
             withdrawAmount_;
         emit Withdraw(msg.sender, config_, withdrawAmount_);
-        IERC20(config_.token).safeTransfer(msg.sender, withdrawAmount_);
+        _decreaseFlashDebtThenSendToken(config_.token, msg.sender, withdrawAmount_);
     }
 
     function addOrder(OrderConfig calldata config_) external {
@@ -301,7 +302,7 @@ contract OrderBook is IOrderBookV1 {
             address(this),
             totalOutput_
         );
-        IERC20(takeOrders_.input).safeTransfer(msg.sender, totalInput_);
+        _decreaseFlashDebtThenSendToken(takeOrders_.input, msg.sender, totalInput_);
     }
 
     function clear(
