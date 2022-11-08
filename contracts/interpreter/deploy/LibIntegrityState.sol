@@ -15,8 +15,6 @@ struct IntegrityState {
     uint256 contextLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
-    // @todo remove scratch in favour of contextScratch.
-    uint256 scratch;
     uint256 contextScratch;
     function(IntegrityState memory, Operand, StackTop)
         view
@@ -86,11 +84,10 @@ library LibIntegrityState {
         }
     }
 
-    function push(IntegrityState memory integrityState_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function push(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up();
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
@@ -121,11 +118,10 @@ library LibIntegrityState {
         );
     }
 
-    function pop(IntegrityState memory integrityState_, StackTop stackTop_)
-        internal
-        pure
-        returns (StackTop stackTopAfter_)
-    {
+    function pop(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_
+    ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.down();
         integrityState_.popUnderflowCheck(stackTopAfter_);
     }
@@ -198,6 +194,17 @@ library LibIntegrityState {
         function(uint256, uint256, uint256) internal view returns (uint256)
     ) internal pure returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_, 3));
+    }
+
+    function applyFn(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_,
+        function(uint256, uint256, uint256, uint)
+            internal
+            view
+            returns (uint256)
+    ) internal pure returns (StackTop) {
+        return integrityState_.push(integrityState_.pop(stackTop_, 4));
     }
 
     function applyFn(

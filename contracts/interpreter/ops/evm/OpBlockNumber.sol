@@ -19,11 +19,11 @@ library OpBlockNumber {
         return integrityState_.push(stackTop_);
     }
 
-    function blockNumber(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function blockNumber(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(block.number);
     }
 }

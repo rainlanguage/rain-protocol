@@ -14,7 +14,10 @@ contract VerifyCallback is IVerifyCallback, Ownable {
         __Ownable_init();
     }
 
-    function afterAdd(address adder_, Evidence[] calldata evidences_)
+    function afterAdd(
+        address adder_,
+        Evidence[] calldata evidences_
+    )
         external
         virtual
         override
@@ -24,7 +27,10 @@ contract VerifyCallback is IVerifyCallback, Ownable {
 
     }
 
-    function afterApprove(address approver_, Evidence[] calldata evidences_)
+    function afterApprove(
+        address approver_,
+        Evidence[] calldata evidences_
+    )
         external
         virtual
         override
@@ -34,7 +40,10 @@ contract VerifyCallback is IVerifyCallback, Ownable {
 
     }
 
-    function afterBan(address banner_, Evidence[] calldata evidences_)
+    function afterBan(
+        address banner_,
+        Evidence[] calldata evidences_
+    )
         external
         virtual
         override
@@ -44,7 +53,10 @@ contract VerifyCallback is IVerifyCallback, Ownable {
 
     }
 
-    function afterRemove(address remover_, Evidence[] calldata evidences_)
+    function afterRemove(
+        address remover_,
+        Evidence[] calldata evidences_
+    )
         external
         virtual
         override

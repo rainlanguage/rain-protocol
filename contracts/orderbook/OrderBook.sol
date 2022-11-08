@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "./IOrderBookV1.sol";
 import "../interpreter/run/StandardInterpreter.sol";
 import "../interpreter/run/LibStackTop.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -8,9 +9,32 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
-import "./libraries/Order.sol";
-import "../idempotent/LibIdempotentFlag.sol";
-import "./OrderBookIntegrity.sol";
+
+SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
+uint256 constant MIN_FINAL_STACK_INDEX = 2;
+
+struct OrderConfig {
+    address expressionDeployer;
+    address interpreter;
+    uint32 expiresAfter;
+    StateConfig interpreterStateConfig;
+    IO[] validInputs;
+    IO[] validOutputs;
+}
+
+struct IO {
+    address token;
+    uint256 vaultId;
+}
+
+struct Order {
+    address owner;
+    address interpreter;
+    address expression;
+    uint32 expiresAfter;
+    IO[] validInputs;
+    IO[] validOutputs;
+}
 
 struct DepositConfig {
     address token;
@@ -33,18 +57,11 @@ struct ClearConfig {
     uint256 bBountyVaultId;
 }
 
-struct EvalContext {
-    OrderHash orderHash;
-    address counterparty;
-}
-
 struct ClearStateChange {
     uint256 aOutput;
     uint256 bOutput;
     uint256 aInput;
     uint256 bInput;
-    IdempotentFlag aFlag;
-    IdempotentFlag bFlag;
 }
 
 struct TakeOrderConfig {
@@ -62,21 +79,13 @@ struct TakeOrdersConfig {
     TakeOrderConfig[] orders;
 }
 
-uint256 constant LOCAL_OPS_LENGTH = 2;
-
-library LibEvalContext {
-    function toContext(EvalContext memory evalContext_)
-        internal
-        pure
-        returns (uint256[] memory context_)
-    {
-        context_ = new uint256[](2);
-        context_[0] = OrderHash.unwrap(evalContext_.orderHash);
-        context_[1] = uint256(uint160(evalContext_.counterparty));
+library LibOrder {
+    function hash(Order memory order_) internal pure returns (uint) {
+        return uint256(keccak256(abi.encode(order_)));
     }
 }
 
-contract OrderBook is StandardInterpreter {
+contract OrderBook is IOrderBookV1 {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
@@ -84,11 +93,10 @@ contract OrderBook is StandardInterpreter {
     using SafeERC20 for IERC20;
     using Math for uint256;
     using FixedPointMath for uint256;
-    using LibOrder for OrderLiveness;
     using LibOrder for Order;
-    using LibEvalContext for EvalContext;
     using LibInterpreterState for InterpreterState;
     using LibIdempotentFlag for IdempotentFlag;
+    using LibUint256Array for uint;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.
@@ -97,45 +105,30 @@ contract OrderBook is StandardInterpreter {
     /// config amount if the vault does not have the funds available to cover
     /// the config amount.
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
-    event OrderLive(address sender, Order config);
-    event OrderDead(address sender, Order config);
-    event Clear(address sender, Order a_, Order b_, ClearConfig clearConfig);
-    event AfterClear(ClearStateChange stateChange);
+    event AddOrder(address sender, Order order, uint orderHash);
+    event RemoveOrder(address sender, Order order, uint orderHash);
     event TakeOrder(
         address sender,
         TakeOrderConfig takeOrder,
         uint256 input,
         uint256 output
     );
+    event OrderNotFound(address sender, address owner, uint orderHash);
+    event OrderZeroAmount(address sender, address owner, uint orderHash);
+    event OrderExceedsMaxRatio(address sender, address owner, uint orderHash);
+    event OrderExpired(address sender, address owner, uint orderHash);
+    event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
+    event AfterClear(ClearStateChange stateChange);
 
-    // order hash => order liveness
-    mapping(OrderHash => OrderLiveness) private orders;
-    // depositor => token => vault id => token amount.
+    // order hash => order expire at
+    mapping(uint => uint) private orders;
+    /// @inheritdoc IOrderBookV1
     mapping(address => mapping(address => mapping(uint256 => uint256)))
-        private vaults;
-
-    // funds were cleared from the hashed order to anyone.
-    mapping(OrderHash => uint256) private clearedOrder;
-    // funds were cleared from the owner of the hashed order.
-    // order owner is the counterparty funds were cleared to.
-    // order hash => order owner => token amount
-    mapping(OrderHash => mapping(address => uint256))
-        private clearedCounterparty;
-
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {}
-
-    function _isTracked(uint256 tracking_, uint256 mask_)
-        internal
-        pure
-        returns (bool)
-    {
-        return (tracking_ & mask_) > 0;
-    }
+        public vaultBalance;
 
     function deposit(DepositConfig calldata config_) external {
-        vaults[msg.sender][config_.token][config_.vaultId] += config_.amount;
+        vaultBalance[msg.sender][config_.token][config_.vaultId] += config_
+            .amount;
         emit Deposit(msg.sender, config_);
         IERC20(config_.token).safeTransferFrom(
             msg.sender,
@@ -149,97 +142,91 @@ contract OrderBook is StandardInterpreter {
     /// is less than the current vault balance then the vault will be cleared
     /// to 0 rather than the withdraw transaction reverting.
     function withdraw(WithdrawConfig calldata config_) external {
-        uint256 vaultBalance_ = vaults[msg.sender][config_.token][
+        uint256 vaultBalance_ = vaultBalance[msg.sender][config_.token][
             config_.vaultId
         ];
         uint256 withdrawAmount_ = config_.amount.min(vaultBalance_);
-        vaults[msg.sender][config_.token][config_.vaultId] =
+        vaultBalance[msg.sender][config_.token][config_.vaultId] =
             vaultBalance_ -
             withdrawAmount_;
         emit Withdraw(msg.sender, config_, withdrawAmount_);
         IERC20(config_.token).safeTransfer(msg.sender, withdrawAmount_);
     }
 
-    function addOrder(OrderConfig calldata orderConfig_) external {
-        Order memory order_ = LibOrder.fromOrderConfig(
-            IRainInterpreterIntegrity(interpreterIntegrity),
-            buildStateBytes,
-            orderConfig_
+    function addOrder(OrderConfig calldata config_) external {
+        (address expressionAddress, ) = IExpressionDeployerV1(
+            config_.expressionDeployer
+        ).deployExpression(
+                config_.interpreterStateConfig,
+                MIN_FINAL_STACK_INDEX.arrayFrom()
+            );
+        Order memory order_ = Order(
+            msg.sender,
+            config_.interpreter,
+            expressionAddress,
+            config_.expiresAfter,
+            config_.validInputs,
+            config_.validOutputs
         );
-        OrderHash orderHash_ = order_.hash();
-        if (orders[orderHash_].isDead()) {
-            orders[orderHash_] = ORDER_LIVE;
-            emit OrderLive(msg.sender, order_);
-        }
+        uint orderHash_ = order_.hash();
+        orders[orderHash_] = order_.expiresAfter;
+        emit AddOrder(msg.sender, order_, orderHash_);
     }
 
     function removeOrder(Order calldata order_) external {
         require(msg.sender == order_.owner, "OWNER");
-        OrderHash orderHash_ = order_.hash();
-        if (orders[orderHash_].isLive()) {
-            orders[orderHash_] = ORDER_DEAD;
-            emit OrderDead(msg.sender, order_);
-        }
+        uint orderHash_ = order_.hash();
+        delete (orders[orderHash_]);
+        emit RemoveOrder(msg.sender, order_, orderHash_);
     }
 
     function _calculateOrderIO(
         Order memory order_,
         uint256 outputIOIndex_,
         address counterparty_
-    )
-        internal
-        view
-        returns (
-            uint256 orderOutputMax_,
-            uint256 orderIORatio_,
-            IdempotentFlag flag_
-        )
-    {
-        InterpreterState memory state_ = order_.interpreterState.deserialize();
-        state_.context = EvalContext(order_.hash(), counterparty_)
-            .toContext()
+    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_) {
+        uint orderHash_ = order_.hash();
+        uint[][] memory context_ = LibUint256Array
+            .arrayFrom(
+                orderHash_,
+                uint(uint160(msg.sender)),
+                uint(uint160(counterparty_))
+            )
             .matrixFrom();
-        flag_ = IdempotentFlag.wrap(state_.scratch);
-        (orderOutputMax_, orderIORatio_) = state_.eval().peek2();
+        (orderOutputMax_, orderIORatio_) = IInterpreterV1(order_.interpreter)
+            .eval(order_.expression, ORDER_ENTRYPOINT, context_)
+            .asStackTopAfter()
+            .peek2();
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
         IO memory outputIO_ = order_.validOutputs[outputIOIndex_];
         orderOutputMax_ = orderOutputMax_.min(
-            vaults[order_.owner][outputIO_.token][outputIO_.vaultId]
+            vaultBalance[order_.owner][outputIO_.token][outputIO_.vaultId]
         );
     }
 
     function _recordVaultIO(
         Order memory order_,
-        address counterparty_,
         uint256 inputIOIndex_,
         uint256 input_,
         uint256 outputIOIndex_,
-        uint256 output_,
-        IdempotentFlag flag_
+        uint256 output_
     ) internal {
         IO memory io_;
         if (input_ > 0) {
             io_ = order_.validInputs[inputIOIndex_];
-            vaults[order_.owner][io_.token][io_.vaultId] += input_;
+            vaultBalance[order_.owner][io_.token][io_.vaultId] += input_;
         }
         if (output_ > 0) {
             io_ = order_.validOutputs[outputIOIndex_];
-            vaults[order_.owner][io_.token][io_.vaultId] -= output_;
-            if (flag_.get(FLAG_INDEX_CLEARED_ORDER)) {
-                clearedOrder[order_.hash()] += output_;
-            }
-            if (flag_.get(FLAG_INDEX_CLEARED_COUNTERPARTY)) {
-                clearedCounterparty[order_.hash()][counterparty_] += output_;
-            }
+            vaultBalance[order_.owner][io_.token][io_.vaultId] -= output_;
         }
     }
 
-    function takeOrders(TakeOrdersConfig calldata takeOrders_)
-        external
-        returns (uint256 totalInput_, uint256 totalOutput_)
-    {
+    function takeOrders(
+        TakeOrdersConfig calldata takeOrders_
+    ) external returns (uint256 totalInput_, uint256 totalOutput_) {
         uint256 i_ = 0;
         TakeOrderConfig memory takeOrder_;
         Order memory order_;
@@ -247,47 +234,60 @@ contract OrderBook is StandardInterpreter {
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
-            require(
-                order_.validInputs[takeOrder_.inputIOIndex].token ==
-                    takeOrders_.output,
-                "TOKEN_MISMATCH"
-            );
-            require(
-                order_.validOutputs[takeOrder_.outputIOIndex].token ==
-                    takeOrders_.input,
-                "TOKEN_MISMATCH"
-            );
-
-            (
-                uint256 orderOutputMax_,
-                uint256 orderIORatio_,
-                IdempotentFlag flag_
-            ) = _calculateOrderIO(order_, takeOrder_.outputIOIndex, msg.sender);
-
-            // Skip orders that are too expensive rather than revert as we have
-            // no way of knowing if a specific order becomes too expensive
-            // between submitting to mempool and execution, but other orders may
-            // be valid so we want to take advantage of those if possible.
-            if (
-                orderIORatio_ <= takeOrders_.maximumIORatio &&
-                orderOutputMax_ > 0
-            ) {
-                uint256 input_ = remainingInput_.min(orderOutputMax_);
-                uint256 output_ = input_.fixedPointMul(orderIORatio_);
-
-                remainingInput_ -= input_;
-                totalOutput_ += output_;
-
-                _recordVaultIO(
-                    order_,
-                    msg.sender,
-                    takeOrder_.inputIOIndex,
-                    output_,
-                    takeOrder_.outputIOIndex,
-                    input_,
-                    flag_
+            uint orderHash_ = order_.hash();
+            if (orders[orderHash_] == 0) {
+                emit OrderNotFound(msg.sender, order_.owner, orderHash_);
+            } else {
+                require(
+                    order_.validInputs[takeOrder_.inputIOIndex].token ==
+                        takeOrders_.output,
+                    "TOKEN_MISMATCH"
                 );
-                emit TakeOrder(msg.sender, takeOrder_, input_, output_);
+                require(
+                    order_.validOutputs[takeOrder_.outputIOIndex].token ==
+                        takeOrders_.input,
+                    "TOKEN_MISMATCH"
+                );
+
+                (
+                    uint256 orderOutputMax_,
+                    uint256 orderIORatio_
+                ) = _calculateOrderIO(
+                        order_,
+                        takeOrder_.outputIOIndex,
+                        msg.sender
+                    );
+
+                // Skip orders that are too expensive rather than revert as we have
+                // no way of knowing if a specific order becomes too expensive
+                // between submitting to mempool and execution, but other orders may
+                // be valid so we want to take advantage of those if possible.
+                if (order_.expiresAfter < block.timestamp) {
+                    emit OrderExpired(msg.sender, order_.owner, orderHash_);
+                } else if (orderIORatio_ > takeOrders_.maximumIORatio) {
+                    emit OrderExceedsMaxRatio(
+                        msg.sender,
+                        order_.owner,
+                        orderHash_
+                    );
+                } else if (orderOutputMax_ == 0) {
+                    emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
+                } else {
+                    uint256 input_ = remainingInput_.min(orderOutputMax_);
+                    uint256 output_ = input_.fixedPointMul(orderIORatio_);
+
+                    remainingInput_ -= input_;
+                    totalOutput_ += output_;
+
+                    _recordVaultIO(
+                        order_,
+                        takeOrder_.inputIOIndex,
+                        output_,
+                        takeOrder_.outputIOIndex,
+                        input_
+                    );
+                    emit TakeOrder(msg.sender, takeOrder_, input_, output_);
+                }
             }
 
             unchecked {
@@ -321,8 +321,10 @@ contract OrderBook is StandardInterpreter {
                     a_.validInputs[clearConfig_.aInputIOIndex].token,
                 "TOKEN_MISMATCH"
             );
-            require(orders[a_.hash()].isLive(), "A_NOT_LIVE");
-            require(orders[b_.hash()].isLive(), "B_NOT_LIVE");
+            require(a_.expiresAfter >= block.timestamp, "A_EXPIRED");
+            require(b_.expiresAfter >= block.timestamp, "B_EXPIRED");
+            require(orders[a_.hash()] > 0, "A_NOT_LIVE");
+            require(orders[b_.hash()] > 0, "B_NOT_LIVE");
         }
 
         ClearStateChange memory stateChange_;
@@ -339,12 +341,12 @@ contract OrderBook is StandardInterpreter {
             // Interpreter execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            (aOutputMax_, aIORatio_, stateChange_.aFlag) = _calculateOrderIO(
+            (aOutputMax_, aIORatio_) = _calculateOrderIO(
                 a_,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (bOutputMax_, bIORatio_, stateChange_.bFlag) = _calculateOrderIO(
+            (bOutputMax_, bIORatio_) = _calculateOrderIO(
                 b_,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
@@ -368,21 +370,17 @@ contract OrderBook is StandardInterpreter {
 
         _recordVaultIO(
             a_,
-            b_.owner,
             clearConfig_.aInputIOIndex,
             stateChange_.aInput,
             clearConfig_.aOutputIOIndex,
-            stateChange_.aOutput,
-            stateChange_.aFlag
+            stateChange_.aOutput
         );
         _recordVaultIO(
             b_,
-            a_.owner,
             clearConfig_.bInputIOIndex,
             stateChange_.bInput,
             clearConfig_.bOutputIOIndex,
-            stateChange_.bOutput,
-            stateChange_.bFlag
+            stateChange_.bOutput
         );
 
         {
@@ -391,69 +389,17 @@ contract OrderBook is StandardInterpreter {
             uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
             uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
             if (aBounty_ > 0) {
-                vaults[msg.sender][
+                vaultBalance[msg.sender][
                     a_.validOutputs[clearConfig_.aOutputIOIndex].token
                 ][clearConfig_.aBountyVaultId] += aBounty_;
             }
             if (bBounty_ > 0) {
-                vaults[msg.sender][
+                vaultBalance[msg.sender][
                     b_.validOutputs[clearConfig_.bOutputIOIndex].token
                 ][clearConfig_.bBountyVaultId] += bBounty_;
             }
         }
 
         emit AfterClear(stateChange_);
-    }
-
-    function _opOrderFundsCleared(uint256 orderHash_)
-        internal
-        view
-        returns (uint256)
-    {
-        return clearedOrder[OrderHash.wrap(orderHash_)];
-    }
-
-    function opOrderFundsCleared(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_opOrderFundsCleared);
-    }
-
-    function _orderCounterpartyFundsCleared(
-        uint256 orderHash_,
-        uint256 counterparty_
-    ) internal view returns (uint256) {
-        return
-            clearedCounterparty[OrderHash.wrap(orderHash_)][
-                address(uint160(counterparty_))
-            ];
-    }
-
-    function opOrderCounterpartyFundsCleared(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_orderCounterpartyFundsCleared);
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        override
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory localFnPtrs_
-        )
-    {
-        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
-            view
-            returns (StackTop)[](2);
-        localFnPtrs_[0] = opOrderFundsCleared;
-        localFnPtrs_[1] = opOrderCounterpartyFundsCleared;
     }
 }

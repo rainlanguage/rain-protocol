@@ -20,12 +20,9 @@ contract FlowERC1155Factory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         FlowERC1155Config memory config_ = abi.decode(
             data_,
             (FlowERC1155Config)
@@ -41,10 +38,9 @@ contract FlowERC1155Factory is Factory {
     ///
     /// @param config_ `FlowERC1155` constructor configuration.
     /// @return New `FlowERC1155` child contract address.
-    function createChildTyped(FlowERC1155Config memory config_)
-        external
-        returns (FlowERC1155)
-    {
+    function createChildTyped(
+        FlowERC1155Config memory config_
+    ) external returns (FlowERC1155) {
         return FlowERC1155(payable(createChild(abi.encode(config_))));
     }
 }

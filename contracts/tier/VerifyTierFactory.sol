@@ -21,12 +21,9 @@ contract VerifyTierFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         address verify_ = abi.decode(data_, (address));
         address clone_ = Clones.clone(implementation);
         VerifyTier(clone_).initialize(verify_);

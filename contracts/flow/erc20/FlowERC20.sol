@@ -80,15 +80,15 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             config_.flowConfig.expressionDeployer
         ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
-        __FlowCommon_init(config_.flowConfig);
+        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
     /// @inheritdoc ERC20
-    function _beforeTokenTransfer(address from_, address to_, uint256 amount_)
-        internal
-        virtual
-        override
-    {
+    function _beforeTokenTransfer(
+        address from_,
+        address to_,
+        uint256 amount_
+    ) internal virtual override {
         super._beforeTokenTransfer(from_, to_, amount_);
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.

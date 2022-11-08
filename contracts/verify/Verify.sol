@@ -295,11 +295,10 @@ contract Verify is AccessControl {
     /// @param state_ The raw `State` to reduce into a `Status`.
     /// @param timestamp_ The timestamp to compare `State` against.
     /// @return status_ The status in `State` given `timestamp_`.
-    function statusAtTime(State memory state_, uint256 timestamp_)
-        public
-        pure
-        returns (uint256 status_)
-    {
+    function statusAtTime(
+        State memory state_,
+        uint256 timestamp_
+    ) public pure returns (uint256 status_) {
         // The state hasn't even been added so is picking up time zero as the
         // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
@@ -461,10 +460,9 @@ contract Verify is AccessControl {
     /// Any approved address can request some address be approved.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request approvals for.
-    function requestApprove(Evidence[] calldata evidences_)
-        external
-        onlyApproved
-    {
+    function requestApprove(
+        Evidence[] calldata evidences_
+    ) external onlyApproved {
         unchecked {
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 emit RequestApprove(msg.sender, evidences_[i_]);
@@ -582,10 +580,9 @@ contract Verify is AccessControl {
     /// Any approved address can request some address be removed.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request removal of.
-    function requestRemove(Evidence[] calldata evidences_)
-        external
-        onlyApproved
-    {
+    function requestRemove(
+        Evidence[] calldata evidences_
+    ) external onlyApproved {
         unchecked {
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 emit RequestRemove(msg.sender, evidences_[i_]);

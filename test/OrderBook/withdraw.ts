@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
-import type { OrderBook } from "../../typechain";
-import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import type { OrderBook, ReserveToken18 } from "../../typechain";
 import {
   DepositConfigStruct,
   DepositEvent,
@@ -11,14 +10,13 @@ import {
 } from "../../typechain/contracts/orderbook/OrderBook";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
+
 import { getEventArgs } from "../../utils/events";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("OrderBook withdraw from vault", async function () {
-  let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18,
-    integrity: OrderBookIntegrity;
+  let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -26,16 +24,13 @@ describe("OrderBook withdraw from vault", async function () {
   });
 
   before(async () => {
-    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
   it("should allow withdrawals from vaults", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
     const vaultId = ethers.BigNumber.from(1);
 
     // DEPOSITS

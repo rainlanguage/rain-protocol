@@ -24,10 +24,10 @@ contract LibUint256ArrayEchidna {
     }
 
     // Test arrayFrom using a single value and a tail array
-    function ArrayFromSingleAndTail(uint256 a_, uint256[] memory tail_)
-        external
-        pure
-    {
+    function ArrayFromSingleAndTail(
+        uint256 a_,
+        uint256[] memory tail_
+    ) external pure {
         uint256[] memory _arrayBuilt = LibUint256Array.arrayFrom(a_, tail_);
 
         uint256 headSize = 1; // Head Size. Before tail [a_, ...tail_]
@@ -64,10 +64,10 @@ contract LibUint256ArrayEchidna {
     }
 
     // Test truncate using a random array and a random number
-    function Truncate(uint256[] memory array_, uint256 anyNumber_)
-        external
-        pure
-    {
+    function Truncate(
+        uint256[] memory array_,
+        uint256 anyNumber_
+    ) external pure {
         uint256[] memory originalArray = array_;
         uint256 originalLength = array_.length;
         uint256 desiredLength = anyNumber_ % (originalLength + 1);
@@ -84,10 +84,10 @@ contract LibUint256ArrayEchidna {
     }
 
     // Test extended using two random arrays
-    function Extend(uint256[] memory base_, uint256[] memory extend_)
-        external
-        pure
-    {
+    function Extend(
+        uint256[] memory base_,
+        uint256[] memory extend_
+    ) external pure {
         uint256[] memory originalBase = base_;
         uint256[] memory originalExtend = extend_;
 
@@ -159,10 +159,10 @@ contract LibUint256ArrayEchidna {
         _compareArrays(inputs_, outputs_);
     }
 
-    function _compareArrays(uint256[] memory array1_, uint256[] memory array2_)
-        private
-        pure
-    {
+    function _compareArrays(
+        uint256[] memory array1_,
+        uint256[] memory array2_
+    ) private pure {
         assert(array1_.length == array2_.length);
 
         for (uint256 i = 0; i < array1_.length; i++) {

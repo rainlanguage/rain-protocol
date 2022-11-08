@@ -34,11 +34,11 @@ contract FixedPointMathEchidna {
                 if (FP_DECIMALS > aDecimals_) {
                     //
                     decimals = FP_DECIMALS - aDecimals_;
-                    valueExpected = a_ * 10**decimals;
+                    valueExpected = a_ * 10 ** decimals;
                 } else {
                     //
                     decimals = aDecimals_ - FP_DECIMALS;
-                    valueExpected = a_ / 10**decimals;
+                    valueExpected = a_ / 10 ** decimals;
                 }
 
                 assert(valueScaled == valueExpected);
@@ -61,11 +61,11 @@ contract FixedPointMathEchidna {
                 if (FP_DECIMALS > targetDecimals_) {
                     //
                     decimals = FP_DECIMALS - targetDecimals_;
-                    valueExpected = a_ / 10**decimals;
+                    valueExpected = a_ / 10 ** decimals;
                 } else {
                     //
                     decimals = targetDecimals_ - FP_DECIMALS;
-                    valueExpected = a_ * 10**decimals;
+                    valueExpected = a_ * 10 ** decimals;
                 }
 
                 assert(valueScaled == valueExpected);
@@ -85,11 +85,11 @@ contract FixedPointMathEchidna {
             } else {
                 uint256 valueExpected;
                 if (scaleBy_ > 0) {
-                    valueExpected = a_ * 10**uint8(scaleBy_);
+                    valueExpected = a_ * 10 ** uint8(scaleBy_);
                     assert(valueExpected == valueScaled);
                 } else {
                     uint256 posScaleDownBy_ = uint8(-1 * scaleBy_);
-                    valueExpected = a_ / 10**posScaleDownBy_;
+                    valueExpected = a_ / 10 ** posScaleDownBy_;
                     assert(valueExpected == valueScaled);
                 }
             }

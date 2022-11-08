@@ -24,11 +24,11 @@ library OpEqualTo {
         return integrityState_.applyFn(stackTop_, _equalTo);
     }
 
-    function equalTo(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function equalTo(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_equalTo);
     }
 }

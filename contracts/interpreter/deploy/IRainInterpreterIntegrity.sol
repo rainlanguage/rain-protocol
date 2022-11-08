@@ -13,9 +13,5 @@ interface IRainInterpreterIntegrity {
     )
         external
         view
-        returns (
-            uint256 scratch,
-            uint256 contextScratch_,
-            uint256 maximumStackHeight
-        );
+        returns (uint256 contextScratch_, uint256 maximumStackHeight);
 }

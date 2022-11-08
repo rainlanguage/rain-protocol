@@ -17,10 +17,10 @@ contract TierReportEchidna {
         _tierReportTest = new TierReportTest();
     }
 
-    function TierAtTimeFromReport(uint256 _report, uint256 _timestamp)
-        external
-        view
-    {
+    function TierAtTimeFromReport(
+        uint256 _report,
+        uint256 _timestamp
+    ) external view {
         // Get the tier from library with values on storage
         uint256 tierObtained = _tierReportTest.tierAtTimeFromReport(
             _report,
@@ -67,9 +67,11 @@ contract TierReportEchidna {
         }
     }
 
-    function UpdateTimeAtTier(uint256 _report, uint256 _tier, uint32 _timestamp)
-        external
-    {
+    function UpdateTimeAtTier(
+        uint256 _report,
+        uint256 _tier,
+        uint32 _timestamp
+    ) external {
         try
             _tierReportTest.updateTimeAtTier(_report, _tier, _timestamp)
         returns (uint256 reportCalculated) {
@@ -144,11 +146,9 @@ contract TierReportEchidna {
     }
 
     // Helper function to replicate how the tiers are splitted
-    function _splitReport(uint256 report_)
-        private
-        pure
-        returns (uint32[8] memory tiers_)
-    {
+    function _splitReport(
+        uint256 report_
+    ) private pure returns (uint32[8] memory tiers_) {
         // The tiers are splitted by each 32bits from the report
         for (uint256 i = 0; i < 8; i++) {
             tiers_[i] = uint32(uint256(report_ >> (i * 32)));

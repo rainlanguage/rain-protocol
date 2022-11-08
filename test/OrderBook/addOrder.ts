@@ -4,37 +4,41 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   OrderBook,
-  OrderBookIntegrity,
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../typechain";
 import {
   OrderConfigStruct,
-  OrderLiveEvent,
+  AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import {
   eighteenZeros,
   max_uint256,
+  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
 import { compareStructs } from "../../utils/test/compareStructs";
 
-const Opcode = OrderBookOpcode;
+const Opcode = AllStandardOps;
 
 describe("OrderBook add order", async function () {
-  let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18,
-    tokenB: ReserveToken18,
-    integrity: OrderBookIntegrity;
+  let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
+  let tokenB: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -42,8 +46,9 @@ describe("OrderBook add order", async function () {
   });
 
   before(async () => {
-    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   it("should add orders", async function () {
@@ -52,9 +57,7 @@ describe("OrderBook add order", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -76,23 +79,26 @@ describe("OrderBook add order", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, config: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+    const { sender: askSender, order: askConfig } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
     compareStructs(askConfig, askOrderConfig);
@@ -112,23 +118,24 @@ describe("OrderBook add order", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txBidOrderLive = await orderBook
-      .connect(bob)
-      .addOrder(bidOrderConfig);
+    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, config: bidConfig } = (await getEventArgs(
-      txBidOrderLive,
-      "OrderLive",
+    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+      txBidAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
     compareStructs(bidConfig, bidOrderConfig);

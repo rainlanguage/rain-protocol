@@ -24,11 +24,11 @@ library OpMod {
             integrityState_.applyFnN(stackTop_, _mod, Operand.unwrap(operand_));
     }
 
-    function mod(InterpreterState memory, Operand operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop stackTopAfter_)
-    {
+    function mod(
+        InterpreterState memory,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop stackTopAfter_) {
         return stackTop_.applyFnN(_mod, Operand.unwrap(operand_));
     }
 }

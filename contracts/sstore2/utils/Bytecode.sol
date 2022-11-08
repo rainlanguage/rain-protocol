@@ -10,11 +10,9 @@ library Bytecode {
     @param _code The returning value of the resulting `creationCode`
     @return creationCode (constructor) for new contract
   */
-    function creationCodeFor(bytes memory _code)
-        internal
-        pure
-        returns (bytes memory)
-    {
+    function creationCodeFor(
+        bytes memory _code
+    ) internal pure returns (bytes memory) {
         /*
       0x00    0x63         0x63XXXXXX  PUSH4 _code.length  size
       0x01    0x80         0x80        DUP1                size size
@@ -56,11 +54,11 @@ library Bytecode {
 
     Forked: https://gist.github.com/KardanovIR/fe98661df9338c842b4a30306d507fbd
   */
-    function codeAt(address _addr, uint256 _start, uint256 _end)
-        internal
-        view
-        returns (bytes memory oCode)
-    {
+    function codeAt(
+        address _addr,
+        uint256 _start,
+        uint256 _end
+    ) internal view returns (bytes memory oCode) {
         uint256 csize = codeSize(_addr);
         if (csize == 0) return bytes("");
 

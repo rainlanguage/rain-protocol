@@ -24,11 +24,11 @@ library OpMul {
             integrityState_.applyFnN(stackTop_, _mul, Operand.unwrap(operand_));
     }
 
-    function mul(InterpreterState memory, Operand operand_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop stackTopAfter_)
-    {
+    function mul(
+        InterpreterState memory,
+        Operand operand_,
+        StackTop stackTop_
+    ) internal view returns (StackTop stackTopAfter_) {
         return stackTop_.applyFnN(_mul, Operand.unwrap(operand_));
     }
 }

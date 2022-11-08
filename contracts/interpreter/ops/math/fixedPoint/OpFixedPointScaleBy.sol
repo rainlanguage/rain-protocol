@@ -13,11 +13,10 @@ library OpFixedPointScaleBy {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _scaleBy(Operand operand_, uint256 a_)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _scaleBy(
+        Operand operand_,
+        uint256 a_
+    ) internal pure returns (uint256) {
         return a_.scaleBy(int8(uint8(Operand.unwrap(operand_))));
     }
 

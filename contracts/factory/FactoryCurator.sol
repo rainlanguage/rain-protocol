@@ -92,10 +92,9 @@ contract FactoryCurator {
     /// interact with the underlying factory directly. All this enforces is that
     /// if a user does provide a config ID, the curation payment and tier checks
     /// will always behave the same way.
-    function registerConfig(CurationConfig calldata config_)
-        external
-        returns (uint256 id_)
-    {
+    function registerConfig(
+        CurationConfig calldata config_
+    ) external returns (uint256 id_) {
         unchecked {
             id_ = highwaterId + 1;
         }

@@ -19,11 +19,11 @@ library OpThisAddress {
         return integrityState_.push(stackTop_);
     }
 
-    function thisAddress(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function thisAddress(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.push(uint256(uint160(address(this))));
     }
 }

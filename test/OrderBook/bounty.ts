@@ -2,42 +2,53 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { OrderBook } from "../../typechain";
-import type { OrderBookIntegrity, ReserveToken18 } from "../../typechain";
+import type {
+  OrderBook,
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+} from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   AfterClearEvent,
   ClearConfigStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
-  OrderLiveEvent,
+  AddOrderEvent,
+  ClearEvent,
+  ClearStateChangeStruct,
+  WithdrawConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import {
   eighteenZeros,
   max_uint256,
+  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
-import { fixedPointDiv } from "../../utils/math";
-import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
+import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import { compareStructs } from "../../utils/test/compareStructs";
-import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
+import {
+  compareSolStructs,
+  compareStructs,
+} from "../../utils/test/compareStructs";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 
-const Opcode = OrderBookOpcode;
+const Opcode = AllStandardOps;
 
 describe("OrderBook bounty", async function () {
-  const cOrderHash = op(Opcode.CONTEXT, 0x0000);
-
-  let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18,
-    tokenB: ReserveToken18,
-    integrity: OrderBookIntegrity;
+  let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
+  let tokenB: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -47,8 +58,9 @@ describe("OrderBook bounty", async function () {
   });
 
   before(async () => {
-    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   it("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
@@ -56,11 +68,9 @@ describe("OrderBook bounty", async function () {
 
     const alice = signers[1];
     const bob = signers[2];
-    const bountyBot = signers[4]; // order clearer
+    const bountyBot = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -72,53 +82,50 @@ describe("OrderBook bounty", async function () {
     // ASK ORDER
 
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askBlock = await ethers.provider.getBlockNumber();
-    const askConstants = [askPrice, askBlock, 5];
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vAskBlock = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
-      // outputMax = (currentBlock - askBlock) * 5 - aliceCleared
-      // 5 tokens available per block
-            op(Opcode.BLOCK_NUMBER),
-            vAskBlock,
-          op(Opcode.SUB, 2),
-          v5,
-        op(Opcode.MUL, 2),
-          cOrderHash,
-        op(Opcode.ORDER_FUNDS_CLEARED),
-      op(Opcode.SUB, 2),
+      vAskOutputMax,
       vAskPrice,
     ]);
-
     const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, config: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+    const { sender: _askSender, order: _askConfig } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    assert(_askSender === alice.address, "wrong sender");
+    compareStructs(_askConfig, askOrderConfig);
 
     // BID ORDER
 
-    const bidOutputMax = max_uint256;
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [bidOutputMax, bidPrice];
+    // bob undervalues his units, offering better value than alice expects
+    // order clearer is ultimately rewarded with this difference as a bounty
+    // i.e. an excess of tokenA which bob didn't need to give to alice to
+    // fulfill her bid order
+    const bidPrice = fixedPointDiv(ONE, askPrice.add(10 + eighteenZeros));
+    const bidConstants = [max_uint256, bidPrice];
     const vBidOutputMax = op(
       Opcode.STATE,
       memoryOperand(MemoryType.Constant, 0)
@@ -130,26 +137,27 @@ describe("OrderBook bounty", async function () {
       vBidPrice,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
         sources: [bidSource],
         constants: bidConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txBidOrderLive = await orderBook
-      .connect(bob)
-      .addOrder(bidOrderConfig);
+    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, config: bidConfig } = (await getEventArgs(
-      txBidOrderLive,
-      "OrderLive",
+    const { sender: _bidSender, order: _bidConfig } = (await getEventArgs(
+      txBidAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
-    assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    assert(_bidSender === bob.address, "wrong sender");
+    compareStructs(_bidConfig, bidOrderConfig);
 
     // DEPOSITS
 
@@ -186,23 +194,23 @@ describe("OrderBook bounty", async function () {
       .connect(bob)
       .deposit(depositConfigStructBob);
 
-    const { sender: depositAliceSender, config: depositAliceConfig } =
+    const { sender: _depositAliceSender, config: _depositAliceConfig } =
       (await getEventArgs(
         txDepositOrderAlice,
         "Deposit",
         orderBook
       )) as DepositEvent["args"];
-    const { sender: depositBobSender, config: depositBobConfig } =
+    const { sender: _depositBobSender, config: _depositBobConfig } =
       (await getEventArgs(
         txDepositOrderBob,
         "Deposit",
         orderBook
       )) as DepositEvent["args"];
 
-    assert(depositAliceSender === alice.address);
-    compareStructs(depositAliceConfig, depositConfigStructAlice);
-    assert(depositBobSender === bob.address);
-    compareStructs(depositBobConfig, depositConfigStructBob);
+    assert(_depositAliceSender === alice.address);
+    compareStructs(_depositAliceConfig, depositConfigStructAlice);
+    assert(_depositBobSender === bob.address);
+    compareStructs(_depositBobConfig, depositConfigStructBob);
 
     // BOUNTY BOT CLEARS THE ORDER
 
@@ -215,31 +223,88 @@ describe("OrderBook bounty", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    const blockClear0 = (await ethers.provider.getBlockNumber()) + 1;
-    const expectedBounty0 = { a: 1, b: 0 };
-    const expectedOutputAmount0 =
-      (blockClear0 - askBlock) * 5 - expectedBounty0.a;
-
-    const txClearOrder0 = await orderBook
+    const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfig, clearConfig);
-    const { stateChange: stateChange0 } = (await getEventArgs(
-      txClearOrder0,
+      .clear(_askConfig, _bidConfig, clearConfig);
+
+    const {
+      sender: _clearSender,
+      a: clearA_,
+      b: clearB_,
+      clearConfig: _clearBountyConfig,
+    } = (await getEventArgs(
+      txClearOrder,
+      "Clear",
+      orderBook
+    )) as ClearEvent["args"];
+    const { stateChange: _clearStateChange } = (await getEventArgs(
+      txClearOrder,
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
-    const { bInput: bInput0 } = stateChange0;
 
-    const _actualBounty0 = {
-      a: stateChange0.aOutput.sub(stateChange0.bInput),
-      b: stateChange0.bOutput.sub(stateChange0.aInput),
+    const aOutputMaxExpected = amountA;
+    const bOutputMaxExpected = amountB;
+
+    const aOutputExpected = minBN(
+      aOutputMaxExpected,
+      fixedPointMul(bidPrice, amountA)
+    );
+    const bOutputExpected = minBN(
+      bOutputMaxExpected,
+      fixedPointMul(askPrice, amountB)
+    );
+
+    const expectedClearStateChange: ClearStateChangeStruct = {
+      aOutput: aOutputExpected,
+      bOutput: bOutputExpected,
+      aInput: fixedPointMul(askPrice, aOutputExpected),
+      bInput: fixedPointMul(bidPrice, bOutputExpected),
     };
 
-    assert(
-      bInput0.eq(expectedOutputAmount0),
-      `did not throttle asker output amount correctly
-      expected  ${expectedOutputAmount0}
-      got       ${bInput0}`
+    assert(_clearSender === bountyBot.address);
+    compareSolStructs(clearA_, _askConfig);
+    compareSolStructs(clearB_, _bidConfig);
+    compareStructs(_clearBountyConfig, clearConfig);
+    compareStructs(_clearStateChange, expectedClearStateChange);
+
+    const _actualBounty = {
+      a: _clearStateChange.aOutput.sub(_clearStateChange.bInput),
+      b: _clearStateChange.bOutput.sub(_clearStateChange.aInput),
+    };
+
+    // alice pays 90% of input amount to bob and 10% to order clearer to make
+    // up the difference
+    assert(_actualBounty.b.eq(amountB.div(10)));
+
+    const _vaultBalance0 = await orderBook.vaultBalance(
+      bountyBot.address,
+      tokenA.address,
+      bountyBotVaultB
     );
+    assert(_actualBounty.b.eq(_vaultBalance0));
+
+    const withdrawConfigStruct: WithdrawConfigStruct = {
+      token: tokenA.address,
+      vaultId: bountyBotVaultB,
+      amount: _vaultBalance0,
+    };
+
+    const _clearerBalance0 = await tokenA.balanceOf(bountyBot.address);
+
+    // order clearer withdraws bounty from vault
+    await orderBook.connect(bountyBot).withdraw(withdrawConfigStruct);
+
+    const _clearerBalance1 = await tokenA.balanceOf(bountyBot.address);
+
+    assert(_clearerBalance0.isZero());
+    assert(_clearerBalance1.eq(_vaultBalance0));
+
+    const _vaultBalance1 = await orderBook.vaultBalance(
+      bountyBot.address,
+      tokenA.address,
+      bountyBotVaultB
+    );
+    assert(_vaultBalance1.isZero());
   });
 });

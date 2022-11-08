@@ -12,10 +12,10 @@ contract LibBytesTest {
     using LibStackTop for bytes;
     using LibStackTop for StackTop;
 
-    function unsafeCopyBytesTo(bytes memory bytes0_, bytes memory bytes1_)
-        external
-        returns (StackTop)
-    {
+    function unsafeCopyBytesTo(
+        bytes memory bytes0_,
+        bytes memory bytes1_
+    ) external returns (StackTop) {
         LibDebug.dumpMemory();
         LibBytes.unsafeCopyBytesTo(
             StackTop.unwrap(bytes1_.asStackTop().up()),

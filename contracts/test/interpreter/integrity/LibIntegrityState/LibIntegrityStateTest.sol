@@ -46,7 +46,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -71,7 +70,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(0), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -99,7 +97,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -121,7 +118,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -143,7 +139,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -165,7 +160,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -188,7 +182,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -219,36 +212,36 @@ contract LibIntegrityStateTest is StandardIntegrity {
         return 0;
     }
 
-    function _fn6(uint256, uint256, uint256[] memory)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _fn6(
+        uint256,
+        uint256,
+        uint256[] memory
+    ) internal pure returns (uint256) {
         return 0;
     }
 
-    function _fn7(uint256, uint256, uint256, uint256[] memory)
-        internal
-        pure
-        returns (uint256)
-    {
+    function _fn7(
+        uint256,
+        uint256,
+        uint256,
+        uint256[] memory
+    ) internal pure returns (uint256) {
         return 0;
     }
 
-    function _fn8(uint256, uint256[] memory, uint256[] memory)
-        internal
-        pure
-        returns (uint256[] memory)
-    {
+    function _fn8(
+        uint256,
+        uint256[] memory,
+        uint256[] memory
+    ) internal pure returns (uint256[] memory) {
         return new uint256[](3); // arbitrary length
     }
 
     // function(uint256, uint256) internal view returns (uint256)
-    function applyFnN(StackTop stackTop_, uint256 n_)
-        external
-        view
-        returns (StackTop)
-    {
+    function applyFnN(
+        StackTop stackTop_,
+        uint256 n_
+    ) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             StorageOpcodesRange(0, 0), // storageOpcodesRange
@@ -256,7 +249,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -272,7 +264,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -288,7 +279,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -304,7 +294,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -320,7 +309,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -336,7 +324,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -344,11 +331,10 @@ contract LibIntegrityStateTest is StandardIntegrity {
     }
 
     // function(uint256[] memory) internal view returns (uint256)
-    function applyFn5(StackTop stackTop_, uint256 length_)
-        external
-        view
-        returns (StackTop)
-    {
+    function applyFn5(
+        StackTop stackTop_,
+        uint256 length_
+    ) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             StorageOpcodesRange(0, 0), // storageOpcodesRange
@@ -356,7 +342,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -364,11 +349,10 @@ contract LibIntegrityStateTest is StandardIntegrity {
     }
 
     // function(uint256, uint256, uint256[] memory) internal view returns (uint256)
-    function applyFn6(StackTop stackTop_, uint256 length_)
-        external
-        view
-        returns (StackTop)
-    {
+    function applyFn6(
+        StackTop stackTop_,
+        uint256 length_
+    ) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             StorageOpcodesRange(0, 0), // storageOpcodesRange
@@ -376,7 +360,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // context scratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -384,11 +367,10 @@ contract LibIntegrityStateTest is StandardIntegrity {
     }
 
     // function(uint256, uint256, uint256, uint256[] memory) internal view returns (uint256)
-    function applyFn7(StackTop stackTop_, uint256 length_)
-        external
-        view
-        returns (StackTop)
-    {
+    function applyFn7(
+        StackTop stackTop_,
+        uint256 length_
+    ) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             StorageOpcodesRange(0, 0), // storageOpcodesRange
@@ -396,7 +378,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // contextScratch
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -404,11 +385,10 @@ contract LibIntegrityStateTest is StandardIntegrity {
     }
 
     // function(uint256, uint256[] memory, uint256[] memory) internal view returns (uint256[] memory)
-    function applyFn8(StackTop stackTop_, uint256 length_)
-        external
-        view
-        returns (StackTop)
-    {
+    function applyFn8(
+        StackTop stackTop_,
+        uint256 length_
+    ) external view returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             StorageOpcodesRange(0, 0), // storageOpcodesRange
@@ -416,7 +396,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
             0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
-            0, // scratch
             0, // contextScratch
             integrityFunctionPointers() // integrityFunctionPointers
         );

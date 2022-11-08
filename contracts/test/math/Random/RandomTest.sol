@@ -11,21 +11,21 @@ contract RandomTest {
 
     uint256 private val;
 
-    function microLottery(uint256 seed_, uint256 max_, uint256 n_)
-        external
-        pure
-        returns (uint256 item_)
-    {
+    function microLottery(
+        uint256 seed_,
+        uint256 max_,
+        uint256 n_
+    ) external pure returns (uint256 item_) {
         // uint256 a_ = gasleft();
         item_ = Random.microLottery(seed_, max_, n_);
         // uint256 b_ = gasleft();
         // console.log("microLottery gas used: %s", a_ - b_);
     }
 
-    function shuffle(uint256 seed_, uint256 len_)
-        external
-        returns (bytes memory shuffled_)
-    {
+    function shuffle(
+        uint256 seed_,
+        uint256 len_
+    ) external returns (bytes memory shuffled_) {
         // uint256 a_ = gasleft();
         shuffled_ = Random.shuffle(seed_, len_);
         // uint256 b_ = gasleft();
@@ -59,10 +59,10 @@ contract RandomTest {
         // console.log("shuffle index gas 2: %s", a_ - b_);
     }
 
-    function randomId(uint256 seed_, uint256 index_)
-        external
-        returns (uint256 id_)
-    {
+    function randomId(
+        uint256 seed_,
+        uint256 index_
+    ) external returns (uint256 id_) {
         // write something so we can see gas costs.
         val = 2;
 

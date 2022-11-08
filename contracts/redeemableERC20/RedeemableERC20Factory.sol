@@ -21,12 +21,9 @@ contract RedeemableERC20Factory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         RedeemableERC20Config memory config_ = abi.decode(
             data_,
             (RedeemableERC20Config)
@@ -42,10 +39,9 @@ contract RedeemableERC20Factory is Factory {
     ///
     /// @param config_ `RedeemableERC20` initializer configuration.
     /// @return New `RedeemableERC20` child contract.
-    function createChildTyped(RedeemableERC20Config memory config_)
-        external
-        returns (RedeemableERC20)
-    {
+    function createChildTyped(
+        RedeemableERC20Config memory config_
+    ) external returns (RedeemableERC20) {
         return RedeemableERC20(createChild(abi.encode(config_)));
     }
 }

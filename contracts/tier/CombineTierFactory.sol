@@ -22,12 +22,9 @@ contract CombineTierFactory is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         CombineTierConfig memory config_ = abi.decode(
             data_,
             (CombineTierConfig)
@@ -42,10 +39,9 @@ contract CombineTierFactory is Factory {
     /// parameters are already encoded.
     ///
     /// @return New `CombineTier` child contract address.
-    function createChildTyped(CombineTierConfig memory config_)
-        external
-        returns (CombineTier)
-    {
+    function createChildTyped(
+        CombineTierConfig memory config_
+    ) external returns (CombineTier) {
         return CombineTier(createChild(abi.encode(config_)));
     }
 }

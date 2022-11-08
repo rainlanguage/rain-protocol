@@ -17,7 +17,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
 
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig calldata config_) external initializer {
-        __FlowCommon_init(config_.flowConfig);
+        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS);
         emit Initialize(msg.sender, config_);
     }
 

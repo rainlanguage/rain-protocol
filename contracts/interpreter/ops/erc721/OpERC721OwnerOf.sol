@@ -12,11 +12,10 @@ library OpERC721OwnerOf {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
 
-    function _ownerOf(uint256 token_, uint256 id_)
-        internal
-        view
-        returns (uint256)
-    {
+    function _ownerOf(
+        uint256 token_,
+        uint256 id_
+    ) internal view returns (uint256) {
         return uint256(uint160(IERC721(address(uint160(token_))).ownerOf(id_)));
     }
 
@@ -29,11 +28,11 @@ library OpERC721OwnerOf {
     }
 
     // Stack the return of `ownerOf`.
-    function ownerOf(InterpreterState memory, Operand, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function ownerOf(
+        InterpreterState memory,
+        Operand,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return stackTop_.applyFn(_ownerOf);
     }
 }

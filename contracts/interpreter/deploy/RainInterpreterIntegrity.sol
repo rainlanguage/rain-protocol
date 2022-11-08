@@ -34,15 +34,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
         bytes[] memory sources_,
         uint256 constantsLength_,
         uint256[] memory finalStacks_
-    )
-        public
-        view
-        returns (
-            uint256 scratch_,
-            uint256 contextScratch_,
-            uint256 stackLength_
-        )
-    {
+    ) public view returns (uint256 contextScratch_, uint256 stackLength_) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
             storageOpcodesRange_,
@@ -50,7 +42,6 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             0,
             StackTop.wrap(0),
             StackTop.wrap(0),
-            0,
             0,
             integrityFunctionPointers()
         );
@@ -62,7 +53,6 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             );
         }
         return (
-            integrityState_.scratch,
             integrityState_.contextScratch,
             integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
         );

@@ -4,42 +4,49 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   OrderBook,
-  OrderBookIntegrity,
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../typechain";
 import {
+  AddOrderEvent,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
-  OrderLiveEvent,
+  OrderExceedsMaxRatioEvent,
+  OrderExpiredEvent,
+  OrderNotFoundEvent,
+  OrderZeroAmountEvent,
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { assertError } from "../../utils";
+import { AllStandardOps, assertError } from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
+  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { orderBookIntegrityDeploy } from "../../utils/deploy/orderBook/orderBookIntegrity/deploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs, getEvents } from "../../utils/events";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import { OrderBookOpcode } from "../../utils/interpreter/ops/orderBookOps";
 import { compareStructs } from "../../utils/test/compareStructs";
 
-const Opcode = OrderBookOpcode;
+const Opcode = AllStandardOps;
 
 describe("OrderBook take orders", async function () {
-  let orderBookFactory: ContractFactory,
-    tokenA: ReserveToken18,
-    tokenB: ReserveToken18,
-    integrity: OrderBookIntegrity;
+  let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
+  let tokenB: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -49,8 +56,9 @@ describe("OrderBook take orders", async function () {
   });
 
   before(async () => {
-    integrity = await orderBookIntegrityDeploy();
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   it("should respect output maximum of a given order", async function () {
@@ -60,9 +68,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -88,39 +94,45 @@ describe("OrderBook take orders", async function () {
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+    const { order: askConfigAlice } = (await getEventArgs(
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+    )) as AddOrderEvent["args"];
+    const { order: askConfigBob } = (await getEventArgs(
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -191,9 +203,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -216,39 +226,45 @@ describe("OrderBook take orders", async function () {
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+    const { order: askConfigAlice } = (await getEventArgs(
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+    )) as AddOrderEvent["args"];
+    const { order: askConfigBob } = (await getEventArgs(
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -349,9 +365,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -374,39 +388,45 @@ describe("OrderBook take orders", async function () {
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+    const { order: askConfigAlice } = (await getEventArgs(
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+    )) as AddOrderEvent["args"];
+    const { order: askConfigBob } = (await getEventArgs(
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -486,6 +506,545 @@ describe("OrderBook take orders", async function () {
     );
   });
 
+  it("should emit event when an order has zero output max amount", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+
+    // ASK ORDER 0
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants0 = [0, askPrice];
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants0,
+      },
+      expiresAfter: max_uint32,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askConfig0 } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // ASK ORDER 1
+
+    const askConstants1 = [max_uint256, askPrice];
+    const askOrderConfig1: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants1,
+      },
+      expiresAfter: max_uint32,
+    };
+
+    const txAskAddOrder1 = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig1);
+
+    const { order: askConfig1 } = (await getEventArgs(
+      txAskAddOrder1,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    const takeOrderConfigStruct0: TakeOrderConfigStruct = {
+      order: askConfig0,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+    const takeOrderConfigStruct1: TakeOrderConfigStruct = {
+      order: askConfig1,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askPrice,
+      orders: [takeOrderConfigStruct0, takeOrderConfigStruct1],
+    };
+
+    const amountA = amountB.mul(askPrice).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const ordersExpired = (await getEvents(
+      txTakeOrders,
+      "OrderZeroAmount",
+      orderBook
+    )) as OrderZeroAmountEvent["args"][];
+
+    assert(ordersExpired.length === 1);
+    assert(ordersExpired[0].sender === bob.address);
+    assert(ordersExpired[0].owner === alice.address);
+    assert(ordersExpired[0].orderHash); // not sure how to verify order hash from config, solidityKeccak256 has rejected all types I've thrown at it
+  });
+
+  it("should emit event when an order exceeds max IO ratio", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+
+    // ASK ORDER 0
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants0 = [max_uint256, askPrice.add(1)]; // does exceed max ratio
+    const askConstants1 = [max_uint256, askPrice]; // doesn't exceed max IO ratio
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig0: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants0,
+      },
+      expiresAfter: max_uint32,
+    };
+    const askOrderConfig1: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants1,
+      },
+      expiresAfter: max_uint32,
+    };
+
+    const txAskAddOrder0 = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig0);
+    const txAskAddOrder1 = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig1);
+
+    const { order: askConfig0 } = (await getEventArgs(
+      txAskAddOrder0,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+    const { order: askConfig1 } = (await getEventArgs(
+      txAskAddOrder1,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    const takeOrderConfigStruct0: TakeOrderConfigStruct = {
+      order: askConfig0,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+    const takeOrderConfigStruct1: TakeOrderConfigStruct = {
+      order: askConfig1,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askPrice,
+      orders: [takeOrderConfigStruct0, takeOrderConfigStruct1],
+    };
+
+    const amountA = amountB.mul(askPrice).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const ordersExceedsMaxRatio = (await getEvents(
+      txTakeOrders,
+      "OrderExceedsMaxRatio",
+      orderBook
+    )) as OrderExceedsMaxRatioEvent["args"][];
+
+    assert(ordersExceedsMaxRatio.length === 1);
+    assert(ordersExceedsMaxRatio[0].sender === bob.address);
+    assert(ordersExceedsMaxRatio[0].owner === alice.address);
+    assert(ordersExceedsMaxRatio[0].orderHash); // not sure how to verify order hash from config, solidityKeccak256 has rejected all types I've thrown at it
+  });
+
+  it("should emit event when an order expired", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+
+    // ASK ORDER 0
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+      expiresAfter: 1,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askConfig0 } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // ASK ORDER 1
+
+    const askOrderConfig1: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+      expiresAfter: max_uint32,
+    };
+
+    const txAskAddOrder1 = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig1);
+
+    const { order: askConfig1 } = (await getEventArgs(
+      txAskAddOrder1,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    const takeOrderConfigStruct0: TakeOrderConfigStruct = {
+      order: askConfig0,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+    const takeOrderConfigStruct1: TakeOrderConfigStruct = {
+      order: askConfig1,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askPrice,
+      orders: [takeOrderConfigStruct0, takeOrderConfigStruct1],
+    };
+
+    const amountA = amountB.mul(askPrice).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const ordersExpired = (await getEvents(
+      txTakeOrders,
+      "OrderExpired",
+      orderBook
+    )) as OrderExpiredEvent["args"][];
+
+    assert(ordersExpired.length === 1);
+    assert(ordersExpired[0].sender === bob.address);
+    assert(ordersExpired[0].owner === alice.address);
+    assert(ordersExpired[0].orderHash); // not sure how to verify order hash from config, solidityKeccak256 has rejected all types I've thrown at it
+  });
+
+  it("should emit event when an order wasn't found", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(1);
+    const aliceOutputVault = ethers.BigNumber.from(2);
+
+    // ASK ORDER
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(
+      Opcode.STATE,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
+      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      interpreterStateConfig: {
+        sources: [askSource],
+        constants: askConstants,
+      },
+      expiresAfter: max_uint32,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askConfig } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    // TAKE BAD ORDER
+
+    const takeOrderConfigStructGood: TakeOrderConfigStruct = {
+      order: askConfig,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+    const takeOrderConfigStructBad: TakeOrderConfigStruct = {
+      order: { ...askConfig, expiresAfter: 12345678 },
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askPrice,
+      orders: [takeOrderConfigStructBad, takeOrderConfigStructGood], // test bad order before good order (when remaining input is non-zero)
+    };
+
+    const amountA = amountB.mul(askPrice).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const ordersNotFound = (await getEvents(
+      txTakeOrders,
+      "OrderNotFound",
+      orderBook
+    )) as OrderNotFoundEvent["args"][];
+
+    assert(ordersNotFound.length === 1);
+    assert(ordersNotFound[0].sender === bob.address);
+    assert(ordersNotFound[0].owner === alice.address);
+    assert(ordersNotFound[0].orderHash);
+  });
+
   it("should take multiple orders on the good path (clear multiple orders directly from buyer wallet)", async function () {
     const signers = await ethers.getSigners();
 
@@ -493,9 +1052,7 @@ describe("OrderBook take orders", async function () {
     const bob = signers[2];
     const carol = signers[3];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -518,39 +1075,45 @@ describe("OrderBook take orders", async function () {
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
-    const { config: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+    const { order: askConfigAlice } = (await getEventArgs(
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
-    const { config: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+    )) as AddOrderEvent["args"];
+    const { order: askConfigBob } = (await getEventArgs(
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -674,9 +1237,7 @@ describe("OrderBook take orders", async function () {
     const alice = signers[1];
     const bob = signers[2];
 
-    const orderBook = (await orderBookFactory.deploy(
-      integrity.address
-    )) as OrderBook;
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(1);
     const aliceOutputVault = ethers.BigNumber.from(2);
@@ -696,23 +1257,26 @@ describe("OrderBook take orders", async function () {
       vAskPrice,
     ]);
     const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { config: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+    const { order: askConfig } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 

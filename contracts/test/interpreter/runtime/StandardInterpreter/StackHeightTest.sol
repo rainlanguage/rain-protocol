@@ -13,9 +13,9 @@ uint256 constant MIN_FINAL_STACK_INDEX = 2;
 contract StackHeightTest is StandardInterpreter {
     using LibUint256Array for uint256;
 
-    constructor(address interpreterIntegrity_)
-        StandardInterpreter(interpreterIntegrity_)
-    {}
+    constructor(
+        address interpreterIntegrity_
+    ) StandardInterpreter(interpreterIntegrity_) {}
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.

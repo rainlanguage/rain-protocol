@@ -23,7 +23,6 @@ export const flowDeploy = async (
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       flows: flowConfig.flows,
-      flowFinalMinStack: 4,
     },
   };
 

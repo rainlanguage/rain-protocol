@@ -134,7 +134,6 @@ abstract contract RainInterpreter {
     ) internal view returns (bytes memory) {
         unchecked {
             (
-                uint256 scratch_,
                 uint256 contextScratch_,
                 uint256 stackLength_
             ) = interpreterIntegrity_.ensureIntegrity(
@@ -146,7 +145,6 @@ abstract contract RainInterpreter {
 
             return
                 config_.serialize(
-                    scratch_,
                     contextScratch_,
                     stackLength_,
                     opcodeFunctionPointers()

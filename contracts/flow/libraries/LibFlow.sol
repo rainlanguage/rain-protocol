@@ -63,11 +63,10 @@ library LibFlow {
     using SafeCast for uint256;
     using LibFlow for FlowTransfer;
 
-    function stackToFlow(StackTop stackBottom_, StackTop stackTop_)
-        internal
-        pure
-        returns (FlowTransfer memory)
-    {
+    function stackToFlow(
+        StackTop stackBottom_,
+        StackTop stackTop_
+    ) internal pure returns (FlowTransfer memory) {
         unchecked {
             FlowTransfer memory transfer_;
             uint256[] memory refs_;

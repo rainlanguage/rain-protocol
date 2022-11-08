@@ -83,8 +83,8 @@ interface ITierV2 {
     ///
     /// `context` supercedes `setTier` function and `TierChange` event from
     /// `ITier` at the interface level.
-    function report(address account, uint256[] calldata context)
-        external
-        view
-        returns (uint256 report);
+    function report(
+        address account,
+        uint256[] calldata context
+    ) external view returns (uint256 report);
 }

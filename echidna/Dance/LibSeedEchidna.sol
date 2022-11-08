@@ -7,10 +7,11 @@ import {LibSeed, Seed} from "../../contracts/dance/SeedDance.sol";
 /// Wrapper around the `LibSeed` library for echidna fuzz testing.
 contract LibSeedEchidna {
     // Test the `LibSeed.with()` function evaluating the outputs from differents `val_` inputs.
-    function WithDiffInputs(Seed seedOrigin, uint256 val1_, uint256 val2_)
-        external
-        pure
-    {
+    function WithDiffInputs(
+        Seed seedOrigin,
+        uint256 val1_,
+        uint256 val2_
+    ) external pure {
         require(val1_ != val2_, "SAME_INPUTS");
 
         Seed newSeed1 = LibSeed.with(seedOrigin, val1_);

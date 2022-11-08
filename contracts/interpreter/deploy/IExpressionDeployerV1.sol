@@ -10,12 +10,6 @@ struct StateConfig {
 }
 
 interface IExpressionDeployerV1 {
-    // function ensureIntegrity(
-    //     bytes[] memory sources,
-    //     uint256 constantsLength,
-    //     uint256[] memory finalStacks
-    // ) external view returns (uint256 scratch, uint256 maximumStackHeight);
-
     function deployExpression(
         StateConfig memory config_,
         uint256[] memory finalMinStacks_

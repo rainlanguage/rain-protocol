@@ -61,9 +61,10 @@ contract ERC20Redeem is ERC20BurnableUpgradeable {
     /// incorrect amounts.
     /// @param treasuryAssets_ The list of assets to redeem.
     /// @param redeemAmount_ The amount of redeemable token to burn.
-    function _redeem(IERC20[] memory treasuryAssets_, uint256 redeemAmount_)
-        internal
-    {
+    function _redeem(
+        IERC20[] memory treasuryAssets_,
+        uint256 redeemAmount_
+    ) internal {
         uint256 assetsLength_ = treasuryAssets_.length;
 
         // Calculate everything before any balances change.

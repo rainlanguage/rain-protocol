@@ -40,8 +40,7 @@ enum DebugStyle {
 struct InterpreterState {
     StackTop stackBottom;
     StackTop constantsBottom;
-    uint256 scratch;
-    uint256 contextScratch;
+    uint256 contextReads;
     uint256[][] context;
     bytes[] compiledSources;
 }
@@ -78,11 +77,10 @@ library LibInterpreterState {
         console.log(DEBUG_DELIMETER);
     }
 
-    function debugStack(StackTop stackBottom_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function debugStack(
+        StackTop stackBottom_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         uint256 length_ = stackBottom_.toIndex(stackTop_);
         debugArray(
             StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(
@@ -92,11 +90,10 @@ library LibInterpreterState {
         return stackTop_;
     }
 
-    function debugStack(InterpreterState memory state_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function debugStack(
+        InterpreterState memory state_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return debugStack(state_.stackBottom, stackTop_);
     }
 
@@ -128,14 +125,12 @@ library LibInterpreterState {
 
     function serialize(
         StateConfig memory config_,
-        uint256 scratch_,
         uint256 contextScratch_,
         uint256 stackLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
-            size_ += scratch_.size();
             size_ += contextScratch_.size();
             size_ += stackLength_.size();
             size_ += config_.constants.size();
@@ -151,9 +146,6 @@ library LibInterpreterState {
             // Then the constants.
             cursor_ = cursor_.pushWithLength(config_.constants);
 
-            // Copy scratch.
-            cursor_ = cursor_.push(scratch_);
-
             // Copy context scratch.
             cursor_ = cursor_.push(contextScratch_);
 
@@ -168,11 +160,9 @@ library LibInterpreterState {
         }
     }
 
-    function deserialize(bytes memory serialized_)
-        internal
-        pure
-        returns (InterpreterState memory)
-    {
+    function deserialize(
+        bytes memory serialized_
+    ) internal pure returns (InterpreterState memory) {
         unchecked {
             InterpreterState memory state_;
 
@@ -201,10 +191,7 @@ library LibInterpreterState {
             cursor_ = cursor_.up(cursor_.peek());
 
             cursor_ = cursor_.up();
-            state_.scratch = cursor_.peek();
-
-            cursor_ = cursor_.up();
-            state_.contextScratch = cursor_.peek();
+            state_.contextReads = cursor_.peek();
 
             // Rebuild the sources array.
             uint256 i_ = 0;
@@ -235,10 +222,10 @@ library LibInterpreterState {
     /// Hopefully it goes without saying that the list of pointers MUST NOT be
     /// user defined, otherwise any source can be compiled with a completely
     /// different mapping between opcodes and dispatched functions.
-    function compile(bytes memory source_, bytes memory pointers_)
-        internal
-        pure
-    {
+    function compile(
+        bytes memory source_,
+        bytes memory pointers_
+    ) internal pure {
         assembly ("memory-safe") {
             for {
                 let replaceMask_ := 0xFFFF
@@ -263,29 +250,25 @@ library LibInterpreterState {
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function eval(
+        InterpreterState memory state_
+    ) internal view returns (StackTop) {
         return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_, SourceIndex sourceIndex_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function eval(
+        InterpreterState memory state_,
+        SourceIndex sourceIndex_
+    ) internal view returns (StackTop) {
         return state_.eval(sourceIndex_, state_.stackBottom);
     }
 
     /// Eval with sane defaults partially applied.
-    function eval(InterpreterState memory state_, StackTop stackTop_)
-        internal
-        view
-        returns (StackTop)
-    {
+    function eval(
+        InterpreterState memory state_,
+        StackTop stackTop_
+    ) internal view returns (StackTop) {
         return state_.eval(DEFAULT_SOURCE_INDEX, stackTop_);
     }
 
@@ -312,7 +295,7 @@ library LibInterpreterState {
             assembly ("memory-safe") {
                 cursor_ := mload(
                     add(
-                        mload(add(state_, 0xA0)),
+                        mload(add(state_, 0x80)),
                         add(0x20, mul(0x20, sourceIndex_))
                     )
                 )

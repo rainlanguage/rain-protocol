@@ -82,9 +82,10 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         super._withdraw(caller_, receiver_, owner_, assets_, shares_);
     }
 
-    function _addSharesToStakingLedger(address owner_, uint256 shares_)
-        internal
-    {
+    function _addSharesToStakingLedger(
+        address owner_,
+        uint256 shares_
+    ) internal {
         uint256 len_ = depositRecords[owner_].length;
         uint256 highwater_ = len_ > 0
             ? depositRecords[owner_][len_ - 1].amount
@@ -97,9 +98,10 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         );
     }
 
-    function _removeSharesFromStakingLedger(address owner_, uint256 shares_)
-        internal
-    {
+    function _removeSharesFromStakingLedger(
+        address owner_,
+        uint256 shares_
+    ) internal {
         // MUST revert if length is 0 so we're guaranteed to have some amount
         // for the old highwater. Users without deposits can't withdraw so there
         // will be an overflow here.
@@ -131,11 +133,10 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     }
 
     /// @inheritdoc ITierV2
-    function report(address account_, uint256[] calldata context_)
-        external
-        view
-        returns (uint256 report_)
-    {
+    function report(
+        address account_,
+        uint256[] calldata context_
+    ) external view returns (uint256 report_) {
         unchecked {
             report_ = type(uint256).max;
             if (context_.length > 0) {

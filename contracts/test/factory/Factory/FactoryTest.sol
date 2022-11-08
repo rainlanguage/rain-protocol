@@ -21,12 +21,9 @@ contract FactoryTest is Factory {
     }
 
     /// @inheritdoc Factory
-    function _createChild(bytes memory data_)
-        internal
-        virtual
-        override
-        returns (address)
-    {
+    function _createChild(
+        bytes memory data_
+    ) internal virtual override returns (address) {
         uint256 value_ = abi.decode(data_, (uint256));
         address clone_ = Clones.clone(implementation);
         FactoryChildTest(clone_).initialize(value_);
@@ -39,10 +36,9 @@ contract FactoryTest is Factory {
     ///
     /// @param value_ `uint256` some value to be sent down to child.
     /// @return New `FactoryChildTest` child contract.
-    function createChildTyped(uint256 value_)
-        external
-        returns (FactoryChildTest)
-    {
+    function createChildTyped(
+        uint256 value_
+    ) external returns (FactoryChildTest) {
         return FactoryChildTest(createChild(abi.encodePacked(value_)));
     }
 }

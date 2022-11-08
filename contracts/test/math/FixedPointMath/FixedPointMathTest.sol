@@ -13,11 +13,10 @@ contract FixedPointMathTest {
     /// @param a_ Some fixed point decimal value.
     /// @param aDecimals_ The number of fixed decimals of `a_`.
     /// @return `a_` scaled to match `DECIMALS`.
-    function scale18(uint256 a_, uint256 aDecimals_)
-        external
-        pure
-        returns (uint256)
-    {
+    function scale18(
+        uint256 a_,
+        uint256 aDecimals_
+    ) external pure returns (uint256) {
         return a_.scale18(aDecimals_);
     }
 
@@ -26,11 +25,10 @@ contract FixedPointMathTest {
     /// @param a_ A `DECIMALS` fixed point decimals.
     /// @param targetDecimals_ The new scale of `a_`.
     /// @return `a_` rescaled from `DECIMALS` to `targetDecimals_`.
-    function scaleN(uint256 a_, uint256 targetDecimals_)
-        external
-        pure
-        returns (uint256)
-    {
+    function scaleN(
+        uint256 a_,
+        uint256 targetDecimals_
+    ) external pure returns (uint256) {
         return a_.scaleN(targetDecimals_);
     }
 
@@ -39,11 +37,10 @@ contract FixedPointMathTest {
     /// @param a_ Some integer of any scale.
     /// @param scaleBy_ OOMs to scale `a_` up or down by.
     /// @return `a_` rescaled according to `scaleBy_`.
-    function scaleBy(uint256 a_, int8 scaleBy_)
-        external
-        pure
-        returns (uint256)
-    {
+    function scaleBy(
+        uint256 a_,
+        int8 scaleBy_
+    ) external pure returns (uint256) {
         return a_.scaleBy(scaleBy_);
     }
 
@@ -52,11 +49,10 @@ contract FixedPointMathTest {
     /// @param a_ First term.
     /// @param b_ Second term.
     /// @return `a_` multiplied by `b_` to `DECIMALS` fixed point decimals.
-    function fixedPointMul(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
+    function fixedPointMul(
+        uint256 a_,
+        uint256 b_
+    ) external pure returns (uint256) {
         return a_.fixedPointMul(b_);
     }
 
@@ -66,11 +62,10 @@ contract FixedPointMathTest {
     /// @param a_ First term.
     /// @param b_ Second term.
     /// @return `a_` divided by `b_` to `DECIMALS` fixed point decimals.
-    function fixedPointDiv(uint256 a_, uint256 b_)
-        external
-        pure
-        returns (uint256)
-    {
+    function fixedPointDiv(
+        uint256 a_,
+        uint256 b_
+    ) external pure returns (uint256) {
         return a_.fixedPointDiv(b_);
     }
 }

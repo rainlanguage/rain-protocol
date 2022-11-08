@@ -60,10 +60,9 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     address internal _expression;
 
     /// @param config_ source and token config. Also controls delegated claims.
-    function initialize(FlowERC721Config calldata config_)
-        external
-        initializer
-    {
+    function initialize(
+        FlowERC721Config calldata config_
+    ) external initializer {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
@@ -73,27 +72,23 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             config_.flowConfig.expressionDeployer
         ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
         _expression = expression_;
-        __FlowCommon_init(config_.flowConfig);
+        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
     /// multiple base contracts.
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC1155Receiver)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721, ERC1155Receiver) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
     /// @inheritdoc ERC721
-    function _beforeTokenTransfer(address from_, address to_, uint256 tokenId_)
-        internal
-        virtual
-        override
-    {
+    function _beforeTokenTransfer(
+        address from_,
+        address to_,
+        uint256 tokenId_
+    ) internal virtual override {
         super._beforeTokenTransfer(from_, to_, tokenId_);
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.

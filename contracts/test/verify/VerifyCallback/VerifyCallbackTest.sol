@@ -14,11 +14,10 @@ contract VerifyCallbackTest is IVerifyCallback {
     mapping(address => bool) public bans;
     mapping(address => bool) public removals;
 
-    function afterAdd(address adder_, Evidence[] calldata evidences_)
-        external
-        virtual
-        override
-    {
+    function afterAdd(
+        address adder_,
+        Evidence[] calldata evidences_
+    ) external virtual override {
         require(adder_ != address(0), "0_ADDRESS");
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             require(!additions[evidences_[i_].account], "PRIOR_ADD");
@@ -30,11 +29,10 @@ contract VerifyCallbackTest is IVerifyCallback {
         }
     }
 
-    function afterApprove(address approver_, Evidence[] calldata evidences_)
-        external
-        virtual
-        override
-    {
+    function afterApprove(
+        address approver_,
+        Evidence[] calldata evidences_
+    ) external virtual override {
         require(approver_ != address(0), "0_ADDRESS");
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             require(!approvals[evidences_[i_].account], "PRIOR_APPROVE");
@@ -48,11 +46,10 @@ contract VerifyCallbackTest is IVerifyCallback {
         }
     }
 
-    function afterBan(address banner_, Evidence[] calldata evidences_)
-        external
-        virtual
-        override
-    {
+    function afterBan(
+        address banner_,
+        Evidence[] calldata evidences_
+    ) external virtual override {
         require(banner_ != address(0), "0_ADDRESS");
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             require(!bans[evidences_[i_].account], "PRIOR_BAN");
@@ -66,11 +63,10 @@ contract VerifyCallbackTest is IVerifyCallback {
         }
     }
 
-    function afterRemove(address remover_, Evidence[] calldata evidences_)
-        external
-        virtual
-        override
-    {
+    function afterRemove(
+        address remover_,
+        Evidence[] calldata evidences_
+    ) external virtual override {
         require(remover_ != address(0), "0_ADDRESS");
         for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
             require(!removals[evidences_[i_].account], "PRIOR_REMOVE");

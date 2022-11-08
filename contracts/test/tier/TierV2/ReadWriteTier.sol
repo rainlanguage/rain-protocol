@@ -35,13 +35,10 @@ contract ReadWriteTier is TierV2 {
 
     /// Either fetch the report from storage or return UNINITIALIZED.
     /// @inheritdoc ITierV2
-    function report(address account_, uint256[] memory)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
-    {
+    function report(
+        address account_,
+        uint256[] memory
+    ) public view virtual override returns (uint256) {
         // Inequality here to silence slither warnings.
         return
             reports[account_] > 0
@@ -90,27 +87,24 @@ contract ReadWriteTier is TierV2 {
 
     /// Re-export TierReport utilities
 
-    function tierAtTimeFromReport(uint256 report_, uint256 timestamp_)
-        external
-        pure
-        returns (uint256 tier_)
-    {
+    function tierAtTimeFromReport(
+        uint256 report_,
+        uint256 timestamp_
+    ) external pure returns (uint256 tier_) {
         return TierReport.tierAtTimeFromReport(report_, timestamp_);
     }
 
-    function reportTimeForTier(uint256 report_, uint256 tier_)
-        external
-        pure
-        returns (uint256 timestamp_)
-    {
+    function reportTimeForTier(
+        uint256 report_,
+        uint256 tier_
+    ) external pure returns (uint256 timestamp_) {
         return TierReport.reportTimeForTier(report_, tier_);
     }
 
-    function truncateTiersAbove(uint256 report_, uint256 tier_)
-        external
-        pure
-        returns (uint256)
-    {
+    function truncateTiersAbove(
+        uint256 report_,
+        uint256 tier_
+    ) external pure returns (uint256) {
         return TierReport.truncateTiersAbove(report_, tier_);
     }
 
