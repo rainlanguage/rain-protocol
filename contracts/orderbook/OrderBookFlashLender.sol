@@ -12,19 +12,27 @@ import "../ierc3156/IERC3156FlashLender.sol";
  * @dev Extension of {ERC20} that allows flash lending.
  */
 contract OrderBookFlashLender is IERC3156FlashLender {
-
-    bytes32 public constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
+    bytes32 public constant CALLBACK_SUCCESS =
+        keccak256("ERC3156FlashBorrower.onFlashLoan");
     using SafeERC20 for IERC20;
 
     // token => receiver => active debt
     mapping(address => mapping(address => uint)) internal activeFlashDebts;
 
-    function _increaseFlashDebtThenSendToken(address token_, address receiver_, uint amount_) internal {
+    function _increaseFlashDebtThenSendToken(
+        address token_,
+        address receiver_,
+        uint amount_
+    ) internal {
         activeFlashDebts[token_][receiver_] += amount_;
         IERC20(token_).safeTransfer(receiver_, amount_);
     }
 
-    function _decreaseFlashDebtThenSendToken(address token_, address receiver_, uint amount_) internal {
+    function _decreaseFlashDebtThenSendToken(
+        address token_,
+        address receiver_,
+        uint amount_
+    ) internal {
         uint activeFlashDebt_ = activeFlashDebts[token_][receiver_];
         if (amount_ > activeFlashDebt_) {
             if (activeFlashDebt_ > 0) {
@@ -32,8 +40,7 @@ contract OrderBookFlashLender is IERC3156FlashLender {
             }
 
             IERC20(token_).safeTransfer(receiver_, amount_ - activeFlashDebt_);
-        }
-        else {
+        } else {
             activeFlashDebts[token_][receiver_] -= amount_;
         }
     }
@@ -43,7 +50,11 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         if (activeFlashDebt_ > 0) {
             delete activeFlashDebts[token_][receiver_];
 
-            IERC20(token_).safeTransferFrom(receiver_, address(this), activeFlashDebt_);
+            IERC20(token_).safeTransferFrom(
+                receiver_,
+                address(this),
+                activeFlashDebt_
+            );
         }
     }
 
@@ -53,10 +64,11 @@ contract OrderBookFlashLender is IERC3156FlashLender {
         address token_,
         uint256 amount_,
         bytes calldata data_
-    ) external override returns(bool) {
+    ) external override returns (bool) {
         _increaseFlashDebtThenSendToken(token_, address(receiver_), amount_);
         require(
-            receiver_.onFlashLoan(msg.sender, token_, amount_, 0, data_) == CALLBACK_SUCCESS,
+            receiver_.onFlashLoan(msg.sender, token_, amount_, 0, data_) ==
+                CALLBACK_SUCCESS,
             "FlashLender: Callback failed"
         );
         _finalizeDebt(token_, address(receiver_));
@@ -65,8 +77,8 @@ contract OrderBookFlashLender is IERC3156FlashLender {
 
     /// @inheritdoc IERC3156FlashLender
     function flashFee(
-        address ,
-        uint256 
+        address,
+        uint256
     ) external pure override returns (uint256) {
         return 0;
     }

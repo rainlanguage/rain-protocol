@@ -148,7 +148,11 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
             vaultBalance_ -
             withdrawAmount_;
         emit Withdraw(msg.sender, config_, withdrawAmount_);
-        _decreaseFlashDebtThenSendToken(config_.token, msg.sender, withdrawAmount_);
+        _decreaseFlashDebtThenSendToken(
+            config_.token,
+            msg.sender,
+            withdrawAmount_
+        );
     }
 
     function addOrder(OrderConfig calldata config_) external {
@@ -296,7 +300,11 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
             address(this),
             totalOutput_
         );
-        _decreaseFlashDebtThenSendToken(takeOrders_.input, msg.sender, totalInput_);
+        _decreaseFlashDebtThenSendToken(
+            takeOrders_.input,
+            msg.sender,
+            totalInput_
+        );
     }
 
     function clear(
