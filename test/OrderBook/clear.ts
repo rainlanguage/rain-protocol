@@ -16,11 +16,12 @@ import {
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
-  OrderLiveEvent,
+  AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import {
   eighteenZeros,
   max_uint256,
+  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -101,17 +102,18 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
     const { sender: askSender, order: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
     compareStructs(askConfig, askOrderConfig);
@@ -139,17 +141,16 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txBidOrderLive = await orderBook
-      .connect(bob)
-      .addOrder(bidOrderConfig);
+    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
     const { sender: bidSender, order: bidConfig } = (await getEventArgs(
-      txBidOrderLive,
-      "OrderLive",
+      txBidAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
     compareStructs(bidConfig, bidOrderConfig);
@@ -295,17 +296,18 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice1)
       .addOrder(askOrderConfig);
 
     const { sender: askSender, order: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(askSender === alice1.address, "wrong sender");
     compareStructs(askConfig, askOrderConfig);
@@ -333,17 +335,18 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txBidOrderLive = await orderBook
+    const txBidAddOrder = await orderBook
       .connect(alice2)
       .addOrder(bidOrderConfig);
 
     const { sender: bidSender, order: bidConfig } = (await getEventArgs(
-      txBidOrderLive,
-      "OrderLive",
+      txBidAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(bidSender === alice2.address, "wrong sender");
     compareStructs(bidConfig, bidOrderConfig);
@@ -462,17 +465,18 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
     const { sender: askSender, order: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
     compareStructs(askConfig, askOrderConfig);
@@ -500,17 +504,16 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txBidOrderLive = await orderBook
-      .connect(bob)
-      .addOrder(bidOrderConfig);
+    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
     const { sender: bidSender, order: bidConfig } = (await getEventArgs(
-      txBidOrderLive,
-      "OrderLive",
+      txBidAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
     compareStructs(bidConfig, bidOrderConfig);
@@ -585,8 +588,8 @@ describe("OrderBook clear order", async function () {
 
     const {
       sender: clearSender,
-      a_: clearA_,
-      b_: clearB_,
+      a: clearA_,
+      b: clearB_,
       clearConfig: clearBountyConfig,
     } = (await getEventArgs(
       txClearOrder,
@@ -616,8 +619,6 @@ describe("OrderBook clear order", async function () {
       bOutput: bOutputExpected,
       aInput: fixedPointMul(askPrice, aOutputExpected),
       bInput: fixedPointMul(bidPrice, bOutputExpected),
-      aFlag: 0,
-      bFlag: 0,
     };
 
     assert(clearSender === bountyBot.address);

@@ -12,7 +12,7 @@ import {
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
-  OrderLiveEvent,
+  AddOrderEvent,
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
@@ -21,6 +21,7 @@ import { AllStandardOps, assertError } from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
+  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -97,6 +98,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -107,25 +109,26 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
     const { order: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
     const { order: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -227,6 +230,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -237,25 +241,26 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
     const { order: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
     const { order: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -387,6 +392,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -397,25 +403,26 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
     const { order: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
     const { order: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -533,6 +540,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -543,25 +551,26 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLiveAlice = await orderBook
+    const txAskAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(askOrderConfigAlice);
-    const txAskOrderLiveBob = await orderBook
+    const txAskAddOrderBob = await orderBook
       .connect(bob)
       .addOrder(askOrderConfigBob);
 
     const { order: askConfigAlice } = (await getEventArgs(
-      txAskOrderLiveAlice,
-      "OrderLive",
+      txAskAddOrderAlice,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
     const { order: askConfigBob } = (await getEventArgs(
-      txAskOrderLiveBob,
-      "OrderLive",
+      txAskAddOrderBob,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -713,17 +722,18 @@ describe("OrderBook take orders", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
     const { order: askConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 

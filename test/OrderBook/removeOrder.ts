@@ -10,10 +10,14 @@ import type {
 } from "../../typechain";
 import {
   OrderConfigStruct,
-  OrderDeadEvent,
-  OrderLiveEvent,
+  RemoveOrderEvent,
+  AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
+import {
+  eighteenZeros,
+  max_uint256,
+  max_uint32,
+} from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -78,32 +82,33 @@ describe("OrderBook remove order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
+      expiresAfter: max_uint32,
     };
 
-    const txAskOrderLive = await orderBook
+    const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
     const { sender: askLiveSender, order: askLiveConfig } = (await getEventArgs(
-      txAskOrderLive,
-      "OrderLive",
+      txAskAddOrder,
+      "AddOrder",
       orderBook
-    )) as OrderLiveEvent["args"];
+    )) as AddOrderEvent["args"];
 
     assert(askLiveSender === alice.address, "wrong sender");
     compareStructs(askLiveConfig, askOrderConfig);
 
     // REMOVE ASK ORDER
 
-    const txAskOrderDead = await orderBook
+    const txAskRemoveOrder = await orderBook
       .connect(alice)
       .removeOrder(askLiveConfig);
 
     const { sender: askDeadSender, order: askDeadConfig } = (await getEventArgs(
-      txAskOrderDead,
-      "OrderDead",
+      txAskRemoveOrder,
+      "RemoveOrder",
       orderBook
-    )) as OrderDeadEvent["args"];
+    )) as RemoveOrderEvent["args"];
 
     assert(askDeadSender === alice.address, "wrong sender");
     compareStructs(askDeadConfig, askOrderConfig);
