@@ -264,8 +264,7 @@ contract OrderBook is IOrderBookV1 {
                 // be valid so we want to take advantage of those if possible.
                 if (order_.expiresAfter < block.timestamp) {
                     emit OrderExpired(msg.sender, order_.owner, orderHash_);
-                }
-                else if (orderIORatio_ > takeOrders_.maximumIORatio) {
+                } else if (orderIORatio_ > takeOrders_.maximumIORatio) {
                     emit OrderExceedsMaxRatio(
                         msg.sender,
                         order_.owner,

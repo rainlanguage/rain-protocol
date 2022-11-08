@@ -5,9 +5,6 @@ import type { OrderBook, ReserveToken18 } from "../../typechain";
 import { DepositConfigStruct } from "../../typechain/contracts/orderbook/OrderBook";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-
-const Opcode = AllStandardOps;
 
 describe("OrderBook vaultBalance", async function () {
   let orderBookFactory: ContractFactory;
