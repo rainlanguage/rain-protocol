@@ -29,6 +29,7 @@ import {
   op,
 } from "../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { assertError } from "../../utils/test/assertError";
 import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
@@ -55,6 +56,7 @@ describe("OrderBook remove order", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
+    const bob = signers[2];
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
@@ -99,6 +101,12 @@ describe("OrderBook remove order", async function () {
     compareStructs(askLiveConfig, askOrderConfig);
 
     // REMOVE ASK ORDER
+
+    await assertError(
+      async () => await orderBook.connect(bob).removeOrder(askLiveConfig),
+      "OWNER",
+      "bob wrongly removed alice's order"
+    );
 
     const txAskRemoveOrder = await orderBook
       .connect(alice)
