@@ -12,7 +12,7 @@ import { assert } from "chai";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { keccak256 } from "ethers/lib/utils";
 import { assertError } from "../../../utils/test/assertError";
-import { randomAddress } from "../../../utils/bytes";
+import { randomAddress, randomUint256 } from "../../../utils/bytes";
 
 const CALLBACK_SUCCESS = keccak256([
   ...Buffer.from("ERC3156FlashBorrower.onFlashLoan"),
@@ -54,17 +54,24 @@ describe("OrderBookFlashLender flashLoan test", async function () {
     await tokenA.transfer(lender.address, amount);
     assert((await tokenA.balanceOf(lender.address)).eq(amount));
 
-    const maxFlashLoan_ = await lender.maxFlashLoan(tokenA.address);
+    const maxFlashLoanA0_ = await lender.maxFlashLoan(tokenA.address);
+    assert(maxFlashLoanA0_.eq(amount));
 
-    assert(
-      maxFlashLoan_.eq(amount),
-      "did not report total token balance on lender contract as the maxFlashLoan amount"
-    );
+    // also deposit some tokenB to demonstrate it does not affect maxFlashLoan for tokenA
+    await tokenB.transfer(lender.address, amount.mul(3));
+
+    const maxFlashLoanA1_ = await lender.maxFlashLoan(tokenA.address);
+    assert(maxFlashLoanA1_.eq(amount));
+
+    const maxFlashLoanB_ = await lender.maxFlashLoan(tokenB.address);
+    assert(maxFlashLoanB_.eq(amount.mul(3)));
   });
 
   it("should return flashFee of 0 always", async function () {
-    const fee = await lender.flashFee(randomAddress(), 0);
-    assert(fee.isZero());
+    const fee0 = await lender.flashFee(randomAddress(), 0);
+    assert(fee0.isZero());
+    const fee1 = await lender.flashFee(randomAddress(), randomUint256());
+    assert(fee1.isZero());
   });
 
   it("should perform a flash loan with zero fee on the good path", async function () {

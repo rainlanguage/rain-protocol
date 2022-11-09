@@ -1,5 +1,5 @@
 import { BigNumber, BytesLike } from "ethers";
-import { Hexable, hexlify, randomBytes } from "ethers/lib/utils";
+import { Hexable, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
@@ -8,7 +8,7 @@ import { max_uint256, max_uint32 } from "../constants";
  * @returns A DataHexString of typical address length
  */
 export function randomAddress() {
-  return hexlify(randomBytes(20));
+  return hexlify(ethers.BigNumber.from(ethers.utils.randomBytes(20)));
 }
 
 /**
