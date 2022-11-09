@@ -9,18 +9,17 @@ import type {
   ReserveToken18,
 } from "../../typechain";
 import {
+  AddOrderEvent,
   AfterClearEvent,
   ClearConfigStruct,
   ClearEvent,
   ClearStateChangeStruct,
   DepositConfigStruct,
   OrderConfigStruct,
-  AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import {
   eighteenZeros,
   max_uint256,
-  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -112,7 +111,6 @@ describe("OrderBook many-to-many", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -157,7 +155,6 @@ describe("OrderBook many-to-many", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -381,7 +378,6 @@ describe("OrderBook many-to-many", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -426,7 +422,6 @@ describe("OrderBook many-to-many", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
