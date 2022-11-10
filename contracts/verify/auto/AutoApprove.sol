@@ -3,14 +3,22 @@ pragma solidity =0.8.17;
 
 import {LibEvidence, Verify} from "../Verify.sol";
 import "../VerifyCallback.sol";
-import "../../interpreter/run/StandardInterpreter.sol";
 import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
+import "../../interpreter/deploy/IExpressionDeployerV1.sol";
+import "../../interpreter/run/IInterpreterV1.sol";
+import "../../interpreter/run/LibStackTop.sol";
 
-uint256 constant OP_EVIDENCE_DATA_APPROVED = 0;
-uint256 constant LOCAL_OPS_LENGTH = 1;
+uint constant CAN_APPROVE_FINAL_STACK_INDEX = 1;
+SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
-contract AutoApprove is VerifyCallback, StandardInterpreter {
+struct AutoApproveConfig {
+    address expressionDeployer;
+    address interpreter;
+    StateConfig stateConfig;
+}
+
+contract AutoApprove is VerifyCallback {
     using LibStackTop for StackTop;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -21,27 +29,36 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
-    event Initialize(address sender, StateConfig config);
+    event Initialize(address sender, AutoApproveConfig config);
 
-    using LibInterpreterState for InterpreterState;
-
-    mapping(uint256 => uint256) private _approvedEvidenceData;
+    address internal interpreter;
+    address internal expression;
 
     constructor(
-        address interpreterIntegrity_
-    ) StandardInterpreter(interpreterIntegrity_) {
+     ) {
         _disableInitializers();
     }
 
     function initialize(
-        StateConfig calldata stateConfig_
+        AutoApproveConfig calldata config_
     ) external initializer {
         __VerifyCallback_init();
-        _saveInterpreterState(stateConfig_);
+
+        (
+            address expression_,
+
+        ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
+                config_.stateConfig,
+                LibUint256Array.arrayFrom(
+                    CAN_APPROVE_FINAL_STACK_INDEX
+                )
+            );
+        expression = expression_;
+        interpreter = config_.interpreter;
 
         _transferOwnership(msg.sender);
 
-        emit Initialize(msg.sender, stateConfig_);
+        emit Initialize(msg.sender, config_);
     }
 
     function afterAdd(
@@ -51,18 +68,14 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
         unchecked {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
-            uint256[] memory context_ = new uint256[](2);
-            InterpreterState memory state_ = _loadInterpreterState();
+            uint256[][] memory context_ = new uint256[][](1);
+            context_[0] = new uint[](2);
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
-                    context_[0] = uint256(uint160(evidences_[i_].account));
-                    context_[1] = uint256(bytes32(evidences_[i_].data));
-                    state_.context = context_.matrixFrom();
-                    if (state_.eval().peek() > 0) {
-                        _approvedEvidenceData[
-                            uint256(bytes32(evidences_[i_].data))
-                        ] = block.timestamp;
+                    context_[0][0] = uint256(uint160(evidences_[i_].account));
+                    context_[0][1] = uint256(bytes32(evidences_[i_].data));
+                    if (IInterpreterV1(interpreter).eval(expression, CAN_APPROVE_ENTRYPOINT, context_).asStackTopAfter().peek() > 0) {
                         LibEvidence._updateEvidenceRef(
                             approvedRefs_,
                             evidences_[i_],
@@ -77,37 +90,5 @@ contract AutoApprove is VerifyCallback, StandardInterpreter {
                 Verify(msg.sender).approve(approvedRefs_.asEvidences());
             }
         }
-    }
-
-    function _evidenceDataApproved(
-        uint256 evidenceData_
-    ) internal view returns (uint256) {
-        return _approvedEvidenceData[evidenceData_];
-    }
-
-    function opEvidenceDataApproved(
-        InterpreterState memory,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_evidenceDataApproved);
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        virtual
-        override
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory localFnPtrs_
-        )
-    {
-        localFnPtrs_ = new function(InterpreterState memory, Operand, StackTop)
-            view
-            returns (StackTop)[](1);
-        localFnPtrs_[0] = opEvidenceDataApproved;
     }
 }
