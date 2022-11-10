@@ -17,10 +17,12 @@ import {
   DepositConfigStruct,
   OrderConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
+import { randomUint256 } from "../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
   ONE,
+  sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -66,6 +68,58 @@ describe("OrderBook many-to-many", async function () {
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
+  it("should support a 'slosh' many-to-many orders setup", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bountyBot = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const vaultAlice = ethers.BigNumber.from(randomUint256());
+    const vaultBountyBot = ethers.BigNumber.from(randomUint256());
+
+    const threshold = ethers.BigNumber.from(102 + sixteenZeros); // 2%
+
+    const constants = [max_uint256, threshold];
+
+    const vMaxAmount = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vThreshold = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+
+    // prettier-ignore
+    const source = concat([
+      vMaxAmount,
+      vThreshold,
+    ]);
+
+    const orderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA.address, vaultId: vaultAlice },
+        { token: tokenB.address, vaultId: vaultAlice },
+        { token: tokenA.address, vaultId: vaultAlice },
+        { token: tokenD.address, vaultId: vaultAlice },
+      ],
+      validOutputs: [
+        { token: tokenA.address, vaultId: vaultAlice },
+        { token: tokenB.address, vaultId: vaultAlice },
+        { token: tokenC.address, vaultId: vaultAlice },
+        { token: tokenD.address, vaultId: vaultAlice },
+      ],
+      interpreterStateConfig: {
+        sources: [source],
+        constants: constants,
+      },
+    };
+
+    const _txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
+
+    // TODO:
+    // alice deposit
+    // simulate via test contract a bounty bot flash loaning alice's tokenA deposit to buy tokenB from bob, bounty bot repays the loan and takes a cut
+  });
+
   it("should add many ask and bid orders and clear the orders", async function () {
     const signers = await ethers.getSigners();
 
@@ -75,12 +129,12 @@ describe("OrderBook many-to-many", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -344,10 +398,10 @@ describe("OrderBook many-to-many", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceVaultA = ethers.BigNumber.from(1);
-    const aliceVaultB = ethers.BigNumber.from(2);
-    const bobVaultB = ethers.BigNumber.from(1);
-    const bobVaultA = ethers.BigNumber.from(2);
+    const aliceVaultA = ethers.BigNumber.from(randomUint256());
+    const aliceVaultB = ethers.BigNumber.from(randomUint256());
+    const bobVaultB = ethers.BigNumber.from(randomUint256());
+    const bobVaultA = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 

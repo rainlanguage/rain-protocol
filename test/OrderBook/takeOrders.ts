@@ -20,7 +20,7 @@ import {
   TakeOrderEvent,
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { AllStandardOps, assertError } from "../../utils";
+import { AllStandardOps, assertError, randomUint256 } from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
@@ -68,10 +68,10 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDERS
 
@@ -201,10 +201,10 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDERS
 
@@ -361,10 +361,10 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDERS
 
@@ -506,8 +506,8 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER 0
 
@@ -646,8 +646,8 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER 0
 
@@ -781,8 +781,8 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -900,10 +900,10 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDERS
 
@@ -1083,8 +1083,8 @@ describe("OrderBook take orders", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
