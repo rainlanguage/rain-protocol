@@ -45,7 +45,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     IInterpreterV1 internal _interpreter;
 
     /// flow expression pointer => context scratch
-    mapping(address => IdempotentFlag) internal _flowContextScratches;
+    mapping(address => IdempotentFlag) internal _flowContextReads;
     /// flow expression pointer => id => time
     mapping(address => mapping(uint256 => uint256)) internal _flowTimes;
 
@@ -69,7 +69,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
             (
                 address expressionAddress_,
-                uint256 contextScratch_
+                uint256 contextReads_
             ) = IExpressionDeployerV1(config_.expressionDeployer)
                     .deployExpression(
                         config_.flows[i_],
@@ -79,8 +79,8 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             // `_buildFlowContext` will refuse to build a context for it.
             // The ID is always set in the context so there's no harm in always
             // tracking it in the scratch.
-            _flowContextScratches[expressionAddress_] = IdempotentFlag
-                .wrap(contextScratch_)
+            _flowContextReads[expressionAddress_] = IdempotentFlag
+                .wrap(contextReads_)
                 .set16x16(FLAG_COLUMN_FLOW_ID, FLAG_ROW_FLOW_ID);
         }
     }
@@ -89,21 +89,18 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         address flow_,
         uint256 id_
     ) internal view returns (uint256[] memory) {
-        IdempotentFlag contextScratch_ = _flowContextScratches[flow_];
+        IdempotentFlag contextReads_ = _flowContextReads[flow_];
 
         // THIS IS A CRITICAL SECURITY CHECK. REMOVING THIS ALLOWS ARBITRARY
         // EXPRESSIONS TO BE BUILT AND RUN AS FLOWS.
-        require(
-            IdempotentFlag.unwrap(contextScratch_) > 0,
-            "UNREGISTERED_FLOW"
-        );
+        require(IdempotentFlag.unwrap(contextReads_) > 0, "UNREGISTERED_FLOW");
 
         // This column MUST match the flags tracked in the context grid.
         return
             LibUint256Array.arrayFrom(
                 uint256(uint160(msg.sender)),
                 id_,
-                loadFlowTime(contextScratch_, flow_, id_)
+                loadFlowTime(contextReads_, flow_, id_)
             );
     }
 

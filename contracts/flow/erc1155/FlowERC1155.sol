@@ -7,6 +7,7 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import "../FlowCommon.sol";
 import {ERC1155Upgradeable as ERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+import "../../interpreter/run/LibEncodedDispatch.sol";
 
 uint256 constant RAIN_FLOW_ERC1155_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC1155_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -31,6 +32,10 @@ struct FlowERC1155IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
+uint constant CAN_TRANSFER_MIN_OUTPUTS = 1;
+uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+
+uint constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
 contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     using LibStackTop for StackTop;
@@ -52,9 +57,12 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         // provided unconditionally.
         (address expression_, ) = IExpressionDeployerV1(
             config_.flowConfig.expressionDeployer
-        ).deployExpression(config_.stateConfig, LibUint256Array.arrayFrom(1));
+        ).deployExpression(
+                config_.stateConfig,
+                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
+            );
         _expression = expression_;
-        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+        __FlowCommon_init(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);
     }
 
     /// Needed here to fix Open Zeppelin implementing `supportsInterface` on
@@ -66,7 +74,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     }
 
     /// @inheritdoc ERC1155
-    function _beforeTokenTransfer(
+    function _afterTokenTransfer(
         address operator_,
         address from_,
         address to_,
@@ -75,7 +83,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         bytes memory data_
     ) internal virtual override {
         unchecked {
-            super._beforeTokenTransfer(
+            super._afterTokenTransfer(
                 operator_,
                 from_,
                 to_,
@@ -83,31 +91,37 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                 amounts_,
                 data_
             );
-            // Mint and burn access MUST be handled by CAN_FLOW.
+            // Mint and burn access MUST be handled by flow.
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
+                uint[][] memory kvss_ = new uint[][](ids_.length);
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
                     uint256[][] memory context_ = LibUint256Array
                         .arrayFrom(
-                            uint256(uint160(operator_)),
+                            uint(uint160(operator_)),
                             uint256(uint160(from_)),
                             uint256(uint160(to_)),
                             ids_[i_],
                             amounts_[i_]
                         )
                         .matrixFrom();
-                    require(
-                        _interpreter
-                            .eval(
+                    (uint[] memory stack_, uint[] memory kvs_) = _interpreter
+                        .eval(
+                            msg.sender,
+                            LibEncodedDispatch.encode(
                                 _expression,
                                 CAN_TRANSFER_ENTRYPOINT,
-                                context_
-                            )
-                            .asStackTopAfter()
-                            .peek() > 0,
+                                CAN_TRANSFER_MAX_OUTPUTS
+                            ),
+                            context_
+                        );
+                    require(
+                        stack_.asStackTopAfter().peek() > 0,
                         "INVALID_TRANSFER"
                     );
+                    kvss_[i_] = kvs_;
                 }
+                _interpreter.setKVss(kvss_);
             }
         }
     }
@@ -155,7 +169,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                 id_,
                 signedContexts_
             );
-            registerFlowTime(_flowContextScratches[flow_], flow_, id_);
+            registerFlowTime(_flowContextReads[flow_], flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
                 _mint(

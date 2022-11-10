@@ -15,9 +15,7 @@ contract AutoApproveFactory is Factory {
 
     /// Build the reference implementation to clone for each child.
     constructor() {
-        address implementation_ = address(
-            new AutoApprove()
-        );
+        address implementation_ = address(new AutoApprove());
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
@@ -29,7 +27,10 @@ contract AutoApproveFactory is Factory {
     function _createChild(
         bytes memory data_
     ) internal virtual override returns (address) {
-        AutoApproveConfig memory config_ = abi.decode(data_, (AutoApproveConfig));
+        AutoApproveConfig memory config_ = abi.decode(
+            data_,
+            (AutoApproveConfig)
+        );
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
         AutoApprove(clone_).transferOwnership(msg.sender);

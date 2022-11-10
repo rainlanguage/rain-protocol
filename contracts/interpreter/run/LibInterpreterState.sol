@@ -39,6 +39,7 @@ enum DebugStyle {
 /// stack by `VAL`.
 struct InterpreterState {
     StackTop stackBottom;
+    StackTop expressionKVBottom;
     StackTop constantsBottom;
     uint256 contextReads;
     uint256[][] context;
@@ -46,8 +47,6 @@ struct InterpreterState {
 }
 
 string constant DEBUG_DELIMETER = "~~~";
-
-SourceIndex constant DEFAULT_SOURCE_INDEX = SourceIndex.wrap(0);
 
 library LibInterpreterState {
     using SafeCast for uint256;
@@ -125,14 +124,16 @@ library LibInterpreterState {
 
     function serialize(
         StateConfig memory config_,
-        uint256 contextScratch_,
+        uint256 contextReads_,
         uint256 stackLength_,
+        uint expressionKVLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
-            size_ += contextScratch_.size();
+            size_ += contextReads_.size();
             size_ += stackLength_.size();
+            size_ += expressionKVLength_.size();
             size_ += config_.constants.size();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 size_ += config_.sources[i_].size();
@@ -143,11 +144,14 @@ library LibInterpreterState {
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
 
+            // Then expression KV
+            cursor_ = cursor_.push(expressionKVLength_);
+
+            // Copy context reads.
+            cursor_ = cursor_.push(contextReads_);
+
             // Then the constants.
             cursor_ = cursor_.pushWithLength(config_.constants);
-
-            // Copy context scratch.
-            cursor_ = cursor_.push(contextScratch_);
 
             // Last the sources.
             bytes memory source_;
@@ -249,29 +253,6 @@ library LibInterpreterState {
         }
     }
 
-    /// Eval with sane defaults partially applied.
-    function eval(
-        InterpreterState memory state_
-    ) internal view returns (StackTop) {
-        return state_.eval(DEFAULT_SOURCE_INDEX, state_.stackBottom);
-    }
-
-    /// Eval with sane defaults partially applied.
-    function eval(
-        InterpreterState memory state_,
-        SourceIndex sourceIndex_
-    ) internal view returns (StackTop) {
-        return state_.eval(sourceIndex_, state_.stackBottom);
-    }
-
-    /// Eval with sane defaults partially applied.
-    function eval(
-        InterpreterState memory state_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return state_.eval(DEFAULT_SOURCE_INDEX, stackTop_);
-    }
-
     /// Evaluates a Rain expression.
     /// The main workhorse of the rain Interpreter, `eval` runs any core opcodes
     /// and dispatches anything it is unaware of to the implementing contract.
@@ -295,7 +276,7 @@ library LibInterpreterState {
             assembly ("memory-safe") {
                 cursor_ := mload(
                     add(
-                        mload(add(state_, 0x80)),
+                        mload(add(state_, 0xA0)),
                         add(0x20, mul(0x20, sourceIndex_))
                     )
                 )

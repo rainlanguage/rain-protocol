@@ -9,9 +9,13 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "../interpreter/run/LibEncodedDispatch.sol";
 
 SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
-uint256 constant MIN_FINAL_STACK_INDEX = 2;
+
+uint constant ORDER_MIN_OUTPUTS = 2;
+uint constant ORDER_MAX_OUTPUTS = 2;
 
 struct OrderConfig {
     address expressionDeployer;
@@ -83,7 +87,7 @@ library LibOrder {
     }
 }
 
-contract OrderBook is IOrderBookV1, OrderBookFlashLender {
+contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
@@ -123,7 +127,11 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
 
-    function deposit(DepositConfig calldata config_) external {
+    constructor() {
+        __ReentrancyGuard_init();
+    }
+
+    function deposit(DepositConfig calldata config_) external nonReentrant {
         vaultBalance[msg.sender][config_.token][config_.vaultId] += config_
             .amount;
         emit Deposit(msg.sender, config_);
@@ -138,7 +146,7 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
     /// @param config_ All config required to withdraw. Notably if the amount
     /// is less than the current vault balance then the vault will be cleared
     /// to 0 rather than the withdraw transaction reverting.
-    function withdraw(WithdrawConfig calldata config_) external {
+    function withdraw(WithdrawConfig calldata config_) external nonReentrant {
         uint256 vaultBalance_ = vaultBalance[msg.sender][config_.token][
             config_.vaultId
         ];
@@ -154,12 +162,12 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
         );
     }
 
-    function addOrder(OrderConfig calldata config_) external {
+    function addOrder(OrderConfig calldata config_) external nonReentrant {
         (address expressionAddress, ) = IExpressionDeployerV1(
             config_.expressionDeployer
         ).deployExpression(
                 config_.interpreterStateConfig,
-                MIN_FINAL_STACK_INDEX.arrayFrom()
+                ORDER_MIN_OUTPUTS.arrayFrom()
             );
         Order memory order_ = Order(
             msg.sender,
@@ -173,7 +181,7 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
         emit AddOrder(msg.sender, order_, orderHash_);
     }
 
-    function removeOrder(Order calldata order_) external {
+    function removeOrder(Order calldata order_) external nonReentrant {
         require(msg.sender == order_.owner, "OWNER");
         uint orderHash_ = order_.hash();
         delete (orders[orderHash_]);
@@ -189,14 +197,17 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
         uint[][] memory context_ = LibUint256Array
             .arrayFrom(
                 orderHash_,
-                uint(uint160(msg.sender)),
+                uint(uint160(order_.owner)),
                 uint(uint160(counterparty_))
             )
             .matrixFrom();
-        (orderOutputMax_, orderIORatio_) = IInterpreterV1(order_.interpreter)
-            .eval(order_.expression, ORDER_ENTRYPOINT, context_)
-            .asStackTopAfter()
+        (uint[] memory stack_, uint[] memory kvs_) = IInterpreterV1(order_.interpreter)
+            .eval(msg.sender, LibEncodedDispatch.encode(order_.expression, ORDER_ENTRYPOINT, ORDER_MAX_OUTPUTS), context_);
+           (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter()
             .peek2();
+        if (kvs_.length > 0) {
+            IInterpreterV1(order_.interpreter).setKVss(kvs_.matrixFrom());
+        }
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -226,7 +237,7 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
 
     function takeOrders(
         TakeOrdersConfig calldata takeOrders_
-    ) external returns (uint256 totalInput_, uint256 totalOutput_) {
+    ) external nonReentrant returns (uint256 totalInput_, uint256 totalOutput_) {
         uint256 i_ = 0;
         TakeOrderConfig memory takeOrder_;
         Order memory order_;
@@ -310,7 +321,7 @@ contract OrderBook is IOrderBookV1, OrderBookFlashLender {
         Order memory a_,
         Order memory b_,
         ClearConfig calldata clearConfig_
-    ) external {
+    ) external nonReentrant {
         {
             require(a_.owner != b_.owner, "SAME_OWNER");
             require(

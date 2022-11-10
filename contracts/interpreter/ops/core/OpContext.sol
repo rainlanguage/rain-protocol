@@ -25,9 +25,9 @@ library OpContext {
     ) internal pure returns (StackTop) {
         uint256 column_ = Operand.unwrap(operand_) >> 8;
         uint256 row_ = Operand.unwrap(operand_) & uint256(type(uint8).max);
-        integrityState_.contextScratch = IdempotentFlag.unwrap(
+        integrityState_.contextReads = IdempotentFlag.unwrap(
             LibIdempotentFlag.set16x16(
-                IdempotentFlag.wrap(integrityState_.contextScratch),
+                IdempotentFlag.wrap(integrityState_.contextReads),
                 column_,
                 row_
             )

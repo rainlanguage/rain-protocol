@@ -52,7 +52,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
             id_,
             signedContexts_
         );
-        registerFlowTime(_flowContextScratches[flow_], flow_, id_);
+        registerFlowTime(_flowContextReads[flow_], flow_, id_);
         return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));
     }
 }

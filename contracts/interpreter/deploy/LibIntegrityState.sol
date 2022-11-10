@@ -12,10 +12,10 @@ struct IntegrityState {
     bytes[] sources;
     StorageOpcodesRange storageOpcodesRange;
     uint256 constantsLength;
-    uint256 contextLength;
+    uint256 expressionKVLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
-    uint256 contextScratch;
+    uint256 contextReads;
     function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop)[] integrityFunctionPointers;

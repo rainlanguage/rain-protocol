@@ -12,6 +12,7 @@ import "../../idempotent/LibIdempotentFlag.sol";
 import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+import "../../interpreter/run/LibEncodedDispatch.sol";
 
 uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -41,6 +42,7 @@ struct FlowERC721IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
+uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
@@ -83,12 +85,12 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     }
 
     /// @inheritdoc ERC721
-    function _beforeTokenTransfer(
+    function _afterTokenTransfer(
         address from_,
         address to_,
         uint256 tokenId_
     ) internal virtual override {
-        super._beforeTokenTransfer(from_, to_, tokenId_);
+        super._afterTokenTransfer(from_, to_, tokenId_);
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
@@ -99,13 +101,16 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                     tokenId_
                 )
                 .matrixFrom();
-            require(
-                _interpreter
-                    .eval(_expression, CAN_TRANSFER_ENTRYPOINT, context_)
+            (uint[] memory stack_, uint[] memory kvs_) = _interpreter
+                    .eval(msg.sender, LibEncodedDispatch.encode(_expression, CAN_TRANSFER_ENTRYPOINT, CAN_TRANSFER_MAX_OUTPUTS), context_);
+                    require(stack_
                     .asStackTopAfter()
                     .peek() > 0,
                 "INVALID_TRANSFER"
             );
+            if (kvs_.length > 0) {
+                _interpreter.setKVss(kvs_.matrixFrom());
+            }
         }
     }
 
@@ -154,7 +159,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 id_,
                 signedContexts_
             );
-            registerFlowTime(_flowContextScratches[flow_], flow_, id_);
+            registerFlowTime(_flowContextReads[flow_], flow_, id_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }

@@ -18,6 +18,8 @@ import "../sstore2/SSTORE2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/deploy/LibEncodedConstraints.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -136,8 +138,16 @@ struct Receipt {
 SourceIndex constant CAN_LIVE_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 
-uint256 constant CAN_LIVE_MIN_FINAL_STACK_INDEX = 1;
-uint256 constant CALCULATE_BUY_MIN_FINAL_STACK_INDEX = 2;
+uint256 constant CAN_LIVE_MIN_OUTPUTS = 1;
+uint constant CAN_LIVE_MAX_OUTPUTS = 1;
+uint constant CAN_LIVE_MUTABLE = 0;
+
+uint256 constant CALCULATE_BUY_MIN_OUTPUTS = 2;
+uint constant CALCULATE_BUY_MAX_OUTPUTS = 2;
+uint constant CALCULATE_BUY_MUTABLE = 1;
+
+EncodedConstraints constant CAN_LIVE_CONSTRAINTS = LibEncodedConstraints.encode(CAN_LIVE_MAX_OUTPUTS, CAN_LIVE_MUTABLE);
+EncodedConstraints constant CALCULATE_BUY_CONSTRAINTS = LibEncodedConstraints.encode(CALCULATE_BUY_MAX_OUTPUTS, CALCULATE_BUY_MUTABLE);
 
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
@@ -264,9 +274,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
         ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
                 config_.interpreterStateConfig,
-                LibUint256Array.arrayFrom(
-                    CAN_LIVE_MIN_FINAL_STACK_INDEX,
-                    CALCULATE_BUY_MIN_FINAL_STACK_INDEX
+                LibEncodedConstraints.arrayFrom(
+                    CAN_LIVE_CONSTRAINTS,
+                    CALCULATE_BUY_CONSTRAINTS
                 )
             );
         expression = expression_;
@@ -323,13 +333,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             if (remainingTokenInventory < 1) {
                 return false;
             }
-            uint256[][] memory context_ = LibUint256Array
-                .arrayFrom(uint256(uint160(msg.sender)))
-                .matrixFrom();
-            return
-                IInterpreterV1(interpreter)
-                    .eval(expression, CAN_LIVE_ENTRYPOINT, context_)
-                    .asStackTopAfter()
+            (uint[] memory stack_,) = IInterpreterV1(interpreter)
+                    .eval(msg.sender, LibEncodedDispatch.encode(expression, CAN_LIVE_ENTRYPOINT, CAN_LIVE_MAX_OUTPUTS), new uint[][](0));
+                    return stack_.asStackTopAfter()
                     .peek() > 0;
         }
     }

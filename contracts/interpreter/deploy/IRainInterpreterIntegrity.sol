@@ -10,8 +10,5 @@ interface IRainInterpreterIntegrity {
         bytes[] memory sources,
         uint256 constantsLength,
         uint256[] memory finalStacks
-    )
-        external
-        view
-        returns (uint256 contextScratch_, uint256 maximumStackHeight);
+    ) external view returns (uint256 contextReads_, uint256 maximumStackHeight);
 }

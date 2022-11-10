@@ -10,6 +10,7 @@ import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
 import "../../idempotent/LibIdempotentFlag.sol";
 import "../FlowCommon.sol";
+import "../../interpreter/run/LibEncodedDispatch.sol";
 
 uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC20_SENTINEL")) | SENTINEL_HIGH_BITS
@@ -39,6 +40,7 @@ struct FlowERC20IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
+uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -83,13 +85,13 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
     }
 
     /// @inheritdoc ERC20
-    function _beforeTokenTransfer(
+    function _afterTokenTransfer(
         address from_,
         address to_,
         uint256 amount_
     ) internal virtual override {
-        super._beforeTokenTransfer(from_, to_, amount_);
-        // Mint and burn access MUST be handled by CAN_FLOW.
+        super._afterTokenTransfer(from_, to_, amount_);
+        // Mint and burn access MUST be handled by flow.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
             uint256[][] memory context_ = LibUint256Array
@@ -99,13 +101,19 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                     amount_
                 )
                 .matrixFrom();
-            require(
-                _interpreter
-                    .eval(_expression, CAN_TRANSFER_ENTRYPOINT, context_)
-                    .asStackTopAfter()
-                    .peek() > 0,
-                "INVALID_TRANSFER"
+            (uint[] memory stack_, uint[] memory kvs_) = _interpreter.eval(
+                msg.sender,
+                LibEncodedDispatch.encode(
+                    _expression,
+                    CAN_TRANSFER_ENTRYPOINT,
+                    CAN_TRANSFER_MAX_OUTPUTS
+                ),
+                context_
             );
+            require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
+            if (kvs_.length > 0) {
+                _interpreter.setKVss(kvs_.matrixFrom());
+            }
         }
     }
 
@@ -148,7 +156,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         FlowERC20IO memory flowIO_ = _previewFlow(flow_, id_, signedContexts_);
-        registerFlowTime(_flowContextScratches[flow_], flow_, id_);
+        registerFlowTime(_flowContextReads[flow_], flow_, id_);
         for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
             _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
         }

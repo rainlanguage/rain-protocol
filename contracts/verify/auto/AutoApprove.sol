@@ -34,8 +34,7 @@ contract AutoApprove is VerifyCallback {
     address internal interpreter;
     address internal expression;
 
-    constructor(
-     ) {
+    constructor() {
         _disableInitializers();
     }
 
@@ -44,14 +43,11 @@ contract AutoApprove is VerifyCallback {
     ) external initializer {
         __VerifyCallback_init();
 
-        (
-            address expression_,
-
-        ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
+        (address expression_, ) = IExpressionDeployerV1(
+            config_.expressionDeployer
+        ).deployExpression(
                 config_.stateConfig,
-                LibUint256Array.arrayFrom(
-                    CAN_APPROVE_FINAL_STACK_INDEX
-                )
+                LibUint256Array.arrayFrom(CAN_APPROVE_FINAL_STACK_INDEX)
             );
         expression = expression_;
         interpreter = config_.interpreter;
@@ -75,7 +71,12 @@ contract AutoApprove is VerifyCallback {
                 if (evidences_[i_].data.length == 0x20) {
                     context_[0][0] = uint256(uint160(evidences_[i_].account));
                     context_[0][1] = uint256(bytes32(evidences_[i_].data));
-                    if (IInterpreterV1(interpreter).eval(expression, CAN_APPROVE_ENTRYPOINT, context_).asStackTopAfter().peek() > 0) {
+                    if (
+                        IInterpreterV1(interpreter)
+                            .eval(expression, CAN_APPROVE_ENTRYPOINT, context_)
+                            .asStackTopAfter()
+                            .peek() > 0
+                    ) {
                         LibEvidence._updateEvidenceRef(
                             approvedRefs_,
                             evidences_[i_],
