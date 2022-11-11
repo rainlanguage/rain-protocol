@@ -208,7 +208,13 @@ describe("OrderBook sloshy tests", async function () {
       )
     );
 
-    // 4.1 erc3156Bot now has 1 DAI and 0.01 USDT
+    // market now has 1 DAI
+    const marketDAIBalance = await DAI.balanceOf(
+      "0x0000000000000000000000000000000000000001" // address(1)
+    );
+    assert(marketDAIBalance.eq(amountDAI), "wrong DAI balance");
+
+    // erc3156Bot now has 0 DAI and 0.01 USDT
     const expectedFinalERC3156BotUSDTBalance = ethers.BigNumber.from(
       1 + sixteenZeros
     ); // 0.01 USDT
@@ -220,7 +226,7 @@ describe("OrderBook sloshy tests", async function () {
       "wrong USDT balance"
     );
 
-    // 5. alice now has 0 DAI and 1.01 USDT
+    // alice now has 0 DAI and 1.01 USDT
     await orderBook.connect(alice).withdraw({
       token: USDT.address,
       vaultId: vaultAlice,

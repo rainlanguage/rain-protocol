@@ -22,8 +22,6 @@ contract ERC3156FlashBorrowerBuyTest is IERC3156FlashBorrower {
         uint256,
         bytes calldata data_
     ) external returns (bytes32) {
-        console.logBytes(data_);
-
         TakeOrdersConfig memory takeOrdersConfig = abi.decode(
             data_,
             (TakeOrdersConfig)
@@ -48,11 +46,7 @@ contract ERC3156FlashBorrowerBuyTest is IERC3156FlashBorrower {
         IERC20(takeOrdersConfig.output).approve(msg.sender, receiveAmountB);
 
         // take orderbook order
-        (uint256 totalInput_, uint256 totalOutput_) = OrderBook(msg.sender)
-            .takeOrders(takeOrdersConfig);
-
-        console.log(totalInput_);
-        console.log(totalOutput_);
+        OrderBook(msg.sender).takeOrders(takeOrdersConfig);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
