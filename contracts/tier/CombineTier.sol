@@ -23,6 +23,7 @@ uint256 constant MIN_FINAL_STACK_INDEX = 1;
 /// @param sourceConfig Source to run for both report and reportForTier as
 /// sources 0 and 1 respectively.
 struct CombineTierConfig {
+    
     uint256 combinedTiersLength;
     StateConfig sourceConfig;
 }
@@ -31,7 +32,7 @@ struct CombineTierConfig {
 /// @notice Allows combining the reports from any `ITierV2` contracts.
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
-contract CombineTier is TierV2, StandardInterpreter {
+contract CombineTier is TierV2 {
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
     using LibUint256Array for uint256;
@@ -99,6 +100,7 @@ contract CombineTier is TierV2, StandardInterpreter {
         interpreterContext_[1] = context_;
         InterpreterState memory state_ = _loadInterpreterState();
         state_.context = interpreterContext_;
+
         return state_.eval(REPORT_FOR_TIER_ENTRYPOINT).peek();
     }
 }

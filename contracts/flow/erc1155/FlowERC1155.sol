@@ -94,7 +94,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             // Mint and burn access MUST be handled by flow.
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
-                uint[][] memory kvss_ = new uint[][](ids_.length);
+                uint[][] memory stateChangess_ = new uint[][](ids_.length);
+                uint stateChangesLength_ = 0;
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
                     uint256[][] memory context_ = LibUint256Array
                         .arrayFrom(
@@ -105,7 +106,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                             amounts_[i_]
                         )
                         .matrixFrom();
-                    (uint[] memory stack_, uint[] memory kvs_) = _interpreter
+                    (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
                         .eval(
                             msg.sender,
                             LibEncodedDispatch.encode(
@@ -115,13 +116,16 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                             ),
                             context_
                         );
+                    stateChangesLength_ += stateChanges_.length;
                     require(
                         stack_.asStackTopAfter().peek() > 0,
                         "INVALID_TRANSFER"
                     );
-                    kvss_[i_] = kvs_;
+                    stateChangess_[i_] = stateChanges_;
                 }
-                _interpreter.setKVss(kvss_);
+                if (stateChangesLength_ > 0) {
+                    _interpreter.stateChanges(stateChangess_);
+                }
             }
         }
     }

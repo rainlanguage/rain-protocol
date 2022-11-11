@@ -101,7 +101,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                     amount_
                 )
                 .matrixFrom();
-            (uint[] memory stack_, uint[] memory kvs_) = _interpreter.eval(
+            (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter.eval(
                 msg.sender,
                 LibEncodedDispatch.encode(
                     _expression,
@@ -111,8 +111,8 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                 context_
             );
             require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
-            if (kvs_.length > 0) {
-                _interpreter.setKVss(kvs_.matrixFrom());
+            if (stateChanges_.length > 0) {
+                _interpreter.stateChanges(stateChanges_.matrixFrom());
             }
         }
     }

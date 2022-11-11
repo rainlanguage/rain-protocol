@@ -11,12 +11,12 @@ interface IInterpreterV1 {
         address initiator,
         EncodedDispatch dispatch,
         uint256[][] memory context
-    ) external view returns (uint256[] memory stack, uint[] memory kvs);
+    ) external view returns (uint256[] memory stack, uint[] memory stateChanges);
 
     /// Saves kvs returned by one or more eval calls.
-    /// KVs MUST be stored in a mapping under the caller to prevent a malicious
-    /// caller from corrupting keys from another caller.
+    /// State changes MUST be stored in a mapping under the caller to prevent a 
+    /// malicious caller from corrupting keys from another caller.
     /// Caller MUST consider the potential of reentrancy from a malicious
     /// interpreter when calling setKVs.
-    function setKVss(uint[][] memory kvss) external;
+    function stateChanges(uint[][] memory stateChanges) external;
 }

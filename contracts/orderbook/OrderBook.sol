@@ -201,12 +201,20 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
                 uint(uint160(counterparty_))
             )
             .matrixFrom();
-        (uint[] memory stack_, uint[] memory kvs_) = IInterpreterV1(order_.interpreter)
-            .eval(msg.sender, LibEncodedDispatch.encode(order_.expression, ORDER_ENTRYPOINT, ORDER_MAX_OUTPUTS), context_);
-           (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter()
-            .peek2();
-        if (kvs_.length > 0) {
-            IInterpreterV1(order_.interpreter).setKVss(kvs_.matrixFrom());
+        (uint[] memory stack_, uint[] memory stateChanges_) = IInterpreterV1(
+            order_.interpreter
+        ).eval(
+                msg.sender,
+                LibEncodedDispatch.encode(
+                    order_.expression,
+                    ORDER_ENTRYPOINT,
+                    ORDER_MAX_OUTPUTS
+                ),
+                context_
+            );
+        (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+        if (stateChanges_.length > 0) {
+            IInterpreterV1(order_.interpreter).stateChanges(stateChanges_.matrixFrom());
         }
 
         // The order owner can't send more than the smaller of their vault
@@ -237,7 +245,11 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
 
     function takeOrders(
         TakeOrdersConfig calldata takeOrders_
-    ) external nonReentrant returns (uint256 totalInput_, uint256 totalOutput_) {
+    )
+        external
+        nonReentrant
+        returns (uint256 totalInput_, uint256 totalOutput_)
+    {
         uint256 i_ = 0;
         TakeOrderConfig memory takeOrder_;
         Order memory order_;

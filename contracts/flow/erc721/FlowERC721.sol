@@ -101,15 +101,18 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                     tokenId_
                 )
                 .matrixFrom();
-            (uint[] memory stack_, uint[] memory kvs_) = _interpreter
-                    .eval(msg.sender, LibEncodedDispatch.encode(_expression, CAN_TRANSFER_ENTRYPOINT, CAN_TRANSFER_MAX_OUTPUTS), context_);
-                    require(stack_
-                    .asStackTopAfter()
-                    .peek() > 0,
-                "INVALID_TRANSFER"
+            (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter.eval(
+                msg.sender,
+                LibEncodedDispatch.encode(
+                    _expression,
+                    CAN_TRANSFER_ENTRYPOINT,
+                    CAN_TRANSFER_MAX_OUTPUTS
+                ),
+                context_
             );
-            if (kvs_.length > 0) {
-                _interpreter.setKVss(kvs_.matrixFrom());
+            require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
+            if (stateChanges_.length > 0) {
+                _interpreter.stateChanges(stateChanges_.matrixFrom());
             }
         }
     }
