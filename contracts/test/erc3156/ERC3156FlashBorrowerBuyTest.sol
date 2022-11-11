@@ -44,6 +44,9 @@ contract ERC3156FlashBorrowerBuyTest is IERC3156FlashBorrower {
             "PRE_BUY"
         );
 
+        // approve orderbook transfer
+        IERC20(takeOrdersConfig.output).approve(msg.sender, receiveAmountB);
+
         // take orderbook order
         (uint256 totalInput_, uint256 totalOutput_) = OrderBook(msg.sender)
             .takeOrders(takeOrdersConfig);
