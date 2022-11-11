@@ -51,14 +51,11 @@ describe("RedeemableERC20 endDistribution test", async function () {
       `default phase was not phase ONE, got ${await redeemableERC20.currentPhase()}`
     );
 
-    const redeemableERC201 = new ethers.Contract(
-      redeemableERC20.address,
-      redeemableERC20.interface,
-      signers[1]
-    );
-
     await Util.assertError(
-      async () => await redeemableERC201.endDistribution(signers[0].address),
+      async () =>
+        await redeemableERC20
+          .connect(signers[1])
+          .endDistribution(signers[0].address),
       "ONLY_ADMIN",
       "was wrongly able to set phase block with insuffient role permissions"
     );

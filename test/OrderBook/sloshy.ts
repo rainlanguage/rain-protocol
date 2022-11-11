@@ -3,7 +3,7 @@ import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  ERC3156FlashBorrowerTest,
+  ERC3156FlashBorrowerBuyTest,
   OrderBook,
   Rainterpreter,
   RainterpreterExpressionDeployer,
@@ -11,22 +11,16 @@ import type {
 } from "../../typechain";
 import {
   AddOrderEvent,
-  AfterClearEvent,
-  ClearConfigStruct,
-  ClearEvent,
-  ClearStateChangeStruct,
   DepositConfigStruct,
   OrderConfigStruct,
-  DepositEvent,
   TakeOrderConfigStruct,
-  TakeOrdersConfigStruct,
   TakeOrderEvent,
+  TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import { randomUint256 } from "../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
-  ONE,
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -39,26 +33,28 @@ import {
   op,
 } from "../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import {
-  compareSolStructs,
-  compareStructs,
-} from "../../utils/test/compareStructs";
+import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook sloshy test", async function () {
+describe("OrderBook sloshy tests", async function () {
   let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
+  let erc3156Bot: ERC3156FlashBorrowerBuyTest;
 
   beforeEach(async () => {
     USDT = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     DAI = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await USDT.initialize();
     await DAI.initialize();
+
+    erc3156Bot = (await basicDeploy(
+      "ERC3156FlashBorrowerBuyTest",
+      {}
+    )) as ERC3156FlashBorrowerBuyTest;
   });
 
   before(async () => {
@@ -67,17 +63,14 @@ describe("OrderBook sloshy test", async function () {
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
-  it("should complete an e2e slosh without a loan", async function () {
+  it("should complete an e2e slosh with a loan", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
-    const bob = signers[2];
-    const uni = signers[3];
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
-    const vaultBountyBot = ethers.BigNumber.from(randomUint256());
 
     const threshold = ethers.BigNumber.from(101 + sixteenZeros); // 1%
 
@@ -92,7 +85,7 @@ describe("OrderBook sloshy test", async function () {
       vThreshold,
     ]);
 
-    ////////////////// 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
+    // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -104,18 +97,17 @@ describe("OrderBook sloshy test", async function () {
       },
     };
 
-    const txAskAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
+    const txAddOrderAlice = await orderBook
+      .connect(alice)
+      .addOrder(orderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
-      txAskAddOrder,
+    const { order: askConfig } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, orderConfig);
-
-    ////////////////// 1.1 Alice deposits DAI into her output vault
+    // 1.1 Alice deposits DAI into her output vault
     const amountDAI = ethers.BigNumber.from("1" + eighteenZeros);
     await DAI.transfer(alice.address, amountDAI);
     const depositConfigStructAlice: DepositConfigStruct = {
@@ -128,22 +120,185 @@ describe("OrderBook sloshy test", async function () {
       depositConfigStructAlice.amount
     );
 
-    const txDepositOrderAlice = await orderBook
+    const _txDepositOrderAlice = await orderBook
       .connect(alice)
       .deposit(depositConfigStructAlice);
-    const { sender: depositAliceSender, config: depositAliceConfig } =
-      (await getEventArgs(
-        txDepositOrderAlice,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-    assert(depositAliceSender === alice.address);
-    compareStructs(depositAliceConfig, depositConfigStructAlice);
 
-    ////////////////// 2. consider the setup where bob simply has 1 DAI already
+    const takeOrderConfigStruct: TakeOrderConfigStruct = {
+      order: askConfig,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: USDT.address,
+      input: DAI.address,
+      minimumInput: amountDAI,
+      maximumInput: amountDAI,
+      maximumIORatio: threshold,
+      orders: [takeOrderConfigStruct],
+    };
+
+    // 2. consider the setup where erc3156Bot doesn't have 1 DAI already, erc3156Bot must flash loan alice's 1 DAI
+    // 3. erc3156Bot 'sells' flash loaned 1 DAI to uni for 1.02 USDT (assuming this happens externally)
+
+    // since we're only mocking interaction with external market, we can just give bot the USDT it would buy from market in advance
+    const amountUniUSDT = ethers.BigNumber.from(102 + sixteenZeros); // 2%
+    await USDT.transfer(erc3156Bot.address, amountUniUSDT);
+
+    // 4. erc3156Bot takes alice's order (erc3156Bot sells 1.01 USDT to alice for 1 DAI)
+    await orderBook.flashLoan(
+      erc3156Bot.address,
+      DAI.address,
+      amountDAI,
+      ethers.utils.defaultAbiCoder.encode(
+        [
+          {
+            type: "tuple",
+            name: "takeOrdersConfig",
+            components: [
+              { name: "output", type: "address" },
+              { name: "input", type: "address" },
+              { name: "minimumInput", type: "uint256" },
+              { name: "maximumInput", type: "uint256" },
+              { name: "maximumIORatio", type: "uint256" },
+              {
+                type: "tuple[]",
+                name: "orders",
+                components: [
+                  {
+                    type: "tuple",
+                    name: "order",
+                    components: [
+                      { name: "owner", type: "address" },
+                      { name: "interpreter", type: "address" },
+                      { name: "expression", type: "address" },
+                      {
+                        name: "validInputs",
+                        type: "tuple[]",
+                        components: [
+                          { name: "token", type: "address" },
+                          {
+                            name: "vaultId",
+                            type: "uint256",
+                          },
+                        ],
+                      },
+                      {
+                        name: "validOutputs",
+                        type: "tuple[]",
+                        components: [
+                          { name: "token", type: "address" },
+                          {
+                            name: "vaultId",
+                            type: "uint256",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  { name: "inputIOIndex", type: "uint256" },
+                  { name: "outputIOIndex", type: "uint256" },
+                ],
+              },
+            ],
+          },
+        ],
+        [takeOrdersConfigStruct]
+      )
+    );
+
+    // 4.1 erc3156Bot now has 1 DAI and 0.01 USDT
+    const expectedFinalERC3156BotUSDTBalance = ethers.BigNumber.from(
+      1 + sixteenZeros
+    ); // 0.01 USDT
+    const erc3156BotDAIBalance = await DAI.balanceOf(erc3156Bot.address);
+    const erc3156BotUSDTBalance = await USDT.balanceOf(erc3156Bot.address);
+    assert(erc3156BotDAIBalance.isZero(), "wrong DAI balance");
+    assert(
+      erc3156BotUSDTBalance.eq(expectedFinalERC3156BotUSDTBalance),
+      "wrong USDT balance"
+    );
+
+    // 5. alice now has 0 DAI and 1.01 USDT
+    await orderBook.connect(alice).withdraw({
+      token: USDT.address,
+      vaultId: vaultAlice,
+      amount: threshold,
+    });
+    const aliceUSDTBalance = await USDT.balanceOf(alice.address);
+    const aliceDAIBalance = await DAI.balanceOf(alice.address);
+    assert(aliceUSDTBalance.eq(threshold), "wrong USDT balance");
+    assert(aliceDAIBalance.eq(0), "wrong DAI balance");
+  });
+
+  it("should complete an e2e slosh without a loan", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const uni = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const vaultAlice = ethers.BigNumber.from(randomUint256());
+
+    const threshold = ethers.BigNumber.from(101 + sixteenZeros); // 1%
+
+    const constants = [max_uint256, threshold];
+
+    const vMaxAmount = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vThreshold = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+
+    // prettier-ignore
+    const source = concat([
+      vMaxAmount,
+      vThreshold,
+    ]);
+
+    // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
+    const orderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
+      validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
+      interpreterStateConfig: {
+        sources: [source],
+        constants: constants,
+      },
+    };
+
+    const txAddOrderAlice = await orderBook
+      .connect(alice)
+      .addOrder(orderConfig);
+
+    const { order: askConfig } = (await getEventArgs(
+      txAddOrderAlice,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // 1.1 Alice deposits DAI into her output vault
+    const amountDAI = ethers.BigNumber.from("1" + eighteenZeros);
+    await DAI.transfer(alice.address, amountDAI);
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: DAI.address,
+      vaultId: vaultAlice,
+      amount: amountDAI,
+    };
+    await DAI.connect(alice).approve(
+      orderBook.address,
+      depositConfigStructAlice.amount
+    );
+
+    const _txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    // 2. consider the setup where bob simply has 1 DAI already
     await DAI.transfer(bob.address, amountDAI);
 
-    ////////////////// 3. bob sells his 1 DAI to uni for 1.02 USDT [ assuming this happens externally ]
+    // 3. bob sells his 1 DAI to uni for 1.02 USDT assuming this (happens externally)
     const amountUniUSDT = ethers.BigNumber.from(102 + sixteenZeros); // 2%
     await USDT.transfer(uni.address, amountUniUSDT);
 
@@ -154,7 +309,7 @@ describe("OrderBook sloshy test", async function () {
     await USDT.connect(uni).approve(bob.address, amountUniUSDT);
     await USDT.connect(uni).transfer(bob.address, amountUniUSDT);
 
-    ////////////////// 4. bob takes alice's order [bob sells his 1.01 USDT to alice for 1 DAI]
+    // 4. bob takes alice's order (bob sells his 1.01 USDT to alice for 1 DAI)
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
       order: askConfig,
       inputIOIndex: 0,
@@ -187,14 +342,14 @@ describe("OrderBook sloshy test", async function () {
     assert(output.eq(threshold), "wrong output");
     compareStructs(takeOrder, takeOrderConfigStruct);
 
-    ////////////////// 4. bob now has 1 DAI and 0.01 USDT
+    // 4.1 bob now has 1 DAI and 0.01 USDT
     const bobUSDTBalance = await USDT.balanceOf(bob.address);
     const bobDAIBalance = await DAI.balanceOf(bob.address);
     const expectedBalance = amountUniUSDT.sub(threshold);
     assert(bobUSDTBalance.eq(expectedBalance), "wrong USDT balance");
     assert(bobDAIBalance.eq(amountDAI), "wrong DAI balance");
 
-    ////////////////// 5. alice now has 0 DAI and 1.01 USDT
+    // 5. alice now has 0 DAI and 1.01 USDT
     await orderBook.connect(alice).withdraw({
       token: USDT.address,
       vaultId: vaultAlice,
