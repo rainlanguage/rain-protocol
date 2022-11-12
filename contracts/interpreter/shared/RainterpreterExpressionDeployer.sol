@@ -23,7 +23,7 @@ contract RainterpreterExpressionDeployer is
         address sender,
         StateConfig config,
         address expressionAddress,
-        uint256 contextScratch
+        uint256 contextReads
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -58,18 +58,22 @@ contract RainterpreterExpressionDeployer is
 
     function deployExpression(
         StateConfig memory config_,
-        uint256[] memory finalMinStacks_
+        EncodedConstraints[] memory constraints_
     ) external returns (address, uint256) {
-        (uint256 contextScratch_, uint256 stackLength_) = ensureIntegrity(
-            StorageOpcodesRange(0, 0),
-            config_.sources,
-            config_.constants.length,
-            finalMinStacks_
-        );
+        (
+            uint256 contextReads_,
+            uint256 stackLength_,
+            uint stateChangesLength_
+        ) = ensureIntegrity(
+                config_.sources,
+                config_.constants.length,
+                constraints_
+            );
 
         bytes memory stateBytes_ = config_.serialize(
-            contextScratch_,
+            constraints_,
             stackLength_,
+            stateChangesLength_,
             OPCODE_FUNCTION_POINTERS
         );
 
@@ -79,8 +83,8 @@ contract RainterpreterExpressionDeployer is
             msg.sender,
             config_,
             expressionAddress_,
-            contextScratch_
+            contextReads_
         );
-        return (expressionAddress_, contextScratch_);
+        return (expressionAddress_, contextReads_);
     }
 }

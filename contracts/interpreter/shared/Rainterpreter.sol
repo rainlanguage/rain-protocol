@@ -3,6 +3,8 @@ pragma solidity ^0.8.15;
 
 import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
+import "../run/LibEncodedDispatch.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 contract Rainterpreter is IInterpreterV1, RainInterpreter {
     using LibStackTop for StackTop;
@@ -12,24 +14,70 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         view
         returns (StackTop)[];
     using LibConvert for uint256[];
+    using Math for uint256;
+
+    // state is several tiers of sandbox
+    // 0. address is msg.sender so that callers cannot attack each other
+    // 1. uint is deploy time namespace so that expressions cannot see/attack each other
+    // 2. uint is key set by expression in state changes
+    // 3. uint is value set by expression in state changes
+    mapping(address => mapping(StateNamespace => mapping(uint => uint)))
+        internal state;
 
     function eval(
-        address statePointer_,
-        SourceIndex entrypoint_,
+        EncodedDispatch dispatch_,
         uint256[][] memory context_
-    ) external view returns (uint256[] memory) {
-        InterpreterState memory state_ = SSTORE2
-            .read(statePointer_)
-            .deserialize();
+    ) external view returns (uint256[] memory, uint[] memory) {
+        (
+            address expression_,
+            SourceIndex sourceIndex_,
+            uint maxOutputs_
+        ) = LibEncodedDispatch.decode(dispatch_);
+        InterpreterState memory state_ = SSTORE2.read(expression_).deserialize(
+            sourceIndex_
+        );
         state_.context = context_;
-        StackTop stackTop_ = state_.eval(entrypoint_);
+        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
-        (, uint256[] memory tail_) = stackTop_.list(stackLength_);
-        return tail_;
+        (, uint256[] memory tail_) = stackTop_.list(
+            stackLength_.min(maxOutputs_)
+        );
+        return (tail_, state_.stateChanges);
+    }
+
+    function stateChanges(
+        EncodedDispatch dispatch_,
+        uint[][] memory stateChanges_
+    ) external {
+        unchecked {
+            (address expression_, SourceIndex sourceIndex_, ) = LibEncodedDispatch
+                .decode(dispatch_);
+            StateNamespace stateNamespace_ = SSTORE2
+                .read(expression_)
+                .deserializeStateNamespace(sourceIndex_);
+            for (uint i_ = 0; i_ < stateChanges_.length; i_++) {
+                for (uint j_ = 0; j_ < stateChanges_[i_].length; j_ += 2) {
+                    state[msg.sender][stateNamespace_][
+                        stateChanges_[i_][j_]
+                    ] = stateChanges_[i_][j_ + 1];
+                }
+            }
+        }
     }
 
     function functionPointers() external view returns (bytes memory) {
         return opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes();
+    }
+
+    function opReadState(
+        InterpreterState memory state_,
+        Operand,
+        StackTop stackTop_
+    ) internal pure returns (StackTop) {
+        uint k_;
+        (stackTop_, k_) = stackTop_.pop();
+        stackTop_.push(state[msg.sender][state_.stateNamespace][k_]);
+        return stackTop_;
     }
 
     function localEvalFunctionPointers()
@@ -40,9 +88,20 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
             function(InterpreterState memory, Operand, StackTop)
                 view
                 returns (StackTop)[]
-                memory localFnPtrs_
+                memory
         )
-    {}
+    {
+        function(InterpreterState memory, Operand, StackTop)
+            view
+            returns (StackTop)[]
+            memory localPtrs_ = new function(
+                InterpreterState memory,
+                Operand,
+                StackTop
+            ) view returns (StackTop)[](1);
+        localPtrs_[0] = opReadState;
+        return localPtrs_;
+    }
 
     /// @inheritdoc RainInterpreter
     function opcodeFunctionPointers()

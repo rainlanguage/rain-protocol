@@ -3,6 +3,7 @@ pragma solidity =0.8.17;
 
 import "../FlowCommon.sol";
 import "../libraries/LibFlow.sol";
+import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 struct FlowConfig {
@@ -12,6 +13,7 @@ struct FlowConfig {
 
 contract Flow is ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
+    using LibUint256Array for uint[];
 
     event Initialize(address sender, FlowConfig config);
 
@@ -22,37 +24,48 @@ contract Flow is ReentrancyGuard, FlowCommon {
     }
 
     function _previewFlow(
-        address flow_,
+        EncodedDispatch dispatch_,
         uint256 id_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowTransfer memory) {
-        (StackTop stackBottom_, StackTop stackTop_) = flowStack(
-            flow_,
-            id_,
-            signedContexts_
-        );
-        return LibFlow.stackToFlow(stackBottom_, stackTop_);
+    ) internal view returns (FlowTransfer memory, uint[] memory) {
+        (
+            StackTop stackBottom_,
+            StackTop stackTop_,
+            uint[] memory stateChanges_
+        ) = flowStack(dispatch_, id_, signedContexts_);
+        return (LibFlow.stackToFlow(stackBottom_, stackTop_), stateChanges_);
     }
 
     function previewFlow(
-        address flow_,
+        EncodedDispatch dispatch_,
         uint256 id_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowTransfer memory) {
-        return _previewFlow(flow_, id_, signedContexts_);
-    }
-
-    function flow(
-        address flow_,
-        uint256 id_,
-        SignedContext[] memory signedContexts_
-    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
-        FlowTransfer memory flowTransfer_ = _previewFlow(
-            flow_,
+        (FlowTransfer memory flowTransfer_, ) = _previewFlow(
+            dispatch_,
             id_,
             signedContexts_
         );
-        registerFlowTime(_flowContextReads[flow_], flow_, id_);
-        return LibFlow.flow(flowTransfer_, address(this), payable(msg.sender));
+        return flowTransfer_;
+    }
+
+    function flow(
+        EncodedDispatch dispatch_,
+        uint256 id_,
+        SignedContext[] memory signedContexts_
+    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
+        (
+            FlowTransfer memory flowTransfer_,
+            uint[] memory stateChanges_
+        ) = _previewFlow(dispatch_, id_, signedContexts_);
+        return
+            LibFlow.flow(
+                flowTransfer_,
+                address(this),
+                payable(msg.sender),
+                _interpreter,
+                dispatch_,
+                stateChanges_
+            );
     }
 }

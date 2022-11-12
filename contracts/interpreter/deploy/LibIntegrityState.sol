@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "./LibEncodedConstraints.sol";
 import "../run/RainInterpreter.sol";
 import "../run/LibStackTop.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -10,9 +11,8 @@ import "../run/IInterpreterV1.sol";
 struct IntegrityState {
     // Sources first as we read it in assembly.
     bytes[] sources;
-    StorageOpcodesRange storageOpcodesRange;
     uint256 constantsLength;
-    uint256 expressionKVLength;
+    uint256 stateChangesLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
     uint256 contextReads;
@@ -42,7 +42,7 @@ library LibIntegrityState {
         IntegrityState memory integrityState_,
         SourceIndex sourceIndex_,
         StackTop stackTop_,
-        uint256 minimumFinalStackIndex_
+        EncodedConstraints constraints_
     ) internal view returns (StackTop) {
         unchecked {
             uint256 cursor_;
@@ -75,8 +75,11 @@ library LibIntegrityState {
                     stackTop_
                 );
             }
+            (, uint minimumStackOutputs_) = LibEncodedConstraints.decode(
+                constraints_
+            );
             require(
-                minimumFinalStackIndex_ <=
+                minimumStackOutputs_ <=
                     integrityState_.stackBottom.toIndex(stackTop_),
                 "MIN_FINAL_STACK"
             );
@@ -170,6 +173,14 @@ library LibIntegrityState {
         function(Operand, uint256) internal view returns (uint256)
     ) internal pure returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_));
+    }
+
+    function applyFn(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_,
+        function(uint256, uint256) internal view
+    ) internal pure returns (StackTop) {
+        return integrityState_.pop(stackTop_, 2);
     }
 
     function applyFn(

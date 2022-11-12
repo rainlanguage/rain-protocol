@@ -43,7 +43,9 @@ library OpDoWhile {
                         SourceIndex.wrap(Operand.unwrap(operand_)),
                         // The loop eval starts under the condition.
                         integrityState_.pop(stackTop_),
-                        0
+                        // Stack output needs to be 0 and namespace is irrelevant
+                        // here.
+                        LibEncodedConstraints.encode(LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(), 0)
                     )
                 ),
             "LOOP_SHIFT"

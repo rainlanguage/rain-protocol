@@ -753,7 +753,7 @@ library LibStackTop {
 
     /// Returns the stack top `n_ * 32` bytes above/past the passed stack top.
     /// @param stackTop_ The stack top at the starting position.
-    /// @param n_ The multiplier on the stack movement.
+    /// @param n_ The multiplier on the stack movement. MAY be zero.
     /// @return The stack top `n_ * 32` bytes above/past the passed stack top.
     function up(
         StackTop stackTop_,

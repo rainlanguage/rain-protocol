@@ -9,9 +9,9 @@ import "../../deploy/LibIntegrityState.sol";
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
 
-/// @title OpState
+/// @title OpReadMemory
 /// @notice Opcode for stacking from the state.
-library OpState {
+library OpReadMemory {
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityState for IntegrityState;
@@ -37,8 +37,7 @@ library OpState {
         return integrityState_.push(stackTop_);
     }
 
-    /// Stack a value from the state.
-    function state(
+    function run(
         InterpreterState memory state_,
         Operand operand_,
         StackTop stackTop_

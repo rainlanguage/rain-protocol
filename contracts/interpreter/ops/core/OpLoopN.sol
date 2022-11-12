@@ -19,15 +19,17 @@ library OpLoopN {
         StackTop stackTop_
     ) internal view returns (StackTop) {
         unchecked {
-            uint256 n_ = Operand.unwrap(operand_) & 0x0F;
+            uint256 n_ = Operand.unwrap(operand_) & 0xFF;
             SourceIndex loopSourceIndex_ = SourceIndex.wrap(
-                (Operand.unwrap(operand_) & 0xF0) >> 4
+                Operand.unwrap(operand_) >> 8
             );
             for (uint256 i_ = 0; i_ < n_; i_++) {
                 stackTop_ = integrityState_.ensureIntegrity(
                     loopSourceIndex_,
                     stackTop_,
-                    0
+                    // We have no constraints on the loop outputs and namespace
+                    // is irrelevant here.
+                    LibEncodedConstraints.encode(LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(), 0)
                 );
             }
             return stackTop_;

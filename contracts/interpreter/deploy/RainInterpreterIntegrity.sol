@@ -30,31 +30,42 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
         );
 
     function ensureIntegrity(
-        StorageOpcodesRange memory storageOpcodesRange_,
         bytes[] memory sources_,
         uint256 constantsLength_,
-        uint256[] memory finalStacks_
-    ) public view returns (uint256 contextReads_, uint256 stackLength_) {
+        EncodedConstraints[] memory constraints_
+    )
+        public
+        view
+        returns (
+            uint256 contextReads_,
+            uint256 stackLength_,
+            uint stateChangesLength_
+        )
+    {
+        require(
+            sources_.length == constraints_.length,
+            "BAD_CONSTRAINTS_LENGTH"
+        );
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
-            storageOpcodesRange_,
             constantsLength_,
-            0,
+            0, // state changes length
             StackTop.wrap(0),
             StackTop.wrap(0),
             0,
             integrityFunctionPointers()
         );
-        for (uint256 i_ = 0; i_ < finalStacks_.length; i_++) {
+        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
             integrityState_.ensureIntegrity(
                 SourceIndex.wrap(i_),
                 StackTop.wrap(0),
-                finalStacks_[i_]
+                constraints_[i_]
             );
         }
         return (
             integrityState_.contextReads,
-            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
+            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop),
+            integrityState_.stateChangesLength
         );
     }
 }

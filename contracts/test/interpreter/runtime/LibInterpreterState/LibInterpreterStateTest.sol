@@ -6,6 +6,7 @@ import "../../../../interpreter/run/LibStackTop.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
 import "../../../../array/LibUint256Array.sol";
+import "../../../../interpreter/deploy/LibEncodedConstraints.sol";
 
 uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
 
@@ -68,7 +69,7 @@ contract LibInterpreterStateTest is RainInterpreter {
             config_,
             context_
         );
-        stackTop_ = deserialized_.eval(sourceIndex_);
+        stackTop_ = deserialized_.eval(sourceIndex_, deserialized_.stackBottom);
         stackTopAfter_ = deserialized_.debug(stackTop_, debugStyle_);
     }
 
@@ -77,26 +78,36 @@ contract LibInterpreterStateTest is RainInterpreter {
         uint256[][] memory context_
     ) public view returns (InterpreterState memory state_) {
         bytes memory serialized_ = serialize(config_);
-        state_ = serialized_.deserialize();
+        state_ = serialized_.deserialize(SourceIndex.wrap(0));
         state_.context = context_;
     }
 
     function serialize(
         StateConfig memory config_
     ) public view returns (bytes memory serialized_) {
+        StateNamespaceSeed stateNamespaceSeed_ = LibEncodedConstraints
+            .expressionsTrustEachOtherNamespaceSeed();
+        EncodedConstraints[] memory constraints_ = LibEncodedConstraints
+            .arrayFrom(
+                LibEncodedConstraints.encode(
+                    stateNamespaceSeed_,
+                    DEFAULT_MIN_FINAL_STACK
+                )
+            );
         (
-            uint256 contextScratch_,
-            uint256 stackLength_
+            uint256 contextReads_,
+            uint256 stackLength_,
+            uint stateChangesLength_
         ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
-                storageOpcodesRange(),
                 config_.sources,
                 config_.constants.length,
-                DEFAULT_MIN_FINAL_STACK.arrayFrom()
+                constraints_
             );
 
         serialized_ = config_.serialize(
-            contextScratch_,
+            constraints_,
             stackLength_,
+            stateChangesLength_,
             opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
         );
     }
@@ -110,7 +121,7 @@ contract LibInterpreterStateTest is RainInterpreter {
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
-        stackTopAfter_ = state_.eval();
+        stackTopAfter_ = state_.eval(SourceIndex.wrap(0), state_.stackBottom);
     }
 
     function eval(
@@ -123,7 +134,7 @@ contract LibInterpreterStateTest is RainInterpreter {
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
-        stackTopAfter_ = state_.eval(sourceIndex_);
+        stackTopAfter_ = state_.eval(sourceIndex_, state_.stackBottom);
     }
 
     function evalStackTop(
@@ -135,7 +146,7 @@ contract LibInterpreterStateTest is RainInterpreter {
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
-        stackTopAfter_ = state_.eval(state_.stackBottom); // just use normal stackBottom for testing
+        stackTopAfter_ = state_.eval(SourceIndex.wrap(0), state_.stackBottom); // just use normal stackBottom for testing
     }
 
     function evalStackTop(

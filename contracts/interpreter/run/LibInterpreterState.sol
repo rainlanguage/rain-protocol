@@ -8,6 +8,7 @@ import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
+import "../deploy/LibEncodedConstraints.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {Operand} from "./RainInterpreter.sol";
@@ -39,9 +40,10 @@ enum DebugStyle {
 /// stack by `VAL`.
 struct InterpreterState {
     StackTop stackBottom;
-    StackTop expressionKVBottom;
+    uint[] stateChanges;
+    StackTop stateChangesCursor;
     StackTop constantsBottom;
-    uint256 contextReads;
+    StateNamespace stateNamespace;
     uint256[][] context;
     bytes[] compiledSources;
 }
@@ -59,6 +61,7 @@ library LibInterpreterState {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibStackTop for bytes;
+    using LibCast for EncodedConstraints[];
     using LibCast for uint256;
     using LibCast for function(InterpreterState memory, SourceIndex, StackTop)
         view
@@ -124,16 +127,16 @@ library LibInterpreterState {
 
     function serialize(
         StateConfig memory config_,
-        uint256 contextReads_,
+        EncodedConstraints[] memory constraints_,
         uint256 stackLength_,
-        uint expressionKVLength_,
+        uint stateChangesLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
-            size_ += contextReads_.size();
             size_ += stackLength_.size();
-            size_ += expressionKVLength_.size();
+            size_ += stateChangesLength_.size();
+            size_ += constraints_.asUint256Array().size();
             size_ += config_.constants.size();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 size_ += config_.sources[i_].size();
@@ -141,14 +144,14 @@ library LibInterpreterState {
             bytes memory serialized_ = new bytes(size_);
             StackTop cursor_ = serialized_.asStackTop().up();
 
+            // Constraints first.
+            cursor_ = cursor_.pushWithLength(constraints_.asUint256Array());
+
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
 
-            // Then expression KV
-            cursor_ = cursor_.push(expressionKVLength_);
-
-            // Copy context reads.
-            cursor_ = cursor_.push(contextReads_);
+            // Then state changes length.
+            cursor_ = cursor_.push(stateChangesLength_);
 
             // Then the constants.
             cursor_ = cursor_.pushWithLength(config_.constants);
@@ -164,8 +167,24 @@ library LibInterpreterState {
         }
     }
 
+    function deserializeStateNamespace(
+        bytes memory serialized_,
+        SourceIndex sourceIndex_
+        
+    ) internal pure returns (StateNamespace) {
+        StackTop cursor_ = serialized_.asStackTop().up();
+        EncodedConstraints constraints_ = EncodedConstraints.wrap(
+            cursor_.up().up(SourceIndex.unwrap(sourceIndex_)).peekUp()
+        );
+        (StateNamespace namespace_, ) = LibEncodedConstraints.decode(
+            constraints_
+        );
+        return namespace_;
+    }
+
     function deserialize(
-        bytes memory serialized_
+        bytes memory serialized_,
+        SourceIndex sourceIndex_
     ) internal pure returns (InterpreterState memory) {
         unchecked {
             InterpreterState memory state_;
@@ -179,6 +198,13 @@ library LibInterpreterState {
             // The end of processing is the end of the state bytes.
             StackTop end_ = cursor_.upBytes(cursor_.peek());
 
+            // Extract the state namespace and move cursor past the constraints.
+            state_.stateNamespace = deserializeStateNamespace(
+                serialized_,
+                sourceIndex_
+            );
+            cursor_ = cursor_.up(cursor_.peekUp());
+
             // Read the stack length and build a stack.
             cursor_ = cursor_.up();
             uint256 stackLength_ = cursor_.peek();
@@ -189,13 +215,18 @@ library LibInterpreterState {
             uint256[] memory stack_ = new uint256[](stackLength_);
             state_.stackBottom = stack_.asStackTopUp();
 
+            // Read state changes length and build a stack.
+            cursor_ = cursor_.up();
+            uint stateChangesLength_ = cursor_.peek();
+
+            uint[] memory stateChanges_ = new uint[](stateChangesLength_);
+            state_.stateChanges = stateChanges_;
+            state_.stateChangesCursor = stateChanges_.asStackTopUp();
+
             // Reference the constants array and move cursor past it.
             cursor_ = cursor_.up();
             state_.constantsBottom = cursor_;
             cursor_ = cursor_.up(cursor_.peek());
-
-            cursor_ = cursor_.up();
-            state_.contextReads = cursor_.peek();
 
             // Rebuild the sources array.
             uint256 i_ = 0;

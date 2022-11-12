@@ -159,21 +159,29 @@ library LibCast {
     }
 
     function asUint256Array(
+        EncodedConstraints[] memory constraints_
+    ) internal pure returns (uint[] memory us_) {
+        assembly ("memory-safe") {
+            us_ := constraints_
+        }
+    }
+
+    function asUint256Array(
         function(InterpreterState memory, Operand, StackTop)
             view
             returns (StackTop)[]
             memory fns_
-    ) internal pure returns (uint256[] memory is_) {
+    ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
-            is_ := fns_
+            us_ := fns_
         }
     }
 
     function asUint256Array(
         function(uint256) pure returns (uint256)[] memory fns_
-    ) internal pure returns (uint256[] memory is_) {
+    ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
-            is_ := fns_
+            us_ := fns_
         }
     }
 
@@ -201,5 +209,4 @@ library LibCast {
             fns_ := is_
         }
     }
-
 }

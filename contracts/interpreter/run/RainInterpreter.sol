@@ -13,11 +13,6 @@ import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeab
 
 type Operand is uint256;
 
-struct StorageOpcodesRange {
-    uint256 pointer;
-    uint256 length;
-}
-
 /// @title RainInterpreter
 /// @notice Interpreter for implementing and executing custom contract DSLs.
 /// Libraries and contracts map opcodes to `view` functionality then
@@ -96,16 +91,6 @@ abstract contract RainInterpreter {
     using LibConvert for uint256[];
     using LibInterpreterState for StateConfig;
 
-    /// Default is to disallow all storage access to opcodes.
-    function storageOpcodesRange()
-        public
-        pure
-        virtual
-        returns (StorageOpcodesRange memory)
-    {
-        return StorageOpcodesRange(0, 0);
-    }
-
     /// Expose all the function pointers for every opcode as 2-byte pointers in
     /// a bytes list. The implementing Interpreter MUST ensure each pointer is
     /// to a `function(uint256,uint256) view returns (uint256)` function as this
@@ -130,23 +115,24 @@ abstract contract RainInterpreter {
     function buildStateBytes(
         IRainInterpreterIntegrity interpreterIntegrity_,
         StateConfig memory config_,
-        uint256[] memory finalStacks_
+        EncodedConstraints[] memory constraints_
     ) internal view returns (bytes memory) {
         unchecked {
             (
-                uint256 contextScratch_,
-                uint256 stackLength_
+                uint256 contextReads_,
+                uint256 stackLength_,
+                uint stateChangesLength_
             ) = interpreterIntegrity_.ensureIntegrity(
-                    storageOpcodesRange(),
                     config_.sources,
                     config_.constants.length,
-                    finalStacks_
+                    constraints_
                 );
 
             return
                 config_.serialize(
-                    contextScratch_,
+                    constraints_,
                     stackLength_,
+                    stateChangesLength_,
                     opcodeFunctionPointers()
                         .asUint256Array()
                         .unsafeTo16BitBytes()

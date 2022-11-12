@@ -62,6 +62,7 @@ library LibFlow {
     using LibStackTop for StackTop;
     using SafeCast for uint256;
     using LibFlow for FlowTransfer;
+    using LibUint256Array for uint[];
 
     function stackToFlow(
         StackTop stackBottom_,
@@ -231,8 +232,14 @@ library LibFlow {
     function flow(
         FlowTransfer memory flowTransfer_,
         address me_,
-        address payable you_
+        address payable you_,
+        IInterpreterV1 interpreter_,
+        EncodedDispatch dispatch_,
+        uint[] memory stateChanges_
     ) internal returns (FlowTransfer memory) {
+        if (stateChanges_.length > 0) {
+            interpreter_.stateChanges(dispatch_, stateChanges_.matrixFrom());
+        }
         return
             flowTransfer_
                 .flowNative(me_, you_)
