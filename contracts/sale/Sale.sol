@@ -136,14 +136,20 @@ StateNamespace constant STATE_NAMESPACE = StateNamespace.wrap(0);
 
 SourceIndex constant CAN_LIVE_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
+SourceIndex constant HANDLE_BUY_ENTRYPOINT = SourceIndex.wrap(2);
 
 uint256 constant CAN_LIVE_MIN_OUTPUTS = 1;
 uint constant CAN_LIVE_MAX_OUTPUTS = 1;
-uint constant CAN_LIVE_MUTABLE = 0;
-
 uint256 constant CALCULATE_BUY_MIN_OUTPUTS = 2;
 uint constant CALCULATE_BUY_MAX_OUTPUTS = 2;
-uint constant CALCULATE_BUY_MUTABLE = 1;
+uint constant HANDLE_BUY_MIN_OUTPUTS = 0;
+uint constant HANDLE_BUY_MAX_OUTPUTS = 0;
+
+uint constant CONTEXT_COLUMNS = 4;
+uint constant CONTEXT_BASE_COLUMN = 0;
+uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint constant CONTEXT_CALCULATE_STATE_CHANGES_COLUMN = 2;
+uint constant CONTEXT_BUY_COLUMN = 3;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
@@ -191,6 +197,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
     EncodedDispatch internal dispatchCanLive;
     EncodedDispatch internal dispatchCalculateBuy;
+    EncodedDispatch internal dispatchHandleBuy;
     IInterpreterV1 private interpreter;
 
     /// @inheritdoc ISaleV2
@@ -273,7 +280,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                 config_.interpreterStateConfig,
                 LibUint256Array.arrayFrom(
                     CAN_LIVE_MIN_OUTPUTS,
-                    CALCULATE_BUY_MIN_OUTPUTS
+                    CALCULATE_BUY_MIN_OUTPUTS,
+                    HANDLE_BUY_MIN_OUTPUTS
                 )
             );
         dispatchCanLive = LibEncodedDispatch.encode(
@@ -286,6 +294,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             CALCULATE_BUY_ENTRYPOINT,
             CALCULATE_BUY_MAX_OUTPUTS
         );
+        if (config_.interpreterStateConfig.sources[SourceIndex.unwrap(HANDLE_BUY_ENTRYPOINT)].length > 0) {
+            dispatchHandleBuy = LibEncodedDispatch.encode(
+                expression_,
+                HANDLE_BUY_ENTRYPOINT,
+                HANDLE_BUY_MAX_OUTPUTS
+            );
+        }
         interpreter = IInterpreterV1(config_.interpreter);
 
         recipient = config_.recipient;
@@ -385,18 +400,23 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
     function _previewCalculateBuy(
         uint256 targetUnits_
-    ) internal view returns (uint256, uint256, uint[] memory) {
+    ) internal view returns (uint256, uint256, uint[][] memory) {
+        uint[][] memory context_ = new uint[][](CONTEXT_COLUMNS);
+        context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(uint(uint160(msg.sender)), targetUnits_);
         (
             uint[] memory stack_,
-            uint[] memory interpreterStateChanges_
+            uint[] memory stateChanges_
         ) = interpreter.eval(
                 dispatchCalculateBuy,
                 LibUint256Array
                     .arrayFrom(uint(uint160(msg.sender)), targetUnits_)
                     .matrixFrom()
             );
+            context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
         (uint amount_, uint ratio_) = stack_.asStackTopAfter().peek2();
-        return (amount_, ratio_, interpreterStateChanges_);
+        uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(amount_, ratio_);
+        context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+        return (amount_, ratio_, context_);
     }
 
     function previewCalculateBuy(
@@ -524,14 +544,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         (
             uint256 maxUnits_,
             uint256 price_,
-            uint[] memory interpreterStateChangesCalculateBuy0_
+            uint[][] memory context_
         ) = _previewCalculateBuy(targetUnits_);
-        if (interpreterStateChangesCalculateBuy0_.length > 0) {
-            interpreter.stateChanges(
-                STATE_NAMESPACE,
-                interpreterStateChangesCalculateBuy0_.matrixFrom()
-            );
-        }
 
         // The expression may return a larger max units than the target so we
         // have to cap it to prevent the sale selling more than requested.
@@ -566,6 +580,26 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // (e.g. rebase).
         remainingTokenInventory -= units_;
         totalReserveReceived += cost_;
+
+        if (EncodedDispatch.unwrap(dispatchHandleBuy) > 0) {
+            context_[CONTEXT_BUY_COLUMN] = LibUint256Array.arrayFrom(
+                units_,
+                cost_,
+                config_.fee
+            );
+            (, uint[] memory handleBuyStateChanges_) = interpreter.eval(dispatchHandleBuy, context_);
+            uint[][] memory stateChanges_ = new uint[][](2);
+            stateChanges_[0] = context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN];
+            stateChanges_[1] = handleBuyStateChanges_;
+            unchecked {
+                if(stateChanges_[0].length + stateChanges_[1].length > 0) {
+                    interpreter.stateChanges(
+                        STATE_NAMESPACE,
+                        stateChanges_
+                    );
+                }
+            }
+        }
 
         // This happens before `end` so that the transfer from happens before
         // the transfer to.
