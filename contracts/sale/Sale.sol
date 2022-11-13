@@ -151,6 +151,15 @@ uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
 uint constant CONTEXT_CALCULATE_STATE_CHANGES_COLUMN = 2;
 uint constant CONTEXT_BUY_COLUMN = 3;
 
+uint constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
+uint constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
+uint constant CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW = 2;
+uint constant CONTEXT_BUY_RESERVE_FEE_ROW = 3;
+uint constant CONTEXT_BUY_RESERVE_COST_ROW = 4;
+uint constant CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW = 5;
+uint constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
+uint constant CONTEXT_BUY_ROWS = 7;
+
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     using Math for uint256;
@@ -412,10 +421,11 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                     .arrayFrom(uint(uint160(msg.sender)), targetUnits_)
                     .matrixFrom()
             );
-            context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
         (uint amount_, uint ratio_) = stack_.asStackTopAfter().peek2();
         uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(amount_, ratio_);
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+                    context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
+        context_[CONTEXT_BUY_COLUMN] = new uint[](CONTEXT_BUY_ROWS);
         return (amount_, ratio_, context_);
     }
 
@@ -578,8 +588,16 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // outside of a `buy` call. This also means we don't support reserve
         // tokens with balances that can change outside of transfers
         // (e.g. rebase).
-        remainingTokenInventory -= units_;
-        totalReserveReceived += cost_;
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_OUT_ROW] = units_;
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW] = remainingTokenInventory;
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW] = context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW] - units_;
+        remainingTokenInventory = context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW];
+
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_FEE_ROW] = config_.fee;
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_COST_ROW] = cost_;
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW] = totalReserveReceived;
+        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW] = context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW] + cost_;
+        totalReserveReceived += context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW];
 
         if (EncodedDispatch.unwrap(dispatchHandleBuy) > 0) {
             context_[CONTEXT_BUY_COLUMN] = LibUint256Array.arrayFrom(
