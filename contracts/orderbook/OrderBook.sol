@@ -323,20 +323,21 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
                 CONTEXT_VAULT_IO_BALANCE_AFTER
             ];
         }
+        uint[][] memory stateChanges_ = new uint[][](2);
+        stateChanges_[0] = context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN];
+
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
             (, uint[] memory ioStateChanges_) = IInterpreterV1(
                 order_.interpreter
             ).eval(order_.handleIODispatch, context_);
-            uint[][] memory stateChanges_ = new uint[][](2);
-            stateChanges_[0] = context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN];
             stateChanges_[1] = ioStateChanges_;
-            unchecked {
-                if (stateChanges_[0].length + stateChanges_[1].length > 0) {
-                    IInterpreterV1(order_.interpreter).stateChanges(
-                        StateNamespace.wrap(uint(uint160(order_.owner))),
-                        stateChanges_
-                    );
-                }
+        }
+        unchecked {
+            if (stateChanges_[0].length + stateChanges_[1].length > 0) {
+                IInterpreterV1(order_.interpreter).stateChanges(
+                    StateNamespace.wrap(uint(uint160(order_.owner))),
+                    stateChanges_
+                );
             }
         }
     }

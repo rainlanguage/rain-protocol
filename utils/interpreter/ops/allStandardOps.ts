@@ -63,5 +63,5 @@ export const Opcode = AllStandardOps;
 
 export const RainterpreterOps = {
   ...AllStandardOps,
-  READ_STATE: "READ_STATE"
-}
+  READ_STATE: "READ_STATE",
+};

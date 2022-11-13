@@ -303,7 +303,12 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             CALCULATE_BUY_ENTRYPOINT,
             CALCULATE_BUY_MAX_OUTPUTS
         );
-        if (config_.interpreterStateConfig.sources[SourceIndex.unwrap(HANDLE_BUY_ENTRYPOINT)].length > 0) {
+        if (
+            config_
+                .interpreterStateConfig
+                .sources[SourceIndex.unwrap(HANDLE_BUY_ENTRYPOINT)]
+                .length > 0
+        ) {
             dispatchHandleBuy = LibEncodedDispatch.encode(
                 expression_,
                 HANDLE_BUY_ENTRYPOINT,
@@ -411,20 +416,23 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         uint256 targetUnits_
     ) internal view returns (uint256, uint256, uint[][] memory) {
         uint[][] memory context_ = new uint[][](CONTEXT_COLUMNS);
-        context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(uint(uint160(msg.sender)), targetUnits_);
-        (
-            uint[] memory stack_,
-            uint[] memory stateChanges_
-        ) = interpreter.eval(
-                dispatchCalculateBuy,
-                LibUint256Array
-                    .arrayFrom(uint(uint160(msg.sender)), targetUnits_)
-                    .matrixFrom()
-            );
+        context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(
+            uint(uint160(msg.sender)),
+            targetUnits_
+        );
+        (uint[] memory stack_, uint[] memory stateChanges_) = interpreter.eval(
+            dispatchCalculateBuy,
+            LibUint256Array
+                .arrayFrom(uint(uint160(msg.sender)), targetUnits_)
+                .matrixFrom()
+        );
         (uint amount_, uint ratio_) = stack_.asStackTopAfter().peek2();
-        uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(amount_, ratio_);
+        uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(
+            amount_,
+            ratio_
+        );
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
-                    context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
+        context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
         context_[CONTEXT_BUY_COLUMN] = new uint[](CONTEXT_BUY_ROWS);
         return (amount_, ratio_, context_);
     }
@@ -576,45 +584,65 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             units_,
             price_
         );
-        nextReceiptId++;
-        // There should never be more than one of the same key due to the ID
-        // counter but we can use checked math to easily cover the case of
-        // potential duplicate receipts due to some bug.
-        receipts[msg.sender][keccak256(abi.encode(receipt_))]++;
 
-        fees[config_.feeRecipient] += config_.fee;
+        // Slap a code block here to avoid stack limits.
+        {
+            nextReceiptId++;
+            // There should never be more than one of the same key due to the ID
+            // counter but we can use checked math to easily cover the case of
+            // potential duplicate receipts due to some bug.
+            receipts[msg.sender][keccak256(abi.encode(receipt_))]++;
 
-        // We ignore any rTKN or reserve that is sent to the contract directly
-        // outside of a `buy` call. This also means we don't support reserve
-        // tokens with balances that can change outside of transfers
-        // (e.g. rebase).
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_OUT_ROW] = units_;
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW] = remainingTokenInventory;
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW] = context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW] - units_;
-        remainingTokenInventory = context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW];
+            fees[config_.feeRecipient] += config_.fee;
 
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_FEE_ROW] = config_.fee;
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_COST_ROW] = cost_;
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW] = totalReserveReceived;
-        context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW] = context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW] + cost_;
-        totalReserveReceived += context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW];
+            // We ignore any rTKN or reserve that is sent to the contract directly
+            // outside of a `buy` call. This also means we don't support reserve
+            // tokens with balances that can change outside of transfers
+            // (e.g. rebase).
+            context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_OUT_ROW] = units_;
+            context_[CONTEXT_BUY_COLUMN][
+                CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW
+            ] = remainingTokenInventory;
+            // IMPORTANT MUST BE CHECKED MATH TO AVOID UNDERFLOW.
+            context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW] =
+                context_[CONTEXT_BUY_COLUMN][
+                    CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW
+                ] -
+                units_;
+            remainingTokenInventory = context_[CONTEXT_BUY_COLUMN][
+                CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW
+            ];
 
-        if (EncodedDispatch.unwrap(dispatchHandleBuy) > 0) {
-            context_[CONTEXT_BUY_COLUMN] = LibUint256Array.arrayFrom(
-                units_,
-                cost_,
-                config_.fee
-            );
-            (, uint[] memory handleBuyStateChanges_) = interpreter.eval(dispatchHandleBuy, context_);
+            context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_FEE_ROW] = config_
+                .fee;
+            context_[CONTEXT_BUY_COLUMN][CONTEXT_BUY_RESERVE_COST_ROW] = cost_;
+            context_[CONTEXT_BUY_COLUMN][
+                CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW
+            ] = totalReserveReceived;
+            // IMPORTANT MUST BE CHECKED MATH TO AVOID OVERFLOW.
+            context_[CONTEXT_BUY_COLUMN][
+                CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW
+            ] =
+                context_[CONTEXT_BUY_COLUMN][
+                    CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW
+                ] +
+                cost_;
+            totalReserveReceived += context_[CONTEXT_BUY_COLUMN][
+                CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW
+            ];
+
             uint[][] memory stateChanges_ = new uint[][](2);
             stateChanges_[0] = context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN];
-            stateChanges_[1] = handleBuyStateChanges_;
+            if (EncodedDispatch.unwrap(dispatchHandleBuy) > 0) {
+                (, uint[] memory handleBuyStateChanges_) = interpreter.eval(
+                    dispatchHandleBuy,
+                    context_
+                );
+                stateChanges_[1] = handleBuyStateChanges_;
+            }
             unchecked {
-                if(stateChanges_[0].length + stateChanges_[1].length > 0) {
-                    interpreter.stateChanges(
-                        STATE_NAMESPACE,
-                        stateChanges_
-                    );
+                if (stateChanges_[0].length + stateChanges_[1].length > 0) {
+                    interpreter.stateChanges(STATE_NAMESPACE, stateChanges_);
                 }
             }
         }
