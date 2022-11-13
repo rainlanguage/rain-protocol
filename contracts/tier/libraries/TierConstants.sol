@@ -10,7 +10,7 @@ library TierConstants {
     /// NEVER for a single tier time.
     uint32 internal constant NEVER_TIME = type(uint32).max;
 
-    /// Always is 0 as it is the genesis block.
+    /// Always is 0 as negative timestamps are not possible/supported onchain.
     /// Tiers can't predate the chain but they can predate an `ITierV2`
     /// contract.
     uint256 internal constant ALWAYS = 0;
