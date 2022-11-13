@@ -21,11 +21,12 @@ uint constant ORDER_MAX_OUTPUTS = 2;
 uint constant HANDLE_IO_MIN_OUTPUTS = 0;
 uint constant HANDLE_IO_MAX_OUTPUTS = type(uint16).max;
 
-uint constant CONTEXT_COLUMNS = 4;
+uint constant CONTEXT_COLUMNS = 5;
 uint constant CONTEXT_BASE_COLUMN = 0;
-uint constant CONTEXT_VAULT_INPUTS_COLUMN = 1;
-uint constant CONTEXT_VAULT_OUTPUTS_COLUMN = 2;
-uint constant CONTEXT_CALCULATE_STATE_CHANGES_COLUMN = 3;
+uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint constant CONTEXT_CALCULATE_STATE_CHANGES_COLUMN = 2;
+uint constant CONTEXT_VAULT_INPUTS_COLUMN = 3;
+uint constant CONTEXT_VAULT_OUTPUTS_COLUMN = 4;
 
 uint constant CONTEXT_VAULT_IO_TOKEN = 0;
 uint constant CONTEXT_VAULT_IO_VAULT_ID = 1;
@@ -246,6 +247,10 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
             order_.interpreter
         ).eval(order_.dispatch, context_);
         (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+        uint[] memory calculationsContext_ = new uint[](2);
+        calculationsContext_[0] = orderOutputMax_;
+        calculationsContext_[1] = orderIORatio_;
+        context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
         context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
 
         // The order owner can't send more than the smaller of their vault
