@@ -35,7 +35,7 @@ library TierReport {
     ///
     /// When the `report` comes from a later block than the `timestamp_` this
     /// means the user must have held the tier continuously from `timestamp_`
-    /// _through_ to the report block.
+    /// _through_ to the report time.
     /// I.e. NOT a snapshot.
     ///
     /// @param report_ A report as per `ITierV2`.
@@ -62,11 +62,11 @@ library TierReport {
     ///
     /// @param report_ The report to read a timestamp from.
     /// @param tier_ The Tier to read the timestamp for.
-    /// @return timestamp_ The timestamp the tier has been held since.
+    /// @return The timestamp the tier has been held since.
     function reportTimeForTier(
         uint256 report_,
         uint256 tier_
-    ) internal pure maxTier(tier_) returns (uint256 timestamp_) {
+    ) internal pure maxTier(tier_) returns (uint256) {
         unchecked {
             // ZERO is a special case. Everyone has always been at least ZERO,
             // since block 0.
@@ -75,7 +75,7 @@ library TierReport {
             }
 
             uint256 offset_ = (tier_ - 1) * 32;
-            timestamp_ = uint256(uint32(uint256(report_ >> offset_)));
+            return uint256(uint32(uint256(report_ >> offset_)));
         }
     }
 
@@ -103,15 +103,15 @@ library TierReport {
     /// @param report_ Report to use as the baseline for the updated report.
     /// @param tier_ The tier level to update.
     /// @param timestamp_ The new block number for `tier_`.
-    /// @return updatedReport_ The newly updated `report_`.
+    /// @return The newly updated `report_`.
     function updateTimeAtTier(
         uint256 report_,
         uint256 tier_,
         uint256 timestamp_
-    ) internal pure maxTier(tier_) returns (uint256 updatedReport_) {
+    ) internal pure maxTier(tier_) returns (uint256) {
         unchecked {
             uint256 offset_ = tier_ * 32;
-            updatedReport_ =
+            return
                 (report_ &
                     ~uint256(uint256(TierConstants.NEVER_TIME) << offset_)) |
                 uint256(timestamp_ << offset_);
@@ -125,13 +125,13 @@ library TierReport {
     /// @param startTier_ The tier at the start of the range (exclusive).
     /// @param endTier_ The tier at the end of the range (inclusive).
     /// @param timestamp_ The timestamp to set for every tier in the range.
-    /// @return updatedReport_ The updated report.
+    /// @return The updated report.
     function updateTimesForTierRange(
         uint256 report_,
         uint256 startTier_,
         uint256 endTier_,
         uint256 timestamp_
-    ) internal pure maxTier(endTier_) returns (uint256 updatedReport_) {
+    ) internal pure maxTier(endTier_) returns (uint256) {
         unchecked {
             uint256 offset_;
             for (uint256 i_ = startTier_; i_ < endTier_; i_++) {
@@ -143,7 +143,7 @@ library TierReport {
                         )) |
                     uint256(timestamp_ << offset_);
             }
-            updatedReport_ = report_;
+            return report_;
         }
     }
 
@@ -161,23 +161,24 @@ library TierReport {
     /// @param report_ The report to update.
     /// @param startTier_ The tier to start updating relative to. Data above
     /// this tier WILL BE LOST so probably should be the current tier.
-    /// @param endTier_ The new highest tier held, at the given block number.
+    /// @param endTier_ The new highest tier held, at the given timestamp_.
     /// @param timestamp_ The timestamp_ to update the highest tier to, and
     /// intermediate tiers from `startTier_`.
-    /// @return updatedReport_ The updated report.
+    /// @return The updated report.
     function updateReportWithTierAtTime(
         uint256 report_,
         uint256 startTier_,
         uint256 endTier_,
         uint256 timestamp_
-    ) internal pure returns (uint256 updatedReport_) {
-        updatedReport_ = endTier_ < startTier_
-            ? truncateTiersAbove(report_, endTier_)
-            : updateTimesForTierRange(
-                report_,
-                startTier_,
-                endTier_,
-                timestamp_
-            );
+    ) internal pure returns (uint256) {
+        return
+            endTier_ < startTier_
+                ? truncateTiersAbove(report_, endTier_)
+                : updateTimesForTierRange(
+                    report_,
+                    startTier_,
+                    endTier_,
+                    timestamp_
+                );
     }
 }
