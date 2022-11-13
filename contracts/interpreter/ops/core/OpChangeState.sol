@@ -15,7 +15,7 @@ library OpChangeState {
 
     function integrity(
         IntegrityState memory integrityState_,
-        Operand ,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
@@ -27,7 +27,7 @@ library OpChangeState {
 
     function run(
         InterpreterState memory state_,
-        Operand ,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {

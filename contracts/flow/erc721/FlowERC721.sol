@@ -178,11 +178,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 );
                 _burn(burnId_);
             }
-            LibFlow.flow(
-                flowIO_.flow,
-                _interpreter,
-                stateChanges_
-            );
+            LibFlow.flow(flowIO_.flow, _interpreter, stateChanges_);
             return flowIO_;
         }
     }

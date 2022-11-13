@@ -111,9 +111,7 @@ library LibFlow {
         }
     }
 
-    function flowNative(
-        FlowTransfer memory flowTransfer_
-    ) internal {
+    function flowNative(FlowTransfer memory flowTransfer_) internal {
         unchecked {
             uint256 youToMe_ = 0;
             uint256 meToYou_ = 0;
@@ -121,10 +119,16 @@ library LibFlow {
             for (uint256 i_ = 0; i_ < flowTransfer_.native.length; i_++) {
                 transfer_ = flowTransfer_.native[i_];
                 if (transfer_.from == msg.sender) {
-                    require(transfer_.to == address(this), "UNSUPPORTED_NATIVE_FLOW");
+                    require(
+                        transfer_.to == address(this),
+                        "UNSUPPORTED_NATIVE_FLOW"
+                    );
                     youToMe_ += transfer_.amount;
                 } else {
-                    require(transfer_.from == address(this), "UNSUPPORTED_NATIVE_FLOW");
+                    require(
+                        transfer_.from == address(this),
+                        "UNSUPPORTED_NATIVE_FLOW"
+                    );
                     if (transfer_.to == msg.sender) {
                         meToYou_ += transfer_.amount;
                     } else {
@@ -144,9 +148,7 @@ library LibFlow {
         }
     }
 
-    function flowERC20(
-        FlowTransfer memory flowTransfer_
-    ) internal {
+    function flowERC20(FlowTransfer memory flowTransfer_) internal {
         unchecked {
             ERC20Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc20.length; i_++) {
@@ -171,15 +173,14 @@ library LibFlow {
         }
     }
 
-    function flowERC721(
-        FlowTransfer memory flowTransfer_
-    ) internal {
+    function flowERC721(FlowTransfer memory flowTransfer_) internal {
         unchecked {
             ERC721Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc721.length; i_++) {
                 transfer_ = flowTransfer_.erc721[i_];
                 require(
-                    transfer_.from == msg.sender || transfer_.from == address(this),
+                    transfer_.from == msg.sender ||
+                        transfer_.from == address(this),
                     "UNSUPPORTED_ERC721_FLOW"
                 );
                 IERC721(transfer_.token).safeTransferFrom(
@@ -191,15 +192,14 @@ library LibFlow {
         }
     }
 
-    function flowERC1155(
-        FlowTransfer memory flowTransfer_
-    ) internal {
+    function flowERC1155(FlowTransfer memory flowTransfer_) internal {
         unchecked {
             ERC1155Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc1155.length; i_++) {
                 transfer_ = flowTransfer_.erc1155[i_];
                 require(
-                    transfer_.from == msg.sender || transfer_.from == address(this),
+                    transfer_.from == msg.sender ||
+                        transfer_.from == address(this),
                     "UNSUPPORTED_ERC1155_FLOW"
                 );
                 // @todo safeBatchTransferFrom support.

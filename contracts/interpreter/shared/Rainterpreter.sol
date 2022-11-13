@@ -18,9 +18,9 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
 
     // state is several tiers of sandbox
     // 0. address is msg.sender so that callers cannot attack each other
-    // 1. uint is deploy time namespace so that expressions cannot see/attack each other
-    // 2. uint is key set by expression in state changes
-    // 3. uint is value set by expression in state changes
+    // 1. StateNamespace is caller-provided namespace so that expressions cannot attack each other
+    // 2. uint is expression-provided key
+    // 3. uint is expression-provided value
     mapping(address => mapping(StateNamespace => mapping(uint => uint)))
         internal state;
 
@@ -33,9 +33,9 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
             SourceIndex sourceIndex_,
             uint maxOutputs_
         ) = LibEncodedDispatch.decode(dispatch_);
-        InterpreterState memory state_ = SSTORE2.read(expression_).deserialize(
-
-        );
+        InterpreterState memory state_ = SSTORE2
+            .read(expression_)
+            .deserialize();
         state_.context = context_;
         StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
@@ -65,7 +65,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
     }
 
     function opReadState(
-        InterpreterState memory ,
+        InterpreterState memory,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {

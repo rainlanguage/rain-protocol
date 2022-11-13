@@ -69,14 +69,12 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         require(flowMinOutputs_ >= MIN_FLOW_SENTINELS, "BAD MIN STACKS LENGTH");
         _interpreter = IInterpreterV1(config_.interpreter);
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
-            (
-                address expression_,
-      
-            ) = IExpressionDeployerV1(config_.expressionDeployer)
-                    .deployExpression(
-                        config_.flows[i_],
-                        LibUint256Array.arrayFrom(flowMinOutputs_)
-                    );
+            (address expression_, ) = IExpressionDeployerV1(
+                config_.expressionDeployer
+            ).deployExpression(
+                    config_.flows[i_],
+                    LibUint256Array.arrayFrom(flowMinOutputs_)
+                );
             EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
                 expression_,
                 FLOW_ENTRYPOINT,

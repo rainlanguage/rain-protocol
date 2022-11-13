@@ -21,6 +21,18 @@ uint constant ORDER_MAX_OUTPUTS = 2;
 uint constant HANDLE_IO_MIN_OUTPUTS = 0;
 uint constant HANDLE_IO_MAX_OUTPUTS = type(uint16).max;
 
+uint constant CONTEXT_COLUMNS = 4;
+uint constant CONTEXT_BASE_COLUMN = 0;
+uint constant CONTEXT_VAULT_INPUTS_COLUMN = 1;
+uint constant CONTEXT_VAULT_OUTPUTS_COLUMN = 2;
+uint constant CONTEXT_CALCULATE_STATE_CHANGES_COLUMN = 3;
+
+uint constant CONTEXT_VAULT_IO_TOKEN = 0;
+uint constant CONTEXT_VAULT_IO_VAULT_ID = 1;
+uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 2;
+uint constant CONTEXT_VAULT_IO_BALANCE_AFTER = 3;
+uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
+
 struct OrderConfig {
     address expressionDeployer;
     address interpreter;
@@ -172,24 +184,29 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
             config_.expressionDeployer
         ).deployExpression(
                 config_.interpreterStateConfig,
-                LibUint256Array.arrayFrom(ORDER_MIN_OUTPUTS, HANDLE_IO_MIN_OUTPUTS)
+                LibUint256Array.arrayFrom(
+                    ORDER_MIN_OUTPUTS,
+                    HANDLE_IO_MIN_OUTPUTS
+                )
             );
         Order memory order_ = Order(
             msg.sender,
             config_.interpreter,
             LibEncodedDispatch.encode(
-                    expression_,
-                    ORDER_ENTRYPOINT,
-                    ORDER_MAX_OUTPUTS
-                ),
+                expression_,
+                ORDER_ENTRYPOINT,
+                ORDER_MAX_OUTPUTS
+            ),
             config_
                 .interpreterStateConfig
                 .sources[SourceIndex.unwrap(HANDLE_IO_ENTRYPOINT)]
-                .length > 0 ? LibEncodedDispatch.encode(
+                .length > 0
+                ? LibEncodedDispatch.encode(
                     expression_,
                     HANDLE_IO_ENTRYPOINT,
                     HANDLE_IO_MAX_OUTPUTS
-                ) : EncodedDispatch.wrap(0),
+                )
+                : EncodedDispatch.wrap(0),
             config_.validInputs,
             config_.validOutputs
         );
@@ -209,22 +226,27 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
         Order memory order_,
         uint256 outputIOIndex_,
         address counterparty_
-    ) internal view returns (uint256 orderOutputMax_, uint256 orderIORatio_, uint[] memory) {
+    )
+        internal
+        view
+        returns (
+            uint256 orderOutputMax_,
+            uint256 orderIORatio_,
+            uint[][] memory
+        )
+    {
         uint orderHash_ = order_.hash();
-        uint[][] memory context_ = LibUint256Array
-            .arrayFrom(
-                orderHash_,
-                uint(uint160(order_.owner)),
-                uint(uint160(counterparty_))
-            )
-            .matrixFrom();
+        uint[][] memory context_ = new uint[][](CONTEXT_COLUMNS);
+        context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(
+            orderHash_,
+            uint(uint160(order_.owner)),
+            uint(uint160(counterparty_))
+        );
         (uint[] memory stack_, uint[] memory stateChanges_) = IInterpreterV1(
             order_.interpreter
-        ).eval(
-                order_.dispatch,
-                context_
-            );
-        ( orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+        ).eval(order_.dispatch, context_);
+        (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+        context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN] = stateChanges_;
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -233,24 +255,84 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
             vaultBalance[order_.owner][outputIO_.token][outputIO_.vaultId]
         );
 
-        return (orderOutputMax_, orderIORatio_, stateChanges_);
+        return (orderOutputMax_, orderIORatio_, context_);
     }
 
     function _recordVaultIO(
         Order memory order_,
-        uint256 inputIOIndex_,
+        IO memory inputIO_,
         uint256 input_,
-        uint256 outputIOIndex_,
-        uint256 output_
+        IO memory outputIO_,
+        uint256 output_,
+        uint[][] memory context_
     ) internal {
-        IO memory io_;
+        context_[CONTEXT_VAULT_INPUTS_COLUMN][CONTEXT_VAULT_IO_TOKEN] = uint(
+            uint160(inputIO_.token)
+        );
+        context_[CONTEXT_VAULT_INPUTS_COLUMN][
+            CONTEXT_VAULT_IO_VAULT_ID
+        ] = inputIO_.vaultId;
+        context_[CONTEXT_VAULT_INPUTS_COLUMN][
+            CONTEXT_VAULT_IO_BALANCE_BEFORE
+        ] = vaultBalance[order_.owner][inputIO_.token][inputIO_.vaultId];
+        // IMPORTANT! THIS MATH MUST BE CHECKED TO AVOID OVERFLOW.
+        context_[CONTEXT_VAULT_INPUTS_COLUMN][CONTEXT_VAULT_IO_BALANCE_AFTER] =
+            context_[CONTEXT_VAULT_INPUTS_COLUMN][
+                CONTEXT_VAULT_IO_BALANCE_BEFORE
+            ] +
+            input_;
+        context_[CONTEXT_VAULT_INPUTS_COLUMN][
+            CONTEXT_VAULT_IO_BALANCE_DIFF
+        ] = input_;
+
+        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][CONTEXT_VAULT_IO_TOKEN] = uint(
+            uint160(outputIO_.token)
+        );
+        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+            CONTEXT_VAULT_IO_VAULT_ID
+        ] = outputIO_.vaultId;
+        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+            CONTEXT_VAULT_IO_BALANCE_BEFORE
+        ] = vaultBalance[order_.owner][outputIO_.token][outputIO_.vaultId];
+        // IMPORTANT! THIS MATH MUST BE CHECKED TO AVOID UNDERFLOW.
+        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][CONTEXT_VAULT_IO_BALANCE_AFTER] =
+            context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+                CONTEXT_VAULT_IO_BALANCE_BEFORE
+            ] -
+            output_;
+        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+            CONTEXT_VAULT_IO_BALANCE_DIFF
+        ] = output_;
+
         if (input_ > 0) {
-            io_ = order_.validInputs[inputIOIndex_];
-            vaultBalance[order_.owner][io_.token][io_.vaultId] += input_;
+            vaultBalance[order_.owner][inputIO_.token][
+                inputIO_.vaultId
+            ] = context_[CONTEXT_VAULT_INPUTS_COLUMN][
+                CONTEXT_VAULT_IO_BALANCE_AFTER
+            ];
         }
         if (output_ > 0) {
-            io_ = order_.validOutputs[outputIOIndex_];
-            vaultBalance[order_.owner][io_.token][io_.vaultId] -= output_;
+            vaultBalance[order_.owner][outputIO_.token][
+                outputIO_.vaultId
+            ] = context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+                CONTEXT_VAULT_IO_BALANCE_AFTER
+            ];
+        }
+        if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
+            (, uint[] memory ioStateChanges_) = IInterpreterV1(
+                order_.interpreter
+            ).eval(order_.handleIODispatch, context_);
+            uint[][] memory stateChanges_ = new uint[][](2);
+            stateChanges_[0] = context_[CONTEXT_CALCULATE_STATE_CHANGES_COLUMN];
+            stateChanges_[1] = ioStateChanges_;
+            unchecked {
+                if (stateChanges_[0].length + stateChanges_[1].length > 0) {
+                    IInterpreterV1(order_.interpreter).stateChanges(
+                        StateNamespace.wrap(uint(uint160(order_.owner))),
+                        stateChanges_
+                    );
+                }
+            }
         }
     }
 
@@ -286,7 +368,7 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
                 (
                     uint256 orderOutputMax_,
                     uint256 orderIORatio_,
-                    uint[] memory calculateOrderIOStateChanges_
+                    uint[][] memory context_
                 ) = _calculateOrderIO(
                         order_,
                         takeOrder_.outputIOIndex,
@@ -314,10 +396,11 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
 
                     _recordVaultIO(
                         order_,
-                        takeOrder_.inputIOIndex,
+                        order_.validInputs[takeOrder_.inputIOIndex],
                         output_,
-                        takeOrder_.outputIOIndex,
-                        input_
+                        order_.validOutputs[takeOrder_.outputIOIndex],
+                        input_,
+                        context_
                     );
                     emit TakeOrder(msg.sender, takeOrder_, input_, output_);
                 }
@@ -363,8 +446,8 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
         }
 
         ClearStateChange memory stateChange_;
-        uint[] memory aCalculateOrderIOStateChanges_;
-        uint[] memory bCalculateOrderIOStateChanges_;
+        uint[][] memory aContext_;
+        uint[][] memory bContext_;
 
         {
             // `IORatio` is input per output for both `a_` and `b_`.
@@ -378,12 +461,12 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
             // Interpreter execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            (aOutputMax_, aIORatio_, aCalculateOrderIOStateChanges_) = _calculateOrderIO(
+            (aOutputMax_, aIORatio_, aContext_) = _calculateOrderIO(
                 a_,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (bOutputMax_, bIORatio_, bCalculateOrderIOStateChanges_) = _calculateOrderIO(
+            (bOutputMax_, bIORatio_, bContext_) = _calculateOrderIO(
                 b_,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
@@ -407,17 +490,19 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
 
         _recordVaultIO(
             a_,
-            clearConfig_.aInputIOIndex,
+            a_.validInputs[clearConfig_.aInputIOIndex],
             stateChange_.aInput,
-            clearConfig_.aOutputIOIndex,
-            stateChange_.aOutput
+            a_.validInputs[clearConfig_.aOutputIOIndex],
+            stateChange_.aOutput,
+            aContext_
         );
         _recordVaultIO(
             b_,
-            clearConfig_.bInputIOIndex,
+            b_.validInputs[clearConfig_.bInputIOIndex],
             stateChange_.bInput,
-            clearConfig_.bOutputIOIndex,
-            stateChange_.bOutput
+            b_.validOutputs[clearConfig_.bOutputIOIndex],
+            stateChange_.bOutput,
+            bContext_
         );
 
         {

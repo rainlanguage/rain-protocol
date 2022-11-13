@@ -15,7 +15,7 @@ library OpReadState {
 
     function integrity(
         IntegrityState memory integrityState_,
-        Operand ,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
@@ -27,9 +27,9 @@ library OpReadState {
     }
 
     function run(
-        InterpreterState memory ,
-        Operand ,
-        StackTop 
+        InterpreterState memory,
+        Operand,
+        StackTop
     ) internal pure returns (StackTop) {
         // This must be implemented on the interpreter itself so that storage
         // reads can happen.

@@ -58,10 +58,6 @@ contract Flow is ReentrancyGuard, FlowCommon {
             FlowTransfer memory flowTransfer_,
             uint[] memory stateChanges_
         ) = _previewFlow(dispatch_, id_, signedContexts_);
-            LibFlow.flow(
-                flowTransfer_,
-                _interpreter,
-                stateChanges_
-            );
+        LibFlow.flow(flowTransfer_, _interpreter, stateChanges_);
     }
 }

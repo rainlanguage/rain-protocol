@@ -126,7 +126,10 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                     stateChangess_[i_] = stateChanges_;
                 }
                 if (stateChangesLength_ > 0) {
-                    _interpreter.stateChanges(StateNamespace.wrap(0), stateChangess_);
+                    _interpreter.stateChanges(
+                        StateNamespace.wrap(0),
+                        stateChangess_
+                    );
                 }
             }
         }
@@ -190,11 +193,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                     flowIO_.burns[i_].amount
                 );
             }
-            LibFlow.flow(
-                flowIO_.flow,
-                _interpreter,
-                stateChanges_
-            );
+            LibFlow.flow(flowIO_.flow, _interpreter, stateChanges_);
             return flowIO_;
         }
     }

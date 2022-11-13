@@ -16,11 +16,6 @@ interface IInterpreterV1 {
         view
         returns (uint256[] memory stack, uint[] memory stateChanges);
 
-    /// Saves kvs returned by one or more eval calls.
-    /// State changes MUST be stored in a mapping under the caller to prevent a
-    /// malicious caller from corrupting keys from another caller.
-    /// Caller MUST consider the potential of reentrancy from a malicious
-    /// interpreter when calling setKVs.
     function stateChanges(
         StateNamespace namespace,
         uint[][] memory stateChanges

@@ -60,11 +60,7 @@ library OpCall {
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
         // Contraints namespace is irrelevant here.
-        integrityState_.ensureIntegrity(
-            callSourceIndex_,
-            stackTop_,
-            outputs_
-        );
+        integrityState_.ensureIntegrity(callSourceIndex_, stackTop_, outputs_);
 
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be

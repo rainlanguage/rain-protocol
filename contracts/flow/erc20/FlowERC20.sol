@@ -171,11 +171,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
             _burn(flowIO_.burns[i_].account, flowIO_.burns[i_].amount);
         }
-        LibFlow.flow(
-            flowIO_.flow,
-            _interpreter,
-            stateChanges_
-        );
+        LibFlow.flow(flowIO_.flow, _interpreter, stateChanges_);
         return flowIO_;
     }
 
