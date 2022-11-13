@@ -115,22 +115,21 @@ abstract contract RainInterpreter {
     function buildStateBytes(
         IRainInterpreterIntegrity interpreterIntegrity_,
         StateConfig memory config_,
-        EncodedConstraints[] memory constraints_
+        uint[] memory minStackOutputs_
     ) internal view returns (bytes memory) {
         unchecked {
             (
-                uint256 contextReads_,
+                ,
                 uint256 stackLength_,
                 uint stateChangesLength_
             ) = interpreterIntegrity_.ensureIntegrity(
                     config_.sources,
                     config_.constants.length,
-                    constraints_
+                    minStackOutputs_
                 );
 
             return
                 config_.serialize(
-                    constraints_,
                     stackLength_,
                     stateChangesLength_,
                     opcodeFunctionPointers()

@@ -8,7 +8,6 @@ import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
-import "../deploy/LibEncodedConstraints.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {Operand} from "./RainInterpreter.sol";
@@ -43,7 +42,6 @@ struct InterpreterState {
     uint[] stateChanges;
     StackTop stateChangesCursor;
     StackTop constantsBottom;
-    StateNamespace stateNamespace;
     uint256[][] context;
     bytes[] compiledSources;
 }
@@ -61,7 +59,6 @@ library LibInterpreterState {
     using LibStackTop for uint256[];
     using LibStackTop for StackTop;
     using LibStackTop for bytes;
-    using LibCast for EncodedConstraints[];
     using LibCast for uint256;
     using LibCast for function(InterpreterState memory, SourceIndex, StackTop)
         view
@@ -127,7 +124,6 @@ library LibInterpreterState {
 
     function serialize(
         StateConfig memory config_,
-        EncodedConstraints[] memory constraints_,
         uint256 stackLength_,
         uint stateChangesLength_,
         bytes memory opcodeFunctionPointers_
@@ -136,16 +132,12 @@ library LibInterpreterState {
             uint256 size_ = 0;
             size_ += stackLength_.size();
             size_ += stateChangesLength_.size();
-            size_ += constraints_.asUint256Array().size();
             size_ += config_.constants.size();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 size_ += config_.sources[i_].size();
             }
             bytes memory serialized_ = new bytes(size_);
             StackTop cursor_ = serialized_.asStackTop().up();
-
-            // Constraints first.
-            cursor_ = cursor_.pushWithLength(constraints_.asUint256Array());
 
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
@@ -167,24 +159,8 @@ library LibInterpreterState {
         }
     }
 
-    function deserializeStateNamespace(
-        bytes memory serialized_,
-        SourceIndex sourceIndex_
-        
-    ) internal pure returns (StateNamespace) {
-        StackTop cursor_ = serialized_.asStackTop().up();
-        EncodedConstraints constraints_ = EncodedConstraints.wrap(
-            cursor_.up().up(SourceIndex.unwrap(sourceIndex_)).peekUp()
-        );
-        (StateNamespace namespace_, ) = LibEncodedConstraints.decode(
-            constraints_
-        );
-        return namespace_;
-    }
-
     function deserialize(
-        bytes memory serialized_,
-        SourceIndex sourceIndex_
+        bytes memory serialized_
     ) internal pure returns (InterpreterState memory) {
         unchecked {
             InterpreterState memory state_;
@@ -197,13 +173,6 @@ library LibInterpreterState {
             StackTop cursor_ = serialized_.asStackTop().up();
             // The end of processing is the end of the state bytes.
             StackTop end_ = cursor_.upBytes(cursor_.peek());
-
-            // Extract the state namespace and move cursor past the constraints.
-            state_.stateNamespace = deserializeStateNamespace(
-                serialized_,
-                sourceIndex_
-            );
-            cursor_ = cursor_.up(cursor_.peekUp());
 
             // Read the stack length and build a stack.
             cursor_ = cursor_.up();

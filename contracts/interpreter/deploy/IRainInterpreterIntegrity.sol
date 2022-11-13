@@ -8,7 +8,7 @@ interface IRainInterpreterIntegrity {
     function ensureIntegrity(
         bytes[] memory sources,
         uint256 constantsLength,
-        EncodedConstraints[] memory constraints
+        uint[] memory minStackOutputs
     )
         external
         view

@@ -74,18 +74,13 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             config_.flowConfig.expressionDeployer
         ).deployExpression(
                 config_.stateConfig,
-                LibEncodedConstraints.arrayFrom(
-                    LibEncodedConstraints.encode(
-                        LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(),
-                        CAN_TRANSFER_MIN_OUTPUTS
-                    )
-                )
+                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
             );
-           _dispatch = LibEncodedDispatch.encode(
-                        expression_,
-                        CAN_TRANSFER_ENTRYPOINT,
-                        CAN_TRANSFER_MAX_OUTPUTS
-                    );
+        _dispatch = LibEncodedDispatch.encode(
+            expression_,
+            CAN_TRANSFER_ENTRYPOINT,
+            CAN_TRANSFER_MAX_OUTPUTS
+        );
         __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
@@ -117,13 +112,13 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 .matrixFrom();
             EncodedDispatch dispatch_ = _dispatch;
             (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
-                .eval(
-                    dispatch_,
-                    context_
-                );
+                .eval(dispatch_, context_);
             require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
             if (stateChanges_.length > 0) {
-                _interpreter.stateChanges(dispatch_, stateChanges_.matrixFrom());
+                _interpreter.stateChanges(
+                    StateNamespace.wrap(0),
+                    stateChanges_.matrixFrom()
+                );
             }
         }
     }
@@ -185,10 +180,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             }
             LibFlow.flow(
                 flowIO_.flow,
-                address(this),
-                payable(msg.sender),
                 _interpreter,
-                dispatch_,
                 stateChanges_
             );
             return flowIO_;

@@ -24,13 +24,7 @@ contract StackHeightTest is StandardInterpreter {
         _saveInterpreterState(
             INTERPRETER_STATE_ID,
             stateConfig_,
-            LibEncodedConstraints.arrayFrom(
-                LibEncodedConstraints.encode(
-                    LibEncodedConstraints
-                        .expressionsTrustEachOtherNamespaceSeed(),
-                    MIN_OUTPUTS
-                )
-            )
+            MIN_OUTPUTS.arrayFrom()
         );
     }
 }

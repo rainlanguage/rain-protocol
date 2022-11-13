@@ -26,6 +26,7 @@ library OpCall {
     using LibIntegrityState for IntegrityState;
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;
+    using LibUint256Array for uint;
 
     /// Interpreter integrity logic.
     /// The basic movements on the outer stack are to pop the inputs and push the
@@ -62,7 +63,7 @@ library OpCall {
         integrityState_.ensureIntegrity(
             callSourceIndex_,
             stackTop_,
-            LibEncodedConstraints.encode(LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(), outputs_)
+            outputs_
         );
 
         // The outer stack top will move above the outputs relative to the inner

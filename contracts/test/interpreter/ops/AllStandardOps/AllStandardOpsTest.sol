@@ -29,13 +29,7 @@ contract AllStandardOpsTest is StandardInterpreter {
         _saveInterpreterState(
             INTERPRETER_STATE_ID,
             stateConfig_,
-            LibEncodedConstraints.arrayFrom(
-                LibEncodedConstraints.encode(
-                    LibEncodedConstraints
-                        .expressionsTrustEachOtherNamespaceSeed(),
-                    MIN_OUTPUTS
-                )
-            )
+            MIN_OUTPUTS.arrayFrom()
         );
     }
 
@@ -51,8 +45,7 @@ contract AllStandardOpsTest is StandardInterpreter {
     function run() public {
         SourceIndex sourceIndex_ = SourceIndex.wrap(0);
         InterpreterState memory state_ = _loadInterpreterState(
-            INTERPRETER_STATE_ID,
-            sourceIndex_
+            INTERPRETER_STATE_ID
         );
         uint256 a_ = gasleft();
         StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
@@ -71,8 +64,7 @@ contract AllStandardOpsTest is StandardInterpreter {
     function runContext(uint256[][] memory context_) public {
         SourceIndex sourceIndex_ = SourceIndex.wrap(0);
         InterpreterState memory state_ = _loadInterpreterState(
-            INTERPRETER_STATE_ID,
-            sourceIndex_
+            INTERPRETER_STATE_ID
         );
         state_.context = context_;
         StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);

@@ -53,18 +53,14 @@ contract Flow is ReentrancyGuard, FlowCommon {
         EncodedDispatch dispatch_,
         uint256 id_,
         SignedContext[] memory signedContexts_
-    ) external payable virtual nonReentrant returns (FlowTransfer memory) {
+    ) external payable virtual nonReentrant {
         (
             FlowTransfer memory flowTransfer_,
             uint[] memory stateChanges_
         ) = _previewFlow(dispatch_, id_, signedContexts_);
-        return
             LibFlow.flow(
                 flowTransfer_,
-                address(this),
-                payable(msg.sender),
                 _interpreter,
-                dispatch_,
                 stateChanges_
             );
     }

@@ -9,7 +9,6 @@ import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackTop.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
-import "../../interpreter/deploy/LibEncodedConstraints.sol";
 
 uint constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint constant CAN_APPROVE_MAX_OUTPUTS = 1;
@@ -50,12 +49,7 @@ contract AutoApprove is VerifyCallback {
             config_.expressionDeployer
         ).deployExpression(
                 config_.stateConfig,
-                LibEncodedConstraints.arrayFrom(
-                    LibEncodedConstraints.encode(
-                        StateNamespaceSeed.wrap(uint(uint160(address(this)))),
-                        CAN_APPROVE_MIN_OUTPUTS
-                    )
-                )
+                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
         expression = expression_;
         interpreter = config_.interpreter;
@@ -77,10 +71,10 @@ contract AutoApprove is VerifyCallback {
             uint[][] memory stateChangess_ = new uint[][](evidences_.length);
             uint stateChangesCount_ = 0;
             EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
-                                expression,
-                                CAN_APPROVE_ENTRYPOINT,
-                                CAN_APPROVE_MAX_OUTPUTS
-                            );
+                expression,
+                CAN_APPROVE_ENTRYPOINT,
+                CAN_APPROVE_MAX_OUTPUTS
+            );
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
@@ -89,10 +83,7 @@ contract AutoApprove is VerifyCallback {
                     (
                         uint[] memory stack_,
                         uint[] memory stateChanges_
-                    ) = IInterpreterV1(interpreter).eval(
-                            dispatch_,
-                            context_
-                        );
+                    ) = IInterpreterV1(interpreter).eval(dispatch_, context_);
                     stateChangesCount_ += stateChanges_.length;
                     stateChangess_[i_] = stateChanges_;
                     if (stack_.asStackTopAfter().peek() > 0) {
@@ -107,7 +98,7 @@ contract AutoApprove is VerifyCallback {
             }
             if (stateChangesCount_ > 0) {
                 IInterpreterV1(interpreter).stateChanges(
-                    dispatch_,
+                    StateNamespace.wrap(0),
                     stateChangess_
                 );
             }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 type SourceIndex is uint;
 type EncodedDispatch is uint256;
+type StateNamespace is uint;
 
 interface IInterpreterV1 {
     function functionPointers() external view returns (bytes memory);
@@ -21,7 +22,7 @@ interface IInterpreterV1 {
     /// Caller MUST consider the potential of reentrancy from a malicious
     /// interpreter when calling setKVs.
     function stateChanges(
-        EncodedDispatch dispatch,
+        StateNamespace namespace,
         uint[][] memory stateChanges
     ) external;
 }

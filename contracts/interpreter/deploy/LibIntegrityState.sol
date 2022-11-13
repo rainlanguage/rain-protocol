@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "./LibEncodedConstraints.sol";
 import "../run/RainInterpreter.sol";
 import "../run/LibStackTop.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -42,7 +41,7 @@ library LibIntegrityState {
         IntegrityState memory integrityState_,
         SourceIndex sourceIndex_,
         StackTop stackTop_,
-        EncodedConstraints constraints_
+        uint minStackOutputs_
     ) internal view returns (StackTop) {
         unchecked {
             uint256 cursor_;
@@ -75,11 +74,8 @@ library LibIntegrityState {
                     stackTop_
                 );
             }
-            (, uint minimumStackOutputs_) = LibEncodedConstraints.decode(
-                constraints_
-            );
             require(
-                minimumStackOutputs_ <=
+                minStackOutputs_ <=
                     integrityState_.stackBottom.toIndex(stackTop_),
                 "MIN_FINAL_STACK"
             );

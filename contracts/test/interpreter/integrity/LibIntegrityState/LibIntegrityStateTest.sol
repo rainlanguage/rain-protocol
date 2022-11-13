@@ -58,7 +58,7 @@ contract LibIntegrityStateTest is StandardIntegrity {
         uint256 constantsLength_,
         SourceIndex sourceIndex_,
         StackTop stackTop_,
-        EncodedConstraints constraints_
+        uint minStackOutputs_
     ) external returns (StackTop) {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
@@ -70,7 +70,11 @@ contract LibIntegrityStateTest is StandardIntegrity {
             integrityFunctionPointers() // integrityFunctionPointers
         );
         LibDebug.dumpMemory();
-        integrityState_.ensureIntegrity(sourceIndex_, stackTop_, constraints_);
+        integrityState_.ensureIntegrity(
+            sourceIndex_,
+            stackTop_,
+            minStackOutputs_
+        );
         LibDebug.dumpMemory();
         return stackTop_;
     }

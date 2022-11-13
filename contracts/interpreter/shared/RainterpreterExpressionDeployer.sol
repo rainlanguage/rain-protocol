@@ -58,7 +58,7 @@ contract RainterpreterExpressionDeployer is
 
     function deployExpression(
         StateConfig memory config_,
-        EncodedConstraints[] memory constraints_
+        uint[] memory minStackOutputs_
     ) external returns (address, uint256) {
         (
             uint256 contextReads_,
@@ -67,11 +67,10 @@ contract RainterpreterExpressionDeployer is
         ) = ensureIntegrity(
                 config_.sources,
                 config_.constants.length,
-                constraints_
+                minStackOutputs_
             );
 
         bytes memory stateBytes_ = config_.serialize(
-            constraints_,
             stackLength_,
             stateChangesLength_,
             OPCODE_FUNCTION_POINTERS

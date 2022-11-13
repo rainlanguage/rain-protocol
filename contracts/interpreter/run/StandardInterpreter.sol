@@ -29,24 +29,23 @@ contract StandardInterpreter is RainInterpreter {
     function _saveInterpreterState(
         uint256 id_,
         StateConfig memory config_,
-        EncodedConstraints[] memory constraints_
+        uint[] memory minStackOutputs_
     ) internal virtual {
         bytes memory stateBytes_ = buildStateBytes(
             IRainInterpreterIntegrity(interpreterIntegrity),
             config_,
-            constraints_
+            minStackOutputs_
         );
         emit SaveInterpreterState(msg.sender, id_, config_);
         interpreterStatePointers[id_] = SSTORE2.write(stateBytes_);
     }
 
     function _loadInterpreterState(
-        uint256 id_,
-        SourceIndex sourceIndex_
+        uint256 id_
     ) internal view virtual returns (InterpreterState memory) {
         address pointer_ = interpreterStatePointers[id_];
         require(pointer_ != address(0), "UNKNOWN_STATE");
-        return SSTORE2.read(pointer_).deserialize(sourceIndex_);
+        return SSTORE2.read(pointer_).deserialize();
     }
 
     function localEvalFunctionPointers()

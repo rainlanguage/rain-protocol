@@ -19,10 +19,10 @@ import "../interpreter/run/RainInterpreter.sol";
 /// done with near zero or minimal overhead.
 library LibCast {
     /// Retype an integer to an opcode function pointer.
-    /// @param i_ The integer to cast to an opcode function pointer.
+    /// @param u_ The integer to cast to an opcode function pointer.
     /// @return fn_ The opcode function pointer.
     function asOpFunctionPointer(
-        uint256 i_
+        uint256 u_
     )
         internal
         pure
@@ -33,16 +33,16 @@ library LibCast {
         )
     {
         assembly ("memory-safe") {
-            fn_ := i_
+            fn_ := u_
         }
     }
 
     /// Retype an array of integers to an array of opcode function pointers.
-    /// @param is_ The array of integers to cast to an array of opcode fuction
+    /// @param us_ The array of integers to cast to an array of opcode fuction
     /// pointers.
     /// @return fns_ The array of opcode function pointers.
     function asOpcodeFunctionPointers(
-        uint256[] memory is_
+        uint256[] memory us_
     )
         internal
         pure
@@ -54,15 +54,15 @@ library LibCast {
         )
     {
         assembly ("memory-safe") {
-            fns_ := is_
+            fns_ := us_
         }
     }
 
     /// Retype an integer to an integrity function pointer.
-    /// @param i_ The integer to cast to an integrity function pointer.
+    /// @param u_ The integer to cast to an integrity function pointer.
     /// @return fn_ The integrity function pointer.
     function asIntegrityFunctionPointer(
-        uint256 i_
+        uint256 u_
     )
         internal
         pure
@@ -74,15 +74,15 @@ library LibCast {
         )
     {
         assembly ("memory-safe") {
-            fn_ := i_
+            fn_ := u_
         }
     }
 
     /// Retype an integer to a pointer to the interpreter eval function.
-    /// @param i_ The integer to cast to the eval function.
+    /// @param u_ The integer to cast to the eval function.
     /// @return fn_ The eval function.
     function asEvalFunctionPointer(
-        uint256 i_
+        uint256 u_
     )
         internal
         pure
@@ -93,7 +93,7 @@ library LibCast {
         )
     {
         assembly ("memory-safe") {
-            fn_ := i_
+            fn_ := u_
         }
     }
 
@@ -110,12 +110,12 @@ library LibCast {
     /// Function pointers as integers lose the information about their signature
     /// so MUST ONLY be called in an appropriate context once restored.
     /// @param fn_ The stack move function pointer to integerify.
-    /// @return i_ The integer of the function pointer.
+    /// @return u_ The integer of the function pointer.
     function asUint256(
         function(uint256) view returns (uint256) fn_
-    ) internal pure returns (uint256 i_) {
+    ) internal pure returns (uint256 u_) {
         assembly ("memory-safe") {
-            i_ := fn_
+            u_ := fn_
         }
     }
 
@@ -124,9 +124,9 @@ library LibCast {
             internal
             view
             returns (StackTop) fn_
-    ) internal pure returns (uint256 i_) {
+    ) internal pure returns (uint256 u_) {
         assembly ("memory-safe") {
-            i_ := fn_
+            u_ := fn_
         }
     }
 
@@ -136,15 +136,15 @@ library LibCast {
             view
             returns (StackTop)[]
             memory fns_
-    ) internal pure returns (uint256[] memory is_) {
+    ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
-            is_ := fns_
+            us_ := fns_
         }
     }
 
-    function asUint256(bool bool_) internal pure returns (uint256 i_) {
+    function asUint256(bool bool_) internal pure returns (uint256 u_) {
         assembly ("memory-safe") {
-            i_ := bool_
+            u_ := bool_
         }
     }
 
@@ -152,17 +152,9 @@ library LibCast {
         function(InterpreterState memory, SourceIndex, StackTop)
             view
             returns (StackTop) fn_
-    ) internal pure returns (uint256 i_) {
+    ) internal pure returns (uint256 u_) {
         assembly ("memory-safe") {
-            i_ := fn_
-        }
-    }
-
-    function asUint256Array(
-        EncodedConstraints[] memory constraints_
-    ) internal pure returns (uint[] memory us_) {
-        assembly ("memory-safe") {
-            us_ := constraints_
+            u_ := fn_
         }
     }
 
@@ -186,15 +178,15 @@ library LibCast {
     }
 
     function asAddresses(
-        uint256[] memory is_
+        uint256[] memory us_
     ) internal pure returns (address[] memory addresses_) {
         assembly ("memory-safe") {
-            addresses_ := is_
+            addresses_ := us_
         }
     }
 
     function asIntegrityPointers(
-        uint256[] memory is_
+        uint256[] memory us_
     )
         internal
         pure
@@ -206,7 +198,7 @@ library LibCast {
         )
     {
         assembly ("memory-safe") {
-            fns_ := is_
+            fns_ := us_
         }
     }
 }

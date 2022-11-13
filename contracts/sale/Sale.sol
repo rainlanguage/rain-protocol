@@ -19,7 +19,6 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackTop.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/deploy/LibEncodedConstraints.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -132,6 +131,8 @@ struct Receipt {
     uint256 units;
     uint256 price;
 }
+
+StateNamespace constant STATE_NAMESPACE = StateNamespace.wrap(0);
 
 SourceIndex constant CAN_LIVE_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
@@ -270,21 +271,21 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
         ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
                 config_.interpreterStateConfig,
-                LibEncodedConstraints.arrayFrom(
-                    LibEncodedConstraints.encode(
-                        LibEncodedConstraints
-                            .expressionsTrustEachOtherNamespaceSeed(),
-                        CAN_LIVE_MIN_OUTPUTS
-                    ),
-                    LibEncodedConstraints.encode(
-                        LibEncodedConstraints
-                            .expressionsTrustEachOtherNamespaceSeed(),
-                        CALCULATE_BUY_MIN_OUTPUTS
-                    )
+                LibUint256Array.arrayFrom(
+                    CAN_LIVE_MIN_OUTPUTS,
+                    CALCULATE_BUY_MIN_OUTPUTS
                 )
             );
-        dispatchCanLive = LibEncodedDispatch.encode(expression_, CAN_LIVE_ENTRYPOINT, CAN_LIVE_MAX_OUTPUTS);
-        dispatchCalculateBuy = LibEncodedDispatch.encode(expression_, CALCULATE_BUY_ENTRYPOINT, CALCULATE_BUY_MAX_OUTPUTS);
+        dispatchCanLive = LibEncodedDispatch.encode(
+            expression_,
+            CAN_LIVE_ENTRYPOINT,
+            CAN_LIVE_MAX_OUTPUTS
+        );
+        dispatchCalculateBuy = LibEncodedDispatch.encode(
+            expression_,
+            CALCULATE_BUY_ENTRYPOINT,
+            CALCULATE_BUY_MAX_OUTPUTS
+        );
         interpreter = IInterpreterV1(config_.interpreter);
 
         recipient = config_.recipient;
@@ -418,7 +419,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         require(canLive_, "NOT_LIVE");
         if (interpreterStateChanges_.length > 0) {
             interpreter.stateChanges(
-                dispatchCanLive,
+                STATE_NAMESPACE,
                 interpreterStateChanges_.matrixFrom()
             );
         }
@@ -438,7 +439,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         require(!canLive_, "LIVE");
         if (interpreterStateChanges_.length > 0) {
             interpreter.stateChanges(
-                dispatchCanLive,
+                STATE_NAMESPACE,
                 interpreterStateChanges_.matrixFrom()
             );
         }
@@ -495,7 +496,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // returning early.
         if (interpreterStateChangesCanLive0_.length > 0) {
             interpreter_.stateChanges(
-                dispatchCanLive,
+                STATE_NAMESPACE,
                 interpreterStateChangesCanLive0_.matrixFrom()
             );
         }
@@ -527,7 +528,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         ) = _previewCalculateBuy(targetUnits_);
         if (interpreterStateChangesCalculateBuy0_.length > 0) {
             interpreter.stateChanges(
-                dispatchCalculateBuy,
+                STATE_NAMESPACE,
                 interpreterStateChangesCalculateBuy0_.matrixFrom()
             );
         }
@@ -589,7 +590,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         ) = _previewCanLive();
         if (interpreterStateChangesCanLive1_.length > 0) {
             interpreter.stateChanges(
-                dispatchCanLive,
+                STATE_NAMESPACE,
                 interpreterStateChangesCanLive1_.matrixFrom()
             );
         }

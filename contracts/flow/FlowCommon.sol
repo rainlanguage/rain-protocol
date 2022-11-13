@@ -48,7 +48,11 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     /// flow expression pointer => is registered
     mapping(EncodedDispatch => uint) internal _flows;
 
-    event FlowInitialized(address sender, address interpreter, EncodedDispatch dispatch);
+    event FlowInitialized(
+        address sender,
+        address interpreter,
+        EncodedDispatch dispatch
+    );
 
     constructor() {
         _disableInitializers();
@@ -67,22 +71,17 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
             (
                 address expression_,
-                uint256 contextReads_
+      
             ) = IExpressionDeployerV1(config_.expressionDeployer)
                     .deployExpression(
                         config_.flows[i_],
-                        LibEncodedConstraints.arrayFrom(
-                            LibEncodedConstraints.encode(
-                                LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(),
-                                flowMinOutputs_
-                            )
-                        )
+                        LibUint256Array.arrayFrom(flowMinOutputs_)
                     );
             EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
-                        expression_,
-                        FLOW_ENTRYPOINT,
-                        FLOW_MAX_OUTPUTS
-                    );
+                expression_,
+                FLOW_ENTRYPOINT,
+                FLOW_MAX_OUTPUTS
+            );
             _flows[dispatch_] = 1;
             emit FlowInitialized(msg.sender, config_.interpreter, dispatch_);
         }
@@ -140,10 +139,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
             (
                 uint256[] memory stack_,
                 uint[] memory stateChanges_
-            ) = interpreter_.eval(
-                    dispatch_,
-                    flowContext_
-                );
+            ) = interpreter_.eval(dispatch_, flowContext_);
             return (
                 stack_.asStackTopUp(),
                 stack_.asStackTopAfter(),

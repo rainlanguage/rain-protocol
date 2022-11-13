@@ -7,7 +7,6 @@ import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../interpreter/deploy/RainInterpreterIntegrity.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/deploy/LibEncodedConstraints.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -60,21 +59,13 @@ contract CombineTier is TierV2 {
     ) external initializer {
         __TierV2_init();
         interpreter = IInterpreterV1(config_.interpreter);
-        StateNamespaceSeed stateNamespaceSeed_ = LibEncodedConstraints
-            .expressionsTrustEachOtherNamespaceSeed();
         (address expression_, ) = IExpressionDeployerV1(
             config_.expressionDeployer
         ).deployExpression(
                 config_.stateConfig,
-                LibEncodedConstraints.arrayFrom(
-                    LibEncodedConstraints.encode(
-                        stateNamespaceSeed_,
-                        REPORT_MIN_OUTPUTS
-                    ),
-                    LibEncodedConstraints.encode(
-                        stateNamespaceSeed_,
-                        REPORT_FOR_TIER_MIN_OUTPUTS
-                    )
+                LibUint256Array.arrayFrom(
+                    REPORT_MIN_OUTPUTS,
+                    REPORT_FOR_TIER_MIN_OUTPUTS
                 )
             );
         expression = expression_;

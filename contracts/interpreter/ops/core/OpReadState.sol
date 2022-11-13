@@ -15,19 +15,21 @@ library OpReadState {
 
     function integrity(
         IntegrityState memory integrityState_,
-        Operand operand_,
+        Operand ,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            function(uint) internal pure returns (uint) fn_;
+            // Pop namespace, key
+            // Stack value
+            function(uint, uint) internal pure returns (uint) fn_;
             return integrityState_.applyFn(stackTop_, fn_);
         }
     }
 
     function run(
-        InterpreterState memory state_,
-        Operand operand_,
-        StackTop stackTop_
+        InterpreterState memory ,
+        Operand ,
+        StackTop 
     ) internal pure returns (StackTop) {
         // This must be implemented on the interpreter itself so that storage
         // reads can happen.

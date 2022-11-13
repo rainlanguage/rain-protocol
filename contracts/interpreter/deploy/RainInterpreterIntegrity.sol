@@ -32,7 +32,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
     function ensureIntegrity(
         bytes[] memory sources_,
         uint256 constantsLength_,
-        EncodedConstraints[] memory constraints_
+        uint[] memory minStackOutputs_
     )
         public
         view
@@ -42,10 +42,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             uint stateChangesLength_
         )
     {
-        require(
-            sources_.length == constraints_.length,
-            "BAD_CONSTRAINTS_LENGTH"
-        );
+        require(sources_.length == minStackOutputs_.length, "BAD_MSO_LENGTH");
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
             constantsLength_,
@@ -59,7 +56,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             integrityState_.ensureIntegrity(
                 SourceIndex.wrap(i_),
                 StackTop.wrap(0),
-                constraints_[i_]
+                minStackOutputs_[i_]
             );
         }
         return (

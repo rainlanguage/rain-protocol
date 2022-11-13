@@ -27,9 +27,7 @@ library OpLoopN {
                 stackTop_ = integrityState_.ensureIntegrity(
                     loopSourceIndex_,
                     stackTop_,
-                    // We have no constraints on the loop outputs and namespace
-                    // is irrelevant here.
-                    LibEncodedConstraints.encode(LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(), 0)
+                    0
                 );
             }
             return stackTop_;

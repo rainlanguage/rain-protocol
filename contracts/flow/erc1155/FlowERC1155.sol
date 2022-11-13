@@ -59,19 +59,14 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             config_.flowConfig.expressionDeployer
         ).deployExpression(
                 config_.stateConfig,
-                LibEncodedConstraints.arrayFrom(
-                    LibEncodedConstraints.encode(
-                        LibEncodedConstraints.expressionsTrustEachOtherNamespaceSeed(),
-                        CAN_TRANSFER_MIN_OUTPUTS
-                    )
-                )
+                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
             );
-        
-        EncodedDispatch _dispatch = LibEncodedDispatch.encode(
-                                expression_,
-                                CAN_TRANSFER_ENTRYPOINT,
-                                CAN_TRANSFER_MAX_OUTPUTS
-                            );
+
+        _dispatch = LibEncodedDispatch.encode(
+            expression_,
+            CAN_TRANSFER_ENTRYPOINT,
+            CAN_TRANSFER_MAX_OUTPUTS
+        );
         __FlowCommon_init(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);
     }
 
@@ -106,7 +101,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             if (!(from_ == address(0) || to_ == address(0))) {
                 uint[][] memory stateChangess_ = new uint[][](ids_.length);
                 uint stateChangesLength_ = 0;
-                                    EncodedDispatch dispatch_ = _dispatch;
+                EncodedDispatch dispatch_ = _dispatch;
 
                 for (uint256 i_ = 0; i_ < ids_.length; i_++) {
                     uint256[][] memory context_ = LibUint256Array
@@ -122,10 +117,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                     (
                         uint[] memory stack_,
                         uint[] memory stateChanges_
-                    ) = _interpreter.eval(
-                            dispatch_,
-                            context_
-                        );
+                    ) = _interpreter.eval(dispatch_, context_);
                     stateChangesLength_ += stateChanges_.length;
                     require(
                         stack_.asStackTopAfter().peek() > 0,
@@ -134,7 +126,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                     stateChangess_[i_] = stateChanges_;
                 }
                 if (stateChangesLength_ > 0) {
-                    _interpreter.stateChanges(dispatch_, stateChangess_);
+                    _interpreter.stateChanges(StateNamespace.wrap(0), stateChangess_);
                 }
             }
         }
@@ -200,10 +192,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             }
             LibFlow.flow(
                 flowIO_.flow,
-                address(this),
-                payable(msg.sender),
                 _interpreter,
-                dispatch_,
                 stateChanges_
             );
             return flowIO_;

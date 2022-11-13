@@ -11,7 +11,6 @@ import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/deploy/LibEncodedConstraints.sol";
 
 SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant HANDLE_IO_ENTRYPOINT = SourceIndex.wrap(1);
@@ -38,8 +37,8 @@ struct IO {
 struct Order {
     address owner;
     address interpreter;
-    address expression;
-    bool handleIO;
+    EncodedDispatch dispatch;
+    EncodedDispatch handleIODispatch;
     IO[] validInputs;
     IO[] validOutputs;
 }
@@ -169,31 +168,28 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
     }
 
     function addOrder(OrderConfig calldata config_) external nonReentrant {
-        StateNamespaceSeed stateNamespace_ = LibEncodedConstraints
-            .expressionsTrustTheirAuthorNamespaceSeed(msg.sender);
-        (address expressionAddress, ) = IExpressionDeployerV1(
+        (address expression_, ) = IExpressionDeployerV1(
             config_.expressionDeployer
         ).deployExpression(
                 config_.interpreterStateConfig,
-                LibEncodedConstraints.arrayFrom(
-                    LibEncodedConstraints.encode(
-                        stateNamespace_,
-                        ORDER_MIN_OUTPUTS
-                    ),
-                    LibEncodedConstraints.encode(
-                        stateNamespace_,
-                        HANDLE_IO_MIN_OUTPUTS
-                    )
-                )
+                LibUint256Array.arrayFrom(ORDER_MIN_OUTPUTS, HANDLE_IO_MIN_OUTPUTS)
             );
         Order memory order_ = Order(
             msg.sender,
             config_.interpreter,
-            expressionAddress,
+            LibEncodedDispatch.encode(
+                    expression_,
+                    ORDER_ENTRYPOINT,
+                    ORDER_MAX_OUTPUTS
+                ),
             config_
                 .interpreterStateConfig
                 .sources[SourceIndex.unwrap(HANDLE_IO_ENTRYPOINT)]
-                .length > 0,
+                .length > 0 ? LibEncodedDispatch.encode(
+                    expression_,
+                    HANDLE_IO_ENTRYPOINT,
+                    HANDLE_IO_MAX_OUTPUTS
+                ) : EncodedDispatch.wrap(0),
             config_.validInputs,
             config_.validOutputs
         );
@@ -222,15 +218,10 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
                 uint(uint160(counterparty_))
             )
             .matrixFrom();
-        EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
-                    order_.expression,
-                    ORDER_ENTRYPOINT,
-                    ORDER_MAX_OUTPUTS
-                );
         (uint[] memory stack_, uint[] memory stateChanges_) = IInterpreterV1(
             order_.interpreter
         ).eval(
-                dispatch_,
+                order_.dispatch,
                 context_
             );
         ( orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
@@ -294,7 +285,8 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
 
                 (
                     uint256 orderOutputMax_,
-                    uint256 orderIORatio_
+                    uint256 orderIORatio_,
+                    uint[] memory calculateOrderIOStateChanges_
                 ) = _calculateOrderIO(
                         order_,
                         takeOrder_.outputIOIndex,
@@ -371,6 +363,8 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
         }
 
         ClearStateChange memory stateChange_;
+        uint[] memory aCalculateOrderIOStateChanges_;
+        uint[] memory bCalculateOrderIOStateChanges_;
 
         {
             // `IORatio` is input per output for both `a_` and `b_`.
@@ -384,22 +378,16 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
             // Interpreter execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
 
-            (aOutputMax_, aIORatio_, aStateChanges_) = _calculateOrderIO(
+            (aOutputMax_, aIORatio_, aCalculateOrderIOStateChanges_) = _calculateOrderIO(
                 a_,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (bOutputMax_, bIORatio_, bStateChanges_) = _calculateOrderIO(
+            (bOutputMax_, bIORatio_, bCalculateOrderIOStateChanges_) = _calculateOrderIO(
                 b_,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
             );
-                    if (stateChanges_.length > 0) {
-            IInterpreterV1(order_.interpreter).stateChanges(
-                dispatch_,
-                stateChanges_.matrixFrom()
-            );
-        }
 
             stateChange_.aOutput = aOutputMax_.min(
                 bOutputMax_.fixedPointMul(bIORatio_)

@@ -6,7 +6,6 @@ import "../../../../interpreter/run/LibStackTop.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
 import "../../../../array/LibUint256Array.sol";
-import "../../../../interpreter/deploy/LibEncodedConstraints.sol";
 
 uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
 
@@ -78,34 +77,24 @@ contract LibInterpreterStateTest is RainInterpreter {
         uint256[][] memory context_
     ) public view returns (InterpreterState memory state_) {
         bytes memory serialized_ = serialize(config_);
-        state_ = serialized_.deserialize(SourceIndex.wrap(0));
+        state_ = serialized_.deserialize();
         state_.context = context_;
     }
 
     function serialize(
         StateConfig memory config_
     ) public view returns (bytes memory serialized_) {
-        StateNamespaceSeed stateNamespaceSeed_ = LibEncodedConstraints
-            .expressionsTrustEachOtherNamespaceSeed();
-        EncodedConstraints[] memory constraints_ = LibEncodedConstraints
-            .arrayFrom(
-                LibEncodedConstraints.encode(
-                    stateNamespaceSeed_,
-                    DEFAULT_MIN_FINAL_STACK
-                )
-            );
         (
-            uint256 contextReads_,
+            ,
             uint256 stackLength_,
             uint stateChangesLength_
         ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
                 config_.sources,
                 config_.constants.length,
-                constraints_
+                DEFAULT_MIN_FINAL_STACK.arrayFrom()
             );
 
         serialized_ = config_.serialize(
-            constraints_,
             stackLength_,
             stateChangesLength_,
             opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()

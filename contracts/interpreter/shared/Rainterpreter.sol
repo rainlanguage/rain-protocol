@@ -34,7 +34,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
             uint maxOutputs_
         ) = LibEncodedDispatch.decode(dispatch_);
         InterpreterState memory state_ = SSTORE2.read(expression_).deserialize(
-            sourceIndex_
+
         );
         state_.context = context_;
         StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
@@ -46,15 +46,10 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
     }
 
     function stateChanges(
-        EncodedDispatch dispatch_,
+        StateNamespace stateNamespace_,
         uint[][] memory stateChanges_
     ) external {
         unchecked {
-            (address expression_, SourceIndex sourceIndex_, ) = LibEncodedDispatch
-                .decode(dispatch_);
-            StateNamespace stateNamespace_ = SSTORE2
-                .read(expression_)
-                .deserializeStateNamespace(sourceIndex_);
             for (uint i_ = 0; i_ < stateChanges_.length; i_++) {
                 for (uint j_ = 0; j_ < stateChanges_[i_].length; j_ += 2) {
                     state[msg.sender][stateNamespace_][
@@ -70,13 +65,15 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
     }
 
     function opReadState(
-        InterpreterState memory state_,
+        InterpreterState memory ,
         Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
+        uint ns_;
         uint k_;
+        (stackTop_, ns_) = stackTop_.pop();
         (stackTop_, k_) = stackTop_.pop();
-        stackTop_.push(state[msg.sender][state_.stateNamespace][k_]);
+        stackTop_.push(state[msg.sender][StateNamespace.wrap(ns_)][k_]);
         return stackTop_;
     }
 
