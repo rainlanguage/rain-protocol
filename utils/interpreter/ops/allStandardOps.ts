@@ -1,11 +1,12 @@
 export enum AllStandardOps {
   CHAINLINK_PRICE,
   CALL,
+  CHANGE_STATE,
   CONTEXT,
   DEBUG,
   DO_WHILE,
   LOOP_N,
-  STATE,
+  READ_MEMORY,
   HASH,
   ERC20_BALANCE_OF,
   ERC20_TOTAL_SUPPLY,
@@ -59,3 +60,8 @@ export enum AllStandardOps {
 }
 
 export const Opcode = AllStandardOps;
+
+export const RainterpreterOps = {
+  ...AllStandardOps,
+  READ_STATE: "READ_STATE"
+}

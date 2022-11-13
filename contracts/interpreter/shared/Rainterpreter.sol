@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
+import "../ops/core/OpReadState.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 contract Rainterpreter is IInterpreterV1, RainInterpreter {
@@ -75,6 +76,29 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         (stackTop_, k_) = stackTop_.pop();
         stackTop_.push(state[msg.sender][StateNamespace.wrap(ns_)][k_]);
         return stackTop_;
+    }
+
+    function localIntegrityFunctionPointers()
+        internal
+        pure
+        virtual
+        returns (
+            function(IntegrityState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory
+        )
+    {
+        function(IntegrityState memory, Operand, StackTop)
+            view
+            returns (StackTop)[]
+            memory localPtrs_ = new function(
+                IntegrityState memory,
+                Operand,
+                StackTop
+            ) view returns (StackTop)[](1);
+        localPtrs_[0] = OpReadState.integrity;
+        return localPtrs_;
     }
 
     function localEvalFunctionPointers()
