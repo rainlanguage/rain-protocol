@@ -23,10 +23,10 @@ describe("RainInterpreter unchecked math", async () => {
     const constants = [max_uint256.div(2), 2];
 
     const vHalfMaxUInt256 = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vTwo = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vTwo = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -51,10 +51,10 @@ describe("RainInterpreter unchecked math", async () => {
     const constants = [max_uint256.div(2), 3];
 
     const vHalfMaxUInt256 = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vThree = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -78,8 +78,8 @@ describe("RainInterpreter unchecked math", async () => {
   it("should panic when accumulator underflows with subtraction op", async () => {
     const constants = [0, 1];
 
-    const vZero = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vZero = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([
@@ -103,8 +103,8 @@ describe("RainInterpreter unchecked math", async () => {
   it("should panic when accumulator overflows with addition op", async () => {
     const constants = [max_uint256, 1];
 
-    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vMaxUInt256 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const source0 = concat([

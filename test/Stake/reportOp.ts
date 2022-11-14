@@ -30,16 +30,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   // Passing context data in constants
   // prettier-ignore
   const source = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.CALLER), // address
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
     op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
   ]);
 
@@ -68,7 +68,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
@@ -556,16 +556,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // Passing context data in constants
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
       op(Opcode.ITIERV2_REPORT, thresholds0.length),
     ]);
 
@@ -580,16 +580,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // Passing context data in constants
     const source1 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.CALLER), // address
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
       op(Opcode.ITIERV2_REPORT, thresholds1.length),
     ]);
 

@@ -69,7 +69,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [0],

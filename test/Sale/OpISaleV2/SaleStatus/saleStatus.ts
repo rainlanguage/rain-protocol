@@ -27,7 +27,7 @@ describe("ISaleV2 SaleStatus tests", async function () {
 
   it("should return correct saleStatus", async () => {
     const SALE_ADDRESS = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([

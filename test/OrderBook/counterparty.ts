@@ -97,16 +97,16 @@ describe("OrderBook counterparty in context", async function () {
       carol.address,
     ];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vAskOutputMaxIfNotMatch = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const vExpectedCounterparty = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 3)
     );
 
@@ -150,10 +150,10 @@ describe("OrderBook counterparty in context", async function () {
     const bidPrice = fixedPointDiv(ONE, askPrice);
     const bidConstants = [max_uint256, bidPrice];
     const vBidOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -186,11 +186,11 @@ describe("OrderBook counterparty in context", async function () {
     const bidPriceCarol = fixedPointDiv(ONE, askPrice);
     const bidConstantsCarol = [max_uint256, bidPriceCarol];
     const vBidOutputMaxCarol = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vBidPriceCarol = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore

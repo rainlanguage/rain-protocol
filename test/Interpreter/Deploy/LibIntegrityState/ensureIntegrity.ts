@@ -85,9 +85,9 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
   });
 
   it("should fail integrity with OOB constant read", async function () {
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -128,9 +128,9 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
   });
 
   it("should ensure integrity with 1 source", async function () {
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [

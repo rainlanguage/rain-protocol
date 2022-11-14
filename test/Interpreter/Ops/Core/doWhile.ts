@@ -30,9 +30,9 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
       op(Opcode.DO_WHILE, 1), // Source is on index 1
     ]);
@@ -40,16 +40,16 @@ describe("DO_WHILE Opcode test", async function () {
     // prettier-ignore
     // The loop will end with an additional element on the stack
     const sourceExtra = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
     ]);
 
     // prettier-ignore
     // The loop will end with a missing element in the stack.
     const sourceMissing = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
     ]);
 
@@ -83,19 +83,19 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
       op(Opcode.DO_WHILE, 1), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.LESS_THAN),
     ]);
 
@@ -127,17 +127,17 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
       op(Opcode.DO_WHILE, 1), // Source is on index 1
     ]);
 
     // prettier-ignore
     // Will substract on every loop until get 0 in the stack
     const sourceSUB = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.SUB, 2),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
     await logic.initialize({
@@ -169,19 +169,19 @@ describe("DO_WHILE Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
       op(Opcode.DO_WHILE, 1), // Source is on index 1
     ]);
 
     // prettier-ignore
     const sourceADD = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.LESS_THAN),
     ]);
 
@@ -219,8 +219,8 @@ describe("DO_WHILE Opcode test", async function () {
 
     // The main source where flow the script
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       callCheckAcc,
       whileOP,
     ]);
@@ -230,18 +230,18 @@ describe("DO_WHILE Opcode test", async function () {
 
     // Source to check the accumalor (should be the stack top when called)
     const sourceCHECK_ACC = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
       op(Opcode.LESS_THAN),
     ]);
 
     // Source to increase the counter and accumalator
     const sourceIncrease = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.ADD, 2),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
       op(Opcode.ADD, 2),
     ]);
 

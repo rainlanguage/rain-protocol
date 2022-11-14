@@ -45,7 +45,7 @@ describe("AutoApprove afterAdd", async function () {
       sources: [
         concat([
           op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
       ],
@@ -107,7 +107,7 @@ describe("AutoApprove afterAdd", async function () {
       sources: [
         concat([
           op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
       ],
@@ -172,7 +172,7 @@ describe("AutoApprove afterAdd", async function () {
       sources: [
         concat([
           op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
       ],
@@ -228,7 +228,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const stateConfig: StateConfigStruct = {
-      sources: [op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
 
@@ -276,7 +276,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const stateConfig: StateConfigStruct = {
-      sources: [op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 

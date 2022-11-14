@@ -47,7 +47,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [
@@ -68,7 +68,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
@@ -78,7 +78,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [NEVER],
@@ -93,19 +93,19 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
 
     // prettier-ignore
     const vFuture = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vAlways = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
     // prettier-ignore
     const vNever = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -148,7 +148,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
@@ -158,7 +158,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [NEVER],
@@ -173,10 +173,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
     // prettier-ignore
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
       op(
@@ -221,10 +221,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'first' mod
     // prettier-ignore
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
       op(

@@ -48,7 +48,7 @@ describe("CombineTier ERC165 tests", async function () {
       combinedTiersLength: 0,
       sourceConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
@@ -59,7 +59,7 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -101,7 +101,7 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);

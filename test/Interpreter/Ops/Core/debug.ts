@@ -26,8 +26,8 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.Stack),
     ])];
@@ -43,8 +43,8 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StatePacked),
     ])];
@@ -61,15 +61,15 @@ describe("RainInterpreter debug op", async function () {
     // prettier-ignore
     const checkValue = concat([
       op(Opcode.DEBUG, Debug.Stack), // Should show the new stack
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.LESS_THAN),
     ]);
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
       op(Opcode.CALL, callOperand(1, 1, 1)),
       op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
@@ -88,19 +88,19 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
       op(Opcode.DO_WHILE, 1), // Source to run is on index 1
     ]);
 
     // prettier-ignore
     const sourceWHILE = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.LESS_THAN),
       op(Opcode.DEBUG, Debug.Stack),
     ]);
@@ -122,14 +122,14 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
         op(Opcode.DEBUG, Debug.Stack),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.LOOP_N, loopNOperand(n, 1))
     ]);
 

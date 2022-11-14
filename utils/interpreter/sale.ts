@@ -7,7 +7,7 @@ export const afterBlockNumberSource = (constant: number): Uint8Array => {
   return concat([
     // (BLOCK_NUMBER blockNumberSub1 gt)
       op(Opcode.BLOCK_NUMBER),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, constant)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, constant)),
     op(Opcode.GREATER_THAN),
   ]);
 };

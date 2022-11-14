@@ -52,12 +52,12 @@ describe("AutoApprove evidence data approved op", async function () {
             op(Opcode.CONTEXT, 0x0001),
               op(Opcode.EVIDENCE_DATA_APPROVED),
                 op(Opcode.BLOCK_TIMESTAMP),
-                op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
               op(Opcode.SUB, 2),
             op(Opcode.LESS_THAN),
 
             // else, allow any new evidence
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
 
           op(Opcode.EAGER_IF),
         ])],
@@ -144,8 +144,8 @@ describe("AutoApprove evidence data approved op", async function () {
         concat([
           op(Opcode.CONTEXT, 0x0001),
             op(Opcode.EVIDENCE_DATA_APPROVED),
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // deny
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // approve
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // deny
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // approve
           op(Opcode.EAGER_IF),
         ])],
       constants: [0, 1],

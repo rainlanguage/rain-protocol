@@ -24,9 +24,9 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.HASH, 3),
     ]);
     await logic.initialize({
@@ -82,7 +82,7 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.HASH, 1),
     ]);
     await logic.initialize({

@@ -84,10 +84,10 @@ describe("OrderBook bounty", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -126,10 +126,10 @@ describe("OrderBook bounty", async function () {
     const bidPrice = fixedPointDiv(ONE, askPrice.add(10 + eighteenZeros));
     const bidConstants = [max_uint256, bidPrice];
     const vBidOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,

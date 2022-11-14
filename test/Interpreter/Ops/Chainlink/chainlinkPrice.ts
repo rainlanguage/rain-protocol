@@ -49,8 +49,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
@@ -91,8 +91,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
@@ -127,8 +127,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
@@ -162,8 +162,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];

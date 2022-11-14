@@ -35,10 +35,10 @@ describe("IOrderBookV1 vault balance tests", async function () {
     fakeOrderBook.vaultBalance.returns(vaultBalance);
 
     const ORDERBOOK_ADDRESS = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const OWNER = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const TOKEN = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const ID = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const OWNER = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const TOKEN = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const ID = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sources = [concat([

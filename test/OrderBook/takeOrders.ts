@@ -81,10 +81,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [askOrderOutputMax, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -211,10 +211,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -371,10 +371,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -514,10 +514,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants0 = [0, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -655,10 +655,10 @@ describe("OrderBook take orders", async function () {
     const askConstants0 = [max_uint256, askPrice.add(1)]; // does exceed max ratio
     const askConstants1 = [max_uint256, askPrice]; // doesn't exceed max IO ratio
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -789,10 +789,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -910,10 +910,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -1091,10 +1091,10 @@ describe("OrderBook take orders", async function () {
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,

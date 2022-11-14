@@ -22,10 +22,10 @@ describe("ENSURE Opcode test", async function () {
   it("should execute the transaction if it passes the ensure opcode condition", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -94,10 +94,10 @@ describe("ENSURE Opcode test", async function () {
   it("should revert the transaction if it fails ensure opcode condition", async () => {
     const constants = [0, 1, 2, 3];
 
-    const v0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([

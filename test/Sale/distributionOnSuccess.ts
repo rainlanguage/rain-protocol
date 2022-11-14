@@ -68,9 +68,9 @@ describe("Sale distribution on successful sale", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vBasePrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
@@ -210,9 +210,9 @@ describe("Sale distribution on successful sale", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vBasePrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
