@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {IVerifyCallback, Evidence} from "../../../verify/IVerifyCallback.sol";
+import {IVerifyCallbackV1, Evidence} from "../../../verify/IVerifyCallbackV1.sol";
 
 // Test contract for testing Verify hooks after adding, approving, banning or
 // removing an account.
 // All logic here is for testing purposes and should not necessarily be used in
 // an actual Verify callback contract.
-contract VerifyCallbackTest is IVerifyCallback {
+contract VerifyCallbackTest is IVerifyCallbackV1 {
     /// Account => Boolean
     mapping(address => bool) public additions;
     mapping(address => bool) public approvals;
