@@ -1,7 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //// @ts-nocheck
 
-import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import type {
