@@ -38,7 +38,7 @@ describe("READ_MEMORY Opcode test", async function () {
     await logic.run();
     const result0 = await logic.stackTop();
     console.log(await logic.stack());
-    const expectedResult0 = ethers.BigNumber.from(1337);
+    const expectedResult0 = ethers.BigNumber.from(constants[2]);
     expect(result0).deep.equal(
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`

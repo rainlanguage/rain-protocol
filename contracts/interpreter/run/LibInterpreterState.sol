@@ -39,9 +39,9 @@ enum DebugStyle {
 /// stack by `VAL`.
 struct InterpreterState {
     StackTop stackBottom;
+    StackTop constantsBottom;
     uint[] stateChanges;
     StackTop stateChangesCursor;
-    StackTop constantsBottom;
     uint256[][] context;
     bytes[] compiledSources;
 }
