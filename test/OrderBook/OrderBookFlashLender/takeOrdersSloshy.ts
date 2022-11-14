@@ -20,23 +20,23 @@ import {
   TakeOrderEvent,
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { randomUint256 } from "../../utils/bytes";
+import { randomUint256 } from "../../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
   sixteenZeros,
-} from "../../utils/constants/bigNumber";
-import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { getEventArgs } from "../../utils/events";
+} from "../../../utils/constants/bigNumber";
+import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { getEventArgs } from "../../../utils/events";
 import {
   memoryOperand,
   MemoryType,
   op,
-} from "../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
-import { compareStructs } from "../../utils/test/compareStructs";
+} from "../../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
