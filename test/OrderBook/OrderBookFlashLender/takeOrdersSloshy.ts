@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
@@ -37,7 +40,7 @@ import { compareStructs } from "../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook sloshy tests", async function () {
+describe("OrderBook sloshy takeOrders tests", async function () {
   let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
@@ -230,7 +233,7 @@ describe("OrderBook sloshy tests", async function () {
     await orderBook.connect(alice).withdraw({
       token: USDT.address,
       vaultId: vaultAlice,
-      amount: threshold,
+      amount: max_uint256, // takes entire vault balance
     });
     const aliceUSDTBalance = await USDT.balanceOf(alice.address);
     const aliceDAIBalance = await DAI.balanceOf(alice.address);
@@ -309,10 +312,8 @@ describe("OrderBook sloshy tests", async function () {
     await USDT.transfer(uni.address, amountUniUSDT);
 
     // 3.1 bob transfering 1 DAI to uni
-    await DAI.connect(bob).approve(uni.address, amountDAI);
     await DAI.connect(bob).transfer(uni.address, amountDAI);
     // 3.2 bob receiving 1.02 USDT from uni
-    await USDT.connect(uni).approve(bob.address, amountUniUSDT);
     await USDT.connect(uni).transfer(bob.address, amountUniUSDT);
 
     // 4. bob takes alice's order (bob sells his 1.01 USDT to alice for 1 DAI)
@@ -359,7 +360,7 @@ describe("OrderBook sloshy tests", async function () {
     await orderBook.connect(alice).withdraw({
       token: USDT.address,
       vaultId: vaultAlice,
-      amount: threshold,
+      amount: max_uint256, // takes entire vault balance
     });
     const aliceUSDTBalance = await USDT.balanceOf(alice.address);
     const aliceDAIBalance = await DAI.balanceOf(alice.address);

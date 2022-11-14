@@ -1,4 +1,5 @@
-pragma solidity ^0.7.0 || ^0.8.0;
+// SPDX-License-Identifier: CAL
+pragma solidity ^0.8.0;
 
 interface IERC3156FlashBorrower {
     /**
