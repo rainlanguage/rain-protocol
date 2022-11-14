@@ -37,12 +37,12 @@ describe("FlowERC721 signed context tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -141,12 +141,12 @@ describe("FlowERC721 signed context tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_ERC721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

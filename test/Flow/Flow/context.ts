@@ -120,9 +120,9 @@ describe("Flow context tests", async function () {
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      CONTEXT_FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
+      // op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
+      // CONTEXT_FLOW_TIME(),
+      // op(Opcode.DEBUG, Debug.StatePacked),
 
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -134,18 +134,18 @@ describe("Flow context tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
       ME(),
       YOU(),
-          CONTEXT_FLOW_TIME(),
-        op(Opcode.ISZERO),
-        FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(),
-            op(Opcode.BLOCK_TIMESTAMP),
-              CONTEXT_FLOW_TIME(),
-              ONE_DAY(),
-            op(Opcode.ADD, 2),
-          op(Opcode.LESS_THAN), // is current timestamp within 24 hour window?
-          FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduced
+        //   CONTEXT_FLOW_TIME(),
+        // op(Opcode.ISZERO),
+        // FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(),
+        //     op(Opcode.BLOCK_TIMESTAMP),
+        //       CONTEXT_FLOW_TIME(),
+        //       ONE_DAY(),
+        //     op(Opcode.ADD, 2),
+        //   op(Opcode.LESS_THAN), // is current timestamp within 24 hour window?
+        //   FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduced
           FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(), // else full
-        op(Opcode.EAGER_IF),
-      op(Opcode.EAGER_IF),
+        // op(Opcode.EAGER_IF),
+      // op(Opcode.EAGER_IF),
       // 1) if no flow time, default amount
       // 2) else if within 24 hours of last flow time, throttle amount
       // 3) else default amount
@@ -196,11 +196,12 @@ describe("Flow context tests", async function () {
 
     console.log("FLOW 0");
 
-    const flowStruct0 = await flow
-      .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+    await flow.connect(you).previewFlow(flowInitialized[0].dispatch, 1234, []);
+    // const flowStruct0 = await flow
+    //   .connect(you)
+    //   .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
-    compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
+    // compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
 
     // const _txFlow0 = await flow
     //   .connect(you)

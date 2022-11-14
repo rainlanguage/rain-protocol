@@ -88,14 +88,14 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const TOKEN_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -271,17 +271,17 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const TOKEN_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWIO_INPUT_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWIO_OUTPUT_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIOMint = concat([
       SENTINEL(),
@@ -521,21 +521,21 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -716,24 +716,24 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -898,21 +898,21 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1055,20 +1055,20 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1234,24 +1234,24 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -1426,21 +1426,21 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1605,20 +1605,20 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
@@ -1761,15 +1761,15 @@ describe("FlowERC721 flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1882,11 +1882,11 @@ describe("FlowERC721 flow tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const SENTINEL_721 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const CAN_TRANSFER = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

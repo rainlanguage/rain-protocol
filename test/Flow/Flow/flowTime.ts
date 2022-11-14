@@ -74,15 +74,15 @@ describe("Flow flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
