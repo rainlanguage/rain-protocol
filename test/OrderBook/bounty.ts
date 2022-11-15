@@ -6,40 +6,40 @@ import type {
   OrderBook,
   Rainterpreter,
   RainterpreterExpressionDeployer,
+  ReserveToken18,
 } from "../../typechain";
-import type { ReserveToken18 } from "../../typechain";
 import {
+  AddOrderEvent,
   AfterClearEvent,
   ClearConfigStruct,
+  ClearEvent,
+  ClearStateChangeStruct,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
-  AddOrderEvent,
-  ClearEvent,
-  ClearStateChangeStruct,
   WithdrawConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
+import { randomUint256 } from "../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
-  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
-import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
+import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
 
@@ -72,12 +72,12 @@ describe("OrderBook bounty", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -102,7 +102,6 @@ describe("OrderBook bounty", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -145,7 +144,6 @@ describe("OrderBook bounty", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);

@@ -7,6 +7,7 @@ import {
   DepositConfigStruct,
   DepositEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
+import { randomUint256 } from "../../utils/bytes";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs } from "../../utils/events";
@@ -36,8 +37,8 @@ describe("OrderBook vault deposit", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobOutputVault = ethers.BigNumber.from(2);
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
     const amountA = ethers.BigNumber.from("1000" + eighteenZeros);

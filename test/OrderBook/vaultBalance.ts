@@ -3,6 +3,7 @@ import { ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import type { OrderBook, ReserveToken18 } from "../../typechain";
 import { DepositConfigStruct } from "../../typechain/contracts/orderbook/OrderBook";
+import { randomUint256 } from "../../utils/bytes";
 import { eighteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 
@@ -29,8 +30,8 @@ describe("OrderBook vaultBalance", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
     const amountB = ethers.BigNumber.from("500" + eighteenZeros);

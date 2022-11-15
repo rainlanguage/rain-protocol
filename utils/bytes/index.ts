@@ -4,6 +4,14 @@ import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
 /**
+ * Creates a random 20 byte address.
+ * @returns A DataHexString of typical address length
+ */
+export function randomAddress() {
+  return hexlify(ethers.BigNumber.from(ethers.utils.randomBytes(20)));
+}
+
+/**
  * Returns a DataHexString representation of a slice of aBytesLike, from offset (in bytes) to endOffset (in bytes). If endOffset is omitted, the length of aBytesLike is used.
  * @see https://docs.ethers.io/v5/api/utils/bytes/#utils-hexDataSlice
  */

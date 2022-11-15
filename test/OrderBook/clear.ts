@@ -9,6 +9,7 @@ import type {
   ReserveToken18,
 } from "../../typechain";
 import {
+  AddOrderEvent,
   AfterClearEvent,
   ClearConfigStruct,
   ClearEvent,
@@ -16,19 +17,17 @@ import {
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
-  AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
+import { randomUint256 } from "../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
-  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
-import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
   memoryOperand,
   MemoryType,
@@ -73,12 +72,12 @@ describe("OrderBook clear order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -103,7 +102,6 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -142,7 +140,6 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -242,12 +239,12 @@ describe("OrderBook clear order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -272,7 +269,6 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -311,7 +307,6 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -402,432 +397,6 @@ describe("OrderBook clear order", async function () {
     );
   });
 
-  it("orders should expire (order B)", async function () {
-    const signers = await ethers.getSigners();
-
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
-
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
-
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
-
-    // ASK ORDER
-
-    const expiresAfter = (await getBlockTimestamp()) + 100;
-
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskPrice,
-    ]);
-    const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      interpreterStateConfig: {
-        sources: [askSource],
-        constants: askConstants,
-      },
-      expiresAfter: max_uint32,
-    };
-
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
-
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
-      txAskAddOrder,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
-
-    // BID ORDER
-
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidPrice,
-    ]);
-    const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      interpreterStateConfig: {
-        sources: [bidSource],
-        constants: bidConstants,
-      },
-      expiresAfter,
-    };
-
-    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
-
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
-      txBidAddOrder,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-
-    assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
-
-    // DEPOSITS
-
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
-    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
-
-    await tokenB.transfer(alice.address, amountB);
-    await tokenA.transfer(bob.address, amountA);
-
-    const depositConfigStructAlice: DepositConfigStruct = {
-      token: tokenB.address,
-      vaultId: aliceOutputVault,
-      amount: amountB,
-    };
-    const depositConfigStructBob: DepositConfigStruct = {
-      token: tokenA.address,
-      vaultId: bobOutputVault,
-      amount: amountA,
-    };
-
-    await tokenB
-      .connect(alice)
-      .approve(orderBook.address, depositConfigStructAlice.amount);
-    await tokenA
-      .connect(bob)
-      .approve(orderBook.address, depositConfigStructBob.amount);
-
-    // Alice deposits tokenB into her output vault
-    const txDepositOrderAlice = await orderBook
-      .connect(alice)
-      .deposit(depositConfigStructAlice);
-    // Bob deposits tokenA into his output vault
-    const txDepositOrderBob = await orderBook
-      .connect(bob)
-      .deposit(depositConfigStructBob);
-
-    const { sender: depositAliceSender, config: depositAliceConfig } =
-      (await getEventArgs(
-        txDepositOrderAlice,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-    const { sender: depositBobSender, config: depositBobConfig } =
-      (await getEventArgs(
-        txDepositOrderBob,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-
-    assert(depositAliceSender === alice.address);
-    compareStructs(depositAliceConfig, depositConfigStructAlice);
-    assert(depositBobSender === bob.address);
-    compareStructs(depositBobConfig, depositConfigStructBob);
-
-    // BOUNTY BOT CLEARS THE ORDER
-
-    const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
-    };
-
-    // can still clear
-
-    await orderBook.connect(bountyBot).clear(askConfig, bidConfig, clearConfig);
-
-    await timewarp(100);
-
-    // DEPOSIT AGAIN
-
-    await tokenB.transfer(alice.address, amountB);
-    await tokenA.transfer(bob.address, amountA);
-
-    await tokenB
-      .connect(alice)
-      .approve(orderBook.address, depositConfigStructAlice.amount);
-    await tokenA
-      .connect(bob)
-      .approve(orderBook.address, depositConfigStructBob.amount);
-
-    // Alice deposits tokenB into her output vault
-    const txDepositOrderAlice1 = await orderBook
-      .connect(alice)
-      .deposit(depositConfigStructAlice);
-    // Bob deposits tokenA into his output vault
-    const txDepositOrderBob1 = await orderBook
-      .connect(bob)
-      .deposit(depositConfigStructBob);
-
-    const { sender: depositAliceSender1, config: depositAliceConfig1 } =
-      (await getEventArgs(
-        txDepositOrderAlice1,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-    const { sender: depositBobSender1, config: depositBobConfig1 } =
-      (await getEventArgs(
-        txDepositOrderBob1,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-
-    assert(depositAliceSender1 === alice.address);
-    compareStructs(depositAliceConfig1, depositConfigStructAlice);
-    assert(depositBobSender1 === bob.address);
-    compareStructs(depositBobConfig1, depositConfigStructBob);
-
-    await assertError(
-      async () =>
-        await orderBook
-          .connect(bountyBot)
-          .clear(askConfig, bidConfig, clearConfig),
-      "B_EXPIRED",
-      "did not expire bid order"
-    );
-  });
-
-  it("orders should expire (order A)", async function () {
-    const signers = await ethers.getSigners();
-
-    const alice = signers[1];
-    const bob = signers[2];
-    const bountyBot = signers[3];
-
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
-
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
-
-    // ASK ORDER
-
-    const expiresAfter = (await getBlockTimestamp()) + 100;
-
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vAskPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskPrice,
-    ]);
-    const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
-      interpreterStateConfig: {
-        sources: [askSource],
-        constants: askConstants,
-      },
-      expiresAfter,
-    };
-
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
-
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
-      txAskAddOrder,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
-
-    // BID ORDER
-
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
-    const vBidOutputMax = op(
-      Opcode.STATE,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const vBidPrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidPrice,
-    ]);
-    const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
-      interpreterStateConfig: {
-        sources: [bidSource],
-        constants: bidConstants,
-      },
-      expiresAfter: max_uint32,
-    };
-
-    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
-
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
-      txBidAddOrder,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-
-    assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
-
-    // DEPOSITS
-
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
-    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
-
-    await tokenB.transfer(alice.address, amountB);
-    await tokenA.transfer(bob.address, amountA);
-
-    const depositConfigStructAlice: DepositConfigStruct = {
-      token: tokenB.address,
-      vaultId: aliceOutputVault,
-      amount: amountB,
-    };
-    const depositConfigStructBob: DepositConfigStruct = {
-      token: tokenA.address,
-      vaultId: bobOutputVault,
-      amount: amountA,
-    };
-
-    await tokenB
-      .connect(alice)
-      .approve(orderBook.address, depositConfigStructAlice.amount);
-    await tokenA
-      .connect(bob)
-      .approve(orderBook.address, depositConfigStructBob.amount);
-
-    // Alice deposits tokenB into her output vault
-    const txDepositOrderAlice = await orderBook
-      .connect(alice)
-      .deposit(depositConfigStructAlice);
-    // Bob deposits tokenA into his output vault
-    const txDepositOrderBob = await orderBook
-      .connect(bob)
-      .deposit(depositConfigStructBob);
-
-    const { sender: depositAliceSender, config: depositAliceConfig } =
-      (await getEventArgs(
-        txDepositOrderAlice,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-    const { sender: depositBobSender, config: depositBobConfig } =
-      (await getEventArgs(
-        txDepositOrderBob,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-
-    assert(depositAliceSender === alice.address);
-    compareStructs(depositAliceConfig, depositConfigStructAlice);
-    assert(depositBobSender === bob.address);
-    compareStructs(depositBobConfig, depositConfigStructBob);
-
-    // BOUNTY BOT CLEARS THE ORDER
-
-    const clearConfig: ClearConfigStruct = {
-      aInputIOIndex: 0,
-      aOutputIOIndex: 0,
-      bInputIOIndex: 0,
-      bOutputIOIndex: 0,
-      aBountyVaultId: bountyBotVaultA,
-      bBountyVaultId: bountyBotVaultB,
-    };
-
-    // can still clear
-
-    await orderBook.connect(bountyBot).clear(askConfig, bidConfig, clearConfig);
-
-    await timewarp(100);
-
-    // DEPOSIT AGAIN
-
-    await tokenB.transfer(alice.address, amountB);
-    await tokenA.transfer(bob.address, amountA);
-
-    await tokenB
-      .connect(alice)
-      .approve(orderBook.address, depositConfigStructAlice.amount);
-    await tokenA
-      .connect(bob)
-      .approve(orderBook.address, depositConfigStructBob.amount);
-
-    // Alice deposits tokenB into her output vault
-    const txDepositOrderAlice1 = await orderBook
-      .connect(alice)
-      .deposit(depositConfigStructAlice);
-    // Bob deposits tokenA into his output vault
-    const txDepositOrderBob1 = await orderBook
-      .connect(bob)
-      .deposit(depositConfigStructBob);
-
-    const { sender: depositAliceSender1, config: depositAliceConfig1 } =
-      (await getEventArgs(
-        txDepositOrderAlice1,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-    const { sender: depositBobSender1, config: depositBobConfig1 } =
-      (await getEventArgs(
-        txDepositOrderBob1,
-        "Deposit",
-        orderBook
-      )) as DepositEvent["args"];
-
-    assert(depositAliceSender1 === alice.address);
-    compareStructs(depositAliceConfig1, depositConfigStructAlice);
-    assert(depositBobSender1 === bob.address);
-    compareStructs(depositBobConfig1, depositConfigStructBob);
-
-    await assertError(
-      async () =>
-        await orderBook
-          .connect(bountyBot)
-          .clear(askConfig, bidConfig, clearConfig),
-      "A_EXPIRED",
-      "did not expire ask order"
-    );
-  });
-
   it("should validate input/output tokens", async function () {
     const signers = await ethers.getSigners();
 
@@ -837,12 +406,12 @@ describe("OrderBook clear order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -867,7 +436,6 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -906,7 +474,6 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -1031,12 +598,12 @@ describe("OrderBook clear order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -1061,7 +628,6 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -1100,7 +666,6 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook
@@ -1200,12 +765,12 @@ describe("OrderBook clear order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
-    const bountyBotVaultA = ethers.BigNumber.from(1);
-    const bountyBotVaultB = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -1230,7 +795,6 @@ describe("OrderBook clear order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -1269,7 +833,6 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);

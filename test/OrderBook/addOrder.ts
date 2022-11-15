@@ -12,10 +12,10 @@ import {
   OrderConfigStruct,
   AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
+import { randomUint256 } from "../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
-  max_uint32,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -59,10 +59,10 @@ describe("OrderBook add order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
-    const bobInputVault = ethers.BigNumber.from(1);
-    const bobOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     // ASK ORDER
 
@@ -87,7 +87,6 @@ describe("OrderBook add order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
@@ -126,7 +125,6 @@ describe("OrderBook add order", async function () {
         sources: [bidSource],
         constants: bidConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);

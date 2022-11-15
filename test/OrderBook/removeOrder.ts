@@ -9,15 +9,12 @@ import type {
   ReserveToken18,
 } from "../../typechain";
 import {
+  AddOrderEvent,
   OrderConfigStruct,
   RemoveOrderEvent,
-  AddOrderEvent,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import {
-  eighteenZeros,
-  max_uint256,
-  max_uint32,
-} from "../../utils/constants/bigNumber";
+import { randomUint256 } from "../../utils/bytes";
+import { eighteenZeros, max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -60,8 +57,8 @@ describe("OrderBook remove order", async function () {
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(1);
-    const aliceOutputVault = ethers.BigNumber.from(2);
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
     const askConstants = [max_uint256, askPrice];
@@ -84,7 +81,6 @@ describe("OrderBook remove order", async function () {
         sources: [askSource],
         constants: askConstants,
       },
-      expiresAfter: max_uint32,
     };
 
     const txAskAddOrder = await orderBook
