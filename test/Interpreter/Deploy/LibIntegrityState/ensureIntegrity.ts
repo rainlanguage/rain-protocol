@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import type { LibIntegrityStateTest } from "../../../../typechain";
-import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/run/RainInterpreter";
 import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import {
   memoryOperand,
@@ -27,10 +26,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
       new Uint8Array(),
     ];
 
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
     const constantsLength = 0;
     const sourceIndex = 1;
     const stackTop = 0;
@@ -38,7 +33,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -57,10 +51,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
       ]),
     ];
 
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
     const constantsLength = 0;
     const sourceIndex = 0;
     const stackTop = 0;
@@ -68,7 +58,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -100,10 +89,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
       ]),
     ];
 
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
     const constantsLength = 2;
     const sourceIndex = 0;
     const stackTop = 0;
@@ -111,7 +96,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -143,10 +127,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
       ]),
     ];
 
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
     const constantsLength = 3;
     const sourceIndex = 0;
     const stackTop = 0;
@@ -154,7 +134,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const _stackTop_ = await libIntegrityState.callStatic.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -163,7 +142,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const tx_ = await libIntegrityState.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -182,10 +160,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
   it("should ensure integrity of when final stack top less than minimum", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const sourceIndex = 0;
     const stackTop = 0;
@@ -193,7 +168,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -212,10 +186,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
   it("should ensure integrity of very basic IntegrityState", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const sourceIndex = 0;
     const stackTop = 0;
@@ -223,7 +194,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const stackTop_ = await libIntegrityState.callStatic.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,
@@ -232,7 +202,6 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
 
     const tx_ = await libIntegrityState.ensureIntegrityTest(
       sources,
-      storageOpcodesRange,
       constantsLength,
       sourceIndex,
       stackTop,

@@ -6,20 +6,16 @@ import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/Co
 import { ImplementationEvent as ImplementationEventCombineTierFactory } from "../../../../typechain/contracts/tier/CombineTierFactory";
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
-import { standardIntegrityDeploy } from "../../interpreter/integrity/standardIntegrity/deploy";
 
 export const combineTierDeploy = async (
   deployer: SignerWithAddress,
   config: CombineTierConfigStruct
 ) => {
-  const integrity = await standardIntegrityDeploy();
-
   const combineTierFactoryFactory = await ethers.getContractFactory(
     "CombineTierFactory"
   );
-  const combineTierFactory = (await combineTierFactoryFactory.deploy(
-    integrity.address
-  )) as CombineTierFactory;
+  const combineTierFactory =
+    (await combineTierFactoryFactory.deploy()) as CombineTierFactory;
   await combineTierFactory.deployed();
 
   const { implementation } = (await getEventArgs(

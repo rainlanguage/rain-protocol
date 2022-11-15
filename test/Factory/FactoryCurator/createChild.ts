@@ -30,6 +30,8 @@ import {
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -470,12 +472,19 @@ describe("FactoryCurator createChild", async function () {
     op(Opcode.EAGER_IF)
   ]);
 
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake0.address, stake1.address, max_uint32],
       },
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
     })) as CombineTier;
 
     const FEE = 100 + sixZeros;

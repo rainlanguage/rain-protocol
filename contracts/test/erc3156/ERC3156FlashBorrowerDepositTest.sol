@@ -24,11 +24,11 @@ contract ERC3156FlashBorrowerDepositTest is IERC3156FlashBorrower {
     ) external returns (bytes32) {
         DepositConfig memory depositConfig = abi.decode(data_, (DepositConfig));
 
-        // deposit the flash loan
-        OrderBook(msg.sender).deposit(depositConfig);
-
         // approve orderbook transfer
         IERC20(token_).approve(msg.sender, amount_);
+
+        // deposit the flash loan
+        OrderBook(msg.sender).deposit(depositConfig);
 
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }

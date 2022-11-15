@@ -35,7 +35,7 @@ describe("OrderBook flash loan deposit tests", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  xit("should not allow depositing flash loan without paying it back", async function () {
+  it("should not allow depositing flash loan without paying it back", async function () {
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const vaultBot = ethers.BigNumber.from(randomUint256());

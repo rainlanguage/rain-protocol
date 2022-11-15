@@ -3,21 +3,17 @@ import { ethers } from "hardhat";
 import type { RedeemableERC20ClaimEscrow } from "../../../../typechain";
 import { RedeemableERC20ClaimEscrowWrapper } from "../../../../typechain";
 import { SaleConstructorConfigStruct } from "../../../../typechain/contracts/sale/Sale";
-import { standardIntegrityDeploy } from "../../interpreter/integrity/standardIntegrity/deploy";
 import { redeemableERC20FactoryDeploy } from "../../redeemableERC20/redeemableERC20Factory/deploy";
 import { saleFactoryDeploy } from "../../sale/saleFactory/deploy";
 import { readWriteTierDeploy } from "../../tier/readWriteTier/deploy";
 
 export const escrowDeploy = async () => {
-  const integrity = await standardIntegrityDeploy();
   const readWriteTier = await readWriteTierDeploy();
   const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
 
   const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 1000,
-    maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    interpreterIntegrity: integrity.address,
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);
