@@ -33,11 +33,8 @@ library LibSeed {
     /// @param val_ Can be literally any uint as the hashing will ensure the
     /// returned seed is unpredictable.
     /// @return newSeed_ The result of applying `val_` to `seed_`.
-    function with(
-        Seed seed_,
-        uint256 val_
-    ) internal pure returns (Seed newSeed_) {
-        newSeed_ = Seed.wrap(uint256(keccak256(abi.encodePacked(seed_, val_))));
+    function with(Seed seed_, uint256 val_) internal pure returns (Seed) {
+        return Seed.wrap(uint256(keccak256(abi.encodePacked(seed_, val_))));
     }
 }
 
@@ -46,8 +43,8 @@ library LibCommitment {
     /// @param a_ First commitment to compare.
     /// @param b_ Second commitment to compare.
     /// @return eq_ True if a_ equals b_, else false.
-    function eq(Commitment a_, Commitment b_) internal pure returns (bool eq_) {
-        eq_ = Commitment.unwrap(a_) == Commitment.unwrap(b_);
+    function eq(Commitment a_, Commitment b_) internal pure returns (bool) {
+        return Commitment.unwrap(a_) == Commitment.unwrap(b_);
     }
 
     /// Build the commitment for a secret.
@@ -61,20 +58,16 @@ library LibCommitment {
     /// DO NOT REUSE SECRETS, GENERATE A NEW ONE FOR EVERY COMMITMENT.
     /// Of course, you MAY send a secret if and only if it is being revealed as
     /// part of a dance.
-    function fromSecret(
-        Secret secret_
-    ) internal pure returns (Commitment commitment_) {
-        commitment_ = Commitment.wrap(
-            uint256(keccak256(abi.encodePacked(secret_)))
-        );
+    function fromSecret(Secret secret_) internal pure returns (Commitment) {
+        return Commitment.wrap(uint256(keccak256(abi.encodePacked(secret_))));
     }
 
     /// The nil valued commitment.
     /// No secret can match this commitment, or at least probably nobody knows
     /// the secret that does match this commitment.
     /// @return nil_ Nil valued commitment.
-    function nil() internal pure returns (Commitment nil_) {
-        nil_ = Commitment.wrap(0);
+    function nil() internal pure returns (Commitment) {
+        return Commitment.wrap(0);
     }
 }
 
