@@ -2,7 +2,7 @@ import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
@@ -50,18 +50,20 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
+    const { flow } = await flowDeploy(
       deployer,
       flowFactory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+  
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
+    
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
     const goodSignature0 = await goodSigner.signMessage(arrayify(hash0));
@@ -85,7 +87,7 @@ describe("Flow signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowExpressions[0].expressionAddress, 1234, signedContexts0);
+      .flow(flowInitialized[0].dispatch, 1234, signedContexts0);
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -107,7 +109,7 @@ describe("Flow signed context tests", async function () {
         await flow
           .connect(goodSigner)
           .flow(
-            flowExpressions[0].expressionAddress,
+            flowInitialized[0].dispatch,
             1234,
             signedContexts1,
             {}
@@ -142,17 +144,17 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
+    const { flow } = await flowDeploy(
       deployer,
       flowFactory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const context = [1, 2, 3];
     const hash = solidityKeccak256(["uint256[]"], [context]);
@@ -169,7 +171,7 @@ describe("Flow signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowExpressions[0].expressionAddress, 1234, signedContexts0);
+      .flow(flowInitialized[0].dispatch, 1234, signedContexts0);
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
@@ -186,7 +188,7 @@ describe("Flow signed context tests", async function () {
         await flow
           .connect(goodSigner)
           .flow(
-            flowExpressions[0].expressionAddress,
+            flowInitialized[0].dispatch,
             1234,
             signedContexts1,
             {}

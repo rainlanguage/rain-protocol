@@ -5,7 +5,6 @@ import { ethers } from "hardhat";
 import { FlowFactory, ReserveToken18 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
@@ -20,12 +19,12 @@ import {
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { AllStandardOps, RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
-const Opcode = AllStandardOps;
+const Opcode = RainterpreterOps;
 
 describe("Flow context tests", async function () {
   let flowFactory: FlowFactory;
@@ -116,13 +115,18 @@ describe("Flow context tests", async function () {
     const ONE_DAY = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
 
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
     const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      // op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      // CONTEXT_FLOW_TIME(),
-      // op(Opcode.DEBUG, Debug.StatePacked),
+      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value
+      CONTEXT_FLOW_ID(), // Key
+      op(Opcode.CHANGE_STATE),
+      
+      CONTEXT_FLOW_ID(), // Key
+      op(Opcode.READ_STATE),
+      op(Opcode.DEBUG, Debug.StatePacked),
 
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -165,25 +169,13 @@ describe("Flow context tests", async function () {
       ],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
-      flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
-    
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
-
-    console.log("FlowInitialized event = \n", flowInitialized);
 
     const me = flow;
 
@@ -197,52 +189,56 @@ describe("Flow context tests", async function () {
     console.log("FLOW 0");
 
     await flow.connect(you).previewFlow(flowInitialized[0].dispatch, 1234, []);
-    // const flowStruct0 = await flow
-    //   .connect(you)
-    //   .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+    const flowStruct0 = await flow
+      .connect(you)
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
-    // compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
-    // const _txFlow0 = await flow
-    //   .connect(you)
-    //   .flow(flowInitialized[0].dispatch, 1234, []);
+    compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
 
-    // const meBalanceIn0 = await erc20In.balanceOf(me.address);
-    // const meBalanceOut0 = await erc20Out.balanceOf(me.address);
-    // const youBalanceIn0 = await erc20In.balanceOf(you.address);
-    // const youBalanceOut0 = await erc20Out.balanceOf(you.address);
+    const _txFlow0 = await flow
+      .connect(you)
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
-    // for (const erc20Transfer0 of flowStruct0.erc20) {
-    //   if (erc20Transfer0.to == me.address) {
-    //     assert(
-    //       meBalanceIn0.eq(erc20Transfer0.amount),
-    //       `wrong balance for me (flow contract)
-    //       expected  ${erc20Transfer0.amount}
-    //       got       ${meBalanceIn0}`
-    //     );
-    //   } else if (erc20Transfer0.to == you.address) {
-    //     assert(
-    //       youBalanceOut0.eq(erc20Transfer0.amount),
-    //       `wrong balance for you (signer1 contract)
-    //       expected  ${erc20Transfer0.amount}
-    //       got       ${youBalanceOut0}`
-    //     );
-    //   }
-    // }
+    const meBalanceIn0 = await erc20In.balanceOf(me.address);
+    const meBalanceOut0 = await erc20Out.balanceOf(me.address);
+    const youBalanceIn0 = await erc20In.balanceOf(you.address);
+    const youBalanceOut0 = await erc20Out.balanceOf(you.address);
 
-    // assert(
-    //   meBalanceOut0.eq(BigNumber.from(0)),
-    //   `wrong balance for me (flow contract)
-    //   expected  ${0}
-    //   got       ${meBalanceOut0}`
-    // );
+    for (const erc20Transfer0 of flowStruct0.erc20) {
+      if (erc20Transfer0.to == me.address) {
+        assert(
+          meBalanceIn0.eq(erc20Transfer0.amount),
+          `wrong balance for me (flow contract)
+          expected  ${erc20Transfer0.amount}
+          got       ${meBalanceIn0}`
+        );
+      } else if (erc20Transfer0.to == you.address) {
+        assert(
+          youBalanceOut0.eq(erc20Transfer0.amount),
+          `wrong balance for you (signer1 contract)
+          expected  ${erc20Transfer0.amount}
+          got       ${youBalanceOut0}`
+        );
+      }
+    }
 
-    // assert(
-    //   youBalanceIn0.eq(BigNumber.from(0)),
-    //   `wrong balance for me (flow contract)
-    //   expected  ${0}
-    //   got       ${youBalanceIn0}`
-    // );
+    assert(
+      meBalanceOut0.eq(BigNumber.from(0)),
+      `wrong balance for me (flow contract)
+      expected  ${0}
+      got       ${meBalanceOut0}`
+    );
+
+    assert(
+      youBalanceIn0.eq(BigNumber.from(0)),
+      `wrong balance for me (flow contract)
+      expected  ${0}
+      got       ${youBalanceIn0}`
+    );
 
     // // next flow (reduced amount)
 
@@ -261,7 +257,11 @@ describe("Flow context tests", async function () {
 
     // const flowStruct1 = await flow
     //   .connect(you)
-    //   .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+    //   .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    // await flow
+    //   .connect(you)
+    //   .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     // compareStructs(
     //   flowStruct1,
@@ -270,7 +270,7 @@ describe("Flow context tests", async function () {
 
     // const _txFlow1 = await flow
     //   .connect(you)
-    //   .flow(flowExpressions[0].expressionAddress, 1234, []);
+    //   .flow(flowInitialized[0].dispatch, 1234, []);
 
     // const meBalanceIn1 = await erc20In.balanceOf(me.address);
     // const meBalanceOut1 = await erc20Out.balanceOf(me.address);
@@ -326,13 +326,17 @@ describe("Flow context tests", async function () {
 
     // const flowStruct2 = await flow
     //   .connect(you)
-    //   .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+    //   .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    // await flow
+    //   .connect(you)
+    //   .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     // compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
 
     // const _txFlow2 = await flow
     //   .connect(you)
-    //   .flow(flowExpressions[0].expressionAddress, 1234, []);
+    //   .flow(flowInitialized[0].dispatch, 1234, []);
 
     // const meBalanceIn2 = await erc20In.balanceOf(me.address);
     // const meBalanceOut2 = await erc20Out.balanceOf(me.address);
@@ -462,17 +466,13 @@ describe("Flow context tests", async function () {
   //     ],
   //   };
 
-  //   const { flow, expressionDeployer } = await flowDeploy(
-  //     deployer,
-  //     flowFactory,
-  //     flowConfigStruct
-  //   );
+  //   const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-  //   const flowExpressions = (await getEvents(
+  //   const flowInitialized = (await getEvents(
   //     flow.deployTransaction,
-  //     "DeployExpression",
-  //     expressionDeployer
-  //   )) as DeployExpressionEvent["args"][];
+  //     "FlowInitialized",
+  //     flow
+  //   )) as FlowInitializedEvent["args"][];
 
   //   const me = flow;
 
@@ -485,13 +485,17 @@ describe("Flow context tests", async function () {
 
   //   const flowStruct0 = await flow
   //     .connect(you)
-  //     .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+  //     .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+  //   await flow
+  //     .connect(you)
+  //     .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
   //   compareStructs(flowStruct0, fillEmptyAddress(flowTransfer, flow.address));
 
   //   const _txFlow0 = await flow
   //     .connect(you)
-  //     .flow(flowExpressions[0].expressionAddress, 1234, []);
+  //     .flow(flowInitialized[0].dispatch, 1234, []);
 
   //   const meBalanceIn0 = await erc20In.balanceOf(me.address);
   //   const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -532,9 +536,7 @@ describe("Flow context tests", async function () {
 
   //   await assertError(
   //     async () =>
-  //       await flow
-  //         .connect(you)
-  //         .flow(flowExpressions[0].expressionAddress, 1234, []),
+  //       await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
   //     "Transaction reverted without a reason string",
   //     "did not prevent flow when a flow time already registered"
   //   );

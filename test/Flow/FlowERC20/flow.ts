@@ -10,7 +10,7 @@ import {
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowERC20IOStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
@@ -150,7 +150,6 @@ describe("FlowERC20 flow tests", async function () {
 
     const {
       flow: flowCanTransfer,
-      expressionDeployer: expressionDeployerCanTransfer,
     } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
@@ -158,33 +157,32 @@ describe("FlowERC20 flow tests", async function () {
     );
     const {
       flow: flowCannotTransfer,
-      expressionDeployer: expressionDeployerCannotTransfer,
     } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStructCannotTransfer
     );
 
-    const flowExpressionsCanTransfer = (await getEvents(
+    const flowInitializedCanTransfer = (await getEvents(
       flowCanTransfer.deployTransaction,
-      "DeployExpression",
-      expressionDeployerCanTransfer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flowCanTransfer
+    )) as FlowInitializedEvent["args"][];
+    
     const flowExpressionsCannotTransfer = (await getEvents(
       flowCannotTransfer.deployTransaction,
-      "DeployExpression",
-      expressionDeployerCannotTransfer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flowCannotTransfer
+    )) as FlowInitializedEvent["args"][];
 
     const signerReceiver = signers[2];
-
     const _txFlowCanTransfer = await flowCanTransfer
       .connect(you)
-      .flow(flowExpressionsCanTransfer[1].expressionAddress, 1234, []);
+      .flow(flowInitializedCanTransfer[0].dispatch, 1234, []);
 
     const _txFlowCannotTransfer = await flowCannotTransfer
       .connect(you)
-      .flow(flowExpressionsCannotTransfer[1].expressionAddress, 1234, []);
+      .flow(flowExpressionsCannotTransfer[0].dispatch, 1234, []);
 
     await flowCanTransfer.connect(you).transfer(signerReceiver.address, mint);
 
@@ -355,20 +353,20 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
-    const mintFlowId = flowExpressions[1].expressionAddress;
-    const burnFlowId = flowExpressions[2].expressionAddress;
+    const mintFlowId = flowInitialized[0].dispatch;
+    const burnFlowId = flowInitialized[1].dispatch;
 
     const me = flow;
 
@@ -617,17 +615,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -656,7 +654,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowStruct,
@@ -665,7 +663,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // check input ERC1155 affected balances correctly
 
@@ -827,17 +825,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -867,7 +865,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowStruct,
@@ -876,7 +874,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // check input ERC721 affected balances correctly
 
@@ -1022,17 +1020,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1055,7 +1053,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowStruct,
@@ -1064,7 +1062,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -1193,17 +1191,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1215,7 +1213,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, [], {
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1223,7 +1221,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, [], {
+      .flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1394,17 +1392,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1432,13 +1430,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -1594,17 +1592,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1627,13 +1625,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1787,17 +1785,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1811,13 +1809,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1951,17 +1949,17 @@ describe("FlowERC20 flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1978,7 +1976,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, [], {
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1986,7 +1984,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, [], {
+      .flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 

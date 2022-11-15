@@ -11,7 +11,6 @@ import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 
 import { ReserveToken18 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import {
@@ -21,6 +20,7 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 
 const Opcode = AllStandardOps;
 
@@ -130,17 +130,17 @@ describe("FlowERC20 flowTime tests", async function () {
       symbol: "FWIN20",
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -156,7 +156,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
     await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // id 5678 - 1st flow
 
@@ -170,7 +170,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
     await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 5678, []);
+      .flow(flowInitialized[0].dispatch, 5678, []);
 
     // id 1234 - 2nd flow
 
@@ -186,7 +186,7 @@ describe("FlowERC20 flowTime tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .flow(flowExpressions[1].expressionAddress, 1234, []),
+          .flow(flowInitialized[0].dispatch, 1234, []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );

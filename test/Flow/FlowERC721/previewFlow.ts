@@ -11,7 +11,7 @@ import {
   FlowTransferStruct,
   StateConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
@@ -112,7 +112,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -128,15 +128,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
     compareStructs(
       flowTransferPreview,
       fillEmptyAddressERC721(flowERC721IO, flow.address),
@@ -289,7 +289,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -305,15 +305,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -447,7 +447,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -463,15 +463,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -622,7 +622,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -638,15 +638,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -753,7 +753,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -769,15 +769,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -872,7 +872,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -888,15 +888,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -1013,7 +1013,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -1029,15 +1029,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,
@@ -1079,7 +1079,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -1095,15 +1095,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     await assertError(
       async () =>
-        await flow.previewFlow(flowExpressions[1].expressionAddress, 1234, []),
+        await flow.previewFlow(flowInitialized[0].dispatch, 1234, []),
       "",
       "flowed when it should not"
     );
@@ -1152,7 +1152,7 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       {
@@ -1168,15 +1168,15 @@ describe("FlowERC721 previewFlow tests", async function () {
       }
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowExpressions[1].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowTransferPreview,

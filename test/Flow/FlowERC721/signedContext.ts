@@ -2,7 +2,7 @@ import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC721Factory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -65,17 +65,17 @@ describe("FlowERC721 signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
@@ -100,7 +100,7 @@ describe("FlowERC721 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0);
+      .flow(flowInitialized[0].dispatch, 1234, signedContexts0);
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -122,7 +122,7 @@ describe("FlowERC721 signed context tests", async function () {
         await flow
           .connect(goodSigner)
           .flow(
-            flowExpressions[1].expressionAddress,
+            flowInitialized[0].dispatch,
             1234,
             signedContexts1,
             {}
@@ -169,17 +169,17 @@ describe("FlowERC721 signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const context = [1, 2, 3];
     const hash = solidityKeccak256(["uint256[]"], [context]);
@@ -196,7 +196,7 @@ describe("FlowERC721 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowExpressions[1].expressionAddress, 1234, signedContexts0);
+      .flow(flowInitialized[0].dispatch, 1234, signedContexts0);
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
@@ -213,7 +213,7 @@ describe("FlowERC721 signed context tests", async function () {
         await flow
           .connect(goodSigner)
           .flow(
-            flowExpressions[1].expressionAddress,
+            flowInitialized[0].dispatch,
             1234,
             signedContexts1,
             {}

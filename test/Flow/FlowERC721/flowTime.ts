@@ -2,7 +2,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowERC721Factory, ReserveToken18 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
@@ -130,17 +130,17 @@ describe("FlowERC721 flowTime tests", async function () {
       symbol: "FWIN721",
     };
 
-    const { flow, expressionDeployer } = await flowERC721Deploy(
+    const { flow } = await flowERC721Deploy(
       deployer,
       flowERC721Factory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -156,7 +156,7 @@ describe("FlowERC721 flowTime tests", async function () {
 
     await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // id 5678 - 1st flow
 
@@ -170,7 +170,7 @@ describe("FlowERC721 flowTime tests", async function () {
 
     await flow
       .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 5678, []);
+      .flow(flowInitialized[0].dispatch, 5678, []);
 
     // id 1234 - 2nd flow
 
@@ -186,7 +186,7 @@ describe("FlowERC721 flowTime tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .flow(flowExpressions[1].expressionAddress, 1234, []),
+          .flow(flowInitialized[0].dispatch, 1234, []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );

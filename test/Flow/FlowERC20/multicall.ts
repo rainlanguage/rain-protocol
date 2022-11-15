@@ -11,7 +11,7 @@ import {
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowERC20IOStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import {
   RAIN_FLOW_ERC20_SENTINEL,
@@ -264,17 +264,17 @@ describe("FlowERC20 multicall tests", async function () {
       ],
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -322,7 +322,7 @@ describe("FlowERC20 multicall tests", async function () {
       .approve(me.address, flowTransfer_B.erc20[0].amount);
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[1].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(
       flowStruct_A,
@@ -331,7 +331,7 @@ describe("FlowERC20 multicall tests", async function () {
 
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[2].expressionAddress, 1234, []);
+      .callStatic.flow(flowInitialized[1].dispatch, 1234, []);
 
     compareStructs(
       flowStruct_B,
@@ -340,12 +340,12 @@ describe("FlowERC20 multicall tests", async function () {
 
     const iFlow = new ethers.utils.Interface(flowERC20ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowExpressions[1].expressionAddress,
+      flowInitialized[0].dispatch,
       1234,
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowExpressions[2].expressionAddress,
+      flowInitialized[1].dispatch,
       1234,
       [],
     ]);
