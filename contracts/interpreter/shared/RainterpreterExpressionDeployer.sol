@@ -9,7 +9,7 @@ bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xde2923afadf4adc19dbce40f367c5723dba4a696b783b379a03dd8554e7c0927
+    0x30dc8fa598f3c47fc1ffcb628a52cf2ac25f69db797ab063b2b71bac4af608bd
 );
 
 contract RainterpreterExpressionDeployer is
@@ -34,11 +34,10 @@ contract RainterpreterExpressionDeployer is
         // cause undefined runtime behaviour for corrupted opcodes.
         bytes memory functionPointers_ = IInterpreterV1(interpreter_)
             .functionPointers();
-        console.logBytes(functionPointers_);
-        require(
-            keccak256(functionPointers_) == OPCODE_FUNCTION_POINTERS_HASH,
-            "BAD_POINTERS"
-        );
+        if (keccak256(functionPointers_) != OPCODE_FUNCTION_POINTERS_HASH) {
+            console.logBytes(functionPointers_);
+            revert("BAD_POINTERS");
+        }
 
         // Guard against an interpreter with unknown/untrusted bytecode that
         // could run arbitrary logic even if the function pointers are identical
@@ -47,11 +46,10 @@ contract RainterpreterExpressionDeployer is
         assembly ("memory-safe") {
             interpreterHash_ := extcodehash(interpreter_)
         }
-        console.logBytes(abi.encodePacked(interpreterHash_));
-        require(
-            interpreterHash_ == INTERPRETER_BYTECODE_HASH,
-            "BAD_INTERPRETER_HASH"
-        );
+        if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
+            console.logBytes(abi.encodePacked(interpreterHash_));
+            revert("BAD_INTERPRETER_HASH");
+        }
 
         emit ValidInterpreter(msg.sender, interpreter_);
     }

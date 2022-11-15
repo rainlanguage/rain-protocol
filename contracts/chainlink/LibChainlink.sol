@@ -12,7 +12,7 @@ library LibChainlink {
     function price(
         address feed_,
         uint256 staleAfter_
-    ) internal view returns (uint256 price_) {
+    ) internal view returns (uint256) {
         (, int256 answer_, , uint256 updatedAt_, ) = AggregatorV3Interface(
             feed_
         ).latestRoundData();
@@ -23,8 +23,9 @@ library LibChainlink {
         require(block.timestamp - updatedAt_ < staleAfter_, "STALE_PRICE");
 
         // Safely cast the answer to uint and scale it to 18 decimal FP.
-        price_ = answer_.toUint256().scale18(
-            AggregatorV3Interface(feed_).decimals()
-        );
+        return
+            answer_.toUint256().scale18(
+                AggregatorV3Interface(feed_).decimals()
+            );
     }
 }
