@@ -73,8 +73,12 @@ interface ITierV2 {
         uint256[] calldata context
     ) external view returns (uint256 time);
 
-    /// Same as `ITier` but with a list of values for `context` which allows a
-    /// single underlying state to present many different reports dynamically.
+    /// Returns an 8 tier encoded report of 32 bit timestamps for the given
+    /// account.
+    ///
+    /// Same as `ITier` (legacy interface) but with a list of values for
+    /// `context` which allows a single underlying state to present many
+    /// different reports dynamically.
     ///
     /// For example:
     /// - Staking ledgers can calculate different tier thresholds

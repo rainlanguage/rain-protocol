@@ -10,6 +10,7 @@ abstract contract TierV2 is ITierV2, ERC165 {
         __ERC165_init();
     }
 
+    // @inheritdoc ERC165
     function supportsInterface(
         bytes4 interfaceId_
     ) public view virtual override returns (bool) {

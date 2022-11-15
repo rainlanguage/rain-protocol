@@ -72,12 +72,10 @@ describe("OrderBook many-to-many", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
-    const bountyBot = signers[2];
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const vaultAlice = ethers.BigNumber.from(randomUint256());
-    const vaultBountyBot = ethers.BigNumber.from(randomUint256());
 
     const threshold = ethers.BigNumber.from(102 + sixteenZeros); // 2%
 
@@ -114,10 +112,6 @@ describe("OrderBook many-to-many", async function () {
     };
 
     const _txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
-
-    // TODO:
-    // alice deposit
-    // simulate via test contract a bounty bot flash loaning alice's tokenA deposit to buy tokenB from bob, bounty bot repays the loan and takes a cut
   });
 
   it("should add many ask and bid orders and clear the orders", async function () {
