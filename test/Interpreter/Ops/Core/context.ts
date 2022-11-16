@@ -20,7 +20,7 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0f00)])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
@@ -33,7 +33,7 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x000f)])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     const row: number[] = new Array<number>(16).fill(1, 0, 256);
     const context = [row];
@@ -47,7 +47,7 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x1000)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "OOB_COLUMN",
       "did not error when accessing OOB COLUMN"
     );
@@ -58,7 +58,7 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x0010)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "OOB_ROW",
       "did not error when accessing OOB ROW"
     );
@@ -68,7 +68,7 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0003)])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     const data = [[10, 20, 30]];
 
@@ -97,7 +97,7 @@ describe("RainInterpreter context", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [11]);
 
     const context = [
       [0, 1, 2, 3],
@@ -129,7 +129,7 @@ describe("RainInterpreter context", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [10]);
 
     const context = [
       [0, 1, 2, 3],
@@ -163,7 +163,7 @@ describe("RainInterpreter context", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [3]);
 
     const context = [[10, 20, 30]];
 
@@ -185,7 +185,7 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     const data = [[42]];
 

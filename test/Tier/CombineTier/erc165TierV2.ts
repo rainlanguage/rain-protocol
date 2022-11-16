@@ -46,13 +46,15 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const constants = [ethers.BigNumber.from(combineTierContract.address)];
@@ -71,7 +73,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      sourceConfig: combineTierSourceConfig,
+      stateConfig: combineTierSourceConfig,
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const { config } = (await getEventArgs(
@@ -113,7 +117,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      sourceConfig: combineTierSourceConfig,
+      stateConfig: combineTierSourceConfig,
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const { config } = (await getEventArgs(

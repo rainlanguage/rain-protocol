@@ -24,10 +24,13 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.THIS_ADDRESS),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -52,10 +55,13 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.CALLER),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
     const result = await logic.stackTop();
@@ -76,10 +82,13 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.BLOCK_TIMESTAMP),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const timestamp = await getBlockTimestamp();
@@ -99,7 +108,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    await logic.initialize({ sources: [source], constants });
+    await logic.initialize({ sources: [source], constants }, [1]);
 
     await logic.run();
     const block = await ethers.provider.getBlockNumber();

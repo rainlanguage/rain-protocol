@@ -44,7 +44,10 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 total supply snapshot", async () => {
     const constants = [tokenERC20Snapshot.address];
-    const vTokenAddr = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
 
     // prettier-ignore
     const sources = [
@@ -55,7 +58,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     const txSnapshot = await tokenERC20Snapshot.snapshot();
     const { id } = (await getEventArgs(
@@ -75,8 +78,14 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
 
   it("should return ERC20 balance snapshot", async () => {
     const constants = [signer1.address, tokenERC20Snapshot.address];
-    const vSigner1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vSigner1 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const sources = [
@@ -88,7 +97,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await tokenERC20Snapshot.transfer(signer1.address, 100);
 

@@ -32,7 +32,7 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.Stack),
     ])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
     await logic.run();
 
     assert(true); // you have to check this log yourself
@@ -49,7 +49,7 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.StatePacked),
     ])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
     await logic.run();
 
     assert(true); // you have to check this log yourself
@@ -75,10 +75,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
     ]);
 
-    await logic.initialize({
-      sources: [source, checkValue],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source, checkValue],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
   });
@@ -105,10 +108,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.Stack),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceWHILE],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceWHILE],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
   });
@@ -133,10 +139,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {

@@ -47,8 +47,14 @@ describe("RainInterpreter ERC721 ops", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vNftId = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const sources = [
@@ -59,7 +65,7 @@ describe("RainInterpreter ERC721 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -74,8 +80,14 @@ describe("RainInterpreter ERC721 ops", async function () {
 
   it("should return ERC721 balance of signer", async () => {
     const constants = [signer1.address, tokenERC721.address];
-    const vSigner1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vSigner1 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const sources = [
@@ -86,7 +98,7 @@ describe("RainInterpreter ERC721 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();

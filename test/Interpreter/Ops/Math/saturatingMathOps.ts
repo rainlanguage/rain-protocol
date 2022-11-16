@@ -23,7 +23,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating multiplication", async () => {
     const constants = [max_uint256, 2];
-    const vMaxUInt256 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vMaxUInt256 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal multiplication
@@ -37,10 +40,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({
-      sources: sourcesUnsat,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: sourcesUnsat,
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
       async () => await logic.run(),
@@ -58,10 +64,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({
-      sources: sourcesSat,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: sourcesSat,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -88,10 +97,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({
-      sources: sourcesUnsat,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: sourcesUnsat,
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
       async () => await logic.run(),
@@ -109,10 +121,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({
-      sources: sourcesSat,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: sourcesSat,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -125,7 +140,10 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
   it("should perform saturating addition", async () => {
     const constants = [max_uint256, 10];
-    const vMaxUInt256 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vMaxUInt256 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const v10 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // test case with normal addition
@@ -139,7 +157,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources: sourcesUnsat, constants });
+    await logic.initialize({ sources: sourcesUnsat, constants }, [1]);
 
     await assertError(
       async () => await logic.run(),
@@ -157,10 +175,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({
-      sources: sourcesSat,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: sourcesSat,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();

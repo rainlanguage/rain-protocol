@@ -125,10 +125,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
     await logic.run();
     const result0 = await logic.stackTop();
 
@@ -141,10 +144,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 2),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -159,10 +165,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -186,10 +195,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
     await logic.run();
     const result0 = await logic.stackTop();
 
@@ -203,10 +215,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -220,10 +235,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 2),
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -248,10 +266,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -267,10 +288,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -286,10 +310,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -307,10 +334,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 1
@@ -324,10 +354,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop(); // expect 0
@@ -345,10 +378,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 0
@@ -362,10 +398,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop(); // expect 1
@@ -385,10 +424,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 1
@@ -402,10 +444,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop(); // expect 0
@@ -419,10 +464,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants,
+      },
+      [1]
+    );
 
     await logic.runContext([[1]]);
     const result2 = await logic.stackTop(); // expect 1
@@ -439,10 +487,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize({
-      sources: [source3],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source3],
+        constants,
+      },
+      [1]
+    );
 
     await logic.runContext([[id]]);
     const result3 = await logic.stackTop(); // expect 1

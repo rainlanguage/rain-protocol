@@ -29,10 +29,13 @@ describe("HASH Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.HASH, 3),
     ]);
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -59,10 +62,13 @@ describe("HASH Opcode test", async function () {
         op(Opcode.CONTEXT, 0x0001),
       op(Opcode.HASH, 2),
     ]);
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
     await logic.runContext(context);
     const result = await logic.stackTop();
@@ -85,10 +91,13 @@ describe("HASH Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.HASH, 1),
     ]);
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();

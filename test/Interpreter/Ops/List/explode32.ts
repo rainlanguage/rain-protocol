@@ -21,10 +21,13 @@ describe("EXPLODE32 Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN],
-      constants: [],
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN],
+        constants: [],
+      },
+      [8]
+    );
     // 0
     await logic.runContext([
       [

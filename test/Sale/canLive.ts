@@ -31,7 +31,7 @@ import { Tier } from "../../utils/types/tier";
 
 const Opcode = AllStandardOps;
 
-describe("Sale canLive (start/end sale)", async function () {
+describe("Sale previewCanLive (start/end sale)", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory,
@@ -69,8 +69,14 @@ describe("Sale canLive (start/end sale)", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
@@ -115,7 +121,7 @@ describe("Sale canLive (start/end sale)", async function () {
     await createEmptyBlock(
       saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
-    const canEnd = !(await sale.canLive());
+    const canEnd = !(await sale.previewCanLive());
     assert(canEnd);
     const endTx = await sale.connect(signer1).end();
     const { sender: senderEnd, saleStatus: saleStatusEnd } =

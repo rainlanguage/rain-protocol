@@ -38,10 +38,13 @@ describe("ENSURE Opcode test", async function () {
       v1,
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -59,10 +62,13 @@ describe("ENSURE Opcode test", async function () {
       v3
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result1 = await logic.stackTop();
@@ -80,10 +86,13 @@ describe("ENSURE Opcode test", async function () {
       v0
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result2 = await logic.stackTop();
@@ -110,10 +119,13 @@ describe("ENSURE Opcode test", async function () {
       v1,
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
       async () => await logic.run(),
@@ -130,10 +142,13 @@ describe("ENSURE Opcode test", async function () {
       v3,
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
       async () => await logic.run(),
@@ -152,10 +167,13 @@ describe("ENSURE Opcode test", async function () {
       v0
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
       async () => await logic.run(),

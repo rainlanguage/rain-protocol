@@ -56,10 +56,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await timewarp(1900); // updated 100 sec ago
 
@@ -98,10 +101,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
       async () => await logic.run(),
@@ -134,10 +140,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const price_ = await logic.stackTop();
@@ -169,10 +178,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const price_ = await logic.stackTop();

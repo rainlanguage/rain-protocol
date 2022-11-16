@@ -28,10 +28,13 @@ describe("READ_MEMORY Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN],
-      constants: constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN],
+        constants: constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -53,10 +56,13 @@ describe("READ_MEMORY Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN],
-      constants: constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN],
+        constants: constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const expectedTimeStamp = await getBlockTimestamp();
@@ -86,10 +92,13 @@ describe("READ_MEMORY Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN],
-          constants: constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN],
+            constants: constants,
+          },
+          [1]
+        ),
       "OOB_STACK_READ",
       "Integrity check failed while reading an OOB stack value"
     );
@@ -105,10 +114,13 @@ describe("READ_MEMORY Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN],
-          constants: constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN],
+            constants: constants,
+          },
+          [1]
+        ),
       "OOB_CONSTANT_READ",
       "Integrity check failed while reading an OOB constant value"
     );
@@ -126,7 +138,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "OOB_STACK_READ", // at least an error
       "did not error when STACK operand references a stack element that hasn't yet been evaluated"
     );
@@ -144,7 +156,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "OOB_STACK_READ", // at least an error
       "did not error when STACK operand references itself"
     );
@@ -165,7 +177,7 @@ describe("READ_MEMORY Opcode test", async function () {
       op(Opcode.ADD, 3),
     ])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
     await logic.run();
 
     const result = await logic.stackTop();
@@ -190,7 +202,7 @@ describe("READ_MEMORY Opcode test", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
     await logic.run();
 
     const result = await logic.stackTop();
@@ -212,7 +224,7 @@ describe("READ_MEMORY Opcode test", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
     ])];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
     await logic.run();
 
     const result = await logic.stackTop();
@@ -229,7 +241,7 @@ describe("READ_MEMORY Opcode test", async function () {
     const sources = [concat([op(99)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "Error",
       "did not error when script references out-of-bounds opcode"
     );
@@ -268,7 +280,7 @@ describe("READ_MEMORY Opcode test", async function () {
   //   ];
 
   //   await assertError(
-  //     async () => await logic.initialize({ sources, constants }),
+  //     async () => await logic.initialize({ sources, constants }, [1]),
   //     "", // there is at least an error
   //     "did not error when trying to read an out-of-bounds argument"
   //   );
@@ -281,7 +293,7 @@ describe("READ_MEMORY Opcode test", async function () {
     const sources = [concat([vOOB])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds constant"
     );
@@ -302,7 +314,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "STACK_UNDERFLOW",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
@@ -326,7 +338,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "STACK_UNDERFLOW",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );

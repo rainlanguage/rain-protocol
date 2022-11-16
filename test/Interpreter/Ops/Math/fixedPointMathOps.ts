@@ -35,7 +35,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -64,7 +64,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -92,7 +92,7 @@ describe("RainInterpreter fixed point math ops", async function () {
         op(Opcode.SCALEN, n)
       ]),
     ];
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -121,7 +121,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -152,7 +152,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -184,7 +184,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -213,7 +213,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop();

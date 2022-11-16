@@ -80,7 +80,10 @@ describe("Sale unchecked math", async function () {
       memoryOperand(MemoryType.Constant, 0)
     );
     const vTwo = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
     const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
@@ -129,7 +132,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -163,8 +166,14 @@ describe("Sale unchecked math", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vThree = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
     const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
@@ -213,7 +222,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -240,7 +249,10 @@ describe("Sale unchecked math", async function () {
 
     const vZero = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
     const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
@@ -289,7 +301,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator underflow did not panic"
     );
@@ -319,9 +331,15 @@ describe("Sale unchecked math", async function () {
       startBlock + saleDuration - 1,
     ];
 
-    const vMaxUInt256 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vMaxUInt256 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
     const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
@@ -370,7 +388,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator overflow did not panic"
     );

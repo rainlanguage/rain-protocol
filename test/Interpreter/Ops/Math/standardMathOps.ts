@@ -47,7 +47,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const block0 = await ethers.provider.getBlockNumber();
@@ -105,7 +105,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -133,7 +133,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -161,7 +161,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -191,7 +191,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -219,7 +219,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -247,7 +247,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       op(Opcode.MAX, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants });
+    await logic.initialize({ sources: [source], constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -270,7 +270,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       op(Opcode.MIN, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants });
+    await logic.initialize({ sources: [source], constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -299,7 +299,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -329,7 +329,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -359,7 +359,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -389,7 +389,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -419,7 +419,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();
@@ -449,7 +449,7 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     await logic.run();
     const result = await logic.stackTop();

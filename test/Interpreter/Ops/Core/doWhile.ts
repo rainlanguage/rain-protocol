@@ -55,20 +55,26 @@ describe("DO_WHILE Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN, sourceExtra],
-          constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN, sourceExtra],
+            constants,
+          },
+          [1]
+        ),
       "LOOP_SHIFT",
       "did not error the integrity check if there are extra values on stack at the iteration end"
     );
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN, sourceMissing],
-          constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN, sourceMissing],
+            constants,
+          },
+          [1]
+        ),
       "LOOP_SHIFT",
       "did not error the integrity check if there are missing values on stack at the iteration end"
     );
@@ -99,10 +105,13 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -140,10 +149,13 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceSUB],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceSUB],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -185,10 +197,13 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stackTop();
@@ -245,10 +260,13 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.ADD, 2),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result = await logic.stack();

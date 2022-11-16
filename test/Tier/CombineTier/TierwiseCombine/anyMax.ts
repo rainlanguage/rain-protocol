@@ -37,23 +37,27 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [NEVER],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const constants = [
@@ -78,10 +82,12 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -126,10 +132,12 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const startTimestamp = await getBlockTimestamp();

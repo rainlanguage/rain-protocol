@@ -6,7 +6,6 @@ import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../interpreter/deploy/RainInterpreterIntegrity.sol";
 
 uint constant INTERPRETER_STATE_ID = 0;
-uint constant MIN_OUTPUTS = 1;
 
 /// @title AllStandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
@@ -25,11 +24,14 @@ contract AllStandardOpsTest is StandardInterpreter {
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
-    function initialize(StateConfig calldata stateConfig_) external {
+    function initialize(
+        StateConfig calldata stateConfig_,
+        uint[] memory minStackOutputs_
+    ) external {
         _saveInterpreterState(
             INTERPRETER_STATE_ID,
             stateConfig_,
-            MIN_OUTPUTS.arrayFrom()
+            minStackOutputs_
         );
     }
 

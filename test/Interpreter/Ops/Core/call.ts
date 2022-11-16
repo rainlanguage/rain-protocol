@@ -57,10 +57,13 @@ describe("CALL Opcode test", async function () {
         callADD
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [6]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -92,10 +95,13 @@ describe("CALL Opcode test", async function () {
         op(Opcode.ADD, 2) // 50
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -126,10 +132,13 @@ describe("CALL Opcode test", async function () {
         call0,
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN0, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN0, source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -155,10 +164,13 @@ describe("CALL Opcode test", async function () {
         call0,
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN0, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN0, source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -188,10 +200,13 @@ describe("CALL Opcode test", async function () {
         call0, // should end up adding 3 elements to the stack
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN0, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN0, source1],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stack();
@@ -272,19 +287,22 @@ describe("CALL Opcode test", async function () {
         callADD1, // 235 + 1 = 236
     ]);
 
-    await logic.initialize({
-      sources: [
-        sourceMAIN,
-        sourceADD,
-        sourceSUB,
-        sourceMUL,
-        sourceDIV,
-        sourceEXP,
-        sourceADD10,
-        sourceADD1,
-      ],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [
+          sourceMAIN,
+          sourceADD,
+          sourceSUB,
+          sourceMUL,
+          sourceDIV,
+          sourceEXP,
+          sourceADD10,
+          sourceADD1,
+        ],
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
     const result0 = await logic.stackTop();
@@ -410,10 +428,13 @@ describe("CALL Opcode test", async function () {
       op(Opcode.SUB, 2) // PRICE - DISCOUNT
     ]);
 
-    await logic.initialize({
-      sources: [sourceGetDiscountedPrice, sourceGetDiscount],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceGetDiscountedPrice, sourceGetDiscount],
+        constants,
+      },
+      [1]
+    );
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);

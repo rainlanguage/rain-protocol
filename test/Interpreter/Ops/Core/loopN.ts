@@ -42,10 +42,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
@@ -79,10 +82,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
@@ -116,10 +122,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
@@ -160,10 +169,13 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.ADD, 2),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADDOuter, sourceADDInner],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADDOuter, sourceADDInner],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
@@ -249,15 +261,18 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    await logic.initialize({
-      sources: [
-        sourceMAIN,
-        sourceADD,
-        sourceAddAndShiftRight,
-        sourceShiftRight,
-      ],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [
+          sourceMAIN,
+          sourceADD,
+          sourceAddAndShiftRight,
+          sourceShiftRight,
+        ],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = [];
     let expectedResultTemp = ethers.BigNumber.from(initialValue);
@@ -348,16 +363,19 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(7, 4)),
     ]);
 
-    await logic.initialize({
-      sources: [
-        sourceMAIN,
-        sourceADDUsingFunction,
-        sourceAddAndShiftRight,
-        sourceShiftRight,
-        sourceADD,
-      ],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [
+          sourceMAIN,
+          sourceADDUsingFunction,
+          sourceAddAndShiftRight,
+          sourceShiftRight,
+          sourceADD,
+        ],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = ethers.BigNumber.from(0);
     let expectedResultTemp = ethers.BigNumber.from(initialValue);
@@ -396,10 +414,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     const expectedResult = 5;
     await logic.run();
@@ -433,10 +454,13 @@ describe("LOOP_N Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          [1]
+        ),
       "STACK_UNDERFLOW",
       "Integrity check passed even when enough values are not available on the stack"
     );

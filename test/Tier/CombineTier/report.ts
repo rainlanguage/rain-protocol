@@ -68,23 +68,27 @@ describe("CombineTier report tests", async function () {
   it("should support a program which returns the default report", async () => {
     const alwaysTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [NEVER],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const constants = [
@@ -108,10 +112,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierAlways = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const resultAlwaysReport = await combineTierAlways.report(
@@ -129,10 +135,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierNever = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceNeverReport, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const resultNeverReport = await combineTierNever.report(
@@ -150,8 +158,14 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should query the report of another CombineTier contract using a non TierV2 contract wrapped in a CombineTier contract", async () => {
-    const vAlice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAlice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // Transferring bob
     tokenERC20.transfer(bob.address, 11);
 
@@ -165,10 +179,12 @@ describe("CombineTier report tests", async function () {
 
     const tierContractAlice = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceTierContractAlice, sourceReportTimeForTierDefault],
         constants: [alice.address, tokenERC20.address],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     // BOB
@@ -181,10 +197,12 @@ describe("CombineTier report tests", async function () {
 
     const tierContractBob = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceTierContractBob, sourceReportTimeForTierDefault],
         constants: [bob.address, tokenERC20.address],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     // MAIN
@@ -210,10 +228,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(signers[1].address, []);
@@ -279,10 +299,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [bob.address]);
@@ -349,10 +371,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -476,10 +500,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [stake.address],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -574,10 +600,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [stake0.address, stake1.address, max_uint256],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -677,10 +705,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: stakeContracts.length,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [...constants, max_uint256],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -796,10 +826,12 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceCombineTierContract, sourceReportTimeForTierDefault],
         constants: [stake0.address, stake1.address, max_uint256],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const sourceMain = concat([

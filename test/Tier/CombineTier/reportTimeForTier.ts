@@ -68,7 +68,7 @@ describe("CombineTier report time for tier tests", async function () {
   it("should support returning report time for tier using Interpreter script (e.g. constant timestamp value)", async () => {
     const combineTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
@@ -78,6 +78,8 @@ describe("CombineTier report time for tier tests", async function () {
           CONST_REPORT_TIME_FOR_TIER, // just return a constant value
         ],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const timeForTier = await combineTier.reportTimeForTier(
@@ -112,10 +114,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -135,8 +139,14 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should query the report of another CombineTier contract using a non TierV2 contract wrapped in a CombineTier contract", async () => {
-    const vAlice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAlice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // Transferring bob
     tokenERC20.transfer(bob.address, 11);
 
@@ -150,10 +160,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const tierContractAlice = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceTierContractAlice],
         constants: [alice.address, tokenERC20.address],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     // BOB
@@ -166,10 +178,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const tierContractBob = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceTierContractBob],
         constants: [bob.address, tokenERC20.address],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     // MAIN
@@ -198,10 +212,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -278,10 +294,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -358,10 +376,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -465,10 +485,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake.address],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -553,10 +575,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake0.address, stake1.address, max_uint32],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -662,10 +686,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: stakeContracts.length,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [...constants, max_uint32],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result0 = await combineTierMain.reportTimeForTier(
@@ -776,10 +802,12 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceCombineTierContract],
         constants: [stake0.address, stake1.address, max_uint32],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const sourceMain = concat([
