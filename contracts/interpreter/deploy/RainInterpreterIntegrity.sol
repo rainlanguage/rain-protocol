@@ -52,7 +52,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             0,
             integrityFunctionPointers()
         );
-        for (uint256 i_ = 0; i_ < sources_.length; i_++) {
+        for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
             integrityState_.ensureIntegrity(
                 SourceIndex.wrap(i_),
                 StackTop.wrap(0),
