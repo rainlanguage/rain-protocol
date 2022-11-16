@@ -125,8 +125,9 @@ describe("Flow context tests", async function () {
       op(Opcode.CHANGE_STATE),
       
       CONTEXT_FLOW_ID(), // Key
+      CONTEXT_FLOW_ID(), // Key
       op(Opcode.READ_STATE),
-      op(Opcode.DEBUG, Debug.StatePacked),
+      // op(Opcode.DEBUG, Debug.StatePacked),
 
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
