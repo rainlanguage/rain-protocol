@@ -42,7 +42,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             uint stateChangesLength_
         )
     {
-        require(sources_.length == minStackOutputs_.length, "BAD_MSO_LENGTH");
+        require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
             constantsLength_,
