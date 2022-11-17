@@ -35,49 +35,6 @@ uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 2;
 uint constant CONTEXT_VAULT_IO_BALANCE_AFTER = 3;
 uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
 
-struct OrderConfig {
-    address expressionDeployer;
-    address interpreter;
-    StateConfig interpreterStateConfig;
-    IO[] validInputs;
-    IO[] validOutputs;
-}
-
-struct IO {
-    address token;
-    uint256 vaultId;
-}
-
-struct Order {
-    address owner;
-    address interpreter;
-    EncodedDispatch dispatch;
-    EncodedDispatch handleIODispatch;
-    IO[] validInputs;
-    IO[] validOutputs;
-}
-
-struct DepositConfig {
-    address token;
-    uint256 vaultId;
-    uint256 amount;
-}
-
-struct WithdrawConfig {
-    address token;
-    uint256 vaultId;
-    uint256 amount;
-}
-
-struct ClearConfig {
-    uint256 aInputIOIndex;
-    uint256 aOutputIOIndex;
-    uint256 bInputIOIndex;
-    uint256 bOutputIOIndex;
-    uint256 aBountyVaultId;
-    uint256 bBountyVaultId;
-}
-
 struct ClearStateChange {
     uint256 aOutput;
     uint256 bOutput;
@@ -85,20 +42,8 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-struct TakeOrderConfig {
-    Order order;
-    uint256 inputIOIndex;
-    uint256 outputIOIndex;
-}
 
-struct TakeOrdersConfig {
-    address output;
-    address input;
-    uint256 minimumInput;
-    uint256 maximumInput;
-    uint256 maximumIORatio;
-    TakeOrderConfig[] orders;
-}
+
 
 library LibOrder {
     function hash(Order memory order_) internal pure returns (uint) {
