@@ -221,24 +221,20 @@ describe("FlowERC1155 multiCall tests", async function () {
       constants: constants_A,
     };
 
-    const { flow } = await flowERC1155Deploy(
-      deployer,
-      flowERC1155Factory,
-      {
-        uri: "F1155",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO_A],
-            constants: constants_A,
-          },
-          {
-            sources: [sourceFlowIO_B],
-            constants: constants_B,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
+      uri: "F1155",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO_A],
+          constants: constants_A,
+        },
+        {
+          sources: [sourceFlowIO_B],
+          constants: constants_B,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

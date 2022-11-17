@@ -79,7 +79,8 @@ describe("FlowERC20 flowTime tests", async function () {
 
     const SENTINEL = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const ONE = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const ONE = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
@@ -154,9 +155,7 @@ describe("FlowERC20 flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []);
 
     // id 5678 - 1st flow
 
@@ -168,9 +167,7 @@ describe("FlowERC20 flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowInitialized[0].dispatch, 5678, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 5678, []);
 
     // id 1234 - 2nd flow
 
@@ -184,9 +181,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
     await assertError(
       async () =>
-        await flow
-          .connect(you)
-          .flow(flowInitialized[0].dispatch, 1234, []),
+        await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );

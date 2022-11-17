@@ -117,11 +117,7 @@ describe("Flow flowTime tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -141,9 +137,7 @@ describe("Flow flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []);
 
     // id 5678 - 1st flow
 
@@ -155,9 +149,7 @@ describe("Flow flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowInitialized[0].dispatch, 5678, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 5678, []);
 
     // id 1234 - 2nd flow
 
@@ -171,9 +163,7 @@ describe("Flow flowTime tests", async function () {
 
     await assertError(
       async () =>
-        await flow
-          .connect(you)
-          .flow(flowInitialized[0].dispatch, 1234, []),
+        await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );

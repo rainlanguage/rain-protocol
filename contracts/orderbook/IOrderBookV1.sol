@@ -39,11 +39,22 @@ struct Order {
 }
 
 struct TakeOrdersConfig {
+    /// Output token from the perspective of the order taker.
     address output;
+    /// Input token from the perspective of the order taker.
     address input;
+    /// Minimum input from the perspective of the order taker.
     uint256 minimumInput;
+    /// Maximum input from the perspective of the order taker.
     uint256 maximumInput;
+    /// Maximum IO ratio as calculated by the order being taken. The input is
+    /// from the perspective of the order so higher ratio means worse deal for
+    /// the order taker.
     uint256 maximumIORatio;
+    /// Ordered list of orders that will be taken until the limit is hit. Takers
+    /// are expected to prioritise orders that appear to be offering better deals
+    /// i.e. lower IO ratios. This prioritisation and sorting MUST happen
+    /// offchain, e.g. via. some simulator.
     TakeOrderConfig[] orders;
 }
 
@@ -80,9 +91,7 @@ interface IOrderBookV1 {
 
     function takeOrders(
         TakeOrdersConfig calldata takeOrders
-    )
-        external
-        returns (uint256 totalInput, uint256 totalOutput);
+    ) external returns (uint256 totalInput, uint256 totalOutput);
 
     function clear(
         Order memory a,

@@ -42,16 +42,18 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
-
-
-
 library LibOrder {
     function hash(Order memory order_) internal pure returns (uint) {
         return uint256(keccak256(abi.encode(order_)));
     }
 }
 
-contract OrderBook is IOrderBookV1, ReentrancyGuard, Multicall, OrderBookFlashLender {
+contract OrderBook is
+    IOrderBookV1,
+    ReentrancyGuard,
+    Multicall,
+    OrderBookFlashLender
+{
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];

@@ -50,20 +50,14 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-  
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
       "FlowInitialized",
       flow
     )) as FlowInitializedEvent["args"][];
 
-    
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
     const goodSignature0 = await goodSigner.signMessage(arrayify(hash0));
@@ -108,12 +102,7 @@ describe("Flow signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(
-            flowInitialized[0].dispatch,
-            1234,
-            signedContexts1,
-            {}
-          ),
+          .flow(flowInitialized[0].dispatch, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
@@ -144,11 +133,7 @@ describe("Flow signed context tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -187,12 +172,7 @@ describe("Flow signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(
-            flowInitialized[0].dispatch,
-            1234,
-            signedContexts1,
-            {}
-          ),
+          .flow(flowInitialized[0].dispatch, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );

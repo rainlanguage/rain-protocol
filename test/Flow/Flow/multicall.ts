@@ -200,8 +200,11 @@ describe("Flow multiCall tests", async function () {
       ],
     };
 
-    const { flow: flow_A} =
-      await flowDeploy(deployer, flowFactory, flowConfigStruct_A);
+    const { flow: flow_A } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfigStruct_A
+    );
 
     const flowInitialized_A = (await getEvents(
       flow_A.deployTransaction,
@@ -231,7 +234,7 @@ describe("Flow multiCall tests", async function () {
     const flowStruct = await flow_A
       .connect(you)
       .previewFlow(flowInitialized_A[0].dispatch, 1234, []);
-    
+
     await flow_A
       .connect(you)
       .callStatic.flow(flowInitialized_A[0].dispatch, 1234, []);
@@ -272,7 +275,7 @@ describe("Flow multiCall tests", async function () {
     const flowStruct_B = await flow_A
       .connect(you)
       .previewFlow(flowInitialized_A[1].dispatch, 1234, []);
-    
+
     await flow_A
       .connect(you)
       .callStatic.flow(flowInitialized_A[1].dispatch, 1234, []);

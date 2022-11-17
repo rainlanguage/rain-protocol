@@ -121,12 +121,7 @@ describe("FlowERC721 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(
-            flowInitialized[0].dispatch,
-            1234,
-            signedContexts1,
-            {}
-          ),
+          .flow(flowInitialized[0].dispatch, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );
@@ -212,12 +207,7 @@ describe("FlowERC721 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(
-            flowInitialized[0].dispatch,
-            1234,
-            signedContexts1,
-            {}
-          ),
+          .flow(flowInitialized[0].dispatch, 1234, signedContexts1, {}),
       "INVALID_SIGNATURE",
       "did not error with signature from incorrect signer"
     );

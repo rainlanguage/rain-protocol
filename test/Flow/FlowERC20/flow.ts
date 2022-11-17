@@ -148,16 +148,12 @@ describe("FlowERC20 flow tests", async function () {
       ],
     };
 
-    const {
-      flow: flowCanTransfer,
-    } = await flowERC20Deploy(
+    const { flow: flowCanTransfer } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStructCanTransfer
     );
-    const {
-      flow: flowCannotTransfer,
-    } = await flowERC20Deploy(
+    const { flow: flowCannotTransfer } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       stateConfigStructCannotTransfer
@@ -168,7 +164,7 @@ describe("FlowERC20 flow tests", async function () {
       "FlowInitialized",
       flowCanTransfer
     )) as FlowInitializedEvent["args"][];
-    
+
     const flowExpressionsCannotTransfer = (await getEvents(
       flowCannotTransfer.deployTransaction,
       "FlowInitialized",

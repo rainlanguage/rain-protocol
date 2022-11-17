@@ -135,21 +135,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -332,21 +328,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -510,21 +502,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -707,21 +695,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -858,21 +842,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -999,21 +979,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1161,21 +1137,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1227,21 +1199,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1250,8 +1218,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () =>
-        await flow.previewFlow(flowInitialized[0].dispatch, 1234, []),
+      async () => await flow.previewFlow(flowInitialized[0].dispatch, 1234, []),
       "",
       "flowed when it should not"
     );
@@ -1327,21 +1294,17 @@ describe("FlowERC20 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC20Deploy(
-      deployer,
-      flowERC20Factory,
-      {
-        name: "FlowERC20",
-        symbol: "F20",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
+      name: "FlowERC20",
+      symbol: "F20",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

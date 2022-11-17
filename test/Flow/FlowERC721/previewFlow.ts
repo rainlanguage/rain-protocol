@@ -112,21 +112,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -289,21 +285,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -447,21 +439,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -622,21 +610,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -753,21 +737,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -872,21 +852,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1013,21 +989,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1079,21 +1051,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1102,8 +1070,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () =>
-        await flow.previewFlow(flowInitialized[0].dispatch, 1234, []),
+      async () => await flow.previewFlow(flowInitialized[0].dispatch, 1234, []),
       "",
       "flowed when it should not"
     );
@@ -1152,21 +1119,17 @@ describe("FlowERC721 previewFlow tests", async function () {
       constants,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO],
-            constants,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

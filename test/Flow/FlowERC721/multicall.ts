@@ -223,25 +223,21 @@ describe("FlowERC721 multicall tests", async function () {
       constants: constants_A,
     };
 
-    const { flow } = await flowERC721Deploy(
-      deployer,
-      flowERC721Factory,
-      {
-        name: "FlowERC721",
-        symbol: "F721",
-        stateConfig: stateConfigStruct,
-        flows: [
-          {
-            sources: [sourceFlowIO_A],
-            constants: constants_A,
-          },
-          {
-            sources: [sourceFlowIO_B],
-            constants: constants_B,
-          },
-        ],
-      }
-    );
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      stateConfig: stateConfigStruct,
+      flows: [
+        {
+          sources: [sourceFlowIO_A],
+          constants: constants_A,
+        },
+        {
+          sources: [sourceFlowIO_B],
+          constants: constants_B,
+        },
+      ],
+    });
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

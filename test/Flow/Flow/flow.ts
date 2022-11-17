@@ -439,11 +439,7 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -581,11 +577,7 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -744,11 +736,7 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -911,11 +899,7 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1066,11 +1050,7 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -1197,11 +1177,7 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,

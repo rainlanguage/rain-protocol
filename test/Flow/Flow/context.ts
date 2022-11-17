@@ -19,7 +19,10 @@ import {
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps, RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
+import {
+  AllStandardOps,
+  RainterpreterOps,
+} from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
