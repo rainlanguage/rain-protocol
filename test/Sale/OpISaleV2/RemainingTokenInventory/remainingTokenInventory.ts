@@ -40,10 +40,13 @@ describe("ISaleV2 RemainingTokenInventory tests", async function () {
     ])];
     const constants = [fakeSale.address];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
 

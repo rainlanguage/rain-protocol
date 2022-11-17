@@ -36,10 +36,13 @@ describe("ISaleV2 SaleStatus tests", async function () {
     ])];
     const constants = [fakeSale.address];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     const saleStatus0 = SaleStatus.Pending;
     fakeSale.saleStatus.returns(saleStatus0);

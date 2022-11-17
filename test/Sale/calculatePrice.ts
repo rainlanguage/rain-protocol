@@ -109,6 +109,7 @@ describe("Sale calculate price", async function () {
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
       ]),
+      concat([]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -260,7 +261,7 @@ describe("Sale calculate price", async function () {
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
-      ]),
+      ]),concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -376,7 +377,11 @@ describe("Sale calculate price", async function () {
       memoryOperand(MemoryType.Constant, 0)
     );
     const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), concat([op(99)])]; // bad source
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      concat([op(99)]),
+      concat([]),
+    ]; // bad source
     await assertError(
       async () =>
         await saleDeploy(
@@ -460,6 +465,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -600,6 +606,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -741,6 +748,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -846,6 +854,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,

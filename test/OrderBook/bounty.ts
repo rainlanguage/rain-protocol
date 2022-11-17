@@ -87,7 +87,10 @@ describe("OrderBook bounty", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -129,7 +132,10 @@ describe("OrderBook bounty", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,

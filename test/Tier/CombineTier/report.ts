@@ -848,10 +848,13 @@ describe("CombineTier report tests", async function () {
       op(Opcode.ITIERV2_REPORT, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMain],
-      constants: [combineTierMain.address],
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMain],
+        constants: [combineTierMain.address],
+      },
+      [1]
+    );
 
     await logic.connect(alice).runContext([[alice.address, ...THRESHOLDS]]);
 

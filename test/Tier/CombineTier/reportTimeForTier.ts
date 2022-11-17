@@ -735,7 +735,7 @@ describe("CombineTier report time for tier tests", async function () {
     );
   });
 
-  it("should use ITIERV2_REPORT opcode with context data to query the report for a CombineTier contract", async () => {
+  it("should use ITIERV2_REPORT opcode with context data to query the report time for tier for a CombineTier contract", async () => {
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
@@ -825,10 +825,13 @@ describe("CombineTier report time for tier tests", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMain],
-      constants: [combineTierMain.address],
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMain],
+        constants: [combineTierMain.address],
+      },
+      [1]
+    );
 
     await logic
       .connect(alice)

@@ -36,9 +36,12 @@ describe("IOrderBookV1 vault balance tests", async function () {
 
     const ORDERBOOK_ADDRESS = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const OWNER = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const TOKEN = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const ID = () => op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const OWNER = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const ID = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const sources = [concat([
@@ -50,10 +53,13 @@ describe("IOrderBookV1 vault balance tests", async function () {
     ])];
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await logic.run();
 

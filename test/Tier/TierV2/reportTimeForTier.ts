@@ -32,10 +32,13 @@ describe("TierV2 report time for tier op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [readWriteTier.address, Tier.FOUR],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [readWriteTier.address, Tier.FOUR],
+      },
+      [1]
+    );
 
     await logic.connect(signer1).run();
     const result = await logic.stackTop();

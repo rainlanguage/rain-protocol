@@ -67,13 +67,15 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
 
     const tier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [0],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const minimumTier = Tier.FOUR;

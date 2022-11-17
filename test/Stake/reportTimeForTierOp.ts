@@ -65,10 +65,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: [stake.address, Tier.ONE],
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: [stake.address, Tier.ONE],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -84,10 +87,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants: [stake.address, Tier.TWO, THRESHOLDS[0]],
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants: [stake.address, Tier.TWO, THRESHOLDS[0]],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -103,10 +109,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length),
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants: [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants: [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -123,10 +132,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 2).length),
     ]);
 
-    await logic.initialize({
-      sources: [source3],
-      constants: [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
-    });
+    await logic.initialize(
+      {
+        sources: [source3],
+        constants: [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -144,10 +156,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 3).length),
     ]);
 
-    await logic.initialize({
-      sources: [source4],
-      constants: [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
-    });
+    await logic.initialize(
+      {
+        sources: [source4],
+        constants: [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -166,10 +181,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 4).length),
     ]);
 
-    await logic.initialize({
-      sources: [source5],
-      constants: [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
-    });
+    await logic.initialize(
+      {
+        sources: [source5],
+        constants: [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -189,10 +207,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 5).length),
     ]);
 
-    await logic.initialize({
-      sources: [source6],
-      constants: [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
-    });
+    await logic.initialize(
+      {
+        sources: [source6],
+        constants: [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -213,10 +234,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 6).length),
     ]);
 
-    await logic.initialize({
-      sources: [source7],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
-    });
+    await logic.initialize(
+      {
+        sources: [source7],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -253,10 +277,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: [stake.address, Tier.ZERO],
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: [stake.address, Tier.ZERO],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -303,10 +330,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -356,10 +386,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -375,10 +408,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -399,19 +435,25 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.TWO, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.TWO, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
     const timeTWO_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -458,10 +500,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -494,10 +539,13 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -549,19 +597,25 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
     const timeOne0_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -578,28 +632,37 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
     const timeOne1_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.FOUR, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.FOUR, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
     const timeFour1_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
@@ -625,19 +688,25 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await stake.connect(alice).deposit(withdrawAmount, alice.address);
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 
     const timeOne2_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
+      },
+      [1]
+    );
 
     await logic.connect(alice).run();
 

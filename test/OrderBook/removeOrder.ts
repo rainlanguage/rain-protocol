@@ -66,7 +66,10 @@ describe("OrderBook remove order", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,

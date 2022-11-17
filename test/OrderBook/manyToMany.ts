@@ -81,8 +81,14 @@ describe("OrderBook many-to-many", async function () {
 
     const constants = [max_uint256, threshold];
 
-    const vMaxAmount = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const vThreshold = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vMaxAmount = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vThreshold = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const source = concat([
@@ -138,7 +144,10 @@ describe("OrderBook many-to-many", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -182,7 +191,10 @@ describe("OrderBook many-to-many", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
@@ -405,7 +417,10 @@ describe("OrderBook many-to-many", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vAskPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
@@ -449,7 +464,10 @@ describe("OrderBook many-to-many", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vBidPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,

@@ -94,7 +94,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.EXP, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -184,7 +188,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.MUL, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -263,7 +271,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.SUB, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -350,7 +362,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.ADD, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
