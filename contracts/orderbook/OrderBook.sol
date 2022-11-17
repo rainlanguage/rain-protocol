@@ -11,6 +11,7 @@ import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
+import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
 SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant HANDLE_IO_ENTRYPOINT = SourceIndex.wrap(1);
@@ -105,7 +106,7 @@ library LibOrder {
     }
 }
 
-contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
+contract OrderBook is IOrderBookV1, ReentrancyGuard, Multicall, OrderBookFlashLender {
     using LibInterpreterState for bytes;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
@@ -147,6 +148,7 @@ contract OrderBook is IOrderBookV1, ReentrancyGuard, OrderBookFlashLender {
 
     constructor() {
         __ReentrancyGuard_init();
+        __Multicall_init();
     }
 
     function deposit(DepositConfig calldata config_) external nonReentrant {
