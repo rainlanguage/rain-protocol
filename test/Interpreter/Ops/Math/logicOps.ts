@@ -518,7 +518,7 @@ describe("RainInterpreter logic ops", async function () {
       constants,
     };
 
-    await logic.initialize(stateConfig0);
+    await logic.initialize(stateConfig0, [1]);
 
     await logic.run();
     const result0 = await logic.stackTop(); // expect 1
@@ -535,7 +535,7 @@ describe("RainInterpreter logic ops", async function () {
       sources: [source1],
       constants,
     };
-    await logic.initialize(stateConfig1);
+    await logic.initialize(stateConfig1, [1]);
 
     await logic.run();
     const result1 = await logic.stackTop(); // expect 0

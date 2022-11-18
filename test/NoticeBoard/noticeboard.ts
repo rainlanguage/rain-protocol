@@ -79,6 +79,7 @@ describe("Sale noticeboard", async function () {
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,

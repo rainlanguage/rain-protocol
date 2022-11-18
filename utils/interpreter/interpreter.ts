@@ -52,7 +52,7 @@ export function memoryOperand(type: number, offset: number): number {
   return (offset << 1) + type;
 }
 /**
- * Constructs the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
+ * Builds the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
  *
  * @param inputSize - number of inputs being passed to the source (range 0-7)
  * @param outputSize - number of output returned by the source (range 1-3)
@@ -75,7 +75,7 @@ export function callOperand(
 }
 
 /**
- * Constructs the operand for RainInterpreter's `LOOP_N` opcode by packing 2 numbers into a single byte.
+ * Builds the operand for RainInterpreter's `LOOP_N` opcode by packing 2 numbers into a single byte.
  *
  * @param n - loop the source for n times (range 0-15)
  * @param sourceIndex - index of function source
@@ -91,7 +91,7 @@ export function loopNOperand(n: number, sourceIndex: number): number {
 }
 
 /**
- * Constructs the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
+ * Builds the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
  * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
  * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)

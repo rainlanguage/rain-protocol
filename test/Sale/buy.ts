@@ -11,7 +11,12 @@ import {
 } from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
-import { fourZeros, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
+import {
+  fourZeros,
+  ONE,
+  RESERVE_ONE,
+  sixZeros,
+} from "../../utils/constants/bigNumber";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -20,6 +25,7 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -673,10 +679,8 @@ describe("Sale buy", async function () {
       initialSupply: totalTokenSupply,
     };
     const basePrice = ethers.BigNumber.from("75").mul(RESERVE_ONE);
-    const reserveDivisor = ethers.BigNumber.from("1" + fourZeros);
     const constants = [
       basePrice,
-      reserveDivisor,
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
@@ -684,28 +688,20 @@ describe("Sale buy", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vReserveDivisor = op(
+    const vStart = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 2)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
+      // prettier-ignore
       concat([
         // maxUnits
         op(Opcode.CONTEXT, 0x0001),
+
         // price
-        // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.CALLER),
-        op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
-        vReserveDivisor,
-        op(Opcode.DIV, 2),
         vBasePrice,
-        op(Opcode.ADD, 2),
       ]),
       concat([]),
     ];
@@ -782,9 +778,8 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice0}
       got       ${receipt0.price}`
     );
-    const totalReserveIn1 = expectedCost0;
     const desiredUnits1 = totalTokenSupply.div(10);
-    const expectedPrice1 = basePrice.add(totalReserveIn1.div(reserveDivisor));
+    const expectedPrice1 = basePrice;
     const expectedCost1 = expectedPrice1.mul(desiredUnits1).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost1.add(fee));
@@ -810,9 +805,8 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice1}
       got       ${receipt1.price}`
     );
-    const totalReserveIn2 = expectedCost1.add(expectedCost0);
     const desiredUnits2 = totalTokenSupply.div(10);
-    const expectedPrice2 = basePrice.add(totalReserveIn2.div(reserveDivisor));
+    const expectedPrice2 = basePrice;
     const expectedCost2 = expectedPrice2.mul(desiredUnits2).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost2.add(fee));
@@ -838,9 +832,8 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice2}
       got       ${receipt2.price}`
     );
-    const totalReserveIn3 = expectedCost2.add(expectedCost1).add(expectedCost0);
     const desiredUnits3 = totalTokenSupply.div(10);
-    const expectedPrice3 = basePrice.add(totalReserveIn3.div(reserveDivisor));
+    const expectedPrice3 = basePrice;
     const expectedCost3 = expectedPrice3.mul(desiredUnits3).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost3.add(fee));
@@ -866,12 +859,8 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice3}
       got       ${receipt3.price}`
     );
-    const totalReserveIn4 = expectedCost3
-      .add(expectedCost2)
-      .add(expectedCost1)
-      .add(expectedCost0);
     const desiredUnits4 = totalTokenSupply.div(10);
-    const expectedPrice4 = basePrice.add(totalReserveIn4.div(reserveDivisor));
+    const expectedPrice4 = basePrice;
     const expectedCost4 = expectedPrice4.mul(desiredUnits4).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost4.add(fee));
@@ -897,13 +886,8 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice4}
       got       ${receipt4.price}`
     );
-    const totalReserveIn5 = expectedCost4
-      .add(expectedCost3)
-      .add(expectedCost2)
-      .add(expectedCost1)
-      .add(expectedCost0);
     const desiredUnits5 = totalTokenSupply.div(10);
-    const expectedPrice5 = basePrice.add(totalReserveIn5.div(reserveDivisor));
+    const expectedPrice5 = basePrice;
     const expectedCost5 = expectedPrice5.mul(desiredUnits5).div(ONE);
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost5.add(fee));

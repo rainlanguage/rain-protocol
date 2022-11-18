@@ -55,7 +55,7 @@ describe("RainInterpreter debug op", async function () {
     assert(true); // you have to check this log yourself
   });
 
-  it("should be able to log when is used within a source from CALL op", async () => {
+  it("should be able to log when used within a source from CALL op", async () => {
     const constants = [0, 1, 20];
 
     // prettier-ignore
@@ -86,7 +86,7 @@ describe("RainInterpreter debug op", async function () {
     await logic.run();
   });
 
-  it("should be able to log when is used within a source from DO_WHILE op", async () => {
+  it("should be able to log when used within a source from DO_WHILE op", async () => {
     const constants = [3, 2, 7];
 
     // prettier-ignore
@@ -119,7 +119,7 @@ describe("RainInterpreter debug op", async function () {
     await logic.run();
   });
 
-  it("should be able to log when is used within a source from LOOP_N op", async () => {
+  it("should be able to log when used within a source from LOOP_N op", async () => {
     const n = 5;
     const initialValue = 2;
     const incrementValue = 1;
