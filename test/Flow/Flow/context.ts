@@ -124,15 +124,15 @@ describe("Flow context tests", async function () {
     const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
 
     const FLOW_TIME  = () => [
-      CONTEXT_FLOW_ID(), // k_
       NAMESPACE(), // ns_
+      CONTEXT_FLOW_ID(), // k_
       op(Opcode.READ_STATE)
     ];
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value
       CONTEXT_FLOW_ID(), // Key
+      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value
       op(Opcode.CHANGE_STATE),
 
       ...FLOW_TIME(),

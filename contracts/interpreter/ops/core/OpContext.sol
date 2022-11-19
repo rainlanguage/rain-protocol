@@ -6,6 +6,7 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 import "../../../idempotent/LibIdempotentFlag.sol";
+import "../../../math/Binary.sol";
 
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly
@@ -23,8 +24,8 @@ library OpContext {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        uint256 row_ = Operand.unwrap(operand_) & MASK_8BIT;
         uint256 column_ = Operand.unwrap(operand_) >> 8;
-        uint256 row_ = Operand.unwrap(operand_) & uint256(type(uint8).max);
         integrityState_.contextReads = IdempotentFlag.unwrap(
             LibIdempotentFlag.set16x16(
                 IdempotentFlag.wrap(integrityState_.contextReads),
@@ -49,7 +50,7 @@ library OpContext {
         return
             stackTop_.push(
                 state_.context[Operand.unwrap(operand_) >> 8][
-                    Operand.unwrap(operand_) & uint256(type(uint8).max)
+                    Operand.unwrap(operand_) & MASK_8BIT
                 ]
             );
     }

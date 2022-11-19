@@ -5,6 +5,7 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
+import "../../../math/Binary.sol";
 
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
@@ -21,7 +22,7 @@ library OpReadMemory {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        uint256 type_ = Operand.unwrap(operand_) & 0x1;
+        uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPCODE_MEMORY_TYPE_STACK) {
             require(
@@ -43,7 +44,7 @@ library OpReadMemory {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            uint256 type_ = Operand.unwrap(operand_) & 0x1;
+            uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
             uint256 offset_ = Operand.unwrap(operand_) >> 1;
             assembly ("memory-safe") {
                 mstore(

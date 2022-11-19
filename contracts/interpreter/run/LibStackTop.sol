@@ -5,8 +5,6 @@ import "./RainInterpreter.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibBytes.sol";
 
-import "hardhat/console.sol";
-
 /// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
 

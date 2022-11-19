@@ -3,13 +3,14 @@ pragma solidity ^0.8.15;
 
 import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
+import "../ops/core/OpReadState.sol";
 
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0a9a0aa80afe0b910be50c110caa0cdf0cfd0d0c0d1a0d280d360d0c0d440d520d600d6f0d7e0d8c0d9a0da80db60e390e480e570e660e750e840ecd0edf0eed0f1f0f2d0f3b0f490f580f670f760f850f940fa30fb20fc10fd00fdf0fee0ffc100a101810261034104210511060106e10e00a09";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0a9a0aa80afe0b910be30c0f0ca80cdd0cfb0d0a0d180d260d340d0a0d420d500d5e0d6d0d7c0d8a0d980da60db40e370e460e550e640e730e820ecb0edd0eeb0f1d0f2b0f390f470f560f650f740f830f920fa10fb00fbf0fce0fdd0fec0ffa10081016102410321040104f105e106c10de0a09";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xb6f8abc164b86a5d85a63c7d4249153c2b0cf4e27f95c8fe181a2bee82766407
+    0xa84610bc79bd1e9ca384f043d5885e6411830e57d152f3381502c171d60316c1
 );
 
 contract RainterpreterExpressionDeployer is
@@ -52,6 +53,23 @@ contract RainterpreterExpressionDeployer is
         }
 
         emit ValidInterpreter(msg.sender, interpreter_);
+    }
+
+    function localIntegrityFunctionPointers()
+        internal
+        pure
+        virtual
+        override
+        returns (
+            function(IntegrityState memory, Operand, StackTop)
+                view
+                returns (StackTop)[]
+                memory
+        )
+    {
+        function(IntegrityState memory, Operand, StackTop) view returns (StackTop)[] memory localFnPtrs_ = new function(IntegrityState memory, Operand, StackTop) view returns (StackTop)[](1);
+        localFnPtrs_[0] = OpReadState.integrity;
+        return localFnPtrs_;
     }
 
     function deployExpression(
