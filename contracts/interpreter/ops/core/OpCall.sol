@@ -6,6 +6,7 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../deploy/LibIntegrityState.sol";
+import "../../../math/Binary.sol";
 
 /// @title OpCall
 /// @notice Opcode for calling eval with a new scope. The construction of this
@@ -45,10 +46,10 @@ library OpCall {
         StackTop stackTop_
     ) internal view returns (StackTop stackTopAfter_) {
         // Unpack the operand to get IO and the source to be called.
-        uint256 inputs_ = Operand.unwrap(operand_) & 0x7; // 00000111
-        uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3; // 00000011
+        uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
+        uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
         SourceIndex callSourceIndex_ = SourceIndex.wrap(
-            (Operand.unwrap(operand_) >> 5) & 0x7 // 00000111
+            Operand.unwrap(operand_) >> 8
         );
 
         // Remember the outer stack bottom.
@@ -85,10 +86,10 @@ library OpCall {
         StackTop stackTop_
     ) internal view returns (StackTop stackTopAfter_) {
         // Unpack the operand to get IO and the source to be called.
-        uint256 inputs_ = Operand.unwrap(operand_) & 0x7; // 00000111
-        uint256 outputs_ = (Operand.unwrap(operand_) >> 3) & 0x3; // 00000011
+        uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
+        uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
         SourceIndex callSourceIndex_ = SourceIndex.wrap(
-            (Operand.unwrap(operand_) >> 5) & 0x7 // 00000111
+            Operand.unwrap(operand_) >> 8
         );
 
         // Remember the outer stack bottom.
