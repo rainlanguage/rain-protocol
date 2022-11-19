@@ -38,7 +38,7 @@ describe("Flow context tests", async function () {
     flowFactory = await flowFactoryDeploy();
   });
 
-  it("should register and load flow times into context (throttle flow output amount)", async () => {
+  it.only("should register and load flow times into context (throttle flow output amount)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
@@ -101,6 +101,7 @@ describe("Flow context tests", async function () {
       flowStructFull.erc20[1].amount,
       flowStructReduced.erc20[1].amount,
       86400,
+      0 
     ];
 
     const SENTINEL = () =>
@@ -117,9 +118,16 @@ describe("Flow context tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
     const ONE_DAY = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
+    const NAMESPACE = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
+
+    const FLOW_TIME  = () => [
+      CONTEXT_FLOW_ID(), // k_
+      NAMESPACE(), // ns_
+      op(Opcode.READ_STATE)
+    ];
 
     // prettier-ignore
     const sourceFlowIO = concat([
@@ -127,10 +135,8 @@ describe("Flow context tests", async function () {
       CONTEXT_FLOW_ID(), // Key
       op(Opcode.CHANGE_STATE),
 
-      CONTEXT_FLOW_ID(), // Key
-      CONTEXT_FLOW_ID(), // Key
-      op(Opcode.READ_STATE),
-      // op(Opcode.DEBUG, Debug.StatePacked),
+      ...FLOW_TIME(),
+      op(Opcode.DEBUG, Debug.StatePacked),
 
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -142,11 +148,11 @@ describe("Flow context tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
       ME(),
       YOU(),
-        //   CONTEXT_FLOW_TIME(),
+        //   ...FLOW_TIME(),
         // op(Opcode.ISZERO),
         // FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(),
         //     op(Opcode.BLOCK_TIMESTAMP),
-        //       CONTEXT_FLOW_TIME(),
+        //       ...FLOW_TIME(),
         //       ONE_DAY(),
         //     op(Opcode.ADD, 2),
         //   op(Opcode.LESS_THAN), // is current timestamp within 24 hour window?
