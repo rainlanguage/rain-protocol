@@ -53,7 +53,7 @@ library OpDoWhile {
     }
 
     /// Loop the stack while the stack top is true.
-    function doWhile(
+    function run(
         InterpreterState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -67,7 +67,7 @@ library OpDoWhile {
             uint256 do_;
             (stackTop_, do_) = stackTop_.pop();
             while (do_ > 0) {
-                stackTop_ = OpCall.call(state_, callOperand_, stackTop_);
+                stackTop_ = OpCall.run(state_, callOperand_, stackTop_);
                 (stackTop_, do_) = stackTop_.pop();
             }
             return stackTop_;

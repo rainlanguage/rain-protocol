@@ -80,7 +80,7 @@ library OpCall {
     /// @param operand_ The operand associated with this call.
     /// @param stackTop_ The current stack top within the evaluation.
     /// @return stackTopAfter_ The stack top after the call is evaluated.
-    function call(
+    function run(
         InterpreterState memory state_,
         Operand operand_,
         StackTop stackTop_

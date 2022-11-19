@@ -254,13 +254,12 @@ library AllStandardOps {
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
                     OpChainlinkOraclePrice.price,
-                    // solhint-disable-next-line avoid-low-level-calls
-                    OpCall.call,
+                    OpCall.run,
                     OpChangeState.run,
                     OpContext.context,
                     OpDebug.debug,
-                    OpDoWhile.doWhile,
-                    OpLoopN.loopN,
+                    OpDoWhile.run,
+                    OpLoopN.run,
                     OpReadMemory.run,
                     OpHash.hash,
                     OpERC20BalanceOf.balanceOf,
