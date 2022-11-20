@@ -37,7 +37,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
 
     assert(
       areEqualStateConfigs(expected, result),
-      `wrong solution to (7 4 2 %)
+      `wrong state config
       expected  ${expected}
       got       ${result}`
     );
