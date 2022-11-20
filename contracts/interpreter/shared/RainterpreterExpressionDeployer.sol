@@ -19,11 +19,14 @@ contract RainterpreterExpressionDeployer is
     using LibInterpreterState for StateConfig;
 
     event ValidInterpreter(address sender, address interpreter);
-    event DeployExpression(
+    event ExpressionConfig(
         address sender,
         StateConfig config,
-        address expressionAddress,
-        uint256 contextScratch
+        uint contextReads
+    );
+    event ExpressionDeployed(
+        address sender,
+        address expression
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -58,27 +61,27 @@ contract RainterpreterExpressionDeployer is
         StateConfig memory config_,
         uint256[] memory finalMinStacks_
     ) external returns (address, uint256) {
-        (uint256 contextScratch_, uint256 stackLength_) = ensureIntegrity(
+        (uint256 contextReads_, uint256 stackLength_) = ensureIntegrity(
             StorageOpcodesRange(0, 0),
             config_.sources,
             config_.constants.length,
             finalMinStacks_
         );
 
+        emit ExpressionConfig(
+            msg.sender,
+            config_,
+            contextReads_
+        );
+
         bytes memory stateBytes_ = config_.serialize(
-            contextScratch_,
+            contextReads_,
             stackLength_,
             OPCODE_FUNCTION_POINTERS
         );
 
-        address expressionAddress_ = SSTORE2.write(stateBytes_);
-
-        emit DeployExpression(
-            msg.sender,
-            config_,
-            expressionAddress_,
-            contextScratch_
-        );
-        return (expressionAddress_, contextScratch_);
+        address expression_ = SSTORE2.write(stateBytes_);
+        emit ExpressionDeployed(msg.sender, expression_);
+        return (expression_, contextReads_);
     }
 }
