@@ -42,6 +42,7 @@ struct InterpreterState {
     StackTop stackBottom;
     StackTop constantsBottom;
     MemoryKV stateKV;
+    StateNamespace stateNamespace;
     uint256[][] context;
     bytes[] compiledSources;
 }

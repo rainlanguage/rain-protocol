@@ -83,14 +83,11 @@ contract RainterpreterExpressionDeployer is
         StateConfig memory config_,
         uint[] memory minStackOutputs_
     ) external returns (address, uint256) {
-        (
-            uint256 contextReads_,
-            uint256 stackLength_
-        ) = ensureIntegrity(
-                config_.sources,
-                config_.constants.length,
-                minStackOutputs_
-            );
+        (uint256 contextReads_, uint256 stackLength_) = ensureIntegrity(
+            config_.sources,
+            config_.constants.length,
+            minStackOutputs_
+        );
 
         bytes memory stateBytes_ = config_.serialize(
             stackLength_,

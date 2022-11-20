@@ -33,7 +33,7 @@ contract AutoApprove is VerifyCallback {
     /// @param config All initialized config.
     event Initialize(address sender, AutoApproveConfig config);
 
-    address internal interpreter;
+    IInterpreterV1 internal interpreter;
     address internal expression;
 
     constructor() {
@@ -52,7 +52,7 @@ contract AutoApprove is VerifyCallback {
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
         expression = expression_;
-        interpreter = config_.interpreter;
+        interpreter = IInterpreterV1(config_.interpreter);
 
         _transferOwnership(msg.sender);
 
@@ -64,12 +64,11 @@ contract AutoApprove is VerifyCallback {
         Evidence[] calldata evidences_
     ) external virtual override {
         unchecked {
+            IInterpreterV1 interpreter_ = interpreter;
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[][] memory context_ = new uint256[][](1);
             context_[0] = new uint[](2);
-            uint[][] memory stateChangess_ = new uint[][](evidences_.length);
-            uint stateChangesCount_ = 0;
             EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
                 expression,
                 CAN_APPROVE_ENTRYPOINT,
@@ -83,9 +82,7 @@ contract AutoApprove is VerifyCallback {
                     (
                         uint[] memory stack_,
                         uint[] memory stateChanges_
-                    ) = IInterpreterV1(interpreter).eval(dispatch_, context_);
-                    stateChangesCount_ += stateChanges_.length;
-                    stateChangess_[i_] = stateChanges_;
+                    ) = interpreter_.eval(dispatch_, context_);
                     if (stack_.asStackTopAfter().peek() > 0) {
                         LibEvidence._updateEvidenceRef(
                             approvedRefs_,
@@ -94,13 +91,10 @@ contract AutoApprove is VerifyCallback {
                         );
                         approvals_++;
                     }
+                    if (stateChanges_.length > 0) {
+                        interpreter_.stateChanges(stateChanges_);
+                    }
                 }
-            }
-            if (stateChangesCount_ > 0) {
-                IInterpreterV1(interpreter).stateChanges(
-                    StateNamespace.wrap(0),
-                    stateChangess_
-                );
             }
 
             if (approvals_ > 0) {

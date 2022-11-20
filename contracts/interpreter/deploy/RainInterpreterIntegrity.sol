@@ -33,14 +33,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
         bytes[] memory sources_,
         uint256 constantsLength_,
         uint[] memory minStackOutputs_
-    )
-        public
-        view
-        returns (
-            uint256 contextReads_,
-            uint256 stackLength_
-        )
-    {
+    ) public view returns (uint256 contextReads_, uint256 stackLength_) {
         require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,

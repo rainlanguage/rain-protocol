@@ -221,10 +221,7 @@ library LibFlow {
         uint[] memory stateChanges_
     ) internal {
         if (stateChanges_.length > 0) {
-            interpreter_.stateChanges(
-                StateNamespace.wrap(0),
-                stateChanges_.matrixFrom()
-            );
+            interpreter_.stateChanges(stateChanges_);
         }
         flowTransfer_.flowNative();
         flowTransfer_.flowERC20();

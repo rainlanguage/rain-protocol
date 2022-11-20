@@ -19,9 +19,9 @@ library OpReadState {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            // Pop namespace, key
+            // Pop key
             // Stack value
-            function(uint, uint) internal pure returns (uint) fn_;
+            function(uint) internal pure returns (uint) fn_;
             return integrityState_.applyFn(stackTop_, fn_);
         }
     }

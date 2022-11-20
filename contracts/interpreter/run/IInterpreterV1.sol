@@ -16,8 +16,16 @@ interface IInterpreterV1 {
         view
         returns (uint256[] memory stack, uint[] memory stateChanges);
 
-    function stateChanges(
+    function stateChanges(uint[] memory stateChanges) external;
+
+    function evalWithNamespace(
         StateNamespace namespace,
-        uint[][] memory stateChanges
+        EncodedDispatch dispatch,
+        uint[][] memory context
+    ) external view returns (uint[] memory stack, uint[] memory stateChanges);
+
+    function stateChangesWithNamespace(
+        StateNamespace namespace,
+        uint[] memory stateChanges
     ) external;
 }

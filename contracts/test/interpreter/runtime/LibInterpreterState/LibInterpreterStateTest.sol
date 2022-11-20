@@ -86,10 +86,9 @@ contract LibInterpreterStateTest is RainInterpreter {
         StateConfig memory config_,
         uint[] memory minStackOutputs_
     ) public view returns (bytes memory serialized_) {
-        (
-            ,
-            uint256 stackLength_
-        ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
+        (, uint256 stackLength_) = IRainInterpreterIntegrity(
+            interpreterIntegrity
+        ).ensureIntegrity(
                 config_.sources,
                 config_.constants.length,
                 minStackOutputs_
