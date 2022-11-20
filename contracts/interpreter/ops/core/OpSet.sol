@@ -7,9 +7,9 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 import "../../../kv/LibMemoryKV.sol";
 
-/// @title OpChangeState
+/// @title OpSet
 /// @notice Opcode for recording k/v state changes to be set in storage.
-library OpChangeState {
+library OpSet {
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityState for IntegrityState;

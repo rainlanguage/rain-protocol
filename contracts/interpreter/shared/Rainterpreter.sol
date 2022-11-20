@@ -4,7 +4,7 @@ pragma solidity ^0.8.15;
 import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
-import "../ops/core/OpReadState.sol";
+import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
@@ -79,7 +79,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         return opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes();
     }
 
-    function opReadState(
+    function opGet(
         InterpreterState memory interpreterState_,
         Operand,
         StackTop stackTop_
@@ -117,7 +117,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
                 Operand,
                 StackTop
             ) view returns (StackTop)[](1);
-        localPtrs_[0] = OpReadState.integrity;
+        localPtrs_[0] = OpGet.integrity;
         return localPtrs_;
     }
 
@@ -140,7 +140,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
                 Operand,
                 StackTop
             ) view returns (StackTop)[](1);
-        localPtrs_[0] = opReadState;
+        localPtrs_[0] = opGet;
         return localPtrs_;
     }
 

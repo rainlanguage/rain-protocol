@@ -7,7 +7,7 @@ import "../../array/LibUint256Array.sol";
 import "../run/RainInterpreter.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
-import "./core/OpChangeState.sol";
+import "./core/OpSet.sol";
 import "./core/OpContext.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
@@ -170,12 +170,12 @@ library AllStandardOps {
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
                     OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
-                    OpChangeState.integrity,
                     OpContext.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
+                                        OpSet.integrity,
                     OpHash.integrity,
                     OpERC20BalanceOf.integrity,
                     OpERC20TotalSupply.integrity,
@@ -255,12 +255,12 @@ library AllStandardOps {
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
                     OpChainlinkOraclePrice.price,
                     OpCall.run,
-                    OpChangeState.run,
                     OpContext.context,
                     OpDebug.debug,
                     OpDoWhile.run,
                     OpLoopN.run,
                     OpReadMemory.run,
+                                        OpSet.run,
                     OpHash.hash,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,

@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
-import "../ops/core/OpReadState.sol";
+import "../ops/core/OpGet.sol";
 
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0a9a0aa80afe0b910be30c0f0ca80cdd0cfb0d0a0d180d260d340d0a0d420d500d5e0d6d0d7c0d8a0d980da60db40e370e460e550e640e730e820ecb0edd0eeb0f1d0f2b0f390f470f560f650f740f830f920fa10fb00fbf0fce0fdd0fec0ffa10081016102410321040104f105e106c10de0a09";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
@@ -75,7 +75,7 @@ contract RainterpreterExpressionDeployer is
                 Operand,
                 StackTop
             ) view returns (StackTop)[](1);
-        localFnPtrs_[0] = OpReadState.integrity;
+        localFnPtrs_[0] = OpGet.integrity;
         return localFnPtrs_;
     }
 

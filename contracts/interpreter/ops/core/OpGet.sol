@@ -6,9 +6,9 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 
-/// @title OpReadState
+/// @title OpGet
 /// @notice Opcode for reading from storage.
-library OpReadState {
+library OpGet {
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityState for IntegrityState;
