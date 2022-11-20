@@ -101,7 +101,7 @@ describe("Flow context tests", async function () {
       flowStructFull.erc20[1].amount,
       flowStructReduced.erc20[1].amount,
       86400,
-      0 
+      0,
     ];
 
     const SENTINEL = () =>
@@ -123,10 +123,10 @@ describe("Flow context tests", async function () {
 
     const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
 
-    const FLOW_TIME  = () => [
+    const FLOW_TIME = () => [
       NAMESPACE(), // ns_
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.READ_STATE)
+      op(Opcode.READ_STATE),
     ];
 
     // prettier-ignore

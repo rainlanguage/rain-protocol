@@ -23,9 +23,7 @@ library OpSelectLte {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             require(inputs_ > 0, "SELECT_LTE_ZERO_INPUTS");
             return
-                integrityState_.push(
-                    integrityState_.pop(stackTop_, inputs_)
-                );
+                integrityState_.push(integrityState_.pop(stackTop_, inputs_));
         }
     }
 
@@ -43,7 +41,7 @@ library OpSelectLte {
     ) internal pure returns (StackTop) {
         unchecked {
             uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint mode_ = Operand.unwrap(operand_) >> 8 & MASK_2BIT;
+            uint mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
             uint logic_ = Operand.unwrap(operand_) >> 10;
             (uint256 time_, uint256[] memory reports_) = stackTop_.list(
                 inputs_

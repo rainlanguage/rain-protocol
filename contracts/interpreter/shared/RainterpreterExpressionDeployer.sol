@@ -67,7 +67,14 @@ contract RainterpreterExpressionDeployer is
                 memory
         )
     {
-        function(IntegrityState memory, Operand, StackTop) view returns (StackTop)[] memory localFnPtrs_ = new function(IntegrityState memory, Operand, StackTop) view returns (StackTop)[](1);
+        function(IntegrityState memory, Operand, StackTop)
+            view
+            returns (StackTop)[]
+            memory localFnPtrs_ = new function(
+                IntegrityState memory,
+                Operand,
+                StackTop
+            ) view returns (StackTop)[](1);
         localFnPtrs_[0] = OpReadState.integrity;
         return localFnPtrs_;
     }

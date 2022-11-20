@@ -25,6 +25,14 @@ uint constant B_1111111111 = 2 ** 10 - 1;
 uint constant B_11111111111 = 2 ** 11 - 1;
 /// @dev Binary 111111111111.
 uint constant B_111111111111 = 2 ** 12 - 1;
+/// @dev Binary 1111111111111.
+uint constant B_1111111111111 = 2 ** 13 - 1;
+/// @dev Binary 11111111111111.
+uint constant B_11111111111111 = 2 ** 14 - 1;
+/// @dev Binary 111111111111111.
+uint constant B_111111111111111 = 2 ** 15 - 1;
+/// @dev Binary 1111111111111111.
+uint constant B_1111111111111111 = 2 ** 16 - 1;
 
 /// @dev Bitmask for 1 bit.
 uint constant MASK_1BIT = B_1;
@@ -50,3 +58,11 @@ uint constant MASK_10BIT = B_1111111111;
 uint constant MASK_11BIT = B_11111111111;
 /// @dev Bitmask for 12 bits.
 uint constant MASK_12BIT = B_111111111111;
+/// @dev Bitmask for 13 bits.
+uint constant MASK_13BIT = B_1111111111111;
+/// @dev Bitmask for 14 bits.
+uint constant MASK_14BIT = B_11111111111111;
+/// @dev Bitmask for 15 bits.
+uint constant MASK_15BIT = B_111111111111111;
+/// @dev Bitmask for 16 bits.
+uint constant MASK_16BIT = B_1111111111111111;

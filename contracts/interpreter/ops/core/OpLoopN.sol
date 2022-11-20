@@ -29,13 +29,17 @@ library OpLoopN {
         unchecked {
             uint n_ = Operand.unwrap(operand_) >> 12;
             uint inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
-            uint outputs_ = Operand.unwrap(operand_) >> 4 & MASK_4BIT;
+            uint outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
             require(inputs_ >= outputs_, "LOOP_N_INPUTS");
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) & MASK_12BIT
             );
             for (uint i_ = 0; i_ < n_; i_++) {
-                stackTop_ = OpCall.integrity(integrityState_, callOperand_, stackTop_);
+                stackTop_ = OpCall.integrity(
+                    integrityState_,
+                    callOperand_,
+                    stackTop_
+                );
             }
             return stackTop_;
         }
