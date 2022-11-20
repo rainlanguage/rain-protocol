@@ -192,30 +192,19 @@ const testSolStructs = (
   if (config1.constants.length !== config2.constants.length) return false;
   if (config1.sources.length !== config2.sources.length) return false;
 
-  const aConstants: BigNumber[] = [];
-  const bConstants: BigNumber[] = [];
-  for (const item of config1.constants) {
-      aConstants.push(BigNumber.from(item));
-  }
-  for (const item of config2.constants) {
-      bConstants.push(BigNumber.from(item));
-  }
-
-  for (let i = 0; i < aConstants.length; i++) {
-      if (!aConstants[i].eq(bConstants[i])) return false;
+  for (let i = 0; i < config1.constants.length; i++) {
+      if (
+        !BigNumber.from(config1.constants[i]).eq(
+          BigNumber.from(config2.constants[i])
+        )
+      ) return false;
   }
 
-  const aSources: string[] = [];
-  const bSources: string[] = [];
-  for (const item of config1.sources) {
-      aSources.push(hexlify(item, { allowMissingPrefix: true }));
-  }
-  for (const item of config2.sources) {
-      bSources.push(hexlify(item, { allowMissingPrefix: true }));
-  }
-
-  for (let i = 0; i < aSources.length; i++) {
-      if (aSources[i] !== bSources[i]) return false;
+  for (let i = 0; i < config1.sources.length; i++) {
+      if (
+        hexlify(config1.sources[i], { allowMissingPrefix: true }) !== 
+        hexlify(config2.sources[i], { allowMissingPrefix: true })
+      ) return false;
   }
 
   return true;
