@@ -120,8 +120,7 @@ abstract contract RainInterpreter {
         unchecked {
             (
                 ,
-                uint256 stackLength_,
-                uint stateChangesLength_
+                uint256 stackLength_
             ) = interpreterIntegrity_.ensureIntegrity(
                     config_.sources,
                     config_.constants.length,
@@ -131,7 +130,6 @@ abstract contract RainInterpreter {
             return
                 config_.serialize(
                     stackLength_,
-                    stateChangesLength_,
                     opcodeFunctionPointers()
                         .asUint256Array()
                         .unsafeTo16BitBytes()

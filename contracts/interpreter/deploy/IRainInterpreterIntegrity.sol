@@ -14,7 +14,6 @@ interface IRainInterpreterIntegrity {
         view
         returns (
             uint256 contextReads,
-            uint256 stackLength,
-            uint stateChangesLength
+            uint256 stackLength
         );
 }

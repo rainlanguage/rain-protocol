@@ -85,8 +85,7 @@ contract RainterpreterExpressionDeployer is
     ) external returns (address, uint256) {
         (
             uint256 contextReads_,
-            uint256 stackLength_,
-            uint stateChangesLength_
+            uint256 stackLength_
         ) = ensureIntegrity(
                 config_.sources,
                 config_.constants.length,
@@ -95,7 +94,6 @@ contract RainterpreterExpressionDeployer is
 
         bytes memory stateBytes_ = config_.serialize(
             stackLength_,
-            stateChangesLength_,
             OPCODE_FUNCTION_POINTERS
         );
 

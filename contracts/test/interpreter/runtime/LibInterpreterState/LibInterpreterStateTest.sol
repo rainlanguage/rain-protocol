@@ -88,8 +88,7 @@ contract LibInterpreterStateTest is RainInterpreter {
     ) public view returns (bytes memory serialized_) {
         (
             ,
-            uint256 stackLength_,
-            uint stateChangesLength_
+            uint256 stackLength_
         ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
                 config_.sources,
                 config_.constants.length,
@@ -98,7 +97,6 @@ contract LibInterpreterStateTest is RainInterpreter {
 
         serialized_ = config_.serialize(
             stackLength_,
-            stateChangesLength_,
             opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
         );
     }

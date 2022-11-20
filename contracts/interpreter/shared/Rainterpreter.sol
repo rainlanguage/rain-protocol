@@ -5,6 +5,7 @@ import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
 import "../ops/core/OpReadState.sol";
+import "../../kv/LibMemoryKV.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 contract Rainterpreter is IInterpreterV1, RainInterpreter {
@@ -16,6 +17,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         returns (StackTop)[];
     using LibConvert for uint256[];
     using Math for uint256;
+    using LibMemoryKV for MemoryKV;
 
     // state is several tiers of sandbox
     // 0. address is msg.sender so that callers cannot attack each other
@@ -43,7 +45,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, state_.stateChanges);
+        return (tail_, state_.stateKV.toUint256Array());
     }
 
     function stateChanges(

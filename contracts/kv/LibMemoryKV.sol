@@ -8,7 +8,7 @@ type MemoryKVKey is uint;
 type MemoryKVPtr is uint;
 type MemoryKVVal is uint;
 
-contract LibMemoryKV {
+library LibMemoryKV {
     function readPtrVal(MemoryKVPtr ptr_) internal pure returns (MemoryKVVal) {
         // This is ALWAYS a bug. It means the caller did not check if the ptr is
         // nonzero before trying to read from it.

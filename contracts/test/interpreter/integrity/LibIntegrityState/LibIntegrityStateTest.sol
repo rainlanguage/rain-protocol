@@ -41,7 +41,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
             0, // context scratch
@@ -63,7 +62,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(0), // stackMaxTop
             0, // context scratch
@@ -88,7 +86,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
             0, // context scratch
@@ -107,7 +104,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
             0, // context scratch
@@ -126,7 +122,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
             0, // context scratch
@@ -145,7 +140,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
             0, // context scratch
@@ -165,7 +159,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             sources_, // sources
             constantsLength_, // constantsLength
-            0, // contextLength
             StackTop.wrap(stackBottom_), // stackBottom
             StackTop.wrap(stackMaxTop_), // stackMaxTop
             0, // context scratch
@@ -231,7 +224,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -245,7 +237,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -259,7 +250,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -273,7 +263,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -287,7 +276,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -301,7 +289,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -318,7 +305,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -335,7 +321,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // context scratch
@@ -352,7 +337,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // contextReads
@@ -369,7 +353,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
         IntegrityState memory integrityState_ = IntegrityState(
             new bytes[](0), // sources
             0, // constantsLength
-            0, // contextLength
             StackTop.wrap(0), // stackBottom
             stackTop_, // stackMaxTop
             0, // contextReads
