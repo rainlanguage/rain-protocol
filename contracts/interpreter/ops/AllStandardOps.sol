@@ -12,6 +12,7 @@ import "./core/OpContext.sol";
 import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
+import "./core/OpFoldContext.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpReadMemory.sol";
 import "./crypto/OpHash.sol";
@@ -64,7 +65,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -175,6 +176,7 @@ library AllStandardOps {
                     OpContextRow.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
+                    OpFoldContext.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
                     OpSet.integrity,
@@ -261,6 +263,7 @@ library AllStandardOps {
                     OpContextRow.run,
                     OpDebug.debug,
                     OpDoWhile.run,
+                    OpFoldContext.run,
                     OpLoopN.run,
                     OpReadMemory.run,
                     OpSet.run,

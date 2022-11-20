@@ -51,11 +51,16 @@ library LibIdempotentFlag {
         }
     }
 
-    function set16x16Column(IdempotentFlag flag_, uint column_) internal pure only16x16(column_, 0) returns (IdempotentFlag) {
+    function set16x16Column(
+        IdempotentFlag flag_,
+        uint column_
+    ) internal pure only16x16(column_, 0) returns (IdempotentFlag) {
         unchecked {
-            return IdempotentFlag.wrap(
-                IdempotentFlag.unwrap(flag_) | (MASK_16BIT << column_ * 16)
-            );
+            return
+                IdempotentFlag.wrap(
+                    IdempotentFlag.unwrap(flag_) |
+                        (MASK_16BIT << (column_ * 16))
+                );
         }
     }
 }
