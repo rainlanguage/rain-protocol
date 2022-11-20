@@ -8,11 +8,15 @@ import "../../deploy/LibIntegrityState.sol";
 import "../../../idempotent/LibIdempotentFlag.sol";
 import "../../../math/Binary.sol";
 
-/// @title OpContext
-/// @notice Opcode for stacking from the context. Context requires slightly
-/// different handling to other memory reads as it is working with data that
-/// is provided at runtime.
-library OpContext {
+/// @title OpContextRow
+/// @notice Opcode for stacking a dynamic row from the context. Context requires
+/// slightly different handling to other memory reads as it is working with data
+/// that is provided at runtime. `OpContextRow` works exactly like `OpContext`
+/// but the row is provided from the stack instead of the operand. We rely on
+/// Solidity OOB checks at runtime to enforce that the index from the stack is
+/// within bounds at runtime. As we do NOT know statically which row will be read
+/// the context reads is set to the entire column.
+library OpContextRow {
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityState for IntegrityState;
@@ -24,18 +28,17 @@ library OpContext {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        uint256 row_ = Operand.unwrap(operand_) & MASK_8BIT;
-        uint256 column_ = Operand.unwrap(operand_) >> 8;
+        uint256 column_ = Operand.unwrap(operand_);
         integrityState_.contextReads = IdempotentFlag.unwrap(
-            LibIdempotentFlag.set16x16(
+            LibIdempotentFlag.set16x16Column(
                 IdempotentFlag.wrap(integrityState_.contextReads),
-                column_,
-                row_
+                column_
             )
         );
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
-        return integrityState_.push(stackTop_);
+        function(uint) internal pure returns (uint) fn_;
+        return integrityState_.applyFn(stackTop_, fn_);
     }
 
     /// Stack a value from the context WITH OOB checks from solidity.
@@ -47,11 +50,8 @@ library OpContext {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         // The indexing syntax here enforces OOB checks at runtime.
-        return
-            stackTop_.push(
-                state_.context[Operand.unwrap(operand_) >> 8][
-                    Operand.unwrap(operand_) & MASK_8BIT
-                ]
-            );
+        (StackTop location_, uint row_) = stackTop_.pop();
+        location_.set(state_.context[Operand.unwrap(operand_)][row_]);
+        return stackTop_;
     }
 }

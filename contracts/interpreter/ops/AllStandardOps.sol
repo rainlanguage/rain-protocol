@@ -9,6 +9,7 @@ import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
 import "./core/OpSet.sol";
 import "./core/OpContext.sol";
+import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpLoopN.sol";
@@ -63,7 +64,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 57;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -171,11 +172,12 @@ library AllStandardOps {
                     OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
                     OpContext.integrity,
+                    OpContextRow.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
-                                        OpSet.integrity,
+                    OpSet.integrity,
                     OpHash.integrity,
                     OpERC20BalanceOf.integrity,
                     OpERC20TotalSupply.integrity,
@@ -255,12 +257,13 @@ library AllStandardOps {
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
                     OpChainlinkOraclePrice.price,
                     OpCall.run,
-                    OpContext.context,
+                    OpContext.run,
+                    OpContextRow.run,
                     OpDebug.debug,
                     OpDoWhile.run,
                     OpLoopN.run,
                     OpReadMemory.run,
-                                        OpSet.run,
+                    OpSet.run,
                     OpHash.hash,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,
