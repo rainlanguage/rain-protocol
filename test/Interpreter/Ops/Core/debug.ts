@@ -5,6 +5,7 @@ import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardO
 import {
   callOperand,
   Debug,
+  doWhileOperand,
   loopNOperand,
   memoryOperand,
   MemoryType,
@@ -95,7 +96,7 @@ describe("RainInterpreter debug op", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, 1), // Source to run is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source to run is on index 1
     ]);
 
     // prettier-ignore
@@ -136,7 +137,7 @@ describe("RainInterpreter debug op", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
     await logic.initialize(

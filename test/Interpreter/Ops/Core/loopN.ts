@@ -22,6 +22,8 @@ describe("LOOP_N Opcode test", async function () {
     logic = await allStandardOpsDeploy();
   });
 
+  // TODO: LOOP_N_INPUTS
+
   it("should loop the source 0 times", async () => {
     const n = 0;
 
@@ -39,7 +41,7 @@ describe("LOOP_N Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
     await logic.initialize(
@@ -79,7 +81,7 @@ describe("LOOP_N Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
     await logic.initialize(
@@ -119,7 +121,7 @@ describe("LOOP_N Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
     await logic.initialize(
@@ -154,13 +156,13 @@ describe("LOOP_N Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
     // prettier-ignore
     const sourceADDOuter = concat([
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
-      op(Opcode.LOOP_N, loopNOperand(n, 2))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 2))
     ]);
 
     // prettier-ignore
@@ -256,7 +258,7 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Initial Value
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.LOOP_N, loopNOperand(n, 1)),
+      op(Opcode.LOOP_N, loopNOperand(n, 3, 3, 1)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32),
     ]);
@@ -357,10 +359,10 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Initial Value
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.LOOP_N, loopNOperand(n, 1)),
+      op(Opcode.LOOP_N, loopNOperand(n, 3, 3, 1)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32), // EXPLODING the Value
-      op(Opcode.LOOP_N, loopNOperand(7, 4)),
+      op(Opcode.LOOP_N, loopNOperand(7, 2, 1, 4)),
     ]);
 
     await logic.initialize(
@@ -411,7 +413,7 @@ describe("LOOP_N Opcode test", async function () {
     const sourceMAIN = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 2, 1, 1))
     ]);
 
     await logic.initialize(
@@ -449,7 +451,7 @@ describe("LOOP_N Opcode test", async function () {
     const sourceMAIN = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
     await assertError(

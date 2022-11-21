@@ -4,8 +4,8 @@ import { ethers } from "hardhat";
 import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   AllStandardOps,
-  assertError,
   callOperand,
+  doWhileOperand,
   memoryOperand,
   MemoryType,
   op,
@@ -21,64 +21,7 @@ describe("DO_WHILE Opcode test", async function () {
     logic = await allStandardOpsDeploy();
   });
 
-  it("should revert when the stack size is not the same at the end of the iteration", async () => {
-    const initValue = 1; // An initial value
-    const loopValue = 2; // Value added on every loop
-    const minimumValue = 5; // The minimum value necessary to stop the loop
-
-    const constants = [initValue, loopValue, minimumValue];
-
-    // prettier-ignore
-    const sourceMAIN = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, 1), // Source is on index 1
-    ]);
-
-    // prettier-ignore
-    // The loop will end with an additional element on the stack
-    const sourceExtra = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
-    ]);
-
-    // prettier-ignore
-    // The loop will end with a missing element in the stack.
-    const sourceMissing = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.ADD, 2),
-    ]);
-
-    await assertError(
-      async () =>
-        await logic.initialize(
-          {
-            sources: [sourceMAIN, sourceExtra],
-            constants,
-          },
-          [1]
-        ),
-      "LOOP_SHIFT",
-      "did not error the integrity check if there are extra values on stack at the iteration end"
-    );
-
-    await assertError(
-      async () =>
-        await logic.initialize(
-          {
-            sources: [sourceMAIN, sourceMissing],
-            constants,
-          },
-          [1]
-        ),
-      "LOOP_SHIFT",
-      "did not error the integrity check if there are missing values on stack at the iteration end"
-    );
-  });
+  // TODO: OP_DO_WHILE_INPUTS
 
   it("should not loop if the conditional is zero/false value", async () => {
     const initValue = 12; // An initial value
@@ -93,7 +36,7 @@ describe("DO_WHILE Opcode test", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, 1), // Source is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(2, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
@@ -138,7 +81,7 @@ describe("DO_WHILE Opcode test", async function () {
     const sourceMAIN = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
-      op(Opcode.DO_WHILE, 1), // Source is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
@@ -185,7 +128,7 @@ describe("DO_WHILE Opcode test", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, 1), // Source is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
@@ -228,7 +171,7 @@ describe("DO_WHILE Opcode test", async function () {
 
     const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
 
-    const whileOP = op(Opcode.DO_WHILE, 1);
+    const whileOP = op(Opcode.DO_WHILE, doWhileOperand(2, 0, 1));
     const callCheckAcc = op(Opcode.CALL, callOperand(1, 2, 2));
     const callIncrease = op(Opcode.CALL, callOperand(2, 2, 3));
 

@@ -5,12 +5,12 @@ import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 import "../ops/core/OpGet.sol";
 
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0a9a0aa80afe0b910be30c0f0ca80cdd0cfb0d0a0d180d260d340d0a0d420d500d5e0d6d0d7c0d8a0d980da60db40e370e460e550e640e730e820ecb0edd0eeb0f1d0f2b0f390f470f560f650f740f830f920fa10fb00fbf0fce0fdd0fec0ffa10081016102410321040104f105e106c10de0a09";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0b080b160b6c0bbe0c3c0c680d010dcb0e000e1e0ea60eb50ec30ed10edf0eb50eed0efb0f090f180f270f350f430f510f5f0fd70fe60ff5100410131022106b107d108b10bd10cb10d910e710f6110511141123113211411150115f116e117d118c119a11a811b611c411d211e011ef11fe120c12830a6e";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xa84610bc79bd1e9ca384f043d5885e6411830e57d152f3381502c171d60316c1
+    0xfdbdb6b5d5d4184db4b7f9655dfedbb74fc097c8af547d34ff9c7d32fd00e7f3
 );
 
 contract RainterpreterExpressionDeployer is

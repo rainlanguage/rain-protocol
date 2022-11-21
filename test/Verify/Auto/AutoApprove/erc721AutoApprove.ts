@@ -22,7 +22,7 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let tokenERC721: ReserveTokenERC721;

@@ -19,7 +19,7 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {

@@ -38,7 +38,7 @@ describe("Flow context tests", async function () {
     flowFactory = await flowFactoryDeploy();
   });
 
-  it.only("should register and load flow times into context (throttle flow output amount)", async () => {
+  it("should register and load flow times into context (throttle flow output amount)", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];

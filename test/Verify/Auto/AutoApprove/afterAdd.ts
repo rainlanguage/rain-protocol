@@ -18,7 +18,7 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("AutoApprove afterAdd", async function () {
@@ -44,7 +44,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 0x0001),
+            op(Opcode.CONTEXT, 0x0001),
             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -106,7 +106,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 0x0001),
+            op(Opcode.CONTEXT, 0x0001),
             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
@@ -171,7 +171,7 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-          op(Opcode.CONTEXT, 0x0001),
+            op(Opcode.CONTEXT, 0x0001),
             op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.EQUAL_TO),
         ]),
