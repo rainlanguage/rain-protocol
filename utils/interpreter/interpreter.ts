@@ -127,7 +127,11 @@ export function zipmapSize(
   return operand;
 }
 
-export function selectLte(logic: number, mode: number, inputs: number): number {
-  const operand = (logic << 13) + (mode << 8) + inputs;
+export function selectLte(
+  logic: number,
+  mode: number,
+  inputSize: number
+): number {
+  const operand = (logic << 13) + (mode << 8) + inputSize;
   return operand;
 }
