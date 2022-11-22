@@ -44,7 +44,7 @@ describe("RainInterpreter unchecked math", async () => {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -78,7 +78,7 @@ describe("RainInterpreter unchecked math", async () => {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -106,7 +106,7 @@ describe("RainInterpreter unchecked math", async () => {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "accumulator underflow did not panic"
     );
@@ -137,7 +137,7 @@ describe("RainInterpreter unchecked math", async () => {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "accumulator overflow did not panic"
     );

@@ -37,7 +37,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(100);
 
@@ -66,7 +66,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros + "0000");
 
@@ -94,7 +94,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     ];
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + eighteenZeros + "00");
 
@@ -123,7 +123,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros);
 
@@ -154,7 +154,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(ONE)
@@ -186,7 +186,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(value2)
@@ -215,7 +215,7 @@ describe("RainInterpreter fixed point math ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value + eighteenZeros);
     assert(

@@ -1,3 +1,4 @@
+/* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
@@ -856,7 +857,9 @@ describe("CombineTier report tests", async function () {
       [1]
     );
 
-    await logic.connect(alice).runContext([[alice.address, ...THRESHOLDS]]);
+    await logic
+      .connect(alice)
+      ["runContext(uint256[][])"]([[alice.address, ...THRESHOLDS]]);
 
     const result0 = await logic.stackTop();
 
@@ -876,7 +879,9 @@ describe("CombineTier report tests", async function () {
     await tokenERC20.connect(alice).approve(stake1.address, depositAmount1);
     await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic.connect(alice).runContext([[alice.address, ...THRESHOLDS]]);
+    await logic
+      .connect(alice)
+      ["runContext(uint256[][])"]([[alice.address, ...THRESHOLDS]]);
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;

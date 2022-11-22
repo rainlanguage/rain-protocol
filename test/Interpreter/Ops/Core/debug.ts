@@ -34,7 +34,7 @@ describe("RainInterpreter debug op", async function () {
     ])];
 
     await logic.initialize({ sources, constants }, [1]);
-    await logic.run();
+    await logic["run()"]();
 
     assert(true); // you have to check this log yourself
   });
@@ -51,7 +51,7 @@ describe("RainInterpreter debug op", async function () {
     ])];
 
     await logic.initialize({ sources, constants }, [1]);
-    await logic.run();
+    await logic["run()"]();
 
     assert(true); // you have to check this log yourself
   });
@@ -84,7 +84,7 @@ describe("RainInterpreter debug op", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
   });
 
   it("should be able to log when used within a source from DO_WHILE op", async () => {
@@ -117,7 +117,7 @@ describe("RainInterpreter debug op", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
   });
 
   it("should be able to log when used within a source from LOOP_N op", async () => {
@@ -153,7 +153,7 @@ describe("RainInterpreter debug op", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),

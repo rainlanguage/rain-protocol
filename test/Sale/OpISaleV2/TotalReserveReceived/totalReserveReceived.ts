@@ -48,7 +48,7 @@ describe("ISaleV2 TotalReserveReceived tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
 
     const _totalReserveReceived = await logic.stackTop();
 

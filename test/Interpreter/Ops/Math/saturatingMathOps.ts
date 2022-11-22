@@ -49,7 +49,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "normal multiplication overflow did not error"
     );
@@ -72,7 +72,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = max_uint256;
     assert(
@@ -106,7 +106,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "normal subtraction overflow did not error"
     );
@@ -129,7 +129,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 0;
     assert(
@@ -160,7 +160,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
     await logic.initialize({ sources: sourcesUnsat, constants }, [1]);
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "Error",
       "normal addition overflow did not error"
     );
@@ -183,7 +183,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = max_uint256;
     assert(

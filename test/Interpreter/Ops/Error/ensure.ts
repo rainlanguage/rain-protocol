@@ -46,7 +46,7 @@ describe("ENSURE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from eager if, got ${result0}`);
@@ -70,7 +70,7 @@ describe("ENSURE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
 
     assert(result1.eq(3), `returned wrong value from eager if, got ${result1}`);
@@ -94,7 +94,7 @@ describe("ENSURE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result2 = await logic.stackTop();
 
     assert(result2.eq(0), `returned wrong value from eager if, got ${result2}`);
@@ -128,7 +128,7 @@ describe("ENSURE Opcode test", async function () {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "",
       "did not revert even after failing the ensure opcode condition"
     );
@@ -151,7 +151,7 @@ describe("ENSURE Opcode test", async function () {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "",
       "did not revert even after failing the ensure opcode condition"
     );
@@ -176,7 +176,7 @@ describe("ENSURE Opcode test", async function () {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "",
       "did not revert even after failing the ensure opcode condition"
     );

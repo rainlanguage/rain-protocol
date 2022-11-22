@@ -1,3 +1,4 @@
+/* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
@@ -835,7 +836,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     await logic
       .connect(alice)
-      .runContext([[alice.address, Tier.ONE, ...THRESHOLDS]]);
+      ["runContext(uint256[][])"]([[alice.address, Tier.ONE, ...THRESHOLDS]]);
 
     const result0 = await logic.stackTop();
 
@@ -857,7 +858,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     await logic
       .connect(alice)
-      .runContext([[alice.address, Tier.ONE, ...THRESHOLDS]]);
+      ["runContext(uint256[][])"]([[alice.address, Tier.ONE, ...THRESHOLDS]]);
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;

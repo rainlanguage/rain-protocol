@@ -60,11 +60,48 @@ contract AllStandardOpsTest is StandardInterpreter {
         _stackIndex = state_.stackBottom.toIndex(stackTop_);
     }
 
+    /// Runs `eval` and stores full state.
+    /// @param sourceIndex_ Index of function source.
+    function run(SourceIndex sourceIndex_) public {
+        InterpreterState memory state_ = _loadInterpreterState(
+            INTERPRETER_STATE_ID
+        );
+        uint256 a_ = gasleft();
+        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        uint256 b_ = gasleft();
+        console.log("eval gas", a_ - b_);
+        // Never actually do this, state is gigantic so can't live in storage.
+        // This is just being done to make testing easier than trying to read
+        // results from events etc.
+        _stack = state_.stackBottom.down().asUint256Array();
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
+    }
+
     /// Runs `eval` and stores full state. Stores `context_` to be accessed
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[][] memory context_) public {
         SourceIndex sourceIndex_ = SourceIndex.wrap(0);
+        InterpreterState memory state_ = _loadInterpreterState(
+            INTERPRETER_STATE_ID
+        );
+        state_.context = context_;
+        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        // Never actually do this, state is gigantic so can't live in storage.
+        // This is just being done to make testing easier than trying to read
+        // results from events etc.
+        _stack = state_.stackBottom.down().asUint256Array();
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
+    }
+
+    // Runs `eval` and stores full state. Stores `context_` to be accessed
+    /// later via CONTEXT opcode.
+    /// @param context_ Values for eval context.
+    /// @param sourceIndex_ Index of function source.
+    function runContext(
+        uint256[][] memory context_,
+        SourceIndex sourceIndex_
+    ) public {
         InterpreterState memory state_ = _loadInterpreterState(
             INTERPRETER_STATE_ID
         );

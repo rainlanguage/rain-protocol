@@ -32,7 +32,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
 
     assert(
@@ -90,7 +90,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const timestamp = await getBlockTimestamp();
     const result = await logic.stackTop();
 
@@ -110,7 +110,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
 
     await logic.initialize({ sources: [source], constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const block = await ethers.provider.getBlockNumber();
     const result = await logic.stackTop();
     assert(result.eq(block), `expected block ${block} got ${result}`);

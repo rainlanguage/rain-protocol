@@ -126,7 +126,7 @@ describe("Flow context tests", async function () {
     const FLOW_TIME = () => [
       NAMESPACE(), // ns_
       CONTEXT_FLOW_ID(), // k_
-      op(Opcode.READ_STATE),
+      op(Opcode.GET),
     ];
 
     // prettier-ignore

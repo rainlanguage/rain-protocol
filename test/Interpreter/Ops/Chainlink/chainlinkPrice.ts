@@ -66,12 +66,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     await timewarp(1900); // updated 100 sec ago
 
-    await logic.run();
+    await logic["run()"]();
 
     await timewarp(3600); // updated 3700 sec ago (stale)
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "STALE_PRICE",
       "did not revert when chainlink price was stale"
     );
@@ -110,7 +110,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "MIN_BASE_PRICE",
       "did not revert when chainlink price was 0"
     );
@@ -148,7 +148,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const price_ = await logic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));
@@ -186,7 +186,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const price_ = await logic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));

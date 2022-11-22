@@ -47,7 +47,7 @@ describe("ISaleV2 Token tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
 
     const _token = await logic.stackTop();
 

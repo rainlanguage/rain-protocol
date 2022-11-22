@@ -47,7 +47,7 @@ describe("ISaleV2 Reserve tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
 
     const _reserve = await logic.stackTop();
 

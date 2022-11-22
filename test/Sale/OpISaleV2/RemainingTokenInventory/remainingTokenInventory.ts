@@ -48,7 +48,7 @@ describe("ISaleV2 RemainingTokenInventory tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
 
     const _remainingTokenInventory = await logic.stackTop();
 

@@ -57,7 +57,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -97,7 +97,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -137,7 +137,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -187,7 +187,7 @@ describe("LOOP_N Opcode test", async function () {
       }
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -283,7 +283,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult.push(expectedResultTemp);
     }
 
-    await logic.run();
+    await logic["run()"]();
     let result0 = await logic.stack();
     result0 = result0.slice(3); // Slicing the Exploded Values
 
@@ -386,7 +386,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult = expectedResult.add(expectedResultTemp);
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
 
     assert(
@@ -425,7 +425,7 @@ describe("LOOP_N Opcode test", async function () {
     );
 
     const expectedResult = 5;
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),

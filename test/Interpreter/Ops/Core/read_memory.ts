@@ -36,7 +36,7 @@ describe("READ_MEMORY Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     console.log(await logic.stack());
     const expectedResult0 = ethers.BigNumber.from(constants[0]);
@@ -64,7 +64,7 @@ describe("READ_MEMORY Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const expectedTimeStamp = await getBlockTimestamp();
 
     const result0 = await logic.stack();
@@ -178,7 +178,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await logic.initialize({ sources, constants }, [1]);
-    await logic.run();
+    await logic["run()"]();
 
     const result = await logic.stackTop();
     const expected = constants[2] + constants[3] + constants[0];
@@ -203,7 +203,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await logic.initialize({ sources, constants }, [1]);
-    await logic.run();
+    await logic["run()"]();
 
     const result = await logic.stackTop();
 
@@ -225,7 +225,7 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await logic.initialize({ sources, constants }, [1]);
-    await logic.run();
+    await logic["run()"]();
 
     const result = await logic.stackTop();
 

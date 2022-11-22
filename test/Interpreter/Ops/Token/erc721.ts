@@ -67,13 +67,13 @@ describe("RainInterpreter ERC721 ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.eq(signer0.address));
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, nftId);
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(result1.eq(signer1.address));
   });
@@ -100,20 +100,20 @@ describe("RainInterpreter ERC721 ops", async function () {
 
     await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, 0);
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(result1.eq(1), `expected 1, got ${result1}`);
 
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
 
-    await logic.run();
+    await logic["run()"]();
     const result2 = await logic.stackTop();
     assert(result2.eq(2), `expected 2, got ${result2}`);
   });

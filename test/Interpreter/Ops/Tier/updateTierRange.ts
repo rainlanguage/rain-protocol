@@ -69,7 +69,7 @@ describe("RainInterpreter update tier range op", async function () {
     );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "MAX_TIER",
       "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
     );

@@ -61,7 +61,7 @@ describe("IOrderBookV1 vault balance tests", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
 
     const _vaultBalance = await logic.stackTop();
 

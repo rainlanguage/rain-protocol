@@ -65,7 +65,7 @@ describe("CALL Opcode test", async function () {
       [6]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
     assert(
@@ -103,7 +103,7 @@ describe("CALL Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
@@ -140,7 +140,7 @@ describe("CALL Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
@@ -172,7 +172,7 @@ describe("CALL Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("4");
     assert(
@@ -208,7 +208,7 @@ describe("CALL Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stack();
 
     const expectedResult0 = [
@@ -304,7 +304,7 @@ describe("CALL Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("236");
     assert(
@@ -442,7 +442,7 @@ describe("CALL Opcode test", async function () {
       reportAlice,
       initialTimestamp + 5
     );
-    await logic.runContext([[tierBlockReportAlice, assetPrice]]);
+    await logic["run()"]Context([[tierBlockReportAlice, assetPrice]]);
     const resultAlice = await logic.stackTop();
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
     assert(
@@ -457,7 +457,7 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 15
     );
 
-    await logic.runContext([[tierBlockReportBob, assetPrice]]);
+    await logic["run()"]Context([[tierBlockReportBob, assetPrice]]);
     const resultBob = await logic.stackTop();
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
     assert(

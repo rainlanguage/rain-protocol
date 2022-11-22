@@ -45,7 +45,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
 
     await logic.initialize({ sources: [source0], constants: constants0 }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
@@ -86,7 +86,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
 
     await logic.initialize({ sources: [source0], constants: constants0 }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
@@ -124,7 +124,7 @@ describe("RainInterpreter tier report saturating diff op", async function () {
 
     await logic.initialize({ sources: [source0], constants: constants0 }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 

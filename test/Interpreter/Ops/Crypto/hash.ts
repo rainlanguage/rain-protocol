@@ -37,7 +37,7 @@ describe("HASH Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -70,7 +70,7 @@ describe("HASH Opcode test", async function () {
       [1]
     );
 
-    await logic.runContext(context);
+    await logic["run()"]Context(context);
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -99,7 +99,7 @@ describe("HASH Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],

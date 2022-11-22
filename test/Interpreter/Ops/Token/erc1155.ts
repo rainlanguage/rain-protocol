@@ -107,7 +107,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
       [tokenId, tokenId]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const opBatchAmounts = await logic.stack();
 
     assert(
@@ -146,7 +146,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
     ];
 
     await logic.initialize({ sources, constants }, [1]);
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0 of id ${tokenId}, got ${result0}`);
 
@@ -173,7 +173,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
       got       ${signer1Balance}`
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(
       result1.eq(transferAmount),

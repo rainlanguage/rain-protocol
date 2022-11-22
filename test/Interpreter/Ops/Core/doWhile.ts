@@ -56,7 +56,7 @@ describe("DO_WHILE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
 
     let expectedResult = initValue;
@@ -100,7 +100,7 @@ describe("DO_WHILE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     console.log("Result: ", result.toString());
 
@@ -148,7 +148,7 @@ describe("DO_WHILE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
 
     let expectedResult = initValue;
@@ -211,7 +211,7 @@ describe("DO_WHILE Opcode test", async function () {
       [1]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stack();
 
     // Calculating the expected result
