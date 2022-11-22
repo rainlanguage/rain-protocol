@@ -18,11 +18,11 @@ import {
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { FlowERC1155Config } from "../../../utils/types/flow";
 
-const Opcode = AllStandardOps;
+const Opcode = RainterpreterOps;
 
 describe("FlowERC1155 flowTime tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
@@ -93,15 +93,15 @@ describe("FlowERC1155 flowTime tests", async function () {
     const SENTINEL_ERC1155 = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+
+    const FLOW_TIME = () => [
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.GET),
+    ];
 
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      CONTEXT_FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
-
-      // CAN FLOW
-      CONTEXT_FLOW_TIME(),
+      ...FLOW_TIME(),
       op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
 
@@ -120,6 +120,11 @@ describe("FlowERC1155 flowTime tests", async function () {
 
       SENTINEL_ERC1155(), // BURN SKIP
       SENTINEL_ERC1155(), // MINT END
+
+      // Setting Flow Time
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.BLOCK_TIMESTAMP), // v__
+      op(Opcode.SET),
     ]);
 
     const sources = [ONE()]; // can transfer

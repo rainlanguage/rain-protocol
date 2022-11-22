@@ -19,10 +19,7 @@ import {
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import {
-  AllStandardOps,
-  RainterpreterOps,
-} from "../../../utils/interpreter/ops/allStandardOps";
+import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../utils/test/assertError";
 import { compareStructs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
@@ -101,7 +98,6 @@ describe("Flow context tests", async function () {
       flowStructFull.erc20[1].amount,
       flowStructReduced.erc20[1].amount,
       86400,
-      0,
     ];
 
     const SENTINEL = () =>
@@ -118,26 +114,16 @@ describe("Flow context tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
     const ONE_DAY = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
-    const NAMESPACE = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8));
 
     const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
 
     const FLOW_TIME = () => [
-      NAMESPACE(), // ns_
       CONTEXT_FLOW_ID(), // k_
       op(Opcode.GET),
     ];
 
     // prettier-ignore
     const sourceFlowIO = concat([
-      CONTEXT_FLOW_ID(), // Key
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value
-      op(Opcode.CHANGE_STATE),
-
-      ...FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
-
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 END
@@ -148,23 +134,28 @@ describe("Flow context tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
       ME(),
       YOU(),
-        //   ...FLOW_TIME(),
-        // op(Opcode.ISZERO),
-        // FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(),
-        //     op(Opcode.BLOCK_TIMESTAMP),
-        //       ...FLOW_TIME(),
-        //       ONE_DAY(),
-        //     op(Opcode.ADD, 2),
-        //   op(Opcode.LESS_THAN), // is current timestamp within 24 hour window?
-        //   FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduced
+          ...FLOW_TIME(),
+        op(Opcode.ISZERO),
+        FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(),
+            op(Opcode.BLOCK_TIMESTAMP),
+              ...FLOW_TIME(),
+              ONE_DAY(),
+            op(Opcode.ADD, 2),
+          op(Opcode.LESS_THAN), // is current timestamp within 24 hour window?
+          FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_REDU(), // reduced
           FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT_FULL(), // else full
-        // op(Opcode.EAGER_IF),
-      // op(Opcode.EAGER_IF),
+        op(Opcode.EAGER_IF),
+      op(Opcode.EAGER_IF),
       // 1) if no flow time, default amount
       // 2) else if within 24 hours of last flow time, throttle amount
       // 3) else default amount
-
       SENTINEL(), // NATIVE SKIP
+          
+      // Setting Flow Time
+      CONTEXT_FLOW_ID(), // Key
+      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value
+      op(Opcode.SET),
+
     ]);
 
     const sources = [];
@@ -197,8 +188,6 @@ describe("Flow context tests", async function () {
       .approve(me.address, flowStructFull.erc20[0].amount);
 
     console.log("FLOW 0");
-
-    await flow.connect(you).previewFlow(flowInitialized[0].dispatch, 1234, []);
     const flowStruct0 = await flow
       .connect(you)
       .previewFlow(flowInitialized[0].dispatch, 1234, []);
@@ -268,7 +257,6 @@ describe("Flow context tests", async function () {
     const flowStruct1 = await flow
       .connect(you)
       .previewFlow(flowInitialized[0].dispatch, 1234, []);
-
     await flow
       .connect(you)
       .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
@@ -440,14 +428,15 @@ describe("Flow context tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+
+    const FLOW_TIME = () => [
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.GET),
+    ];
 
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      CONTEXT_FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
-
-      CONTEXT_FLOW_TIME(),
+      ...FLOW_TIME(),
       op(Opcode.ISZERO), // can flow if no registered flow time
       op(Opcode.ENSURE, 1),
       SENTINEL(), // ERC1155 SKIP
@@ -462,6 +451,11 @@ describe("Flow context tests", async function () {
       YOU(),
       FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE SKIP
+
+      // Setting Flow Time
+      CONTEXT_FLOW_ID(), // Key
+      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value
+      op(Opcode.SET),
     ]);
 
     const sources = [];
