@@ -33,6 +33,7 @@ uint constant CONTEXT_VAULT_IO_VAULT_ID = 1;
 uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 2;
 uint constant CONTEXT_VAULT_IO_BALANCE_AFTER = 3;
 uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
+uint constant CONTEXT_VAULT_IO_ROWS = 5;
 
 struct ClearStateChange {
     uint256 aOutput;
@@ -92,7 +93,7 @@ contract OrderBook is
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
 
-    constructor() {
+    constructor() initializer {
         __ReentrancyGuard_init();
         __Multicall_init();
     }
@@ -204,6 +205,8 @@ contract OrderBook is
         calculationsContext_[0] = orderOutputMax_;
         calculationsContext_[1] = orderIORatio_;
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+        context_[CONTEXT_VAULT_INPUTS_COLUMN] = new uint[](CONTEXT_VAULT_IO_ROWS);
+        context_[CONTEXT_VAULT_OUTPUTS_COLUMN] = new uint[](CONTEXT_VAULT_IO_ROWS);
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
