@@ -100,7 +100,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -110,7 +110,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -233,7 +233,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -243,7 +243,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -396,7 +396,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -406,7 +406,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -541,7 +541,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants0,
       },
     };
@@ -565,7 +565,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants1,
       },
     };
@@ -685,7 +685,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants0,
       },
     };
@@ -695,7 +695,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants1,
       },
     };
@@ -822,7 +822,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -947,7 +947,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -957,7 +957,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -1130,7 +1130,7 @@ describe("OrderBook take orders", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
