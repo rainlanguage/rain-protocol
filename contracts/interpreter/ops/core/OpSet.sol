@@ -34,8 +34,8 @@ library OpSet {
         unchecked {
             uint k_;
             uint v_;
-            (stackTop_, k_) = stackTop_.pop();
             (stackTop_, v_) = stackTop_.pop();
+            (stackTop_, k_) = stackTop_.pop();
             state_.stateKV = state_.stateKV.setVal(
                 MemoryKVKey.wrap(k_),
                 MemoryKVVal.wrap(v_)

@@ -63,7 +63,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         uint[] memory stateChanges_
     ) public {
         unchecked {
-            for (uint i_ = 0; i_ < stateChanges_.length; i_++) {
+            for (uint i_ = 0; i_ < stateChanges_.length; i_ += 2) {
                 state[msg.sender][stateNamespace_][
                     stateChanges_[i_]
                 ] = stateChanges_[i_ + 1];

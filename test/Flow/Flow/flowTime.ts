@@ -98,8 +98,8 @@ describe("Flow flowTime tests", async function () {
       op(Opcode.ENSURE, 1),
 
       // Setting Flow Time
-      op(Opcode.BLOCK_TIMESTAMP), // v__
       CONTEXT_FLOW_ID(), // k_
+      op(Opcode.BLOCK_TIMESTAMP), // v__
       op(Opcode.SET),
 
       SENTINEL(), // ERC115 SKIP
@@ -114,8 +114,6 @@ describe("Flow flowTime tests", async function () {
       YOU(),
       FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE SKIP
-
-    
     ]);
 
     const sources = [];
