@@ -16,10 +16,10 @@ import {
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { FlowConfig } from "../../../utils/types/flow";
 
-const Opcode = AllStandardOps;
+const Opcode = RainterpreterOps;
 
 describe("Flow flowTime tests", async function () {
   let flowFactory: FlowFactory;
@@ -84,17 +84,23 @@ describe("Flow flowTime tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+
+    const FLOW_TIME = () => [
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.GET),
+    ];
 
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      CONTEXT_FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
-
       // CAN FLOW
-      CONTEXT_FLOW_TIME(),
+      ...FLOW_TIME(),
       op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
+
+      // Setting Flow Time
+      op(Opcode.BLOCK_TIMESTAMP), // v__
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.SET),
 
       SENTINEL(), // ERC115 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -108,6 +114,8 @@ describe("Flow flowTime tests", async function () {
       YOU(),
       FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE SKIP
+
+    
     ]);
 
     const sources = [];
