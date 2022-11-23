@@ -472,7 +472,7 @@ describe("RainInterpreter logic ops", async function () {
       [1]
     );
 
-    await logic["run()"]Context([[1]]);
+    await logic["runContext()"]([[1]]);
     const result2 = await logic.stackTop(); // expect 1
 
     assert(
@@ -495,7 +495,7 @@ describe("RainInterpreter logic ops", async function () {
       [1]
     );
 
-    await logic["run()"]Context([[id]]);
+    await logic["runContext()"]([[id]]);
     const result3 = await logic.stackTop(); // expect 1
 
     assert(

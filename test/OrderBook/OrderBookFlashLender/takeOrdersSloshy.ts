@@ -11,7 +11,7 @@ import type {
   Rainterpreter,
   RainterpreterExpressionDeployer,
   ReserveToken18,
-} from "../../typechain";
+} from "../../../typechain";
 import {
   AddOrderEvent,
   DepositConfigStruct,
@@ -19,7 +19,7 @@ import {
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
-} from "../../typechain/contracts/orderbook/OrderBook";
+} from "../../../typechain/contracts/orderbook/OrderBook";
 import { randomUint256 } from "../../../utils/bytes";
 import {
   eighteenZeros,
@@ -79,8 +79,14 @@ describe("OrderBook sloshy takeOrders tests", async function () {
 
     const constants = [max_uint256, threshold];
 
-    const vMaxAmount = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vThreshold = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vMaxAmount = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vThreshold = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const source = concat([
@@ -256,8 +262,14 @@ describe("OrderBook sloshy takeOrders tests", async function () {
 
     const constants = [max_uint256, threshold];
 
-    const vMaxAmount = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vThreshold = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vMaxAmount = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vThreshold = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const source = concat([

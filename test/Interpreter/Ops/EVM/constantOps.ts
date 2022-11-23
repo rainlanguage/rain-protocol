@@ -63,7 +63,7 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
     const result = await logic.stackTop();
 
     assert(

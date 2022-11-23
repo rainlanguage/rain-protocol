@@ -73,7 +73,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time0_ = await logic.stackTop();
 
@@ -95,7 +95,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time1_ = await logic.stackTop();
 
@@ -117,7 +117,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time2_ = await logic.stackTop();
 
@@ -140,7 +140,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time3_ = await logic.stackTop();
 
@@ -164,7 +164,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time4_ = await logic.stackTop();
 
@@ -189,7 +189,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time5_ = await logic.stackTop();
 
@@ -215,7 +215,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time6_ = await logic.stackTop();
 
@@ -242,7 +242,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time7_ = await logic.stackTop();
 
@@ -285,7 +285,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time_ = await logic.stackTop();
 
@@ -338,7 +338,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time_ = await logic.stackTop();
 
@@ -394,7 +394,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time0_ = await logic.stackTop();
 
@@ -416,7 +416,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time1_ = await logic.stackTop();
 
@@ -443,7 +443,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeTWO_ = await logic.stackTop();
 
@@ -455,7 +455,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time2_ = await logic.stackTop();
 
@@ -508,7 +508,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time0_ = await logic.stackTop();
 
@@ -522,7 +522,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time1_ = await logic.stackTop();
 
@@ -547,7 +547,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time2_ = await logic.stackTop();
 
@@ -605,7 +605,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeOne0_ = await logic.stackTop();
 
@@ -617,7 +617,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeEight0_ = await logic.stackTop();
 
@@ -640,7 +640,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeOne1_ = await logic.stackTop();
 
@@ -652,7 +652,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeFour1_ = await logic.stackTop();
 
@@ -664,7 +664,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeEight1_ = await logic.stackTop();
 
@@ -696,7 +696,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeOne2_ = await logic.stackTop();
 
@@ -708,7 +708,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeEight2_ = await logic.stackTop();
 

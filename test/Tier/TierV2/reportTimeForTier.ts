@@ -40,7 +40,7 @@ describe("TierV2 report time for tier op", async function () {
       [1]
     );
 
-    await logic.connect(signer1).run();
+    await logic.connect(signer1)["run()"]();
     const result = await logic.stackTop();
 
     assert(

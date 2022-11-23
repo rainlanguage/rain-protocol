@@ -41,7 +41,7 @@ describe("TierV2 report op", async function () {
       [1]
     );
 
-    await logic.connect(signer1).run();
+    await logic.connect(signer1)["run()"]();
     const result = await logic.stackTop();
 
     const expectedReport = paddedUInt256(

@@ -10,35 +10,33 @@ contract LibMemoryKVTest {
     using LibMemoryKV for MemoryKVPtr;
     using LibMemoryKV for MemoryKVKey;
     using LibMemoryKV for MemoryKVVal;
-    
-    // MemoryKV kv_;
-    
+
     /// Wraps `LibMemoryKV.readPtrVal`.
-    /// @param ptr ptr obtained from getPtr
-    function readPtrVal(uint ptr) external pure returns (uint) {
-        return MemoryKVVal.unwrap(MemoryKVPtr.wrap(ptr).readPtrVal());
+    function readPtrVal(MemoryKVPtr ptr_) external pure returns (MemoryKVVal) {
+        return LibMemoryKV.readPtrVal(ptr_);
     }
 
     /// Wraps `LibMemoryKV.getPtr`.
-    /// @param k_ ptr obtained from getPtr
-    function getPtr(uint kv_, uint k_) external pure returns(uint){
-        return MemoryKVPtr.unwrap(
-            MemoryKV.wrap(kv_).getPtr(
-                MemoryKVKey.wrap(k_)
-            )
-        );
+    function getPtr(
+        MemoryKV kv_,
+        MemoryKVKey k_
+    ) external pure returns (MemoryKVPtr) {
+        return LibMemoryKV.getPtr(kv_, k_);
     }
 
-    function setVal(uint kv_, uint k_, uint v_) external pure returns(uint){
-        return MemoryKV.unwrap(
-            MemoryKV.wrap(kv_).setVal(
-                MemoryKVKey.wrap(k_), 
-                MemoryKVVal.wrap(v_)
-            )
-        );
+    /// Wraps `LibMemoryKV.setVal`.
+    function setVal(
+        MemoryKV kv_,
+        MemoryKVKey k_,
+        MemoryKVVal v_
+    ) external pure returns (MemoryKV) {
+        return LibMemoryKV.setVal(kv_, k_, v_);
     }
-    
-    function toUint256Array(uint kv_) external pure returns(uint[] memory){
-        return MemoryKV.wrap(kv_).toUint256Array();
+
+    /// Wraps `LibMemoryKV.toUint256Array`.
+    function toUint256Array(
+        MemoryKV kv_
+    ) external pure returns (uint[] memory) {
+        return LibMemoryKV.toUint256Array(kv_);
     }
 }

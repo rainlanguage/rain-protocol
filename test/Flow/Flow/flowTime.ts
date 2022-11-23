@@ -11,7 +11,6 @@ import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { getEvents } from "../../../utils/events";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -86,14 +85,15 @@ describe("Flow flowTime tests", async function () {
 
     const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
 
-    const FLOW_TIME = () => [
-      CONTEXT_FLOW_ID(), // k_
-      op(Opcode.GET),
-    ];
+    const FLOW_TIME = () =>
+      concat([
+        CONTEXT_FLOW_ID(), // k_
+        op(Opcode.GET),
+      ]);
 
     const sourceFlowIO = concat([
       // CAN FLOW
-      ...FLOW_TIME(),
+      FLOW_TIME(),
       op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
 

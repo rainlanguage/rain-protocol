@@ -81,7 +81,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result = await logic.stackTop();
 
@@ -115,7 +115,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const expected = max_uint256;
 
@@ -158,7 +158,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result = await logic.stackTop();
 
@@ -210,7 +210,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
     const result0 = await logic.stackTop();
 
     const expected0 = numArrayToReport([
@@ -247,7 +247,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
     const result1 = await logic.stackTop();
 
     const expected1 = numArrayToReport([
@@ -298,7 +298,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result = await logic.stackTop();
 
@@ -350,7 +350,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result0 = await logic.stackTop();
 
@@ -387,7 +387,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result1 = await logic.stackTop();
 
@@ -422,7 +422,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result2 = await logic.stackTop();
 
@@ -474,7 +474,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result0 = await logic.stackTop();
 
@@ -511,7 +511,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result1 = await logic.stackTop();
 
@@ -540,7 +540,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result2 = await logic.stackTop();
 
@@ -613,7 +613,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result0 = await logic.stackTop();
 
@@ -640,7 +640,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       [1]
     );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result1 = await logic.stackTop();
 
