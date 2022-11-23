@@ -112,7 +112,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenD.address, vaultId: vaultAlice },
       ],
       interpreterStateConfig: {
-        sources: [source],
+        sources: [source, []],
         constants: constants,
       },
     };
@@ -165,7 +165,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenD.address, vaultId: aliceOutputVault },
       ],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -212,7 +212,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenC.address, vaultId: bobInputVault },
       ],
       interpreterStateConfig: {
-        sources: [bidSource],
+        sources: [bidSource, []],
         constants: bidConstants,
       },
     };
@@ -438,7 +438,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, vaultId: aliceVaultA },
       ],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };
@@ -485,7 +485,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, vaultId: bobVaultB },
       ],
       interpreterStateConfig: {
-        sources: [bidSource],
+        sources: [bidSource, []],
         constants: bidConstants,
       },
     };

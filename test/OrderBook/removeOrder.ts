@@ -81,7 +81,7 @@ describe("OrderBook remove order", async function () {
       validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
       validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
       interpreterStateConfig: {
-        sources: [askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
     };

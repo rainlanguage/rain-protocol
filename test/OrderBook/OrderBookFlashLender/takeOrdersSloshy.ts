@@ -101,7 +101,7 @@ describe("OrderBook sloshy takeOrders tests", async function () {
       validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
       interpreterStateConfig: {
-        sources: [source],
+        sources: [source, []],
         constants: constants,
       },
     };
@@ -284,7 +284,7 @@ describe("OrderBook sloshy takeOrders tests", async function () {
       validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
       interpreterStateConfig: {
-        sources: [source],
+        sources: [source, []],
         constants: constants,
       },
     };
