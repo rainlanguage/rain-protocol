@@ -101,7 +101,6 @@ describe("FlowERC20 flowTime tests", async function () {
     ];
 
     const sourceFlowIO = concat([
-
       // CAN FLOW
       ...FLOW_TIME(),
       op(Opcode.ISZERO),

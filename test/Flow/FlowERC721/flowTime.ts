@@ -93,16 +93,14 @@ describe("FlowERC721 flowTime tests", async function () {
     const SENTINEL_ERC721 = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
-      const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
 
-      const FLOW_TIME = () => [
-        CONTEXT_FLOW_ID(), // k_
-        op(Opcode.GET),
-      ];
-  
+    const FLOW_TIME = () => [
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.GET),
+    ];
 
     const sourceFlowIO = concat([
-
       // CAN FLOW
       ...FLOW_TIME(),
       op(Opcode.ISZERO),
