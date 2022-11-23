@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { LibMemoryKVTest } from "../../../typechain/contracts/test/kv/LibMemoryKVTest";
 import { libMemoryKVDeploy } from "../../../utils/deploy/test/libMemoryKV/deploy";
 
-describe.only("LibMemoryKV tests", async function () {
+describe("LibMemoryKV tests", async function () {
   let libMemoryKV: LibMemoryKVTest;
 
   before(async () => {
