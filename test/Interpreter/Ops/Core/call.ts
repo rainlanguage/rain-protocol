@@ -442,7 +442,9 @@ describe("CALL Opcode test", async function () {
       reportAlice,
       initialTimestamp + 5
     );
-    await logic["runContext()"]([[tierBlockReportAlice, assetPrice]]);
+    await logic["runContext(uint256[][])"]([
+      [tierBlockReportAlice, assetPrice],
+    ]);
     const resultAlice = await logic.stackTop();
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
     assert(
@@ -457,7 +459,7 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 15
     );
 
-    await logic["runContext()"]([[tierBlockReportBob, assetPrice]]);
+    await logic["runContext(uint256[][])"]([[tierBlockReportBob, assetPrice]]);
     const resultBob = await logic.stackTop();
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
     assert(

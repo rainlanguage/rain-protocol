@@ -70,7 +70,7 @@ describe("HASH Opcode test", async function () {
       [1]
     );
 
-    await logic["runContext()"](context);
+    await logic["runContext(uint256[][])"](context);
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
