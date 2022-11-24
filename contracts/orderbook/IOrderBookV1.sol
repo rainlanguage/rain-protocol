@@ -18,6 +18,7 @@ struct WithdrawConfig {
 
 struct IO {
     address token;
+    uint8 decimals;
     uint256 vaultId;
 }
 

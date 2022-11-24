@@ -29,10 +29,11 @@ uint constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
 uint constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
 
 uint constant CONTEXT_VAULT_IO_TOKEN = 0;
-uint constant CONTEXT_VAULT_IO_VAULT_ID = 1;
-uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 2;
-uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 3;
-uint constant CONTEXT_VAULT_IO_ROWS = 4;
+uint constant CONTEXT_VAULT_IO_TOKEN_DECIMALS = 1;
+uint constant CONTEXT_VAULT_IO_VAULT_ID = 2;
+uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 3;
+uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
+uint constant CONTEXT_VAULT_IO_ROWS = 5;
 
 struct ClearStateChange {
     uint256 aOutput;
@@ -211,6 +212,13 @@ contract OrderBook is
             ] = uint(uint160(order_.validOutputs[outputIOIndex_].token));
 
             context_[CONTEXT_VAULT_INPUTS_COLUMN][
+                CONTEXT_VAULT_IO_TOKEN_DECIMALS
+            ] = order_.validInputs[inputIOIndex_].decimals;
+            context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+                CONTEXT_VAULT_IO_TOKEN_DECIMALS
+            ] = order_.validOutputs[outputIOIndex_].decimals;
+
+            context_[CONTEXT_VAULT_INPUTS_COLUMN][
                 CONTEXT_VAULT_IO_VAULT_ID
             ] = order_.validInputs[inputIOIndex_].vaultId;
             context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
@@ -219,10 +227,14 @@ contract OrderBook is
 
             context_[CONTEXT_VAULT_INPUTS_COLUMN][
                 CONTEXT_VAULT_IO_BALANCE_BEFORE
-            ] = vaultBalance[order_.owner][order_.validInputs[inputIOIndex_].token][order_.validInputs[inputIOIndex_].vaultId];
+            ] = vaultBalance[order_.owner][
+                order_.validInputs[inputIOIndex_].token
+            ][order_.validInputs[inputIOIndex_].vaultId];
             context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
                 CONTEXT_VAULT_IO_BALANCE_BEFORE
-            ] = vaultBalance[order_.owner][order_.validOutputs[outputIOIndex_].token][order_.validOutputs[outputIOIndex_].vaultId];
+            ] = vaultBalance[order_.owner][
+                order_.validOutputs[outputIOIndex_].token
+            ][order_.validOutputs[outputIOIndex_].vaultId];
         }
 
         // The state changes produced here are handled in _recordVaultIO so that
@@ -235,6 +247,19 @@ contract OrderBook is
                 context_
             );
         (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+
+        // Rescale order output max from 18 FP to whatever decimals the output
+        // token is using.
+        orderOutputMax_ = orderOutputMax_.scaleN(
+            order_.validOutputs[outputIOIndex_].decimals
+        );
+        // Rescale the ratio from 18 FP according to the difference in decimals
+        // between input and output.
+        orderIORatio_ = orderIORatio_.scaleRatio(
+            order_.validInputs[inputIOIndex_].decimals,
+            order_.validOutputs[outputIOIndex_].decimals
+        );
+
         uint[] memory calculationsContext_ = new uint[](2);
         calculationsContext_[0] = orderOutputMax_;
         calculationsContext_[1] = orderIORatio_;
@@ -243,7 +268,9 @@ contract OrderBook is
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
         orderOutputMax_ = orderOutputMax_.min(
-            vaultBalance[order_.owner][order_.validOutputs[outputIOIndex_].token][order_.validOutputs[outputIOIndex_].vaultId]
+            vaultBalance[order_.owner][
+                order_.validOutputs[outputIOIndex_].token
+            ][order_.validOutputs[outputIOIndex_].vaultId]
         );
 
         return (orderOutputMax_, orderIORatio_, context_, stateChanges_);

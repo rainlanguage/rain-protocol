@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 /// @dev The scale of all fixed point math. This is adopting the conventions of
 /// both ETH (wei) and most ERC20 tokens, so is hopefully uncontroversial.
@@ -19,6 +20,7 @@ uint256 constant FP_ONE = 1e18;
 /// Overflows are errors as per Solidity.
 library FixedPointMath {
     using Math for uint256;
+    using SafeCast for int;
 
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
     /// @param a_ Some fixed point decimal value.
@@ -66,6 +68,23 @@ library FixedPointMath {
             }
             return a_ * 10 ** decimals_;
         }
+    }
+
+    /// Scale a fixed point decimals of `DECIMALS` that represents a ratio of
+    /// a_:b_ according to the decimals of a and b that MAY NOT be `DECIMALS`.
+    /// i.e. a subsequent call to `a_.fixedPointMul(ratio_)` would yield the value
+    /// that it would have as though `a_` and `b_` were both `DECIMALS` and we
+    /// hadn't rescaled the ratio.
+    function scaleRatio(
+        uint ratio_,
+        uint8 aDecimals_,
+        uint8 bDecimals_
+    ) internal pure returns (uint) {
+        return
+            scaleBy(
+                ratio_,
+                (int(uint(aDecimals_)) - int(uint(bDecimals_))).toInt8()
+            );
     }
 
     /// Scale a fixed point up or down by `scaleBy_` orders of magnitude.
