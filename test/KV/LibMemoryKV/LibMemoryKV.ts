@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { LibMemoryKVTest } from "../../../typechain/contracts/test/kv/LibMemoryKVTest";
+import { readBytes } from "../../../utils/bytes";
 import { libMemoryKVDeploy } from "../../../utils/deploy/test/libMemoryKV/deploy";
 
 describe("LibMemoryKV tests", async function () {
@@ -10,25 +11,25 @@ describe("LibMemoryKV tests", async function () {
     libMemoryKV = await libMemoryKVDeploy();
   });
 
-  it("should set value", async function () {
+  // TODO: Dump memory at each point to check it's doing correct thing at each step
+
+  it("should set a value", async function () {
     const kv = 0;
     const key = 68;
-    const value = 1337;
+    const val = 1337;
 
-    // Set value key:value
-    const kv_ = await libMemoryKV.setVal(kv, key, value);
+    const tx0_ = await libMemoryKV.setVal(kv, key, val);
 
-    // Invalid array returned
-    console.log("Set Value = ", await libMemoryKV.toUint256Array(kv_), kv_);
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter__ } = (await tx0_.wait()).events[1];
+    const { data: kvSetVal_ } = (await tx0_.wait()).events[2];
 
-    // Reading the value
-    // 1. get the key pointer
-    // 2. read value at pointer
-    const ptr_ = await libMemoryKV.getPtr(kv_, key);
-    const val_ = await libMemoryKV.readPtrVal(ptr_);
+    console.log({
+      memDumpBefore_,
+      memDumpAfter__,
+      kvSetVal_,
+    });
 
-    // Assertion
-    const expectedValue = ethers.BigNumber.from(value);
-    assert(val_.eq(expectedValue), "Invalid value set");
+    // TODO: use kvSetVal_ to determine what position in memDumpAfter__ to read from, which should be a linked list of 68, 1337, 0
   });
 });
