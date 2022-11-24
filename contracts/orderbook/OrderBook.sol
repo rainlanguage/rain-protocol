@@ -219,10 +219,14 @@ contract OrderBook is
 
             context_[CONTEXT_VAULT_INPUTS_COLUMN][
                 CONTEXT_VAULT_IO_BALANCE_BEFORE
-            ] = vaultBalance[order_.owner][order_.validInputs[inputIOIndex_].token][order_.validInputs[inputIOIndex_].vaultId];
+            ] = vaultBalance[order_.owner][
+                order_.validInputs[inputIOIndex_].token
+            ][order_.validInputs[inputIOIndex_].vaultId];
             context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
                 CONTEXT_VAULT_IO_BALANCE_BEFORE
-            ] = vaultBalance[order_.owner][order_.validOutputs[outputIOIndex_].token][order_.validOutputs[outputIOIndex_].vaultId];
+            ] = vaultBalance[order_.owner][
+                order_.validOutputs[outputIOIndex_].token
+            ][order_.validOutputs[outputIOIndex_].vaultId];
         }
 
         // The state changes produced here are handled in _recordVaultIO so that
@@ -243,7 +247,9 @@ contract OrderBook is
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
         orderOutputMax_ = orderOutputMax_.min(
-            vaultBalance[order_.owner][order_.validOutputs[outputIOIndex_].token][order_.validOutputs[outputIOIndex_].vaultId]
+            vaultBalance[order_.owner][
+                order_.validOutputs[outputIOIndex_].token
+            ][order_.validOutputs[outputIOIndex_].vaultId]
         );
 
         return (orderOutputMax_, orderIORatio_, context_, stateChanges_);
@@ -379,8 +385,8 @@ contract OrderBook is
 
                     _recordVaultIO(
                         order_,
-                        input_,
                         output_,
+                        input_,
                         context_,
                         stateChangesCalculate_
                     );
