@@ -83,7 +83,7 @@ library FixedPointMath {
         return
             scaleBy(
                 ratio_,
-                (int(uint(aDecimals_)) - int(uint(bDecimals_))).toInt8()
+                (int(uint(bDecimals_)) - int(uint(aDecimals_))).toInt8()
             );
     }
 
