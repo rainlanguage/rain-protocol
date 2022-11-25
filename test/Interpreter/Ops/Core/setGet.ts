@@ -17,7 +17,7 @@ describe("SET/GET Opcode tests", async function () {
     logic = await allStandardOpsDeploy();
   });
 
-  it("should set and get a value", async () => {
+  xit("should set and get a value", async () => {
     const key = 123;
     const val = 456;
 
