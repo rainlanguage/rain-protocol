@@ -6,10 +6,11 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 import "../../../idempotent/LibIdempotentFlag.sol";
+import "../../../math/Binary.sol";
 
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly
-/// different handling to `OpState` memory reads as it is working with data that
+/// different handling to other memory reads as it is working with data that
 /// is provided at runtime.
 library OpContext {
     using LibStackTop for StackTop;
@@ -23,11 +24,11 @@ library OpContext {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
+        uint256 row_ = Operand.unwrap(operand_) & MASK_8BIT;
         uint256 column_ = Operand.unwrap(operand_) >> 8;
-        uint256 row_ = Operand.unwrap(operand_) & uint256(type(uint8).max);
-        integrityState_.contextScratch = IdempotentFlag.unwrap(
+        integrityState_.contextReads = IdempotentFlag.unwrap(
             LibIdempotentFlag.set16x16(
-                IdempotentFlag.wrap(integrityState_.contextScratch),
+                IdempotentFlag.wrap(integrityState_.contextReads),
                 column_,
                 row_
             )
@@ -40,7 +41,7 @@ library OpContext {
     /// Stack a value from the context WITH OOB checks from solidity.
     /// The bounds checks are done at runtime because context MAY be provided
     /// by the end user with arbitrary length.
-    function context(
+    function run(
         InterpreterState memory state_,
         Operand operand_,
         StackTop stackTop_
@@ -49,7 +50,7 @@ library OpContext {
         return
             stackTop_.push(
                 state_.context[Operand.unwrap(operand_) >> 8][
-                    Operand.unwrap(operand_) & uint256(type(uint8).max)
+                    Operand.unwrap(operand_) & MASK_8BIT
                 ]
             );
     }

@@ -45,11 +45,14 @@ describe("RainInterpreter update tier range op", async function () {
 
     const constants0 = [block, NEVER];
 
-    const vBlock = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vBlock = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
 
     // prettier-ignore
     const source0 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         vBlock,
       op(
         Opcode.UPDATE_TIMES_FOR_TIER_RANGE,
@@ -57,13 +60,16 @@ describe("RainInterpreter update tier range op", async function () {
       ),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: constants0,
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: constants0,
+      },
+      [1]
+    );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "MAX_TIER",
       "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
     );

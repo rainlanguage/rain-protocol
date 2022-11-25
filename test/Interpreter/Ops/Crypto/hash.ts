@@ -24,17 +24,20 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.HASH, 3),
     ]);
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -59,12 +62,15 @@ describe("HASH Opcode test", async function () {
         op(Opcode.CONTEXT, 0x0001),
       op(Opcode.HASH, 2),
     ]);
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.runContext(context);
+    await logic["runContext(uint256[][])"](context);
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -82,15 +88,18 @@ describe("HASH Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.HASH, 1),
     ]);
-    await logic.initialize({
-      sources: [source],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],

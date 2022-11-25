@@ -14,10 +14,8 @@ contract AutoApproveFactory is Factory {
     address private immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor(address interpreterIntegrity_) {
-        address implementation_ = address(
-            new AutoApprove(interpreterIntegrity_)
-        );
+    constructor() {
+        address implementation_ = address(new AutoApprove());
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }
@@ -29,7 +27,10 @@ contract AutoApproveFactory is Factory {
     function _createChild(
         bytes memory data_
     ) internal virtual override returns (address) {
-        StateConfig memory config_ = abi.decode(data_, (StateConfig));
+        AutoApproveConfig memory config_ = abi.decode(
+            data_,
+            (AutoApproveConfig)
+        );
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
         AutoApprove(clone_).transferOwnership(msg.sender);
@@ -43,7 +44,7 @@ contract AutoApproveFactory is Factory {
     /// @param config_ initialize configuration.
     /// @return New `AutoApprove` child contract.
     function createChildTyped(
-        StateConfig memory config_
+        AutoApproveConfig memory config_
     ) external returns (AutoApprove) {
         return AutoApprove(createChild(abi.encode(config_)));
     }

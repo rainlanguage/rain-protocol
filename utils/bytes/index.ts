@@ -3,6 +3,10 @@ import { Hexable, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
+export function bitify(number: number) {
+  return (number >>> 0).toString(2);
+}
+
 /**
  * Creates a random 20 byte address.
  * @returns A DataHexString of typical address length

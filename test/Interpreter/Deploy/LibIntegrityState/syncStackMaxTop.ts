@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { LibIntegrityStateTest } from "../../../../typechain";
-import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/run/RainInterpreter";
+
 import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 
 describe("LibIntegrityState syncStackMaxTop tests", async function () {
@@ -13,17 +13,13 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
   it("should sync stack max top if stackTop gt stackMaxTop", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackMaxTop = 0;
     const stackTop = 1; // stackTop > stackMaxTop
 
     const newStackMaxTop_ = await libIntegrityState.callStatic.syncStackMaxTop(
       sources,
-      storageOpcodesRange,
       constantsLength,
       stackMaxTop,
       stackTop
@@ -31,7 +27,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
 
     const tx_ = await libIntegrityState.syncStackMaxTop(
       sources,
-      storageOpcodesRange,
       constantsLength,
       stackMaxTop,
       stackTop
@@ -54,17 +49,13 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
   it("should not sync stack max top if stackTop lt stackMaxTop", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackMaxTop = 2;
     const stackTop = 1; // stackTop < stackMaxTop
 
     const newStackMaxTop_ = await libIntegrityState.callStatic.syncStackMaxTop(
       sources,
-      storageOpcodesRange,
       constantsLength,
       stackMaxTop,
       stackTop
@@ -72,7 +63,6 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
 
     const tx_ = await libIntegrityState.syncStackMaxTop(
       sources,
-      storageOpcodesRange,
       constantsLength,
       stackMaxTop,
       stackTop

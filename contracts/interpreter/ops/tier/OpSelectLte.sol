@@ -5,6 +5,7 @@ import "../../../tier/libraries/TierwiseCombine.sol";
 import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
+import "../../../math/Binary.sol";
 
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
@@ -19,12 +20,10 @@ library OpSelectLte {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            uint256 reportsLength_ = Operand.unwrap(operand_) & 0x1F; // & 00011111
-            require(reportsLength_ > 0, "BAD_OPERAND");
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
+            require(inputs_ > 0, "SELECT_LTE_ZERO_INPUTS");
             return
-                integrityState_.push(
-                    integrityState_.pop(stackTop_, reportsLength_)
-                );
+                integrityState_.push(integrityState_.pop(stackTop_, inputs_));
         }
     }
 
@@ -41,11 +40,11 @@ library OpSelectLte {
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         unchecked {
-            uint256 logic_ = Operand.unwrap(operand_) >> 7;
-            uint256 mode_ = (Operand.unwrap(operand_) >> 5) & 0x3; // & 00000011
-            uint256 reportsLength_ = Operand.unwrap(operand_) & 0x1F; // & 00011111
+            uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
+            uint mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
+            uint logic_ = Operand.unwrap(operand_) >> 10;
             (uint256 time_, uint256[] memory reports_) = stackTop_.list(
-                reportsLength_
+                inputs_
             );
             return
                 reports_.asStackTop().push(

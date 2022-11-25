@@ -29,8 +29,8 @@ describe("LibInterpreterState eval tests", async function () {
 
     const { stackBottom_, stackTopAfter_ } =
       await libInterpreterState.callStatic[
-        "evalStackTop((bytes[],uint256[]),uint256)"
-      ]({ sources, constants }, sourceIndex); // simply sets stackTop to stackBottom for ease of testing
+        "evalStackTop((bytes[],uint256[]),uint256,uint256[])"
+      ]({ sources, constants }, sourceIndex, [1, 8]); // simply sets stackTop to stackBottom for ease of testing
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
@@ -54,9 +54,9 @@ describe("LibInterpreterState eval tests", async function () {
     const constants = [];
 
     const { stackBottom_, stackTopAfter_ } =
-      await libInterpreterState.callStatic["evalStackTop((bytes[],uint256[]))"](
-        { sources, constants }
-      ); // simply sets stackTop to stackBottom for ease of testing
+      await libInterpreterState.callStatic[
+        "evalStackTop((bytes[],uint256[]),uint256[])"
+      ]({ sources, constants }, [1, 8]); // simply sets stackTop to stackBottom for ease of testing
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32)),
@@ -82,10 +82,9 @@ describe("LibInterpreterState eval tests", async function () {
     const sourceIndex = 1;
 
     const { stackBottom_, stackTopAfter_ } =
-      await libInterpreterState.callStatic["eval((bytes[],uint256[]),uint256)"](
-        { sources, constants },
-        sourceIndex
-      );
+      await libInterpreterState.callStatic[
+        "eval((bytes[],uint256[]),uint256,uint256[])"
+      ]({ sources, constants }, sourceIndex, [1, 8]);
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
@@ -106,10 +105,15 @@ describe("LibInterpreterState eval tests", async function () {
     const constants = [];
 
     const { stackBottom_, stackTopAfter_ } =
-      await libInterpreterState.callStatic["eval((bytes[],uint256[]))"]({
-        sources,
-        constants,
-      });
+      await libInterpreterState.callStatic[
+        "eval((bytes[],uint256[]),uint256[])"
+      ](
+        {
+          sources,
+          constants,
+        },
+        [8]
+      );
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32 * 8)),
@@ -129,10 +133,15 @@ describe("LibInterpreterState eval tests", async function () {
     const constants = [];
 
     const { stackBottom_, stackTopAfter_ } =
-      await libInterpreterState.callStatic["eval((bytes[],uint256[]))"]({
-        sources,
-        constants,
-      });
+      await libInterpreterState.callStatic[
+        "eval((bytes[],uint256[]),uint256[])"
+      ](
+        {
+          sources,
+          constants,
+        },
+        [1]
+      );
 
     assert(
       stackTopAfter_.eq(stackBottom_.add(32)),

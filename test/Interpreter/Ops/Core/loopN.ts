@@ -22,6 +22,8 @@ describe("LOOP_N Opcode test", async function () {
     logic = await allStandardOpsDeploy();
   });
 
+  // TODO: LOOP_N_INPUTS
+
   it("should loop the source 0 times", async () => {
     const n = 0;
 
@@ -32,27 +34,30 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -69,27 +74,30 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -106,27 +114,30 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
       expectedResult += incrementValue;
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -144,26 +155,29 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
     // prettier-ignore
     const sourceADDOuter = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
-      op(Opcode.LOOP_N, loopNOperand(n, 2))
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 2))
     ]);
 
     // prettier-ignore
     const sourceADDInner = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.ADD, 2),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADDOuter, sourceADDInner],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADDOuter, sourceADDInner],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
@@ -173,7 +187,7 @@ describe("LOOP_N Opcode test", async function () {
       }
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -204,33 +218,33 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceShiftRight = concat([
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 2
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // 32
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // LEVEL
             op(Opcode.MUL, 2), // 32 * LEVEL
           op(Opcode.EXP, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
         op(Opcode.MUL, 2),
 
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.ADD, 2),
     ]);
 
     // prettier-ignore
     const sourceAddAndShiftRight = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
         op(Opcode.ADD, 2),
 
           // Right Shifting
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // LEVEL
         op(Opcode.CALL, callOperand(3, 1, 3)),
 
           // Decrementing the LEVEL
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
         op(Opcode.SATURATING_SUB, 2), // LEVEL - 1
     ]);
 
@@ -241,23 +255,26 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.LOOP_N, loopNOperand(n, 1)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Initial Value
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // LEVEL
+      op(Opcode.LOOP_N, loopNOperand(n, 3, 3, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32),
     ]);
 
-    await logic.initialize({
-      sources: [
-        sourceMAIN,
-        sourceADD,
-        sourceAddAndShiftRight,
-        sourceShiftRight,
-      ],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [
+          sourceMAIN,
+          sourceADD,
+          sourceAddAndShiftRight,
+          sourceShiftRight,
+        ],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = [];
     let expectedResultTemp = ethers.BigNumber.from(initialValue);
@@ -266,7 +283,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult.push(expectedResultTemp);
     }
 
-    await logic.run();
+    await logic["run()"]();
     let result0 = await logic.stack();
     result0 = result0.slice(3); // Slicing the Exploded Values
 
@@ -300,33 +317,33 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceShiftRight = concat([
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 2
-              op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // 32
-              op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 2
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // 32
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // LEVEL
             op(Opcode.MUL, 2), // 32 * LEVEL
           op(Opcode.EXP, 2), // 2 ** (32 * LEVEL)
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // INITIAL_VALUE
         op(Opcode.MUL, 2),
 
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
       op(Opcode.ADD, 2),
     ]);
 
     // prettier-ignore
     const sourceAddAndShiftRight = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // INITIAL VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // INCREMENT
         op(Opcode.ADD, 2),
 
           // Right Shifting
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)), // INITIAL_VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL_VALUE
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // LEVEL
         op(Opcode.CALL, callOperand(3, 1, 3)),
 
           // Decrementing the LEVEL
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // LEVEL
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // LEVEL
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
         op(Opcode.SATURATING_SUB, 2), // LEVEL - 1
     ]);
 
@@ -339,25 +356,28 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // Initial Value
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // LEVEL
-      op(Opcode.LOOP_N, loopNOperand(n, 1)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // Initial Value
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // FINAL VALUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // LEVEL
+      op(Opcode.LOOP_N, loopNOperand(n, 3, 3, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32), // EXPLODING the Value
-      op(Opcode.LOOP_N, loopNOperand(7, 4)),
+      op(Opcode.LOOP_N, loopNOperand(7, 2, 1, 4)),
     ]);
 
-    await logic.initialize({
-      sources: [
-        sourceMAIN,
-        sourceADDUsingFunction,
-        sourceAddAndShiftRight,
-        sourceShiftRight,
-        sourceADD,
-      ],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [
+          sourceMAIN,
+          sourceADDUsingFunction,
+          sourceAddAndShiftRight,
+          sourceShiftRight,
+          sourceADD,
+        ],
+        constants,
+      },
+      [1]
+    );
 
     let expectedResult = ethers.BigNumber.from(0);
     let expectedResultTemp = ethers.BigNumber.from(initialValue);
@@ -366,7 +386,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult = expectedResult.add(expectedResultTemp);
     }
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
 
     assert(
@@ -385,24 +405,27 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
          op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
+      op(Opcode.LOOP_N, loopNOperand(n, 2, 1, 1))
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [1]
+    );
 
     const expectedResult = 5;
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -420,23 +443,26 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-         op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
          op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.LOOP_N, loopNOperand(n, 1))
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
+      op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          [1]
+        ),
       "STACK_UNDERFLOW",
       "Integrity check passed even when enough values are not available on the stack"
     );

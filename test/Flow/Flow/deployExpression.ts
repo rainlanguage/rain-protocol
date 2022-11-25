@@ -28,7 +28,7 @@ describe("Flow deployExpression tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

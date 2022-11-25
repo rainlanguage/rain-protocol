@@ -11,7 +11,7 @@ import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-u
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
 import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import "hardhat/console.sol";
+import "../interpreter/run/LibEncodedDispatch.sol";
 
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
@@ -21,6 +21,7 @@ uint256 constant FLAG_ROW_FLOW_TIME = 2;
 uint256 constant MIN_FLOW_SENTINELS = 4;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
+uint constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
 struct SignedContext {
     address signer;
@@ -44,10 +45,14 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
 
     IInterpreterV1 internal _interpreter;
 
-    /// flow expression pointer => context scratch
-    mapping(address => IdempotentFlag) internal _flowContextScratches;
-    /// flow expression pointer => id => time
-    mapping(address => mapping(uint256 => uint256)) internal _flowTimes;
+    /// flow expression pointer => is registered
+    mapping(EncodedDispatch => uint) internal _flows;
+
+    event FlowInitialized(
+        address sender,
+        address interpreter,
+        EncodedDispatch dispatch
+    );
 
     constructor() {
         _disableInitializers();
@@ -56,65 +61,49 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     // solhint-disable-next-line func-name-mixedcase
     function __FlowCommon_init(
         FlowCommonConfig memory config_,
-        uint flowMinFinalStack_
+        uint flowMinOutputs_
     ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();
         __Multicall_init();
-        require(
-            flowMinFinalStack_ >= MIN_FLOW_SENTINELS,
-            "BAD MIN STACKS LENGTH"
-        );
+        require(flowMinOutputs_ >= MIN_FLOW_SENTINELS, "BAD MIN STACKS LENGTH");
         _interpreter = IInterpreterV1(config_.interpreter);
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
-            (
-                address expressionAddress_,
-                uint256 contextScratch_
-            ) = IExpressionDeployerV1(config_.expressionDeployer)
-                    .deployExpression(
-                        config_.flows[i_],
-                        LibUint256Array.arrayFrom(flowMinFinalStack_)
-                    );
-            // The context scratch MUST set at least one flag otherwise
-            // `_buildFlowContext` will refuse to build a context for it.
-            // The ID is always set in the context so there's no harm in always
-            // tracking it in the scratch.
-            _flowContextScratches[expressionAddress_] = IdempotentFlag
-                .wrap(contextScratch_)
-                .set16x16(FLAG_COLUMN_FLOW_ID, FLAG_ROW_FLOW_ID);
+            (address expression_, ) = IExpressionDeployerV1(
+                config_.expressionDeployer
+            ).deployExpression(
+                    config_.flows[i_],
+                    LibUint256Array.arrayFrom(flowMinOutputs_)
+                );
+            EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
+                expression_,
+                FLOW_ENTRYPOINT,
+                FLOW_MAX_OUTPUTS
+            );
+            _flows[dispatch_] = 1;
+            emit FlowInitialized(msg.sender, config_.interpreter, dispatch_);
         }
     }
 
     function _buildFlowBaseContext(
-        address flow_,
+        EncodedDispatch dispatch_,
         uint256 id_
     ) internal view returns (uint256[] memory) {
-        IdempotentFlag contextScratch_ = _flowContextScratches[flow_];
-
         // THIS IS A CRITICAL SECURITY CHECK. REMOVING THIS ALLOWS ARBITRARY
         // EXPRESSIONS TO BE BUILT AND RUN AS FLOWS.
-        require(
-            IdempotentFlag.unwrap(contextScratch_) > 0,
-            "UNREGISTERED_FLOW"
-        );
+        require(_flows[dispatch_] > 0, "UNREGISTERED_FLOW");
 
-        // This column MUST match the flags tracked in the context grid.
-        return
-            LibUint256Array.arrayFrom(
-                uint256(uint160(msg.sender)),
-                id_,
-                loadFlowTime(contextScratch_, flow_, id_)
-            );
+        return LibUint256Array.arrayFrom(uint256(uint160(msg.sender)), id_);
     }
 
     function flowStack(
-        address flow_,
+        EncodedDispatch dispatch_,
         uint256 id_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (StackTop, StackTop) {
+    ) internal view returns (StackTop, StackTop, uint[] memory) {
         unchecked {
             uint256[] memory flowBaseContext_ = _buildFlowBaseContext(
-                flow_,
+                dispatch_,
                 id_
             );
 
@@ -145,41 +134,16 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
 
             IInterpreterV1 interpreter_ = _interpreter;
 
-            uint256[] memory stack_ = interpreter_.eval(
-                flow_,
-                FLOW_ENTRYPOINT,
-                flowContext_
+            (
+                uint256[] memory stack_,
+                uint[] memory stateChanges_
+            ) = interpreter_.eval(dispatch_, flowContext_);
+            return (
+                stack_.asStackTopUp(),
+                stack_.asStackTopAfter(),
+                stateChanges_
             );
-            return (stack_.asStackTopUp(), stack_.asStackTopAfter());
         }
-    }
-
-    function loadFlowTime(
-        IdempotentFlag flag_,
-        address flow_,
-        uint256 id_
-    ) internal view returns (uint256) {
-        return
-            flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)
-                ? _flowTimes[flow_][id_]
-                : 0;
-    }
-
-    function registerFlowTime(
-        IdempotentFlag flag_,
-        address flow_,
-        uint256 id_
-    ) internal {
-        if (flag_.get16x16(FLAG_COLUMN_FLOW_TIME, FLAG_ROW_FLOW_TIME)) {
-            _flowTimes[flow_][id_] = block.timestamp;
-        }
-    }
-
-    function _flowTime(
-        address flow_,
-        uint256 id_
-    ) internal view returns (uint256) {
-        return _flowTimes[flow_][id_];
     }
 
     receive() external payable virtual {}

@@ -11,7 +11,7 @@ struct StateConfig {
 
 interface IExpressionDeployerV1 {
     function deployExpression(
-        StateConfig memory config_,
-        uint256[] memory finalMinStacks_
-    ) external returns (address expressionAddress, uint256 contextScratch);
+        StateConfig memory config,
+        uint[] memory minOutputs
+    ) external returns (address expressionAddress, uint256 contextReads);
 }

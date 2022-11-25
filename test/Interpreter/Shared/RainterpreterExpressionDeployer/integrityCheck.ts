@@ -24,7 +24,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
     );
   });
 
-  xit("should revert if interpreter bytecode is unexpected", async () => {
+  it("should revert if interpreter bytecode is unexpected", async () => {
     const fakeInterpreter: FakeContract<Rainterpreter> = await smock.fake(
       "Rainterpreter"
     ); // should not contain same bytecode as real contract

@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { LibIntegrityStateTest } from "../../../../typechain";
-import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/run/RainInterpreter";
+
 import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
@@ -21,10 +21,7 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
@@ -34,16 +31,8 @@ describe("LibIntegrityState pop tests", async function () {
     await assertError(
       async () => {
         await libIntegrityState[
-          "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256,uint256)"
-        ](
-          sources,
-          storageOpcodesRange,
-          constantsLength,
-          stackBottom,
-          stackMaxTop,
-          stackTop,
-          n
-        );
+          "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
+        ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
       "STACK_UNDERFLOW",
       "did not fail check"
@@ -56,10 +45,7 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
@@ -69,16 +55,8 @@ describe("LibIntegrityState pop tests", async function () {
     await assertError(
       async () => {
         await libIntegrityState[
-          "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256,uint256)"
-        ](
-          sources,
-          storageOpcodesRange,
-          constantsLength,
-          stackBottom,
-          stackMaxTop,
-          stackTop,
-          n
-        );
+          "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
+        ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
       "STACK_UNDERFLOW",
       "did not fail check"
@@ -91,10 +69,7 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 32;
     const stackMaxTop = 64;
@@ -102,16 +77,8 @@ describe("LibIntegrityState pop tests", async function () {
     const n = 2;
 
     const stackTopAfter_ = await libIntegrityState[
-      "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256,uint256)"
-    ](
-      sources,
-      storageOpcodesRange,
-      constantsLength,
-      stackBottom,
-      stackMaxTop,
-      stackTop,
-      n
-    );
+      "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
+    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
 
     assert(stackTopAfter_.eq(stackTop - 32 * n));
   });
@@ -122,10 +89,7 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
@@ -133,16 +97,8 @@ describe("LibIntegrityState pop tests", async function () {
     const n = 2;
 
     const stackTopAfter_ = await libIntegrityState[
-      "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256,uint256)"
-    ](
-      sources,
-      storageOpcodesRange,
-      constantsLength,
-      stackBottom,
-      stackMaxTop,
-      stackTop,
-      n
-    );
+      "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
+    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
 
     assert(stackTopAfter_.eq(stackTop - 32 * n));
   });
@@ -155,10 +111,7 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
@@ -166,11 +119,8 @@ describe("LibIntegrityState pop tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState[
-          "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256)"
-        ](
+        await libIntegrityState["pop(bytes[],uint256,uint256,uint256,uint256)"](
           sources,
-          storageOpcodesRange,
           constantsLength,
           stackBottom,
           stackMaxTop,
@@ -188,10 +138,7 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
@@ -199,11 +146,8 @@ describe("LibIntegrityState pop tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState[
-          "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256)"
-        ](
+        await libIntegrityState["pop(bytes[],uint256,uint256,uint256,uint256)"](
           sources,
-          storageOpcodesRange,
           constantsLength,
           stackBottom,
           stackMaxTop,
@@ -221,25 +165,15 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 32;
     const stackMaxTop = 64;
     const stackTop = 64;
 
     const stackTopAfter_ = await libIntegrityState[
-      "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256)"
-    ](
-      sources,
-      storageOpcodesRange,
-      constantsLength,
-      stackBottom,
-      stackMaxTop,
-      stackTop
-    );
+      "pop(bytes[],uint256,uint256,uint256,uint256)"
+    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
 
     assert(stackTopAfter_.eq(stackTop - 32));
   });
@@ -250,25 +184,15 @@ describe("LibIntegrityState pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
     const stackTop = 64;
 
     const stackTopAfter_ = await libIntegrityState[
-      "pop(bytes[],(uint256,uint256),uint256,uint256,uint256,uint256)"
-    ](
-      sources,
-      storageOpcodesRange,
-      constantsLength,
-      stackBottom,
-      stackMaxTop,
-      stackTop
-    );
+      "pop(bytes[],uint256,uint256,uint256,uint256)"
+    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
 
     assert(stackTopAfter_.eq(stackTop - 32));
   });

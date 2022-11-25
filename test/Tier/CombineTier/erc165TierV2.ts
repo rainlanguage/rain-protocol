@@ -46,20 +46,22 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const constants = [ethers.BigNumber.from(combineTierContract.address)];
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -71,7 +73,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      sourceConfig: combineTierSourceConfig,
+      stateConfig: combineTierSourceConfig,
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const { config } = (await getEventArgs(
@@ -101,7 +105,7 @@ describe("CombineTier ERC165 tests", async function () {
 
     // prettier-ignore
     const sourceReport = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant,0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant,0)),
         op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
@@ -113,7 +117,9 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      sourceConfig: combineTierSourceConfig,
+      stateConfig: combineTierSourceConfig,
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const { config } = (await getEventArgs(

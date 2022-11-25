@@ -27,10 +27,12 @@ describe("CombineTier report context tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants: [],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result = await combineTier.report(signers[1].address, []);

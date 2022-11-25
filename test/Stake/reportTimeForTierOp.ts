@@ -59,166 +59,190 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // time0
     const source0 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: [stake.address, Tier.ONE],
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: [stake.address, Tier.ONE],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time0_ = await logic.stackTop();
 
     // prettier-ignore
     // time1
     const source1 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context - TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context - TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants: [stake.address, Tier.TWO, THRESHOLDS[0]],
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants: [stake.address, Tier.TWO, THRESHOLDS[0]],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time1_ = await logic.stackTop();
 
     // prettier-ignore
     // time2
     const source2 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.CALLER), // Address
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length),
     ]);
 
-    await logic.initialize({
-      sources: [source2],
-      constants: [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
-    });
+    await logic.initialize(
+      {
+        sources: [source2],
+        constants: [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time2_ = await logic.stackTop();
 
     // prettier-ignore
     // time3
     const source3 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 2).length),
     ]);
 
-    await logic.initialize({
-      sources: [source3],
-      constants: [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
-    });
+    await logic.initialize(
+      {
+        sources: [source3],
+        constants: [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time3_ = await logic.stackTop();
 
     // prettier-ignore
     // time4
     const source4 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 3).length),
     ]);
 
-    await logic.initialize({
-      sources: [source4],
-      constants: [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
-    });
+    await logic.initialize(
+      {
+        sources: [source4],
+        constants: [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time4_ = await logic.stackTop();
 
     // prettier-ignore
     // time5
     const source5 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 4).length),
     ]);
 
-    await logic.initialize({
-      sources: [source5],
-      constants: [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
-    });
+    await logic.initialize(
+      {
+        sources: [source5],
+        constants: [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time5_ = await logic.stackTop();
 
     // prettier-ignore
     // time6
     const source6 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 5).length),
     ]);
 
-    await logic.initialize({
-      sources: [source6],
-      constants: [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
-    });
+    await logic.initialize(
+      {
+        sources: [source6],
+        constants: [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time6_ = await logic.stackTop();
 
     // prettier-ignore
     // time7
     const source7 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 6).length),
     ]);
 
-    await logic.initialize({
-      sources: [source7],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
-    });
+    await logic.initialize(
+      {
+        sources: [source7],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time7_ = await logic.stackTop();
 
@@ -247,18 +271,21 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // Address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: [stake.address, Tier.ZERO],
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: [stake.address, Tier.ZERO],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time_ = await logic.stackTop();
 
@@ -289,26 +316,29 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // Passing context data in constants
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 9)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time_ = await logic.stackTop();
 
@@ -342,26 +372,29 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     // Passing context data in constants
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 9)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time0_ = await logic.stackTop();
 
@@ -375,12 +408,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time1_ = await logic.stackTop();
 
@@ -399,21 +435,27 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.TWO, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.TWO, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeTWO_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time2_ = await logic.stackTop();
 
@@ -444,26 +486,29 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 9)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time0_ = await logic.stackTop();
 
@@ -477,7 +522,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time1_ = await logic.stackTop();
 
@@ -494,12 +539,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const time2_ = await logic.stackTop();
 
@@ -535,35 +583,41 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     // prettier-ignore
     const source = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // TIER
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 9)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 9)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeOne0_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeEight0_ = await logic.stackTop();
 
@@ -578,30 +632,39 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeOne1_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.FOUR, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.FOUR, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeFour1_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeEight1_ = await logic.stackTop();
 
@@ -625,21 +688,27 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await stake.connect(alice).deposit(withdrawAmount, alice.address);
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeOne2_ = await logic.stackTop();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const timeEight2_ = await logic.stackTop();
 

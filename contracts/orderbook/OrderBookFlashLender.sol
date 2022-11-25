@@ -48,14 +48,15 @@ contract OrderBookFlashLender is IERC3156FlashLender {
     function _finalizeDebt(address token_, address receiver_) internal {
         uint activeFlashDebt_ = activeFlashDebts[token_][receiver_];
         if (activeFlashDebt_ > 0) {
-            delete activeFlashDebts[token_][receiver_];
-
             IERC20(token_).safeTransferFrom(
                 receiver_,
                 address(this),
                 activeFlashDebt_
             );
+            // Once we have the tokens safely in hand decrease the debt.
+            activeFlashDebts[token_][receiver_] -= activeFlashDebt_;
         }
+        require(activeFlashDebts[token_][receiver_] == 0, "BAD_DEBT");
     }
 
     /// @inheritdoc IERC3156FlashLender
