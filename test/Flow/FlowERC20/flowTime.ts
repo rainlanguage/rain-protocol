@@ -7,11 +7,10 @@ import {
 } from "../../../utils/constants/sentinel";
 import { flowERC20Deploy } from "../../../utils/deploy/flow/flowERC20/deploy";
 import { getEvents } from "../../../utils/events";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 
 import { ReserveToken18 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc20/FlowERC20";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import {
@@ -21,8 +20,9 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { FlowERC20Config } from "../../../utils/types/flow";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 
-const Opcode = AllStandardOps;
+const Opcode = RainterpreterOps;
 
 describe("FlowERC20 flowTime tests", async function () {
   let flowERC20Factory: FlowERC20Factory;
@@ -78,29 +78,31 @@ describe("FlowERC20 flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const ONE = () => op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const ONE = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const SENTINEL_ERC20 = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+
+    const FLOW_TIME = () => [
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.GET),
+    ];
 
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      CONTEXT_FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
-
       // CAN FLOW
-      CONTEXT_FLOW_TIME(),
+      ...FLOW_TIME(),
       op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
 
@@ -119,6 +121,11 @@ describe("FlowERC20 flowTime tests", async function () {
 
       SENTINEL_ERC20(), // BURN SKIP
       SENTINEL_ERC20(), // MINT END
+
+      // Setting Flow Time
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.BLOCK_TIMESTAMP), // v__
+      op(Opcode.SET),
     ]);
 
     const sources = [ONE()]; // can transfer
@@ -130,17 +137,17 @@ describe("FlowERC20 flowTime tests", async function () {
       symbol: "FWIN20",
     };
 
-    const { flow, expressionDeployer } = await flowERC20Deploy(
+    const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
       flowConfigStruct
     );
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -154,9 +161,7 @@ describe("FlowERC20 flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 1234, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []);
 
     // id 5678 - 1st flow
 
@@ -168,9 +173,7 @@ describe("FlowERC20 flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowExpressions[1].expressionAddress, 5678, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 5678, []);
 
     // id 1234 - 2nd flow
 
@@ -184,9 +187,7 @@ describe("FlowERC20 flowTime tests", async function () {
 
     await assertError(
       async () =>
-        await flow
-          .connect(you)
-          .flow(flowExpressions[1].expressionAddress, 1234, []),
+        await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );

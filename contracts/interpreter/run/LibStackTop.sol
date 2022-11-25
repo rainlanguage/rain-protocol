@@ -5,8 +5,6 @@ import "./RainInterpreter.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibBytes.sol";
 
-import "hardhat/console.sol";
-
 /// Custom type to point to memory ostensibly in a stack.
 type StackTop is uint256;
 
@@ -753,7 +751,7 @@ library LibStackTop {
 
     /// Returns the stack top `n_ * 32` bytes above/past the passed stack top.
     /// @param stackTop_ The stack top at the starting position.
-    /// @param n_ The multiplier on the stack movement.
+    /// @param n_ The multiplier on the stack movement. MAY be zero.
     /// @return The stack top `n_ * 32` bytes above/past the passed stack top.
     function up(
         StackTop stackTop_,

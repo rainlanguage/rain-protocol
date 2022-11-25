@@ -10,12 +10,10 @@ import "../run/IInterpreterV1.sol";
 struct IntegrityState {
     // Sources first as we read it in assembly.
     bytes[] sources;
-    StorageOpcodesRange storageOpcodesRange;
     uint256 constantsLength;
-    uint256 contextLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
-    uint256 contextScratch;
+    uint256 contextReads;
     function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop)[] integrityFunctionPointers;
@@ -42,7 +40,7 @@ library LibIntegrityState {
         IntegrityState memory integrityState_,
         SourceIndex sourceIndex_,
         StackTop stackTop_,
-        uint256 minimumFinalStackIndex_
+        uint minStackOutputs_
     ) internal view returns (StackTop) {
         unchecked {
             uint256 cursor_;
@@ -76,7 +74,7 @@ library LibIntegrityState {
                 );
             }
             require(
-                minimumFinalStackIndex_ <=
+                minStackOutputs_ <=
                     integrityState_.stackBottom.toIndex(stackTop_),
                 "MIN_FINAL_STACK"
             );
@@ -170,6 +168,14 @@ library LibIntegrityState {
         function(Operand, uint256) internal view returns (uint256)
     ) internal pure returns (StackTop) {
         return integrityState_.push(integrityState_.pop(stackTop_));
+    }
+
+    function applyFn(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_,
+        function(uint256, uint256) internal view
+    ) internal pure returns (StackTop) {
+        return integrityState_.pop(stackTop_, 2);
     }
 
     function applyFn(

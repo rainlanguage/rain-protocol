@@ -2,7 +2,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { FlowFactory, ReserveToken18 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { assertError } from "../../../utils";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
@@ -11,15 +11,14 @@ import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
 import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
 import { getEvents } from "../../../utils/events";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
+import { RainterpreterOps } from "../../../utils/interpreter/ops/allStandardOps";
 import { FlowConfig } from "../../../utils/types/flow";
 
-const Opcode = AllStandardOps;
+const Opcode = RainterpreterOps;
 
 describe("Flow flowTime tests", async function () {
   let flowFactory: FlowFactory;
@@ -74,25 +73,27 @@ describe("Flow flowTime tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_TIME = () => op(Opcode.CONTEXT, 0x0002);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+
+    const FLOW_TIME = () =>
+      concat([
+        CONTEXT_FLOW_ID(), // k_
+        op(Opcode.GET),
+      ]);
 
     const sourceFlowIO = concat([
-      op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging
-      CONTEXT_FLOW_TIME(),
-      op(Opcode.DEBUG, Debug.StatePacked),
-
       // CAN FLOW
-      CONTEXT_FLOW_TIME(),
+      FLOW_TIME(),
       op(Opcode.ISZERO),
       op(Opcode.ENSURE, 1),
 
@@ -108,6 +109,11 @@ describe("Flow flowTime tests", async function () {
       YOU(),
       FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
       SENTINEL(), // NATIVE SKIP
+
+      // Setting Flow Time
+      CONTEXT_FLOW_ID(), // k_
+      op(Opcode.BLOCK_TIMESTAMP), // v__
+      op(Opcode.SET),
     ]);
 
     const sources = [];
@@ -117,17 +123,13 @@ describe("Flow flowTime tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -141,9 +143,7 @@ describe("Flow flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []);
 
     // id 5678 - 1st flow
 
@@ -155,9 +155,7 @@ describe("Flow flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 5678, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, 5678, []);
 
     // id 1234 - 2nd flow
 
@@ -171,9 +169,7 @@ describe("Flow flowTime tests", async function () {
 
     await assertError(
       async () =>
-        await flow
-          .connect(you)
-          .flow(flowExpressions[0].expressionAddress, 1234, []),
+        await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );

@@ -31,7 +31,7 @@ describe("ISaleV2 RemainingTokenInventory tests", async function () {
     fakeSale.remainingTokenInventory.returns(remainingTokenInventory);
 
     const SALE_ADDRESS = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [concat([
@@ -40,12 +40,15 @@ describe("ISaleV2 RemainingTokenInventory tests", async function () {
     ])];
     const constants = [fakeSale.address];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
 
     const _remainingTokenInventory = await logic.stackTop();
 

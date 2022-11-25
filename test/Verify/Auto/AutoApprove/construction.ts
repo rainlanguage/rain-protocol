@@ -19,7 +19,7 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { compareStructs } from "../../../../utils/test/compareStructs";
 
 describe("AutoApprove construction", async function () {
@@ -37,7 +37,7 @@ describe("AutoApprove construction", async function () {
     const deployer = signers[1];
 
     const stateConfig: StateConfigStruct = {
-      sources: [op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
 
@@ -63,7 +63,7 @@ describe("AutoApprove construction", async function () {
     const admin = signers[2];
 
     const stateConfig: StateConfigStruct = {
-      sources: [op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
 

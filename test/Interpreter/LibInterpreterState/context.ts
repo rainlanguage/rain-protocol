@@ -31,7 +31,8 @@ describe("LibInterpreterState context tests", async function () {
     // test fn serializes and then deserialises
     const state_ = await libInterpreterState.callStatic.serDeserialize(
       { sources, constants },
-      context
+      context,
+      [1]
     );
 
     const { context: context_ } = state_;

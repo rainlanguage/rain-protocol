@@ -49,26 +49,29 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await timewarp(1900); // updated 100 sec ago
 
-    await logic.run();
+    await logic["run()"]();
 
     await timewarp(3600); // updated 3700 sec ago (stale)
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "STALE_PRICE",
       "did not revert when chainlink price was stale"
     );
@@ -91,20 +94,23 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
     await assertError(
-      async () => await logic.run(),
+      async () => await logic["run()"](),
       "MIN_BASE_PRICE",
       "did not revert when chainlink price was 0"
     );
@@ -127,19 +133,22 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const price_ = await logic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));
@@ -162,19 +171,22 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.CHAINLINK_PRICE),
       ]),
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize({
-      sources,
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources,
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const price_ = await logic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));

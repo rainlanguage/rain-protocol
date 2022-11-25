@@ -21,12 +21,15 @@ describe("EXPLODE32 Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN],
-      constants: [],
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN],
+        constants: [],
+      },
+      [8]
+    );
     // 0
-    await logic.runContext([
+    await logic["runContext(uint256[][])"]([
       [
         ethers.BigNumber.from(
           "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -50,7 +53,7 @@ describe("EXPLODE32 Opcode test", async function () {
     );
 
     // 1
-    await logic.runContext([
+    await logic["runContext(uint256[][])"]([
       [
         ethers.BigNumber.from(
           "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -74,7 +77,7 @@ describe("EXPLODE32 Opcode test", async function () {
     );
 
     // 2
-    await logic.runContext([[ethers.BigNumber.from("0x0")]]);
+    await logic["runContext(uint256[][])"]([[ethers.BigNumber.from("0x0")]]);
     const result2 = await logic.stack();
     const expectedResult2 = [
       ethers.BigNumber.from("0"),

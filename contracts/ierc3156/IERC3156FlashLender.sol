@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: CAL
-pragma solidity ^0.8.0;
-
+// SPDX-License-Identifier: CC0
+// Alberto Cuesta Cañada, Fiona Kobayashi, fubuloubu, Austin Williams, "EIP-3156: Flash Loans," Ethereum Improvement Proposals, no. 3156, November 2020. [Online serial]. Available: https://eips.ethereum.org/EIPS/eip-3156.
+pragma solidity ^0.7.0 || ^0.8.0;
 import "./IERC3156FlashBorrower.sol";
 
 interface IERC3156FlashLender {

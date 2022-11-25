@@ -12,6 +12,7 @@ import { DepositConfigStruct } from "../../../typechain/contracts/orderbook/Orde
 import { randomUint256 } from "../../../utils/bytes";
 import { eighteenZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { assertError } from "../../../utils/test/assertError";
 
 describe("OrderBook flash loan deposit tests", async function () {
   let orderBookFactory: ContractFactory;
@@ -35,7 +36,7 @@ describe("OrderBook flash loan deposit tests", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  xit("should not allow depositing flash loan without paying it back", async function () {
+  it("should not allow depositing flash loan without paying it back", async function () {
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const vaultBot = ethers.BigNumber.from(randomUint256());
@@ -50,7 +51,7 @@ describe("OrderBook flash loan deposit tests", async function () {
       vaultId: vaultBot,
       amount: amountCanLoan,
     };
-    await orderBook.flashLoan(
+    const txFlashLoan = orderBook.flashLoan(
       erc3156Bot.address,
       DAI.address,
       amountCanLoan,
@@ -68,6 +69,12 @@ describe("OrderBook flash loan deposit tests", async function () {
         ],
         [depositConfigStruct]
       )
+    );
+
+    await assertError(
+      async () => txFlashLoan,
+      "ERC20: transfer amount exceeds balance",
+      "avoided paying off flash loan debt"
     );
   });
 });

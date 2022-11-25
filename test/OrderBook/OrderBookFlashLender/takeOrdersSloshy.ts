@@ -11,7 +11,7 @@ import type {
   Rainterpreter,
   RainterpreterExpressionDeployer,
   ReserveToken18,
-} from "../../typechain";
+} from "../../../typechain";
 import {
   AddOrderEvent,
   DepositConfigStruct,
@@ -19,7 +19,7 @@ import {
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
-} from "../../typechain/contracts/orderbook/OrderBook";
+} from "../../../typechain/contracts/orderbook/OrderBook";
 import { randomUint256 } from "../../../utils/bytes";
 import {
   eighteenZeros,
@@ -40,7 +40,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook sloshy takeOrders tests", async function () {
+describe("OrderBook takeOrders sloshy tests", async function () {
   let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
@@ -79,8 +79,14 @@ describe("OrderBook sloshy takeOrders tests", async function () {
 
     const constants = [max_uint256, threshold];
 
-    const vMaxAmount = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vThreshold = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vMaxAmount = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vThreshold = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const source = concat([
@@ -95,7 +101,7 @@ describe("OrderBook sloshy takeOrders tests", async function () {
       validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
       interpreterStateConfig: {
-        sources: [source],
+        sources: [source, []],
         constants: constants,
       },
     };
@@ -175,7 +181,8 @@ describe("OrderBook sloshy takeOrders tests", async function () {
                     components: [
                       { name: "owner", type: "address" },
                       { name: "interpreter", type: "address" },
-                      { name: "expression", type: "address" },
+                      { name: "dispatch", type: "uint256" },
+                      { name: "handleIODispatch", type: "uint256" },
                       {
                         name: "validInputs",
                         type: "tuple[]",
@@ -256,8 +263,14 @@ describe("OrderBook sloshy takeOrders tests", async function () {
 
     const constants = [max_uint256, threshold];
 
-    const vMaxAmount = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vThreshold = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vMaxAmount = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vThreshold = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const source = concat([
@@ -272,7 +285,7 @@ describe("OrderBook sloshy takeOrders tests", async function () {
       validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
       interpreterStateConfig: {
-        sources: [source],
+        sources: [source, []],
         constants: constants,
       },
     };

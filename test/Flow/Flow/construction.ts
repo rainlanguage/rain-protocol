@@ -34,19 +34,19 @@ describe("Flow construction tests", async function () {
     // prettier-ignore
     // example source, only checking stack length in this test
     const sourceFlowIO = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC1155 SKIP
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
 
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
 
       op(Opcode.THIS_ADDRESS), // from
       op(Opcode.CALLER), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
       op(Opcode.CALLER), // from
       op(Opcode.THIS_ADDRESS), // to
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
     ]);
 
     const sources = [];

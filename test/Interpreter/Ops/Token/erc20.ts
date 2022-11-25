@@ -36,7 +36,10 @@ describe("RainInterpreter ERC20 ops", async function () {
 
   it("should return ERC20 total supply", async () => {
     const constants = [tokenERC20.address];
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
 
     // prettier-ignore
     const sources = [
@@ -46,9 +49,9 @@ describe("RainInterpreter ERC20 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20.totalSupply();
     assert(
@@ -59,8 +62,14 @@ describe("RainInterpreter ERC20 ops", async function () {
 
   it("should return ERC20 balance", async () => {
     const constants = [signer1.address, tokenERC20.address];
-    const vSigner1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vSigner1 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const sources = [
@@ -71,14 +80,14 @@ describe("RainInterpreter ERC20 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-    await logic.run();
+    await logic.initialize({ sources, constants }, [1]);
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC20.transfer(signer1.address, 100);
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

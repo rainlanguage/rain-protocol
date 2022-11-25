@@ -1,5 +1,5 @@
 import type { LibIntegrityStateTest } from "../../../../typechain";
-import { StorageOpcodesRangeStruct } from "../../../../typechain/contracts/interpreter/run/RainInterpreter";
+
 import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
@@ -18,10 +18,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 32;
@@ -31,7 +28,6 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       async () => {
         await libIntegrityState.popUnderflowCheck(
           sources,
-          storageOpcodesRange,
           constantsLength,
           stackBottom,
           stackMaxTop,
@@ -49,10 +45,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 32;
@@ -62,7 +55,6 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       async () => {
         await libIntegrityState.popUnderflowCheck(
           sources,
-          storageOpcodesRange,
           constantsLength,
           stackBottom,
           stackMaxTop,
@@ -80,10 +72,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 32;
     const stackMaxTop = 64;
@@ -91,7 +80,6 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
 
     await libIntegrityState.popUnderflowCheck(
       sources,
-      storageOpcodesRange,
       constantsLength,
       stackBottom,
       stackMaxTop,
@@ -105,10 +93,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 32;
     const stackMaxTop = 64;
@@ -118,7 +103,6 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       async () => {
         await libIntegrityState.popUnderflowCheck(
           sources,
-          storageOpcodesRange,
           constantsLength,
           stackBottom,
           stackMaxTop,
@@ -136,10 +120,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
       op(Opcode.BLOCK_NUMBER, 0),
     ];
-    const storageOpcodesRange: StorageOpcodesRangeStruct = {
-      pointer: 0,
-      length: 0,
-    };
+
     const constantsLength = 0;
     const stackBottom = 0;
     const stackMaxTop = 64;
@@ -147,7 +128,6 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
 
     await libIntegrityState.popUnderflowCheck(
       sources,
-      storageOpcodesRange,
       constantsLength,
       stackBottom,
       stackMaxTop,

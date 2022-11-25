@@ -25,7 +25,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 0xfc; // -4
 
     const constants = [value1];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -35,9 +35,9 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(100);
 
@@ -54,7 +54,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 0x04; // 4
 
     const constants = [value1];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -64,9 +64,9 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros + "0000");
 
@@ -83,7 +83,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 20;
 
     const constants = [value1];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -92,9 +92,9 @@ describe("RainInterpreter fixed point math ops", async function () {
         op(Opcode.SCALEN, n)
       ]),
     ];
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + eighteenZeros + "00");
 
@@ -111,7 +111,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const n = 6;
 
     const constants = [value1];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -121,9 +121,9 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros);
 
@@ -140,8 +140,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value2 = ethers.BigNumber.from("3" + eighteenZeros);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -152,9 +152,9 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(ONE)
@@ -172,8 +172,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value2 = ONE.mul(2);
 
     const constants = [value1, value2];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -184,9 +184,9 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(value2)
@@ -203,7 +203,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const value = 1;
 
     const constants = [value];
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     // prettier-ignore
     const sources = [
@@ -213,9 +213,9 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value + eighteenZeros);
     assert(

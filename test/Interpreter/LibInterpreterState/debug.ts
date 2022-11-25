@@ -44,7 +44,8 @@ describe("LibInterpreterState debug tests", async function () {
         { sources, constants },
         context,
         debugStyle,
-        sourceIndex
+        sourceIndex,
+        [1, 1]
       );
 
     console.log("End Stack debug logs");
@@ -73,7 +74,8 @@ describe("LibInterpreterState debug tests", async function () {
         { sources, constants },
         context,
         debugStyle,
-        sourceIndex
+        sourceIndex,
+        [1]
       );
 
     console.log("End Constants debug logs");
@@ -102,7 +104,8 @@ describe("LibInterpreterState debug tests", async function () {
         { sources, constants },
         context,
         debugStyle,
-        sourceIndex
+        sourceIndex,
+        [1]
       );
 
     console.log("End Context debug logs");
@@ -128,10 +131,13 @@ describe("LibInterpreterState debug tests", async function () {
     const context = [[3, 5, 7, 9, 11]];
     const sourceIndex = 0;
 
-    const serialized_ = await libInterpreterState.callStatic.serialize({
-      sources,
-      constants,
-    });
+    const serialized_ = await libInterpreterState.callStatic.serialize(
+      {
+        sources,
+        constants,
+      },
+      [1, 1]
+    );
 
     console.log({ serialized_ });
 
@@ -142,7 +148,8 @@ describe("LibInterpreterState debug tests", async function () {
         { sources, constants },
         context,
         debugStyle,
-        sourceIndex
+        sourceIndex,
+        [1, 1]
       );
 
     console.log("End Source debug logs");

@@ -25,10 +25,13 @@ describe("LibInterpreterState serialize tests", async function () {
     ];
     const constants = [];
 
-    const serialized_ = await libInterpreterState.callStatic.serialize({
-      sources,
-      constants,
-    });
+    const serialized_ = await libInterpreterState.callStatic.serialize(
+      {
+        sources,
+        constants,
+      },
+      [1, 8]
+    );
 
     assert(serialized_); // really can't verify much else at this stage
   });

@@ -18,10 +18,17 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import { RainterpreterOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
-describe("AutoApprove evidence data approved op", async function () {
+const Opcode = RainterpreterOps;
+
+const FALSE = () =>
+  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+const TRUE = () =>
+  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+
+describe("AutoApprove evidence data approved", async function () {
   let autoApproveFactory: AutoApproveFactory;
   let verifyFactory: VerifyFactory;
 
@@ -45,19 +52,25 @@ describe("AutoApprove evidence data approved op", async function () {
       sources: [
         concat([
             // has this evidence been used before?
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.EVIDENCE_DATA_APPROVED),
+                op(Opcode.CONTEXT, 0x0001),
+              op(Opcode.HASH, 1),
+            op(Opcode.GET),
 
             // has it been 1 day since this evidence was last used for approval?
-            op(Opcode.CONTEXT, 0x0001),
-              op(Opcode.EVIDENCE_DATA_APPROVED),
+                  op(Opcode.CONTEXT, 0x0001),
+                op(Opcode.HASH, 1),
+              op(Opcode.GET),
                 op(Opcode.BLOCK_TIMESTAMP),
-                op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
+                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1 day in seconds
               op(Opcode.SUB, 2),
             op(Opcode.LESS_THAN),
 
-            // else, allow any new evidence
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+            // else, set new evidence and return true
+                op(Opcode.CONTEXT, 0x0001),
+              op(Opcode.HASH, 1), // k
+              op(Opcode.BLOCK_TIMESTAMP), // v
+            op(Opcode.SET),
+            TRUE(),
 
           op(Opcode.EAGER_IF),
         ])],
@@ -142,10 +155,18 @@ describe("AutoApprove evidence data approved op", async function () {
       sources: [
         // approved ? deny : approve
         concat([
-          op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.EVIDENCE_DATA_APPROVED),
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // deny
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // approve
+                op(Opcode.CONTEXT, 0x0001),
+              op(Opcode.HASH, 1),
+            op(Opcode.GET),
+
+            FALSE(), // deny
+
+                op(Opcode.CONTEXT, 0x0001),
+              op(Opcode.HASH, 1), // k
+              TRUE(), // v
+            op(Opcode.SET),
+            TRUE(), // approve
+
           op(Opcode.EAGER_IF),
         ])],
       constants: [0, 1],

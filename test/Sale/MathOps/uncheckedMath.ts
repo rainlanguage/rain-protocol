@@ -76,12 +76,15 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vHalfMaxUInt256 = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vTwo = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vTwo = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -91,7 +94,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.EXP, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -129,7 +136,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -160,12 +167,18 @@ describe("Sale unchecked math", async function () {
     ];
 
     const vHalfMaxUInt256 = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vThree = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vThree = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -175,7 +188,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.MUL, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -213,7 +230,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -238,10 +255,13 @@ describe("Sale unchecked math", async function () {
 
     const constants = [0, 1, startBlock - 1, startBlock + saleDuration - 1];
 
-    const vZero = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vZero = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -251,7 +271,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.SUB, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -289,7 +313,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator underflow did not panic"
     );
@@ -319,10 +343,16 @@ describe("Sale unchecked math", async function () {
       startBlock + saleDuration - 1,
     ];
 
-    const vMaxUInt256 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vOne = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vMaxUInt256 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vOne = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     // prettier-ignore
     const source0 = concat([
@@ -332,7 +362,11 @@ describe("Sale unchecked math", async function () {
       op(Opcode.ADD, 2)
     ]);
 
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), source0];
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      source0,
+      concat([]),
+    ];
 
     const [sale] = await saleDeploy(
       signers,
@@ -370,7 +404,7 @@ describe("Sale unchecked math", async function () {
     const desiredUnits = totalTokenSupply;
 
     await assertError(
-      async () => await sale.calculateBuy(desiredUnits),
+      async () => await sale.previewCalculateBuy(desiredUnits),
       "Error",
       "accumulator overflow did not panic"
     );
