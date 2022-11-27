@@ -68,6 +68,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
 
         // Call the encoded swap function call on the contract at `swapTarget`,
         // passing along any ETH attached to this function call to cover protocol fees.
+        console.logBytes(zeroExData_);
         zeroExExchangeProxy.functionCallWithValue(
             zeroExData_,
             address(this).balance
