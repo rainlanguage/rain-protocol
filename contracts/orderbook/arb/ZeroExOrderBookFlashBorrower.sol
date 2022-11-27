@@ -90,10 +90,19 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // give us and there's no reason to borrow less.
         uint flashLoanAmount_ = takeOrders_.minimumInput;
 
-        IERC20(flashLoanToken_).safeIncreaseAllowance(
-            zeroExSpender_,
-            flashLoanAmount_
+        // This is overkill to infinite approve every time.
+        // @todo make this hammer smaller.
+        IERC20(takeOrders_.output).safeApprove(orderBook, 0);
+        IERC20(takeOrders_.output).safeIncreaseAllowance(
+            orderBook,
+            type(uint256).max
         );
+        IERC20(takeOrders_.input).safeApprove(zeroExSpender_, 0);
+        IERC20(takeOrders_.input).safeIncreaseAllowance(
+            zeroExSpender_,
+            type(uint256).max
+        );
+
         IERC3156FlashLender(orderBook).flashLoan(
             this,
             flashLoanToken_,
