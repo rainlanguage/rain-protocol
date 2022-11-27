@@ -63,26 +63,15 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
             "FlashBorrower: Untrusted loan initiator"
         );
 
-        (TakeOrdersConfig memory takeOrders_, address zeroExSpender_, bytes memory zeroExData_) = abi
-            .decode(data_, (TakeOrdersConfig, address, bytes));
+        (TakeOrdersConfig memory takeOrders_, bytes memory zeroExData_) = abi
+            .decode(data_, (TakeOrdersConfig, bytes));
 
         // Call the encoded swap function call on the contract at `swapTarget`,
         // passing along any ETH attached to this function call to cover protocol fees.
-        console.logBytes(zeroExData_);
-        console.log(zeroExSpender_, takeOrders_.input);
-        IERC20(takeOrders_.input).safeApprove(zeroExSpender_, 0);
-        IERC20(takeOrders_.input).safeIncreaseAllowance(
-            zeroExSpender_,
-            // flashLoanAmount_
-            type(uint256).max
-        );
-        console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
-        console.log(IERC20(takeOrders_.input).allowance(address(this), zeroExSpender_));
         zeroExExchangeProxy.functionCallWithValue(
             zeroExData_,
             address(this).balance
         );
-        console.log("take orders");
 
         IOrderBookV1(orderBook).takeOrders(takeOrders_);
 
@@ -94,7 +83,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         address zeroExSpender_,
         bytes calldata zeroExData_
     ) external {
-        bytes memory data_ = abi.encode(takeOrders_, zeroExSpender_, zeroExData_);
+        bytes memory data_ = abi.encode(takeOrders_, zeroExData_);
         // The token we receive from taking the orders is what we will use to
         // repay the flash loan.
         address flashLoanToken_ = takeOrders_.input;
@@ -102,8 +91,15 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // give us and there's no reason to borrow less.
         uint flashLoanAmount_ = takeOrders_.minimumInput;
 
+        // This is overkill to infinite approve every time.
+        // @todo make this hammer smaller.
         IERC20(takeOrders_.output).safeApprove(orderBook, 0);
         IERC20(takeOrders_.output).safeIncreaseAllowance(orderBook, type(uint256).max);
+        IERC20(takeOrders_.input).safeApprove(zeroExSpender_, 0);
+        IERC20(takeOrders_.input).safeIncreaseAllowance(
+            zeroExSpender_,
+            type(uint256).max
+        );
 
         IERC3156FlashLender(orderBook).flashLoan(
             this,
