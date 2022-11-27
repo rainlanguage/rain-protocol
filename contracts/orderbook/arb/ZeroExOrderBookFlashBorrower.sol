@@ -82,6 +82,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
             zeroExData_,
             address(this).balance
         );
+        console.log("take orders");
 
         IOrderBookV1(orderBook).takeOrders(takeOrders_);
 
