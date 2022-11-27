@@ -69,6 +69,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // Call the encoded swap function call on the contract at `swapTarget`,
         // passing along any ETH attached to this function call to cover protocol fees.
         console.logBytes(zeroExData_);
+        console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
         zeroExExchangeProxy.functionCallWithValue(
             zeroExData_,
             address(this).balance
@@ -93,7 +94,9 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         uint flashLoanAmount_ = takeOrders_.minimumInput;
 
         console.log(flashLoanToken_, zeroExSpender_, flashLoanAmount_);
+        console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
 
+        IERC20(flasLoanToken_).safeApprove(zeroExSpender_, 0);
         IERC20(flashLoanToken_).safeIncreaseAllowance(
             zeroExSpender_,
             // flashLoanAmount_
