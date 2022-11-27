@@ -90,6 +90,8 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // give us and there's no reason to borrow less.
         uint flashLoanAmount_ = takeOrders_.minimumInput;
 
+        console.log(flashLoanToken_, zeroExSpender_, flashLoanAmount_);
+
         IERC20(flashLoanToken_).safeIncreaseAllowance(
             zeroExSpender_,
             flashLoanAmount_
