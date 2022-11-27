@@ -63,13 +63,20 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
             "FlashBorrower: Untrusted loan initiator"
         );
 
-        (TakeOrdersConfig memory takeOrders_, bytes memory zeroExData_) = abi
-            .decode(data_, (TakeOrdersConfig, bytes));
+        (TakeOrdersConfig memory takeOrders_, address zeroExSpender_, bytes memory zeroExData_) = abi
+            .decode(data_, (TakeOrdersConfig, address, bytes));
 
         // Call the encoded swap function call on the contract at `swapTarget`,
         // passing along any ETH attached to this function call to cover protocol fees.
         console.logBytes(zeroExData_);
+        IERC20(takeOrders_.input).safeApprove(zeroExSpender_, 0);
+        IERC20(takeOrders_.input).safeIncreaseAllowance(
+            zeroExSpender_,
+            // flashLoanAmount_
+            type(uint256).max
+        );
         console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
+        console.log(IERC20(flashLoanToken_).allowance(address(this), zeroExSpender));
         zeroExExchangeProxy.functionCallWithValue(
             zeroExData_,
             address(this).balance
@@ -85,7 +92,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         address zeroExSpender_,
         bytes calldata zeroExData_
     ) external {
-        bytes memory data_ = abi.encode(takeOrders_, zeroExData_);
+        bytes memory data_ = abi.encode(takeOrders_, zeroExSpender_, zeroExData_);
         // The token we receive from taking the orders is what we will use to
         // repay the flash loan.
         address flashLoanToken_ = takeOrders_.input;
@@ -93,15 +100,6 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // give us and there's no reason to borrow less.
         uint flashLoanAmount_ = takeOrders_.minimumInput;
 
-        console.log(flashLoanToken_, zeroExSpender_, flashLoanAmount_);
-        console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
-
-        IERC20(flashLoanToken_).safeApprove(zeroExSpender_, 0);
-        IERC20(flashLoanToken_).safeIncreaseAllowance(
-            zeroExSpender_,
-            // flashLoanAmount_
-            type(uint256).max
-        );
         IERC3156FlashLender(orderBook).flashLoan(
             this,
             flashLoanToken_,
