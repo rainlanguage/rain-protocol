@@ -93,7 +93,10 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // This is overkill to infinite approve every time.
         // @todo make this hammer smaller.
         IERC20(takeOrders_.output).safeApprove(orderBook, 0);
-        IERC20(takeOrders_.output).safeIncreaseAllowance(orderBook, type(uint256).max);
+        IERC20(takeOrders_.output).safeIncreaseAllowance(
+            orderBook,
+            type(uint256).max
+        );
         IERC20(takeOrders_.input).safeApprove(zeroExSpender_, 0);
         IERC20(takeOrders_.input).safeIncreaseAllowance(
             zeroExSpender_,
