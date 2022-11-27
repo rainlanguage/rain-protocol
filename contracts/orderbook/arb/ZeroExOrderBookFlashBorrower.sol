@@ -96,7 +96,8 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
 
         IERC20(flashLoanToken_).safeIncreaseAllowance(
             zeroExSpender_,
-            flashLoanAmount_
+            // flashLoanAmount_
+            type(uint256).max
         );
         IERC3156FlashLender(orderBook).flashLoan(
             this,
