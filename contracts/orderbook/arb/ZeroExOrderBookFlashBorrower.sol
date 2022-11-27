@@ -8,7 +8,6 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import "../../ierc3156/IERC3156FlashLender.sol";
 import "../../ierc3156/IERC3156FlashBorrower.sol";
 import "../IOrderBookV1.sol";
-import "hardhat/console.sol";
 
 // input = USDT
 // output = DAI
