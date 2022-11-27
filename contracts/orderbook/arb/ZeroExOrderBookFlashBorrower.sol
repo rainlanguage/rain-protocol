@@ -96,7 +96,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         console.log(flashLoanToken_, zeroExSpender_, flashLoanAmount_);
         console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
 
-        IERC20(flasLoanToken_).safeApprove(zeroExSpender_, 0);
+        IERC20(flashLoanToken_).safeApprove(zeroExSpender_, 0);
         IERC20(flashLoanToken_).safeIncreaseAllowance(
             zeroExSpender_,
             // flashLoanAmount_
