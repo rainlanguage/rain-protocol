@@ -76,7 +76,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
             type(uint256).max
         );
         console.log(IERC20(takeOrders_.input).balanceOf(address(this)));
-        console.log(IERC20(flashLoanToken_).allowance(address(this), zeroExSpender));
+        console.log(IERC20(takeOrders_.input).allowance(address(this), zeroExSpender_));
         zeroExExchangeProxy.functionCallWithValue(
             zeroExData_,
             address(this).balance
