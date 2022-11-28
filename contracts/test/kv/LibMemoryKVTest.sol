@@ -12,25 +12,89 @@ contract LibMemoryKVTest {
     using LibMemoryKV for MemoryKVKey;
     using LibMemoryKV for MemoryKVVal;
 
-    /// Wraps `LibMemoryKV.readPtrVal`.
-    function readPtrVal(MemoryKVPtr ptr_) external returns (MemoryKVVal) {
+    /// BEGIN IN-MEMORY SCENARIOS
+
+    function scenario0(
+        MemoryKV kv_,
+        MemoryKVKey k_,
+        MemoryKVVal v_
+    ) external pure returns (uint[] memory array_) {
+        kv_ = kv_.setVal(k_, v_);
+        array_ = kv_.toUint256Array();
+    }
+
+    function scenario1(
+        MemoryKV kv_,
+        MemoryKVKey k_,
+        MemoryKVVal v_
+    ) external pure returns (MemoryKVPtr ptr_) {
+        kv_ = kv_.setVal(k_, v_);
+        ptr_ = kv_.getPtr(k_);
+    }
+
+    function scenario2(
+        MemoryKV kv_,
+        MemoryKVKey k_
+    ) external pure returns (MemoryKVPtr ptr_) {
+        ptr_ = kv_.getPtr(k_);
+    }
+
+    function scenario3(
+        MemoryKV kv_,
+        MemoryKVKey k_,
+        MemoryKVVal v_
+    ) external pure returns (MemoryKVVal val_) {
+        kv_ = kv_.setVal(k_, v_);
+        MemoryKVPtr ptr_ = kv_.getPtr(k_);
+        val_ = ptr_.readPtrVal();
+    }
+
+    function scenario4(
+        MemoryKV kv_,
+        MemoryKVKey k_,
+        MemoryKVVal v0_,
+        MemoryKVVal v1_
+    ) external returns (MemoryKVVal val_) {
+        kv_ = kv_.setVal(k_, v0_);
         LibDebug.dumpMemory();
-        MemoryKVVal val_ = LibMemoryKV.readPtrVal(ptr_);
+        kv_ = kv_.setVal(k_, v1_);
+        LibDebug.dumpMemory();
+        MemoryKVPtr ptr_ = kv_.getPtr(k_);
+        val_ = ptr_.readPtrVal();
+        LibDebug.emitEvent(MemoryKVVal.unwrap(val_));
+    }
+
+    function scenario5(
+        MemoryKV kv_,
+        MemoryKVKey k0_,
+        MemoryKVVal v0_,
+        MemoryKVKey k1_,
+        MemoryKVVal v1_
+    ) external pure returns (uint[] memory array_) {
+        kv_ = kv_.setVal(k0_, v0_);
+        kv_ = kv_.setVal(k1_, v1_);
+        array_ = kv_.toUint256Array();
+    }
+
+    /// END IN-MEMORY SCENARIOS
+
+    /// Wraps `LibMemoryKV.readPtrVal`.
+    function readPtrVal(MemoryKVPtr ptr_) public returns (MemoryKVVal val_) {
+        LibDebug.dumpMemory();
+        val_ = ptr_.readPtrVal();
         LibDebug.dumpMemory();
         LibDebug.emitEvent(MemoryKVVal.unwrap(val_));
-        return val_;
     }
 
     /// Wraps `LibMemoryKV.getPtr`.
     function getPtr(
         MemoryKV kv_,
         MemoryKVKey k_
-    ) external returns (MemoryKVPtr) {
+    ) public returns (MemoryKVPtr ptr_) {
         LibDebug.dumpMemory();
-        MemoryKVPtr ptr_ = LibMemoryKV.getPtr(kv_, k_);
+        ptr_ = kv_.getPtr(k_);
         LibDebug.dumpMemory();
         LibDebug.emitEvent(MemoryKVPtr.unwrap(ptr_));
-        return ptr_;
     }
 
     /// Wraps `LibMemoryKV.setVal`.
@@ -38,22 +102,20 @@ contract LibMemoryKVTest {
         MemoryKV kv_,
         MemoryKVKey k_,
         MemoryKVVal v_
-    ) external returns (MemoryKV) {
+    ) public returns (MemoryKV kvSetVal_) {
         LibDebug.dumpMemory();
-        MemoryKV kvSetVal_ = LibMemoryKV.setVal(kv_, k_, v_);
+        kvSetVal_ = kv_.setVal(k_, v_);
         LibDebug.dumpMemory();
         LibDebug.emitEvent(MemoryKV.unwrap(kvSetVal_));
-        return kvSetVal_;
     }
 
     /// Wraps `LibMemoryKV.toUint256Array`.
     function toUint256Array(
         MemoryKV kv_
-    ) external returns (uint[] memory array_) {
+    ) public returns (uint[] memory array_) {
         LibDebug.dumpMemory();
-        array_ = LibMemoryKV.toUint256Array(kv_);
+        array_ = kv_.toUint256Array();
         LibDebug.dumpMemory();
         LibDebug.emitEvent(array_);
-        return array_;
     }
 }
