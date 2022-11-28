@@ -16,6 +16,29 @@ describe("LibMemoryKV tests", async function () {
     libMemoryKV = await libMemoryKVDeploy();
   });
 
+  it("should support namespaced memory kv stores", async function () {
+    const kv0 = 0;
+    const kv1 = 1;
+    const key = 68;
+    const val0 = 1337;
+    const val1 = 42069;
+
+    const tx0_ = await libMemoryKV.scenario6(kv0, kv1, key, val0, val1);
+
+    const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
+    const { data: memDumpAfter__ } = (await tx0_.wait()).events[1];
+    const { data: val0_ } = (await tx0_.wait()).events[2];
+    const { data: val1_ } = (await tx0_.wait()).events[3];
+
+    assert(
+      memDumpBefore_.length !== memDumpAfter__.length,
+      "should have allocated new memory because we are writing to different memory kv namespace which doesn't already have a value for the same key"
+    );
+
+    assert(numberify(val0_) === val0);
+    assert(numberify(val1_) === val1);
+  });
+
   it("should support several key value pairs in kv store", async function () {
     const kv = 0;
     const key0 = 68;

@@ -76,6 +76,25 @@ contract LibMemoryKVTest {
         array_ = kv_.toUint256Array();
     }
 
+    function scenario6(
+        MemoryKV kv0_,
+        MemoryKV kv1_,
+        MemoryKVKey k_,
+        MemoryKVVal v0_,
+        MemoryKVVal v1_
+    ) external returns (MemoryKVVal val0_, MemoryKVVal val1_) {
+        kv0_ = kv0_.setVal(k_, v0_);
+        LibDebug.dumpMemory();
+        kv1_ = kv1_.setVal(k_, v1_);
+        LibDebug.dumpMemory();
+        MemoryKVPtr ptr0_ = kv0_.getPtr(k_);
+        val0_ = ptr0_.readPtrVal();
+        MemoryKVPtr ptr1_ = kv1_.getPtr(k_);
+        val1_ = ptr1_.readPtrVal();
+        LibDebug.emitEvent(MemoryKVVal.unwrap(val0_));
+        LibDebug.emitEvent(MemoryKVVal.unwrap(val1_));
+    }
+
     /// END IN-MEMORY SCENARIOS
 
     /// Wraps `LibMemoryKV.readPtrVal`.
