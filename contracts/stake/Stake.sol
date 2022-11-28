@@ -12,7 +12,6 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "../tier/TierV2.sol";
 import "../tier/libraries/TierConstants.sol";
 
-import "../math/FixedPointMath.sol";
 import "../tier/libraries/TierReport.sol";
 
 /// Configuration required to initialized the Stake contract.
@@ -79,7 +78,6 @@ struct DepositRecord {
 contract Stake is ERC4626, TierV2, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
-    using FixedPointMath for uint256;
     using Math for uint256;
 
     /// Emitted when the contract initializes.
