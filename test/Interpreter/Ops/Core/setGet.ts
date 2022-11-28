@@ -17,7 +17,7 @@ describe("SET/GET Opcode tests", async function () {
     logic = await allStandardOpsDeploy();
   });
 
-  xit("should set and get a value", async () => {
+  it("should set and get a value", async () => {
     const key = 123;
     const val = 456;
 
@@ -25,9 +25,9 @@ describe("SET/GET Opcode tests", async function () {
 
     // prettier-ignore
     const sourceSET = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-        op(Opcode.SET),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET),
     ]);
     // prettier-ignore
     const sourceGET = concat([
@@ -43,14 +43,33 @@ describe("SET/GET Opcode tests", async function () {
       [0, 1]
     );
 
-    await logic["run(uint256)"](1);
-    const result0 = await logic.stackTop();
-    console.log({ result0 });
-
     await logic["run(uint256)"](0);
 
     await logic["run(uint256)"](1);
-    const result1 = await logic.stackTop();
-    console.log({ result1 });
+    const result0 = await logic.stackTop();
+    console.log({ result0 });
+  });
+
+  it("should set a value", async () => {
+    const key = 123;
+    const val = 456;
+
+    const constants = [key, val];
+
+    // prettier-ignore
+    const sourceSET = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET),
+    ]);
+    await logic.initialize(
+      {
+        sources: [sourceSET],
+        constants,
+      },
+      [0]
+    );
+
+    await logic["run(uint256)"](0);
   });
 });
