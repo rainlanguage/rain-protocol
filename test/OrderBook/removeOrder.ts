@@ -78,8 +78,12 @@ describe("OrderBook remove order", async function () {
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,

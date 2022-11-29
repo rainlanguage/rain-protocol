@@ -98,8 +98,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
-      validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
+      validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
+      validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       interpreterStateConfig: {
         sources: [source, []],
         constants: constants,
@@ -188,6 +188,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                         type: "tuple[]",
                         components: [
                           { name: "token", type: "address" },
+                          { name: "decimals", type: "uint256" },
                           {
                             name: "vaultId",
                             type: "uint256",
@@ -199,6 +200,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                         type: "tuple[]",
                         components: [
                           { name: "token", type: "address" },
+                          { name: "decimals", type: "uint256" },
                           {
                             name: "vaultId",
                             type: "uint256",
@@ -282,8 +284,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
-      validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
+      validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
+      validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       interpreterStateConfig: {
         sources: [source, []],
         constants: constants,

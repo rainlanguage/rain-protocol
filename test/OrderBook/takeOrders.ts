@@ -97,8 +97,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -107,8 +111,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -230,8 +238,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -240,8 +252,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -393,8 +409,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -403,8 +423,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -538,8 +562,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants0,
@@ -562,8 +590,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig1: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants1,
@@ -682,8 +714,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig0: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants0,
@@ -692,8 +728,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig1: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants1,
@@ -819,8 +859,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -944,8 +988,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -954,8 +1002,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: bobOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -1127,8 +1179,12 @@ describe("OrderBook take orders", async function () {
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,

@@ -127,8 +127,12 @@ describe("OrderBook counterparty in context", async function () {
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenA.address, vaultId: aliceInputVault }],
-      validOutputs: [{ token: tokenB.address, vaultId: aliceOutputVault }],
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
@@ -168,8 +172,12 @@ describe("OrderBook counterparty in context", async function () {
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenB.address, vaultId: bobInputVault }],
-      validOutputs: [{ token: tokenA.address, vaultId: bobOutputVault }],
+      validInputs: [
+        { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
@@ -207,8 +215,12 @@ describe("OrderBook counterparty in context", async function () {
     const bidOrderConfigCarol: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: tokenB.address, vaultId: carolInputVault }],
-      validOutputs: [{ token: tokenA.address, vaultId: carolOutputVault }],
+      validInputs: [
+        { token: tokenB.address, decimals: 18, vaultId: carolInputVault },
+      ],
+      validOutputs: [
+        { token: tokenA.address, decimals: 18, vaultId: carolOutputVault },
+      ],
       interpreterStateConfig: {
         sources: [bidSourceCarol, []],
         constants: bidConstantsCarol,

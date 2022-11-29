@@ -100,16 +100,16 @@ describe("OrderBook many-to-many", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, vaultId: vaultAlice },
-        { token: tokenB.address, vaultId: vaultAlice },
-        { token: tokenA.address, vaultId: vaultAlice },
-        { token: tokenD.address, vaultId: vaultAlice },
+        { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenB.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
       validOutputs: [
-        { token: tokenA.address, vaultId: vaultAlice },
-        { token: tokenB.address, vaultId: vaultAlice },
-        { token: tokenC.address, vaultId: vaultAlice },
-        { token: tokenD.address, vaultId: vaultAlice },
+        { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenB.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenC.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
       interpreterStateConfig: {
         sources: [source, []],
@@ -157,12 +157,12 @@ describe("OrderBook many-to-many", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, vaultId: aliceInputVault },
-        { token: tokenC.address, vaultId: aliceInputVault },
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+        { token: tokenC.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
-        { token: tokenB.address, vaultId: aliceOutputVault },
-        { token: tokenD.address, vaultId: aliceOutputVault },
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+        { token: tokenD.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
@@ -204,12 +204,12 @@ describe("OrderBook many-to-many", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenB.address, vaultId: bobOutputVault },
-        { token: tokenD.address, vaultId: bobOutputVault },
+        { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
+        { token: tokenD.address, decimals: 18, vaultId: bobOutputVault },
       ],
       validOutputs: [
-        { token: tokenA.address, vaultId: bobInputVault },
-        { token: tokenC.address, vaultId: bobInputVault },
+        { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
+        { token: tokenC.address, decimals: 18, vaultId: bobInputVault },
       ],
       interpreterStateConfig: {
         sources: [bidSource, []],
@@ -430,12 +430,12 @@ describe("OrderBook many-to-many", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, vaultId: aliceVaultA },
-        { token: tokenB.address, vaultId: aliceVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
       ],
       validOutputs: [
-        { token: tokenB.address, vaultId: aliceVaultB },
-        { token: tokenA.address, vaultId: aliceVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
@@ -477,12 +477,12 @@ describe("OrderBook many-to-many", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenB.address, vaultId: bobVaultB },
-        { token: tokenA.address, vaultId: bobVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
       ],
       validOutputs: [
-        { token: tokenA.address, vaultId: bobVaultA },
-        { token: tokenB.address, vaultId: bobVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
       ],
       interpreterStateConfig: {
         sources: [bidSource, []],
