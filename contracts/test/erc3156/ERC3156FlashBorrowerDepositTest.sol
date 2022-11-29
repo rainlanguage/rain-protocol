@@ -30,6 +30,9 @@ contract ERC3156FlashBorrowerDepositTest is IERC3156FlashBorrower {
         // deposit the flash loan
         OrderBook(msg.sender).deposit(depositConfig);
 
+        // 'Approve' debt finalization.
+        IERC20(token_).approve(msg.sender, amount_);
+
         return keccak256("ERC3156FlashBorrower.onFlashLoan");
     }
 }

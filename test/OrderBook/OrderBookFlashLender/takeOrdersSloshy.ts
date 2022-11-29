@@ -40,7 +40,7 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook sloshy takeOrders tests", async function () {
+describe("OrderBook takeOrders sloshy tests", async function () {
   let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
@@ -181,7 +181,8 @@ describe("OrderBook sloshy takeOrders tests", async function () {
                     components: [
                       { name: "owner", type: "address" },
                       { name: "interpreter", type: "address" },
-                      { name: "expression", type: "address" },
+                      { name: "dispatch", type: "uint256" },
+                      { name: "handleIODispatch", type: "uint256" },
                       {
                         name: "validInputs",
                         type: "tuple[]",

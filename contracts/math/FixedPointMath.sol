@@ -18,6 +18,13 @@ uint256 constant FP_ONE = 1e18;
 /// don't attempt to simulate them. Instead we provide a standard definition of
 /// "one" as 10 ** 18 and scale everything up/down to this as fixed point math.
 /// Overflows are errors as per Solidity.
+///
+/// Note that scaling down ANY fixed point decimal also reduces the precision
+/// which lead to dust or in the worst case trapped funds if subsequent
+/// subtraction overflows a rounded-down number. Consider using saturating
+/// subtraction for safety against previously downscaled values, and whether
+/// trapped dust is a significant issue. If you need to retain full/arbitrary
+/// precision in the case of downscaling DO NOT use this library.
 library FixedPointMath {
     using Math for uint256;
     using SafeCast for int;

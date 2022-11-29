@@ -1,25 +1,23 @@
 import { concat } from "ethers/lib/utils";
-import type { AllStandardOpsStandaloneTest } from "../../../../typechain";
+import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   memoryOperand,
   MemoryType,
   op,
   RainterpreterOps,
 } from "../../../../utils";
-import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { allStandardOpsStandaloneDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("SET/GET Opcode tests", async function () {
-  let logic: AllStandardOpsStandaloneTest;
+  let logic: AllStandardOpsTest;
 
   before(async () => {
-    logic = await allStandardOpsStandaloneDeploy();
+    logic = await allStandardOpsDeploy();
   });
 
-  it("should set and get a value", async () => {
+  xit("should set and get a value", async () => {
     const key = 123;
     const val = 456;
 
@@ -37,18 +35,11 @@ describe("SET/GET Opcode tests", async function () {
       op(Opcode.GET),
     ]);
 
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployer(
-      interpreter
-    );
-
     await logic.initialize(
       {
         sources: [sourceSET, sourceGET],
         constants,
       },
-      interpreter.address,
-      expressionDeployer.address,
       [0, 1]
     );
 

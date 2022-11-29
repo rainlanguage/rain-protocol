@@ -406,8 +406,8 @@ contract OrderBook is
 
                     _recordVaultIO(
                         order_,
-                        input_,
                         output_,
+                        input_,
                         context_,
                         stateChangesCalculate_
                     );
