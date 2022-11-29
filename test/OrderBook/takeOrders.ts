@@ -7,6 +7,7 @@ import type {
   Rainterpreter,
   RainterpreterExpressionDeployer,
   ReserveToken18,
+  ReserveTokenDecimals,
 } from "../../typechain";
 import {
   AddOrderEvent,
@@ -25,6 +26,8 @@ import {
   eighteenZeros,
   max_uint256,
   ONE,
+  sixZeros,
+  thirteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -372,6 +375,216 @@ describe("OrderBook take orders", async function () {
       "MIN_INPUT",
       "did not validate maximumIORatio"
     );
+  });
+
+  it.only("should autoscale price based on input/output token decimals", async function () {
+    const signers = await ethers.getSigners();
+
+    const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
+      6,
+    ])) as ReserveTokenDecimals;
+    const tokenB13 = (await basicDeploy("ReserveTokenDecimals", {}, [
+      13,
+    ])) as ReserveTokenDecimals;
+    await tokenA06.initialize();
+    await tokenB13.initialize();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const carol = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+
+    // ASK ORDERS
+
+    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askPrice];
+    const vAskOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskPrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskPrice,
+    ]);
+
+    const askOrderConfigAlice: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA06.address, decimals: 6, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB13.address, decimals: 13, vaultId: aliceOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, []],
+        constants: askConstants,
+      },
+    };
+    const askOrderConfigBob: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA06.address, decimals: 6, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB13.address, decimals: 13, vaultId: bobOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, []],
+        constants: askConstants,
+      },
+    };
+
+    const txAskAddOrderAlice = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfigAlice);
+    const txAskAddOrderBob = await orderBook
+      .connect(bob)
+      .addOrder(askOrderConfigBob);
+
+    const { order: askConfigAlice } = (await getEventArgs(
+      txAskAddOrderAlice,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+    const { order: askConfigBob } = (await getEventArgs(
+      txAskAddOrderBob,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    // FIXME: 'virtual' deposit amount, which is auto scaled?
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB13.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenB13.address,
+      vaultId: bobOutputVault,
+      amount: amountB,
+    };
+
+    // 'real' amount being deposited
+    const depositAmountB = ethers.BigNumber.from("1000" + thirteenZeros);
+
+    await tokenB13.transfer(alice.address, depositAmountB);
+    await tokenB13.transfer(bob.address, depositAmountB);
+    await tokenB13.connect(alice).approve(orderBook.address, depositAmountB);
+    await tokenB13.connect(bob).approve(orderBook.address, depositAmountB);
+
+    // Alice deposits tokenB13 into her output vault
+    await orderBook.connect(alice).deposit(depositConfigStructAlice);
+    // Bob deposits tokenB13 into his output vault
+    await orderBook.connect(bob).deposit(depositConfigStructBob);
+
+    // TAKE ORDER
+
+    // Carol takes orders with direct wallet transfer
+    const takeOrderConfigStructAlice: TakeOrderConfigStruct = {
+      order: askConfigAlice,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+    const takeOrderConfigStructBob: TakeOrderConfigStruct = {
+      order: askConfigBob,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA06.address,
+      input: tokenB13.address,
+      minimumInput: amountB.mul(2),
+      maximumInput: amountB.mul(2),
+      maximumIORatio: askPrice,
+      orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
+    };
+
+    // FIXME: 'virtual' deposit amount, which is auto scaled?
+    const amountA = amountB.mul(askPrice).div(ONE);
+
+    // 'real' amount being deposited
+    // TODO: only deposit exactly what is required to fulfil orders
+    const depositAmountA = await tokenA06.totalSupply();
+
+    await tokenA06.transfer(carol.address, depositAmountA);
+    await tokenA06.connect(carol).approve(orderBook.address, depositAmountA);
+
+    const txTakeOrders = await orderBook
+      .connect(carol)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const events = (await getEvents(
+      txTakeOrders,
+      "TakeOrder",
+      orderBook
+    )) as TakeOrderEvent["args"][];
+
+    assert(
+      events.length === 2,
+      `wrong number of TakeOrder events
+      expected  2
+      got       ${events.length}`
+    );
+
+    const [takeOrderAlice, takeOrderBob] = events;
+
+    assert(takeOrderAlice.sender === carol.address, "wrong sender");
+    assert(takeOrderAlice.input.eq(amountB), "wrong input");
+    assert(takeOrderAlice.output.eq(amountA), "wrong output");
+    compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+
+    assert(takeOrderBob.sender === carol.address, "wrong sender");
+    assert(takeOrderBob.input.eq(amountB), "wrong input");
+    assert(takeOrderBob.output.eq(amountA), "wrong output");
+    compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+
+    const token6AliceBalance = await tokenA06.balanceOf(alice.address);
+    const tokenB13AliceBalance = await tokenB13.balanceOf(alice.address);
+    const token6BobBalance = await tokenA06.balanceOf(bob.address);
+    const tokenB13BobBalance = await tokenB13.balanceOf(bob.address);
+    const token6CarolBalance = await tokenA06.balanceOf(carol.address);
+    const tokenB13CarolBalance = await tokenB13.balanceOf(carol.address);
+
+    assert(token6AliceBalance.isZero()); // Alice has not yet withdrawn
+    assert(tokenB13AliceBalance.isZero());
+    assert(token6BobBalance.isZero()); // Bob has not yet withdrawn
+    assert(tokenB13BobBalance.isZero());
+    assert(token6CarolBalance.isZero());
+    assert(tokenB13CarolBalance.eq(depositAmountB.mul(2)));
+
+    await orderBook.connect(alice).withdraw({
+      token: tokenA06.address,
+      vaultId: aliceInputVault,
+      amount: depositAmountA, // 'real' amount
+    });
+    await orderBook.connect(bob).withdraw({
+      token: tokenA06.address,
+      vaultId: bobInputVault,
+      amount: depositAmountA, // 'real' amount
+    });
+
+    const token6AliceBalanceWithdrawn = await tokenA06.balanceOf(alice.address);
+    const token6BobBalanceWithdrawn = await tokenA06.balanceOf(bob.address);
+    assert(token6AliceBalanceWithdrawn.eq(depositAmountA));
+    assert(token6BobBalanceWithdrawn.eq(depositAmountA));
   });
 
   it("should validate input/output tokens", async function () {
