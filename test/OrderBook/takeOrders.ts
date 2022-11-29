@@ -6,7 +6,8 @@ import type {
   OrderBook,
   Rainterpreter,
   RainterpreterExpressionDeployer,
-  ReserveToken18,
+  ReserveToken18, 
+  ReserveToken , 
   ReserveTokenDecimals,
 } from "../../typechain";
 import {
@@ -25,7 +26,8 @@ import { AllStandardOps, assertError, randomUint256 } from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
-  ONE,
+  ONE, 
+  getZeros , 
   sixZeros,
   thirteenZeros,
 } from "../../utils/constants/bigNumber";
@@ -45,13 +47,13 @@ const Opcode = AllStandardOps;
 describe("OrderBook take orders", async function () {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
-  let tokenB: ReserveToken18;
+  let tokenB: ReserveToken;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
-    tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    tokenB = (await basicDeploy("ReserveToken", {})) as ReserveToken;
     await tokenA.initialize();
     await tokenB.initialize();
   });
@@ -377,7 +379,7 @@ describe("OrderBook take orders", async function () {
     );
   });
 
-  it.only("should autoscale price based on input/output token decimals", async function () {
+  it("should autoscale price based on input/output token decimals", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
@@ -1361,8 +1363,15 @@ describe("OrderBook take orders", async function () {
     assert(tokenABobBalanceWithdrawn.eq(amountA));
   });
 
-  it("should take order on the good path (clear an order directly from buyer wallet)", async function () {
-    const signers = await ethers.getSigners();
+  it.only("should take order on the good path (clear an order directly from buyer wallet)", async function () {
+    const signers = await ethers.getSigners(); 
+
+    let tokenADecimals = await tokenA.decimals()
+    let tokenBDecimals = await tokenB.decimals()
+    
+
+
+    
 
     const alice = signers[1];
     const bob = signers[2];
@@ -1393,10 +1402,10 @@ describe("OrderBook take orders", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+        { token: tokenA.address, decimals: tokenADecimals, vaultId: aliceInputVault },
       ],
       validOutputs: [
-        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+        { token: tokenB.address, decimals: tokenBDecimals, vaultId: aliceOutputVault },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
@@ -1416,7 +1425,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("1000" + sixZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -1451,14 +1460,16 @@ describe("OrderBook take orders", async function () {
       order: askConfig,
       inputIOIndex: 0,
       outputIOIndex: 0,
-    };
+    }; 
 
+    let ratio = ethers.BigNumber.from('1' + getZeros(18 - (tokenADecimals- tokenBDecimals)))
+    console.log("ratio : ",  ratio )
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
       output: tokenA.address,
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askPrice,
+      maximumIORatio: askPrice.mul(ratio),
       orders: [takeOrderConfigStruct],
     };
 
@@ -1477,7 +1488,10 @@ describe("OrderBook take orders", async function () {
     )) as TakeOrderEvent["args"];
 
     assert(sender === bob.address, "wrong sender");
-    assert(input.eq(amountB), "wrong input");
+    assert(input.eq(amountB), "wrong input"); 
+
+  
+
     assert(output.eq(amountA), "wrong output");
 
     compareStructs(takeOrder, takeOrderConfigStruct);
