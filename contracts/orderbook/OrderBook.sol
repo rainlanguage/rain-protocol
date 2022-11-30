@@ -421,6 +421,16 @@ contract OrderBook is
         }
         totalInput_ = takeOrders_.maximumInput - remainingInput_;
         require(totalInput_ >= takeOrders_.minimumInput, "MIN_INPUT");
+
+        console.log("totalOutput_", totalOutput_);
+
+        console.log(
+            "allowance",
+            IERC20(takeOrders_.output).allowance(msg.sender, address(this))
+        );
+
+        console.log("totalInput_", totalInput_);
+
         IERC20(takeOrders_.output).safeTransferFrom(
             msg.sender,
             address(this),

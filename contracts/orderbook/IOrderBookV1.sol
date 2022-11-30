@@ -53,8 +53,8 @@ struct TakeOrdersConfig {
     /// the order taker.
     uint256 maximumIORatio;
     /// Ordered list of orders that will be taken until the limit is hit. Takers
-    /// are expected to prioritise orders that appear to be offering better deals
-    /// i.e. lower IO ratios. This prioritisation and sorting MUST happen
+    /// are expected to prioritise orders that appear to be offering better
+    /// deals i.e. lower IO ratios. This prioritisation and sorting MUST happen
     /// offchain, e.g. via. some simulator.
     TakeOrderConfig[] orders;
 }

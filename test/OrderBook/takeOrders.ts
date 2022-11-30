@@ -7,8 +7,7 @@ import type {
   Rainterpreter,
   RainterpreterExpressionDeployer,
   ReserveToken18,
-  ReserveToken , 
-
+  ReserveToken,
   ReserveTokenDecimals,
 } from "../../typechain";
 import {
@@ -23,13 +22,18 @@ import {
   TakeOrderEvent,
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { AllStandardOps, assertError, randomUint256 } from "../../utils";
+import {
+  AllStandardOps,
+  assertError,
+  randomUint256,
+  scaleRatio,
+} from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
   ONE,
-  sixZeros, 
-  getZeros , 
+  sixZeros,
+  getZeros,
   thirteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -380,7 +384,7 @@ describe("OrderBook take orders", async function () {
     );
   });
 
-  it.only("should autoscale price based on input/output token decimals", async function () {
+  it.only("should scale ratio (price) based on input/output token decimals", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
@@ -405,7 +409,9 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDERS
 
+    // note 18 decimals for ratio
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+
     const askConstants = [max_uint256, askPrice];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
@@ -470,22 +476,18 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    // FIXME: 'virtual' deposit amount, which is auto scaled?
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const depositAmountB = ethers.BigNumber.from("1000" + thirteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB13.address,
       vaultId: aliceOutputVault,
-      amount: amountB,
+      amount: depositAmountB,
     };
     const depositConfigStructBob: DepositConfigStruct = {
       token: tokenB13.address,
       vaultId: bobOutputVault,
-      amount: amountB,
+      amount: depositAmountB,
     };
-
-    // 'real' amount being deposited
-    const depositAmountB = ethers.BigNumber.from("1000" + thirteenZeros);
 
     await tokenB13.transfer(alice.address, depositAmountB);
     await tokenB13.transfer(bob.address, depositAmountB);
@@ -511,19 +513,21 @@ describe("OrderBook take orders", async function () {
       outputIOIndex: 0,
     };
 
+    const maximumIORatio = scaleRatio(
+      askPrice,
+      await tokenA06.decimals(),
+      await tokenB13.decimals()
+    );
+
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
       output: tokenA06.address,
       input: tokenB13.address,
-      minimumInput: amountB.mul(2),
-      maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
+      minimumInput: depositAmountB.mul(2),
+      maximumInput: depositAmountB.mul(2),
+      maximumIORatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
-    // FIXME: 'virtual' deposit amount, which is auto scaled?
-    const amountA = amountB.mul(askPrice).div(ONE);
-
-    // 'real' amount being deposited
     // TODO: only deposit exactly what is required to fulfil orders
     const depositAmountA = await tokenA06.totalSupply();
 
@@ -550,13 +554,13 @@ describe("OrderBook take orders", async function () {
     const [takeOrderAlice, takeOrderBob] = events;
 
     assert(takeOrderAlice.sender === carol.address, "wrong sender");
-    assert(takeOrderAlice.input.eq(amountB), "wrong input");
-    assert(takeOrderAlice.output.eq(amountA), "wrong output");
+    assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
+    assert(takeOrderAlice.output.eq(depositAmountA), "wrong output");
     compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
     assert(takeOrderBob.sender === carol.address, "wrong sender");
-    assert(takeOrderBob.input.eq(amountB), "wrong input");
-    assert(takeOrderBob.output.eq(amountA), "wrong output");
+    assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
+    assert(takeOrderBob.output.eq(depositAmountA), "wrong output");
     compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
     const token6AliceBalance = await tokenA06.balanceOf(alice.address);
@@ -576,12 +580,12 @@ describe("OrderBook take orders", async function () {
     await orderBook.connect(alice).withdraw({
       token: tokenA06.address,
       vaultId: aliceInputVault,
-      amount: depositAmountA, // 'real' amount
+      amount: depositAmountA,
     });
     await orderBook.connect(bob).withdraw({
       token: tokenA06.address,
       vaultId: bobInputVault,
-      amount: depositAmountA, // 'real' amount
+      amount: depositAmountA,
     });
 
     const token6AliceBalanceWithdrawn = await tokenA06.balanceOf(alice.address);
@@ -1503,19 +1507,17 @@ describe("OrderBook take orders", async function () {
 
     const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
     assert(tokenAAliceBalanceWithdrawn.eq(amountA));
-  }); 
+  });
 
-  it.only("should take order on the good path (clear an order directly from buyer wallet) for tokens consiting diffrent decimals ", async function () { 
-
-    const tokenC = (await basicDeploy("ReserveToken", {})) as ReserveToken;  // token with 6 decimals 
+  it.only("should take order on the good path (clear an order directly from buyer wallet) for tokens consiting diffrent decimals ", async function () {
+    const tokenC = (await basicDeploy("ReserveToken", {})) as ReserveToken; // token with 6 decimals
     await tokenC.initialize();
 
+    const signers = await ethers.getSigners();
 
-    const signers = await ethers.getSigners(); 
+    let tokenADecimals = await tokenA.decimals();
+    let tokenCDecimals = await tokenC.decimals();
 
-    let tokenADecimals = await tokenA.decimals()
-    let tokenCDecimals = await tokenC.decimals()
-    
     const alice = signers[1];
     const bob = signers[2];
 
@@ -1545,10 +1547,18 @@ describe("OrderBook take orders", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, decimals: tokenADecimals, vaultId: aliceInputVault },
+        {
+          token: tokenA.address,
+          decimals: tokenADecimals,
+          vaultId: aliceInputVault,
+        },
       ],
       validOutputs: [
-        { token: tokenC.address, decimals: tokenCDecimals, vaultId: aliceOutputVault },
+        {
+          token: tokenC.address,
+          decimals: tokenCDecimals,
+          vaultId: aliceOutputVault,
+        },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
@@ -1603,11 +1613,12 @@ describe("OrderBook take orders", async function () {
       order: askConfig,
       inputIOIndex: 0,
       outputIOIndex: 0,
-    }; 
+    };
 
-    let ratio = ethers.BigNumber.from('1' + getZeros(18 + (tokenADecimals- tokenCDecimals)))  
-   
-  
+    let ratio = ethers.BigNumber.from(
+      "1" + getZeros(18 + (tokenADecimals - tokenCDecimals))
+    );
+
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
       output: tokenA.address,
       input: tokenC.address,
@@ -1633,9 +1644,7 @@ describe("OrderBook take orders", async function () {
     )) as TakeOrderEvent["args"];
 
     assert(sender === bob.address, "wrong sender");
-    assert(input.eq(amountC), "wrong input"); 
-
-  
+    assert(input.eq(amountC), "wrong input");
 
     assert(output.eq(amountA), "wrong output");
 
@@ -1659,7 +1668,5 @@ describe("OrderBook take orders", async function () {
 
     const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
     assert(tokenAAliceBalanceWithdrawn.eq(amountA));
-  });  
-
-
+  });
 });
