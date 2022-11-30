@@ -20,3 +20,9 @@ export const BANNER_ADMIN = ethers.utils.keccak256(
 export const BANNER = ethers.utils.keccak256(
   ethers.utils.toUtf8Bytes("BANNER")
 );
+
+// VerifyStatus
+export const STATUS_NIL = ethers.BigNumber.from("0");
+export const STATUS_ADDED = ethers.BigNumber.from("1");
+export const STATUS_APPROVED = ethers.BigNumber.from("2");
+export const STATUS_BANNED = ethers.BigNumber.from("3");
