@@ -256,8 +256,8 @@ contract OrderBook is
         // Rescale the ratio from 18 FP according to the difference in decimals
         // between input and output.
         orderIORatio_ = orderIORatio_.scaleRatio(
-            order_.validInputs[inputIOIndex_].decimals,
-            order_.validOutputs[outputIOIndex_].decimals
+            order_.validOutputs[outputIOIndex_].decimals,
+            order_.validInputs[inputIOIndex_].decimals
         );
 
         uint[] memory calculationsContext_ = new uint[](2);

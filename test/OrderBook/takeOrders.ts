@@ -377,214 +377,144 @@ describe("OrderBook take orders", async function () {
     );
   });
 
-  it.only("should autoscale price based on input/output token decimals", async function () {
+  it.only("should autoscale expression ratio based on input/output token decimals", async function () {
     const signers = await ethers.getSigners();
 
-    const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-      6,
+    // e.g. tether
+    const XDec = 6;
+    // e.g. dai
+    const YDec = 18;
+
+    const tokenX = (await basicDeploy("ReserveTokenDecimals", {}, [
+      XDec,
     ])) as ReserveTokenDecimals;
-    const tokenB13 = (await basicDeploy("ReserveTokenDecimals", {}, [
-      13,
+    const tokenY = (await basicDeploy("ReserveTokenDecimals", {}, [
+      YDec,
     ])) as ReserveTokenDecimals;
-    await tokenA06.initialize();
-    await tokenB13.initialize();
+    await tokenX.initialize();
+    await tokenY.initialize();
 
     const alice = signers[1];
     const bob = signers[2];
-    const carol = signers[3];
 
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
-    const aliceInputVault = ethers.BigNumber.from(randomUint256());
-    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
-    const bobInputVault = ethers.BigNumber.from(randomUint256());
-    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const vaultId = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDERS
+    // ORDERS
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
-    const vAskOutputMax = op(
+    // The ratio is 1:1 from the perspective of the expression.
+    // This is a statement of economic equivalence in 18 decimal fixed point.
+    const ratio = ethers.BigNumber.from("10").pow(18);
+    const constants = [max_uint256, ratio];
+    const vInfinity = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskPrice,
+    const source = concat([
+      vInfinity,
+      vRatio,
     ]);
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA06.address, decimals: 6, vaultId: aliceInputVault },
+        { token: tokenX.address, decimals: XDec, vaultId },
+        { token: tokenY.address, decimals: YDec, vaultId },
       ],
       validOutputs: [
-        { token: tokenB13.address, decimals: 13, vaultId: aliceOutputVault },
+        { token: tokenX.address, decimals: XDec, vaultId },
+        { token: tokenY.address, decimals: YDec, vaultId },
       ],
       interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
-    };
-    const askOrderConfigBob: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      validInputs: [
-        { token: tokenA06.address, decimals: 6, vaultId: bobInputVault },
-      ],
-      validOutputs: [
-        { token: tokenB13.address, decimals: 13, vaultId: bobOutputVault },
-      ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
+        sources: [source, []],
+        constants,
       },
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrder = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
-    const txAskAddOrderBob = await orderBook
-      .connect(bob)
-      .addOrder(askOrderConfigBob);
+      .addOrder(orderConfig);
 
-    const { order: askConfigAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-    const { order: askConfigBob } = (await getEventArgs(
-      txAskAddOrderBob,
+    const { order } = (await getEventArgs(
+      txAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
-    // FIXME: 'virtual' deposit amount, which is auto scaled?
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
-
-    const depositConfigStructAlice: DepositConfigStruct = {
-      token: tokenB13.address,
-      vaultId: aliceOutputVault,
-      amount: amountB,
-    };
-    const depositConfigStructBob: DepositConfigStruct = {
-      token: tokenB13.address,
-      vaultId: bobOutputVault,
-      amount: amountB,
+    const depositX: DepositConfigStruct = {
+      token: tokenX.address,
+      vaultId,
+      amount: 1,
     };
 
-    // 'real' amount being deposited
-    const depositAmountB = ethers.BigNumber.from("1000" + thirteenZeros);
-
-    await tokenB13.transfer(alice.address, depositAmountB);
-    await tokenB13.transfer(bob.address, depositAmountB);
-    await tokenB13.connect(alice).approve(orderBook.address, depositAmountB);
-    await tokenB13.connect(bob).approve(orderBook.address, depositAmountB);
-
-    // Alice deposits tokenB13 into her output vault
-    await orderBook.connect(alice).deposit(depositConfigStructAlice);
-    // Bob deposits tokenB13 into his output vault
-    await orderBook.connect(bob).deposit(depositConfigStructBob);
+    await tokenX.transfer(alice.address, 1)
+    await tokenX.connect(alice).approve(orderBook.address, 1);
+    await orderBook.connect(alice).deposit(depositX)
 
     // TAKE ORDER
 
-    // Carol takes orders with direct wallet transfer
-    const takeOrderConfigStructAlice: TakeOrderConfigStruct = {
-      order: askConfigAlice,
-      inputIOIndex: 0,
-      outputIOIndex: 0,
-    };
-    const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askConfigBob,
-      inputIOIndex: 0,
-      outputIOIndex: 0,
-    };
+    // For the math below to work without loss of precision we need Y decimals
+    // to be larger than X decimals because we've only deposited 1 of X.
+    assert(YDec >= XDec)
+    const takeOrdersConfig: TakeOrdersConfigStruct = {
+      output: tokenY.address,
+      input: tokenX.address,
+      minimumInput: 1,
+      maximumInput: 1,
+      // maximum IO ratio is from order's perspective.
+      // 1e18 = 1:1
+      maximumIORatio: ethers.BigNumber.from("10").pow(18 + YDec - XDec),
+      // inputs and outputs are inverse from order's perspective
+      orders: [{ order, inputIOIndex: 1, outputIOIndex: 0 }]
+    }
 
-    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
-      output: tokenA06.address,
-      input: tokenB13.address,
-      minimumInput: amountB.mul(2),
-      maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
-      orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
-    };
+    const amountY = ethers.BigNumber.from("10").pow(YDec - XDec)
+    await tokenY.transfer(bob.address, amountY)
 
-    // FIXME: 'virtual' deposit amount, which is auto scaled?
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const bobBeforeX = await tokenX.balanceOf(bob.address)
+    const bobBeforeY = await tokenY.balanceOf(bob.address)
 
-    // 'real' amount being deposited
-    // TODO: only deposit exactly what is required to fulfil orders
-    const depositAmountA = await tokenA06.totalSupply();
+    assert(bobBeforeX.eq(0), `wrong X balance before expected 0 got ${bobBeforeX}`)
+    assert(bobBeforeY.eq(amountY), `wrong Y balance after expected ${amountY} got ${bobBeforeY}`)
 
-    await tokenA06.transfer(carol.address, depositAmountA);
-    await tokenA06.connect(carol).approve(orderBook.address, depositAmountA);
+    await tokenY.connect(bob).approve(orderBook.address, amountY)
+    await orderBook.connect(bob).takeOrders(takeOrdersConfig)
 
-    const txTakeOrders = await orderBook
-      .connect(carol)
-      .takeOrders(takeOrdersConfigStruct);
+    const bobAfterX = await tokenX.balanceOf(bob.address)
+    const bobAfterY = await tokenY.balanceOf(bob.address)
 
-    const events = (await getEvents(
-      txTakeOrders,
-      "TakeOrder",
-      orderBook
-    )) as TakeOrderEvent["args"][];
+    assert(bobAfterX.eq(1), `wrong X balance after expected 1 got ${bobAfterX}`)
+    assert(bobAfterY.eq(0), `wrong Y balance after expected 0 got ${bobAfterY}`)
 
-    assert(
-      events.length === 2,
-      `wrong number of TakeOrder events
-      expected  2
-      got       ${events.length}`
-    );
+    // INVERSE
 
-    const [takeOrderAlice, takeOrderBob] = events;
+    const inverseTakeOrdersConfig: TakeOrdersConfigStruct = {
+      output: tokenX.address,
+      input: tokenY.address,
+      minimumInput: amountY,
+      maximumInput: amountY,
+      maximumIORatio: ethers.BigNumber.from("10").pow(18 + XDec - YDec),
+      orders: [{order, inputIOIndex: 0, outputIOIndex: 1}]
+    }
 
-    assert(takeOrderAlice.sender === carol.address, "wrong sender");
-    assert(takeOrderAlice.input.eq(amountB), "wrong input");
-    assert(takeOrderAlice.output.eq(amountA), "wrong output");
-    compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
+    await tokenX.connect(bob).approve(orderBook.address, 1)
+    await orderBook.connect(bob).takeOrders(inverseTakeOrdersConfig)
 
-    assert(takeOrderBob.sender === carol.address, "wrong sender");
-    assert(takeOrderBob.input.eq(amountB), "wrong input");
-    assert(takeOrderBob.output.eq(amountA), "wrong output");
-    compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
+    const bobInverseX = await tokenX.balanceOf(bob.address)
+    const bobInverseY = await tokenY.balanceOf(bob.address)
 
-    const token6AliceBalance = await tokenA06.balanceOf(alice.address);
-    const tokenB13AliceBalance = await tokenB13.balanceOf(alice.address);
-    const token6BobBalance = await tokenA06.balanceOf(bob.address);
-    const tokenB13BobBalance = await tokenB13.balanceOf(bob.address);
-    const token6CarolBalance = await tokenA06.balanceOf(carol.address);
-    const tokenB13CarolBalance = await tokenB13.balanceOf(carol.address);
+    assert(bobInverseX.eq(bobBeforeX), `wrong inverse X balance expected ${bobBeforeX} got ${bobInverseX}`)
+    assert(bobInverseY.eq(bobBeforeY), `wrong inverse Y balance expected ${bobBeforeY} got ${bobInverseY}`)
 
-    assert(token6AliceBalance.isZero()); // Alice has not yet withdrawn
-    assert(tokenB13AliceBalance.isZero());
-    assert(token6BobBalance.isZero()); // Bob has not yet withdrawn
-    assert(tokenB13BobBalance.isZero());
-    assert(token6CarolBalance.isZero());
-    assert(tokenB13CarolBalance.eq(depositAmountB.mul(2)));
-
-    await orderBook.connect(alice).withdraw({
-      token: tokenA06.address,
-      vaultId: aliceInputVault,
-      amount: depositAmountA, // 'real' amount
-    });
-    await orderBook.connect(bob).withdraw({
-      token: tokenA06.address,
-      vaultId: bobInputVault,
-      amount: depositAmountA, // 'real' amount
-    });
-
-    const token6AliceBalanceWithdrawn = await tokenA06.balanceOf(alice.address);
-    const token6BobBalanceWithdrawn = await tokenA06.balanceOf(bob.address);
-    assert(token6AliceBalanceWithdrawn.eq(depositAmountA));
-    assert(token6BobBalanceWithdrawn.eq(depositAmountA));
   });
 
   it("should validate input/output tokens", async function () {
