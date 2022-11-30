@@ -398,20 +398,16 @@ contract OrderBook is
                 } else if (orderOutputMax_ == 0) {
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
-                    console.log("orderOutputMax_", orderOutputMax_);
-                    console.log("orderIORatio_", orderIORatio_);
+                    orderIORatio_ = orderIORatio_.scaleRatio(
+                        order_.validOutputs[takeOrder_.outputIOIndex].decimals,
+                        order_.validInputs[takeOrder_.inputIOIndex].decimals
+                    );
 
                     uint256 input_ = remainingInput_.min(orderOutputMax_);
                     uint256 output_ = input_.fixedPointMul(orderIORatio_);
 
                     remainingInput_ -= input_;
                     totalOutput_ += output_;
-
-                    console.log("input_", input_);
-                    console.log("output_", output_);
-
-                    console.log("remainingInput_", remainingInput_);
-                    console.log("totalOutput_", totalOutput_);
 
                     _recordVaultIO(
                         order_,
@@ -430,15 +426,6 @@ contract OrderBook is
         }
         totalInput_ = takeOrders_.maximumInput - remainingInput_;
         require(totalInput_ >= takeOrders_.minimumInput, "MIN_INPUT");
-
-        console.log("totalOutput_", totalOutput_);
-
-        console.log(
-            "allowance",
-            IERC20(takeOrders_.output).allowance(msg.sender, address(this))
-        );
-
-        console.log("totalInput_", totalInput_);
 
         IERC20(takeOrders_.output).safeTransferFrom(
             msg.sender,
