@@ -8,7 +8,9 @@ import {
   AllStandardOps,
   getBlockTimestamp,
   op,
-  verifyFactoryDeploy,
+  verifyFactoryDeploy, 
+  timewarp,
+  assertError
 } from "../../utils";
 import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 
@@ -16,7 +18,8 @@ const Opcode = AllStandardOps;
 
 describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
   let verifyFactory: VerifyFactory;
-  let logic: AllStandardOpsTest;
+  let logic: AllStandardOpsTest; 
+  let ONE_SECOND = 1 
 
   before(async () => {
     verifyFactory = await verifyFactoryDeploy();
@@ -81,7 +84,18 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     // Adding evidence
     await verify.connect(signer1).add(evidenceAdd);
 
-    timestamp = await getBlockTimestamp();
+    timestamp = await getBlockTimestamp();   
+
+    await logic.runContext([[verify.address, signer1.address, timestamp-ONE_SECOND]]);
+
+    //Checking status before 'add'
+    assertError(
+      (await logic.stackTop()).eq(Util.STATUS_ADDED),
+      "Incorrect status before adding an evidence" ,
+      "[STATUS_NIL] expected"
+    );
+      
+    //Checking status after 'add'
     await logic.runContext([[verify.address, signer1.address, timestamp]]);
     assert(
       (await logic.stackTop()).eq(Util.STATUS_ADDED),
@@ -91,9 +105,18 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     // Approve
     await verify
       .connect(verifier)
-      .approve([{ account: signer1.address, data: evidenceApprove }]);
+      .approve([{ account: signer1.address, data: evidenceApprove }]); 
 
-    timestamp = await getBlockTimestamp();
+    timestamp = await getBlockTimestamp(); 
+
+     //Checking status before 'approve'
+    await logic.runContext([[verify.address, signer1.address, timestamp-ONE_SECOND]]); 
+    assertError(
+      (await logic.stackTop()).eq(Util.STATUS_APPROVED),
+      "Incorrect status before adding an evidence" ,
+      "[STATUS_ADDED] expected"
+    ); 
+    //Checking status after 'approve'
     await logic.runContext([[verify.address, signer1.address, timestamp]]);
     assert(
       (await logic.stackTop()).eq(Util.STATUS_APPROVED),
@@ -105,11 +128,24 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       .connect(verifier)
       .ban([{ account: signer1.address, data: evidenceBan }]);
 
-    timestamp = await getBlockTimestamp();
+    timestamp = await getBlockTimestamp(); 
+    
+    //Checking status before 'ban'
+    await logic.runContext([[verify.address, signer1.address, timestamp-ONE_SECOND]]); 
+    assertError(
+      (await logic.stackTop()).eq(Util.STATUS_BANNED),
+      "Incorrect status before adding an evidence" ,
+      "[STATUS_APPROVED] expected"
+    ); 
+    
+    //Checking status after 'ban'
     await logic.runContext([[verify.address, signer1.address, timestamp]]);
     assert(
       (await logic.stackTop()).eq(Util.STATUS_BANNED),
       "Incorrect status after banning an address [STATUS_BANNED]"
-    );
-  });
+    ); 
+
+
+  }); 
+    
 });
