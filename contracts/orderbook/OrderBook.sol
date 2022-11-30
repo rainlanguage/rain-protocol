@@ -398,11 +398,6 @@ contract OrderBook is
                 } else if (orderOutputMax_ == 0) {
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
-                    orderIORatio_ = orderIORatio_.scaleRatio(
-                        order_.validOutputs[takeOrder_.outputIOIndex].decimals,
-                        order_.validInputs[takeOrder_.inputIOIndex].decimals
-                    );
-
                     uint256 input_ = remainingInput_.min(orderOutputMax_);
                     uint256 output_ = input_.fixedPointMul(orderIORatio_);
 
