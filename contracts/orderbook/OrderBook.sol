@@ -398,11 +398,20 @@ contract OrderBook is
                 } else if (orderOutputMax_ == 0) {
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
+                    console.log("orderOutputMax_", orderOutputMax_);
+                    console.log("orderIORatio_", orderIORatio_);
+
                     uint256 input_ = remainingInput_.min(orderOutputMax_);
                     uint256 output_ = input_.fixedPointMul(orderIORatio_);
 
                     remainingInput_ -= input_;
                     totalOutput_ += output_;
+
+                    console.log("input_", input_);
+                    console.log("output_", output_);
+
+                    console.log("remainingInput_", remainingInput_);
+                    console.log("totalOutput_", totalOutput_);
 
                     _recordVaultIO(
                         order_,

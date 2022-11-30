@@ -85,7 +85,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDERS
 
-    const amountC = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
 
     const askOrderOutputMax = amountB.sub(1); // will only sell 999 tokenBs to each buyer
     const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
@@ -396,6 +396,9 @@ describe("OrderBook take orders", async function () {
     await tokenA06.initialize();
     await tokenB13.initialize();
 
+    const tokenADecimals = await tokenA06.decimals();
+    const tokenBDecimals = await tokenB13.decimals();
+
     const alice = signers[1];
     const bob = signers[2];
     const carol = signers[3];
@@ -431,10 +434,18 @@ describe("OrderBook take orders", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA06.address, decimals: 6, vaultId: aliceInputVault },
+        {
+          token: tokenA06.address,
+          decimals: tokenADecimals,
+          vaultId: aliceInputVault,
+        },
       ],
       validOutputs: [
-        { token: tokenB13.address, decimals: 13, vaultId: aliceOutputVault },
+        {
+          token: tokenB13.address,
+          decimals: tokenBDecimals,
+          vaultId: aliceOutputVault,
+        },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
@@ -445,10 +456,18 @@ describe("OrderBook take orders", async function () {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA06.address, decimals: 6, vaultId: bobInputVault },
+        {
+          token: tokenA06.address,
+          decimals: tokenADecimals,
+          vaultId: bobInputVault,
+        },
       ],
       validOutputs: [
-        { token: tokenB13.address, decimals: 13, vaultId: bobOutputVault },
+        {
+          token: tokenB13.address,
+          decimals: tokenBDecimals,
+          vaultId: bobOutputVault,
+        },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
@@ -513,11 +532,7 @@ describe("OrderBook take orders", async function () {
       outputIOIndex: 0,
     };
 
-    const maximumIORatio = scaleRatio(
-      askPrice,
-      await tokenA06.decimals(),
-      await tokenB13.decimals()
-    );
+    const maximumIORatio = scaleRatio(askPrice, tokenADecimals, tokenBDecimals);
 
     const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
       output: tokenA06.address,
@@ -1515,8 +1530,8 @@ describe("OrderBook take orders", async function () {
 
     const signers = await ethers.getSigners();
 
-    let tokenADecimals = await tokenA.decimals();
-    let tokenCDecimals = await tokenC.decimals();
+    const tokenADecimals = await tokenA.decimals();
+    const tokenCDecimals = await tokenC.decimals();
 
     const alice = signers[1];
     const bob = signers[2];
@@ -1615,7 +1630,7 @@ describe("OrderBook take orders", async function () {
       outputIOIndex: 0,
     };
 
-    let ratio = ethers.BigNumber.from(
+    const ratio = ethers.BigNumber.from(
       "1" + getZeros(18 + (tokenADecimals - tokenCDecimals))
     );
 
