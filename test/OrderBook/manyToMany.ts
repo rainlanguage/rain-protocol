@@ -138,20 +138,20 @@ describe("OrderBook many-to-many", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -185,20 +185,20 @@ describe("OrderBook many-to-many", async function () {
 
     // BID ORDER
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -322,18 +322,18 @@ describe("OrderBook many-to-many", async function () {
 
     const aOutputExpected0 = minBN(
       aOutputMaxExpected0,
-      fixedPointMul(bidPrice, amount)
+      fixedPointMul(bidRatio, amount)
     );
     const bOutputExpected0 = minBN(
       bOutputMaxExpected0,
-      fixedPointMul(askPrice, amount)
+      fixedPointMul(askRatio, amount)
     );
 
     const expectedClearStateChange0: ClearStateChangeStruct = {
       aOutput: aOutputExpected0,
       bOutput: bOutputExpected0,
-      aInput: fixedPointMul(askPrice, aOutputExpected0),
-      bInput: fixedPointMul(bidPrice, bOutputExpected0),
+      aInput: fixedPointMul(askRatio, aOutputExpected0),
+      bInput: fixedPointMul(bidRatio, bOutputExpected0),
     };
 
     assert(clearSender0 === bountyBot.address);
@@ -375,18 +375,18 @@ describe("OrderBook many-to-many", async function () {
 
     const cOutputExpected1 = minBN(
       cOutputMaxExpected1,
-      fixedPointMul(bidPrice, amount)
+      fixedPointMul(bidRatio, amount)
     );
     const dOutputExpected1 = minBN(
       dOutputMaxExpected1,
-      fixedPointMul(askPrice, amount)
+      fixedPointMul(askRatio, amount)
     );
 
     const expectedClearStateChange1: ClearStateChangeStruct = {
       aOutput: cOutputExpected1,
       bOutput: dOutputExpected1,
-      aInput: fixedPointMul(askPrice, cOutputExpected1),
-      bInput: fixedPointMul(bidPrice, dOutputExpected1),
+      aInput: fixedPointMul(askRatio, cOutputExpected1),
+      bInput: fixedPointMul(bidRatio, dOutputExpected1),
     };
 
     assert(clearSender1 === bountyBot.address);
@@ -411,20 +411,20 @@ describe("OrderBook many-to-many", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -458,20 +458,20 @@ describe("OrderBook many-to-many", async function () {
 
     // BID ORDER
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,

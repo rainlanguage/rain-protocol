@@ -79,20 +79,20 @@ describe("OrderBook take orders", async function () {
     const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
 
     const askOrderOutputMax = amountB.sub(1); // will only sell 999 tokenBs to each buyer
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [askOrderOutputMax, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [askOrderOutputMax, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -188,11 +188,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(carol.address, amountA.mul(2));
     await tokenA.connect(carol).approve(orderBook.address, amountA.mul(2));
 
@@ -224,20 +224,20 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDERS
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -335,7 +335,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB.mul(2).add(1), // min > max should ALWAYS fail
       maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
     const takeOrdersConfigStruct1: TakeOrdersConfigStruct = {
@@ -343,7 +343,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB.mul(2).add(1), // gt total vault deposits
       maximumInput: amountB.mul(2).add(1),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
     const takeOrdersConfigStruct2: TakeOrdersConfigStruct = {
@@ -351,11 +351,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice.sub(1), // lt actual ratio
+      maximumIORatio: askRatio.sub(1), // lt actual ratio
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(carol.address, amountA.mul(2));
     await tokenA.connect(carol).approve(orderBook.address, amountA.mul(2));
 
@@ -379,7 +379,7 @@ describe("OrderBook take orders", async function () {
     );
   });
 
-  it.only("should scale ratio (price) based on input/output token decimals (input token has MORE decimals than output: 20 vs 6)", async function () {
+  it("should scale ratio based on input/output token decimals (input token has MORE decimals than output: 20 vs 6)", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA20 = (await basicDeploy("ReserveTokenDecimals", {}, [
@@ -409,21 +409,21 @@ describe("OrderBook take orders", async function () {
 
     // note 18 decimals for ratio
     // 1e18 literally means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-    const askPrice = ethers.BigNumber.from(1 + eighteenZeros);
+    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [max_uint256, askPrice];
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -536,7 +536,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB06.address,
       minimumInput: depositAmountB.mul(2),
       maximumInput: depositAmountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
@@ -610,7 +610,7 @@ describe("OrderBook take orders", async function () {
     assert(tokenABobBalanceWithdrawn.eq(depositAmountA));
   });
 
-  it.only("should scale ratio (price) based on input/output token decimals (input token has MORE decimals than output: 18 vs 6)", async function () {
+  it("should scale ratio based on input/output token decimals (input token has MORE decimals than output: 18 vs 6)", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
@@ -640,21 +640,21 @@ describe("OrderBook take orders", async function () {
 
     // note 18 decimals for ratio
     // 1e18 literally means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-    const askPrice = ethers.BigNumber.from(1 + eighteenZeros);
+    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [max_uint256, askPrice];
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -767,7 +767,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB06.address,
       minimumInput: depositAmountB.mul(2),
       maximumInput: depositAmountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
@@ -841,7 +841,7 @@ describe("OrderBook take orders", async function () {
     assert(tokenABobBalanceWithdrawn.eq(depositAmountA));
   });
 
-  it.only("should scale ratio (price) based on input/output token decimals (input token has LESS decimals than output: 6 vs 20)", async function () {
+  it("should scale ratio based on input/output token decimals (input token has LESS decimals than output: 6 vs 20)", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
@@ -871,21 +871,21 @@ describe("OrderBook take orders", async function () {
 
     // note 18 decimals for ratio
     // 1e18 literally means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-    const askPrice = ethers.BigNumber.from(1 + eighteenZeros);
+    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [max_uint256, askPrice];
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -998,7 +998,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB18.address,
       minimumInput: depositAmountB.mul(2),
       maximumInput: depositAmountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
@@ -1072,7 +1072,7 @@ describe("OrderBook take orders", async function () {
     assert(tokenABobBalanceWithdrawn.eq(depositAmountA));
   });
 
-  it.only("should scale ratio (price) based on input/output token decimals (input token has LESS decimals than output: 6 vs 18)", async function () {
+  it("should scale ratio based on input/output token decimals (input token has LESS decimals than output: 6 vs 18)", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
@@ -1102,21 +1102,21 @@ describe("OrderBook take orders", async function () {
 
     // note 18 decimals for ratio
     // 1e18 literally means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-    const askPrice = ethers.BigNumber.from(1 + eighteenZeros);
+    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [max_uint256, askPrice];
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -1229,7 +1229,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB20.address,
       minimumInput: depositAmountB.mul(2),
       maximumInput: depositAmountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
@@ -1319,20 +1319,20 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDERS
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -1430,7 +1430,7 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
     const takeOrdersConfigStruct1: TakeOrdersConfigStruct = {
@@ -1438,11 +1438,11 @@ describe("OrderBook take orders", async function () {
       input: tokenA.address, // will result in mismatch
       minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(carol.address, amountA.mul(2));
     await tokenA.connect(carol).approve(orderBook.address, amountA.mul(2));
 
@@ -1473,20 +1473,20 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER 0
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants0 = [0, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants0 = [0, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -1515,7 +1515,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER 1
 
-    const askConstants1 = [max_uint256, askPrice];
+    const askConstants1 = [max_uint256, askRatio];
     const askOrderConfig1: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -1587,11 +1587,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStruct0, takeOrderConfigStruct1],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(bob.address, amountA);
     await tokenA.connect(bob).approve(orderBook.address, amountA);
 
@@ -1624,21 +1624,21 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER 0
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants0 = [max_uint256, askPrice.add(1)]; // does exceed max ratio
-    const askConstants1 = [max_uint256, askPrice]; // doesn't exceed max IO ratio
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants0 = [max_uint256, askRatio.add(1)]; // does exceed max ratio
+    const askConstants1 = [max_uint256, askRatio]; // doesn't exceed max IO ratio
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig0: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -1733,11 +1733,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStruct0, takeOrderConfigStruct1],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(bob.address, amountA);
     await tokenA.connect(bob).approve(orderBook.address, amountA);
 
@@ -1770,20 +1770,20 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -1858,11 +1858,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructBad, takeOrderConfigStructGood], // test bad order before good order (when remaining input is non-zero)
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(bob.address, amountA);
     await tokenA.connect(bob).approve(orderBook.address, amountA);
 
@@ -1898,20 +1898,20 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDERS
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfigAlice: OrderConfigStruct = {
@@ -2009,11 +2009,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB.mul(2),
       maximumInput: amountB.mul(2),
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(carol.address, amountA.mul(2));
     await tokenA.connect(carol).approve(orderBook.address, amountA.mul(2));
 
@@ -2090,20 +2090,20 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2174,11 +2174,11 @@ describe("OrderBook take orders", async function () {
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askPrice,
+      maximumIORatio: askRatio,
       orders: [takeOrderConfigStruct],
     };
 
-    const amountA = amountB.mul(askPrice).div(ONE);
+    const amountA = amountB.mul(askRatio).div(ONE);
     await tokenA.transfer(bob.address, amountA);
     await tokenA.connect(bob).approve(orderBook.address, amountA);
 

@@ -86,14 +86,14 @@ describe("OrderBook counterparty in context", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
     const askOutputMax = max_uint256;
     const askOutputMaxIfNotMatchingCounterparty = 0;
 
     const askConstants = [
       askOutputMax,
       askOutputMaxIfNotMatchingCounterparty,
-      askPrice,
+      askRatio,
       carol.address,
     ];
     const vAskOutputMax = op(
@@ -104,7 +104,7 @@ describe("OrderBook counterparty in context", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 2)
     );
@@ -121,7 +121,7 @@ describe("OrderBook counterparty in context", async function () {
         vAskOutputMax,
         vAskOutputMaxIfNotMatch,
       op(Opcode.EAGER_IF),
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
@@ -154,20 +154,20 @@ describe("OrderBook counterparty in context", async function () {
 
     // BID ORDER - BAD MATCH
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -197,20 +197,20 @@ describe("OrderBook counterparty in context", async function () {
 
     // BID ORDER - GOOD MATCH
 
-    const bidPriceCarol = fixedPointDiv(ONE, askPrice);
-    const bidConstantsCarol = [max_uint256, bidPriceCarol];
+    const bidRatioCarol = fixedPointDiv(ONE, askRatio);
+    const bidConstantsCarol = [max_uint256, bidRatioCarol];
     const vBidOutputMaxCarol = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPriceCarol = op(
+    const vBidRatioCarol = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSourceCarol = concat([
       vBidOutputMaxCarol,
-      vBidPriceCarol,
+      vBidRatioCarol,
     ]);
     const bidOrderConfigCarol: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -362,18 +362,18 @@ describe("OrderBook counterparty in context", async function () {
 
     const aOutputExpected = minBN(
       aOutputMaxExpected,
-      fixedPointMul(bidPrice, amountA)
+      fixedPointMul(bidRatio, amountA)
     );
     const bOutputExpected = minBN(
       bOutputMaxExpected,
-      fixedPointMul(askPrice, amountB)
+      fixedPointMul(askRatio, amountB)
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
       aOutput: aOutputExpected,
       bOutput: bOutputExpected,
-      aInput: fixedPointMul(askPrice, aOutputExpected),
-      bInput: fixedPointMul(bidPrice, bOutputExpected),
+      aInput: fixedPointMul(askRatio, aOutputExpected),
+      bInput: fixedPointMul(bidRatio, bOutputExpected),
     };
 
     assert(clearSender === bountyBot.address);

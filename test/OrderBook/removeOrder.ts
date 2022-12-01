@@ -60,20 +60,20 @@ describe("OrderBook remove order", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,

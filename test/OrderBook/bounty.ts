@@ -81,20 +81,20 @@ describe("OrderBook bounty", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -130,20 +130,20 @@ describe("OrderBook bounty", async function () {
     // order clearer is ultimately rewarded with this difference as a bounty
     // i.e. an excess of tokenA which bob didn't need to give to alice to
     // fulfill her bid order
-    const bidPrice = fixedPointDiv(ONE, askPrice.add(10 + eighteenZeros));
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio.add(10 + eighteenZeros));
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -260,18 +260,18 @@ describe("OrderBook bounty", async function () {
 
     const aOutputExpected = minBN(
       aOutputMaxExpected,
-      fixedPointMul(bidPrice, amountA)
+      fixedPointMul(bidRatio, amountA)
     );
     const bOutputExpected = minBN(
       bOutputMaxExpected,
-      fixedPointMul(askPrice, amountB)
+      fixedPointMul(askRatio, amountB)
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
       aOutput: aOutputExpected,
       bOutput: bOutputExpected,
-      aInput: fixedPointMul(askPrice, aOutputExpected),
-      bInput: fixedPointMul(bidPrice, bOutputExpected),
+      aInput: fixedPointMul(askRatio, aOutputExpected),
+      bInput: fixedPointMul(bidRatio, bOutputExpected),
     };
 
     assert(_clearSender === bountyBot.address);
