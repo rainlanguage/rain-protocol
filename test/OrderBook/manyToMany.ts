@@ -174,14 +174,14 @@ describe("OrderBook many-to-many", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
@@ -219,14 +219,14 @@ describe("OrderBook many-to-many", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
 
     // DEPOSITS
 
@@ -299,7 +299,7 @@ describe("OrderBook many-to-many", async function () {
     };
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfig, clearConfig0);
+      .clear(askOrder, bidOrder, clearConfig0);
 
     const {
       sender: clearSender0,
@@ -337,8 +337,8 @@ describe("OrderBook many-to-many", async function () {
     };
 
     assert(clearSender0 === bountyBot.address);
-    compareSolStructs(clearA_, askConfig);
-    compareSolStructs(clearB_, bidConfig);
+    compareSolStructs(clearA_, askOrder);
+    compareSolStructs(clearB_, bidOrder);
     compareStructs(clearBountyConfig0, clearConfig0);
     compareStructs(clearStateChange0, expectedClearStateChange0);
 
@@ -352,7 +352,7 @@ describe("OrderBook many-to-many", async function () {
     };
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfig, clearConfig1);
+      .clear(askOrder, bidOrder, clearConfig1);
 
     const {
       sender: clearSender1,
@@ -390,8 +390,8 @@ describe("OrderBook many-to-many", async function () {
     };
 
     assert(clearSender1 === bountyBot.address);
-    compareSolStructs(clearC_, askConfig);
-    compareSolStructs(clearD_, bidConfig);
+    compareSolStructs(clearC_, askOrder);
+    compareSolStructs(clearD_, bidOrder);
     compareStructs(clearBountyConfig1, clearConfig1);
     compareStructs(clearStateChange1, expectedClearStateChange1);
   });
@@ -447,14 +447,14 @@ describe("OrderBook many-to-many", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
@@ -492,13 +492,13 @@ describe("OrderBook many-to-many", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
   });
 });

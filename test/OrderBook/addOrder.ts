@@ -100,14 +100,14 @@ describe("OrderBook add order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
@@ -143,13 +143,13 @@ describe("OrderBook add order", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
   });
 });

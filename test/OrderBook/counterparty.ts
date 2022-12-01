@@ -143,14 +143,14 @@ describe("OrderBook counterparty in context", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER - BAD MATCH
 
@@ -186,14 +186,14 @@ describe("OrderBook counterparty in context", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
 
     // BID ORDER - GOOD MATCH
 
@@ -231,7 +231,7 @@ describe("OrderBook counterparty in context", async function () {
       .connect(carol)
       .addOrder(bidOrderConfigCarol);
 
-    const { sender: bidSenderCarol, order: bidConfigCarol } =
+    const { sender: bidSenderCarol, order: bidOrderCarol } =
       (await getEventArgs(
         txBidAddOrderCarol,
         "AddOrder",
@@ -239,7 +239,7 @@ describe("OrderBook counterparty in context", async function () {
       )) as AddOrderEvent["args"];
 
     assert(bidSenderCarol === carol.address, "wrong sender");
-    compareStructs(bidConfigCarol, bidOrderConfigCarol);
+    compareStructs(bidOrderCarol, bidOrderConfigCarol);
 
     // DEPOSITS
 
@@ -330,7 +330,7 @@ describe("OrderBook counterparty in context", async function () {
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askConfig, bidConfig, clearConfig),
+          .clear(askOrder, bidOrder, clearConfig),
       "0_CLEAR",
       "should revert with 0 amount since bob does not match expected counterparty"
     );
@@ -339,7 +339,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfigCarol, clearConfig);
+      .clear(askOrder, bidOrderCarol, clearConfig);
 
     const {
       sender: clearSender,
@@ -377,8 +377,8 @@ describe("OrderBook counterparty in context", async function () {
     };
 
     assert(clearSender === bountyBot.address);
-    compareSolStructs(clearA_, askConfig);
-    compareSolStructs(clearB_, bidConfigCarol);
+    compareSolStructs(clearA_, askOrder);
+    compareSolStructs(clearB_, bidOrderCarol);
     compareStructs(clearBountyConfig, clearConfig);
     compareStructs(clearStateChange, expectedClearStateChange);
   });

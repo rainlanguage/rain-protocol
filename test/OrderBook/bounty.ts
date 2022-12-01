@@ -115,14 +115,14 @@ describe("OrderBook bounty", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: _askSender, order: _askConfig } = (await getEventArgs(
+    const { sender: _askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(_askSender === alice.address, "wrong sender");
-    compareStructs(_askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
@@ -162,14 +162,14 @@ describe("OrderBook bounty", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: _bidSender, order: _bidConfig } = (await getEventArgs(
+    const { sender: _bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(_bidSender === bob.address, "wrong sender");
-    compareStructs(_bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
 
     // DEPOSITS
 
@@ -237,7 +237,7 @@ describe("OrderBook bounty", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(_askConfig, _bidConfig, clearConfig);
+      .clear(askOrder, bidOrder, clearConfig);
 
     const {
       sender: _clearSender,
@@ -275,8 +275,8 @@ describe("OrderBook bounty", async function () {
     };
 
     assert(_clearSender === bountyBot.address);
-    compareSolStructs(clearA_, _askConfig);
-    compareSolStructs(clearB_, _bidConfig);
+    compareSolStructs(clearA_, askOrder);
+    compareSolStructs(clearB_, bidOrder);
     compareStructs(_clearBountyConfig, clearConfig);
     compareStructs(_clearStateChange, expectedClearStateChange);
 
