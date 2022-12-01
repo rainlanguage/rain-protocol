@@ -18,6 +18,7 @@ import { randomUint256 } from "../../utils/bytes";
 import {
   eighteenZeros,
   max_uint256,
+  max_uint8,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -31,10 +32,11 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv } from "../../utils/math";
+import { assertError } from "../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
-describe("OrderBook decimals context", async function () {
+describe("OrderBook decimals", async function () {
   let orderBookFactory: ContractFactory;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
@@ -43,6 +45,104 @@ describe("OrderBook decimals context", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
     interpreter = await rainterpreterDeploy();
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+  });
+
+  it.only("should not be able to provide OOB decimals beyond uint8", async function () {
+    const signers = await ethers.getSigners();
+
+    const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
+      6,
+    ])) as ReserveTokenDecimals;
+    const tokenB18 = (await basicDeploy("ReserveTokenDecimals", {}, [
+      18,
+    ])) as ReserveTokenDecimals;
+    await tokenA06.initialize();
+    await tokenB18.initialize();
+
+    const decimalsInBounds = max_uint8;
+    const decimalsOutOfBounds = max_uint8.add(1);
+    // const tokenADecimals = await tokenA06.decimals();
+    const tokenBDecimals = await tokenB18.decimals();
+
+    const alice = signers[1];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+
+    // ASK ORDER
+
+    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+    const askConstants = [askOutputMax, askRatio];
+    const vAskOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskRatio = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskRatio,
+    ]);
+
+    // IN BOUNDS
+    const askOrderConfig0: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        {
+          token: tokenA06.address,
+          decimals: decimalsInBounds,
+          vaultId: aliceInputVault,
+        },
+      ],
+      validOutputs: [
+        {
+          token: tokenB18.address,
+          decimals: tokenBDecimals,
+          vaultId: aliceOutputVault,
+        },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, []],
+        constants: askConstants,
+      },
+    };
+    await orderBook.connect(alice).addOrder(askOrderConfig0);
+
+    // OUT OF BOUNDS
+    const askOrderConfig1: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        {
+          token: tokenA06.address,
+          decimals: decimalsOutOfBounds,
+          vaultId: aliceInputVault,
+        },
+      ],
+      validOutputs: [
+        {
+          token: tokenB18.address,
+          decimals: tokenBDecimals,
+          vaultId: aliceOutputVault,
+        },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, []],
+        constants: askConstants,
+      },
+    };
+    await assertError(
+      async () => await orderBook.connect(alice).addOrder(askOrderConfig1),
+      "value out-of-bounds",
+      "did not revert with OOB error"
+    );
   });
 
   it("ensure decimals can be read from context for _calculateOrderIO() and _recordVaultIO()", async function () {
