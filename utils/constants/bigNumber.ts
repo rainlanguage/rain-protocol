@@ -16,14 +16,13 @@ export const max_uint256 = ethers.BigNumber.from(
 );
 export const max_uint32 = ethers.BigNumber.from("0xffffffff");
 export const max_uint16 = ethers.BigNumber.from("0xffff");
-export const max_uint8 = ethers.BigNumber.from("0xff"); 
+export const max_uint8 = ethers.BigNumber.from("0xff");
 
+export const getZeros = (zeros) => {
+  let returnString = "";
+  for (let i = 0; i < zeros; i++) {
+    returnString = returnString + "0";
+  }
 
-export const getZeros = (zeros) => { 
-  let returnString = ""
-  for(let i= 0 ; i < zeros ; i++){
-    returnString = returnString + "0"
-  } 
-
-  return returnString
-}
+  return returnString;
+};
