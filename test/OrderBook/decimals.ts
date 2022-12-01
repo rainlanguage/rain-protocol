@@ -47,7 +47,7 @@ describe("OrderBook decimals", async function () {
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
-  it.only("should not be able to provide OOB decimals beyond uint8", async function () {
+  it("should not be able to provide OOB decimals beyond uint8", async function () {
     const signers = await ethers.getSigners();
 
     const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
