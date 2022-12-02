@@ -16,9 +16,10 @@ import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/dep
 const Opcode = AllStandardOps;
 
 describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
+  const ONE_SECOND = 1;
+
   let verifyFactory: VerifyFactory;
   let logic: AllStandardOpsTest;
-  const ONE_SECOND = 1;
 
   before(async () => {
     verifyFactory = await verifyFactoryDeploy();
@@ -40,10 +41,10 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.CONTEXT, 0x0000), // CONTRACT
-      op(Opcode.CONTEXT, 0x0001), // ADDRESS
-      op(Opcode.CONTEXT, 0x0002), // TIMESTAMP
-      op(Opcode.IVERIFYV1_ACCOUNT_STATUS_AT_TIME), // TIMESTAMP
+        op(Opcode.CONTEXT, 0x0000), // CONTRACT
+        op(Opcode.CONTEXT, 0x0001), // ADDRESS
+        op(Opcode.CONTEXT, 0x0002), // TIMESTAMP
+      op(Opcode.IVERIFYV1_ACCOUNT_STATUS_AT_TIME), // STATUS
     ]);
 
     await logic.initialize(
@@ -94,14 +95,14 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       [verify.address, signer1.address, timestamp - ONE_SECOND],
     ]);
 
-    //Checking status before 'add'
+    // Checking status before 'add'
     assertError(
       (await logic.stackTop()).eq(Util.STATUS_ADDED),
       "Incorrect status before adding an evidence",
       "[STATUS_NIL] expected"
     );
 
-    //Checking status after 'add'
+    // Checking status after 'add'
     await logic["runContext(uint256[][])"]([
       [verify.address, signer1.address, timestamp],
     ]);
@@ -117,7 +118,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     timestamp = await getBlockTimestamp();
 
-    //Checking status before 'approve'
+    // Checking status before 'approve'
     await logic["runContext(uint256[][])"]([
       [verify.address, signer1.address, timestamp - ONE_SECOND],
     ]);
@@ -126,7 +127,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       "Incorrect status before adding an evidence",
       "[STATUS_ADDED] expected"
     );
-    //Checking status after 'approve'
+    // Checking status after 'approve'
     await logic["runContext(uint256[][])"]([
       [verify.address, signer1.address, timestamp],
     ]);
@@ -142,7 +143,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     timestamp = await getBlockTimestamp();
 
-    //Checking status before 'ban'
+    // Checking status before 'ban'
     await logic["runContext(uint256[][])"]([
       [verify.address, signer1.address, timestamp - ONE_SECOND],
     ]);
@@ -152,7 +153,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       "[STATUS_APPROVED] expected"
     );
 
-    //Checking status after 'ban'
+    // Checking status after 'ban'
     await logic["runContext(uint256[][])"]([
       [verify.address, signer1.address, timestamp],
     ]);
