@@ -356,10 +356,13 @@ contract OrderBook is
         Order memory order_;
         uint256 remainingInput_ = takeOrders_.maximumInput;
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
+            console.log("processing order:", i_);
+
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
             uint orderHash_ = order_.hash();
             if (orders[orderHash_] == 0) {
+                console.log("OrderNotFound");
                 emit OrderNotFound(msg.sender, order_.owner, orderHash_);
             } else {
                 require(
@@ -390,12 +393,14 @@ contract OrderBook is
                 // between submitting to mempool and execution, but other orders may
                 // be valid so we want to take advantage of those if possible.
                 if (orderIORatio_ > takeOrders_.maximumIORatio) {
+                    console.log("OrderExceedsMaxRatio");
                     emit OrderExceedsMaxRatio(
                         msg.sender,
                         order_.owner,
                         orderHash_
                     );
                 } else if (orderOutputMax_ == 0) {
+                    console.log("OrderZeroAmount");
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
                     uint256 input_ = remainingInput_.min(orderOutputMax_);
@@ -411,6 +416,7 @@ contract OrderBook is
                         context_,
                         stateChangesCalculate_
                     );
+                    console.log("TakeOrder");
                     emit TakeOrder(msg.sender, takeOrder_, input_, output_);
                 }
             }
@@ -420,6 +426,12 @@ contract OrderBook is
             }
         }
         totalInput_ = takeOrders_.maximumInput - remainingInput_;
+
+        console.log("totalInput_", totalInput_);
+        console.log("totalOutput_", totalOutput_);
+        console.log("minimumInput", takeOrders_.minimumInput);
+        console.log("maximumInput", takeOrders_.maximumInput);
+
         require(totalInput_ >= takeOrders_.minimumInput, "MIN_INPUT");
 
         IERC20(takeOrders_.output).safeTransferFrom(
