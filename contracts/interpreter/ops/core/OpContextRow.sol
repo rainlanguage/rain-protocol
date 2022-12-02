@@ -15,7 +15,7 @@ import "../../../math/Binary.sol";
 /// but the row is provided from the stack instead of the operand. We rely on
 /// Solidity OOB checks at runtime to enforce that the index from the stack is
 /// within bounds at runtime. As we do NOT know statically which row will be read
-/// the context reads is set to the entire column.
+/// the contextReadss is set to the entire column.
 library OpContextRow {
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;

@@ -162,7 +162,7 @@ library LibInterpreterState {
             InterpreterState memory state_;
 
             // Context will probably be overridden by the caller according to the
-            // context scratch that we deserialize so best to just set it empty
+            // contextReads that we deserialize so best to just set it empty
             // here.
             state_.context = new uint256[][](0);
 

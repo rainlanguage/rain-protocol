@@ -280,7 +280,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         minimumRaise = config_.minimumRaise;
 
         (
-            address expression_, // Sale doesn't use conditional context so we don't need the scratch.
+            address expression_, // Sale doesn't use conditional context so we don't need the contextReads.
 
         ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
                 config_.interpreterStateConfig,
