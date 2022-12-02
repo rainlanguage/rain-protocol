@@ -118,20 +118,15 @@ abstract contract RainInterpreter {
         uint[] memory minStackOutputs_
     ) internal view returns (bytes memory) {
         unchecked {
-            (
-                ,
-                uint256 stackLength_,
-                uint stateChangesLength_
-            ) = interpreterIntegrity_.ensureIntegrity(
-                    config_.sources,
-                    config_.constants.length,
-                    minStackOutputs_
-                );
+            (, uint256 stackLength_) = interpreterIntegrity_.ensureIntegrity(
+                config_.sources,
+                config_.constants.length,
+                minStackOutputs_
+            );
 
             return
                 config_.serialize(
                     stackLength_,
-                    stateChangesLength_,
                     opcodeFunctionPointers()
                         .asUint256Array()
                         .unsafeTo16BitBytes()

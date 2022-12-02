@@ -7,8 +7,6 @@ import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
 import "../../../../array/LibUint256Array.sol";
 
-uint256 constant DEFAULT_MIN_FINAL_STACK = 1;
-
 /// @title LibInterpreterStateTest
 /// Test wrapper around `LibInterpreterState` library.
 contract LibInterpreterStateTest is RainInterpreter {
@@ -62,11 +60,13 @@ contract LibInterpreterStateTest is RainInterpreter {
         StateConfig memory config_,
         uint256[][] memory context_,
         DebugStyle debugStyle_,
-        SourceIndex sourceIndex_
+        SourceIndex sourceIndex_,
+        uint[] memory minStackOutputs_
     ) external view returns (StackTop stackTop_, StackTop stackTopAfter_) {
         InterpreterState memory deserialized_ = serDeserialize(
             config_,
-            context_
+            context_,
+            minStackOutputs_
         );
         stackTop_ = deserialized_.eval(sourceIndex_, deserialized_.stackBottom);
         stackTopAfter_ = deserialized_.debug(stackTop_, debugStyle_);
@@ -74,39 +74,40 @@ contract LibInterpreterStateTest is RainInterpreter {
 
     function serDeserialize(
         StateConfig memory config_,
-        uint256[][] memory context_
+        uint256[][] memory context_,
+        uint[] memory minStackOutputs_
     ) public view returns (InterpreterState memory state_) {
-        bytes memory serialized_ = serialize(config_);
+        bytes memory serialized_ = serialize(config_, minStackOutputs_);
         state_ = serialized_.deserialize();
         state_.context = context_;
     }
 
     function serialize(
-        StateConfig memory config_
+        StateConfig memory config_,
+        uint[] memory minStackOutputs_
     ) public view returns (bytes memory serialized_) {
-        (
-            ,
-            uint256 stackLength_,
-            uint stateChangesLength_
-        ) = IRainInterpreterIntegrity(interpreterIntegrity).ensureIntegrity(
+        (, uint256 stackLength_) = IRainInterpreterIntegrity(
+            interpreterIntegrity
+        ).ensureIntegrity(
                 config_.sources,
                 config_.constants.length,
-                DEFAULT_MIN_FINAL_STACK.arrayFrom()
+                minStackOutputs_
             );
 
         serialized_ = config_.serialize(
             stackLength_,
-            stateChangesLength_,
             opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
         );
     }
 
     function eval(
-        StateConfig memory config_
+        StateConfig memory config_,
+        uint[] memory minStackOutputs_
     ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[][](0) // context
+            new uint256[][](0), // context,
+            minStackOutputs_
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
@@ -115,11 +116,13 @@ contract LibInterpreterStateTest is RainInterpreter {
 
     function eval(
         StateConfig memory config_,
-        SourceIndex sourceIndex_
+        SourceIndex sourceIndex_,
+        uint[] memory minStackOutputs_
     ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[][](0) // context
+            new uint256[][](0), // context
+            minStackOutputs_
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
@@ -127,11 +130,13 @@ contract LibInterpreterStateTest is RainInterpreter {
     }
 
     function evalStackTop(
-        StateConfig memory config_
+        StateConfig memory config_,
+        uint[] memory minStackOutputs_
     ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[][](0) // context
+            new uint256[][](0), // context
+            minStackOutputs_
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);
@@ -140,11 +145,13 @@ contract LibInterpreterStateTest is RainInterpreter {
 
     function evalStackTop(
         StateConfig memory config_,
-        SourceIndex sourceIndex_
+        SourceIndex sourceIndex_,
+        uint[] memory minStackOutputs_
     ) external view returns (StackTop stackTopAfter_, uint256 stackBottom_) {
         InterpreterState memory state_ = serDeserialize(
             config_,
-            new uint256[][](0) // context
+            new uint256[][](0), // context
+            minStackOutputs_
         );
 
         stackBottom_ = StackTop.unwrap(state_.stackBottom);

@@ -125,7 +125,7 @@ contract FactoryCurator {
         uint256 id_,
         CurationConfig calldata config_,
         bytes calldata createChild_
-    ) external returns (address child_) {
+    ) external returns (address) {
         require(
             curationConfigRegistry[id_] == keccak256(abi.encode(config_)),
             "NOT_IN_REGISTRY"
@@ -143,6 +143,6 @@ contract FactoryCurator {
             config_.curator,
             config_.feeConfig.amount
         );
-        child_ = IFactory(config_.factory).createChild(createChild_);
+        return IFactory(config_.factory).createChild(createChild_);
     }
 }

@@ -4,7 +4,8 @@ pragma solidity ^0.8.15;
 import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
-import "../ops/core/OpReadState.sol";
+import "../ops/core/OpGet.sol";
+import "../../kv/LibMemoryKV.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 contract Rainterpreter is IInterpreterV1, RainInterpreter {
@@ -16,6 +17,8 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         returns (StackTop)[];
     using LibConvert for uint256[];
     using Math for uint256;
+    using LibMemoryKV for MemoryKV;
+    using LibMemoryKV for MemoryKVPtr;
 
     // state is several tiers of sandbox
     // 0. address is msg.sender so that callers cannot attack each other
@@ -25,10 +28,11 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
     mapping(address => mapping(StateNamespace => mapping(uint => uint)))
         internal state;
 
-    function eval(
+    function evalWithNamespace(
+        StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    ) external view returns (uint256[] memory, uint[] memory) {
+    ) public view returns (uint256[] memory, uint[] memory) {
         (
             address expression_,
             SourceIndex sourceIndex_,
@@ -37,45 +41,61 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         InterpreterState memory state_ = SSTORE2
             .read(expression_)
             .deserialize();
+        state_.stateNamespace = namespace_;
         state_.context = context_;
         StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, state_.stateChanges);
+        return (tail_, state_.stateKV.toUint256Array());
     }
 
-    function stateChanges(
+    function eval(
+        EncodedDispatch dispatch_,
+        uint[][] memory context_
+    ) external view returns (uint[] memory, uint[] memory) {
+        return evalWithNamespace(StateNamespace.wrap(0), dispatch_, context_);
+    }
+
+    function stateChangesWithNamespace(
         StateNamespace stateNamespace_,
-        uint[][] memory stateChanges_
-    ) external {
+        uint[] memory stateChanges_
+    ) public {
         unchecked {
-            for (uint i_ = 0; i_ < stateChanges_.length; i_++) {
-                for (uint j_ = 0; j_ < stateChanges_[i_].length; j_ += 2) {
-                    state[msg.sender][stateNamespace_][
-                        stateChanges_[i_][j_]
-                    ] = stateChanges_[i_][j_ + 1];
-                }
+            for (uint i_ = 0; i_ < stateChanges_.length; i_ += 2) {
+                state[msg.sender][stateNamespace_][
+                    stateChanges_[i_]
+                ] = stateChanges_[i_ + 1];
             }
         }
+    }
+
+    function stateChanges(uint[] memory stateChanges_) external {
+        stateChangesWithNamespace(StateNamespace.wrap(0), stateChanges_);
     }
 
     function functionPointers() external view returns (bytes memory) {
         return opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes();
     }
 
-    function opReadState(
-        InterpreterState memory,
+    function opGet(
+        InterpreterState memory interpreterState_,
         Operand,
         StackTop stackTop_
     ) internal view returns (StackTop) {
-        uint ns_;
         uint k_;
-        (stackTop_, ns_) = stackTop_.pop();
         (stackTop_, k_) = stackTop_.pop();
-        stackTop_.push(state[msg.sender][StateNamespace.wrap(ns_)][k_]);
-        return stackTop_;
+        MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
+            MemoryKVKey.wrap(k_)
+        );
+        uint v_ = 0;
+        if (MemoryKVPtr.unwrap(kvPtr_) > 0) {
+            v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
+        } else {
+            v_ = state[msg.sender][interpreterState_.stateNamespace][k_];
+        }
+        return stackTop_.push(v_);
     }
 
     function localIntegrityFunctionPointers()
@@ -97,7 +117,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
                 Operand,
                 StackTop
             ) view returns (StackTop)[](1);
-        localPtrs_[0] = OpReadState.integrity;
+        localPtrs_[0] = OpGet.integrity;
         return localPtrs_;
     }
 
@@ -120,7 +140,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
                 Operand,
                 StackTop
             ) view returns (StackTop)[](1);
-        localPtrs_[0] = opReadState;
+        localPtrs_[0] = opGet;
         return localPtrs_;
     }
 

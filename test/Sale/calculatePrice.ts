@@ -76,13 +76,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vFractionMultiplier = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     // prettier-ignore
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
@@ -103,6 +109,7 @@ describe("Sale calculate price", async function () {
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
       ]),
+      concat([]),
     ];
     const [sale, token] = await saleDeploy(
       signers,
@@ -222,13 +229,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vFractionMultiplier = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     // prettier-ignore
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
@@ -248,7 +261,7 @@ describe("Sale calculate price", async function () {
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
-      ]),
+      ]),concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -359,9 +372,16 @@ describe("Sale calculate price", async function () {
       initialSupply: totalTokenSupply,
     };
     const constants = [startBlock - 1, startBlock + saleDuration - 1];
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const sources = [betweenBlockNumbersSource(vStart, vEnd), concat([op(99)])]; // bad source
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const sources = [
+      betweenBlockNumbersSource(vStart, vEnd),
+      concat([op(99)]),
+      concat([]),
+    ]; // bad source
     await assertError(
       async () =>
         await saleDeploy(
@@ -419,13 +439,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vSupplyDivisor = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -439,6 +465,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -552,13 +579,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vReserveDivisor = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -573,6 +606,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -687,13 +721,19 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const vSupplyDivisor = op(
-      Opcode.STATE,
+      Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -708,6 +748,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -744,7 +785,7 @@ describe("Sale calculate price", async function () {
     const desiredUnits = totalTokenSupply.div(10);
     const expectedPrice = basePrice.add(remainingSupplySummand);
     const expectedCost = expectedPrice.mul(desiredUnits).div(ONE);
-    const [, actualPrice] = await sale.calculateBuy(desiredUnits);
+    const [, actualPrice] = await sale.previewCalculateBuy(desiredUnits);
     assert(actualPrice.eq(expectedPrice), "wrong calculated price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost.add(fee));
@@ -793,9 +834,15 @@ describe("Sale calculate price", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
@@ -807,6 +854,7 @@ describe("Sale calculate price", async function () {
         vBasePrice,
         op(Opcode.ADD, 2),
       ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,

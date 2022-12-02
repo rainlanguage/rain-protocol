@@ -6,20 +6,26 @@ import { CombineTierConfigStruct } from "../../../../typechain/contracts/tier/Co
 import { ImplementationEvent as ImplementationEventCombineTierFactory } from "../../../../typechain/contracts/tier/CombineTierFactory";
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
-import { standardIntegrityDeploy } from "../../interpreter/integrity/standardIntegrity/deploy";
+import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const combineTierDeploy = async (
   deployer: SignerWithAddress,
   config: CombineTierConfigStruct
 ) => {
-  const integrity = await standardIntegrityDeploy();
+  const interpreter = await rainterpreterDeploy();
+  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+  config = {
+    ...config,
+    interpreter: interpreter.address,
+    expressionDeployer: expressionDeployer.address,
+  };
 
   const combineTierFactoryFactory = await ethers.getContractFactory(
     "CombineTierFactory"
   );
-  const combineTierFactory = (await combineTierFactoryFactory.deploy(
-    integrity.address
-  )) as CombineTierFactory;
+  const combineTierFactory =
+    (await combineTierFactoryFactory.deploy()) as CombineTierFactory;
   await combineTierFactory.deployed();
 
   const { implementation } = (await getEventArgs(

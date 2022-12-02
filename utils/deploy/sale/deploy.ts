@@ -6,10 +6,10 @@ import { RedeemableERC20, Sale, SaleFactory } from "../../../typechain";
 import {
   ConstructEvent,
   SaleConfigStruct,
+  SaleConstructorConfigStruct,
   SaleRedeemableERC20ConfigStruct,
 } from "../../../typechain/contracts/sale/Sale";
 import { getEventArgs } from "../../events";
-import { standardIntegrityDeploy } from "../interpreter/integrity/standardIntegrity/deploy";
 import { rainterpreterExpressionDeployer } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { rainterpreterDeploy } from "../interpreter/shared/rainterpreter/deploy";
 import { redeemableERC20FactoryDeploy } from "../redeemableERC20/redeemableERC20Factory/deploy";
@@ -64,15 +64,12 @@ export const saleDeploy = async (
 };
 
 export const saleDependenciesDeploy = async () => {
-  const integrity = await standardIntegrityDeploy();
   const redeemableERC20Factory = await redeemableERC20FactoryDeploy();
   const readWriteTier = await readWriteTierDeploy();
 
-  const saleConstructorConfig = {
+  const saleConstructorConfig: SaleConstructorConfigStruct = {
     maximumSaleTimeout: 10000,
-    maximumCooldownDuration: 1000,
     redeemableERC20Factory: redeemableERC20Factory.address,
-    interpreterIntegrity: integrity.address,
   };
 
   const saleFactory = await saleFactoryDeploy(saleConstructorConfig);
@@ -111,7 +108,6 @@ export const saleDependenciesDeploy = async () => {
     saleConstructorConfig,
     saleFactory,
     saleProxy,
-    integrity,
     interpreter,
     expressionDeployer,
   };

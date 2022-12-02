@@ -115,10 +115,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                 .eval(dispatch_, context_);
             require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
             if (stateChanges_.length > 0) {
-                _interpreter.stateChanges(
-                    StateNamespace.wrap(0),
-                    stateChanges_.matrixFrom()
-                );
+                _interpreter.stateChanges(stateChanges_);
             }
         }
     }

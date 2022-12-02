@@ -41,28 +41,31 @@ describe("CALL Opcode test", async function () {
     // Source for calculating fibonacci sequence uptill 5
     // prettier-ignore
     const sourceMAIN = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
         callADD,
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
         callADD,
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
         callADD,
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Stack, 4)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
         callADD
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, sourceADD],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, sourceADD],
+        constants,
+      },
+      [6]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
     assert(
@@ -80,24 +83,27 @@ describe("CALL Opcode test", async function () {
 
     // Source to multiply 2 numbers, input will be provided from another source
     const source1 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 2
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 20
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 2
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 20
       op(Opcode.MUL, 2), // 40
     ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
         call0,
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 10
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 10
         op(Opcode.ADD, 2) // 50
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN, source1],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
@@ -116,22 +122,25 @@ describe("CALL Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN0 = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         call0,
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN0, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN0, source1],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
@@ -150,17 +159,20 @@ describe("CALL Opcode test", async function () {
 
     // prettier-ignore
     const sourceMAIN0 = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         call0,
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN0, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN0, source1],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("4");
     assert(
@@ -177,23 +189,26 @@ describe("CALL Opcode test", async function () {
     const call0 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
     const source1 = concat([
       op(Opcode.MUL, 2),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
     ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         call0, // should end up adding 3 elements to the stack
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN0, source1],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN0, source1],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stack();
 
     const expectedResult0 = [
@@ -220,49 +235,49 @@ describe("CALL Opcode test", async function () {
     const callSUB = op(Opcode.CALL, callOperand(1, 1, 2));
     // prettier-ignore
     const sourceSUB = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
       op(Opcode.SUB, 2)
     ]);
 
     const callMUL = op(Opcode.CALL, callOperand(1, 1, 3));
     // prettier-ignore
     const sourceMUL = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 10
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 10
       op(Opcode.MUL, 2)
     ]);
 
     const callDIV = op(Opcode.CALL, callOperand(1, 1, 4));
     // prettier-ignore
     const sourceDIV = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 2
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
       op(Opcode.DIV, 2)
     ]);
 
     const callEXP = op(Opcode.CALL, callOperand(1, 1, 5));
     // prettier-ignore
     const sourceEXP = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 2
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
       op(Opcode.EXP, 2)
     ]);
 
     const callADD10 = op(Opcode.CALL, callOperand(1, 1, 6));
     // prettier-ignore
     const sourceADD10 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // 10
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 10
       op(Opcode.ADD, 2)
     ]);
 
     const callADD1 = op(Opcode.CALL, callOperand(1, 1, 7));
     // prettier-ignore
     const sourceADD1 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
       op(Opcode.ADD, 2)
     ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 2
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // 2
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
         callADD, // 4
         callSUB, // 4 - 1 = 3
         callMUL, // 3 * 10 = 30
@@ -272,21 +287,24 @@ describe("CALL Opcode test", async function () {
         callADD1, // 235 + 1 = 236
     ]);
 
-    await logic.initialize({
-      sources: [
-        sourceMAIN,
-        sourceADD,
-        sourceSUB,
-        sourceMUL,
-        sourceDIV,
-        sourceEXP,
-        sourceADD10,
-        sourceADD1,
-      ],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [
+          sourceMAIN,
+          sourceADD,
+          sourceSUB,
+          sourceMUL,
+          sourceDIV,
+          sourceEXP,
+          sourceADD10,
+          sourceADD1,
+        ],
+        constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("236");
     assert(
@@ -336,63 +354,63 @@ describe("CALL Opcode test", async function () {
     // prettier-ignore
     const sourceGetDiscount = concat([
           // IF TIER == 1
-            op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Adding extra copy of Tier being passed to function
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Adding extra copy of Tier being passed to function
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.EQUAL_TO),
           // THEN DISCOUNT = 10
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-            op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.MUL, 2),
             // ELSE IF TIER == 2
-              op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-              op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
             op(Opcode.EQUAL_TO),
               // THEN DISCOUNT = 20
-              op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-              op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
             op(Opcode.MUL, 2),
                 // ELSE IF TIER == 3
-                op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
+                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
               op(Opcode.EQUAL_TO),
                 // THEN DISCOUNT = 30
-                op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-                op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
+                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+                op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
               op(Opcode.MUL, 2),
                   // ELSE IF TIER == 4
-                  op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                  op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+                  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
+                  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
                 op(Opcode.EQUAL_TO),
                   // THEN DISCOUNT = 40
-                  op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-                  op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
+                  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+                  op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
                 op(Opcode.MUL, 2),
                     // ELSE IF TIER == 5
-                    op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                    op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
+                    op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
+                    op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
                   op(Opcode.EQUAL_TO),
                     // THEN DISCOUNT = 50
-                    op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-                    op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
+                    op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+                    op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
                   op(Opcode.MUL, 2),
                       // ELSE IF TIER == 6
-                      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
+                      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
+                      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
                     op(Opcode.EQUAL_TO),
                       // THEN DISCOUNT = 60
-                      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-                      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
+                      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+                      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
                     op(Opcode.MUL, 2),
                         // ELSE IF TIER == 7
-                        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
-                        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
+                        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Using the extra copy to compare
+                        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
                       op(Opcode.EQUAL_TO),
                         // THEN DISCOUNT = 70
-                        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-                        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
+                        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+                        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
                       op(Opcode.MUL, 2),
                         // ELSE
-                      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+                      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
                     op(Opcode.EAGER_IF), // TIER == 7
                   op(Opcode.EAGER_IF), // TIER == 6
                 op(Opcode.EAGER_IF), // TIER == 5
@@ -410,10 +428,13 @@ describe("CALL Opcode test", async function () {
       op(Opcode.SUB, 2) // PRICE - DISCOUNT
     ]);
 
-    await logic.initialize({
-      sources: [sourceGetDiscountedPrice, sourceGetDiscount],
-      constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceGetDiscountedPrice, sourceGetDiscount],
+        constants,
+      },
+      [1]
+    );
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);
@@ -421,7 +442,9 @@ describe("CALL Opcode test", async function () {
       reportAlice,
       initialTimestamp + 5
     );
-    await logic.runContext([[tierBlockReportAlice, assetPrice]]);
+    await logic["runContext(uint256[][])"]([
+      [tierBlockReportAlice, assetPrice],
+    ]);
     const resultAlice = await logic.stackTop();
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
     assert(
@@ -436,7 +459,7 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 15
     );
 
-    await logic.runContext([[tierBlockReportBob, assetPrice]]);
+    await logic["runContext(uint256[][])"]([[tierBlockReportBob, assetPrice]]);
     const resultBob = await logic.stackTop();
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
     assert(

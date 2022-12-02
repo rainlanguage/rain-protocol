@@ -10,7 +10,7 @@ import {
 } from "../../../typechain";
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
-import { DeployExpressionEvent } from "../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
@@ -86,17 +86,17 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -123,17 +123,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -162,13 +158,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // check input ERC1155 affected balances correctly
 
@@ -254,17 +254,17 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -289,17 +289,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -329,13 +325,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // check input ERC721 affected balances correctly
 
@@ -407,15 +407,15 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -439,17 +439,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -472,13 +468,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -543,15 +543,15 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -577,17 +577,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -599,7 +595,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, [], {
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -607,7 +607,7 @@ describe("Flow flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, [], {
+      .flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -698,19 +698,19 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
     const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 END
@@ -736,17 +736,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -774,13 +770,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct: FlowTransferStructOutput = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -867,15 +867,15 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -899,17 +899,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -932,13 +928,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1018,15 +1018,15 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC115 SKIP
@@ -1050,17 +1050,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1074,13 +1070,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, []);
+      .flow(flowInitialized[0].dispatch, 1234, []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1151,11 +1151,11 @@ describe("Flow flow tests", async function () {
     ];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
     const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -1177,17 +1177,13 @@ describe("Flow flow tests", async function () {
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow, expressionDeployer } = await flowDeploy(
-      deployer,
-      flowFactory,
-      flowConfigStruct
-    );
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
 
-    const flowExpressions = (await getEvents(
+    const flowInitialized = (await getEvents(
       flow.deployTransaction,
-      "DeployExpression",
-      expressionDeployer
-    )) as DeployExpressionEvent["args"][];
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
 
     const me = flow;
 
@@ -1204,15 +1200,18 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowExpressions[0].expressionAddress, 1234, [], {
+      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
-
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowExpressions[0].expressionAddress, 1234, [], {
+      .flow(flowInitialized[0].dispatch, 1234, [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1253,7 +1252,7 @@ describe("Flow flow tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

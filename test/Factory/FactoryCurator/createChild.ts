@@ -30,6 +30,8 @@ import {
 } from "../../../utils";
 import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -418,7 +420,7 @@ describe("FactoryCurator createChild", async function () {
     // CombineTier
     // prettier-ignore
     const sourceReportStake0 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
       op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.CONTEXT, 0x0001), // TIER
       op(Opcode.CONTEXT, 0x0100), // THRESHOLD
@@ -434,7 +436,7 @@ describe("FactoryCurator createChild", async function () {
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
       op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.CONTEXT, 0x0001), // TIER
       op(Opcode.CONTEXT, 0x0100), // THRESHOLD
@@ -459,23 +461,30 @@ describe("FactoryCurator createChild", async function () {
     // prettier-ignore
     const sourceMain = concat([
           sourceReportStake0, // stake0 report
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
         op(Opcode.LESS_THAN),
           sourceReportStake1, // stake1 report
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
         op(Opcode.LESS_THAN),
       op(Opcode.EVERY, 2), // Condition
       sourceReportStake0, // TRUE
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
     op(Opcode.EAGER_IF)
   ]);
 
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake0.address, stake1.address, max_uint32],
       },
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
     })) as CombineTier;
 
     const FEE = 100 + sixZeros;

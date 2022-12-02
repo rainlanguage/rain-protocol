@@ -4,6 +4,9 @@ import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
 import "hardhat-contract-sizer";
 
+const MOCHA_TESTS_PATH = process.env.TESTS_PATH || "./test";
+const MOCHA_SHOULD_BAIL = process.env.BAIL === "true";
+
 const config: HardhatUserConfig = {
   typechain: {
     outDir: "typechain", // overrides upstream 'fix' for another issue which changed this to 'typechain-types'
@@ -44,9 +47,12 @@ const config: HardhatUserConfig = {
   mocha: {
     // explicit test configuration, just in case
     asyncOnly: true,
-    bail: false,
+    bail: MOCHA_SHOULD_BAIL,
     parallel: false,
     timeout: 0,
+  },
+  paths: {
+    tests: MOCHA_TESTS_PATH,
   },
 };
 export default config;

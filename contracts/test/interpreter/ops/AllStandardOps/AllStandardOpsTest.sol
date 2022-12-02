@@ -6,7 +6,6 @@ import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../interpreter/deploy/RainInterpreterIntegrity.sol";
 
 uint constant INTERPRETER_STATE_ID = 0;
-uint constant MIN_OUTPUTS = 1;
 
 /// @title AllStandardOpsTest
 /// Simple contract that exposes all standard ops for testing.
@@ -25,11 +24,14 @@ contract AllStandardOpsTest is StandardInterpreter {
 
     /// Using initialize rather than constructor because fnPtrs doesn't return
     /// the same thing during construction.
-    function initialize(StateConfig calldata stateConfig_) external {
+    function initialize(
+        StateConfig calldata stateConfig_,
+        uint[] memory minStackOutputs_
+    ) external {
         _saveInterpreterState(
             INTERPRETER_STATE_ID,
             stateConfig_,
-            MIN_OUTPUTS.arrayFrom()
+            minStackOutputs_
         );
     }
 
@@ -58,11 +60,48 @@ contract AllStandardOpsTest is StandardInterpreter {
         _stackIndex = state_.stackBottom.toIndex(stackTop_);
     }
 
+    /// Runs `eval` and stores full state.
+    /// @param sourceIndex_ Index of function source.
+    function run(SourceIndex sourceIndex_) public {
+        InterpreterState memory state_ = _loadInterpreterState(
+            INTERPRETER_STATE_ID
+        );
+        uint256 a_ = gasleft();
+        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        uint256 b_ = gasleft();
+        console.log("eval gas", a_ - b_);
+        // Never actually do this, state is gigantic so can't live in storage.
+        // This is just being done to make testing easier than trying to read
+        // results from events etc.
+        _stack = state_.stackBottom.down().asUint256Array();
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
+    }
+
     /// Runs `eval` and stores full state. Stores `context_` to be accessed
     /// later via CONTEXT opcode.
     /// @param context_ Values for eval context.
     function runContext(uint256[][] memory context_) public {
         SourceIndex sourceIndex_ = SourceIndex.wrap(0);
+        InterpreterState memory state_ = _loadInterpreterState(
+            INTERPRETER_STATE_ID
+        );
+        state_.context = context_;
+        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        // Never actually do this, state is gigantic so can't live in storage.
+        // This is just being done to make testing easier than trying to read
+        // results from events etc.
+        _stack = state_.stackBottom.down().asUint256Array();
+        _stackIndex = state_.stackBottom.toIndex(stackTop_);
+    }
+
+    // Runs `eval` and stores full state. Stores `context_` to be accessed
+    /// later via CONTEXT opcode.
+    /// @param context_ Values for eval context.
+    /// @param sourceIndex_ Index of function source.
+    function runContext(
+        uint256[][] memory context_,
+        SourceIndex sourceIndex_
+    ) public {
         InterpreterState memory state_ = _loadInterpreterState(
             INTERPRETER_STATE_ID
         );

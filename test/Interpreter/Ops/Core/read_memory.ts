@@ -14,7 +14,7 @@ import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardO
 
 const Opcode = AllStandardOps;
 
-describe("STATE Opcode test", async function () {
+describe("READ_MEMORY Opcode test", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
@@ -25,17 +25,21 @@ describe("STATE Opcode test", async function () {
     const constants = [1337];
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN],
-      constants: constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN],
+        constants: constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
-    const expectedResult0 = ethers.BigNumber.from(1337);
+    console.log(await logic.stack());
+    const expectedResult0 = ethers.BigNumber.from(constants[0]);
     expect(result0).deep.equal(
       expectedResult0,
       `Invalid output, expected ${expectedResult0}, actual ${result0}`
@@ -47,17 +51,20 @@ describe("STATE Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
         op(Opcode.BLOCK_TIMESTAMP),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
-    await logic.initialize({
-      sources: [sourceMAIN],
-      constants: constants,
-    });
+    await logic.initialize(
+      {
+        sources: [sourceMAIN],
+        constants: constants,
+      },
+      [1]
+    );
 
-    await logic.run();
+    await logic["run()"]();
     const expectedTimeStamp = await getBlockTimestamp();
 
     const result0 = await logic.stack();
@@ -79,16 +86,19 @@ describe("STATE Opcode test", async function () {
     // prettier-ignore
     const sourceMAIN = concat([
         op(Opcode.BLOCK_TIMESTAMP),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Stack, 2)), // Reading an OOB value
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // Reading an OOB value
     ]);
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN],
-          constants: constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN],
+            constants: constants,
+          },
+          [1]
+        ),
       "OOB_STACK_READ",
       "Integrity check failed while reading an OOB stack value"
     );
@@ -98,16 +108,19 @@ describe("STATE Opcode test", async function () {
     const constants = [1337];
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // Reading an OOB value
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // Reading an OOB value
     ]);
 
     await assertError(
       async () =>
-        await logic.initialize({
-          sources: [sourceMAIN],
-          constants: constants,
-        }),
+        await logic.initialize(
+          {
+            sources: [sourceMAIN],
+            constants: constants,
+          },
+          [1]
+        ),
       "OOB_CONSTANT_READ",
       "Integrity check failed while reading an OOB constant value"
     );
@@ -118,14 +131,14 @@ describe("STATE Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
     ])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "OOB_STACK_READ", // at least an error
       "did not error when STACK operand references a stack element that hasn't yet been evaluated"
     );
@@ -136,14 +149,14 @@ describe("STATE Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
     ])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "OOB_STACK_READ", // at least an error
       "did not error when STACK operand references itself"
     );
@@ -156,16 +169,16 @@ describe("STATE Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // STACK should equal this
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)), // not this (well, not without operand = 2)
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // STACK should equal this
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // not this (well, not without operand = 2)
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.ADD, 3),
     ])];
 
-    await logic.initialize({ sources, constants });
-    await logic.run();
+    await logic.initialize({ sources, constants }, [1]);
+    await logic["run()"]();
 
     const result = await logic.stackTop();
     const expected = constants[2] + constants[3] + constants[0];
@@ -182,15 +195,15 @@ describe("STATE Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.ADD, 3),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ])];
 
-    await logic.initialize({ sources, constants });
-    await logic.run();
+    await logic.initialize({ sources, constants }, [1]);
+    await logic["run()"]();
 
     const result = await logic.stackTop();
 
@@ -205,14 +218,14 @@ describe("STATE Opcode test", async function () {
 
     // prettier-ignore
     const sources = [concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
     ])];
 
-    await logic.initialize({ sources, constants });
-    await logic.run();
+    await logic.initialize({ sources, constants }, [1]);
+    await logic["run()"]();
 
     const result = await logic.stackTop();
 
@@ -228,7 +241,7 @@ describe("STATE Opcode test", async function () {
     const sources = [concat([op(99)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "Error",
       "did not error when script references out-of-bounds opcode"
     );
@@ -236,11 +249,11 @@ describe("STATE Opcode test", async function () {
 
   // it("should error when trying to read an out-of-bounds argument", async () => {
   //   const constants = [1, 2, 3];
-  //   const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-  //   const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-  //   const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+  //   const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+  //   const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+  //   const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
-  //   const a0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+  //   const a0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
   //   const a1 = op(Opcode.CONSTANT, 4);
   //   const aOOB = op(Opcode.CONSTANT, 6);
 
@@ -267,7 +280,7 @@ describe("STATE Opcode test", async function () {
   //   ];
 
   //   await assertError(
-  //     async () => await logic.initialize({ sources, constants }),
+  //     async () => await logic.initialize({ sources, constants }, [1]),
   //     "", // there is at least an error
   //     "did not error when trying to read an out-of-bounds argument"
   //   );
@@ -275,12 +288,12 @@ describe("STATE Opcode test", async function () {
 
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
-    const vOOB = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vOOB = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     const sources = [concat([vOOB])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds constant"
     );
@@ -288,8 +301,8 @@ describe("STATE Opcode test", async function () {
 
   it("should prevent bad RainInterpreter script attempting to access stack index out of bounds (underflow)", async () => {
     const constants = [0, 1];
-    const v0 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -301,7 +314,7 @@ describe("STATE Opcode test", async function () {
     ];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "STACK_UNDERFLOW",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
@@ -309,9 +322,9 @@ describe("STATE Opcode test", async function () {
 
   it("should prevent bad RainInterpreter script attempting to access stack index out of bounds (overflow)", async () => {
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -325,7 +338,7 @@ describe("STATE Opcode test", async function () {
     ];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }),
+      async () => await logic.initialize({ sources, constants }, [1]),
       "STACK_UNDERFLOW",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );

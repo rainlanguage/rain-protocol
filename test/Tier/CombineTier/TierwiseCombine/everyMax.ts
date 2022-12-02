@@ -38,23 +38,27 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [ALWAYS],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      sourceConfig: {
+      stateConfig: {
         sources: [
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
         ],
         constants: [NEVER],
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const constants = [
@@ -65,10 +69,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     // prettier-ignore
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT, 0),
       op(
@@ -79,10 +83,12 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -113,10 +119,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     // prettier-ignore
     const sourceReport = concat([
         op(Opcode.BLOCK_TIMESTAMP),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
-          op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.CONTEXT, 0x0000),
         op(Opcode.ITIERV2_REPORT),
       op(
@@ -127,10 +133,12 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      sourceConfig: {
+      stateConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
+      expressionDeployer: "",
+      interpreter: "",
     })) as CombineTier;
 
     const startTimestamp = await getBlockTimestamp();

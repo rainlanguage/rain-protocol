@@ -11,6 +11,7 @@ import "../../memory/LibMemorySize.sol";
 import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {Operand} from "./RainInterpreter.sol";
+import "../../kv/LibMemoryKV.sol";
 
 enum DebugStyle {
     Stack,
@@ -39,9 +40,9 @@ enum DebugStyle {
 /// stack by `VAL`.
 struct InterpreterState {
     StackTop stackBottom;
-    uint[] stateChanges;
-    StackTop stateChangesCursor;
     StackTop constantsBottom;
+    MemoryKV stateKV;
+    StateNamespace stateNamespace;
     uint256[][] context;
     bytes[] compiledSources;
 }
@@ -125,13 +126,11 @@ library LibInterpreterState {
     function serialize(
         StateConfig memory config_,
         uint256 stackLength_,
-        uint stateChangesLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
         unchecked {
             uint256 size_ = 0;
             size_ += stackLength_.size();
-            size_ += stateChangesLength_.size();
             size_ += config_.constants.size();
             for (uint256 i_ = 0; i_ < config_.sources.length; i_++) {
                 size_ += config_.sources[i_].size();
@@ -141,9 +140,6 @@ library LibInterpreterState {
 
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
-
-            // Then state changes length.
-            cursor_ = cursor_.push(stateChangesLength_);
 
             // Then the constants.
             cursor_ = cursor_.pushWithLength(config_.constants);
@@ -183,14 +179,6 @@ library LibInterpreterState {
             // at it.
             uint256[] memory stack_ = new uint256[](stackLength_);
             state_.stackBottom = stack_.asStackTopUp();
-
-            // Read state changes length and build a stack.
-            cursor_ = cursor_.up();
-            uint stateChangesLength_ = cursor_.peek();
-
-            uint[] memory stateChanges_ = new uint[](stateChangesLength_);
-            state_.stateChanges = stateChanges_;
-            state_.stateChangesCursor = stateChanges_.asStackTopUp();
 
             // Reference the constants array and move cursor past it.
             cursor_ = cursor_.up();

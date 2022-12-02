@@ -22,7 +22,7 @@ import {
   MemoryType,
   op,
 } from "../../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../../utils/interpreter/ops/autoApproveOps";
+import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 
 describe("AutoApprove ERC721 ownership", async function () {
   let tokenERC721: ReserveTokenERC721;
@@ -50,7 +50,10 @@ describe("AutoApprove ERC721 ownership", async function () {
     const aprAdmin = signers[3];
     const signer1 = signers[4];
 
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
     const cAccount = op(Opcode.CONTEXT, 0x0000);
     const cNftId = op(Opcode.CONTEXT, 0x0001);
 

@@ -23,11 +23,11 @@ describe("RainInterpreter MathOps standard math", async () => {
   it("should perform a calculation using the block number as a value", async () => {
     const constants = [1, 2, 3, 4, 6];
 
-    const one = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const two = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const three = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const four = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
-    const six = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4));
+    const one = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const two = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const three = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const four = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const six = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     // prettier-ignore
     const sources = [
@@ -47,9 +47,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const block0 = await ethers.provider.getBlockNumber();
     const result0 = await logic.stackTop();
     const expected0 = 16 * block0;
@@ -62,7 +62,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
     await createEmptyBlock();
 
-    await logic.run();
+    await logic["run()"]();
     const block1 = await ethers.provider.getBlockNumber();
 
     const result1 = await logic.stackTop();
@@ -76,7 +76,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
     await createEmptyBlock();
 
-    await logic.run();
+    await logic["run()"]();
     const block2 = await ethers.provider.getBlockNumber();
     const result2 = await logic.stackTop();
     const expected2 = 16 * block2;
@@ -90,9 +90,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op on sequence of numbers", async () => {
     const constants = [7, 4, 2];
-    const v7 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v7 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -105,9 +105,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -120,8 +120,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (zero rem)", async () => {
     const constants = [9, 3];
-    const v9 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v9 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -133,9 +133,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 0;
     assert(
@@ -148,8 +148,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return correct remainder when using modulo op (non-zero rem)", async () => {
     const constants = [5, 2];
-    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v5 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -161,9 +161,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -176,9 +176,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform exponentiation on a sequence of numbers", async () => {
     const constants = [2, 4, 3];
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -191,9 +191,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 4096;
     assert(
@@ -206,8 +206,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should perform exponentiation correctly", async () => {
     const constants = [2, 4];
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -219,9 +219,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 16;
     assert(
@@ -234,9 +234,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return the maximum of a sequence of numbers", async () => {
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v11 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v22 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v33 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v11 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v22 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source = concat([
@@ -247,9 +247,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       op(Opcode.MAX, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants });
+    await logic.initialize({ sources: [source], constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 33;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
@@ -257,9 +257,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return the minimum of a sequence of numbers", async () => {
     const constants = [33, 11, 22];
-    const v33 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v11 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v22 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v33 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v11 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v22 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source = concat([
@@ -270,9 +270,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       op(Opcode.MIN, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants });
+    await logic.initialize({ sources: [source], constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 11;
     assert(result.eq(expected), `wrong minimum ${expected} ${result}`);
@@ -280,8 +280,8 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should calculate a mathematical expression (division, product, summation)", async () => {
     const constants = [2, 3];
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
 
     // prettier-ignore
     const sources = [
@@ -299,9 +299,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 3;
     assert(
@@ -314,9 +314,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should return remainder of dividing an initial number by the product of a sequence of numbers", async () => {
     const constants = [3, 2, 13];
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v13 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v13 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -329,9 +329,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -344,9 +344,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should divide an initial number by the product of a sequence of numbers", async () => {
     const constants = [3, 2, 12];
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v12 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v12 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -359,9 +359,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 2;
     assert(
@@ -374,9 +374,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should multiply a sequence of numbers together", async () => {
     const constants = [5, 4, 3];
-    const v5 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v4 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v5 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v4 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -389,9 +389,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 60;
     assert(
@@ -404,9 +404,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should subtract a sequence of numbers from an initial number", async () => {
     const constants = [3, 2, 10];
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v10 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v10 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -419,9 +419,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 5;
     assert(
@@ -434,9 +434,9 @@ describe("RainInterpreter MathOps standard math", async () => {
 
   it("should add a sequence of numbers together", async () => {
     const constants = [3, 2, 1];
-    const v3 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const sources = [
@@ -449,9 +449,9 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result = await logic.stackTop();
     const expected = 6;
     assert(result.eq(expected), `wrong summation ${expected} ${result}`);

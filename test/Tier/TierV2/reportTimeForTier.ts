@@ -26,18 +26,21 @@ describe("TierV2 report time for tier op", async function () {
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // account
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // tier
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // tier
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [readWriteTier.address, Tier.FOUR],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [readWriteTier.address, Tier.FOUR],
+      },
+      [1]
+    );
 
-    await logic.connect(signer1).run();
+    await logic.connect(signer1)["run()"]();
     const result = await logic.stackTop();
 
     assert(

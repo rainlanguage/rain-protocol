@@ -9,12 +9,5 @@ interface IRainInterpreterIntegrity {
         bytes[] memory sources,
         uint256 constantsLength,
         uint[] memory minStackOutputs
-    )
-        external
-        view
-        returns (
-            uint256 contextReads,
-            uint256 stackLength,
-            uint stateChangesLength
-        );
+    ) external view returns (uint256 contextReads, uint256 stackLength);
 }

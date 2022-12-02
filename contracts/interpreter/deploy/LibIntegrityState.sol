@@ -11,7 +11,6 @@ struct IntegrityState {
     // Sources first as we read it in assembly.
     bytes[] sources;
     uint256 constantsLength;
-    uint256 stateChangesLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
     uint256 contextReads;

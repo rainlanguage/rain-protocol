@@ -83,12 +83,19 @@ describe("Sale minimum raise", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([]),
     ];
     const saleTimeout = 100;
     const [sale, token] = await saleDeploy(
@@ -126,7 +133,7 @@ describe("Sale minimum raise", async function () {
     const fee = ethers.BigNumber.from("1").mul(RESERVE_ONE);
     const desiredUnits = totalTokenSupply;
     const cost = staticPrice.mul(desiredUnits).div(ONE);
-    const [, price] = await sale.calculateBuy(desiredUnits);
+    const [, price] = await sale.previewCalculateBuy(desiredUnits);
     assert(price.eq(75000000), "wrong price");
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, cost.add(fee));
@@ -310,12 +317,19 @@ describe("Sale minimum raise", async function () {
       startBlock - 1,
       startBlock + saleDuration - 1,
     ];
-    const vBasePrice = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vStart = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vEnd = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vBasePrice = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vStart = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
+      concat([]),
     ];
     const saleTimeout = 100;
 
@@ -362,7 +376,7 @@ describe("Sale minimum raise", async function () {
     assert(await redeemableERC20Factory.isChild(saleToken));
     assert(saleReserve === reserve.address);
     assert(saleStatusPending === Status.PENDING);
-    const cantStart = await sale.canLive();
+    const cantStart = await sale.previewCanLive();
     assert(!cantStart);
     await assertError(
       async () => await sale.start(),
@@ -374,8 +388,8 @@ describe("Sale minimum raise", async function () {
       startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    const canLive = await sale.canLive();
-    assert(canLive);
+    const previewCanLive = await sale.previewCanLive();
+    assert(previewCanLive);
 
     await assertError(
       async () => await sale.end(),
@@ -398,7 +412,7 @@ describe("Sale minimum raise", async function () {
       "wrongly re-started while with Status of ACTIVE"
     );
 
-    const cantEnd = await sale.canLive();
+    const cantEnd = await sale.previewCanLive();
     assert(cantEnd); // cannot end if Sale can live
 
     await assertError(
@@ -411,7 +425,7 @@ describe("Sale minimum raise", async function () {
       saleDuration + startBlock - (await ethers.provider.getBlockNumber())
     );
 
-    const canEnd = !(await sale.canLive());
+    const canEnd = !(await sale.previewCanLive());
     assert(canEnd); // can end if Sale should no longer live
 
     // anon can end sale

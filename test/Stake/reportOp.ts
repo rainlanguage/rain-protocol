@@ -30,16 +30,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   // Passing context data in constants
   // prettier-ignore
   const source = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.CALLER), // address
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
     op(Opcode.ITIERV2_REPORT, THRESHOLDS.length)
   ]);
 
@@ -68,17 +68,20 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: [stake.address],
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: [stake.address],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result = await logic.stackTop();
 
@@ -104,12 +107,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const expected = max_uint256;
 
@@ -144,12 +150,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result = await logic.stackTop();
 
@@ -193,12 +202,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp0 = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
     const result0 = await logic.stackTop();
 
     const expected0 = numArrayToReport([
@@ -227,12 +239,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp1 = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
     const result1 = await logic.stackTop();
 
     const expected1 = numArrayToReport([
@@ -275,12 +290,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result = await logic.stackTop();
 
@@ -324,12 +342,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result0 = await logic.stackTop();
 
@@ -358,12 +379,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result1 = await logic.stackTop();
 
@@ -390,12 +414,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result2 = await logic.stackTop();
 
@@ -439,12 +466,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result0 = await logic.stackTop();
 
@@ -473,12 +503,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result1 = await logic.stackTop();
 
@@ -499,12 +532,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize({
-      sources: [source],
-      constants: [stake.address, ...THRESHOLDS],
-    });
+    await logic.initialize(
+      {
+        sources: [source],
+        constants: [stake.address, ...THRESHOLDS],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result2 = await logic.stackTop();
 
@@ -556,49 +592,55 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // Passing context data in constants
     // prettier-ignore
     const source0 = concat([
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
         op(Opcode.CALLER), // address
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)), // context
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-        op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
       op(Opcode.ITIERV2_REPORT, thresholds0.length),
     ]);
 
-    await logic.initialize({
-      sources: [source0],
-      constants: [stake.address, ...thresholds0],
-    });
+    await logic.initialize(
+      {
+        sources: [source0],
+        constants: [stake.address, ...thresholds0],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result0 = await logic.stackTop();
 
     // Passing context data in constants
     const source1 = concat([
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
       op(Opcode.CALLER), // address
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 4)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 5)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 6)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 7)),
-      op(Opcode.STATE, memoryOperand(MemoryType.Constant, 8)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8)),
       op(Opcode.ITIERV2_REPORT, thresholds1.length),
     ]);
 
-    await logic.initialize({
-      sources: [source1],
-      constants: [stake.address, ...thresholds1],
-    });
+    await logic.initialize(
+      {
+        sources: [source1],
+        constants: [stake.address, ...thresholds1],
+      },
+      [1]
+    );
 
-    await logic.connect(alice).run();
+    await logic.connect(alice)["run()"]();
 
     const result1 = await logic.stackTop();
 

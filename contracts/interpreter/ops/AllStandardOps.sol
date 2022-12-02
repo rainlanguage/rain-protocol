@@ -7,10 +7,12 @@ import "../../array/LibUint256Array.sol";
 import "../run/RainInterpreter.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
-import "./core/OpChangeState.sol";
+import "./core/OpSet.sol";
 import "./core/OpContext.sol";
+import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
+import "./core/OpFoldContext.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpReadMemory.sol";
 import "./crypto/OpHash.sol";
@@ -64,7 +66,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 60;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -171,12 +173,14 @@ library AllStandardOps {
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
                     OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
-                    OpChangeState.integrity,
                     OpContext.integrity,
+                    OpContextRow.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
+                    OpFoldContext.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
+                    OpSet.integrity,
                     OpHash.integrity,
                     OpERC20BalanceOf.integrity,
                     OpERC20TotalSupply.integrity,
@@ -256,14 +260,15 @@ library AllStandardOps {
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
                     OpChainlinkOraclePrice.price,
-                    // solhint-disable-next-line avoid-low-level-calls
-                    OpCall.call,
-                    OpChangeState.run,
-                    OpContext.context,
+                    OpCall.run,
+                    OpContext.run,
+                    OpContextRow.run,
                     OpDebug.debug,
-                    OpDoWhile.doWhile,
-                    OpLoopN.loopN,
+                    OpDoWhile.run,
+                    OpFoldContext.run,
+                    OpLoopN.run,
                     OpReadMemory.run,
+                    OpSet.run,
                     OpHash.hash,
                     OpERC20BalanceOf.balanceOf,
                     OpERC20TotalSupply.totalSupply,

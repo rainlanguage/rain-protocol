@@ -54,10 +54,22 @@ describe("RainInterpreter ERC1155 ops", async function () {
       tokenERC1155.address,
       tokenId,
     ];
-    const vSigner1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vSigner2 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
-    const vTokenId = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 3));
+    const vSigner1 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vSigner2 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vTokenId = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 3)
+    );
 
     // prettier-ignore
     const sources = [
@@ -71,7 +83,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
     const transferAmount = 100;
 
@@ -95,7 +107,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
       [tokenId, tokenId]
     );
 
-    await logic.run();
+    await logic["run()"]();
     const opBatchAmounts = await logic.stack();
 
     assert(
@@ -110,9 +122,18 @@ describe("RainInterpreter ERC1155 ops", async function () {
     const tokenId = 0;
 
     const constants = [signer1.address, tokenERC1155.address, tokenId];
-    const vSigner1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
-    const vTokenId = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 2));
+    const vSigner1 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    const vTokenId = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
 
     // prettier-ignore
     const sources = [
@@ -124,8 +145,8 @@ describe("RainInterpreter ERC1155 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
-    await logic.run();
+    await logic.initialize({ sources, constants }, [1]);
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0 of id ${tokenId}, got ${result0}`);
 
@@ -152,7 +173,7 @@ describe("RainInterpreter ERC1155 ops", async function () {
       got       ${signer1Balance}`
     );
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(
       result1.eq(transferAmount),

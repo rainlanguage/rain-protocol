@@ -47,8 +47,14 @@ describe("RainInterpreter ERC721 ops", async function () {
     const nftId = 0;
 
     const constants = [nftId, tokenERC721.address];
-    const vNftId = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vNftId = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const sources = [
@@ -59,23 +65,29 @@ describe("RainInterpreter ERC721 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.eq(signer0.address));
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, nftId);
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(result1.eq(signer1.address));
   });
 
   it("should return ERC721 balance of signer", async () => {
     const constants = [signer1.address, tokenERC721.address];
-    const vSigner1 = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 0));
-    const vTokenAddr = op(Opcode.STATE, memoryOperand(MemoryType.Constant, 1));
+    const vSigner1 = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vTokenAddr = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
 
     // prettier-ignore
     const sources = [
@@ -86,22 +98,22 @@ describe("RainInterpreter ERC721 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants });
+    await logic.initialize({ sources, constants }, [1]);
 
-    await logic.run();
+    await logic["run()"]();
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, 0);
 
-    await logic.run();
+    await logic["run()"]();
     const result1 = await logic.stackTop();
     assert(result1.eq(1), `expected 1, got ${result1}`);
 
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
 
-    await logic.run();
+    await logic["run()"]();
     const result2 = await logic.stackTop();
     assert(result2.eq(2), `expected 2, got ${result2}`);
   });

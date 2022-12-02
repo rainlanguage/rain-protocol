@@ -1,5 +1,6 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { bitify } from "../bytes";
 
 export enum MemoryType {
   Stack,
@@ -52,10 +53,10 @@ export function memoryOperand(type: number, offset: number): number {
   return (offset << 1) + type;
 }
 /**
- * Constructs the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
+ * Builds the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
  *
- * @param inputSize - number of inputs being passed to the source (range 0-7)
- * @param outputSize - number of output returned by the source (range 1-3)
+ * @param inputSize - number of inputs being passed to the source
+ * @param outputSize - number of outputs returned by the source
  * @param sourceIndex - index of function source
  */
 export function callOperand(
@@ -63,35 +64,46 @@ export function callOperand(
   outputSize: number,
   sourceIndex: number
 ): number {
-  if (sourceIndex < 0 || sourceIndex > 7) {
-    throw new Error("Invalid sourceIndex");
-  } else if (inputSize < 0 || inputSize > 7) {
-    throw new Error("Invalid inputSize");
-  } else if (outputSize < 1 || outputSize > 3) {
-    throw new Error("Invalid outputSize");
-  }
-
-  return (sourceIndex << 5) + (outputSize << 3) + inputSize;
+  const operand = (sourceIndex << 8) + (outputSize << 4) + inputSize;
+  return operand;
 }
 
 /**
- * Constructs the operand for RainInterpreter's `LOOP_N` opcode by packing 2 numbers into a single byte.
+ * Builds the operand for RainInterpreter's `LOOP_N` opcode by packing 4 numbers into a single byte.
  *
- * @param n - loop the source for n times (range 0-15)
+ * @param n - loop the source for n times
+ * @param inputSize - number of inputs being passed to the source
+ * @param outputSize - number of outputs returned by the source
  * @param sourceIndex - index of function source
  */
-export function loopNOperand(n: number, sourceIndex: number): number {
-  if (sourceIndex < 0 || sourceIndex > 15) {
-    throw new Error("Invalid sourceIndex");
-  } else if (n < 0 || n > 15) {
-    throw new Error("Invalid n");
-  }
-
-  return (sourceIndex << 4) + n;
+export function loopNOperand(
+  n: number,
+  inputSize: number,
+  outputSize: number,
+  sourceIndex: number
+): number {
+  const operand = (n << 12) + callOperand(inputSize, outputSize, sourceIndex);
+  return operand;
 }
 
 /**
- * Constructs the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
+ * Builds the operand for RainInterpreter's `DO_WHILE` opcode by packing 3 numbers into a single byte.
+ *
+ * @param inputSize - number of inputs being passed to the source
+ * @param reserved - reserved bytes
+ * @param sourceIndex - index of function source
+ */
+export function doWhileOperand(
+  inputSize: number,
+  reserved: number,
+  sourceIndex: number
+): number {
+  const operand = (sourceIndex << 8) + (reserved << 4) + inputSize;
+  return operand;
+}
+
+/**
+ * Builds the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
  * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
  * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)
@@ -107,40 +119,19 @@ export function zipmapSize(
   //   op_.val >> 3 & 0x03, // 00011000
   //   op_.val >> 5 & 0x07  // 11100000
   // )
-
-  if (sourceIndex < 0 || sourceIndex > 7) {
-    throw new Error("Invalid fnSize");
-  } else if (loopSize < 0 || loopSize > 3) {
-    throw new Error("Invalid loopSize");
-  } else if (valSize < 0 || valSize > 7) {
-    throw new Error("Invalid valSize");
-  }
-  let callSize = valSize;
-  callSize <<= 2;
-  callSize += loopSize;
-  callSize <<= 3;
-  callSize += sourceIndex;
-  return callSize;
+  let operand = valSize;
+  operand <<= 2;
+  operand += loopSize;
+  operand <<= 3;
+  operand += sourceIndex;
+  return operand;
 }
 
-export function selectLte(logic: number, mode: number, length: number): number {
-  let lte = logic;
-  lte <<= 2;
-  lte += mode;
-  lte <<= 5;
-  lte += length;
-  return lte;
-}
-
-export function valOperand(index: number, forwardedVals?: boolean): number {
-  //   op_.val & 0x7F, //     01111111
-  //   op_.val & 0x80, //     10000000
-
-  if (index < 0 || index > 15) {
-    throw new Error(`Invalid index ${index}`);
-  }
-  let operand = forwardedVals ? 1 : 0;
-  operand <<= 7;
-  operand += index;
+export function selectLte(
+  logic: number,
+  mode: number,
+  inputSize: number
+): number {
+  const operand = (logic << 13) + (mode << 8) + inputSize;
   return operand;
 }
