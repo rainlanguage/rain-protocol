@@ -22,7 +22,7 @@ describe("LibMemoryKV tests", async function () {
     const key = 68;
     const val0 = 1337;
     const val1 = 42069;
-
+ 
     const tx0_ = await libMemoryKV.scenario6(kv0, kv1, key, val0, val1);
 
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
@@ -59,7 +59,7 @@ describe("LibMemoryKV tests", async function () {
         index     ${i_}`
       );
     });
-  });
+  });1
 
   it("should update a value without allocating new memory if pointer already exists for the given key", async function () {
     const kv = 0;
@@ -170,6 +170,8 @@ describe("LibMemoryKV tests", async function () {
         got       ${list[i_]}
         index     ${i_}`
       );
-    });
-  });
+    }); 
+    
+  }); 
+
 });

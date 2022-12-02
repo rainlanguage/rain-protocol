@@ -2,6 +2,7 @@ import { assert } from "chai";
 import { randomBytes } from "crypto";
 import { concat, keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 
 import {
   memoryOperand,
@@ -9,8 +10,8 @@ import {
   op,
   RainterpreterOps,
 } from "../../../../utils";
-
-import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { iinterpreterV1ConsumerDeploy , expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = RainterpreterOps;
 
@@ -53,7 +54,8 @@ describe("SET/GET Opcode tests", async function () {
     // Eval
     await consumerLogic.eval(interpreter.address, dispatch, [[]]);
 
-    const stack = await consumerLogic.stack();
+    const stack = await consumerLogic.stack(); 
+    console.log("stack : " , stack )
     assert(stack.length == 2, "Invalid stack length");
     assert(stack[0].eq(constants[1]), "Invalid value was SET / GET for key 1");
     assert(stack[1].eq(constants[2]), "Invalid value was SET / GET for key 1");
@@ -285,5 +287,225 @@ describe("SET/GET Opcode tests", async function () {
 
     assert(key_.eq(key), "Invalid key");
     assert(val_.eq(val), "Invalid value");
+  });   
+
+
+  // it("should set a key value pair and overwrite it", async () => {
+  //   const key1 = 100;
+  //   const key2 = 200;
+
+  //   const val1 = ethers.constants.MaxUint256;
+  //   const val2 = 555;
+
+  //   const constants = [key1, val1, key2 ];
+
+  //   // prettier-ignore
+  //   const source = concat([
+  //       // SET key1
+  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+  //     op(Opcode.SET),
+
+  //       // GET KEY 1
+  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+  //     op(Opcode.GET),
+      
+      
+      
+  //       // GET KEY 1
+  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2 )), // key
+  //     op(Opcode.GET),
+      
+  //   ]);
+
+  //   const { consumerLogic, interpreter, dispatch } =
+  //     await iinterpreterV1ConsumerDeploy({
+  //       sources: [source],
+  //       constants,
+  //     });
+
+  //   // Eval
+  //   await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+
+  //   const stack = await consumerLogic.stack(); 
+    
+  //   console.log("stack : " , stack )
+
+  //   // assert(stack.length == 2, "Invalid stack length");
+  //   // assert(stack[0].eq(constants[1]), "Invalid value was SET / GET for key 1");
+  //   // assert(stack[1].eq(constants[2]), "Invalid value was SET / GET for key 1"); 
+
+
+  // });
+
+
+
+}); 
+
+
+describe.only("SET/GET Opcode tests with eval namespace", async function () { 
+  
+  let rainInterpreter: Rainterpreter; 
+  let consumerLogic : IInterpreterV1Consumer
+  let consumerLogicB : IInterpreterV1Consumer 
+
+
+  before(async () => { 
+    rainInterpreter = await rainterpreterDeploy();  
+    const consumerFactory = await ethers.getContractFactory("IInterpreterV1Consumer"); 
+    
+    consumerLogic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await consumerLogic.deployed();  
+
+    consumerLogicB = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await consumerLogicB.deployed(); 
+
+  }); 
+
+  it("should set a key value pair and overwrite it", async () => {
+    const key1 = 100;
+    const key2 = 200;
+    const val1 = 901
+    const val2 = 902
+
+
+
+    const constantsA = [key1, val1 ];
+
+    // prettier-ignore
+    const sourceA = concat([
+        // SET key1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET),
+
+        // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.GET),
+    ]);
+
+    const expressionA =
+      await expressionDeployConsumer({
+        sources: [sourceA],
+        constants : constantsA,
+      } , rainInterpreter);
+
+    // Eval
+    await consumerLogic.eval(rainInterpreter.address, expressionA.dispatch, [[]]);
+
+    const stackA = await consumerLogic.stack(); 
+    
+    console.log("stackA : " , stackA ) 
+
+
+    const constantsB = [key2 , val2 ];
+
+    // prettier-ignore
+    const sourceB = concat([
+        
+        // SET key1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+        op(Opcode.SET),
+
+        // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.GET),
+
+      
+    ]);
+
+    const expressionB =
+      await expressionDeployConsumer({
+        sources: [sourceB],
+        constants : constantsB,
+      } , rainInterpreter);
+
+    // Eval
+    await consumerLogic.eval(rainInterpreter.address, expressionB.dispatch, [[]]);
+
+    const stackB = await consumerLogic.stack(); 
+    
+    console.log("stackB : " , stackB ) 
+
+    const stateChanges = await consumerLogic["stateChanges()"]();  
+
+    console.log("stateChanges : " , stateChanges ) 
+
+    
+
+
   });
+  
+
+  it.only("should set a value with same key in same namespace for different callers", async () => { 
+
+    const key = 123;
+    const val1 = 456; 
+    const val2 = 789; 
+    const namespace = 363
+
+    const constantsA = [key, val1];
+    const constantsB = [key, val2];
+
+    // prettier-ignore
+    const sourceA = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET),
+    ]);
+
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constantsA
+         } ,
+         rainInterpreter 
+      );
+
+    await consumerLogic.evalWithNamespace(rainInterpreter.address, namespace,  expressionA.dispatch, [[]]);
+
+    const stateChangesA = await consumerLogic["stateChanges()"](); 
+   
+     // StackTop
+    const keyA = stateChangesA[0];
+    const valA = stateChangesA[1];
+
+    assert(keyA.eq(key), "Invalid key");
+    assert(valA.eq(val1), "Invalid value");
+
+    // prettier-ignore
+    const sourceB = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET),
+    ]);  
+
+    let expressionB = await expressionDeployConsumer(
+      {
+        sources: [sourceB],
+        constants: constantsB,
+      } ,
+      rainInterpreter 
+   );  
+
+    await consumerLogic.evalWithNamespace(rainInterpreter.address, namespace,  expressionB.dispatch, [[]]);
+
+    const stateChangesB = await consumerLogic["stateChanges()"]();   
+
+
+    // StackTop
+    const keyB = stateChangesB[0];
+    const valB = stateChangesB[1];
+
+    assert(keyB.eq(key), "Invalid key");
+    assert(valB.eq(val2), "Invalid value");
+
+
+  });    
+
+
+  
+
+
 });

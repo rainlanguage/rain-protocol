@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { IInterpreterV1Consumer } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {} from "../../interpreter/integrity/standardIntegrity/deploy";
 import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
@@ -34,4 +34,32 @@ export const iinterpreterV1ConsumerDeploy = async (
   await consumerLogic.deployed();
 
   return { consumerLogic: consumerLogic, interpreter: interpreter, dispatch: dispatch };
-};
+}; 
+
+export const expressionDeployConsumer = async (
+  stateConfig: StateConfigStruct , 
+  interpreter: Rainterpreter
+) => {  
+
+  const expressionDeployer = await rainterpreterExpression(
+    interpreter,
+    stateConfig
+  );
+  const libEncodedDispatch = await libEncodedDispatchDeploy();
+
+  let dispatch = await libEncodedDispatch.encode(
+    expressionDeployer,
+    ENTRYPOINT,
+    MAX_OUTPUTS
+  );
+
+  // const consumerFactory = await ethers.getContractFactory(
+  //   "IInterpreterV1Consumer"
+  // );
+  // const consumerLogic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+  // await consumerLogic.deployed();
+
+  return {  dispatch: dispatch }; 
+
+
+}
