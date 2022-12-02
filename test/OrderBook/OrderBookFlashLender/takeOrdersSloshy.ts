@@ -110,7 +110,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .connect(alice)
       .addOrder(orderConfig);
 
-    const { order: askConfig } = (await getEventArgs(
+    const { order: askOrder } = (await getEventArgs(
       txAddOrderAlice,
       "AddOrder",
       orderBook
@@ -134,7 +134,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .deposit(depositConfigStructAlice);
 
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
-      order: askConfig,
+      order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };
@@ -296,7 +296,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .connect(alice)
       .addOrder(orderConfig);
 
-    const { order: askConfig } = (await getEventArgs(
+    const { order: askOrder } = (await getEventArgs(
       txAddOrderAlice,
       "AddOrder",
       orderBook
@@ -333,7 +333,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
     // 4. bob takes alice's order (bob sells his 1.01 USDT to alice for 1 DAI)
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
-      order: askConfig,
+      order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };

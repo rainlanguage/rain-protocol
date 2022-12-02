@@ -66,20 +66,20 @@ describe("OrderBook add order", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -100,31 +100,31 @@ describe("OrderBook add order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -143,13 +143,13 @@ describe("OrderBook add order", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
   });
 });

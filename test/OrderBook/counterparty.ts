@@ -86,14 +86,14 @@ describe("OrderBook counterparty in context", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
     const askOutputMax = max_uint256;
     const askOutputMaxIfNotMatchingCounterparty = 0;
 
     const askConstants = [
       askOutputMax,
       askOutputMaxIfNotMatchingCounterparty,
-      askPrice,
+      askRatio,
       carol.address,
     ];
     const vAskOutputMax = op(
@@ -104,7 +104,7 @@ describe("OrderBook counterparty in context", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 2)
     );
@@ -121,7 +121,7 @@ describe("OrderBook counterparty in context", async function () {
         vAskOutputMax,
         vAskOutputMaxIfNotMatch,
       op(Opcode.EAGER_IF),
-      vAskPrice,
+      vAskRatio,
     ]);
 
     const askOrderConfig: OrderConfigStruct = {
@@ -143,31 +143,31 @@ describe("OrderBook counterparty in context", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER - BAD MATCH
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -186,31 +186,31 @@ describe("OrderBook counterparty in context", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
 
     // BID ORDER - GOOD MATCH
 
-    const bidPriceCarol = fixedPointDiv(ONE, askPrice);
-    const bidConstantsCarol = [max_uint256, bidPriceCarol];
+    const bidRatioCarol = fixedPointDiv(ONE, askRatio);
+    const bidConstantsCarol = [max_uint256, bidRatioCarol];
     const vBidOutputMaxCarol = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPriceCarol = op(
+    const vBidRatioCarol = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSourceCarol = concat([
       vBidOutputMaxCarol,
-      vBidPriceCarol,
+      vBidRatioCarol,
     ]);
     const bidOrderConfigCarol: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -231,7 +231,7 @@ describe("OrderBook counterparty in context", async function () {
       .connect(carol)
       .addOrder(bidOrderConfigCarol);
 
-    const { sender: bidSenderCarol, order: bidConfigCarol } =
+    const { sender: bidSenderCarol, order: bidOrderCarol } =
       (await getEventArgs(
         txBidAddOrderCarol,
         "AddOrder",
@@ -239,7 +239,7 @@ describe("OrderBook counterparty in context", async function () {
       )) as AddOrderEvent["args"];
 
     assert(bidSenderCarol === carol.address, "wrong sender");
-    compareStructs(bidConfigCarol, bidOrderConfigCarol);
+    compareStructs(bidOrderCarol, bidOrderConfigCarol);
 
     // DEPOSITS
 
@@ -330,7 +330,7 @@ describe("OrderBook counterparty in context", async function () {
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askConfig, bidConfig, clearConfig),
+          .clear(askOrder, bidOrder, clearConfig),
       "0_CLEAR",
       "should revert with 0 amount since bob does not match expected counterparty"
     );
@@ -339,7 +339,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfigCarol, clearConfig);
+      .clear(askOrder, bidOrderCarol, clearConfig);
 
     const {
       sender: clearSender,
@@ -362,23 +362,23 @@ describe("OrderBook counterparty in context", async function () {
 
     const aOutputExpected = minBN(
       aOutputMaxExpected,
-      fixedPointMul(bidPrice, amountA)
+      fixedPointMul(bidRatio, amountA)
     );
     const bOutputExpected = minBN(
       bOutputMaxExpected,
-      fixedPointMul(askPrice, amountB)
+      fixedPointMul(askRatio, amountB)
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
       aOutput: aOutputExpected,
       bOutput: bOutputExpected,
-      aInput: fixedPointMul(askPrice, aOutputExpected),
-      bInput: fixedPointMul(bidPrice, bOutputExpected),
+      aInput: fixedPointMul(askRatio, aOutputExpected),
+      bInput: fixedPointMul(bidRatio, bOutputExpected),
     };
 
     assert(clearSender === bountyBot.address);
-    compareSolStructs(clearA_, askConfig);
-    compareSolStructs(clearB_, bidConfigCarol);
+    compareSolStructs(clearA_, askOrder);
+    compareSolStructs(clearB_, bidOrderCarol);
     compareStructs(clearBountyConfig, clearConfig);
     compareStructs(clearStateChange, expectedClearStateChange);
   });
