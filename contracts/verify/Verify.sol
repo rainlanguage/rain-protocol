@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "./IVerifyCallback.sol";
+import "./IVerifyCallbackV1.sol";
 
 import {AccessControlUpgradeable as AccessControl} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "./libraries/VerifyConstants.sol";
 import "./LibEvidence.sol";
 import "../array/LibUint256Array.sol";
+import "./IVerifyV1.sol";
+import "./libraries/LibVerifyStatus.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -25,7 +27,7 @@ struct State {
 /// @param admin The address to ASSIGN ALL ADMIN ROLES to initially. This
 /// address is free and encouraged to delegate fine grained permissions to
 /// many other sub-admin addresses, then revoke it's own "root" access.
-/// @param callback The address of the `IVerifyCallback` contract if it exists.
+/// @param callback The address of the `IVerifyCallbackV1` contract if it exists.
 /// MAY be `address(0)` to signify that callbacks should NOT run.
 struct VerifyConfig {
     address admin;
@@ -163,7 +165,7 @@ struct VerifyConfig {
 /// governance processes mediated by a smart contract.
 ///
 /// Every action emits an associated event and optionally calls an onchain
-/// callback on a `IVerifyCallback` contract set during initialize. As each
+/// callback on a `IVerifyCallbackV1` contract set during initialize. As each
 /// action my be performed in bulk dupes are not rolled back, instead the
 /// events are emitted for every time the action is called and the callbacks
 /// and onchain state changes are deduped. For example, an approve may be
@@ -172,9 +174,10 @@ struct VerifyConfig {
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
-contract Verify is AccessControl {
+contract Verify is IVerifyV1, AccessControl {
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
+    using LibVerifyStatus for VerifyStatus;
 
     /// Any state never held is UNINITIALIZED.
     /// Note that as per default evm an unset state is 0 so always check the
@@ -240,9 +243,9 @@ contract Verify is AccessControl {
     /// Account => State
     mapping(address => State) private states;
 
-    /// Optional IVerifyCallback contract.
+    /// Optional IVerifyCallbackV1 contract.
     /// MAY be address 0.
-    IVerifyCallback public callback;
+    IVerifyCallbackV1 public callback;
 
     constructor() {
         _disableInitializers();
@@ -280,7 +283,7 @@ contract Verify is AccessControl {
         _grantRole(REMOVER_ADMIN, config_.admin);
         _grantRole(BANNER_ADMIN, config_.admin);
 
-        callback = IVerifyCallback(config_.callback);
+        callback = IVerifyCallbackV1(config_.callback);
 
         emit Initialize(msg.sender, config_);
     }
@@ -298,7 +301,7 @@ contract Verify is AccessControl {
     function statusAtTime(
         State memory state_,
         uint256 timestamp_
-    ) public pure returns (uint256 status_) {
+    ) public pure returns (VerifyStatus status_) {
         // The state hasn't even been added so is picking up time zero as the
         // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
@@ -326,11 +329,20 @@ contract Verify is AccessControl {
         }
     }
 
+    /// @inheritdoc IVerifyV1
+    function accountStatusAtTime(
+        address account_,
+        uint timestamp_
+    ) external view virtual returns (VerifyStatus) {
+        return statusAtTime(states[account_], timestamp_);
+    }
+
     /// Requires that `msg.sender` is approved as at the current timestamp.
     modifier onlyApproved() {
         require(
-            statusAtTime(states[msg.sender], block.timestamp) ==
-                VerifyConstants.STATUS_APPROVED,
+            statusAtTime(states[msg.sender], block.timestamp).eq(
+                VerifyConstants.STATUS_APPROVED
+            ),
             "ONLY_APPROVED"
         );
         _;
@@ -346,10 +358,10 @@ contract Verify is AccessControl {
     /// @param data_ The evidence to support approving the `msg.sender`.
     function add(bytes calldata data_) external {
         State memory state_ = states[msg.sender];
-        uint256 currentStatus_ = statusAtTime(state_, block.timestamp);
+        VerifyStatus currentStatus_ = statusAtTime(state_, block.timestamp);
         require(
-            currentStatus_ != VerifyConstants.STATUS_APPROVED &&
-                currentStatus_ != VerifyConstants.STATUS_BANNED,
+            !currentStatus_.eq(VerifyConstants.STATUS_APPROVED) &&
+                !currentStatus_.eq(VerifyConstants.STATUS_BANNED),
             "ALREADY_EXISTS"
         );
         // An account that hasn't already been added need a new state.
@@ -359,7 +371,7 @@ contract Verify is AccessControl {
         // provider, e.g. to implement a commit+reveal scheme or simply
         // request additional evidence from the applicant before final
         // verdict.
-        if (currentStatus_ == VerifyConstants.STATUS_NIL) {
+        if (currentStatus_.eq(VerifyConstants.STATUS_NIL)) {
             states[msg.sender] = newState();
         }
         Evidence memory evidence_ = Evidence(msg.sender, data_);
@@ -369,7 +381,7 @@ contract Verify is AccessControl {
         // requirements.
         // The inheriting contract MUST `require` or otherwise enforce its
         // needs to rollback a bad add.
-        IVerifyCallback callback_ = callback;
+        IVerifyCallbackV1 callback_ = callback;
         if (address(callback_) != address(0)) {
             Evidence[] memory evidences_ = new Evidence[](1);
             evidences_[0] = evidence_;
@@ -440,7 +452,7 @@ contract Verify is AccessControl {
                 // for offchain review.
                 emit Approve(msg.sender, evidence_);
             }
-            IVerifyCallback callback_ = callback;
+            IVerifyCallbackV1 callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
                     addedRefs_.truncate(additions_);
@@ -516,7 +528,7 @@ contract Verify is AccessControl {
                 // review.
                 emit Ban(msg.sender, evidence_);
             }
-            IVerifyCallback callback_ = callback;
+            IVerifyCallbackV1 callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (additions_ > 0) {
                     addedRefs_.truncate(additions_);
@@ -564,7 +576,7 @@ contract Verify is AccessControl {
                 }
                 emit Remove(msg.sender, evidence_);
             }
-            IVerifyCallback callback_ = callback;
+            IVerifyCallbackV1 callback_ = callback;
             if (address(callback_) != address(0)) {
                 if (removals_ > 0) {
                     removedRefs_.truncate(removals_);

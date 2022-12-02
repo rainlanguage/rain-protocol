@@ -5,5 +5,4 @@ export * from "./sale/deploy";
 export * from "./stake/deploy";
 export * from "./tier/combineTier/deploy";
 export * from "./tier/readWriteTier/deploy";
-export * from "./tier/verifyTier/deploy";
 export * from "./verify/deploy";
