@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
-    "@openzeppelin/contracts-upgradeable": "=4.7.3"
+    "@openzeppelin/contracts-upgradeable": "=4.8.0"
   },
   "overrides": {
     "solhint": {
