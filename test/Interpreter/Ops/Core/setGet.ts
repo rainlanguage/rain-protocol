@@ -5,19 +5,21 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 
 import {
+  assertError,
   memoryOperand,
   MemoryType,
   op,
   RainterpreterOps,
+  randomUint256,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { iinterpreterV1ConsumerDeploy , expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = RainterpreterOps;
 
-describe("SET/GET Opcode tests", async function () {
+describe("SET/GET Opcode tests", async function () { 
 
-  it.only("should update the key in stateChange array when same key is set more than once", async () => {
+  it("should update the key in stateChange array when same key is set more than once", async () => {
     const key1 = 100;
     const val1 = ethers.constants.MaxUint256;
     const val2 = 555;
@@ -340,171 +342,88 @@ describe("SET/GET Opcode tests", async function () {
     assert(key_.eq(key), "Invalid key");
     assert(val_.eq(val), "Invalid value");
   });   
-
-
-  // it("should set a key value pair and overwrite it", async () => {
-  //   const key1 = 100;
-  //   const key2 = 200;
-
-  //   const val1 = ethers.constants.MaxUint256;
-  //   const val2 = 555;
-
-  //   const constants = [key1, val1, key2 ];
-
-  //   // prettier-ignore
-  //   const source = concat([
-  //       // SET key1
-  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-  //     op(Opcode.SET),
-
-  //       // GET KEY 1
-  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-  //     op(Opcode.GET),
-      
-      
-      
-  //       // GET KEY 1
-  //       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2 )), // key
-  //     op(Opcode.GET),
-      
-  //   ]);
-
-  //   const { consumerLogic, interpreter, dispatch } =
-  //     await iinterpreterV1ConsumerDeploy({
-  //       sources: [source],
-  //       constants,
-  //     });
-
-  //   // Eval
-  //   await consumerLogic.eval(interpreter.address, dispatch, [[]]);
-
-  //   const stack = await consumerLogic.stack(); 
-    
-  //   console.log("stack : " , stack )
-
-  //   // assert(stack.length == 2, "Invalid stack length");
-  //   // assert(stack[0].eq(constants[1]), "Invalid value was SET / GET for key 1");
-  //   // assert(stack[1].eq(constants[2]), "Invalid value was SET / GET for key 1"); 
-
-
-  // });
-
-
+  
 
 }); 
 
 
-describe.only("SET/GET Opcode tests with eval namespace", async function () { 
+describe("SET/GET Opcode tests with eval namespace", async function () { 
   
   let rainInterpreter: Rainterpreter; 
-  let consumerLogic : IInterpreterV1Consumer
+  let consumerLogicA : IInterpreterV1Consumer
   let consumerLogicB : IInterpreterV1Consumer 
 
 
-  before(async () => { 
+  beforeEach(async () => { 
     rainInterpreter = await rainterpreterDeploy();  
     const consumerFactory = await ethers.getContractFactory("IInterpreterV1Consumer"); 
     
-    consumerLogic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
-    await consumerLogic.deployed();  
+    consumerLogicA = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await consumerLogicA.deployed();  
 
     consumerLogicB = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
     await consumerLogicB.deployed(); 
 
   }); 
 
-  it("should set a key value pair and overwrite it", async () => {
-    const key1 = 100;
-    const key2 = 200;
-    const val1 = 901
-    const val2 = 902
+     
+  it("should ensure that set adds keys to state changes array", async () => { 
 
-
-
-    const constantsA = [key1, val1 ];
+    const key = 123;
+    const val = 456; 
+    const constants = [key, val];
 
     // prettier-ignore
     const sourceA = concat([
-        // SET key1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET),
-
-        // GET KEY 1
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.GET),
-    ]);
-
-    const expressionA =
-      await expressionDeployConsumer({
-        sources: [sourceA],
-        constants : constantsA,
-      } , rainInterpreter);
-
-    // Eval
-    await consumerLogic.eval(rainInterpreter.address, expressionA.dispatch, [[]]);
-
-    const stackA = await consumerLogic.stack(); 
-    
-    console.log("stackA : " , stackA ) 
-
-
-    const constantsB = [key2 , val2 ];
-
-    // prettier-ignore
-    const sourceB = concat([
-        
-        // SET key1
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-        op(Opcode.SET),
-
-        // GET KEY 1
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.GET),
-
+      op(Opcode.SET) 
       
     ]);
 
-    const expressionB =
-      await expressionDeployConsumer({
-        sources: [sourceB],
-        constants : constantsB,
-      } , rainInterpreter);
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constants
+         } ,
+         rainInterpreter 
+      );
 
-    // Eval
-    await consumerLogic.eval(rainInterpreter.address, expressionB.dispatch, [[]]);
+    await consumerLogicA.eval(rainInterpreter.address,   expressionA.dispatch, [[]]); 
 
-    const stackB = await consumerLogic.stack(); 
-    
-    console.log("stackB : " , stackB ) 
+    const stateChanges_ = await consumerLogicA["stateChanges()"]() 
+    await consumerLogicA["stateChanges(address,uint256[])"](rainInterpreter.address ,stateChanges_ )
+  
+     // Asserting StateChanges array
+    const stateChanges = await consumerLogicA["stateChanges()"](); 
 
-    const stateChanges = await consumerLogic["stateChanges()"]();  
-
-    console.log("stateChanges : " , stateChanges ) 
-
-    
+    assert(stateChanges.length == 2, "Invalid stateChanges length");
+    assert(stateChanges[0].eq(key), "Invalid Key set in stateChange");
+    assert(stateChanges[1].eq(val), "Invalid Value set in stateChange"); 
 
 
   });
-  
 
-  it.only("should set a value with same key in same namespace for different callers", async () => { 
+  it("should share set/get values across all expressions from the calling contract if namespace is not set", async () => { 
 
-    const key = 123;
-    const val1 = 456; 
-    const val2 = 789; 
-    const namespace = 363
+    const key1 = 111111;
+    const val1 = randomUint256();  
+    const key2 = 222222 
+    const val2 = randomUint256()
+    const constantsA = [key1, val1 , key2 , val2]; 
+    const constantsB = [key1, key2]; 
 
-    const constantsA = [key, val1];
-    const constantsB = [key, val2];
 
     // prettier-ignore
     const sourceA = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET),
+        op(Opcode.SET) ,
+
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // val
+        op(Opcode.SET) 
+      
     ]);
 
     const expressionA =await expressionDeployConsumer(
@@ -515,49 +434,439 @@ describe.only("SET/GET Opcode tests with eval namespace", async function () {
          rainInterpreter 
       );
 
-    await consumerLogic.evalWithNamespace(rainInterpreter.address, namespace,  expressionA.dispatch, [[]]);
+    await consumerLogicA.eval(rainInterpreter.address,   expressionA.dispatch, [[]]); 
 
-    const stateChangesA = await consumerLogic["stateChanges()"](); 
-   
-     // StackTop
-    const keyA = stateChangesA[0];
-    const valA = stateChangesA[1];
-
-    assert(keyA.eq(key), "Invalid key");
-    assert(valA.eq(val1), "Invalid value");
-
-    // prettier-ignore
-    const sourceB = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET),
-    ]);  
-
-    let expressionB = await expressionDeployConsumer(
-      {
-        sources: [sourceB],
-        constants: constantsB,
-      } ,
-      rainInterpreter 
-   );  
-
-    await consumerLogic.evalWithNamespace(rainInterpreter.address, namespace,  expressionB.dispatch, [[]]);
-
-    const stateChangesB = await consumerLogic["stateChanges()"]();   
-
-
-    // StackTop
-    const keyB = stateChangesB[0];
-    const valB = stateChangesB[1];
-
-    assert(keyB.eq(key), "Invalid key");
-    assert(valB.eq(val2), "Invalid value");
-
-
-  });    
-
+    // Saving state changes in interpreter storage
+    const stateChanges_ = await consumerLogicA["stateChanges()"]() 
+    await consumerLogicA["stateChanges(address,uint256[])"](rainInterpreter.address ,stateChanges_ )
+  
+     // Asserting StateChanges array
+    const stateChanges = await consumerLogicA["stateChanges()"]();  
 
   
 
+    assert(stateChanges.length == 4, "Invalid stateChanges length");
+    assert(stateChanges[0].eq(key2), "Invalid Key set in stateChange");
+    assert(stateChanges[1].eq(val2), "Invalid Value set in stateChange");
+    assert(stateChanges[2].eq(key1), "Invalid Key set in stateChange");
+    assert(stateChanges[3].eq(val1), "Invalid Value set in stateChange"); 
 
+
+    // prettier-ignore
+    const sourceB = concat([
+      // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // key
+        op(Opcode.GET), 
+
+        // GET KEY 2
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.GET)
+      
+    ]);  
+
+      const expressionB =await expressionDeployConsumer(
+          {
+            sources: [sourceB],
+            constants: constantsB
+          } ,
+          rainInterpreter 
+      );   
+     
+
+      await consumerLogicA.eval(rainInterpreter.address, expressionB.dispatch, [[]]);   
+
+      //Asserting stack
+      const stack = await consumerLogicA.stack();   
+
+      assert(stack.length == 2, "Invalid stack length");
+      assert(stack[0].eq(val2), "Invalid value was SET / GET for key 1");
+      assert(stack[1].eq(val1), "Invalid value was SET / GET for key 2");
+
+        
+
+
+  });  
+  
+  it("should not share set/get values across expressions for different calling contract if namespace is not set", async () => { 
+
+    const key = 111111;
+    const val = randomUint256(); 
+    const constants = [key, val];
+    let stateChanges_ 
+
+    // prettier-ignore
+    const sourceA = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET) 
+    ]);
+
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constants
+         } ,
+         rainInterpreter 
+      );
+
+    await consumerLogicA.eval(rainInterpreter.address,   expressionA.dispatch, [[]]); 
+
+    stateChanges_ = await consumerLogicA["stateChanges()"]() 
+    await consumerLogicA["stateChanges(address,uint256[])"](rainInterpreter.address ,stateChanges_ )
+  
+     // Asserting StateChanges array
+    const stateChanges = await consumerLogicA["stateChanges()"](); 
+
+    assert(stateChanges.length == 2, "Invalid stateChanges length");
+    assert(stateChanges[0].eq(key), "Invalid Key set in stateChange");
+    assert(stateChanges[1].eq(val), "Invalid Value set in stateChange"); 
+
+
+    // prettier-ignore
+    const sourceB = concat([
+      // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.GET),
+      
+    ]);  
+
+      const expressionB =await expressionDeployConsumer(
+          {
+            sources: [sourceB],
+            constants: constants
+          } ,
+          rainInterpreter 
+      );   
+     
+
+      await consumerLogicB.eval(rainInterpreter.address, expressionB.dispatch, [[]]);   
+
+      //Asserting stack
+      const stack = await consumerLogicB.stack();   
+
+      assert(stack.length == 1, "Invalid stack length");
+      assert(stack[0].eq(0), "Invalid value was SET / GET for key" );
+        
+
+
+  });   
+  
+  it("should test that if namespace is set then set/get can only interact with other set/get in the same namespace as set by calling contract", async () => { 
+
+    const key = 111111;
+    const val = randomUint256(); 
+    const namespaceA = 999999
+    const namespaceB = 666666
+
+    const constants = [key, val];
+     
+
+    // prettier-ignore
+    const sourceA = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET) 
+      
+    ]);
+    
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constants
+         } ,
+         rainInterpreter 
+      );
+
+    await consumerLogicA.evalWithNamespace(rainInterpreter.address,  namespaceA ,  expressionA.dispatch, [[]]); 
+
+    // Saving interpreter state
+    const stateChanges_ = await consumerLogicA["stateChanges()"]() 
+    await consumerLogicA["stateChangesWithNamespace(address,uint256,uint256[])"](rainInterpreter.address,namespaceA,stateChanges_ )
+  
+     // Asserting StateChanges array
+    const stateChanges = await consumerLogicA["stateChanges()"](); 
+
+    assert(stateChanges.length == 2, "Invalid stateChanges length");
+    assert(stateChanges[0].eq(key), "Invalid Key set in stateChange");
+    assert(stateChanges[1].eq(val), "Invalid Value set in stateChange"); 
+
+    // B evals on different namespace 
+    // prettier-ignore
+    const sourceB = concat([
+      // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.GET),
+      
+    ]);  
+
+      const expressionB =await expressionDeployConsumer(
+          {
+            sources: [sourceB],
+            constants: constants
+          } ,
+          rainInterpreter 
+      );   
+     
+
+      await consumerLogicA.evalWithNamespace(rainInterpreter.address,namespaceB, expressionB.dispatch, [[]]);   
+
+      //Asserting stack
+      const stackB = await consumerLogicA.stack();    
+
+
+      assert(stackB.length == 1, "Invalid stack length");
+      assert(stackB[0].eq(0), "Invalid value was SET / GET for key 1" ); 
+
+      // C evals on correct namespace
+      // prettier-ignore
+    const sourceC = concat([
+      // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.GET),
+      
+    ]);  
+
+      const expressionC =await expressionDeployConsumer(
+          {
+            sources: [sourceC],
+            constants: constants
+          } ,
+          rainInterpreter 
+      );   
+     
+
+      await consumerLogicA.evalWithNamespace(rainInterpreter.address,namespaceA, expressionC.dispatch, [[]]);   
+
+      //Asserting stack
+      const stackA = await consumerLogicA.stack();    
+
+
+      assert(stackA.length == 1, "Invalid stack length");
+      assert(stackA[0].eq(val), "Invalid value was SET / GET for key 1" );
+        
+
+
+  });  
+
+  it("should ensure that calling set doesn't overwrite keys in the same namespace from a different calling contract", async () => { 
+
+    const key = 111111;
+    const val1 = randomUint256(); 
+    const val2 = randomUint256()
+    const namespaceA = 999999
+
+    const constantsA = [key, val1];
+    const constantsB = [key, val2];
+
+    // prettier-ignore
+    const sourceA = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET) 
+      
+    ]);
+    
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constantsA
+         } ,
+         rainInterpreter 
+      );
+
+    await consumerLogicA.evalWithNamespace(rainInterpreter.address,  namespaceA ,  expressionA.dispatch, [[]]); 
+
+    const _stateChangesA = await consumerLogicA["stateChanges()"]() 
+    await consumerLogicA["stateChangesWithNamespace(address,uint256,uint256[])"](rainInterpreter.address,namespaceA,_stateChangesA )
+  
+    // prettier-ignore
+    const sourceB = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+    op(Opcode.SET) 
+    
+  ]);
+  
+    const expressionB =await expressionDeployConsumer(
+        {
+            sources: [sourceB],
+            constants: constantsB
+        } ,
+        rainInterpreter 
+      );
+
+    await consumerLogicB.evalWithNamespace(rainInterpreter.address,  namespaceA ,  expressionB.dispatch, [[]]); 
+
+    const _stateChangesB = await consumerLogicB["stateChanges()"]() 
+    await consumerLogicB["stateChangesWithNamespace(address,uint256,uint256[])"](rainInterpreter.address,namespaceA,_stateChangesB )
+
+      // Asserting StateChanges array
+    const stateChangesA = await consumerLogicA["stateChanges()"](); 
+    const stateChangesB = await consumerLogicB["stateChanges()"](); 
+
+    assert(stateChangesA.length == 2, "Invalid stateChangesA length");
+    assert(stateChangesA[0].eq(key), "Invalid Key set in stateChangesA");
+    assert(stateChangesA[1].eq(val1), "Invalid Value set in stateChangesA");  
+
+    assert(stateChangesB.length == 2, "Invalid stateChangesB length");
+    assert(stateChangesB[0].eq(key), "Invalid Key set in stateChangesB");
+    assert(stateChangesB[1].eq(val2), "Invalid Value set in stateChangesB"); 
+
+
+  });  
+  
+  it("ensure that calling get on an unset key falls back to 0", async () => { 
+
+    const key1 = 111111;
+    const val1 = 123; 
+    const key2 = 222222
+  
+    const constantsA = [key1, val1];
+    const constantsB = [key2];
+
+    // prettier-ignore
+    const sourceA = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET) 
+      
+    ]);
+    
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constantsA
+         } ,
+         rainInterpreter 
+      );
+
+    await consumerLogicA.eval(rainInterpreter.address ,  expressionA.dispatch, [[]]); 
+
+    const _stateChangesA = await consumerLogicA["stateChanges()"]()  
+    await consumerLogicA["stateChanges(address,uint256[])"](rainInterpreter.address,_stateChangesA )
+  
+    // prettier-ignore
+      const sourceB = concat([
+        // GET KEY 2
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.GET), 
+      
+    ]);
+  
+    const expressionB =await expressionDeployConsumer(
+        {
+            sources: [sourceB],
+            constants: constantsB
+        } ,
+        rainInterpreter 
+      );
+
+    await consumerLogicA.eval(rainInterpreter.address ,  expressionB.dispatch, [[]]); 
+
+     //Asserting stack
+     const stack = await consumerLogicA.stack();   
+     console.log("stack in evalpop: " , stack )
+     assert(stack.length == 1, "Invalid stack length");
+     assert(stack[0].eq(0), "Invalid value was SET / GET for key" );
+
+  }); 
+  
+  it("ensure that calling get returns the latest set value with priority over previous calls to set", async () => { 
+
+    const key = 111;
+    const val1 = 456; 
+    const val2 = 789 ;
+    const val3 = 123
+      
+    const constantsA = [key, val1 , val2 ];
+    const constantsB = [key , val3];
+    const constantsC = [key] 
+
+    // prettier-ignore
+    const sourceA = concat([ 
+      // set key1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET) , 
+
+      // override previous set
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // val
+      op(Opcode.SET) 
+      
+    ]);
+    
+    const expressionA =await expressionDeployConsumer(
+         {
+            sources: [sourceA],
+            constants: constantsA
+         } ,
+         rainInterpreter 
+      );
+
+    await consumerLogicA.eval(rainInterpreter.address, expressionA.dispatch, [[]]); 
+
+    const _stateChangesA = await consumerLogicA["stateChanges()"]()      
+    // Assert State Change
+    assert(_stateChangesA.length == 2, "Invalid stateChanges length");
+    assert(_stateChangesA[0].eq(key), "Invalid Key set in stateChange");
+    assert(_stateChangesA[1].eq(val2), "Invalid Value set in stateChange"); 
+
+    await consumerLogicA["stateChanges(address,uint256[])"](rainInterpreter.address,_stateChangesA )
+  
+    // prettier-ignore
+    const sourceB = concat([ 
+      // override set again by different expression
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+    op(Opcode.SET) 
+    
+  ]);
+  
+    const expressionB =await expressionDeployConsumer(
+        {
+            sources: [sourceB],
+            constants: constantsB
+        } ,
+        rainInterpreter 
+      );
+
+    await consumerLogicA.eval(rainInterpreter.address, expressionB.dispatch, [[]]);   
+
+    const _stateChangesB = await consumerLogicA["stateChanges()"]()   
+
+    //assert state change
+    assert(_stateChangesB.length == 2, "Invalid stateChanges length");
+    assert(_stateChangesB[0].eq(key), "Invalid Key set in stateChange");
+    assert(_stateChangesB[1].eq(val3), "Invalid Value set in stateChange");  
+
+    await consumerLogicA["stateChanges(address,uint256[])"](rainInterpreter.address,_stateChangesB )
+
+    
+     // prettier-ignore
+     const sourceC = concat([ 
+      // GET latest SET value
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.GET) 
+    ]); 
+
+    const expressionC =await expressionDeployConsumer(
+      {
+          sources: [sourceC],
+          constants: constantsC
+      } ,
+      rainInterpreter 
+    );
+
+    await consumerLogicA.eval(rainInterpreter.address, expressionC.dispatch, [[]]);   
+    
+    //Asserting stack
+    const stack = await consumerLogicA.stack();   
+    assert(stack.length == 1, "Invalid stack length");
+    assert(stack[0].eq(val3), "Invalid value was SET / GET for key" );
+
+  });
+
+
+  
 });
