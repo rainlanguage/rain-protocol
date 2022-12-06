@@ -16,6 +16,58 @@ import { iinterpreterV1ConsumerDeploy , expressionDeployConsumer } from "../../.
 const Opcode = RainterpreterOps;
 
 describe("SET/GET Opcode tests", async function () {
+
+  it.only("should update the key in stateChange array when same key is set more than once", async () => {
+    const key1 = 100;
+    const val1 = ethers.constants.MaxUint256;
+    const val2 = 555;
+
+    const constants = [key1, val1, val2];
+
+    // prettier-ignore
+    const source = concat([
+        // SET key1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
+      op(Opcode.SET),
+
+        // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+      op(Opcode.GET),
+      
+        // SET key1 again
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // val
+      op(Opcode.SET),
+      
+        // GET KEY 1
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0 )), // key
+      op(Opcode.GET),
+      
+    ]);
+
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources: [source],
+        constants,
+      });
+
+    // Eval
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+
+    // Asserting StateChanges array
+    const stateChanges = await consumerLogic["stateChanges()"]();
+    assert(stateChanges.length == 2, "Invalid stateChanges length");
+    assert(stateChanges[0].eq(key1), "Invalid Key set in stateChange");
+    assert(stateChanges[1].eq(val2), "Invalid Value set in stateChange");
+
+    // Asserting stack
+    const stack = await consumerLogic.stack();
+    assert(stack.length == 2, "Invalid stack length");
+    assert(stack[0].eq(constants[1]), "Invalid value was SET / GET for key 1");
+    assert(stack[1].eq(constants[2]), "Invalid value was SET / GET for key 1");
+  });
+
   it("should set a key value pair and overwrite it", async () => {
     const key1 = 100;
     const val1 = ethers.constants.MaxUint256;
