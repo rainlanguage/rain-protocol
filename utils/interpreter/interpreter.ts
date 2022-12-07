@@ -135,3 +135,21 @@ export function selectLte(
   const operand = (logic << 13) + (mode << 8) + inputSize;
   return operand;
 }
+
+/**
+ * Builds the operand for RainInterpreter's `FOLD_CONTEXT` opcode by packing 4 numbers into 2 bytes.
+ *
+ * @param sourceIndex - index of function source
+ * @param column - column to start from
+ * @param width - width of the column
+ * @param inputs - accumulator input count
+ */
+ export function foldContextOperand(
+  sourceIndex: number,
+  column: number,
+  width: number,
+  inputs: number,
+): number {
+  const operand = (inputs << 12) + (width << 8) + (column << 4) + sourceIndex;
+  return operand;
+}
