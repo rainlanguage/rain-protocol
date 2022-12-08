@@ -406,6 +406,10 @@ contract OrderBook is
                     uint256 input_ = remainingInput_.min(orderOutputMax_);
                     uint256 output_ = input_.fixedPointMul(orderIORatio_);
 
+                    console.log("input_", input_);
+                    console.log("output_", output_);
+                    console.log("orderIORatio_", orderIORatio_);
+
                     remainingInput_ -= input_;
                     totalOutput_ += output_;
 

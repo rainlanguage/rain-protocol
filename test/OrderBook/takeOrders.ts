@@ -21,11 +21,18 @@ import {
   TakeOrderEvent,
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { AllStandardOps, assertError, randomUint256 } from "../../utils";
+import {
+  AllStandardOps,
+  assertError,
+  fixedPointMul,
+  randomUint256,
+} from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
   ONE,
+  sixZeros,
+  twentyZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -76,7 +83,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDERS
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const askOrderOutputMax = amountB.sub(1); // will only sell 999 tokenBs to each buyer
     const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
@@ -285,7 +292,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -375,7 +382,7 @@ describe("OrderBook take orders", async function () {
     );
   });
 
-  it.only("should autoscale expression ratio based on input/output token decimals", async function () {
+  it("should autoscale expression ratio based on input/output token decimals", async function () {
     const signers = await ethers.getSigners();
 
     // e.g. tether
@@ -436,9 +443,7 @@ describe("OrderBook take orders", async function () {
       },
     };
 
-    const txAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(orderConfig);
+    const txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
 
     const { order } = (await getEventArgs(
       txAddOrder,
@@ -454,15 +459,15 @@ describe("OrderBook take orders", async function () {
       amount: 1,
     };
 
-    await tokenX.transfer(alice.address, 1)
+    await tokenX.transfer(alice.address, 1);
     await tokenX.connect(alice).approve(orderBook.address, 1);
-    await orderBook.connect(alice).deposit(depositX)
+    await orderBook.connect(alice).deposit(depositX);
 
     // TAKE ORDER
 
     // For the math below to work without loss of precision we need Y decimals
     // to be larger than X decimals because we've only deposited 1 of X.
-    assert(YDec >= XDec)
+    assert(YDec >= XDec);
     const takeOrdersConfig: TakeOrdersConfigStruct = {
       output: tokenY.address,
       input: tokenX.address,
@@ -472,26 +477,38 @@ describe("OrderBook take orders", async function () {
       // 1e18 = 1:1
       maximumIORatio: ethers.BigNumber.from("10").pow(18 + YDec - XDec),
       // inputs and outputs are inverse from order's perspective
-      orders: [{ order, inputIOIndex: 1, outputIOIndex: 0 }]
-    }
+      orders: [{ order, inputIOIndex: 1, outputIOIndex: 0 }],
+    };
 
-    const amountY = ethers.BigNumber.from("10").pow(YDec - XDec)
-    await tokenY.transfer(bob.address, amountY)
+    const amountY = ethers.BigNumber.from("10").pow(YDec - XDec);
+    await tokenY.transfer(bob.address, amountY);
 
-    const bobBeforeX = await tokenX.balanceOf(bob.address)
-    const bobBeforeY = await tokenY.balanceOf(bob.address)
+    const bobBeforeX = await tokenX.balanceOf(bob.address);
+    const bobBeforeY = await tokenY.balanceOf(bob.address);
 
-    assert(bobBeforeX.eq(0), `wrong X balance before expected 0 got ${bobBeforeX}`)
-    assert(bobBeforeY.eq(amountY), `wrong Y balance after expected ${amountY} got ${bobBeforeY}`)
+    assert(
+      bobBeforeX.eq(0),
+      `wrong X balance before expected 0 got ${bobBeforeX}`
+    );
+    assert(
+      bobBeforeY.eq(amountY),
+      `wrong Y balance after expected ${amountY} got ${bobBeforeY}`
+    );
 
-    await tokenY.connect(bob).approve(orderBook.address, amountY)
-    await orderBook.connect(bob).takeOrders(takeOrdersConfig)
+    await tokenY.connect(bob).approve(orderBook.address, amountY);
+    await orderBook.connect(bob).takeOrders(takeOrdersConfig);
 
-    const bobAfterX = await tokenX.balanceOf(bob.address)
-    const bobAfterY = await tokenY.balanceOf(bob.address)
+    const bobAfterX = await tokenX.balanceOf(bob.address);
+    const bobAfterY = await tokenY.balanceOf(bob.address);
 
-    assert(bobAfterX.eq(1), `wrong X balance after expected 1 got ${bobAfterX}`)
-    assert(bobAfterY.eq(0), `wrong Y balance after expected 0 got ${bobAfterY}`)
+    assert(
+      bobAfterX.eq(1),
+      `wrong X balance after expected 1 got ${bobAfterX}`
+    );
+    assert(
+      bobAfterY.eq(0),
+      `wrong Y balance after expected 0 got ${bobAfterY}`
+    );
 
     // INVERSE
 
@@ -501,18 +518,24 @@ describe("OrderBook take orders", async function () {
       minimumInput: amountY,
       maximumInput: amountY,
       maximumIORatio: ethers.BigNumber.from("10").pow(18 + XDec - YDec),
-      orders: [{order, inputIOIndex: 0, outputIOIndex: 1}]
-    }
+      orders: [{ order, inputIOIndex: 0, outputIOIndex: 1 }],
+    };
 
-    await tokenX.connect(bob).approve(orderBook.address, 1)
-    await orderBook.connect(bob).takeOrders(inverseTakeOrdersConfig)
+    await tokenX.connect(bob).approve(orderBook.address, 1);
+    await orderBook.connect(bob).takeOrders(inverseTakeOrdersConfig);
 
-    const bobInverseX = await tokenX.balanceOf(bob.address)
-    const bobInverseY = await tokenY.balanceOf(bob.address)
+    const bobInverseX = await tokenX.balanceOf(bob.address);
+    const bobInverseY = await tokenY.balanceOf(bob.address);
 
-    assert(bobInverseX.eq(bobBeforeX), `wrong inverse X balance expected ${bobBeforeX} got ${bobInverseX}`)
-    assert(bobInverseY.eq(bobBeforeY), `wrong inverse Y balance expected ${bobBeforeY} got ${bobInverseY}`)
-  })
+    assert(
+      bobInverseX.eq(bobBeforeX),
+      `wrong inverse X balance expected ${bobBeforeX} got ${bobInverseX}`
+    );
+    assert(
+      bobInverseY.eq(bobBeforeY),
+      `wrong inverse Y balance expected ${bobBeforeY} got ${bobInverseY}`
+    );
+  });
 
   describe("should scale outputMax with decimals", () => {
     it("should scale outputMax based on input/output token decimals (input token has SAME decimals as output: 6 vs 6)", async function () {
@@ -543,13 +566,13 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       // note 18 decimals for outputMax
-      // 3e18 means that only 3 units of tokenB can be outputted per order
-      const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+      // 1e18 means that only 1 unit of tokenB can be outputted per order
+      const askOutputMax = ethers.BigNumber.from(1 + eighteenZeros);
 
       const askConstants = [askOutputMax, askRatio];
       const vAskOutputMax = op(
@@ -631,10 +654,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB06.address,
@@ -671,18 +692,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA06.address,
         input: tokenB06.address,
-        minimumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumIORatio: askRatio,
+        minimumInput: depositAmountB, // 2 orders, without outputMax limit this would be depositAmountB.mul(2)
+        maximumInput: depositAmountB,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA06.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -710,13 +738,25 @@ describe("OrderBook take orders", async function () {
       const [takeOrderAlice, takeOrderBob] = events;
 
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
-      assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderAlice.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderAlice.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderAlice.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
-      assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderBob.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderBob.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderBob.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
@@ -730,8 +770,8 @@ describe("OrderBook take orders", async function () {
       assert(tokenBAliceBalance.isZero()); // Alice has not yet withdrawn
       assert(tokenABobBalance.isZero()); // Bob has not yet withdrawn
       assert(tokenBBobBalance.isZero()); // Bob has not yet withdrawn
-      assert(tokenACarolBalance.eq(depositAmountA.sub(askOutputMax.mul(2)))); // 1e18 ratio, 2 orders
-      assert(tokenBCarolBalance.eq(askOutputMax.mul(2)));
+      assert(tokenACarolBalance.eq(depositAmountA)); // this is what is leftover since not all of Carol's approved tokenA could be used when taking orders with max output of 1, without output limit this would be depositAmountA.mul(2)
+      assert(tokenBCarolBalance.eq(depositAmountB)); // similarly, this is only what Carol could get from Alice and Bob's orders, without output limit this would be depositAmountB.mul(2)
 
       await orderBook.connect(alice).withdraw({
         token: tokenA06.address,
@@ -778,26 +818,26 @@ describe("OrderBook take orders", async function () {
         alice.address
       );
       const tokenBBobBalanceWithdrawn = await tokenB06.balanceOf(bob.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenABobBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
-      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
+      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenABobBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.div(2)));
+      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.div(2)));
     });
 
     it("should scale outputMax based on input/output token decimals (input token has LESS decimals than output: 20 vs 6)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 20;
+      const tokenBDecimals = 6;
+
       const tokenA20 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        20,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA20.initialize();
       await tokenB06.initialize();
-
-      const tokenADecimals = await tokenA20.decimals();
-      const tokenBDecimals = await tokenB06.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -812,13 +852,13 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       // note 18 decimals for outputMax
-      // 3e18 means that only 3 units of tokenB can be outputted per order
-      const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+      // 1e18 means that only 1 unit of tokenB can be outputted per order
+      const askOutputMax = ethers.BigNumber.from(1 + eighteenZeros);
 
       const askConstants = [askOutputMax, askRatio];
       const vAskOutputMax = op(
@@ -900,10 +940,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB06.address,
@@ -940,18 +978,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA20.address,
         input: tokenB06.address,
-        minimumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumIORatio: askRatio,
+        minimumInput: depositAmountB, // 2 orders, without outputMax limit this would be depositAmountB.mul(2)
+        maximumInput: depositAmountB,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA20.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -979,13 +1024,25 @@ describe("OrderBook take orders", async function () {
       const [takeOrderAlice, takeOrderBob] = events;
 
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
-      assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderAlice.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderAlice.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderAlice.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
-      assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderBob.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderBob.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderBob.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA20.balanceOf(alice.address);
@@ -999,8 +1056,8 @@ describe("OrderBook take orders", async function () {
       assert(tokenBAliceBalance.isZero()); // Alice has not yet withdrawn
       assert(tokenABobBalance.isZero()); // Bob has not yet withdrawn
       assert(tokenBBobBalance.isZero()); // Bob has not yet withdrawn
-      assert(tokenACarolBalance.eq(depositAmountA.sub(askOutputMax.mul(2)))); // 1e18 ratio, 2 orders
-      assert(tokenBCarolBalance.eq(askOutputMax.mul(2)));
+      assert(tokenACarolBalance.eq(depositAmountA)); // this is what is leftover since not all of Carol's approved tokenA could be used when taking orders with max output of 1, without output limit this would be depositAmountA.mul(2)
+      assert(tokenBCarolBalance.eq(depositAmountB)); // similarly, this is only what Carol could get from Alice and Bob's orders, without output limit this would be depositAmountB.mul(2)
 
       await orderBook.connect(alice).withdraw({
         token: tokenA20.address,
@@ -1047,26 +1104,26 @@ describe("OrderBook take orders", async function () {
         alice.address
       );
       const tokenBBobBalanceWithdrawn = await tokenB06.balanceOf(bob.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenABobBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
-      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
+      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenABobBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.div(2)));
+      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.div(2)));
     });
 
     it("should scale outputMax based on input/output token decimals (input token has LESS decimals than output: 18 vs 6)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 18;
+      const tokenBDecimals = 6;
+
       const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        18,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA18.initialize();
       await tokenB06.initialize();
-
-      const tokenADecimals = await tokenA18.decimals();
-      const tokenBDecimals = await tokenB06.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -1081,13 +1138,13 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       // note 18 decimals for outputMax
-      // 3e18 means that only 3 units of tokenB can be outputted per order
-      const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+      // 1e18 means that only 1 unit of tokenB can be outputted per order
+      const askOutputMax = ethers.BigNumber.from(1 + eighteenZeros);
 
       const askConstants = [askOutputMax, askRatio];
       const vAskOutputMax = op(
@@ -1169,10 +1226,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB06.address,
@@ -1209,18 +1264,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA18.address,
         input: tokenB06.address,
-        minimumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumIORatio: askRatio,
+        minimumInput: depositAmountB, // 2 orders, without outputMax limit this would be depositAmountB.mul(2)
+        maximumInput: depositAmountB,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA18.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -1248,13 +1310,25 @@ describe("OrderBook take orders", async function () {
       const [takeOrderAlice, takeOrderBob] = events;
 
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
-      assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderAlice.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderAlice.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderAlice.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
-      assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderBob.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderBob.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderBob.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA18.balanceOf(alice.address);
@@ -1268,8 +1342,8 @@ describe("OrderBook take orders", async function () {
       assert(tokenBAliceBalance.isZero()); // Alice has not yet withdrawn
       assert(tokenABobBalance.isZero()); // Bob has not yet withdrawn
       assert(tokenBBobBalance.isZero()); // Bob has not yet withdrawn
-      assert(tokenACarolBalance.eq(depositAmountA.sub(askOutputMax.mul(2)))); // 1e18 ratio, 2 orders
-      assert(tokenBCarolBalance.eq(askOutputMax.mul(2)));
+      assert(tokenACarolBalance.eq(depositAmountA)); // this is what is leftover since not all of Carol's approved tokenA could be used when taking orders with max output of 1, without output limit this would be depositAmountA.mul(2)
+      assert(tokenBCarolBalance.eq(depositAmountB)); // similarly, this is only what Carol could get from Alice and Bob's orders, without output limit this would be depositAmountB.mul(2)
 
       await orderBook.connect(alice).withdraw({
         token: tokenA18.address,
@@ -1316,26 +1390,26 @@ describe("OrderBook take orders", async function () {
         alice.address
       );
       const tokenBBobBalanceWithdrawn = await tokenB06.balanceOf(bob.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenABobBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
-      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
+      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenABobBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.div(2)));
+      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.div(2)));
     });
 
     it("should scale outputMax based on input/output token decimals (input token has LESS decimals than output: 6 vs 20)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 6;
+      const tokenBDecimals = 20;
+
       const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB20 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        20,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA06.initialize();
       await tokenB20.initialize();
-
-      const tokenADecimals = await tokenA06.decimals();
-      const tokenBDecimals = await tokenB20.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -1350,13 +1424,13 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       // note 18 decimals for outputMax
-      // 3e18 means that only 3 units of tokenB can be outputted per order
-      const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+      // 1e18 means that only 1 unit of tokenB can be outputted per order
+      const askOutputMax = ethers.BigNumber.from(1 + eighteenZeros);
 
       const askConstants = [askOutputMax, askRatio];
       const vAskOutputMax = op(
@@ -1438,10 +1512,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + twentyZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB20.address,
@@ -1478,18 +1550,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA06.address,
         input: tokenB20.address,
-        minimumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumIORatio: askRatio,
+        minimumInput: depositAmountB, // 2 orders, without outputMax limit this would be depositAmountB.mul(2)
+        maximumInput: depositAmountB,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA06.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -1517,13 +1596,25 @@ describe("OrderBook take orders", async function () {
       const [takeOrderAlice, takeOrderBob] = events;
 
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
-      assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderAlice.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderAlice.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderAlice.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
-      assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderBob.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderBob.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderBob.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
@@ -1537,8 +1628,8 @@ describe("OrderBook take orders", async function () {
       assert(tokenBAliceBalance.isZero()); // Alice has not yet withdrawn
       assert(tokenABobBalance.isZero()); // Bob has not yet withdrawn
       assert(tokenBBobBalance.isZero()); // Bob has not yet withdrawn
-      assert(tokenACarolBalance.eq(depositAmountA.sub(askOutputMax.mul(2)))); // 1e18 ratio, 2 orders
-      assert(tokenBCarolBalance.eq(askOutputMax.mul(2)));
+      assert(tokenACarolBalance.eq(depositAmountA)); // this is what is leftover since not all of Carol's approved tokenA could be used when taking orders with max output of 1, without output limit this would be depositAmountA.mul(2)
+      assert(tokenBCarolBalance.eq(depositAmountB)); // similarly, this is only what Carol could get from Alice and Bob's orders, without output limit this would be depositAmountB.mul(2)
 
       await orderBook.connect(alice).withdraw({
         token: tokenA06.address,
@@ -1585,26 +1676,26 @@ describe("OrderBook take orders", async function () {
         alice.address
       );
       const tokenBBobBalanceWithdrawn = await tokenB20.balanceOf(bob.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenABobBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
-      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
+      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenABobBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.div(2)));
+      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.div(2)));
     });
 
     it("should scale outputMax based on input/output token decimals (input token has LESS decimals than output: 6 vs 18)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 6;
+      const tokenBDecimals = 18;
+
       const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB18 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        18,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA06.initialize();
       await tokenB18.initialize();
-
-      const tokenADecimals = await tokenA06.decimals();
-      const tokenBDecimals = await tokenB18.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -1619,13 +1710,13 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       // note 18 decimals for outputMax
-      // 3e18 means that only 3 units of tokenB can be outputted per order
-      const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+      // 1e18 means that only 1 unit of tokenB can be outputted per order
+      const askOutputMax = ethers.BigNumber.from(1 + eighteenZeros);
 
       const askConstants = [askOutputMax, askRatio];
       const vAskOutputMax = op(
@@ -1707,10 +1798,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + eighteenZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB18.address,
@@ -1747,18 +1836,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA06.address,
         input: tokenB18.address,
-        minimumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumIORatio: askRatio,
+        minimumInput: depositAmountB, // 2 orders, without outputMax limit this would be depositAmountB.mul(2)
+        maximumInput: depositAmountB,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA06.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -1786,13 +1882,25 @@ describe("OrderBook take orders", async function () {
       const [takeOrderAlice, takeOrderBob] = events;
 
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
-      assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderAlice.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderAlice.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderAlice.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
-      assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderBob.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderBob.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderBob.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA06.balanceOf(alice.address);
@@ -1806,8 +1914,8 @@ describe("OrderBook take orders", async function () {
       assert(tokenBAliceBalance.isZero()); // Alice has not yet withdrawn
       assert(tokenABobBalance.isZero()); // Bob has not yet withdrawn
       assert(tokenBBobBalance.isZero()); // Bob has not yet withdrawn
-      assert(tokenACarolBalance.eq(depositAmountA.sub(askOutputMax.mul(2)))); // 1e18 ratio, 2 orders
-      assert(tokenBCarolBalance.eq(askOutputMax.mul(2)));
+      assert(tokenACarolBalance.eq(depositAmountA)); // this is what is leftover since not all of Carol's approved tokenA could be used when taking orders with max output of 1, without output limit this would be depositAmountA.mul(2)
+      assert(tokenBCarolBalance.eq(depositAmountB)); // similarly, this is only what Carol could get from Alice and Bob's orders, without output limit this would be depositAmountB.mul(2)
 
       await orderBook.connect(alice).withdraw({
         token: tokenA06.address,
@@ -1854,26 +1962,26 @@ describe("OrderBook take orders", async function () {
         alice.address
       );
       const tokenBBobBalanceWithdrawn = await tokenB18.balanceOf(bob.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenABobBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
-      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
+      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenABobBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.div(2)));
+      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.div(2)));
     });
 
     it("should scale outputMax based on input/output token decimals (input token has LESS decimals than output: 0 vs 18)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 0;
+      const tokenBDecimals = 18;
+
       const tokenA00 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        0,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB18 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        18,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA00.initialize();
       await tokenB18.initialize();
-
-      const tokenADecimals = await tokenA00.decimals();
-      const tokenBDecimals = await tokenB18.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -1888,13 +1996,13 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       // note 18 decimals for outputMax
-      // 3e18 means that only 3 units of tokenB can be outputted per order
-      const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+      // 1e18 means that only 1 unit of tokenB can be outputted per order
+      const askOutputMax = ethers.BigNumber.from(1 + eighteenZeros);
 
       const askConstants = [askOutputMax, askRatio];
       const vAskOutputMax = op(
@@ -1976,10 +2084,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + eighteenZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB18.address,
@@ -2016,18 +2122,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA00.address,
         input: tokenB18.address,
-        minimumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumInput: askOutputMax.mul(2), // 1e18 ratio, 2 orders
-        maximumIORatio: askRatio,
+        minimumInput: depositAmountB, // 2 orders, without outputMax limit this would be depositAmountB.mul(2)
+        maximumInput: depositAmountB,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA00.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -2055,13 +2168,25 @@ describe("OrderBook take orders", async function () {
       const [takeOrderAlice, takeOrderBob] = events;
 
       assert(takeOrderAlice.sender === carol.address, "wrong sender");
-      assert(takeOrderAlice.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderAlice.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderAlice.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderAlice.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderAlice.takeOrder, takeOrderConfigStructAlice);
 
       assert(takeOrderBob.sender === carol.address, "wrong sender");
-      assert(takeOrderBob.input.eq(depositAmountB), "wrong input");
-      assert(takeOrderBob.output.eq(askOutputMax), "wrong output");
+      assert(
+        takeOrderBob.input.eq(depositAmountB.div(2)),
+        "wrong input, output max wasn't respected"
+      );
+      assert(
+        takeOrderBob.output.eq(depositAmountA.div(2)),
+        "wrong output, output max wasn't respected"
+      );
       compareStructs(takeOrderBob.takeOrder, takeOrderConfigStructBob);
 
       const tokenAAliceBalance = await tokenA00.balanceOf(alice.address);
@@ -2075,8 +2200,8 @@ describe("OrderBook take orders", async function () {
       assert(tokenBAliceBalance.isZero()); // Alice has not yet withdrawn
       assert(tokenABobBalance.isZero()); // Bob has not yet withdrawn
       assert(tokenBBobBalance.isZero()); // Bob has not yet withdrawn
-      assert(tokenACarolBalance.eq(depositAmountA.sub(askOutputMax.mul(2)))); // 1e18 ratio, 2 orders
-      assert(tokenBCarolBalance.eq(askOutputMax.mul(2)));
+      assert(tokenACarolBalance.eq(depositAmountA)); // this is what is leftover since not all of Carol's approved tokenA could be used when taking orders with max output of 1, without output limit this would be depositAmountA.mul(2)
+      assert(tokenBCarolBalance.eq(depositAmountB)); // similarly, this is only what Carol could get from Alice and Bob's orders, without output limit this would be depositAmountB.mul(2)
 
       await orderBook.connect(alice).withdraw({
         token: tokenA00.address,
@@ -2123,10 +2248,10 @@ describe("OrderBook take orders", async function () {
         alice.address
       );
       const tokenBBobBalanceWithdrawn = await tokenB18.balanceOf(bob.address);
-      assert(tokenAAliceBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenABobBalanceWithdrawn.eq(askOutputMax));
-      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
-      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.sub(askOutputMax)));
+      assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenABobBalanceWithdrawn.eq(depositAmountA.div(2)));
+      assert(tokenBAliceBalanceWithdrawn.eq(depositAmountB.div(2)));
+      assert(tokenBBobBalanceWithdrawn.eq(depositAmountB.div(2)));
     });
   });
 
@@ -2134,17 +2259,17 @@ describe("OrderBook take orders", async function () {
     it("should scale ratio based on input/output token decimals (input token has SAME decimals as output: 6 vs 6)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 6;
+      const tokenBDecimals = 6;
+
       const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA06.initialize();
       await tokenB06.initialize();
-
-      const tokenADecimals = await tokenA06.decimals();
-      const tokenBDecimals = await tokenB06.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -2159,9 +2284,9 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       const askConstants = [max_uint256, askRatio];
       const vAskOutputMax = op(
@@ -2243,10 +2368,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB06.address,
@@ -2283,18 +2406,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA06.address,
         input: tokenB06.address,
         minimumInput: depositAmountB.mul(2),
         maximumInput: depositAmountB.mul(2),
-        maximumIORatio: askRatio,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA06.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -2367,17 +2497,17 @@ describe("OrderBook take orders", async function () {
     it("should scale ratio based on input/output token decimals (input token has MORE decimals than output: 20 vs 6)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 20;
+      const tokenBDecimals = 6;
+
       const tokenA20 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        20,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA20.initialize();
       await tokenB06.initialize();
-
-      const tokenADecimals = await tokenA20.decimals();
-      const tokenBDecimals = await tokenB06.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -2392,9 +2522,9 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       const askConstants = [max_uint256, askRatio];
       const vAskOutputMax = op(
@@ -2476,10 +2606,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB06.address,
@@ -2516,18 +2644,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA20.address,
         input: tokenB06.address,
         minimumInput: depositAmountB.mul(2),
         maximumInput: depositAmountB.mul(2),
-        maximumIORatio: askRatio,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA20.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -2600,17 +2735,17 @@ describe("OrderBook take orders", async function () {
     it("should scale ratio based on input/output token decimals (input token has MORE decimals than output: 18 vs 6)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 18;
+      const tokenBDecimals = 6;
+
       const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        18,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA18.initialize();
       await tokenB06.initialize();
-
-      const tokenADecimals = await tokenA18.decimals();
-      const tokenBDecimals = await tokenB06.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -2625,9 +2760,9 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       const askConstants = [max_uint256, askRatio];
       const vAskOutputMax = op(
@@ -2709,10 +2844,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB06.address,
@@ -2749,18 +2882,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA18.address,
         input: tokenB06.address,
         minimumInput: depositAmountB.mul(2),
         maximumInput: depositAmountB.mul(2),
-        maximumIORatio: askRatio,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA18.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -2833,17 +2973,17 @@ describe("OrderBook take orders", async function () {
     it("should scale ratio based on input/output token decimals (input token has LESS decimals than output: 6 vs 20)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 6;
+      const tokenBDecimals = 20;
+
       const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB20 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        20,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA06.initialize();
       await tokenB20.initialize();
-
-      const tokenADecimals = await tokenA06.decimals();
-      const tokenBDecimals = await tokenB20.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -2858,9 +2998,9 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       const askConstants = [max_uint256, askRatio];
       const vAskOutputMax = op(
@@ -2942,10 +3082,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + twentyZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB20.address,
@@ -2982,18 +3120,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA06.address,
         input: tokenB20.address,
         minimumInput: depositAmountB.mul(2),
         maximumInput: depositAmountB.mul(2),
-        maximumIORatio: askRatio,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA06.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -3066,17 +3211,17 @@ describe("OrderBook take orders", async function () {
     it("should scale ratio based on input/output token decimals (input token has LESS decimals than output: 6 vs 18)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 6;
+      const tokenBDecimals = 18;
+
       const tokenA06 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        6,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB18 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        18,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA06.initialize();
       await tokenB18.initialize();
-
-      const tokenADecimals = await tokenA06.decimals();
-      const tokenBDecimals = await tokenB18.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -3091,9 +3236,9 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       const askConstants = [max_uint256, askRatio];
       const vAskOutputMax = op(
@@ -3175,10 +3320,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + eighteenZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB18.address,
@@ -3215,18 +3358,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA06.address,
         input: tokenB18.address,
         minimumInput: depositAmountB.mul(2),
         maximumInput: depositAmountB.mul(2),
-        maximumIORatio: askRatio,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA06.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -3299,17 +3449,17 @@ describe("OrderBook take orders", async function () {
     it("should scale ratio based on input/output token decimals (input token has LESS decimals than output: 0 vs 18)", async function () {
       const signers = await ethers.getSigners();
 
+      const tokenADecimals = 0;
+      const tokenBDecimals = 18;
+
       const tokenA00 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        0,
+        tokenADecimals,
       ])) as ReserveTokenDecimals;
       const tokenB18 = (await basicDeploy("ReserveTokenDecimals", {}, [
-        18,
+        tokenBDecimals,
       ])) as ReserveTokenDecimals;
       await tokenA00.initialize();
       await tokenB18.initialize();
-
-      const tokenADecimals = await tokenA00.decimals();
-      const tokenBDecimals = await tokenB18.decimals();
 
       const alice = signers[1];
       const bob = signers[2];
@@ -3324,9 +3474,9 @@ describe("OrderBook take orders", async function () {
 
       // ASK ORDERS
 
-      // note 18 decimals for ratio
-      // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-      const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+      // The ratio is 1:1 from the perspective of the expression.
+      // This is a statement of economic equivalence in 18 decimal fixed point.
+      const askRatio = ethers.BigNumber.from(10).pow(18);
 
       const askConstants = [max_uint256, askRatio];
       const vAskOutputMax = op(
@@ -3408,10 +3558,8 @@ describe("OrderBook take orders", async function () {
 
       // DEPOSIT
 
-      // Alice and Bob will each deposit 1000 units of tokenB
-      const depositAmountB = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenBDecimals)
-      );
+      // Alice and Bob will each deposit 2 units of tokenB
+      const depositAmountB = ethers.BigNumber.from(2 + eighteenZeros);
 
       const depositConfigStructAlice: DepositConfigStruct = {
         token: tokenB18.address,
@@ -3448,18 +3596,25 @@ describe("OrderBook take orders", async function () {
         outputIOIndex: 0,
       };
 
+      // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
+      const maximumIORatio = fixedPointMul(
+        askRatio,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
+      );
+
       const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
         output: tokenA00.address,
         input: tokenB18.address,
         minimumInput: depositAmountB.mul(2),
         maximumInput: depositAmountB.mul(2),
-        maximumIORatio: askRatio,
+        maximumIORatio,
         orders: [takeOrderConfigStructAlice, takeOrderConfigStructBob],
       };
 
-      // Carol will approve 2000 units of tokenA for direct transfer
-      const depositAmountA = ethers.BigNumber.from(
-        "1000" + "0".repeat(tokenADecimals)
+      // Similarly, we want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
+      const depositAmountA = fixedPointMul(
+        depositAmountB,
+        ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
       );
 
       await tokenA00.transfer(carol.address, depositAmountA.mul(2)); // 2 orders
@@ -3611,7 +3766,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -3770,7 +3925,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -3916,7 +4071,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -4039,7 +4194,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -4190,7 +4345,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,
@@ -4359,7 +4514,7 @@ describe("OrderBook take orders", async function () {
 
     // DEPOSIT
 
-    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const depositConfigStructAlice: DepositConfigStruct = {
       token: tokenB.address,

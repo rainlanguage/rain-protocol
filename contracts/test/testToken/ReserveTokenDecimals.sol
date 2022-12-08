@@ -18,8 +18,8 @@ contract ReserveTokenDecimals is ERC20, ERC20Burnable {
 
     constructor(uint256 decimals_) {
         DECIMALS = decimals_;
-        // One _billion_ dollars 👷😈.
-        TOTAL_SUPPLY = 10 ** (DECIMALS + 9);
+        // One _septillion_ dollars 👷😈.
+        TOTAL_SUPPLY = 10 ** (DECIMALS + 24);
     }
 
     /// Define and mint the erc20 token.
