@@ -30,6 +30,131 @@ describe("Stake deposit", async function () {
     await token.initialize();
   }); 
 
+
+  it("should return zero for maxDeposit if the expression fails", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2]; 
+
+   
+    const constants = [max_uint256,max_uint256 , 0, 1, 2, 3 ]  
+
+    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );  
+    
+    // prettier-ignore
+    //expression will fail 
+    const depositSource =  concat([  
+                      v0,
+                      v2,
+                      v0,
+                  op(Opcode.EAGER_IF),
+                    op(Opcode.ENSURE, 1),
+                        max_deposit
+                  ]) 
+
+    const withdrawSource = concat([max_withdraw])
+
+    const source = [depositSource , withdrawSource] // max_deposit set to 10 
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : source  , 
+        constants : constants
+      }
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct); 
+    
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);   
+
+    const maxDeposit = await stake.maxDeposit(alice.address) 
+      
+    assert(maxDeposit.eq(0) , "maxDeposit is non-zero")
+    
+  }); 
+
+  it("should return minimum of max_deposit source and ERC4262 maxDeposit for maxDeposit if the expression succeds", async function () {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2]; 
+
+    const TEN = ethers.BigNumber.from("10" + eighteenZeros);
+
+   
+    const constants = [TEN,max_uint256 , 0, 1, 2, 3 ]  
+
+    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );  
+    
+    // prettier-ignore
+    const depositSource =  concat([  
+                      // 1 ? 2 : 3
+                      v1,
+                      v2,
+                      v3,
+                  op(Opcode.EAGER_IF),
+                    op(Opcode.ENSURE, 1),
+                        max_deposit
+                  ]) 
+
+    const withdrawSource = concat([max_withdraw])
+
+    const source = [depositSource , withdrawSource] // max_deposit set to 10 
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : source  , 
+        constants : constants
+      }
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct); 
+    
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);   
+
+    const maxDeposit = await stake.maxDeposit(alice.address)  
+      
+    assert(maxDeposit.eq(TEN) , "maxDeposit is not equal to TEN")
+    
+  });
+
   it("should cap maxDeposit at minimum of max_deposit source and ERC4262 maxDeposit for that particular owner", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
