@@ -1,10 +1,13 @@
 import { assert } from "chai";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { ReserveToken18, StakeFactory } from "../../typechain";
+import { Rainterpreter, RainterpreterExpressionDeployer, ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { zeroAddress } from "../../utils";
-import { eighteenZeros, sixZeros } from "../../utils/constants/bigNumber";
+import { memoryOperand, MemoryType, op, Opcode, zeroAddress } from "../../utils";
+import { eighteenZeros, max_uint256, ONE, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
@@ -14,14 +17,113 @@ import { assertError } from "../../utils/test/assertError";
 describe("Stake withdraw", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await token.initialize();
+  }); 
+
+  it("should cap maxWithdraw at minimum of max_deposit source and ERC4262 max_deposit", async function () {  
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const TEN = ethers.BigNumber.from("10" + eighteenZeros);
+
+    const constants = [max_uint256,TEN] 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const source = [concat([max_deposit]) , concat([max_withdraw])] // max_deposit set to 10 
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : source  , 
+        constants : constants
+      }
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("1000" + eighteenZeros)
+    );
+    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
+    await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
+
+    await timewarp(86400); 
+
+    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address); 
+    const tokenPool0 = await token.balanceOf(stake.address);
+    
+    await timewarp(86400);  
+
+    await stake
+      .connect(alice)
+      .withdraw(TEN, alice.address, alice.address); 
+
+    const stTokenBalanceAlice1 = await stake.balanceOf(alice.address); 
+    const tokenBalanceAlice1 = await token.balanceOf(alice.address);
+
+    assert(stTokenBalanceAlice1.eq(tokenBalanceAlice0.sub(TEN)), "did not burn alice's stTokens");
+    assert(
+      tokenBalanceAlice1.eq(TEN),
+      `alice did not receive correct pro rata share of tokens from stake contract when withdrawing
+      expected  ${TEN}
+      got       ${tokenBalanceAlice1}`
+    );
+
+    // Alice withdraws all stake tokens
+    const depositsAlice2_ = await getDeposits(stake, alice.address); 
+    assert(depositsAlice2_.length === 1);
+    assert(depositsAlice2_[0].amount.eq(tokenPool0.sub(tokenBalanceAlice1)));  
+
+    await timewarp(86400);  
+    
+    
+    await assertError(
+      async () => {
+        await stake
+        .connect(alice)
+        .withdraw(TEN.add(ONE), alice.address, alice.address);   // withdrawAmount > max_withdraw
+      } , 
+      "VM Exception while processing transaction: reverted with reason string 'ERC4626: withdraw more than max'",
+      "wrongly deposited amount grater than MAX_DEPOSIT"
+    );
+       
   });
 
   it("should not process an invalid withdraw", async function () {
@@ -29,10 +131,30 @@ describe("Stake withdraw", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const stakeStateConfigSource = [concat([max_deposit]) , concat([max_withdraw])] 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : stakeStateConfigSource  , 
+        constants : stakeStateConfigConstants
+      }
+
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -59,10 +181,30 @@ describe("Stake withdraw", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const stakeStateConfigSource = [concat([max_deposit]) , concat([max_withdraw])] 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : stakeStateConfigSource  , 
+        constants : stakeStateConfigConstants
+      }
+
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -98,10 +240,30 @@ describe("Stake withdraw", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const stakeStateConfigConstants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const stakeStateConfigSource = [concat([max_deposit]) , concat([max_withdraw])] 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : stakeStateConfigSource  , 
+        constants : stakeStateConfigConstants
+      }
+
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -142,10 +304,30 @@ describe("Stake withdraw", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const stakeStateConfigConstants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const stakeStateConfigSource = [concat([max_deposit]) , concat([max_withdraw])] 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : stakeStateConfigSource  , 
+        constants : stakeStateConfigConstants
+      }
+
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -187,10 +369,30 @@ describe("Stake withdraw", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const stakeStateConfigConstants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const stakeStateConfigSource = [concat([max_deposit]) , concat([max_withdraw])] 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : stakeStateConfigSource  , 
+        constants : stakeStateConfigConstants
+      }
+
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -262,10 +464,30 @@ describe("Stake withdraw", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const stakeStateConfigSource = [concat([max_deposit]) , concat([max_withdraw])] 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : stakeStateConfigSource  , 
+        constants : stakeStateConfigConstants
+      }
+
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -284,10 +506,29 @@ describe("Stake withdraw", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const constants = [max_uint256,max_uint256] 
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const source = [concat([max_deposit]) , concat([max_withdraw])] // max_deposit set to 10 
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address,
+      asset: token.address, 
+      expressionDeployer : expressionDeployer.address , 
+      interpreter : interpreter.address , 
+      stateConfig : {
+        sources : source  , 
+        constants : constants
+      }
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -325,16 +566,17 @@ describe("Stake withdraw", async function () {
     assert(depositsBob1_[0].amount.eq(tokenBalanceBob0));
 
     // Alice and Bob each own 50% of stToken supply
-    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
+    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address); 
+    
     const stTokenBalanceBob0 = await stake.balanceOf(bob.address);
-
+    
     assert(
       stTokenBalanceAlice0.eq(stTokenBalanceBob0),
       "alice and bob do not own equal amounts of stToken when initialRatio = 1 and when they deposited same amount of token"
     );
 
     const tokenPool0 = await token.balanceOf(stake.address);
-
+    
     await timewarp(86400);
 
     // Alice redeems all her stTokens to withdraw share of tokens she is entitled to
@@ -342,9 +584,9 @@ describe("Stake withdraw", async function () {
       .connect(alice)
       .withdraw(stTokenBalanceAlice0, alice.address, alice.address);
 
-    const stTokenBalanceAlice1 = await stake.balanceOf(alice.address);
+    const stTokenBalanceAlice1 = await stake.balanceOf(alice.address); 
     const tokenBalanceAlice1 = await token.balanceOf(alice.address);
-
+    
     assert(stTokenBalanceAlice1.isZero(), "did not burn alice's stTokens");
     assert(
       tokenBalanceAlice1.eq(tokenPool0.div(2)),
@@ -358,3 +600,5 @@ describe("Stake withdraw", async function () {
     assert(depositsAlice2_.length === 0);
   });
 });
+
+
