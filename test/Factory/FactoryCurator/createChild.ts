@@ -28,7 +28,11 @@ import {
   THRESHOLDS_18,
   timewarp,
 } from "../../../utils";
-import { max_uint32, sixZeros } from "../../../utils/constants/bigNumber";
+import {
+  max_uint256,
+  max_uint32,
+  sixZeros,
+} from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -285,11 +289,25 @@ describe("FactoryCurator createChild", async function () {
     )) as ReserveToken18;
     await reserve18.initialize();
 
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: reserve18.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
@@ -399,13 +417,25 @@ describe("FactoryCurator createChild", async function () {
     const alice = signers[2];
     const deployer = signers[3];
 
-    // Reserve token
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
 
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: reserve.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -471,11 +501,6 @@ describe("FactoryCurator createChild", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
     op(Opcode.EAGER_IF)
   ]);
-
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployer(
-      interpreter
-    );
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,

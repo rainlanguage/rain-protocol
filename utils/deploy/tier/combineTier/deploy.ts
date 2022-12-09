@@ -13,12 +13,19 @@ export const combineTierDeploy = async (
   deployer: SignerWithAddress,
   config: CombineTierConfigStruct
 ) => {
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+  let interpreter = config.interpreter;
+  let expressionDeployer = config.expressionDeployer;
+  if (interpreter !== "" || expressionDeployer !== "") {
+    const rainterpreter = await rainterpreterDeploy();
+    interpreter = rainterpreter.address;
+    expressionDeployer = (await rainterpreterExpressionDeployer(rainterpreter))
+      .address;
+  }
+
   config = {
     ...config,
-    interpreter: interpreter.address,
-    expressionDeployer: expressionDeployer.address,
+    interpreter,
+    expressionDeployer,
   };
 
   const combineTierFactoryFactory = await ethers.getContractFactory(
