@@ -44,6 +44,7 @@ library OpFoldContext {
                 );
             }
 
+            // Outputs for call is the same as the inputs.
             Operand callOperand_ = Operand.wrap(
                 (sourceIndex_ << 8) | (inputs_ << 4) | callInputs_
             );
@@ -51,7 +52,7 @@ library OpFoldContext {
             // First the width of the context columns being folded is pushed to
             // the stack.
             stackTop_ = integrityState_.push(
-                integrityState_.stackBottom,
+                stackTop_,
                 width_
             );
             // Then we loop over call taking the width and extra inputs, then

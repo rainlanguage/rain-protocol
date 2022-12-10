@@ -15,7 +15,7 @@ import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
-describe("RainInterpreter FOLD_CONNTEXT", async function () {
+describe("RainInterpreter FOLD_CONTEXT", async function () {
   let logic: AllStandardOpsTest;
 
   before(async () => {
@@ -25,7 +25,7 @@ describe("RainInterpreter FOLD_CONNTEXT", async function () {
   it("should work", async () => {
     const constants = [0];
     const sourceIndex = 1;
-    const column = 0; 
+    const column = 0;
     const width = 2;
     const inputSize = 1; // Accummulator size
     // prettier-ignore
