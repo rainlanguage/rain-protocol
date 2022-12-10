@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "../math/SaturatingMath.sol";
 
 /// @dev The scale of all fixed point math. This is adopting the conventions of
 /// both ETH (wei) and most ERC20 tokens, so is hopefully uncontroversial.
@@ -17,7 +18,26 @@ uint256 constant FP_ONE = 1e18;
 /// are integers, typically uint256 integers. Floats are very complex so we
 /// don't attempt to simulate them. Instead we provide a standard definition of
 /// "one" as 10 ** 18 and scale everything up/down to this as fixed point math.
-/// Overflows are errors as per Solidity.
+///
+/// Overflows SATURATE rather than error, e.g. scaling max uint256 up will result
+/// in max uint256. The max uint256 as decimal is roughly 1e77 so scaling values
+/// comparable to 1e18 is unlikely to ever saturate in practise. For a typical
+/// use case involving tokens, the entire supply of a token rescaled up a full
+/// 18 decimals would still put it "only" in the region of ~1e40 which has a full
+/// 30 orders of magnitude buffer before running into saturation issues. However,
+/// there's no theoretical reason that a token or any other use case couldn't use
+/// large numbers or extremely precise decimals that would push this library to
+/// saturation point, so it MUST be treated with caution around the edge cases.
+///
+/// One case where values could come near the saturation/overflow point is phantom
+/// overflow. This is where an overflow happens during the internal logic of some
+/// operation like "fixed point multiplication" even though the final result fits
+/// within uint256. The fixed point multiplication and division functions are
+/// thin wrappers around Open Zeppelin's `mulDiv` function, that handles phantom
+/// overflow, reducing the problems of rescaling overflow/saturation to the input
+/// and output range rather than to the internal implementation details. For this
+/// library that gives an additional full 18 orders of magnitude for safe fixed
+/// point multiplication operations.
 ///
 /// Note that scaling down ANY fixed point decimal also reduces the precision
 /// which lead to dust or in the worst case trapped funds if subsequent
@@ -28,6 +48,7 @@ uint256 constant FP_ONE = 1e18;
 library FixedPointMath {
     using Math for uint256;
     using SafeCast for int;
+    using SaturatingMath for uint256;
 
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
     /// @param a_ Some fixed point decimal value.
@@ -44,7 +65,7 @@ library FixedPointMath {
             unchecked {
                 decimals_ = FP_DECIMALS - aDecimals_;
             }
-            return a_ * 10 ** decimals_;
+            return a_.saturatingMul(10 ** decimals_);
         } else {
             unchecked {
                 decimals_ = aDecimals_ - FP_DECIMALS;
@@ -73,7 +94,7 @@ library FixedPointMath {
             unchecked {
                 decimals_ = targetDecimals_ - FP_DECIMALS;
             }
-            return a_ * 10 ** decimals_;
+            return a_.saturatingMul(10 ** decimals_);
         }
     }
 
@@ -109,7 +130,7 @@ library FixedPointMath {
         if (scaleBy_ == 0) {
             return a_;
         } else if (scaleBy_ > 0) {
-            return a_ * 10 ** uint8(scaleBy_);
+            return a_.saturatingMul(10 ** uint8(scaleBy_));
         } else {
             uint256 posScaleDownBy_;
             unchecked {

@@ -28,7 +28,7 @@ contract FixedPointMathTest {
     function scaleN(
         uint256 a_,
         uint256 targetDecimals_
-    ) external pure returns (uint256) {
+    ) external view returns (uint256) {
         return a_.scaleN(targetDecimals_);
     }
 
