@@ -1,7 +1,5 @@
-import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import type { AllStandardOpsTest } from "../../../../typechain";
-import { flatten2D } from "../../../../utils/array/flatten";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {
   Debug,
@@ -11,7 +9,6 @@ import {
   op,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
-import { assertError } from "../../../../utils/test/assertError";
 
 const Opcode = AllStandardOps;
 
@@ -45,7 +42,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [1]
     );
 
-    let context = [
+    const context = [
       [10, 20, 30, 40],
       [100, 200, 300, 400],
       [1000, 2000, 3000, 4000],

@@ -4,7 +4,6 @@ import type { AllStandardOpsTest } from "../../../../typechain";
 import { flatten2D } from "../../../../utils/array/flatten";
 import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,

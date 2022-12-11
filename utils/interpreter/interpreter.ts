@@ -1,6 +1,5 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
-import { bitify } from "../bytes";
 
 export enum MemoryType {
   Stack,

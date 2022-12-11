@@ -14,7 +14,6 @@ import { FlowTransferStruct } from "../../../typechain/contracts/flow/erc20/Flow
 import { assertError, basicDeploy, eighteenZeros } from "../../../utils";
 import { flowERC20FactoryDeploy } from "../../../utils/deploy/flow/flowERC20/flowERC20Factory/deploy";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,

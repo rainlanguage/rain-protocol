@@ -1,7 +1,4 @@
-import { assert } from "chai";
-import { ethers } from "hardhat";
 import { LibMemoryKVTest } from "../../../typechain/contracts/test/kv/LibMemoryKVTest";
-import { readBytes } from "../../../utils/bytes";
 import { libMemoryKVDeploy } from "../../../utils/deploy/test/libMemoryKV/deploy";
 
 describe("LibMemoryKV tests", async function () {
