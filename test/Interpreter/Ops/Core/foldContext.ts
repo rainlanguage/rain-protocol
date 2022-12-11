@@ -35,9 +35,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.DEBUG, Debug.StatePacked),
     ]);
 
-    const sourceAdd = concat([
-      op(Opcode.ADD, width+inputSize)
-    ]);
+    const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
     await logic.initialize(
       {
@@ -56,6 +54,6 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     await logic["runContext(uint256[][])"](context);
     const result = await logic.stack();
-    console.log(result)
+    console.log(result);
   });
 });

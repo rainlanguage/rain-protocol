@@ -51,10 +51,7 @@ library OpFoldContext {
 
             // First the width of the context columns being folded is pushed to
             // the stack.
-            stackTop_ = integrityState_.push(
-                stackTop_,
-                width_
-            );
+            stackTop_ = integrityState_.push(stackTop_, width_);
             // Then we loop over call taking the width and extra inputs, then
             // returning the same number of outputs as non-width inputs.
             return OpCall.integrity(integrityState_, callOperand_, stackTop_);

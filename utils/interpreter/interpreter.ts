@@ -144,11 +144,11 @@ export function selectLte(
  * @param width - width of the column
  * @param inputs - accumulator input count
  */
- export function foldContextOperand(
+export function foldContextOperand(
   sourceIndex: number,
   column: number,
   width: number,
-  inputs: number,
+  inputs: number
 ): number {
   const operand = (inputs << 12) + (width << 8) + (column << 4) + sourceIndex;
   return operand;

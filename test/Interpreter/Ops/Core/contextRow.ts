@@ -26,8 +26,9 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const sources = [
       concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.CONTEXT_ROW, 0x0f)
-      ])];
+        op(Opcode.CONTEXT_ROW, 0x0f),
+      ]),
+    ];
 
     await logic.initialize({ sources, constants }, []);
 
@@ -36,10 +37,10 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     await logic["runContext(uint256[][])"](context);
     const resultCol_ = await logic.stack();
     assert(resultCol_, "should read context value at 0xff00");
-  }); 
+  });
 
   it("should support context width [ROW] up to 256", async () => {
-    const MAX_ROWS = (2**8);
+    const MAX_ROWS = 2 ** 8;
     const constants = [MAX_ROWS - 1];
     const sources = [
       concat([
@@ -56,7 +57,6 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const resultRow_ = await logic.stack();
     assert(resultRow_, "should read context value at 0x00ff");
   });
-
 
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [10];
