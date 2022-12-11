@@ -158,7 +158,8 @@ contract OrderBook is
                 )
                 : EncodedDispatch.wrap(0),
             config_.validInputs,
-            config_.validOutputs
+            config_.validOutputs,
+            config_.data
         );
         uint orderHash_ = order_.hash();
         orders[orderHash_] = 1;
