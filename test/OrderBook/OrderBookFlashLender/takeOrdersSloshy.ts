@@ -104,6 +104,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
         sources: [source, []],
         constants: constants,
       },
+      data: [],
     };
 
     const txAddOrderAlice = await orderBook
@@ -205,6 +206,10 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                           },
                         ],
                       },
+                      {
+                        name: "data",
+                        type: "bytes"
+                      }
                     ],
                   },
                   { name: "inputIOIndex", type: "uint256" },
@@ -288,6 +293,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
         sources: [source, []],
         constants: constants,
       },
+      data: []
     };
 
     const txAddOrderAlice = await orderBook
