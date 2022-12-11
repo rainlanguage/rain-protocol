@@ -52,11 +52,13 @@ library OpCall {
             Operand.unwrap(operand_) >> 8
         );
 
-        // Remember the outer stack bottom.
+        // Remember the outer stack bottom and highwater.
         StackTop stackBottom_ = integrityState_.stackBottom;
+        StackTop stackHighwater_ = integrityState_.stackHighwater;
 
-        // Set the inner stack bottom to below the inputs.
+        // Set the inner stack bottom and highwater to below the inputs.
         integrityState_.stackBottom = integrityState_.pop(stackTop_, inputs_);
+        integrityState_.stackHighwater = integrityState_.stackBottom;
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
@@ -71,8 +73,9 @@ library OpCall {
             outputs_
         );
 
-        // Reinstate the outer stack bottom.
+        // Reinstate the outer stack bottom and highwater.
         integrityState_.stackBottom = stackBottom_;
+        integrityState_.stackHighwater = stackHighwater_;
     }
 
     /// Call eval with a new scope.

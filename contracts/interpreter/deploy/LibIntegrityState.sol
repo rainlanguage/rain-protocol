@@ -12,6 +12,7 @@ struct IntegrityState {
     bytes[] sources;
     uint256 constantsLength;
     StackTop stackBottom;
+    StackTop stackHighwater;
     StackTop stackMaxTop;
     uint256 contextReads;
     function(IntegrityState memory, Operand, StackTop)
@@ -96,6 +97,11 @@ library LibIntegrityState {
         uint256 n_
     ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up(n_);
+        // Any time we push more than 1 item to the stack we move the highwater
+        // as nested multioutput is disallowed.
+        if (n_ > 1 && stackTopAfter_ > integrityState_.stackHighwater) {
+            integrityState_.stackHighwater = stackTopAfter_;
+        }
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
 
@@ -104,9 +110,9 @@ library LibIntegrityState {
         StackTop stackTop_
     ) internal pure {
         require(
-            // Stack bottom may be non-zero so check we are above it.
+            // Stack highwater may be non-zero so check we are above it.
             (StackTop.unwrap(stackTop_) >=
-                StackTop.unwrap(integrityState_.stackBottom)) &&
+                StackTop.unwrap(integrityState_.stackHighwater)) &&
                 // If we underflowed zero then we will be above the stack max
                 // top. Assumes that at least 1 item was popped so we can do a
                 // strict inequality check here.

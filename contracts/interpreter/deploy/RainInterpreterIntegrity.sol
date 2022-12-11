@@ -40,6 +40,7 @@ abstract contract RainInterpreterIntegrity is IRainInterpreterIntegrity {
             constantsLength_,
             StackTop.wrap(0),
             StackTop.wrap(0),
+            StackTop.wrap(0),
             0,
             integrityFunctionPointers()
         );
