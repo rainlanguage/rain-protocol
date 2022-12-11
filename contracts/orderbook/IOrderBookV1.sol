@@ -27,6 +27,7 @@ struct OrderConfig {
     StateConfig interpreterStateConfig;
     IO[] validInputs;
     IO[] validOutputs;
+    bytes data;
 }
 
 struct Order {
@@ -36,6 +37,7 @@ struct Order {
     EncodedDispatch handleIODispatch;
     IO[] validInputs;
     IO[] validOutputs;
+    bytes data;
 }
 
 struct TakeOrdersConfig {

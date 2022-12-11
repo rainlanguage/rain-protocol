@@ -95,6 +95,7 @@ describe("OrderBook many-to-many", async function () {
       vMaxAmount,
       vThreshold,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
 
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -115,6 +116,7 @@ describe("OrderBook many-to-many", async function () {
         sources: [source, []],
         constants: constants,
       },
+      data : aliceAskOrder
     };
 
     const _txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
@@ -153,6 +155,8 @@ describe("OrderBook many-to-many", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -168,6 +172,7 @@ describe("OrderBook many-to-many", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
@@ -199,7 +204,9 @@ describe("OrderBook many-to-many", async function () {
     const bidSource = concat([
       vBidOutputMax,
       vBidPrice,
-    ]);
+    ]); 
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -215,6 +222,7 @@ describe("OrderBook many-to-many", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
+      data : bobBidOrder
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -425,7 +433,9 @@ describe("OrderBook many-to-many", async function () {
     const askSource = concat([
       vAskOutputMax,
       vAskPrice,
-    ]);
+    ]); 
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -441,6 +451,7 @@ describe("OrderBook many-to-many", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
@@ -472,7 +483,9 @@ describe("OrderBook many-to-many", async function () {
     const bidSource = concat([
       vBidOutputMax,
       vBidPrice,
-    ]);
+    ]); 
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -488,6 +501,7 @@ describe("OrderBook many-to-many", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
+      data : bobBidOrder
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
