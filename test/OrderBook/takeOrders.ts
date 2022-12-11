@@ -93,6 +93,8 @@ describe("OrderBook take orders", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
 
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -103,7 +105,10 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-    };
+      data : aliceAskOrder
+    }; 
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -113,6 +118,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : bobBidOrder
     };
 
     const txAskAddOrderAlice = await orderBook
@@ -226,6 +232,7 @@ describe("OrderBook take orders", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
 
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -236,7 +243,10 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-    };
+      data : aliceAskOrder
+    }; 
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -245,7 +255,8 @@ describe("OrderBook take orders", async function () {
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
-      },
+      }, 
+      data : bobBidOrder
     };
 
     const txAskAddOrderAlice = await orderBook
@@ -389,6 +400,7 @@ describe("OrderBook take orders", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
 
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -398,8 +410,12 @@ describe("OrderBook take orders", async function () {
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
-      },
-    };
+      }, 
+      data : aliceAskOrder
+    }; 
+    
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -409,6 +425,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : bobBidOrder
     };
 
     const txAskAddOrderAlice = await orderBook
@@ -535,6 +552,8 @@ describe("OrderBook take orders", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -544,6 +563,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants0,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
@@ -558,7 +578,9 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER 1
 
-    const askConstants1 = [max_uint256, askPrice];
+    const askConstants1 = [max_uint256, askPrice]; 
+    const aliceAskOrder1 = ethers.utils.toUtf8Bytes("aliceAskOrder1")
+
     const askOrderConfig1: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -568,6 +590,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants1,
       },
+      data : aliceAskOrder1
     };
 
     const txAskAddOrder1 = await orderBook
@@ -678,7 +701,11 @@ describe("OrderBook take orders", async function () {
     const askSource = concat([
       vAskOutputMax,
       vAskPrice,
-    ]);
+    ]); 
+    const aliceAskOrder0 = ethers.utils.toUtf8Bytes("aliceAskOrder0")
+    const aliceAskOrder1 = ethers.utils.toUtf8Bytes("aliceAskOrder1")
+
+
     const askOrderConfig0: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -688,6 +715,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants0,
       },
+      data : aliceAskOrder0
     };
     const askOrderConfig1: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -698,6 +726,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants1,
       },
+      data : aliceAskOrder1
     };
 
     const txAskAddOrder0 = await orderBook
@@ -816,6 +845,8 @@ describe("OrderBook take orders", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -825,6 +856,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
@@ -940,6 +972,8 @@ describe("OrderBook take orders", async function () {
       vAskOutputMax,
       vAskPrice,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
 
     const askOrderConfigAlice: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -950,6 +984,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
     const askOrderConfigBob: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -960,6 +995,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : bobBidOrder
     };
 
     const txAskAddOrderAlice = await orderBook
@@ -1123,7 +1159,9 @@ describe("OrderBook take orders", async function () {
     const askSource = concat([
       vAskOutputMax,
       vAskPrice,
-    ]);
+    ]); 
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -1133,6 +1171,7 @@ describe("OrderBook take orders", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
