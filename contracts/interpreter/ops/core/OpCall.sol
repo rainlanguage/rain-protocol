@@ -56,14 +56,18 @@ library OpCall {
         StackTop stackBottom_ = integrityState_.stackBottom;
         StackTop stackHighwater_ = integrityState_.stackHighwater;
 
-        // Set the inner stack bottom and highwater to below the inputs.
+        // Set the inner stack bottom to below the inputs and highwater above.
         integrityState_.stackBottom = integrityState_.pop(stackTop_, inputs_);
-        integrityState_.stackHighwater = integrityState_.stackBottom;
+        integrityState_.stackHighwater = stackTop_;
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
         // Contraints namespace is irrelevant here.
         integrityState_.ensureIntegrity(callSourceIndex_, stackTop_, outputs_);
+
+        // Reinstate the original highwater before handling outputs as single
+        // outputs can be nested but multioutput will move the highwater.
+        integrityState_.stackHighwater = stackHighwater_;
 
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be
@@ -73,9 +77,8 @@ library OpCall {
             outputs_
         );
 
-        // Reinstate the outer stack bottom and highwater.
+        // Reinstate the outer stack bottom.
         integrityState_.stackBottom = stackBottom_;
-        integrityState_.stackHighwater = stackHighwater_;
     }
 
     /// Call eval with a new scope.

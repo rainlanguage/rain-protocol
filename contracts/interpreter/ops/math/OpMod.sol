@@ -24,7 +24,7 @@ library OpMod {
             integrityState_.applyFnN(stackTop_, _mod, Operand.unwrap(operand_));
     }
 
-    function mod(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

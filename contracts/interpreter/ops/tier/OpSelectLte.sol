@@ -34,7 +34,7 @@ library OpSelectLte {
     // `mode_` is the 2 highest bits after `logic_`.
     // The other bits specify how many values to take from the stack
     // as reports to compare against each other and the block number.
-    function selectLte(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

@@ -19,7 +19,7 @@ library OpTimestamp {
         return integrityState_.push(stackTop_);
     }
 
-    function timestamp(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

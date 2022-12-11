@@ -27,7 +27,7 @@ library OpGreaterThan {
         return integrityState_.applyFn(stackTop_, _greaterThan);
     }
 
-    function greaterThan(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

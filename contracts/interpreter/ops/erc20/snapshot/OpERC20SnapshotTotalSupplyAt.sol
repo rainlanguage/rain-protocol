@@ -29,8 +29,7 @@ library OpERC20SnapshotTotalSupplyAt {
         return integrityState_.applyFn(stackTop_, _totalSupplyAt);
     }
 
-    /// Stack `totalSupplyAt`.
-    function totalSupplyAt(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

@@ -79,8 +79,7 @@ describe("OrderBook bounty", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
-
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     // ASK ORDER
 
@@ -112,7 +111,7 @@ describe("OrderBook bounty", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -150,7 +149,7 @@ describe("OrderBook bounty", async function () {
       vBidRatio,
     ]);
 
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -165,7 +164,7 @@ describe("OrderBook bounty", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);

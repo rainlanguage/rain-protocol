@@ -24,7 +24,7 @@ library OpExp {
             integrityState_.applyFnN(stackTop_, _exp, Operand.unwrap(operand_));
     }
 
-    function exp(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

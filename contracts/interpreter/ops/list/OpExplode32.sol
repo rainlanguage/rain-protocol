@@ -20,7 +20,7 @@ library OpExplode32 {
         return integrityState_.push(integrityState_.pop(stackTop_), 8);
     }
 
-    function explode32(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

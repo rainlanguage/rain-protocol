@@ -24,7 +24,7 @@ library OpMax {
             integrityState_.applyFnN(stackTop_, _max, Operand.unwrap(operand_));
     }
 
-    function max(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

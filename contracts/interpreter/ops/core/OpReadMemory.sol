@@ -6,6 +6,7 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 import "../../../math/Binary.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
@@ -16,26 +17,36 @@ library OpReadMemory {
     using LibStackTop for StackTop;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityState for IntegrityState;
+    using Math for uint256;
 
     function integrity(
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
-        uint256 offset_ = Operand.unwrap(operand_) >> 1;
-        if (type_ == OPCODE_MEMORY_TYPE_STACK) {
-            require(
-                offset_ < integrityState_.stackBottom.toIndex(stackTop_),
-                "OOB_STACK_READ"
-            );
-        } else {
-            require(
-                offset_ < integrityState_.constantsLength,
-                "OOB_CONSTANT_READ"
-            );
+        unchecked {
+            uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
+            uint256 offset_ = Operand.unwrap(operand_) >> 1;
+            if (type_ == OPCODE_MEMORY_TYPE_STACK) {
+                require(
+                    offset_ < integrityState_.stackBottom.toIndex(stackTop_),
+                    "OOB_STACK_READ"
+                );
+                // Ensure that highwater is moved past any stack item that we
+                // read so that copied values cannot later be consumed.
+                integrityState_.stackHighwater = StackTop.wrap(
+                    StackTop.unwrap(integrityState_.stackHighwater).max(
+                        StackTop.unwrap(integrityState_.stackBottom.up(offset_))
+                    )
+                );
+            } else {
+                require(
+                    offset_ < integrityState_.constantsLength,
+                    "OOB_CONSTANT_READ"
+                );
+            }
+            return integrityState_.push(stackTop_);
         }
-        return integrityState_.push(stackTop_);
     }
 
     function run(

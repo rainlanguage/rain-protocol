@@ -29,7 +29,7 @@ library OpHash {
 
     // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function hash(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

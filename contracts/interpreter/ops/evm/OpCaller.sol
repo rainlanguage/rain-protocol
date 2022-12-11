@@ -19,7 +19,7 @@ library OpCaller {
         return integrityState_.push(stackTop_);
     }
 
-    function caller(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

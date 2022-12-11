@@ -83,6 +83,7 @@ library LibIntegrityState {
         }
     }
 
+    /// Simulate pushing a single value too the stack.
     function push(
         IntegrityState memory integrityState_,
         StackTop stackTop_
@@ -91,6 +92,9 @@ library LibIntegrityState {
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
 
+    /// Simulate pushing 0+ values to the stack. If more than 1 value is pushed
+    /// to the stack the highwater will move above the values. This is to prevent
+    /// nested multioutput statements.
     function push(
         IntegrityState memory integrityState_,
         StackTop stackTop_,
@@ -98,10 +102,25 @@ library LibIntegrityState {
     ) internal pure returns (StackTop stackTopAfter_) {
         stackTopAfter_ = stackTop_.up(n_);
         // Any time we push more than 1 item to the stack we move the highwater
-        // as nested multioutput is disallowed.
-        if (n_ > 1 && stackTopAfter_ > integrityState_.stackHighwater) {
+        // _past_ it as nested multioutput is disallowed.
+        if (
+            n_ > 1 &&
+            StackTop.unwrap(stackTopAfter_) >
+            StackTop.unwrap(integrityState_.stackHighwater)
+        ) {
             integrityState_.stackHighwater = stackTopAfter_;
         }
+        integrityState_.syncStackMaxTop(stackTopAfter_);
+    }
+
+    /// As push for 0+ values. Does NOT move the highwater. This may be useful if
+    /// the highwater is already calculated somehow by the caller.
+    function pushIgnoreHighwater(
+        IntegrityState memory integrityState_,
+        StackTop stackTop_,
+        uint n_
+    ) internal pure returns (StackTop stackTopAfter_) {
+        stackTopAfter_ = stackTop_.up(n_);
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
 
@@ -118,7 +137,7 @@ library LibIntegrityState {
                 // strict inequality check here.
                 (StackTop.unwrap(stackTop_) <
                     StackTop.unwrap(integrityState_.stackMaxTop)),
-            "STACK_UNDERFLOW"
+            "STACK_HIGHWATER"
         );
     }
 

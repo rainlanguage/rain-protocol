@@ -118,7 +118,16 @@ describe("CALL Opcode test", async function () {
 
     // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(maxInputs, 1, 1));
-    const source1 = concat([op(Opcode.MUL, maxInputs)]);
+    const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 6)),
+      op(Opcode.MUL, maxInputs)
+    ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([

@@ -33,7 +33,7 @@ library OpEnsure {
             );
     }
 
-    function ensure(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

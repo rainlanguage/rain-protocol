@@ -25,7 +25,7 @@ library OpAdd {
             integrityState_.applyFnN(stackTop_, _add, Operand.unwrap(operand_));
     }
 
-    function add(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

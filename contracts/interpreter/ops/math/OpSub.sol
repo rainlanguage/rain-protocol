@@ -24,7 +24,7 @@ library OpSub {
             integrityState_.applyFnN(stackTop_, _sub, Operand.unwrap(operand_));
     }
 
-    function sub(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

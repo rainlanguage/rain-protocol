@@ -24,7 +24,7 @@ library OpIsZero {
         return integrityState_.applyFn(stackTop_, _isZero);
     }
 
-    function isZero(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

@@ -28,7 +28,7 @@ library OpFixedPointScaleN {
         return integrityState_.applyFn(stackTop_, _scaleN);
     }
 
-    function scaleN(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

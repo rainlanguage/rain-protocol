@@ -357,7 +357,6 @@ contract OrderBook is
         Order memory order_;
         uint256 remainingInput_ = takeOrders_.maximumInput;
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
-
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
             uint orderHash_ = order_.hash();

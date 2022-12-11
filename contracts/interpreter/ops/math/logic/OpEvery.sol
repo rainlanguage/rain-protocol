@@ -23,7 +23,7 @@ library OpEvery {
     // EVERY
     // EVERY is either the first item if every item is nonzero, else 0.
     // operand_ is the length of items to check.
-    function every(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

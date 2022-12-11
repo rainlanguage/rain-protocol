@@ -24,7 +24,7 @@ library OpMin {
             integrityState_.applyFnN(stackTop_, _min, Operand.unwrap(operand_));
     }
 
-    function min(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

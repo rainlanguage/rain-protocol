@@ -24,7 +24,7 @@ library OpLessThan {
         return integrityState_.applyFn(stackTop_, _lessThan);
     }
 
-    function lessThan(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

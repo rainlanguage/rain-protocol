@@ -33,8 +33,7 @@ library OpERC20SnapshotBalanceOfAt {
         return integrityState_.applyFn(stackTop_, _balanceOfAt);
     }
 
-    /// Stack `balanceOfAt`.
-    function balanceOfAt(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

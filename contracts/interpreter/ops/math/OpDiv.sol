@@ -24,7 +24,7 @@ library OpDiv {
             integrityState_.applyFnN(stackTop_, _div, Operand.unwrap(operand_));
     }
 
-    function div(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

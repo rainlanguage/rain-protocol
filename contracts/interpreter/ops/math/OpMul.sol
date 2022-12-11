@@ -24,7 +24,7 @@ library OpMul {
             integrityState_.applyFnN(stackTop_, _mul, Operand.unwrap(operand_));
     }
 
-    function mul(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_

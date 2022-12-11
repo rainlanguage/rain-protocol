@@ -19,7 +19,7 @@ library OpThisAddress {
         return integrityState_.push(stackTop_);
     }
 
-    function thisAddress(
+    function run(
         InterpreterState memory,
         Operand,
         StackTop stackTop_

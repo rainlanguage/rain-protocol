@@ -28,7 +28,7 @@ library OpFixedPointScale18 {
         return integrityState_.applyFn(stackTop_, _scale18);
     }
 
-    function scale18(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackTop stackTop_
