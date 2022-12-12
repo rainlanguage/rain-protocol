@@ -3,7 +3,6 @@ pragma solidity ^0.8.15;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "../math/FixedPointMath.sol";
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 library LibChainlink {
     using SafeCast for int256;
