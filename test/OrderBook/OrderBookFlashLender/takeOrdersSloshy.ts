@@ -98,8 +98,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
-      validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
+      validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
+      validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       interpreterStateConfig: {
         sources: [source, []],
         constants: constants,
@@ -111,7 +111,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .connect(alice)
       .addOrder(orderConfig);
 
-    const { order: askConfig } = (await getEventArgs(
+    const { order: askOrder } = (await getEventArgs(
       txAddOrderAlice,
       "AddOrder",
       orderBook
@@ -135,7 +135,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .deposit(depositConfigStructAlice);
 
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
-      order: askConfig,
+      order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };
@@ -189,6 +189,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                         type: "tuple[]",
                         components: [
                           { name: "token", type: "address" },
+                          { name: "decimals", type: "uint256" },
                           {
                             name: "vaultId",
                             type: "uint256",
@@ -200,6 +201,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                         type: "tuple[]",
                         components: [
                           { name: "token", type: "address" },
+                          { name: "decimals", type: "uint256" },
                           {
                             name: "vaultId",
                             type: "uint256",
@@ -287,8 +289,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      validInputs: [{ token: USDT.address, vaultId: vaultAlice }],
-      validOutputs: [{ token: DAI.address, vaultId: vaultAlice }],
+      validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
+      validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
       interpreterStateConfig: {
         sources: [source, []],
         constants: constants,
@@ -300,7 +302,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       .connect(alice)
       .addOrder(orderConfig);
 
-    const { order: askConfig } = (await getEventArgs(
+    const { order: askOrder } = (await getEventArgs(
       txAddOrderAlice,
       "AddOrder",
       orderBook
@@ -337,7 +339,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
     // 4. bob takes alice's order (bob sells his 1.01 USDT to alice for 1 DAI)
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
-      order: askConfig,
+      order: askOrder,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };

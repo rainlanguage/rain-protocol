@@ -10,7 +10,7 @@ bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x0ef55b9eed8fecf7de45ac2a093f673d60afeded069488101eb57bbae0b144eb
+    0xbe0e716dd7f575127d05b03b1e156e9fad8eb9dead3e8dfb5459e08698e2335f
 );
 
 contract RainterpreterExpressionDeployer is
