@@ -30,7 +30,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
         op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
     ]);
 
@@ -69,28 +69,29 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
         op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
     ]);
 
+    // prettier-ignore
     const sourceCount = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // acc
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // acc
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // context[0][]
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
-      op(Opcode.EQUAL_TO),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // context[0][]
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.EQUAL_TO),
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // context[1][]
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
-      op(Opcode.EQUAL_TO),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // context[1][]
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.EQUAL_TO),
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)), // context[2][]
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
-      op(Opcode.EQUAL_TO),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)), // context[2][]
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.EQUAL_TO),
 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)), // context[3][]
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
-      op(Opcode.EQUAL_TO),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)), // context[3][]
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // X
+        op(Opcode.EQUAL_TO),
 
       op(Opcode.ADD, 5),
     ]);
@@ -114,7 +115,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const result = await logic.stackTop();
     let count = 0;
     const expectedResult = context.flat().reduce((acc, val) => {
-      if (acc == X) count++; 
+      if (acc == X) count++;
       if (val == X) count++;
       return count;
     });
@@ -133,7 +134,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
         op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
     ]);
 
@@ -169,7 +170,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
         op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
     ]);
 
@@ -202,7 +203,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
         op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
     ]);
 
