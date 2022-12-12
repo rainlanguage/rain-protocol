@@ -48,6 +48,7 @@
     "web3-utils": "^1.8.0"
   },
   "dependencies": {
+    "@beehiveinnovation/rainlang": "https://github.com/beehive-innovation/rainlang#e17dc1d8a0b19c43be59907f6b02bccd51acf707",
     "@chainlink/contracts": "^0.5.1",
     "@openzeppelin/contracts-upgradeable": "=4.7.3",
     "typescript": "^4.9.4"
