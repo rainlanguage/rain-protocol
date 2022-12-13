@@ -1,7 +1,7 @@
 /* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   AllStandardOpsTest,
@@ -27,6 +27,7 @@ import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -465,17 +466,17 @@ describe("CombineTier report tests", async function () {
       blockTimeBob_,
       blockTimeBob_,
       blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
     ]);
 
     // prettier-ignore
     const sourceAliceReport = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0000), // alice address
         op(Opcode.CONTEXT, 0x0103), // THRESHOLDS
         op(Opcode.CONTEXT, 0x0104),
         op(Opcode.CONTEXT, 0x0105),
@@ -490,7 +491,7 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceBobReport = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0101), // address
+        op(Opcode.CONTEXT, 0x0101), // bob address
         op(Opcode.CONTEXT, 0x0103), // THRESHOLDS
         op(Opcode.CONTEXT, 0x0104),
         op(Opcode.CONTEXT, 0x0105),

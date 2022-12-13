@@ -15,7 +15,7 @@ export const combineTierDeploy = async (
 ) => {
   let interpreter = config.interpreter;
   let expressionDeployer = config.expressionDeployer;
-  if (interpreter !== "" || expressionDeployer !== "") {
+  if (interpreter === "" || expressionDeployer === "") {
     const rainterpreter = await rainterpreterDeploy();
     interpreter = rainterpreter.address;
     expressionDeployer = (await rainterpreterExpressionDeployer(rainterpreter))
