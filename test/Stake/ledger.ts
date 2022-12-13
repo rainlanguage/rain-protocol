@@ -1,10 +1,20 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
-import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { Rainterpreter, RainterpreterExpressionDeployer, ReserveToken18, StakeFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReserveToken18,
+  StakeFactory,
+} from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { max_uint256, memoryOperand, MemoryType, op, Opcode } from "../../utils";
+import {
+  max_uint256,
+  memoryOperand,
+  MemoryType,
+  op,
+  Opcode,
+} from "../../utils";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -16,7 +26,7 @@ import { getDeposits } from "../../utils/stake/deposits";
 
 describe("Stake direct ledger analysis", async function () {
   let stakeFactory: StakeFactory;
-  let token: ReserveToken18; 
+  let token: ReserveToken18;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
 
@@ -36,7 +46,7 @@ describe("Stake direct ledger analysis", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const constants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+    const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -45,21 +55,20 @@ describe("Stake direct ledger analysis", async function () {
     const max_withdraw = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
-    ); 
+    );
 
-    const source = [concat([max_deposit]) , concat([max_withdraw])] 
+    const source = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address, 
-      expressionDeployer : expressionDeployer.address , 
-      interpreter : interpreter.address , 
-      stateConfig : {
-        sources : source  , 
-        constants : constants
-      }
-
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -132,7 +141,7 @@ describe("Stake direct ledger analysis", async function () {
     const alice = signers[1];
     const maliciousActor = signers[2];
 
-    const constants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+    const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -141,21 +150,20 @@ describe("Stake direct ledger analysis", async function () {
     const max_withdraw = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
-    ); 
+    );
 
-    const source = [concat([max_deposit]) , concat([max_withdraw])] 
+    const source = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address, 
-      expressionDeployer : expressionDeployer.address , 
-      interpreter : interpreter.address , 
-      stateConfig : {
-        sources : source  , 
-        constants : constants
-      }
-
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -255,7 +263,7 @@ describe("Stake direct ledger analysis", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const constants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+    const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -264,21 +272,20 @@ describe("Stake direct ledger analysis", async function () {
     const max_withdraw = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
-    ); 
+    );
 
-    const source = [concat([max_deposit]) , concat([max_withdraw])] 
+    const source = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address, 
-      expressionDeployer : expressionDeployer.address , 
-      interpreter : interpreter.address , 
-      stateConfig : {
-        sources : source  , 
-        constants : constants
-      }
-
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -331,7 +338,7 @@ describe("Stake direct ledger analysis", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const constants = [max_uint256,max_uint256]  // setting deposits and withdrawals to max 
+    const constants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -340,21 +347,20 @@ describe("Stake direct ledger analysis", async function () {
     const max_withdraw = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
-    ); 
+    );
 
-    const source = [concat([max_deposit]) , concat([max_withdraw])] 
+    const source = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
-      asset: token.address, 
-      expressionDeployer : expressionDeployer.address , 
-      interpreter : interpreter.address , 
-      stateConfig : {
-        sources : source  , 
-        constants : constants
-      }
-
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
