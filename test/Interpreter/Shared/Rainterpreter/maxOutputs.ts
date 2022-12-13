@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 
 import {
@@ -8,7 +9,6 @@ import {
   RainterpreterOps,
 } from "../../../../utils";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { compareArrays } from "../../../../utils/test/compareArrays";
 
 const Opcode = RainterpreterOps;
 
@@ -46,7 +46,17 @@ describe("Rainterpreter maxOutputs test", async function () {
       stack1.length == maxOutputs,
       `Invalid stack length, expected ${maxOutputs} actual ${stack1.length}`
     );
-    compareArrays(stack1, constants.slice(constants.length - maxOutputs));
+    let expectedArray = constants.slice(constants.length - maxOutputs);
+    expectedArray.forEach((expectedItem, i_) => {
+      assert(
+        BigNumber.from(expectedItem).eq(stack1[i_]),
+
+        `wrong item in uint256 array
+        expected  ${BigNumber.from(expectedItem)}
+        got       ${stack1[i_]}
+        index     ${i_}`
+      );
+    });
 
     // minimum value check
     maxOutputs = 0;
@@ -78,8 +88,17 @@ describe("Rainterpreter maxOutputs test", async function () {
       stack2.length == maxOutputs,
       `Invalid stack length, expected ${maxOutputs} actual ${stack2.length}`
     );
-    compareArrays(stack2, constants.slice(constants.length - maxOutputs));
+    expectedArray = constants.slice(constants.length - maxOutputs);
+    expectedArray.forEach((expectedItem, i_) => {
+      assert(
+        BigNumber.from(expectedItem).eq(stack2[i_]),
 
+        `wrong item in uint256 array
+        expected  ${BigNumber.from(expectedItem)}
+        got       ${stack2[i_]}
+        index     ${i_}`
+      );
+    });
     // minimum value check
     maxOutputs = 255;
     const maxConstants = new Array(300).fill(1);
@@ -105,6 +124,16 @@ describe("Rainterpreter maxOutputs test", async function () {
       `Invalid stack length, expected ${maxOutputs} actual ${stack3.length}`
     );
 
-    compareArrays(stack3, maxConstants.slice(maxConstants.length - maxOutputs));
+    expectedArray = maxConstants.slice(maxConstants.length - maxOutputs);
+    expectedArray.forEach((expectedItem, i_) => {
+      assert(
+        BigNumber.from(expectedItem).eq(stack3[i_]),
+
+        `wrong item in uint256 array
+        expected  ${BigNumber.from(expectedItem)}
+        got       ${stack3[i_]}
+        index     ${i_}`
+      );
+    });
   });
 });
