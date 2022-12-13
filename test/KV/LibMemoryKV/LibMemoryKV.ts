@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
 import { LibMemoryKVTest } from "../../../typechain/contracts/test/kv/LibMemoryKVTest";
+import { compareObjects } from "../../../utils";
 import {
   numberify,
   readBytes,
@@ -22,7 +23,7 @@ describe("LibMemoryKV tests", async function () {
     const key = 68;
     const val0 = 1337;
     const val1 = 42069;
- 
+
     const tx0_ = await libMemoryKV.scenario6(kv0, kv1, key, val0, val1);
 
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
@@ -59,7 +60,7 @@ describe("LibMemoryKV tests", async function () {
         index     ${i_}`
       );
     });
-  });1
+  });
 
   it("should update a value without allocating new memory if pointer already exists for the given key", async function () {
     const kv = 0;
@@ -170,8 +171,30 @@ describe("LibMemoryKV tests", async function () {
         got       ${list[i_]}
         index     ${i_}`
       );
-    }); 
-    
-  }); 
+    });
+  });
 
+  it.only("should copy the linked list into a vanilla uint[] and the length is correct and all items are present", async function () {
+    const kv = 0;
+    const kvSize = 100; // 100 key-value pairs
+
+    const kvPair = Array.from({ length: kvSize * 2 }, (element, index) => index+1);
+
+    // Build expected KV Pair
+    const expectedKVPair = {};
+    for (let i = 0; i < kvPair.length - 1; i += 2) {
+      expectedKVPair[kvPair[i]] = kvPair[i + 1];
+    }
+
+    console.log(Object.keys(expectedKVPair).length);
+    const array_ = await libMemoryKV.scenario7(kv, kvPair);
+
+    // Build actual KV pair
+    const solKVPair = {};
+    for (let i = 0; i < array_.length - 1; i += 2) {
+      solKVPair[array_[i].toNumber()] = array_[i + 1].toNumber();
+    }
+
+    compareObjects(solKVPair, expectedKVPair, false);
+  });
 });

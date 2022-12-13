@@ -95,6 +95,19 @@ contract LibMemoryKVTest {
         LibDebug.emitEvent(MemoryKVVal.unwrap(val1_));
     }
 
+    function scenario7(
+        MemoryKV kv_,
+        uint256[] memory kvPair 
+    ) external view returns(uint[] memory array_) {
+        uint256 j = 0;
+        for(uint256 i = 0; i < kvPair.length-1; i += 2) {
+            j++;
+            // console.log("%d Key = %d value =  %d", j, kvPair[i], kvPair[i+1]);
+            kv_ = kv_.setVal(MemoryKVKey.wrap(kvPair[i]), MemoryKVVal.wrap(kvPair[i+1]));
+        }
+        array_ = kv_.toUint256Array();
+    }
+
     /// END IN-MEMORY SCENARIOS
 
     /// Wraps `LibMemoryKV.readPtrVal`.
