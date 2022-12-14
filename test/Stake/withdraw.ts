@@ -66,14 +66,16 @@ describe("Stake withdraw", async function () {
      * So if the token has more decimals than 18 we expect the number of shares to round up
      */
 
-    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken; // 6 decimals
+    const token = (await basicDeploy("ReserveTokenDecimals", {}, [
+      20,
+    ])) as ReserveTokenDecimals; // 20 decimals
     await token.initialize();
 
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
 
-    const TEN = ethers.BigNumber.from("10" + "0000" + "12"); // 6 decimals
+    const TEN = ethers.BigNumber.from("10" + eighteenZeros + "99"); // 20 decimals
 
     const constants = [max_uint256, TEN];
 
@@ -86,7 +88,7 @@ describe("Stake withdraw", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const source = [max_deposit, max_withdraw]; // max_withdraw set to 10
+    const source = [max_deposit, max_withdraw]; // max_withdraw set to 10-ish
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -124,7 +126,14 @@ describe("Stake withdraw", async function () {
 
     const maxRedeem_ = await stake.maxRedeem(alice.address);
 
-    console.log({ maxRedeem_ });
+    const expectedMaxRedeem = 1000000001;
+
+    assert(
+      maxRedeem_.eq(expectedMaxRedeem),
+      `expected rounded up
+      expected  ${expectedMaxRedeem}
+      got       ${maxRedeem_}`
+    );
   });
 
   it("should return zero for maxWithdraw if the expression fails", async function () {
