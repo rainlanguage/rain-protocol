@@ -4,7 +4,9 @@ import { ethers } from "hardhat";
 import {
   Rainterpreter,
   RainterpreterExpressionDeployer,
+  ReserveToken,
   ReserveToken18,
+  ReserveTokenDecimals,
   StakeFactory,
 } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
@@ -19,6 +21,7 @@ import {
   eighteenZeros,
   max_uint256,
   ONE,
+  sixteenZeros,
   sixZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -45,6 +48,83 @@ describe("Stake withdraw", async function () {
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await token.initialize();
+  });
+
+  it.only("maxRedeem should respect maxWithdraw but as shares rounded up e.g. calculating the amount of underlying tokens a user has to provide to receive a certain amount of shares", async function () {
+    /**
+     * Note that, in this scenario, rounding is involved in the calculation of shares in the following expression within the ERC4626 implementation:
+     *
+     * assets.mulDiv(supply, totalAssets(), rounding);
+     *
+     * Where
+     * - `assets` is the maxWithdraw value
+     * - `supply` is total supply of shares
+     * - `totalAssets()` is the total supply of the underlying token
+     * - `rounding` determines whether to round up or down
+     *
+     * Stake shares use 18 decimals
+     * So if the token has more decimals than 18 we expect the number of shares to round up
+     */
+
+    const token = (await basicDeploy("ReserveToken", {})) as ReserveToken; // 6 decimals
+    await token.initialize();
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const TEN = ethers.BigNumber.from("10" + "0000" + "12"); // 6 decimals
+
+    const constants = [max_uint256, TEN];
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const source = [max_deposit, max_withdraw]; // max_withdraw set to 10
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("1000" + sixZeros)
+    );
+    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
+    await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
+
+    await timewarp(86400);
+
+    const maxRedeem_ = await stake.maxRedeem(alice.address);
+
+    console.log({ maxRedeem_ });
   });
 
   it("should return zero for maxWithdraw if the expression fails", async function () {
@@ -81,7 +161,7 @@ describe("Stake withdraw", async function () {
                     max_withdraw
                   ])
 
-    const source = [depositSource, withdrawSource]; // max_deposit set to 10
+    const source = [depositSource, withdrawSource];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -140,7 +220,7 @@ describe("Stake withdraw", async function () {
                     max_withdraw
                   ])
 
-    const source = [depositSource, withdrawSource]; // max_deposit set to 10
+    const source = [depositSource, withdrawSource]; // max_withdraw set to 10
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -198,7 +278,7 @@ describe("Stake withdraw", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const source = [max_deposit, max_withdraw]; // max_deposit set to 10
+    const source = [max_deposit, max_withdraw]; // max_withdraw set to 10
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -658,7 +738,7 @@ describe("Stake withdraw", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const source = [max_deposit, max_withdraw]; // max_deposit set to 10
+    const source = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
