@@ -23,6 +23,7 @@ import {
   ONE,
   sixteenZeros,
   sixZeros,
+  twentyZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -66,6 +67,7 @@ describe("Stake withdraw", async function () {
      * So if the token has more decimals than 18 we expect the number of shares to round up
      */
 
+    // token override
     const token = (await basicDeploy("ReserveTokenDecimals", {}, [
       20,
     ])) as ReserveTokenDecimals; // 20 decimals
@@ -104,29 +106,20 @@ describe("Stake withdraw", async function () {
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
-    const depositsAlice0_ = await getDeposits(stake, alice.address);
-    assert(depositsAlice0_.length === 0);
-
     // Give Alice some reserve tokens and deposit them
     await token.transfer(
       alice.address,
-      ethers.BigNumber.from("1000" + sixZeros)
+      ethers.BigNumber.from("1000" + twentyZeros)
     );
     const tokenBalanceAlice0 = await token.balanceOf(alice.address);
     await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
     await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
 
-    const depositsAlice1_ = await getDeposits(stake, alice.address);
-    const time1_ = await getBlockTimestamp();
-    assert(depositsAlice1_.length === 1);
-    assert(depositsAlice1_[0].timestamp === time1_);
-    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
-
     await timewarp(86400);
 
     const maxRedeem_ = await stake.maxRedeem(alice.address);
 
-    const expectedMaxRedeem = 1000000001;
+    const expectedMaxRedeem = "10000000000000000001";
 
     assert(
       maxRedeem_.eq(expectedMaxRedeem),
