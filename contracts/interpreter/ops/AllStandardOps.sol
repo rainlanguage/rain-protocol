@@ -59,13 +59,14 @@ import "./rain/ISaleV2/OpISaleV2Reserve.sol";
 import "./rain/ISaleV2/OpISaleV2SaleStatus.sol";
 import "./rain/ISaleV2/OpISaleV2Token.sol";
 import "./rain/ISaleV2/OpISaleV2TotalReserveReceived.sol";
+import "./rain/IVerifyV1/OpIVerifyV1AccountStatusAtTime.sol";
 import "./tier/OpITierV2Report.sol";
 import "./tier/OpITierV2ReportTimeForTier.sol";
 import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 60;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -224,6 +225,7 @@ library AllStandardOps {
                     OpISaleV2SaleStatus.integrity,
                     OpISaleV2Token.integrity,
                     OpISaleV2TotalReserveReceived.integrity,
+                    OpIVerifyV1AccountStatusAtTime.integrity,
                     OpITierV2Report.integrity,
                     OpITierV2ReportTimeForTier.integrity,
                     OpSaturatingDiff.integrity,
@@ -311,6 +313,7 @@ library AllStandardOps {
                     OpISaleV2SaleStatus.run,
                     OpISaleV2Token.run,
                     OpISaleV2TotalReserveReceived.run,
+                    OpIVerifyV1AccountStatusAtTime.run,
                     OpITierV2Report.report,
                     OpITierV2ReportTimeForTier.reportTimeForTier,
                     OpSaturatingDiff.saturatingDiff,

@@ -14,7 +14,6 @@ import { getEvents } from "../../../utils/events";
 import { fillEmptyAddress } from "../../../utils/flow";
 import { timewarp } from "../../../utils/hardhat";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -150,7 +149,7 @@ describe("Flow context tests", async function () {
       // 2) else if within 24 hours of last flow time, throttle amount
       // 3) else default amount
       SENTINEL(), // NATIVE SKIP
-          
+
       // Setting Flow Time
       CONTEXT_FLOW_ID(), // Key
       op(Opcode.BLOCK_TIMESTAMP), // on stack for debugging // Value

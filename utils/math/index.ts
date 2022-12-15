@@ -1,6 +1,24 @@
 import { BigNumber } from "ethers";
 import { ONE } from "../constants";
 
+export const scaleRatio = (
+  ratio: BigNumber,
+  aDecimals: number,
+  bDecimals: number
+) => {
+  return scaleBy(ratio, bDecimals - aDecimals);
+};
+
+export const scaleBy = (a: BigNumber, scaleBy: number): BigNumber => {
+  if (scaleBy == 0) {
+    return a;
+  } else if (scaleBy > 0) {
+    return a.mul(10 ** scaleBy);
+  } else {
+    return a.div(10 ** -scaleBy);
+  }
+};
+
 export const fixedPointMul = (a: BigNumber, b: BigNumber): BigNumber =>
   a.mul(b).div(ONE);
 export const fixedPointDiv = (a: BigNumber, b: BigNumber): BigNumber =>

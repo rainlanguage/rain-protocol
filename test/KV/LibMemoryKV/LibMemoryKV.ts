@@ -1,5 +1,3 @@
-import { assert } from "chai";
-import { ethers } from "hardhat";
 import { LibMemoryKVTest } from "../../../typechain/contracts/test/kv/LibMemoryKVTest";
 import { compareObjects } from "../../../utils";
 import {

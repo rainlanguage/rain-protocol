@@ -29,10 +29,11 @@ uint constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
 uint constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
 
 uint constant CONTEXT_VAULT_IO_TOKEN = 0;
-uint constant CONTEXT_VAULT_IO_VAULT_ID = 1;
-uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 2;
-uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 3;
-uint constant CONTEXT_VAULT_IO_ROWS = 4;
+uint constant CONTEXT_VAULT_IO_TOKEN_DECIMALS = 1;
+uint constant CONTEXT_VAULT_IO_VAULT_ID = 2;
+uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 3;
+uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
+uint constant CONTEXT_VAULT_IO_ROWS = 5;
 
 struct ClearStateChange {
     uint256 aOutput;
@@ -157,7 +158,8 @@ contract OrderBook is
                 )
                 : EncodedDispatch.wrap(0),
             config_.validInputs,
-            config_.validOutputs
+            config_.validOutputs,
+            config_.data
         );
         uint orderHash_ = order_.hash();
         orders[orderHash_] = 1;
@@ -211,6 +213,13 @@ contract OrderBook is
             ] = uint(uint160(order_.validOutputs[outputIOIndex_].token));
 
             context_[CONTEXT_VAULT_INPUTS_COLUMN][
+                CONTEXT_VAULT_IO_TOKEN_DECIMALS
+            ] = order_.validInputs[inputIOIndex_].decimals;
+            context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+                CONTEXT_VAULT_IO_TOKEN_DECIMALS
+            ] = order_.validOutputs[outputIOIndex_].decimals;
+
+            context_[CONTEXT_VAULT_INPUTS_COLUMN][
                 CONTEXT_VAULT_IO_VAULT_ID
             ] = order_.validInputs[inputIOIndex_].vaultId;
             context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
@@ -239,6 +248,19 @@ contract OrderBook is
                 context_
             );
         (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+
+        // Rescale order output max from 18 FP to whatever decimals the output
+        // token is using.
+        orderOutputMax_ = orderOutputMax_.scaleN(
+            order_.validOutputs[outputIOIndex_].decimals
+        );
+        // Rescale the ratio from 18 FP according to the difference in decimals
+        // between input and output.
+        orderIORatio_ = orderIORatio_.scaleRatio(
+            order_.validOutputs[outputIOIndex_].decimals,
+            order_.validInputs[inputIOIndex_].decimals
+        );
+
         uint[] memory calculationsContext_ = new uint[](2);
         calculationsContext_[0] = orderOutputMax_;
         calculationsContext_[1] = orderIORatio_;
@@ -335,6 +357,7 @@ contract OrderBook is
         Order memory order_;
         uint256 remainingInput_ = takeOrders_.maximumInput;
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
+
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
             uint orderHash_ = order_.hash();
@@ -399,7 +422,9 @@ contract OrderBook is
             }
         }
         totalInput_ = takeOrders_.maximumInput - remainingInput_;
+
         require(totalInput_ >= takeOrders_.minimumInput, "MIN_INPUT");
+
         IERC20(takeOrders_.output).safeTransferFrom(
             msg.sender,
             address(this),

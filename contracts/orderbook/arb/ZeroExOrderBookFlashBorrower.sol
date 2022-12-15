@@ -41,7 +41,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
     using Address for address;
     using SafeERC20 for IERC20;
 
-    address immutable orderBook;
+    address public immutable orderBook;
     address public immutable zeroExExchangeProxy;
 
     constructor(address orderBook_, address zeroExExchangeProxy_) {
@@ -56,11 +56,8 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         uint,
         bytes calldata data_
     ) external returns (bytes32) {
-        require(msg.sender == orderBook, "FlashBorrower: Untrusted lender");
-        require(
-            initiator_ == address(this),
-            "FlashBorrower: Untrusted loan initiator"
-        );
+        require(msg.sender == orderBook, "FlashBorrower: Bad lender");
+        require(initiator_ == address(this), "FlashBorrower: Bad initiator");
 
         (TakeOrdersConfig memory takeOrders_, bytes memory zeroExData_) = abi
             .decode(data_, (TakeOrdersConfig, bytes));
