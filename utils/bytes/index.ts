@@ -3,6 +3,10 @@ import { Hexable, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { max_uint256, max_uint32 } from "../constants";
 
+export function numberify(bytes: BytesLike) {
+  return ethers.BigNumber.from(bytes).toNumber();
+}
+
 export function bitify(number: number) {
   return (number >>> 0).toString(2);
 }
@@ -13,6 +17,23 @@ export function bitify(number: number) {
  */
 export function randomAddress() {
   return hexlify(ethers.BigNumber.from(ethers.utils.randomBytes(20)));
+}
+
+/**
+ * Returns a DataHexString array representation of a slice of aBytesLike.
+ * @see https://docs.ethers.io/v5/api/utils/bytes/#utils-hexDataSlice
+ */
+export function readUint256BytesArrayFromMemDump(
+  bytes: BytesLike,
+  pointer: number,
+  length: number
+): string[] {
+  const array = [];
+  for (let i_ = 0; i_ < length; i_++) {
+    const position = pointer + i_ * 32;
+    array.push(ethers.utils.hexDataSlice(bytes, position, position + 32));
+  }
+  return array;
 }
 
 /**
