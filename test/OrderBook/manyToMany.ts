@@ -95,26 +95,28 @@ describe("OrderBook many-to-many", async function () {
       vMaxAmount,
       vThreshold,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
 
     const orderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, vaultId: vaultAlice },
-        { token: tokenB.address, vaultId: vaultAlice },
-        { token: tokenA.address, vaultId: vaultAlice },
-        { token: tokenD.address, vaultId: vaultAlice },
+        { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenB.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
       validOutputs: [
-        { token: tokenA.address, vaultId: vaultAlice },
-        { token: tokenB.address, vaultId: vaultAlice },
-        { token: tokenC.address, vaultId: vaultAlice },
-        { token: tokenD.address, vaultId: vaultAlice },
+        { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenB.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenC.address, decimals: 18, vaultId: vaultAlice },
+        { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
       interpreterStateConfig: {
         sources: [source, []],
         constants: constants,
       },
+      data : aliceAskOrder
     };
 
     const _txAddOrder = await orderBook.connect(alice).addOrder(orderConfig);
@@ -138,95 +140,101 @@ describe("OrderBook many-to-many", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, vaultId: aliceInputVault },
-        { token: tokenC.address, vaultId: aliceInputVault },
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+        { token: tokenC.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
-        { token: tokenB.address, vaultId: aliceOutputVault },
-        { token: tokenD.address, vaultId: aliceOutputVault },
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+        { token: tokenD.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenB.address, vaultId: bobOutputVault },
-        { token: tokenD.address, vaultId: bobOutputVault },
+        { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
+        { token: tokenD.address, decimals: 18, vaultId: bobOutputVault },
       ],
       validOutputs: [
-        { token: tokenA.address, vaultId: bobInputVault },
-        { token: tokenC.address, vaultId: bobInputVault },
+        { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
+        { token: tokenC.address, decimals: 18, vaultId: bobInputVault },
       ],
       interpreterStateConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },
+      data : bobBidOrder
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
 
     // DEPOSITS
 
@@ -299,7 +307,7 @@ describe("OrderBook many-to-many", async function () {
     };
     const txClearOrder0 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfig, clearConfig0);
+      .clear(askOrder, bidOrder, clearConfig0);
 
     const {
       sender: clearSender0,
@@ -322,23 +330,23 @@ describe("OrderBook many-to-many", async function () {
 
     const aOutputExpected0 = minBN(
       aOutputMaxExpected0,
-      fixedPointMul(bidPrice, amount)
+      fixedPointMul(bidRatio, amount)
     );
     const bOutputExpected0 = minBN(
       bOutputMaxExpected0,
-      fixedPointMul(askPrice, amount)
+      fixedPointMul(askRatio, amount)
     );
 
     const expectedClearStateChange0: ClearStateChangeStruct = {
       aOutput: aOutputExpected0,
       bOutput: bOutputExpected0,
-      aInput: fixedPointMul(askPrice, aOutputExpected0),
-      bInput: fixedPointMul(bidPrice, bOutputExpected0),
+      aInput: fixedPointMul(askRatio, aOutputExpected0),
+      bInput: fixedPointMul(bidRatio, bOutputExpected0),
     };
 
     assert(clearSender0 === bountyBot.address);
-    compareSolStructs(clearA_, askConfig);
-    compareSolStructs(clearB_, bidConfig);
+    compareSolStructs(clearA_, askOrder);
+    compareSolStructs(clearB_, bidOrder);
     compareStructs(clearBountyConfig0, clearConfig0);
     compareStructs(clearStateChange0, expectedClearStateChange0);
 
@@ -352,7 +360,7 @@ describe("OrderBook many-to-many", async function () {
     };
     const txClearOrder1 = await orderBook
       .connect(bountyBot)
-      .clear(askConfig, bidConfig, clearConfig1);
+      .clear(askOrder, bidOrder, clearConfig1);
 
     const {
       sender: clearSender1,
@@ -375,23 +383,23 @@ describe("OrderBook many-to-many", async function () {
 
     const cOutputExpected1 = minBN(
       cOutputMaxExpected1,
-      fixedPointMul(bidPrice, amount)
+      fixedPointMul(bidRatio, amount)
     );
     const dOutputExpected1 = minBN(
       dOutputMaxExpected1,
-      fixedPointMul(askPrice, amount)
+      fixedPointMul(askRatio, amount)
     );
 
     const expectedClearStateChange1: ClearStateChangeStruct = {
       aOutput: cOutputExpected1,
       bOutput: dOutputExpected1,
-      aInput: fixedPointMul(askPrice, cOutputExpected1),
-      bInput: fixedPointMul(bidPrice, dOutputExpected1),
+      aInput: fixedPointMul(askRatio, cOutputExpected1),
+      bInput: fixedPointMul(bidRatio, dOutputExpected1),
     };
 
     assert(clearSender1 === bountyBot.address);
-    compareSolStructs(clearC_, askConfig);
-    compareSolStructs(clearD_, bidConfig);
+    compareSolStructs(clearC_, askOrder);
+    compareSolStructs(clearD_, bidOrder);
     compareStructs(clearBountyConfig1, clearConfig1);
     compareStructs(clearStateChange1, expectedClearStateChange1);
   });
@@ -411,94 +419,100 @@ describe("OrderBook many-to-many", async function () {
 
     // ASK ORDER
 
-    const askPrice = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askPrice];
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskPrice = op(
+    const vAskRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const askSource = concat([
       vAskOutputMax,
-      vAskPrice,
+      vAskRatio,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenA.address, vaultId: aliceVaultA },
-        { token: tokenB.address, vaultId: aliceVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
       ],
       validOutputs: [
-        { token: tokenB.address, vaultId: aliceVaultB },
-        { token: tokenA.address, vaultId: aliceVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
       ],
       interpreterStateConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askConfig } = (await getEventArgs(
+    const { sender: askSender, order: askOrder } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(askSender === alice.address, "wrong sender");
-    compareStructs(askConfig, askOrderConfig);
+    compareStructs(askOrder, askOrderConfig);
 
     // BID ORDER
 
-    const bidPrice = fixedPointDiv(ONE, askPrice);
-    const bidConstants = [max_uint256, bidPrice];
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
     const vBidOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidPrice = op(
+    const vBidRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
       vBidOutputMax,
-      vBidPrice,
+      vBidRatio,
     ]);
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
       validInputs: [
-        { token: tokenB.address, vaultId: bobVaultB },
-        { token: tokenA.address, vaultId: bobVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
       ],
       validOutputs: [
-        { token: tokenA.address, vaultId: bobVaultA },
-        { token: tokenB.address, vaultId: bobVaultB },
+        { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
+        { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
       ],
       interpreterStateConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },
+      data : bobBidOrder
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidConfig } = (await getEventArgs(
+    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidConfig, bidOrderConfig);
+    compareStructs(bidOrder, bidOrderConfig);
   });
 });
