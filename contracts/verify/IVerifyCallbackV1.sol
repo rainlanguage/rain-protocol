@@ -13,19 +13,19 @@ import "./LibEvidence.sol";
 /// a more readily composed ecosystem of verified accounts.
 ///
 /// There's no reentrancy concerns for external calls from the `Verify`
-/// contract to the `IVerifyCallback` contract because:
+/// contract to the `IVerifyCallbackV1` contract because:
 /// - All the callbacks happen after state changes in `Verify`
 /// - All `Verify` actions are bound to the authority of the `msg.sender`
-/// The `IVerifyCallback` contract can and should rollback transactions if
+/// The `IVerifyCallbackV1` contract can and should rollback transactions if
 /// their restrictions/processing requirements are not met, but otherwise have
 /// no more authority over the `Verify` state than anon users.
 ///
 /// The security model for platforms consuming `Verify` contracts is that they
 /// should index or otherwise filter children from the `VerifyFactory` down to
-/// those that also set a supported `IVerifyCallback` contract. The factory is
+/// those that also set a supported `IVerifyCallbackV1` contract. The factory is
 /// completely agnostic to callback concerns and doesn't even require that a
 /// callback contract be set at all.
-interface IVerifyCallback {
+interface IVerifyCallbackV1 {
     /// Additional processing after a batch of additions.
     /// SHOULD revert/rollback transactions if processing fails.
     /// @param adder_ The `msg.sender` that authorized the additions.
