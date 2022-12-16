@@ -178,7 +178,10 @@ describe("LibMemoryKV tests", async function () {
     const kv = 0;
     const kvSize = 100; // 100 key-value pairs
 
-    const kvPair = Array.from({ length: kvSize * 2 }, (element, index) => index+1);
+    const kvPair = Array.from(
+      { length: kvSize * 2 },
+      (element, index) => index + 1
+    );
 
     // Build expected KV Pair
     const expectedKVPair = {};

@@ -707,10 +707,10 @@
   "resolved" "https://registry.npmjs.org/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.2.1.tgz"
   "version" "2.2.1"
 
-"@openzeppelin/contracts-upgradeable@=4.7.3":
-  "integrity" "sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A=="
-  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.7.3.tgz"
-  "version" "4.7.3"
+"@openzeppelin/contracts-upgradeable@=4.8.0":
+  "integrity" "sha512-5GeFgqMiDlqGT8EdORadp1ntGF0qzWZLmEY7Wbp/yVhN7/B3NNzCxujuI77ktlyG81N3CUZP8cZe3ZAQ/cW10w=="
+  "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.8.0.tgz"
+  "version" "4.8.0"
 
 "@openzeppelin/contracts-v0.7@npm:@openzeppelin/contracts@v3.4.2":
   "integrity" "sha512-z0zMCjyhhp4y7XKAcDAi3Vgms4T2PstwBdahiO0+9NaGICQKjynK3wduSRplTgk4LXmoO1yfDGO5RbjKYxtuxA=="
@@ -5277,7 +5277,7 @@
   "resolved" "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz"
   "version" "0.0.6"
 
-"typescript@*", "typescript@^4.9.4", "typescript@>=2.7", "typescript@>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta", "typescript@>=3.7.0", "typescript@>=4.3.0":
+"typescript@*", "typescript@>=2.7", "typescript@>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta", "typescript@>=3.7.0", "typescript@>=4.3.0":
   "integrity" "sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg=="
   "resolved" "https://registry.npmjs.org/typescript/-/typescript-4.9.4.tgz"
   "version" "4.9.4"
