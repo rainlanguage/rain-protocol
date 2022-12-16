@@ -189,7 +189,7 @@ const testSolStructs = (
  export const areEqualStateConfigs = async (
   config1: StateConfigStruct,
   config2: StateConfigStruct
-): boolean => {
+): Promise<boolean> => {
   if (config1.constants.length !== config2.constants.length) return false;
   if (config1.sources.length !== config2.sources.length) return false;
 

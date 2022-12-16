@@ -78,7 +78,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       sources: mathConfigFromEvent.sources
     } ;  
 
-
+      
 
     assert(
       areEqualStateConfigs(expected, result),
