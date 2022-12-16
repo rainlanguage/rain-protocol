@@ -12,11 +12,14 @@ import {
 } from "../../../typechain";
 import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
 import {
+  max_uint256,
   max_uint32,
   readWriteTierDeploy,
   stakeDeploy,
   THRESHOLDS,
 } from "../../../utils";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
@@ -416,10 +419,24 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should query Stake Contract's report for a Tier using Combine Tier", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -510,10 +527,24 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should combine reports of 2 staking contracts", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -622,10 +653,24 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should combine reports of N staking contracts", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const MAX_STAKE_CONTRACTS = 10;
@@ -737,10 +782,24 @@ describe("CombineTier report time for tier tests", async function () {
   });
 
   it("should use ITIERV2_REPORT opcode with context data to query the report time for tier for a CombineTier contract", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

@@ -16,9 +16,12 @@ import {
   combineTierDeploy,
   compareStructs,
   getEventArgs,
+  max_uint256,
   stakeDeploy,
   Tier,
 } from "../../utils";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
@@ -108,10 +111,24 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       {}
     )) as ReserveToken;
 
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: reserveToken.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const tier = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
