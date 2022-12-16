@@ -1,3 +1,5 @@
+import { assert } from "chai";
+import { ethers } from "hardhat";
 import { LibMemoryKVTest } from "../../../typechain/contracts/test/kv/LibMemoryKVTest";
 import { compareObjects } from "../../../utils";
 import {
@@ -172,7 +174,7 @@ describe("LibMemoryKV tests", async function () {
     });
   });
 
-  it.only("should copy the linked list into a vanilla uint[] and the length is correct and all items are present", async function () {
+  it("should copy the linked list into a vanilla uint[] and the length is correct and all items are present", async function () {
     const kv = 0;
     const kvSize = 100; // 100 key-value pairs
 
