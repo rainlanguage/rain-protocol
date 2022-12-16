@@ -15,6 +15,7 @@ solt
 !dist/**
 tenderly.yaml
 test-template.ts
+dumpfile
 
 # Echidna
 crytic-export

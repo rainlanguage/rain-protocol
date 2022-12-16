@@ -4,9 +4,7 @@ import { ethers } from "hardhat";
 import {
   Rainterpreter,
   RainterpreterExpressionDeployer,
-  ReserveToken,
   ReserveToken18,
-  ReserveTokenDecimals,
   StakeFactory,
 } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
@@ -21,9 +19,7 @@ import {
   eighteenZeros,
   max_uint256,
   ONE,
-  sixteenZeros,
   sixZeros,
-  twentyZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
@@ -49,84 +45,6 @@ describe("Stake withdraw", async function () {
   beforeEach(async () => {
     token = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await token.initialize();
-  });
-
-  it.only("maxRedeem should respect maxWithdraw but as shares rounded up e.g. calculating the amount of underlying tokens a user has to provide to receive a certain amount of shares", async function () {
-    /**
-     * Note that, in this scenario, rounding is involved in the calculation of shares in the following expression within the ERC4626 implementation:
-     *
-     * assets.mulDiv(supply, totalAssets(), rounding);
-     *
-     * Where
-     * - `assets` is the maxWithdraw value
-     * - `supply` is total supply of shares
-     * - `totalAssets()` is the total supply of the underlying token
-     * - `rounding` determines whether to round up or down
-     *
-     * Stake shares use 18 decimals
-     * So if the token has more decimals than 18 we expect the number of shares to round up
-     */
-
-    // token override
-    const token = (await basicDeploy("ReserveTokenDecimals", {}, [
-      20,
-    ])) as ReserveTokenDecimals; // 20 decimals
-    await token.initialize();
-
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-    const alice = signers[2];
-
-    const TEN = ethers.BigNumber.from("10" + eighteenZeros + "99"); // 20 decimals
-
-    const constants = [max_uint256, TEN];
-
-    const max_deposit = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const max_withdraw = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-
-    const source = [max_deposit, max_withdraw]; // max_withdraw set to 10-ish
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: source,
-        constants: constants,
-      },
-    };
-
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
-
-    // Give Alice some reserve tokens and deposit them
-    await token.transfer(
-      alice.address,
-      ethers.BigNumber.from("1000" + twentyZeros)
-    );
-    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
-    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
-    await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
-
-    await timewarp(86400);
-
-    const maxRedeem_ = await stake.maxRedeem(alice.address);
-
-    const expectedMaxRedeem = "10000000000000000001";
-
-    assert(
-      maxRedeem_.eq(expectedMaxRedeem),
-      `expected rounded up
-      expected  ${expectedMaxRedeem}
-      got       ${maxRedeem_}`
-    );
   });
 
   it("should return zero for maxWithdraw if the expression fails", async function () {
