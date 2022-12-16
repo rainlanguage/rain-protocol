@@ -72,6 +72,7 @@ const testStructs = (
   jsObj: Record<string, unknown>,
   debug: boolean
 ) => {
+
   Object.keys(solObj).forEach((key) => {
     let expectedValue = jsObj[key];
     let actualValue = solObj[key];
@@ -174,3 +175,5 @@ const testSolStructs = (
     }
   });
 };
+
+export const compareObjects = testStructs;

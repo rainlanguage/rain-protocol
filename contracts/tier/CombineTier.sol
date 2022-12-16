@@ -48,8 +48,8 @@ contract CombineTier is TierV2 {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    IInterpreterV1 interpreter;
-    address expression;
+    IInterpreterV1 internal interpreter;
+    address internal expression;
 
     constructor() {
         _disableInitializers();
