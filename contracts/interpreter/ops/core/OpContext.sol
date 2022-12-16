@@ -8,6 +8,8 @@ import "../../deploy/LibIntegrityState.sol";
 import "../../../idempotent/LibIdempotentFlag.sol";
 import "../../../math/Binary.sol";
 
+import "hardhat/console.sol";
+
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly
 /// different handling to other memory reads as it is working with data that
@@ -23,7 +25,7 @@ library OpContext {
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
         uint256 row_ = Operand.unwrap(operand_) & MASK_8BIT;
         uint256 column_ = Operand.unwrap(operand_) >> 8;
         integrityState_.contextReads = IdempotentFlag.unwrap(
@@ -33,6 +35,7 @@ library OpContext {
                 row_
             )
         );
+        console.log("context", StackTop.unwrap(stackTop_), column_, row_);
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityState_.push(stackTop_);

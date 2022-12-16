@@ -6,6 +6,8 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 
+import "hardhat/console.sol";
+
 library OpUpdateTimesForTierRange {
     using LibStackTop for StackTop;
     using LibIntegrityState for IntegrityState;
@@ -32,7 +34,9 @@ library OpUpdateTimesForTierRange {
         IntegrityState memory integrityState_,
         Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
+                console.log("updateTTR");
+
         return integrityState_.applyFn(stackTop_, _updateTimesForTierRange);
     }
 

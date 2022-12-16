@@ -7,6 +7,8 @@ import "../../../type/LibCast.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 
+import "hardhat/console.sol";
+
 /// @title OpHash
 /// @notice Opcode for hashing a list of values.
 library OpHash {
@@ -22,7 +24,8 @@ library OpHash {
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
+        console.log("hash", StackTop.unwrap(stackTop_), Operand.unwrap(operand_));
         return
             integrityState_.applyFn(stackTop_, _hash, Operand.unwrap(operand_));
     }

@@ -7,6 +7,8 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 import "../../../math/Binary.sol";
 
+import "hardhat/console.sol";
+
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
 
@@ -21,15 +23,17 @@ library OpReadMemory {
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
         uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPCODE_MEMORY_TYPE_STACK) {
+            console.log("stack", StackTop.unwrap(stackTop_), offset_);
             require(
                 offset_ < integrityState_.stackBottom.toIndex(stackTop_),
                 "OOB_STACK_READ"
             );
         } else {
+            console.log("constant", StackTop.unwrap(stackTop_), offset_);
             require(
                 offset_ < integrityState_.constantsLength,
                 "OOB_CONSTANT_READ"

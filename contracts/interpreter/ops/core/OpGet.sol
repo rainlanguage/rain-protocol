@@ -6,6 +6,8 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 
+import "hardhat/console.sol";
+
 /// @title OpGet
 /// @notice Opcode for reading from storage.
 library OpGet {
@@ -17,8 +19,9 @@ library OpGet {
         IntegrityState memory integrityState_,
         Operand,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
         unchecked {
+            console.log("get", StackTop.unwrap(stackTop_));
             // Pop key
             // Stack value
             function(uint) internal pure returns (uint) fn_;

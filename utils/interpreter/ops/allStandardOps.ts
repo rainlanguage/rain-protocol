@@ -62,6 +62,8 @@ export enum AllStandardOps {
   length,
 }
 
+console.log(AllStandardOps.length)
+
 export const Opcode = AllStandardOps;
 
 export const RainterpreterOps = {

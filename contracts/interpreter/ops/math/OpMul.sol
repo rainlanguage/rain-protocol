@@ -5,6 +5,8 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 
+import "hardhat/console.sol";
+
 /// @title OpMul
 /// @notice Opcode for multiplying N numbers.
 library OpMul {
@@ -19,7 +21,8 @@ library OpMul {
         IntegrityState memory integrityState_,
         Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
+        console.log("mul", StackTop.unwrap(stackTop_), Operand.unwrap(operand_));
         return
             integrityState_.applyFnN(stackTop_, _mul, Operand.unwrap(operand_));
     }

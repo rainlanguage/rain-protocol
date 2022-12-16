@@ -7,6 +7,8 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 
 import "../run/IInterpreterV1.sol";
 
+import "hardhat/console.sol";
+
 struct IntegrityState {
     // Sources first as we read it in assembly.
     bytes[] sources;
@@ -55,6 +57,8 @@ library LibIntegrityState {
                 end_ := add(cursor_, mload(cursor_))
             }
 
+            console.log("integrity");
+
             // Loop until complete.
             while (cursor_ < end_) {
                 uint256 opcode_;
@@ -65,6 +69,7 @@ library LibIntegrityState {
                     operand_ := and(op_, 0xFFFF)
                     opcode_ := and(shr(16, op_), 0xFFFF)
                 }
+                console.log("op", StackTop.unwrap(stackTop_), opcode_, Operand.unwrap(operand_));
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.
                 stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
@@ -85,9 +90,10 @@ library LibIntegrityState {
     function push(
         IntegrityState memory integrityState_,
         StackTop stackTop_
-    ) internal pure returns (StackTop stackTopAfter_) {
-        stackTopAfter_ = stackTop_.up();
-        integrityState_.syncStackMaxTop(stackTopAfter_);
+    ) internal pure returns (StackTop) {
+        stackTop_ = stackTop_.up();
+        integrityState_.syncStackMaxTop(stackTop_);
+        return stackTop_;
     }
 
     function push(
