@@ -41,7 +41,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
     using Address for address;
     using SafeERC20 for IERC20;
 
-    address immutable orderBook;
+    address public immutable orderBook;
     address public immutable zeroExExchangeProxy;
 
     constructor(address orderBook_, address zeroExExchangeProxy_) {
@@ -56,11 +56,8 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         uint,
         bytes calldata data_
     ) external returns (bytes32) {
-        require(msg.sender == orderBook, "FlashBorrower: Untrusted lender");
-        require(
-            initiator_ == address(this),
-            "FlashBorrower: Untrusted loan initiator"
-        );
+        require(msg.sender == orderBook, "FlashBorrower: Bad lender");
+        require(initiator_ == address(this), "FlashBorrower: Bad initiator");
 
         (TakeOrdersConfig memory takeOrders_, bytes memory zeroExData_) = abi
             .decode(data_, (TakeOrdersConfig, bytes));
@@ -90,10 +87,19 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // give us and there's no reason to borrow less.
         uint flashLoanAmount_ = takeOrders_.minimumInput;
 
-        IERC20(flashLoanToken_).safeIncreaseAllowance(
-            zeroExSpender_,
-            flashLoanAmount_
+        // This is overkill to infinite approve every time.
+        // @todo make this hammer smaller.
+        IERC20(takeOrders_.output).safeApprove(orderBook, 0);
+        IERC20(takeOrders_.output).safeIncreaseAllowance(
+            orderBook,
+            type(uint256).max
         );
+        IERC20(takeOrders_.input).safeApprove(zeroExSpender_, 0);
+        IERC20(takeOrders_.input).safeIncreaseAllowance(
+            zeroExSpender_,
+            type(uint256).max
+        );
+
         IERC3156FlashLender(orderBook).flashLoan(
             this,
             flashLoanToken_,

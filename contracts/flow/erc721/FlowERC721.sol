@@ -96,9 +96,10 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     function _afterTokenTransfer(
         address from_,
         address to_,
-        uint256 tokenId_
+        uint256 tokenId_,
+        uint batchSize_
     ) internal virtual override {
-        super._afterTokenTransfer(from_, to_, tokenId_);
+        super._afterTokenTransfer(from_, to_, tokenId_, batchSize_);
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
@@ -107,7 +108,8 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                     uint(uint160(msg.sender)),
                     uint256(uint160(from_)),
                     uint256(uint160(to_)),
-                    tokenId_
+                    tokenId_,
+                    batchSize_
                 )
                 .matrixFrom();
             EncodedDispatch dispatch_ = _dispatch;

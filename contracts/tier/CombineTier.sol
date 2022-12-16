@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {TierwiseCombine} from "./libraries/TierwiseCombine.sol";
 import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
-import "../interpreter/deploy/RainInterpreterIntegrity.sol";
+import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibInterpreterState.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -47,8 +48,8 @@ contract CombineTier is TierV2 {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    IInterpreterV1 interpreter;
-    address expression;
+    IInterpreterV1 internal interpreter;
+    address internal expression;
 
     constructor() {
         _disableInitializers();

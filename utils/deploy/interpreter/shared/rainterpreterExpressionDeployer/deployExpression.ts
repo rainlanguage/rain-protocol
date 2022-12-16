@@ -3,7 +3,7 @@ import {
   RainterpreterExpressionDeployer,
   Rainterpreter,
 } from "../../../../../typechain";
-import { DeployExpressionEvent } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
+import { ExpressionDeployedEvent } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { StateConfigStruct } from "../../../../../typechain/contracts/orderbook/IOrderBookV1";
 import { getEvents } from "../../../../events";
 
@@ -23,11 +23,12 @@ export const rainterpreterExpression = async (
     [0]
   );
 
-  const [eventData] = (await getEvents(
+  const eventData = (await getEvents(
     expressionTx,
-    "DeployExpression",
+    "ExpressionDeployed",
     expressionDeployer
-  )) as DeployExpressionEvent["args"][];
-
-  return eventData.expressionAddress;
+  ) ) as ExpressionDeployedEvent["args"][]
+  
+  return eventData[0].expression; 
+  
 };

@@ -1,7 +1,7 @@
 /* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   AllStandardOpsTest,
@@ -20,11 +20,14 @@ import {
   Tier,
   timewarp,
 } from "../../../utils";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -411,10 +414,24 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should query Stake Contract's report using Combine Tier", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -449,17 +466,17 @@ describe("CombineTier report tests", async function () {
       blockTimeBob_,
       blockTimeBob_,
       blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
-      blockTimeBob_,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
+      0xffffffff,
     ]);
 
     // prettier-ignore
     const sourceAliceReport = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0000), // address
+        op(Opcode.CONTEXT, 0x0000), // alice address
         op(Opcode.CONTEXT, 0x0103), // THRESHOLDS
         op(Opcode.CONTEXT, 0x0104),
         op(Opcode.CONTEXT, 0x0105),
@@ -474,7 +491,7 @@ describe("CombineTier report tests", async function () {
     // prettier-ignore
     const sourceBobReport = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CONTEXT, 0x0101), // address
+        op(Opcode.CONTEXT, 0x0101), // bob address
         op(Opcode.CONTEXT, 0x0103), // THRESHOLDS
         op(Opcode.CONTEXT, 0x0104),
         op(Opcode.CONTEXT, 0x0105),
@@ -505,8 +522,8 @@ describe("CombineTier report tests", async function () {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [stake.address],
       },
-      expressionDeployer: "",
-      interpreter: "",
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -526,10 +543,24 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should combine reports of 2 staking contracts", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -643,10 +674,24 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should combine reports of N staking contracts", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const MAX_STAKE_CONTRACTS = 10;
@@ -752,10 +797,24 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should use ITIERV2_REPORT opcode with context data to query the report for a CombineTier contract", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: tokenERC20.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
