@@ -172,11 +172,14 @@ describe("LibMemoryKV tests", async function () {
     });
   });
 
-  it.only("should copy the linked list into a vanilla uint[] and the length is correct and all items are present", async function () {
+  it("should copy the linked list into a vanilla uint[] and the length is correct and all items are present", async function () {
     const kv = 0;
     const kvSize = 100; // 100 key-value pairs
 
-    const kvPair = Array.from({ length: kvSize * 2 }, (element, index) => index+1);
+    const kvPair = Array.from(
+      { length: kvSize * 2 },
+      (element, index) => index + 1
+    );
 
     // Build expected KV Pair
     const expectedKVPair = {};
