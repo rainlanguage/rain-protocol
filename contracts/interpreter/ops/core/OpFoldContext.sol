@@ -44,16 +44,14 @@ library OpFoldContext {
                 );
             }
 
+            // Outputs for call is the same as the inputs.
             Operand callOperand_ = Operand.wrap(
                 (sourceIndex_ << 8) | (inputs_ << 4) | callInputs_
             );
 
             // First the width of the context columns being folded is pushed to
             // the stack.
-            stackTop_ = integrityState_.push(
-                integrityState_.stackBottom,
-                width_
-            );
+            stackTop_ = integrityState_.push(stackTop_, width_);
             // Then we loop over call taking the width and extra inputs, then
             // returning the same number of outputs as non-width inputs.
             return OpCall.integrity(integrityState_, callOperand_, stackTop_);

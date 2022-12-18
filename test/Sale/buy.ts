@@ -11,12 +11,7 @@ import {
 } from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
-import {
-  fourZeros,
-  ONE,
-  RESERVE_ONE,
-  sixZeros,
-} from "../../utils/constants/bigNumber";
+import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import {
   saleDependenciesDeploy,
   saleDeploy,
@@ -25,7 +20,6 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,

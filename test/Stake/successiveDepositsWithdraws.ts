@@ -1,9 +1,18 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReportOMeter, ReserveToken18, StakeFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReportOMeter,
+  ReserveToken18,
+  StakeFactory,
+} from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { sixZeros } from "../../utils/constants/bigNumber";
+import { memoryOperand, MemoryType, op, Opcode } from "../../utils";
+import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
@@ -12,10 +21,14 @@ describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
   let reportOMeter: ReportOMeter;
   let token: ReserveToken18;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
     reportOMeter = await reportOMeterDeploy();
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   beforeEach(async () => {
@@ -31,10 +44,29 @@ describe("Stake many successive deposits and withdraws", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -119,10 +151,29 @@ describe("Stake many successive deposits and withdraws", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -170,10 +221,29 @@ describe("Stake many successive deposits and withdraws", async function () {
     const alice = signers[2];
     const bob = signers[3];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

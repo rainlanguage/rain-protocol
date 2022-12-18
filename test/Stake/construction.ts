@@ -1,12 +1,27 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { ReserveToken, StakeFactory } from "../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
+  ReserveToken,
+  StakeFactory,
+} from "../../typechain";
 import {
   InitializeEvent,
   StakeConfigStruct,
 } from "../../typechain/contracts/stake/Stake";
+import {
+  max_uint16,
+  max_uint256,
+  memoryOperand,
+  MemoryType,
+  op,
+  Opcode,
+} from "../../utils";
 import { zeroAddress } from "../../utils/constants/address";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getEventArgs } from "../../utils/events";
@@ -16,9 +31,13 @@ import { compareStructs } from "../../utils/test/compareStructs";
 describe("Stake construction", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   beforeEach(async () => {
@@ -29,10 +48,29 @@ describe("Stake construction", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
+    const constants = [max_uint256, max_uint16];
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const source = [max_deposit, max_withdraw];
+
     const stakeConfigStructZeroToken: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: zeroAddress,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
     };
 
     await assertError(
@@ -47,10 +85,29 @@ describe("Stake construction", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
+    const constants = [max_uint256, max_uint16];
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const source = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

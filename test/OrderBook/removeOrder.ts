@@ -75,6 +75,8 @@ describe("OrderBook remove order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -88,6 +90,7 @@ describe("OrderBook remove order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
+      data : aliceAskOrder
     };
 
     const txAskAddOrder = await orderBook

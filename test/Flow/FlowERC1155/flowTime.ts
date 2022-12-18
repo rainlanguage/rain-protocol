@@ -13,7 +13,6 @@ import { flowERC1155Deploy } from "../../../utils/deploy/flow/flowERC1155/deploy
 import { flowERC1155FactoryDeploy } from "../../../utils/deploy/flow/flowERC1155/flowERC1155Factory/deploy";
 import { getEvents } from "../../../utils/events";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
