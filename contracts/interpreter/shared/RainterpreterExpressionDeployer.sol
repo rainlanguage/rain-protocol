@@ -56,7 +56,11 @@ contract RainterpreterExpressionDeployer is
     function deployExpression(
         StateConfig memory config_,
         uint[] memory minStackOutputs_
-    ) external returns (address, uint256) {
+    ) external returns (ExpressionID, uint256) {
+        ExpressionID expressionId_ = ExpressionId.wrap(uint224(uint256(keccak256(abi.encode(config_, minStackOutputs_)))));
+        if (IRainterpreterV1(owner()).isExpressionRegistered(expressionId_)) {
+
+        }
         (uint256 contextReads_, uint256 stackLength_) = ensureIntegrity(
             config_.sources,
             config_.constants.length,

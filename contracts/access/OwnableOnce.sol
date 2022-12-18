@@ -37,7 +37,7 @@ contract OwnableOnce {
     /// set, then the final owner.
     address private _owner;
 
-    /// The initial owner is the address that constructed the contract.
+    /// The initial deployer-owner is the address that constructed the contract.
     constructor () {
         _owner = msg.sender;
     }
@@ -45,6 +45,11 @@ contract OwnableOnce {
     /// Mimics Open Zeppelin internal logic for ownership checks.
     function _checkOwner() internal view {
         require(_owner == msg.sender, "Ownable: caller is not the owner");
+    }
+
+    /// `OwnableOnce` logic to check that the owner is NOT yet finalised.
+    function _checkUnfinalised() internal view {
+        require(!finalised, "Ownable: owner is final");
     }
 
     /// Mimics Open Zeppelin `onlyOwner` modifier down to the same error message.
@@ -56,6 +61,15 @@ contract OwnableOnce {
         _;
     }
 
+    /// Mimics Open Zeppelin `onlyOwner` modifier but also checks that ownership
+    /// is NOT finalised, therefore the owner is the deployer-owner NOT the final
+    /// owner.
+    modifier onlyDeployerOwner() {
+        _checkUnfinalised();
+        _checkOwner();
+        _;
+    }
+
     /// Sets the owner if and only if it has never been set before. This is
     /// internal so that Solidity does not generate additional code that may be
     /// more useless bloat/foot-gun. The inheriting contract can always expose
@@ -63,15 +77,17 @@ contract OwnableOnce {
     /// e.g. a factory contract may need to be able to call an external wrapper.
     /// @param owner_ The final owner of this contract.
     function _setOwnerOnce(address owner_) internal {
-        require(!finalised, "Ownable: owner is final");
-        _checkOwner();
+        _checkUnfinalised();
         _owner = owner_;
+        // Note that the ownership is transferred NOT from the deployer-owner to
+        // the final owner but from `address(0)` to the final owner. This makes
+        // the deployer opaque to external systems that are Open Zeppelin aware.
         emit OwnershipTransferred(address(0), owner_);
     }
 
     /// Mimics Open Zeppelin `owner` function but hides the deployer-owner and
     /// so will only ever return `address(0)` or the final owner.
-    function owner() external view returns (address) {
+    function owner() public view returns (address) {
         return finalised ? _owner : address(0);
     }
 }
