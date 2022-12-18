@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 import "../ops/core/OpGet.sol";
+import "../../access/OwnableOnce.sol";
 
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0b130b210b770bc90c470c730d0c0dd60e0b0e290eb10ec00ece0edc0eea0ec00ef80f060f140f230f320f400f4e0f5c0f6a0fe20ff11000100f101e102d10761088109610c810d610e410f211011110111f112e113d114c115b116a11791188119711a511b311c111cf11dd11eb11f9120812171225129c0a79";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
@@ -15,7 +16,8 @@ bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
 
 contract RainterpreterExpressionDeployer is
     StandardIntegrity,
-    IExpressionDeployerV1
+    IExpressionDeployerV1,
+    OwnableOnce
 {
     using LibInterpreterState for StateConfig;
 
@@ -75,6 +77,16 @@ contract RainterpreterExpressionDeployer is
             contextReads_
         );
         return (expressionAddress_, contextReads_);
+    }
+
+    /// @inheritdoc IExpressionDeployerV1
+    function bindInterpreter() external {
+        bytes32 senderBytecode_;
+        assembly ("memory-safe") {
+            senderBytecode_ := extcodehash(caller())
+        }
+        require(senderBytecode_ == INTERPRETER_BYTECODE_HASH, "BAD_INTERPRETER");
+        _setOwnerOnce(msg.sender);
     }
 
     /// Returns the interpreter that this `RainterpreterExpressionDeployer` is

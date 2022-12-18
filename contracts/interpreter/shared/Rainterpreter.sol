@@ -29,9 +29,9 @@ contract Rainterpreter is IInterpreterV1, OwnableOnce, RainInterpreter {
     mapping(address => mapping(StateNamespace => mapping(uint => uint)))
         internal state;
 
-    ///
-    constructor(address expressionDeployer) {
+    function bindDeployer(address expressionDeployer) external {
         _setOwnerOnce(expressionDeployer);
+        IExpressionDeployerV1(expressionDeployer).bindInterpreter();
     }
 
     function evalWithNamespace(
