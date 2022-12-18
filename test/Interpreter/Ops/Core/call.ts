@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest, TierReportTest } from "../../../../typechain";
+import type { TierReportTest } from "../../../../typechain";
 import {
   AllStandardOps,
   basicDeploy,
@@ -14,16 +14,11 @@ import {
   Tier,
   timewarp,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("CALL Opcode test", async function () {
-  let logic: AllStandardOpsTest;
-
-  before(async () => {
-    logic = await allStandardOpsDeploy();
-  });
 
   it("should change the eval's scope using CALL opcode", async () => {
     const constants = [0, 1];
@@ -57,16 +52,15 @@ describe("CALL Opcode test", async function () {
         callADD
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceADD],
         constants,
-      },
-      [6]
-    );
+      });
 
-    await logic["run()"]();
-    const result0 = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+
+    const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
     assert(
       result0.eq(expectedResult0),
@@ -95,16 +89,14 @@ describe("CALL Opcode test", async function () {
         op(Opcode.ADD, 2) // 50
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, source1],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result0 = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
       result0.eq(expectedResult0),
@@ -132,16 +124,14 @@ describe("CALL Opcode test", async function () {
         call0,
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN0, source1],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result0 = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
       result0.eq(expectedResult0),
@@ -164,16 +154,15 @@ describe("CALL Opcode test", async function () {
         call0,
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN0, source1],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result0 = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result0 = await consumerLogic.stackTop();
+
     const expectedResult0 = ethers.BigNumber.from("4");
     assert(
       result0.eq(expectedResult0),
@@ -200,16 +189,14 @@ describe("CALL Opcode test", async function () {
         call0, // should end up adding 3 elements to the stack
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN0, source1],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result0 = await logic.stack();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result0 = await consumerLogic.stack();
 
     const expectedResult0 = [
       ethers.BigNumber.from("4"),
@@ -287,8 +274,8 @@ describe("CALL Opcode test", async function () {
         callADD1, // 235 + 1 = 236
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [
           sourceMAIN,
           sourceADD,
@@ -300,12 +287,11 @@ describe("CALL Opcode test", async function () {
           sourceADD1,
         ],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result0 = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result0 = await consumerLogic.stackTop();
+
     const expectedResult0 = ethers.BigNumber.from("236");
     assert(
       result0.eq(expectedResult0),
@@ -428,13 +414,11 @@ describe("CALL Opcode test", async function () {
       op(Opcode.SUB, 2) // PRICE - DISCOUNT
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceGetDiscountedPrice, sourceGetDiscount],
         constants,
-      },
-      [1]
-    );
+      });
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);
@@ -442,10 +426,12 @@ describe("CALL Opcode test", async function () {
       reportAlice,
       initialTimestamp + 5
     );
-    await logic["runContext(uint256[][])"]([
+
+    await consumerLogic.eval(interpreter.address, dispatch, [
       [tierBlockReportAlice, assetPrice],
     ]);
-    const resultAlice = await logic.stackTop();
+    const resultAlice = await consumerLogic.stackTop();
+
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
     assert(
       resultAlice.eq(expectedPriceAlice),
@@ -459,8 +445,11 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 15
     );
 
-    await logic["runContext(uint256[][])"]([[tierBlockReportBob, assetPrice]]);
-    const resultBob = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [
+      [tierBlockReportBob, assetPrice],
+    ]);
+
+    const resultBob = await consumerLogic.stackTop();
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40
     assert(
       resultBob.eq(expectedPriceBob),
