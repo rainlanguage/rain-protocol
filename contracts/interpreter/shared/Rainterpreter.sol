@@ -6,9 +6,10 @@ import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
 import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
+import "../../access/OwnableOnce.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-contract Rainterpreter is IInterpreterV1, RainInterpreter {
+contract Rainterpreter is IInterpreterV1, OwnableOnce, RainInterpreter {
     using LibStackTop for StackTop;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
@@ -27,6 +28,11 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
     // 3. uint is expression-provided value
     mapping(address => mapping(StateNamespace => mapping(uint => uint)))
         internal state;
+
+    ///
+    constructor(address expressionDeployer) {
+        _setOwnerOnce(expressionDeployer);
+    }
 
     function evalWithNamespace(
         StateNamespace namespace_,

@@ -19,41 +19,12 @@ contract RainterpreterExpressionDeployer is
 {
     using LibInterpreterState for StateConfig;
 
-    event ValidInterpreter(address sender, address interpreter);
     event DeployExpression(
         address sender,
         StateConfig config,
         address expressionAddress,
         uint256 contextReads
     );
-
-    /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
-    /// MISTAKES. IT CANNOT PREVENT EITHER A MALICIOUS INTERPRETER OR DEPLOYER
-    /// FROM BEING EXECUTED.
-    constructor(address interpreter_) {
-        // Guard against serializing incorrect function pointers, which would
-        // cause undefined runtime behaviour for corrupted opcodes.
-        bytes memory functionPointers_ = IInterpreterV1(interpreter_)
-            .functionPointers();
-        if (keccak256(functionPointers_) != OPCODE_FUNCTION_POINTERS_HASH) {
-            console.logBytes(functionPointers_);
-            revert("BAD_POINTERS");
-        }
-
-        // Guard against an interpreter with unknown/untrusted bytecode that
-        // could run arbitrary logic even if the function pointers are identical
-        // to the known/trusted interpreter.
-        bytes32 interpreterHash_;
-        assembly ("memory-safe") {
-            interpreterHash_ := extcodehash(interpreter_)
-        }
-        if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
-            console.logBytes(abi.encodePacked(interpreterHash_));
-            revert("BAD_INTERPRETER_HASH");
-        }
-
-        emit ValidInterpreter(msg.sender, interpreter_);
-    }
 
     function localIntegrityFunctionPointers()
         internal
@@ -79,6 +50,7 @@ contract RainterpreterExpressionDeployer is
         return localFnPtrs_;
     }
 
+    /// @inheritdoc IExpressionDeployerV1
     function deployExpression(
         StateConfig memory config_,
         uint[] memory minStackOutputs_
@@ -103,5 +75,24 @@ contract RainterpreterExpressionDeployer is
             contextReads_
         );
         return (expressionAddress_, contextReads_);
+    }
+
+    /// Returns the interpreter that this `RainterpreterExpressionDeployer` is
+    /// intended to deploy expressions for. As there can be many identical
+    /// deployers and interpreters on the same chain and across chains this
+    /// returns the hashes of the interpreter bytecode and function pointers as
+    /// returned by `IInterpreterV1.functionPointers`.
+    ///
+    /// Note that a malicious contract can always lie about these values so it
+    /// is not sufficient to simply call this function offchain and trust that
+    /// it will do the right thing. Offchain security considerations MUST
+    /// consider the full bytecode of BOTH the interpreter and deployer.
+    ///
+    /// This function exists to allow automated testing and monitoring processes
+    /// to detect HONEST MISTAKES in a deployer/interpreter mispairing so that
+    /// an incompatible deployer is not ACCIDENTALLY shipped alongside some
+    /// interpreter bytecode.
+    function intepreter() external pure returns (bytes32, bytes32) {
+        return (INTERPRETER_BYTECODE_HASH, OPCODE_FUNCTION_POINTERS_HASH);
     }
 }
