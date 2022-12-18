@@ -112,7 +112,7 @@ describe("OrderBook decimals", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data: []
+      data: [],
     };
     await orderBook.connect(alice).addOrder(askOrderConfig0);
 
@@ -138,7 +138,7 @@ describe("OrderBook decimals", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data: []
+      data: [],
     };
     await assertError(
       async () => await orderBook.connect(alice).addOrder(askOrderConfig1),
@@ -243,7 +243,7 @@ describe("OrderBook decimals", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data: []
+      data: [],
     };
 
     const txAskAddOrder = await orderBook
@@ -295,7 +295,7 @@ describe("OrderBook decimals", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data: []
+      data: [],
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);

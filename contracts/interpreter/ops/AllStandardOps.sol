@@ -26,8 +26,6 @@ import "./erc1155/OpERC1155BalanceOf.sol";
 import "./erc1155/OpERC1155BalanceOfBatch.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
-import "./evm/OpCaller.sol";
-import "./evm/OpThisAddress.sol";
 import "./evm/OpTimestamp.sol";
 import "./list/OpExplode32.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
@@ -66,7 +64,7 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
-uint256 constant ALL_STANDARD_OPS_LENGTH = 60;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
 
 /// @title AllStandardOps
 /// @notice RainInterpreter opcode pack to expose all other packs.
@@ -192,8 +190,6 @@ library AllStandardOps {
                     OpERC1155BalanceOfBatch.integrity,
                     OpEnsure.integrity,
                     OpBlockNumber.integrity,
-                    OpCaller.integrity,
-                    OpThisAddress.integrity,
                     OpTimestamp.integrity,
                     OpExplode32.integrity,
                     OpFixedPointScale18.integrity,
@@ -280,8 +276,6 @@ library AllStandardOps {
                     OpERC1155BalanceOfBatch.balanceOfBatch,
                     OpEnsure.ensure,
                     OpBlockNumber.blockNumber,
-                    OpCaller.caller,
-                    OpThisAddress.thisAddress,
                     OpTimestamp.timestamp,
                     OpExplode32.explode32,
                     OpFixedPointScale18.scale18,

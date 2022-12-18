@@ -595,11 +595,12 @@ describe("Sale calculate price", async function () {
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
-        // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        // targetUnits
+        op(Opcode.CONTEXT, 0x0002),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
-        op(Opcode.CALLER),
+        // sale contract
+        op(Opcode.CONTEXT, 0x0001),
         op(Opcode.ISALEV2_TOTAL_RESERVE_RECEIVED),
         vReserveDivisor,
         op(Opcode.DIV, 2),
@@ -648,13 +649,16 @@ describe("Sale calculate price", async function () {
       .connect(signer1)
       .approve(sale.address, expectedCost0.add(fee));
     // buy 10% of total supply
-    const txBuy0 = await sale.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits0,
-      desiredUnits: desiredUnits0,
-      maximumPrice: expectedPrice0,
-    });
+    const txBuy0 = await sale.connect(signer1).buy(
+      {
+        feeRecipient: feeRecipient.address,
+        fee,
+        minimumUnits: desiredUnits0,
+        desiredUnits: desiredUnits0,
+        maximumPrice: expectedPrice0,
+      },
+      { gasLimit: 1000000 }
+    );
     const { receipt: receipt0 } = (await getEventArgs(
       txBuy0,
       "Buy",

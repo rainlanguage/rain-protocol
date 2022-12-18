@@ -18,10 +18,9 @@ export const rainterpreterExpression = async (
     interpreter.address
   )) as RainterpreterExpressionDeployer;
 
-  const expressionTx  = await expressionDeployer.deployExpression(
-    stateConfig,
-    [0]
-  );
+  const expressionTx = await expressionDeployer.deployExpression(stateConfig, [
+    0,
+  ]);
 
   const [eventData] = (await getEvents(
     expressionTx,

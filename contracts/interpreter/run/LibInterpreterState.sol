@@ -20,6 +20,8 @@ enum DebugStyle {
     Source
 }
 
+type FullyQualifiedNamespace is uint256;
+
 /// Everything required to evaluate and track the state of a Rain expression.
 /// As this is a struct it will be in memory when passed to `RainInterpreter` and so
 /// will be modified by reference internally. This is important for gas
@@ -42,7 +44,7 @@ struct InterpreterState {
     StackTop stackBottom;
     StackTop constantsBottom;
     MemoryKV stateKV;
-    StateNamespace stateNamespace;
+    FullyQualifiedNamespace namespace;
     uint256[][] context;
     bytes[] compiledSources;
 }
