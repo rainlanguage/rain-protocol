@@ -161,7 +161,6 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.watch
     pkgs.nixpkgs-fmt
-    pkgs.yarn
     pkgs.nodejs-16_x
     pkgs.slither-analyzer
     local-node
