@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  AllStandardOpsTest,
+  IInterpreterV1Consumer,
   Rainterpreter,
   RainterpreterExpressionDeployer,
   ReserveToken18,
@@ -20,7 +20,7 @@ import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/raint
 import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
+import { expressionDeployConsumer } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
   memoryOperand,
@@ -33,13 +33,20 @@ import { Tier } from "../../utils/types/tier";
 describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
     interpreter = await rainterpreterDeploy();
     expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
@@ -96,15 +103,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants: [stake.address, Tier.ONE],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time0_ = await logic.stackTop();
 
@@ -118,15 +127,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants: [stake.address, Tier.TWO, THRESHOLDS[0]],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression1.dispatch, []);
 
     const time1_ = await logic.stackTop();
 
@@ -140,15 +151,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length),
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants: [stake.address, Tier.THREE, ...THRESHOLDS.slice(0, 1)],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression2.dispatch, []);
 
     const time2_ = await logic.stackTop();
 
@@ -163,15 +176,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 2).length),
     ]);
 
-    await logic.initialize(
+    const expression3 = await expressionDeployConsumer(
       {
         sources: [source3],
         constants: [stake.address, Tier.FOUR, ...THRESHOLDS.slice(0, 2)],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression3.dispatch, []);
 
     const time3_ = await logic.stackTop();
 
@@ -187,15 +202,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 3).length),
     ]);
 
-    await logic.initialize(
+    const expression4 = await expressionDeployConsumer(
       {
         sources: [source4],
         constants: [stake.address, Tier.FIVE, ...THRESHOLDS.slice(0, 3)],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression4.dispatch, []);
 
     const time4_ = await logic.stackTop();
 
@@ -212,15 +229,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 4).length),
     ]);
 
-    await logic.initialize(
+    const expression5 = await expressionDeployConsumer(
       {
         sources: [source5],
         constants: [stake.address, Tier.SIX, ...THRESHOLDS.slice(0, 4)],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression5.dispatch, []);
 
     const time5_ = await logic.stackTop();
 
@@ -238,15 +257,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 5).length),
     ]);
 
-    await logic.initialize(
+    const expression6 = await expressionDeployConsumer(
       {
         sources: [source6],
         constants: [stake.address, Tier.SEVEN, ...THRESHOLDS.slice(0, 5)],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression6.dispatch, []);
 
     const time6_ = await logic.stackTop();
 
@@ -265,15 +286,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 6).length),
     ]);
 
-    await logic.initialize(
+    const expression7 = await expressionDeployConsumer(
       {
         sources: [source7],
         constants: [stake.address, Tier.EIGHT, ...THRESHOLDS.slice(0, 6)],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression7.dispatch, []);
 
     const time7_ = await logic.stackTop();
 
@@ -327,15 +350,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants: [stake.address, Tier.ZERO],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time_ = await logic.stackTop();
 
@@ -399,15 +424,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.ONE, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time_ = await logic.stackTop();
 
@@ -474,15 +501,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.ONE, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time0_ = await logic.stackTop();
 
@@ -496,15 +525,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time1_ = await logic.stackTop();
 
@@ -523,27 +546,23 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.TWO, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression1.dispatch, []);
 
     const timeTWO_ = await logic.stackTop();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time2_ = await logic.stackTop();
 
@@ -607,15 +626,17 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.ONE, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time0_ = await logic.stackTop();
 
@@ -629,7 +650,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time1_ = await logic.stackTop();
 
@@ -646,15 +669,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const time2_ = await logic.stackTop();
 
@@ -723,27 +740,31 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.ONE, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const timeOne0_ = await logic.stackTop();
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression1.dispatch, []);
 
     const timeEight0_ = await logic.stackTop();
 
@@ -758,39 +779,29 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const timeOne1_ = await logic.stackTop();
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, Tier.FOUR, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression2.dispatch, []);
 
     const timeFour1_ = await logic.stackTop();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression1.dispatch, []);
 
     const timeEight1_ = await logic.stackTop();
 
@@ -814,27 +825,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await stake.connect(alice).deposit(withdrawAmount, alice.address);
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.ONE, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
 
     const timeOne2_ = await logic.stackTop();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, Tier.EIGHT, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression1.dispatch, []);
 
     const timeEight2_ = await logic.stackTop();
 

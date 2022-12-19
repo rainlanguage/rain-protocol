@@ -1,11 +1,12 @@
 /* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  AllStandardOpsTest,
   CombineTier,
+  IInterpreterV1Consumer,
+  Rainterpreter,
   ReadWriteTier,
   ReserveToken,
   StakeFactory,
@@ -23,11 +24,10 @@ import {
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
-import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
+import { expressionDeployConsumer } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -44,7 +44,8 @@ let bob: SignerWithAddress;
 let tokenERC20: ReserveToken;
 let readWriteTier: ReadWriteTier;
 let stakeFactory: StakeFactory;
-let logic: AllStandardOpsTest;
+let rainInterpreter: Rainterpreter;
+let logic: IInterpreterV1Consumer;
 
 describe("CombineTier report tests", async function () {
   const ctxAccount = op(Opcode.CONTEXT, 0x0000);
@@ -66,7 +67,13 @@ describe("CombineTier report tests", async function () {
     tokenERC20 = await reserveDeploy();
     readWriteTier = await readWriteTierDeploy();
     stakeFactory = await stakeFactoryDeploy();
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should support a program which returns the default report", async () => {
@@ -908,17 +915,19 @@ describe("CombineTier report tests", async function () {
       op(Opcode.ITIERV2_REPORT, THRESHOLDS.length),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain],
         constants: [combineTierMain.address],
       },
-      [1]
+      rainInterpreter
     );
 
     await logic
       .connect(alice)
-      ["runContext(uint256[][])"]([[alice.address, ...THRESHOLDS]]);
+      .eval(rainInterpreter.address, expression0.dispatch, [
+        [alice.address, ...THRESHOLDS],
+      ]);
 
     const result0 = await logic.stackTop();
 
@@ -940,7 +949,9 @@ describe("CombineTier report tests", async function () {
 
     await logic
       .connect(alice)
-      ["runContext(uint256[][])"]([[alice.address, ...THRESHOLDS]]);
+      .eval(rainInterpreter.address, expression0.dispatch, [
+        [alice.address, ...THRESHOLDS],
+      ]);
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;

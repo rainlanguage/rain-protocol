@@ -1,20 +1,27 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { AllStandardOpsTest, Sale } from "../../../../typechain";
+import { ethers } from "hardhat";
+import {
+  IInterpreterV1Consumer,
+  Rainterpreter,
+  Sale,
+} from "../../../../typechain";
 import {
   AllStandardOps,
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { SaleStatus } from "../../../../utils/types/saleEscrow";
 
 const Opcode = AllStandardOps;
 
 describe("ISaleV2 SaleStatus tests", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
   let fakeSale: FakeContract<Sale>;
 
   beforeEach(async () => {
@@ -22,7 +29,13 @@ describe("ISaleV2 SaleStatus tests", async function () {
   });
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should return correct saleStatus", async () => {
@@ -36,35 +49,35 @@ describe("ISaleV2 SaleStatus tests", async function () {
     ])];
     const constants = [fakeSale.address];
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const saleStatus0 = SaleStatus.Pending;
     fakeSale.saleStatus.returns(saleStatus0);
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const _saleStatus0 = await logic.stackTop();
     assert(_saleStatus0.eq(saleStatus0));
 
     const saleStatus1 = SaleStatus.Active;
     fakeSale.saleStatus.returns(saleStatus1);
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const _saleStatus1 = await logic.stackTop();
     assert(_saleStatus1.eq(saleStatus1));
 
     const saleStatus2 = SaleStatus.Success;
     fakeSale.saleStatus.returns(saleStatus2);
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const _saleStatus2 = await logic.stackTop();
     assert(_saleStatus2.eq(saleStatus2));
 
     const saleStatus3 = SaleStatus.Fail;
     fakeSale.saleStatus.returns(saleStatus3);
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const _saleStatus3 = await logic.stackTop();
     assert(_saleStatus3.eq(saleStatus3));
   });

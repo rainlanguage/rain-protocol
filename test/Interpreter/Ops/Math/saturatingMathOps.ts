@@ -1,8 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { AllStandardOpsTest } from "../../../../typechain";
+import { ethers } from "hardhat";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -15,10 +17,17 @@ const Opcode = AllStandardOps;
 
 // For SaturatingMath library tests, see the associated test file at test/Math/SaturatingMath.sol.ts
 describe("RainInterpreter MathOps saturating math", async () => {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should perform saturating multiplication", async () => {
@@ -40,16 +49,17 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: sourcesUnsat,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "normal multiplication overflow did not error"
     );
@@ -64,15 +74,15 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: sourcesSat,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result = await logic.stackTop();
     const expected = max_uint256;
     assert(
@@ -97,16 +107,17 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: sourcesUnsat,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "normal subtraction overflow did not error"
     );
@@ -121,15 +132,15 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: sourcesSat,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result = await logic.stackTop();
     const expected = 0;
     assert(
@@ -157,10 +168,17 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources: sourcesUnsat, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: sourcesUnsat,
+        constants,
+      },
+      rainInterpreter
+    );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "normal addition overflow did not error"
     );
@@ -175,15 +193,15 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: sourcesSat,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result = await logic.stackTop();
     const expected = max_uint256;
     assert(

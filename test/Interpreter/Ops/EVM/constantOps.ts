@@ -1,8 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
@@ -10,10 +11,17 @@ import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter EInterpreter constant ops", async () => {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should return `this` contract address", async () => {
@@ -24,15 +32,15 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.THIS_ADDRESS),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
 
     assert(
@@ -55,15 +63,17 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.CALLER),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic
+      .connect(alice)
+      .eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
 
     assert(
@@ -82,15 +92,15 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.BLOCK_TIMESTAMP),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const timestamp = await getBlockTimestamp();
     const result = await logic.stackTop();
 
@@ -108,9 +118,15 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       op(Opcode.BLOCK_NUMBER),
     ]);
 
-    await logic.initialize({ sources: [source], constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source],
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const block = await ethers.provider.getBlockNumber();
     const result = await logic.stackTop();
     assert(result.eq(block), `expected block ${block} got ${result}`);
