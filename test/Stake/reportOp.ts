@@ -38,7 +38,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   // prettier-ignore
   const source = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CALLER), // address
+      op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -103,7 +103,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
 
@@ -115,9 +115,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result = await logic.stackTop();
 
@@ -170,9 +170,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const expected = max_uint256;
 
@@ -234,9 +234,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result = await logic.stackTop();
 
@@ -307,9 +307,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
     const result0 = await logic.stackTop();
 
     const expected0 = numArrayToReport([
@@ -338,9 +338,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp1 = await getBlockTimestamp();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
     const result1 = await logic.stackTop();
 
     const expected1 = numArrayToReport([
@@ -410,9 +410,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result = await logic.stackTop();
 
@@ -483,9 +483,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result0 = await logic.stackTop();
 
@@ -514,9 +514,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result1 = await logic.stackTop();
 
@@ -543,9 +543,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result2 = await logic.stackTop();
 
@@ -616,9 +616,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result0 = await logic.stackTop();
 
@@ -647,9 +647,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result1 = await logic.stackTop();
 
@@ -670,9 +670,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result2 = await logic.stackTop();
 
@@ -744,7 +744,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -764,16 +764,16 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result0 = await logic.stackTop();
 
     // Passing context data in constants
     const source1 = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CALLER), // address
+      op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -793,9 +793,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const result1 = await logic.stackTop();
 

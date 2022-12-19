@@ -37,7 +37,7 @@ describe("TierV2 report op", async function () {
     // prettier-ignore
     const source = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
 
@@ -49,9 +49,9 @@ describe("TierV2 report op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(signer1)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [signer1.address],
+    ]);
     const result = await logic.stackTop();
 
     const expectedReport = paddedUInt256(

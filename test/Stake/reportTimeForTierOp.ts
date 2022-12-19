@@ -98,7 +98,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time0
     const source0 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
@@ -111,9 +111,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time0_ = await logic.stackTop();
 
@@ -121,7 +121,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time1
     const source1 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context - TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, 1),
@@ -135,9 +135,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const time1_ = await logic.stackTop();
 
@@ -145,7 +145,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time2
     const source2 = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CALLER), // Address
+      op(Opcode.CONTEXT, 0x0000), // Address
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.slice(0, 1).length),
@@ -159,9 +159,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression2.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression2.dispatch, [
+      [alice.address],
+    ]);
 
     const time2_ = await logic.stackTop();
 
@@ -169,7 +169,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time3
     const source3 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -184,9 +184,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression3.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression3.dispatch, [
+      [alice.address],
+    ]);
 
     const time3_ = await logic.stackTop();
 
@@ -194,7 +194,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time4
     const source4 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -210,9 +210,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression4.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression4.dispatch, [
+      [alice.address],
+    ]);
 
     const time4_ = await logic.stackTop();
 
@@ -220,7 +220,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time5
     const source5 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -237,9 +237,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression5.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression5.dispatch, [
+      [alice.address],
+    ]);
 
     const time5_ = await logic.stackTop();
 
@@ -247,7 +247,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time6
     const source6 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -265,9 +265,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression6.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression6.dispatch, [
+      [alice.address],
+    ]);
 
     const time6_ = await logic.stackTop();
 
@@ -275,7 +275,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // time7
     const source7 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // TIER
@@ -294,9 +294,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression7.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression7.dispatch, [
+      [alice.address],
+    ]);
 
     const time7_ = await logic.stackTop();
 
@@ -345,7 +345,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // Address
+        op(Opcode.CONTEXT, 0x0000), // Address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER),
     ]);
@@ -358,9 +358,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time_ = await logic.stackTop();
 
@@ -411,7 +411,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // Passing context data in constants
     const source = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -432,9 +432,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time_ = await logic.stackTop();
 
@@ -488,7 +488,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // Passing context data in constants
     const source = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -509,9 +509,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time0_ = await logic.stackTop();
 
@@ -525,9 +525,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount1);
     await stake.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time1_ = await logic.stackTop();
 
@@ -554,15 +554,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const timeTWO_ = await logic.stackTop();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time2_ = await logic.stackTop();
 
@@ -613,7 +613,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     const source = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -634,9 +634,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time0_ = await logic.stackTop();
 
@@ -650,9 +650,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time1_ = await logic.stackTop();
 
@@ -669,9 +669,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
 
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const time2_ = await logic.stackTop();
 
@@ -727,7 +727,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     // prettier-ignore
     const source = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // TIER
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // THRESHOLD
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -748,9 +748,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const timeOne0_ = await logic.stackTop();
 
@@ -762,9 +762,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const timeEight0_ = await logic.stackTop();
 
@@ -779,9 +779,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const timeOne1_ = await logic.stackTop();
 
@@ -793,15 +793,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       rainInterpreter
     );
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression2.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression2.dispatch, [
+      [alice.address],
+    ]);
 
     const timeFour1_ = await logic.stackTop();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const timeEight1_ = await logic.stackTop();
 
@@ -825,15 +825,15 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     await stake.connect(alice).deposit(withdrawAmount, alice.address);
     const blockTime2_ = await getBlockTimestamp();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const timeOne2_ = await logic.stackTop();
 
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const timeEight2_ = await logic.stackTop();
 

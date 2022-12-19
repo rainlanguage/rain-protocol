@@ -24,66 +24,6 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
     await logic.deployed();
   });
 
-  it("should return `this` contract address", async () => {
-    const constants = [];
-
-    const source = concat([
-      // (THIS_ADDRESS)
-      op(Opcode.THIS_ADDRESS),
-    ]);
-
-    const expression0 = await expressionDeployConsumer(
-      {
-        sources: [source],
-        constants,
-      },
-      rainInterpreter
-    );
-
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
-    const result = await logic.stackTop();
-
-    assert(
-      result.eq(logic.address),
-      `wrong this address
-      expected  ${logic.address}
-      got       ${result}`
-    );
-  });
-
-  it("should return caller/sender", async () => {
-    const signers = await ethers.getSigners();
-
-    const alice = signers[1];
-
-    const constants = [];
-
-    const source = concat([
-      // (SENDER)
-      op(Opcode.CALLER),
-    ]);
-
-    const expression0 = await expressionDeployConsumer(
-      {
-        sources: [source],
-        constants,
-      },
-      rainInterpreter
-    );
-
-    await logic
-      .connect(alice)
-      .eval(rainInterpreter.address, expression0.dispatch, []);
-    const result = await logic.stackTop();
-
-    assert(
-      result.eq(alice.address),
-      `wrong sender
-      expected  ${alice.address}
-      got       ${result}`
-    );
-  });
-
   it("should return block.timestamp", async () => {
     const constants = [];
 
