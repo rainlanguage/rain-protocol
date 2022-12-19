@@ -22,11 +22,11 @@ uint constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the
-/// sourceConfig MUST be all the combined tiers that are known statically. Of
+/// stateConfig MUST be all the combined tiers that are known statically. Of
 /// course some tier addresses MAY only be known at runtime and so these cannot
 /// be included. For those that are included there will be additional deploy
 /// time checks to ensure compatibility with each other (i.e. reportUnits).
-/// @param sourceConfig Source to run for both report and reportForTier as
+/// @param stateConfig Source to run for both report and reportForTier as
 /// sources 0 and 1 respectively.
 struct CombineTierConfig {
     address expressionDeployer;
