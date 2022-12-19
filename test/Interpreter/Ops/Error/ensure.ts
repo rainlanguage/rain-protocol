@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { ethers } from "hardhat";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -8,15 +9,23 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("ENSURE Opcode test", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should execute the transaction if it passes the ensure opcode condition", async () => {
@@ -38,15 +47,15 @@ describe("ENSURE Opcode test", async function () {
       v1,
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from eager if, got ${result0}`);
@@ -62,15 +71,15 @@ describe("ENSURE Opcode test", async function () {
       v3
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
 
     assert(result1.eq(3), `returned wrong value from eager if, got ${result1}`);
@@ -86,15 +95,15 @@ describe("ENSURE Opcode test", async function () {
       v0
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
 
     assert(result2.eq(0), `returned wrong value from eager if, got ${result2}`);
@@ -119,16 +128,17 @@ describe("ENSURE Opcode test", async function () {
       v1,
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "",
       "did not revert even after failing the ensure opcode condition"
     );
@@ -142,16 +152,17 @@ describe("ENSURE Opcode test", async function () {
       v3,
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression1.dispatch, []),
       "",
       "did not revert even after failing the ensure opcode condition"
     );
@@ -167,16 +178,17 @@ describe("ENSURE Opcode test", async function () {
       v0
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression2.dispatch, []),
       "",
       "did not revert even after failing the ensure opcode condition"
     );

@@ -1,8 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { ethers } from "hardhat";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { assertError } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   callOperand,
   Debug,
@@ -16,10 +18,17 @@ import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter FOLD_CONTEXT", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should add all the elements in the context", async () => {
@@ -30,18 +39,21 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+      op(
+        Opcode.FOLD_CONTEXT,
+        foldContextOperand(sourceIndex, column, width, inputSize)
+      ),
     ]);
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const context = [
@@ -51,7 +63,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8],
     ];
 
-    await logic["runContext(uint256[][])"](context);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const result = await logic.stackTop();
     const expectedResult = context.flat().reduce((acc, val) => acc + val);
     assert(
@@ -70,7 +82,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     // prettier-ignore
     const sourceMain = concat([
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
+        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),
     ]);
 
     // prettier-ignore
@@ -96,12 +108,12 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.ADD, 5),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain, sourceCount],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const context = [
@@ -111,7 +123,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 10, 10],
     ];
 
-    await logic["runContext(uint256[][])"](context);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const result = await logic.stackTop();
     let count = 0;
     const expectedResult = context.flat().reduce((acc, val) => {
@@ -134,18 +146,21 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+      op(
+        Opcode.FOLD_CONTEXT,
+        foldContextOperand(sourceIndex, column, width, inputSize)
+      ),
     ]);
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const context = [
@@ -156,7 +171,12 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ];
 
     await assertError(
-      async () => await logic["runContext(uint256[][])"](context),
+      async () =>
+        await logic.eval(
+          rainInterpreter.address,
+          expression0.dispatch,
+          context
+        ),
       "Array accessed at an out-of-bounds or negative index",
       "did not error when the column being accessed is shorter than the starting column"
     );
@@ -170,23 +190,26 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+      op(
+        Opcode.FOLD_CONTEXT,
+        foldContextOperand(sourceIndex, column, width, inputSize)
+      ),
     ]);
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const context = [[]];
 
-    await logic["runContext(uint256[][])"](context);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const result = await logic.stackTop();
     const expectedResult = constants[0]; // Since only accumultor value will be present on the stack
     assert(
@@ -203,18 +226,21 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const inputSize = 1; // Accummulator size
     // prettier-ignore
     const sourceMain = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
-        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // acc
+      op(
+        Opcode.FOLD_CONTEXT,
+        foldContextOperand(sourceIndex, column, width, inputSize)
+      ),
     ]);
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const context1 = [
@@ -224,7 +250,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8],
     ];
 
-    await logic["runContext(uint256[][])"](context1);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context1);
     const result1 = await logic.stackTop();
     const expectedResult1 = context1.flat().reduce((acc, val) => acc + val);
     assert(
@@ -240,7 +266,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8, 6, 7, 8, 8],
     ];
 
-    await logic["runContext(uint256[][])"](context2);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context2);
     const result2 = await logic.stackTop();
     const expectedResult2 = context2.flat().reduce((acc, val) => acc + val);
     assert(
@@ -251,13 +277,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     // Changing context length
     // prettier-ignore
     const context3 = [
-      [10], 
-      [100], 
-      [112300], 
+      [10],
+      [100],
+      [112300],
       [134]
     ];
 
-    await logic["runContext(uint256[][])"](context3);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context3);
     const result3 = await logic.stackTop();
     const expectedResult3 = context3.flat().reduce((acc, val) => acc + val);
     assert(
@@ -277,9 +303,9 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     const constants = [0, 2, width];
     // prettier-ignore
     const sourceMain = concat([
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // even count acc
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // odd count acc
-        op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),      
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // even count acc
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // odd count acc
+      op(Opcode.FOLD_CONTEXT, foldContextOperand(sourceIndex, column, width, inputSize)),
     ]);
 
     // prettier-ignore
@@ -287,14 +313,14 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
         // counting EVEN numbers
         op(Opcode.CALL, callOperand(width, 1, 2)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // Duplicating the returned value from call [i.e EVEN count]
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), 
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.ADD, 2),
-      
+
           // counting ODD numbers [Total elements - EVEN number count = ODD number count]
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // Total width 
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // Total width
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // number of even numbers in this context iteration
         op(Opcode.SUB, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), 
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.ADD, 2),
       op(Opcode.DEBUG, Debug.StatePacked)
     ]);
@@ -302,32 +328,32 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     // prettier-ignore
     const sourceCountEven = concat([
       // since the width is predetermined and is static, we can read fixed number of values from the stack
-        // (contextVal % 2) == 0 ? 
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), 
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), 
+        // (contextVal % 2) == 0 ?
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.MOD, 2),
         op(Opcode.ISZERO),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), 
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), 
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.MOD, 2),
         op(Opcode.ISZERO),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), 
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), 
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.MOD, 2),
         op(Opcode.ISZERO),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)), 
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), 
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
           op(Opcode.MOD, 2),
         op(Opcode.ISZERO),
       op(Opcode.ADD, 4), // Adding all the mod values
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMain, sourceCalculate, sourceCountEven],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const context = [
@@ -337,7 +363,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8],
     ];
 
-    await logic["runContext(uint256[][])"](context);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const [evenCount, oddCount] = await logic.stack();
 
     let expectedOddCount = 0,

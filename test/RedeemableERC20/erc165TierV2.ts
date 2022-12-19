@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ERC20PulleeTest, ReserveToken } from "../../typechain";
 import { CombineTier, StakeFactory } from "../../typechain";
@@ -23,7 +23,6 @@ import {
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import {
@@ -158,14 +157,14 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   it("should fail ERC165 check by passing invalid contract not inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
 
-    const tier = await allStandardOpsDeploy();
+    const tier = hexlify(randomBytes(20));
 
     const minimumTier = Tier.FOUR;
 
     const tokenConfig = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
-      tier: tier.address,
+      tier: tier,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };

@@ -37,16 +37,16 @@ describe("SET/GET Opcode tests", async function () {
         // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.GET),
-      
+
         // SET key1 again
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // val
       op(Opcode.SET),
-      
+
         // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0 )), // key
       op(Opcode.GET),
-      
+
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -56,7 +56,7 @@ describe("SET/GET Opcode tests", async function () {
       });
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     // Asserting StateChanges array
     const stateChanges = await consumerLogic["stateChanges()"]();
@@ -88,16 +88,16 @@ describe("SET/GET Opcode tests", async function () {
         // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.GET),
-      
+
         // SET key1 again
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // val
       op(Opcode.SET),
-      
+
         // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0 )), // key
       op(Opcode.GET),
-      
+
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
@@ -107,7 +107,7 @@ describe("SET/GET Opcode tests", async function () {
       });
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 2, "Invalid stack length");
@@ -135,16 +135,16 @@ describe("SET/GET Opcode tests", async function () {
         // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.GET),
-      
+
         // SET key2
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // val
       op(Opcode.SET),
-      
+
         // GET KEY 2
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
       op(Opcode.GET),
-      
+
         // SET key3
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5)), // val
@@ -162,7 +162,7 @@ describe("SET/GET Opcode tests", async function () {
       });
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 3, "Invalid stack length");
@@ -196,7 +196,7 @@ describe("SET/GET Opcode tests", async function () {
       });
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stack1 = await consumerLogic.stack();
 
@@ -228,7 +228,7 @@ describe("SET/GET Opcode tests", async function () {
       }));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stack2 = await consumerLogic.stack();
 
@@ -263,7 +263,7 @@ describe("SET/GET Opcode tests", async function () {
       }));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stack3 = await consumerLogic.stack();
 
@@ -298,7 +298,7 @@ describe("SET/GET Opcode tests", async function () {
       }));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stack4 = await consumerLogic.stack();
 
@@ -331,7 +331,7 @@ describe("SET/GET Opcode tests", async function () {
       });
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const stateChanges = await consumerLogic["stateChanges()"]();
 
@@ -371,8 +371,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceA = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET) 
-      
+      op(Opcode.SET)
+
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -383,9 +383,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionA.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionA.dispatch,
+      []
+    );
 
     const stateChanges_ = await consumerLogicA["stateChanges()"]();
     await consumerLogicA["stateChanges(address,uint256[])"](
@@ -417,8 +419,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // val
-        op(Opcode.SET) 
-      
+        op(Opcode.SET)
+
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -429,9 +431,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionA.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionA.dispatch,
+      []
+    );
 
     // Saving state changes in interpreter storage
     const stateChanges_ = await consumerLogicA["stateChanges()"]();
@@ -453,12 +457,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceB = concat([
       // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // key
-        op(Opcode.GET), 
+        op(Opcode.GET),
 
         // GET KEY 2
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.GET)
-      
+
     ]);
 
     const expressionB = await expressionDeployConsumer(
@@ -469,9 +473,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionB.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionB.dispatch,
+      []
+    );
 
     //Asserting stack
     const stack = await consumerLogicA.stack();
@@ -490,7 +496,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceA = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET) 
+      op(Opcode.SET)
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -501,9 +507,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionA.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionA.dispatch,
+      []
+    );
 
     const stateChanges_ = await consumerLogicA["stateChanges()"]();
     await consumerLogicA["stateChanges(address,uint256[])"](
@@ -523,7 +531,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.GET),
-      
+
     ]);
 
     const expressionB = await expressionDeployConsumer(
@@ -534,9 +542,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicB.eval(rainInterpreter.address, expressionB.dispatch, [
-      [],
-    ]);
+    await consumerLogicB.eval(
+      rainInterpreter.address,
+      expressionB.dispatch,
+      []
+    );
 
     //Asserting stack
     const stack = await consumerLogicB.stack();
@@ -557,8 +567,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceA = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET) 
-      
+      op(Opcode.SET)
+
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -573,7 +583,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter.address,
       namespaceA,
       expressionA.dispatch,
-      [[]]
+      []
     );
 
     // Saving interpreter state
@@ -595,7 +605,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.GET),
-      
+
     ]);
 
     const expressionB = await expressionDeployConsumer(
@@ -610,7 +620,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter.address,
       namespaceB,
       expressionB.dispatch,
-      [[]]
+      []
     );
 
     //Asserting stack
@@ -625,7 +635,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       // GET KEY 1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.GET),
-      
+
     ]);
 
     const expressionC = await expressionDeployConsumer(
@@ -640,7 +650,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter.address,
       namespaceA,
       expressionC.dispatch,
-      [[]]
+      []
     );
 
     //Asserting stack
@@ -663,8 +673,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceA = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET) 
-      
+      op(Opcode.SET)
+
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -679,7 +689,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter.address,
       namespaceA,
       expressionA.dispatch,
-      [[]]
+      []
     );
 
     const _stateChangesA = await consumerLogicA["stateChanges()"]();
@@ -691,8 +701,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceB = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-    op(Opcode.SET) 
-    
+    op(Opcode.SET)
+
   ]);
 
     const expressionB = await expressionDeployConsumer(
@@ -707,7 +717,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter.address,
       namespaceA,
       expressionB.dispatch,
-      [[]]
+      []
     );
 
     const _stateChangesB = await consumerLogicB["stateChanges()"]();
@@ -740,8 +750,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceA = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET) 
-      
+      op(Opcode.SET)
+
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -752,9 +762,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionA.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionA.dispatch,
+      []
+    );
 
     const _stateChangesA = await consumerLogicA["stateChanges()"]();
     await consumerLogicA["stateChanges(address,uint256[])"](
@@ -766,8 +778,8 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const sourceB = concat([
         // GET KEY 2
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-        op(Opcode.GET), 
-      
+        op(Opcode.GET),
+
     ]);
 
     const expressionB = await expressionDeployConsumer(
@@ -778,9 +790,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionB.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionB.dispatch,
+      []
+    );
 
     //Asserting stack
     const stack = await consumerLogicA.stack();
@@ -799,17 +813,17 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     const constantsC = [key];
 
     // prettier-ignore
-    const sourceA = concat([ 
+    const sourceA = concat([
       // set key1
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-      op(Opcode.SET) , 
+      op(Opcode.SET) ,
 
       // override previous set
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // val
-      op(Opcode.SET) 
-      
+      op(Opcode.SET)
+
     ]);
 
     const expressionA = await expressionDeployConsumer(
@@ -820,9 +834,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionA.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionA.dispatch,
+      []
+    );
 
     const _stateChangesA = await consumerLogicA["stateChanges()"]();
     // Assert State Change
@@ -836,12 +852,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     // prettier-ignore
-    const sourceB = concat([ 
+    const sourceB = concat([
       // override set again by different expression
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
-    op(Opcode.SET) 
-    
+    op(Opcode.SET)
+
   ]);
 
     const expressionB = await expressionDeployConsumer(
@@ -852,9 +868,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionB.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionB.dispatch,
+      []
+    );
 
     const _stateChangesB = await consumerLogicA["stateChanges()"]();
 
@@ -869,10 +887,10 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     // prettier-ignore
-    const sourceC = concat([ 
+    const sourceC = concat([
       // GET latest SET value
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
-      op(Opcode.GET) 
+      op(Opcode.GET)
     ]);
 
     const expressionC = await expressionDeployConsumer(
@@ -883,9 +901,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       rainInterpreter
     );
 
-    await consumerLogicA.eval(rainInterpreter.address, expressionC.dispatch, [
-      [],
-    ]);
+    await consumerLogicA.eval(
+      rainInterpreter.address,
+      expressionC.dispatch,
+      []
+    );
 
     //Asserting stack
     const stack = await consumerLogicA.stack();
