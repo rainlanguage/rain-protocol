@@ -1,19 +1,26 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { assert } from "chai";
 import { concat, hexlify, randomBytes } from "ethers/lib/utils";
-import { AllStandardOpsTest, Sale } from "../../../../typechain";
+import { ethers } from "hardhat";
+import {
+  IInterpreterV1Consumer,
+  Rainterpreter,
+  Sale,
+} from "../../../../typechain";
 import {
   AllStandardOps,
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("ISaleV2 Token tests", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
   let fakeSale: FakeContract<Sale>;
 
   beforeEach(async () => {
@@ -21,7 +28,13 @@ describe("ISaleV2 Token tests", async function () {
   });
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should return correct token", async () => {
@@ -39,15 +52,15 @@ describe("ISaleV2 Token tests", async function () {
     ])];
     const constants = [fakeSale.address];
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
     const _token = await logic.stackTop();
 

@@ -1,7 +1,4 @@
-import type {
-  AggregatorV3Interface,
-  AllStandardOpsTest,
-} from "../../../../typechain";
+import type { AggregatorV3Interface } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -13,23 +10,18 @@ import {
   sixZeros,
   timewarp,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
+import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("CHAINLINK_PRICE Opcode tests", async function () {
-  let logic: AllStandardOpsTest;
   let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
 
   beforeEach(async () => {
     fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
-  });
-
-  before(async () => {
-    logic = await allStandardOpsDeploy();
   });
 
   it("should revert if price is stale", async () => {
@@ -56,22 +48,22 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources,
         constants,
-      },
-      [1]
-    );
+      });
+
+    // Eval
 
     await timewarp(1900); // updated 100 sec ago
 
-    await logic["run()"]();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
 
     await timewarp(3600); // updated 3700 sec ago (stale)
 
     await assertError(
-      async () => await logic["run()"](),
+      async () => await consumerLogic.eval(interpreter.address, dispatch, [[]]),
       "STALE_PRICE",
       "did not revert when chainlink price was stale"
     );
@@ -101,16 +93,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources,
         constants,
-      },
-      [1]
-    );
+      });
 
     await assertError(
-      async () => await logic["run()"](),
+      async () => await consumerLogic.eval(interpreter.address, dispatch, [[]]),
       "MIN_BASE_PRICE",
       "did not revert when chainlink price was 0"
     );
@@ -140,17 +130,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources,
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const price_ = await logic.stackTop();
-
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const price_ = await consumerLogic.stackTop();
     assert(price_.eq(123 + eighteenZeros));
   });
 
@@ -178,16 +165,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     ];
     const constants = [feed, staleAfter];
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources,
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const price_ = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const price_ = await consumerLogic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));
   });

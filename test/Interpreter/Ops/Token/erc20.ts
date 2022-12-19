@@ -2,9 +2,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest, ReserveToken } from "../../../../typechain";
+import type {
+  IInterpreterV1Consumer,
+  Rainterpreter,
+  ReserveToken,
+} from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -20,10 +25,17 @@ let signer1: SignerWithAddress;
 let tokenERC20: ReserveToken;
 
 describe("RainInterpreter ERC20 ops", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   beforeEach(async () => {
@@ -49,9 +61,15 @@ describe("RainInterpreter ERC20 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20.totalSupply();
     assert(
@@ -80,14 +98,20 @@ describe("RainInterpreter ERC20 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
-    await logic["run()"]();
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC20.transfer(signer1.address, 100);
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

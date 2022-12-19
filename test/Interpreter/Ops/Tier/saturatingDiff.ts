@@ -1,7 +1,9 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
-import type { AllStandardOpsTest } from "../../../../typechain";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { ethers } from "hardhat";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -13,10 +15,17 @@ import { numArrayToReport } from "../../../../utils/tier";
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter tier report saturating diff op", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should use saturating sub for diff where only some tiers would underflow", async () => {
@@ -43,9 +52,15 @@ describe("RainInterpreter tier report saturating diff op", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    await logic.initialize({ sources: [source0], constants: constants0 }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source0],
+        constants: constants0,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
@@ -84,9 +99,15 @@ describe("RainInterpreter tier report saturating diff op", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    await logic.initialize({ sources: [source0], constants: constants0 }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source0],
+        constants: constants0,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 
@@ -122,9 +143,15 @@ describe("RainInterpreter tier report saturating diff op", async function () {
       op(Opcode.SATURATING_DIFF),
     ]);
 
-    await logic.initialize({ sources: [source0], constants: constants0 }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source0],
+        constants: constants0,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     const resultHex0 = hexlify(result0);
 

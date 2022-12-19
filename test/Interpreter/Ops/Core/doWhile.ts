@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
 import {
   AllStandardOps,
   callOperand,
@@ -10,17 +9,11 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("DO_WHILE Opcode test", async function () {
-  let logic: AllStandardOpsTest;
-
-  before(async () => {
-    logic = await allStandardOpsDeploy();
-  });
-
   // TODO: OP_DO_WHILE_INPUTS
 
   it("should not loop if the conditional is zero/false value", async () => {
@@ -48,16 +41,14 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceADD],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
     while (expectedResult < minimumValue) {
@@ -92,16 +83,15 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceSUB],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result = await consumerLogic.stackTop();
+
     console.log("Result: ", result.toString());
 
     let expectedResult = initValue;
@@ -140,16 +130,14 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceADD],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
     while (expectedResult < minimumValue) {
@@ -203,16 +191,14 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.ADD, 2),
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
-    const result = await logic.stack();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result = await consumerLogic.stack();
 
     // Calculating the expected result
     let expectedCounter = loopCounter;
