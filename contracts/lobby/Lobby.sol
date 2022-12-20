@@ -7,13 +7,15 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibContext.sol";
+import "../math/SaturatingMath.sol";
+import "../math/FixedPointMath.sol";
+
 import {Phased} from "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import "../math/SaturatingMath.sol";
-import "../math/FixedPointMath.sol";
 
 struct Config {
     bool refMustAgree;
@@ -27,11 +29,6 @@ struct Config {
     bytes description;
     // timeout the whole lobby after this many seconds.
     uint timeout;
-}
-
-struct SignedResult {
-    bytes signature;
-    uint[] result;
 }
 
 // A player is attempting to join.
@@ -223,7 +220,8 @@ contract Lobby is Phased, ReentrancyGuard {
     }
 
     function join(
-        uint[] memory playerContext_
+        uint256[] memory callerContext_,
+        SignedContext[] memory signedContext_
     )
         external
         onlyPhase(PHASE_PLAYERS_PENDING)
@@ -231,16 +229,16 @@ contract Lobby is Phased, ReentrancyGuard {
         onlyNonRef
         nonReentrant
     {
-        // Context is extra information we can pass through for the expression
-        // writer to use.
-        uint[][] memory context_ = new uint[][](2);
-        context_[0] = uint256(uint160(msg.sender)).arrayFrom();
-        context_[1] = playerContext_;
-        (uint[] memory stack_, uint[] memory stateChanges_) = interpreter.eval(
-            joinEncodedDispatch,
-            context_
-        );
-        (uint playersFinalised_, uint amount_) = stack_
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter
+            .eval(
+                joinEncodedDispatch,
+                LibContext.build(
+                    new uint256[][](0),
+                    callerContext_,
+                    signedContext_
+                )
+            );
+        (uint256 playersFinalised_, uint256 amount_) = stack_
             .asStackTopAfter()
             .peek2();
 
@@ -257,22 +255,23 @@ contract Lobby is Phased, ReentrancyGuard {
         }
     }
 
-    function leave()
-        external
-        onlyPhase(PHASE_PLAYERS_PENDING)
-        onlyPlayer
-        nonReentrant
-    {
+    function leave(
+        uint256[] memory callerContext_,
+        SignedContext[] memory signedContext_
+    ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
         players[msg.sender] = 0;
         uint deposit_ = deposits[msg.sender];
-        // context for leaving needs to be at least the sender and their deposit.
-        // the leaving expression might only offer e.g. 90% refunds for leaving.
-        uint[] memory context_ = new uint[](2);
-        context_[0] = uint256(uint160(msg.sender));
-        context_[1] = deposit_;
+
         (uint[] memory stack_, uint[] memory stateChanges_) = IInterpreterV1(
             interpreter
-        ).eval(leaveEncodedDispatch, context_.matrixFrom());
+        ).eval(
+                leaveEncodedDispatch,
+                LibContext.build(
+                    new uint256[][](0),
+                    callerContext_,
+                    signedContext_
+                )
+            );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
         uint amount_ = stack_.asStackTopAfter().peek().min(deposit_);
@@ -287,41 +286,49 @@ contract Lobby is Phased, ReentrancyGuard {
     }
 
     function complete(
-        SignedResult calldata signedResult_
+        uint256[] calldata callerContext_,
+        SignedContext calldata signedContext_
     ) external onlyPhase(PHASE_RESULT_PENDING) {
-        // .. CHECK SIGNATURE FROM REF .. //
+        // Authenticated the signed context.
+        require(signedContext_.signer == ref, "BAD_REF");
+        LibContext.ensureSignedContextSignatureIsValid(signedContext_);
 
-        resultHash = keccak256(abi.encodePacked(signedResult_.result));
+        resultHash = LibContext.hash(signedContext_.context);
+
         schedulePhase(PHASE_COMPLETE, block.timestamp);
 
         // Whoever completes the lobby can also attempt to process a claim.
         // This implies that any `ensure` in the claim will also prevent the
         // caller from completing the event.
-        claim(signedResult_.result);
+        claim(callerContext_, signedContext_);
     }
 
     function claim(
-        uint[] memory result_
+        uint256[] memory callerContext_,
+        SignedContext memory signedContext_
     ) public onlyPhase(PHASE_COMPLETE) nonReentrant {
-        require(resultHash == keccak256(abi.encodePacked(result_)));
+        require(
+            resultHash == LibContext.hash(signedContext_.context),
+            "BAD_HASH"
+        );
 
         // Calculating a claimant's share is a 1 time thing. Dynamic shares aren't
         // supported, the expression MUST ensure that each user has a stable share
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
-            uint[][] memory context_ = new uint[][](2);
-            uint[] memory baseContext_ = new uint[](2);
-            baseContext_[0] = uint256(uint160(msg.sender));
-            // the ref might be eligible for a claim so lets include them.
-            baseContext_[1] = uint256(uint160(ref));
-            context_[0] = baseContext_;
-            context_[1] = result_;
+            SignedContext[] memory signedContexts_ = new SignedContext[](1);
+            signedContexts_[0] = signedContext_;
+
             (
                 uint[] memory stack_,
                 uint[] memory stateChanges_
             ) = IInterpreterV1(interpreter).eval(
                     claimEncodedDispatch,
-                    context_
+                    LibContext.build(
+                        new uint256[][](0),
+                        callerContext_,
+                        signedContexts_
+                    )
                 );
             // Share for this claimant is the smaller of the calculated share and
             // 1 - shares already claimed.

@@ -89,21 +89,19 @@ contract CombineTier is TierV2 {
     /// @inheritdoc ITierV2
     function report(
         address account_,
-        uint256[] memory context_
+        uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
-        uint256[][] memory interpreterContext_ = new uint256[][](2);
-        interpreterContext_[0] = LibContext.base(
-            uint256(uint160(account_)).arrayFrom()
-        );
-        interpreterContext_[1] = context_;
-
         (uint[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_ENTRYPOINT,
                 REPORT_MAX_OUTPUTS
             ),
-            interpreterContext_
+            LibContext.build(
+                uint256(uint160(account_)).arrayFrom().matrixFrom(),
+                callerContext_,
+                new SignedContext[](0)
+            )
         );
         return stack_.asStackTopAfter().peek();
     }
@@ -112,21 +110,21 @@ contract CombineTier is TierV2 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] memory context_
+        uint256[] memory callerContext_
     ) external view returns (uint256) {
-        uint256[][] memory interpreterContext_ = new uint256[][](2);
-        interpreterContext_[0] = LibContext.base(
-            LibUint256Array.arrayFrom(uint256(uint160(account_)), tier_)
-        );
-        interpreterContext_[1] = context_;
-
         (uint[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_FOR_TIER_ENTRYPOINT,
                 REPORT_FOR_TIER_MAX_OUTPUTS
             ),
-            interpreterContext_
+            LibContext.build(
+                LibUint256Array
+                    .arrayFrom(uint256(uint160(account_)), tier_)
+                    .matrixFrom(),
+                callerContext_,
+                new SignedContext[](0)
+            )
         );
         return stack_.asStackTopAfter().peek();
     }

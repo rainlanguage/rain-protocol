@@ -124,7 +124,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function _previewFlow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowERC721IO memory, uint[] memory) {
         uint256[] memory refs_;
@@ -133,7 +133,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             StackTop stackBottom_,
             StackTop stackTop_,
             uint[] memory stateChanges_
-        ) = flowStack(dispatch_, id_, signedContexts_);
+        ) = flowStack(dispatch_, callerContext_, signedContexts_);
         // mints
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
@@ -158,14 +158,14 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function _flow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
             (
                 FlowERC721IO memory flowIO_,
                 uint[] memory stateChanges_
-            ) = _previewFlow(dispatch_, id_, signedContexts_);
+            ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }
@@ -184,12 +184,12 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function previewFlow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
         (FlowERC721IO memory flowERC721IO_, ) = _previewFlow(
             dispatch_,
-            id_,
+            callerContext_,
             signedContexts_
         );
         return flowERC721IO_;
@@ -197,9 +197,9 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function flow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC721IO memory) {
-        return _flow(dispatch_, id_, signedContexts_);
+        return _flow(dispatch_, callerContext_, signedContexts_);
     }
 }
