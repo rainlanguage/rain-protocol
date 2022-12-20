@@ -97,14 +97,14 @@ contract LibMemoryKVTest {
 
     function scenario7(
         MemoryKV kv_,
-        uint256[] memory kvPair
+        uint256[] memory kvPair_
     ) external pure returns (uint[] memory array_) {
         uint256 j = 0;
-        for (uint256 i = 0; i < kvPair.length - 1; i += 2) {
+        for (uint256 i = 0; i < kvPair_.length - 1; i += 2) {
             j++;
             kv_ = kv_.setVal(
-                MemoryKVKey.wrap(kvPair[i]),
-                MemoryKVVal.wrap(kvPair[i + 1])
+                MemoryKVKey.wrap(kvPair_[i]),
+                MemoryKVVal.wrap(kvPair_[i + 1])
             );
         }
         array_ = kv_.toUint256Array();

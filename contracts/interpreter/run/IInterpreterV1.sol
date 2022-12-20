@@ -10,22 +10,22 @@ interface IInterpreterV1 {
 
     function eval(
         EncodedDispatch dispatch,
-        uint256[][] memory context
+        uint256[][] calldata context
     )
         external
         view
         returns (uint256[] memory stack, uint[] memory stateChanges);
 
-    function stateChanges(uint[] memory stateChanges) external;
+    function stateChanges(uint[] calldata stateChanges) external;
 
     function evalWithNamespace(
         StateNamespace namespace,
         EncodedDispatch dispatch,
-        uint[][] memory context
+        uint[][] calldata context
     ) external view returns (uint[] memory stack, uint[] memory stateChanges);
 
     function stateChangesWithNamespace(
         StateNamespace namespace,
-        uint[] memory stateChanges
+        uint[] calldata stateChanges
     ) external;
 }
