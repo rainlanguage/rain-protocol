@@ -2,112 +2,33 @@ import { assert } from "chai";
 import type { BigNumber } from "ethers";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {
   AllStandardOps,
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 const isTruthy = (interpreterValue: BigNumber) => !interpreterValue.isZero();
 
 describe("RainInterpreter logic ops", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
-
-  // it("should support logic ops within a zipmap loop", async function () {
-  //   const report = paddedUInt256(
-  //     ethers.BigNumber.from(
-  //       "0x" +
-  //         paddedUInt32(1) +
-  //         paddedUInt32(0) +
-  //         paddedUInt32(3) +
-  //         paddedUInt32(0) +
-  //         paddedUInt32(5) +
-  //         paddedUInt32(0) +
-  //         paddedUInt32(7) +
-  //         paddedUInt32(8)
-  //     )
-  //   );
-
-  //   const reportMax = max_uint256;
-
-  //   const constants = [report, reportMax];
-
-  //   const vReport = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-  //   const vReportMax = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-
-  //   // BEGIN zipmap args
-
-  //   const argReport = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-  //   const argReportMax = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
-
-  //   // END zipmap args
-
-  //   // prettier-ignore
-  //   const ZIPMAP_FN = () =>
-  //     concat([
-  //           argReport,
-  //         op(Opcode.ISZERO),
-  //         argReportMax,
-  //         argReport,
-  //       op(Opcode.EAGER_IF),
-  //     ]);
-
-  //   // prettier-ignore
-  //   const SOURCE = () =>
-  //     concat([
-  //         vReport,
-  //         vReportMax,
-  //       op(Opcode.ZIPMAP, zipmapSize(1, 3, 1)),
-  //     ]);
-
-  //   await logic.initialize({ sources: [SOURCE(), ZIPMAP_FN()], constants });
-
-  //   await logic["run()"]();
-
-  //   const result = await logic.state();
-
-  //   const resultReport = ethers.BigNumber.from(
-  //     "0x" +
-  //       paddedUInt32(result.stack[7]) +
-  //       paddedUInt32(result.stack[6]) +
-  //       paddedUInt32(result.stack[5]) +
-  //       paddedUInt32(result.stack[4]) +
-  //       paddedUInt32(result.stack[3]) +
-  //       paddedUInt32(result.stack[2]) +
-  //       paddedUInt32(result.stack[1]) +
-  //       paddedUInt32(result.stack[0])
-  //   );
-
-  //   const expectedReport = paddedUInt256(
-  //     ethers.BigNumber.from(
-  //       "0x" +
-  //         paddedUInt32(1) +
-  //         paddedUInt32("0xffffffff") +
-  //         paddedUInt32(3) +
-  //         paddedUInt32("0xffffffff") +
-  //         paddedUInt32(5) +
-  //         paddedUInt32("0xffffffff") +
-  //         paddedUInt32(7) +
-  //         paddedUInt32(8)
-  //     )
-  //   );
-
-  //   assert(
-  //     resultReport.eq(expectedReport),
-  //     `wrong calculation result
-  //     expected  ${hexlify(expectedReport)}
-  //     got       ${hexlify(resultReport)}`
-  //   );
-  // });
 
   it("should check whether any value in a list is non-zero", async () => {
     const constants = [0, 1, 2, 3];
@@ -125,14 +46,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
@@ -144,15 +65,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 2),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
@@ -165,15 +85,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from any, got ${result2}`);
@@ -195,14 +114,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
@@ -215,15 +134,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
@@ -235,15 +153,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 2),
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
 
     assert(result2.isZero(), `returned wrong value from every, got ${result2}`);
@@ -266,15 +183,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
@@ -288,15 +204,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
@@ -310,15 +225,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from eager if, got ${result2}`);
@@ -334,15 +248,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
@@ -354,15 +267,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is gt 2");
@@ -378,15 +290,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
@@ -398,15 +309,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result1), "wrongly says 1 is not lt 2");
@@ -424,15 +334,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
@@ -444,15 +353,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
@@ -464,15 +372,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize(
+    const expression2 = await expressionDeployConsumer(
       {
         sources: [source2],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["runContext(uint256[][])"]([[1]]);
+    await logic.eval(rainInterpreter.address, expression2.dispatch, [[1]]);
     const result2 = await logic.stackTop(); // expect 1
 
     assert(
@@ -487,15 +394,14 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    await logic.initialize(
+    const expression3 = await expressionDeployConsumer(
       {
         sources: [source3],
         constants,
       },
-      [1]
+      rainInterpreter
     );
-
-    await logic["runContext(uint256[][])"]([[id]]);
+    await logic.eval(rainInterpreter.address, expression3.dispatch, [[id]]);
     const result3 = await logic.stackTop(); // expect 1
 
     assert(
@@ -513,14 +419,15 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ISZERO),
     ]);
 
-    const stateConfig0 = {
-      sources: [source0],
-      constants,
-    };
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source0],
+        constants,
+      },
+      rainInterpreter
+    );
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
-    await logic.initialize(stateConfig0, [1]);
-
-    await logic["run()"]();
     const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 0 is not zero");
@@ -531,13 +438,15 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ISZERO),
     ]);
 
-    const stateConfig1 = {
-      sources: [source1],
-      constants,
-    };
-    await logic.initialize(stateConfig1, [1]);
+    const expression1 = await expressionDeployConsumer(
+      {
+        sources: [source1],
+        constants,
+      },
+      rainInterpreter
+    );
+    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
 
-    await logic["run()"]();
     const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is zero");

@@ -1,7 +1,12 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { AllStandardOpsTest, OrderBook } from "../../../../typechain";
+import { ethers } from "hardhat";
+import {
+  IInterpreterV1Consumer,
+  OrderBook,
+  Rainterpreter,
+} from "../../../../typechain";
 import {
   AllStandardOps,
   eighteenZeros,
@@ -9,12 +14,14 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("IOrderBookV1 vault balance tests", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
   let fakeOrderBook: FakeContract<OrderBook>;
 
   beforeEach(async () => {
@@ -22,7 +29,13 @@ describe("IOrderBookV1 vault balance tests", async function () {
   });
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should return correct vault balance", async () => {
@@ -53,15 +66,15 @@ describe("IOrderBookV1 vault balance tests", async function () {
     ])];
     const constants = [fakeOrderBook.address, fakeOwner, fakeToken, fakeId];
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources,
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
     const _vaultBalance = await logic.stackTop();
 

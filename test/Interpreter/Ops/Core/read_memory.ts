@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -10,15 +10,23 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("READ_MEMORY Opcode test", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should read a value from CONSTANT and place it on the STACK", async () => {
@@ -28,15 +36,15 @@ describe("READ_MEMORY Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN],
-        constants: constants,
+        constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     console.log(await logic.stack());
     const expectedResult0 = ethers.BigNumber.from(constants[0]);
@@ -56,15 +64,15 @@ describe("READ_MEMORY Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN],
-        constants: constants,
+        constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const expectedTimeStamp = await getBlockTimestamp();
 
     const result0 = await logic.stack();
@@ -92,12 +100,12 @@ describe("READ_MEMORY Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize(
+        await expressionDeployConsumer(
           {
             sources: [sourceMAIN],
-            constants: constants,
+            constants,
           },
-          [1]
+          rainInterpreter
         ),
       "OOB_STACK_READ",
       "Integrity check failed while reading an OOB stack value"
@@ -114,12 +122,12 @@ describe("READ_MEMORY Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize(
+        await expressionDeployConsumer(
           {
             sources: [sourceMAIN],
-            constants: constants,
+            constants,
           },
-          [1]
+          rainInterpreter
         ),
       "OOB_CONSTANT_READ",
       "Integrity check failed while reading an OOB constant value"
@@ -138,7 +146,14 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await expressionDeployConsumer(
+          {
+            sources,
+            constants,
+          },
+          rainInterpreter
+        ),
       "OOB_STACK_READ", // at least an error
       "did not error when STACK operand references a stack element that hasn't yet been evaluated"
     );
@@ -156,7 +171,14 @@ describe("READ_MEMORY Opcode test", async function () {
     ])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await expressionDeployConsumer(
+          {
+            sources,
+            constants,
+          },
+          rainInterpreter
+        ),
       "OOB_STACK_READ", // at least an error
       "did not error when STACK operand references itself"
     );
@@ -177,8 +199,14 @@ describe("READ_MEMORY Opcode test", async function () {
       op(Opcode.ADD, 3),
     ])];
 
-    await logic.initialize({ sources, constants }, [1]);
-    await logic["run()"]();
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
     const result = await logic.stackTop();
     const expected = constants[2] + constants[3] + constants[0];
@@ -202,8 +230,14 @@ describe("READ_MEMORY Opcode test", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
     ])];
 
-    await logic.initialize({ sources, constants }, [1]);
-    await logic["run()"]();
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
     const result = await logic.stackTop();
 
@@ -224,8 +258,14 @@ describe("READ_MEMORY Opcode test", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
     ])];
 
-    await logic.initialize({ sources, constants }, [1]);
-    await logic["run()"]();
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
     const result = await logic.stackTop();
 
@@ -241,50 +281,18 @@ describe("READ_MEMORY Opcode test", async function () {
     const sources = [concat([op(99)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await expressionDeployConsumer(
+          {
+            sources,
+            constants,
+          },
+          rainInterpreter
+        ),
       "Error",
       "did not error when script references out-of-bounds opcode"
     );
   });
-
-  // it("should error when trying to read an out-of-bounds argument", async () => {
-  //   const constants = [1, 2, 3];
-  //   const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-  //   const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-  //   const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-
-  //   const a0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
-  //   const a1 = op(Opcode.CONSTANT, 4);
-  //   const aOOB = op(Opcode.CONSTANT, 6);
-
-  //   // zero-based counting
-  //   const sourceIndex = 1; // 1
-  //   const loopSize = 0; // 1
-  //   const valSize = 2; // 3
-
-  //   // prettier-ignore
-  //   const sources = [
-  //     concat([
-  //         v1,
-  //         v2,
-  //         v3,
-  //       op(Opcode.ZIPMAP, zipmapSize(sourceIndex, loopSize, valSize)),
-  //     ]),
-  //     concat([
-  //       // (arg0 arg1 arg2 add)
-  //         a0,
-  //         a1,
-  //         aOOB,
-  //       op(Opcode.ADD, 3),
-  //     ]),
-  //   ];
-
-  //   await assertError(
-  //     async () => await logic.initialize({ sources, constants }, [1]),
-  //     "", // there is at least an error
-  //     "did not error when trying to read an out-of-bounds argument"
-  //   );
-  // });
 
   it("should error when trying to read an out-of-bounds constant", async () => {
     const constants = [1];
@@ -293,7 +301,14 @@ describe("READ_MEMORY Opcode test", async function () {
     const sources = [concat([vOOB])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await expressionDeployConsumer(
+          {
+            sources,
+            constants,
+          },
+          rainInterpreter
+        ),
       "", // there is at least an error
       "did not error when trying to read an out-of-bounds constant"
     );
@@ -314,7 +329,14 @@ describe("READ_MEMORY Opcode test", async function () {
     ];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await expressionDeployConsumer(
+          {
+            sources,
+            constants,
+          },
+          rainInterpreter
+        ),
       "STACK_UNDERFLOW",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
@@ -338,7 +360,14 @@ describe("READ_MEMORY Opcode test", async function () {
     ];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await expressionDeployConsumer(
+          {
+            sources,
+            constants,
+          },
+          rainInterpreter
+        ),
       "STACK_UNDERFLOW",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );

@@ -92,7 +92,9 @@ contract CombineTier is TierV2 {
         uint256[] memory context_
     ) external view virtual override returns (uint256) {
         uint256[][] memory interpreterContext_ = new uint256[][](2);
-        interpreterContext_[0] = LibContext.base(uint256(uint160(account_)).arrayFrom());
+        interpreterContext_[0] = LibContext.base(
+            uint256(uint160(account_)).arrayFrom()
+        );
         interpreterContext_[1] = context_;
 
         (uint[] memory stack_, ) = interpreter.eval(
@@ -113,10 +115,9 @@ contract CombineTier is TierV2 {
         uint256[] memory context_
     ) external view returns (uint256) {
         uint256[][] memory interpreterContext_ = new uint256[][](2);
-        interpreterContext_[0] = LibContext.base(LibUint256Array.arrayFrom(
-            uint256(uint160(account_)),
-            tier_
-        ));
+        interpreterContext_[0] = LibContext.base(
+            LibUint256Array.arrayFrom(uint256(uint160(account_)), tier_)
+        );
         interpreterContext_[1] = context_;
 
         (uint[] memory stack_, ) = interpreter.eval(

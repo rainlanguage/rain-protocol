@@ -33,9 +33,9 @@ export const iinterpreterV1ConsumerDeploy = async (
   await consumerLogic.deployed();
 
   return {
-    consumerLogic: consumerLogic,
-    interpreter: interpreter,
-    dispatch: dispatch,
+    consumerLogic,
+    interpreter,
+    dispatch,
   };
 };
 
@@ -56,5 +56,5 @@ export const expressionDeployConsumer = async (
     maxOutputs
   );
 
-  return { dispatch: dispatch };
+  return { dispatch, expressionDeployer, libEncodedDispatch };
 };

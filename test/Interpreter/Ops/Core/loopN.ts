@@ -1,7 +1,7 @@
 import { assert, expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -11,15 +11,23 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("LOOP_N Opcode test", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   // TODO: LOOP_N_INPUTS
@@ -44,12 +52,12 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     let expectedResult = initialValue;
@@ -57,7 +65,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -84,12 +92,12 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     let expectedResult = initialValue;
@@ -97,7 +105,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -124,12 +132,12 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     let expectedResult = initialValue;
@@ -137,7 +145,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -171,12 +179,12 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.ADD, 2),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN, sourceADDOuter, sourceADDInner],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     let expectedResult = initialValue;
@@ -187,7 +195,7 @@ describe("LOOP_N Opcode test", async function () {
       }
     }
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -263,7 +271,7 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [
           sourceMAIN,
@@ -273,7 +281,7 @@ describe("LOOP_N Opcode test", async function () {
         ],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     let expectedResult = [];
@@ -283,7 +291,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult.push(expectedResultTemp);
     }
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     let result0 = await logic.stack();
     result0 = result0.slice(3); // Slicing the Exploded Values
 
@@ -365,7 +373,7 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(7, 2, 1, 4)),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [
           sourceMAIN,
@@ -376,7 +384,7 @@ describe("LOOP_N Opcode test", async function () {
         ],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     let expectedResult = ethers.BigNumber.from(0);
@@ -386,7 +394,7 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult = expectedResult.add(expectedResultTemp);
     }
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
 
     assert(
@@ -416,16 +424,16 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 2, 1, 1))
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     const expectedResult = 5;
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -433,7 +441,7 @@ describe("LOOP_N Opcode test", async function () {
     );
   });
 
-  it("should fail the integrity check when enough values are not available for the operand to process", async () => {
+  it("should fail the integrity check when not enough values are available for the operand to process", async () => {
     const n = 2; // Loop will run only once
 
     const initialValue = 2;
@@ -456,12 +464,12 @@ describe("LOOP_N Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.initialize(
+        await expressionDeployConsumer(
           {
             sources: [sourceMAIN, sourceADD],
             constants,
           },
-          [1]
+          rainInterpreter
         ),
       "STACK_UNDERFLOW",
       "Integrity check passed even when enough values are not available on the stack"

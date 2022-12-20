@@ -1,17 +1,25 @@
 import { expect } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { AllStandardOps, op } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("EXPLODE32 Opcode test", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should explode a single value into 8x 32 bit integers", async () => {
@@ -21,15 +29,15 @@ describe("EXPLODE32 Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [sourceMAIN],
         constants: [],
       },
-      [8]
+      rainInterpreter
     );
     // 0
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [
         ethers.BigNumber.from(
           "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -53,7 +61,7 @@ describe("EXPLODE32 Opcode test", async function () {
     );
 
     // 1
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [
         ethers.BigNumber.from(
           "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
@@ -77,7 +85,9 @@ describe("EXPLODE32 Opcode test", async function () {
     );
 
     // 2
-    await logic["runContext(uint256[][])"]([[ethers.BigNumber.from("0x0")]]);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [ethers.BigNumber.from("0x0")],
+    ]);
     const result2 = await logic.stack();
     const expectedResult2 = [
       ethers.BigNumber.from("0"),

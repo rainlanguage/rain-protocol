@@ -3,11 +3,13 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  AllStandardOpsTest,
+  IInterpreterV1Consumer,
+  Rainterpreter,
   ReserveTokenERC721,
 } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -24,10 +26,17 @@ let signer1: SignerWithAddress;
 let tokenERC721: ReserveTokenERC721;
 
 describe("RainInterpreter ERC721 ops", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   beforeEach(async () => {
@@ -65,15 +74,21 @@ describe("RainInterpreter ERC721 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(result0.eq(signer0.address));
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, nftId);
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result1 = await logic.stackTop();
     assert(result1.eq(signer1.address));
   });
@@ -98,22 +113,28 @@ describe("RainInterpreter ERC721 ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC721.transferFrom(signer0.address, signer1.address, 0);
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result1 = await logic.stackTop();
     assert(result1.eq(1), `expected 1, got ${result1}`);
 
     await tokenERC721.mintNewToken();
     await tokenERC721.transferFrom(signer0.address, signer1.address, 1);
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result2 = await logic.stackTop();
     assert(result2.eq(2), `expected 2, got ${result2}`);
   });

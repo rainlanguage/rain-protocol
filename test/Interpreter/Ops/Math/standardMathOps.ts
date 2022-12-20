@@ -1,8 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import {
   memoryOperand,
@@ -14,10 +15,17 @@ import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter MathOps standard math", async () => {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should perform a calculation using the block number as a value", async () => {
@@ -47,9 +55,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const block0 = await ethers.provider.getBlockNumber();
     const result0 = await logic.stackTop();
     const expected0 = 16 * block0;
@@ -62,7 +76,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
     await createEmptyBlock();
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const block1 = await ethers.provider.getBlockNumber();
 
     const result1 = await logic.stackTop();
@@ -76,7 +90,7 @@ describe("RainInterpreter MathOps standard math", async () => {
 
     await createEmptyBlock();
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const block2 = await ethers.provider.getBlockNumber();
     const result2 = await logic.stackTop();
     const expected2 = 16 * block2;
@@ -105,9 +119,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -133,9 +153,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 0;
     assert(
@@ -161,9 +187,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -191,9 +223,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 4096;
     assert(
@@ -219,9 +257,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 16;
     assert(
@@ -247,9 +291,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       op(Opcode.MAX, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source],
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 33;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
@@ -270,9 +320,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       op(Opcode.MIN, 3),
     ]);
 
-    await logic.initialize({ sources: [source], constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources: [source],
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 11;
     assert(result.eq(expected), `wrong minimum ${expected} ${result}`);
@@ -299,9 +355,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 3;
     assert(
@@ -329,9 +391,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -359,9 +427,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 2;
     assert(
@@ -389,9 +463,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 60;
     assert(
@@ -419,9 +499,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 5;
     assert(
@@ -449,9 +535,15 @@ describe("RainInterpreter MathOps standard math", async () => {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expected = 6;
     assert(result.eq(expected), `wrong summation ${expected} ${result}`);
