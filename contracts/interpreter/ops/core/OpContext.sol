@@ -8,8 +8,6 @@ import "../../deploy/LibIntegrityState.sol";
 import "../../../idempotent/LibIdempotentFlag.sol";
 import "../../../math/Binary.sol";
 
-import "hardhat/console.sol";
-
 /// @title OpContext
 /// @notice Opcode for stacking from the context. Context requires slightly
 /// different handling to other memory reads as it is working with data that

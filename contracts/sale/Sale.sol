@@ -21,8 +21,6 @@ import "../interpreter/run/LibStackTop.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
 
-import "hardhat/console.sol";
-
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
 /// this. Avoids downstream escrows and similar trapping funds due to sales
