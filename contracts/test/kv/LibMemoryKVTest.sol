@@ -103,8 +103,8 @@ contract LibMemoryKVTest {
         for (uint256 i = 0; i < kvPair_.length - 1; i += 2) {
             j++;
             kv_ = kv_.setVal(
-                MemoryKVKey.wrap(kvPair[i]),
-                MemoryKVVal.wrap(kvPair[i + 1])
+                MemoryKVKey.wrap(kvPair_[i]),
+                MemoryKVVal.wrap(kvPair_[i + 1])
             );
         }
         array_ = kv_.toUint256Array();
