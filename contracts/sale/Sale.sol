@@ -370,7 +370,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                 uint[] memory interpreterStateChanges_
             ) = interpreter.eval(
                     dispatchCanLive,
-                    uint(uint160(msg.sender)).arrayFrom().matrixFrom()
+                    LibContext.base().matrixFrom()
                 );
             return (
                 stack_.asStackTopAfter().peek() > 0,
