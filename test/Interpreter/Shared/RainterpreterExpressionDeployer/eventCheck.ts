@@ -1,17 +1,16 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { AllStandardOps, areEqualStateConfigs, getEventArgs, memoryOperand, MemoryType, op } from "../../../../utils";
+import { AllStandardOps, areEqualStateConfigs, getEventArgs, memoryOperand, MemoryType, op, StateConfig } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
 
-  it("DeployExpression event should emit original StateConfig", async() => { 
-
+  it ("DeployExpression event should emit original StateConfig", async() => {
     const interpreter = await rainterpreterDeploy();
     const expressionDeployer = await rainterpreterExpressionDeployer(
       interpreter
-    ) 
+    )
 
     const config = {
       constants: [ '1', '2' ],
@@ -25,11 +24,10 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     };
     
     const expected = config;
-    const tx = await expressionDeployer.deployExpression(config, [1]); 
-
+    const tx = await expressionDeployer.deployExpression(config, [1]);
     const configFromEvent = (await getEventArgs(
       tx, 
-      "DeployExpression",
+      "ExpressionConfig",
       expressionDeployer
     ))[1] ;  
 
@@ -69,7 +67,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
 
     const mathConfigFromEvent = (await getEventArgs(
       mathExpressionTx, 
-      "DeployExpression",
+      "ExpressionConfig",
       expressionDeployer
     ))[1] ;   
     
@@ -100,4 +98,5 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
   
 
 
-});
+}); 
+

@@ -20,11 +20,14 @@ contract RainterpreterExpressionDeployer is
     using LibInterpreterState for StateConfig;
 
     event ValidInterpreter(address sender, address interpreter);
-    event DeployExpression(
+    event ExpressionConfig(
         address sender,
         StateConfig config,
-        address expressionAddress,
-        uint256 contextReads
+        uint contextReads
+    );
+    event ExpressionDeployed(
+        address sender,
+        address expression
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -89,19 +92,20 @@ contract RainterpreterExpressionDeployer is
             minStackOutputs_
         );
 
+        emit ExpressionConfig(
+            msg.sender,
+            config_,
+            contextReads_
+        );
+
         bytes memory stateBytes_ = config_.serialize(
             stackLength_,
             OPCODE_FUNCTION_POINTERS
         );
 
-        address expressionAddress_ = SSTORE2.write(stateBytes_);
+        address expression_ = SSTORE2.write(stateBytes_);
 
-        emit DeployExpression(
-            msg.sender,
-            config_,
-            expressionAddress_,
-            contextReads_
-        );
-        return (expressionAddress_, contextReads_);
+        emit ExpressionDeployed(msg.sender, expression_);
+        return (expression_, contextReads_);
     }
 }

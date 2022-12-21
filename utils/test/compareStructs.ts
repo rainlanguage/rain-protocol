@@ -1,7 +1,8 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-import { StateConfigStruct } from "../../typechain/contracts/orderbook/IOrderBookV1";
+import { StateConfig } from "../types";
+
 
 /**
  * Uses chai `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
@@ -175,8 +176,7 @@ const testSolStructs = (
       );
     }
   });
-};  
-
+};
 
 /**
  * @public
@@ -186,9 +186,9 @@ const testSolStructs = (
  * @param config2 - second StateConfig
  * @returns boolean
  */
- export const areEqualStateConfigs = async (
-  config1: StateConfigStruct,
-  config2: StateConfigStruct
+ export const areEqualStateConfigs = (
+  config1: StateConfig,
+  config2: StateConfig
 ): boolean => {
   if (config1.constants.length !== config2.constants.length) return false;
   if (config1.sources.length !== config2.sources.length) return false;
@@ -203,8 +203,8 @@ const testSolStructs = (
 
   for (let i = 0; i < config1.sources.length; i++) {
       if (
-        hexlify(await config1.sources[i], { allowMissingPrefix: true }) !== 
-        hexlify(await config2.sources[i], { allowMissingPrefix: true })
+        hexlify(config1.sources[i], { allowMissingPrefix: true }) !== 
+        hexlify(config2.sources[i], { allowMissingPrefix: true })
       ) return false;
   }
 
