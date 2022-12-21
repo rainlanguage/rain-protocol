@@ -3,12 +3,14 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  AllStandardOpsTest,
+  IInterpreterV1Consumer,
+  Rainterpreter,
   ReserveTokenERC20Snapshot,
 } from "../../../../typechain";
 import { SnapshotEvent } from "../../../../typechain/contracts/test/testToken/ReserveTokenERC20Snapshot";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import {
   memoryOperand,
@@ -25,10 +27,17 @@ let signer1: SignerWithAddress;
 let tokenERC20Snapshot: ReserveTokenERC20Snapshot;
 
 describe("RainInterpreter ERC20 Snapshot ops", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   beforeEach(async () => {
@@ -58,7 +67,13 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
     const txSnapshot = await tokenERC20Snapshot.snapshot();
     const { id } = (await getEventArgs(
@@ -67,7 +82,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       tokenERC20Snapshot
     )) as SnapshotEvent["args"];
 
-    await logic["runContext(uint256[][])"]([[id]]);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [[id]]);
     const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20Snapshot.totalSupply();
     assert(
@@ -97,7 +112,13 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
     await tokenERC20Snapshot.transfer(signer1.address, 100);
 
@@ -108,7 +129,7 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       tokenERC20Snapshot
     )) as SnapshotEvent["args"];
 
-    await logic["runContext(uint256[][])"]([[id]]);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [[id]]);
     const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

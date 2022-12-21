@@ -1,22 +1,30 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import {
   AllStandardOps,
   memoryOperand,
   MemoryType,
   op,
 } from "../../../../utils";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("HASH Opcode test", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should hash a list of values from constant", async () => {
@@ -29,15 +37,15 @@ describe("HASH Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.HASH, 3),
     ]);
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -62,15 +70,15 @@ describe("HASH Opcode test", async function () {
         op(Opcode.CONTEXT, 0x0001),
       op(Opcode.HASH, 2),
     ]);
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["runContext(uint256[][])"](context);
+    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -91,15 +99,15 @@ describe("HASH Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.HASH, 1),
     ]);
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],

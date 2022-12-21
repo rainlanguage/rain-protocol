@@ -1,7 +1,9 @@
 import { concat } from "ethers/lib/utils";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { ethers } from "hardhat";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -13,10 +15,17 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter unchecked math", async () => {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should panic when accumulator overflows with exponentiation op", async () => {
@@ -35,16 +44,17 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.EXP, 2)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -69,16 +79,17 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.MUL, 2)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -97,16 +108,17 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.SUB, 2)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "accumulator underflow did not panic"
     );
@@ -128,16 +140,17 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.ADD, 2)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "Error",
       "accumulator overflow did not panic"
     );

@@ -1,7 +1,6 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import { AllStandardOpsTest } from "../../../../typechain";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   callOperand,
   Debug,
@@ -16,12 +15,6 @@ import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter debug op", async function () {
-  let logic: AllStandardOpsTest;
-
-  before(async () => {
-    logic = await allStandardOpsDeploy();
-  });
-
   it("should log stack when DEBUG operand is set to DEBUG_STACK", async () => {
     const constants = [10, 20];
 
@@ -33,8 +26,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.Stack),
     ])];
 
-    await logic.initialize({ sources, constants }, [1]);
-    await logic["run()"]();
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
+
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
 
     assert(true); // you have to check this log yourself
   });
@@ -50,8 +48,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.StatePacked),
     ])];
 
-    await logic.initialize({ sources, constants }, [1]);
-    await logic["run()"]();
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
+
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
 
     assert(true); // you have to check this log yourself
   });
@@ -76,15 +79,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.Stack), // Should show the stack here
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [source, checkValue],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
   });
 
   it("should be able to log when used within a source from DO_WHILE op", async () => {
@@ -109,15 +110,13 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.DEBUG, Debug.Stack),
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceWHILE],
         constants,
-      },
-      [1]
-    );
+      });
 
-    await logic["run()"]();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
   });
 
   it("should be able to log when used within a source from LOOP_N op", async () => {
@@ -140,21 +139,19 @@ describe("RainInterpreter debug op", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    await logic.initialize(
-      {
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
         sources: [sourceMAIN, sourceADD],
         constants,
-      },
-      [1]
-    );
+      });
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {
       expectedResult += incrementValue;
     }
 
-    await logic["run()"]();
-    const result0 = await logic.stackTop();
+    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    const result0 = await consumerLogic.stackTop();
     assert(
       result0.eq(expectedResult),
       `Invalid output, expected ${expectedResult}, actual ${result0}`

@@ -1,7 +1,8 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import {
   memoryOperand,
@@ -32,10 +33,17 @@ function tierRangeUnrestricted(startTier: number, endTier: number): number {
 }
 
 describe("RainInterpreter update tier range op", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should enforce maxTier for update tier range operation", async () => {
@@ -60,16 +68,17 @@ describe("RainInterpreter update tier range op", async function () {
       ),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants: constants0,
       },
-      [1]
+      rainInterpreter
     );
 
     await assertError(
-      async () => await logic["run()"](),
+      async () =>
+        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
       "MAX_TIER",
       "wrongly updated blocks with endTier of 9, which is greater than maxTier constant"
     );
