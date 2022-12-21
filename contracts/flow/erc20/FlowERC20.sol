@@ -122,7 +122,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     function _previewFlow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal view virtual returns (FlowERC20IO memory, uint[] memory) {
         uint256[] memory refs_;
@@ -131,7 +131,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             StackTop stackBottom_,
             StackTop stackTop_,
             uint[] memory stateChanges_
-        ) = flowStack(dispatch_, id_, signedContexts_);
+        ) = flowStack(dispatch_, callerContext_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC20_SENTINEL,
@@ -155,13 +155,13 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     function _flow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         (
             FlowERC20IO memory flowIO_,
             uint[] memory stateChanges_
-        ) = _previewFlow(dispatch_, id_, signedContexts_);
+        ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
         for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
             _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
         }
@@ -174,12 +174,12 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     function previewFlow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC20IO memory) {
         (FlowERC20IO memory flowERC20IO_, ) = _previewFlow(
             dispatch_,
-            id_,
+            callerContext_,
             signedContexts_
         );
         return flowERC20IO_;
@@ -187,9 +187,9 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     function flow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC20IO memory) {
-        return _flow(dispatch_, id_, signedContexts_);
+        return _flow(dispatch_, callerContext_, signedContexts_);
     }
 }

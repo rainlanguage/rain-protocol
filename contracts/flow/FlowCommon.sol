@@ -5,13 +5,13 @@ import "./libraries/LibFlow.sol";
 import "../idempotent/LibIdempotentFlag.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
+import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/run/LibContext.sol";
+
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {ERC721HolderUpgradeable as ERC721Holder} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
-import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
-import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
 
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
@@ -22,12 +22,6 @@ uint256 constant MIN_FLOW_SENTINELS = 4;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
 uint constant FLOW_MAX_OUTPUTS = type(uint16).max;
-
-struct SignedContext {
-    address signer;
-    bytes signature;
-    uint256[] context;
-}
 
 struct FlowCommonConfig {
     address expressionDeployer;
@@ -85,65 +79,31 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         }
     }
 
-    function _buildFlowBaseContext(
-        EncodedDispatch dispatch_,
-        uint256 id_
-    ) internal view returns (uint256[] memory) {
-        // THIS IS A CRITICAL SECURITY CHECK. REMOVING THIS ALLOWS ARBITRARY
-        // EXPRESSIONS TO BE BUILT AND RUN AS FLOWS.
+    modifier onlyRegisteredDispatch(EncodedDispatch dispatch_) {
         require(_flows[dispatch_] > 0, "UNREGISTERED_FLOW");
-
-        return LibUint256Array.arrayFrom(uint256(uint160(msg.sender)), id_);
+        _;
     }
 
     function flowStack(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (StackTop, StackTop, uint[] memory) {
-        unchecked {
-            uint256[] memory flowBaseContext_ = _buildFlowBaseContext(
+    )
+        internal
+        view
+        onlyRegisteredDispatch(dispatch_)
+        returns (StackTop, StackTop, uint[] memory)
+    {
+        (uint256[] memory stack_, uint[] memory stateChanges_) = _interpreter
+            .eval(
                 dispatch_,
-                id_
+                LibContext.build(
+                    new uint256[][](0),
+                    callerContext_,
+                    signedContexts_
+                )
             );
-
-            uint256[] memory signers_ = new uint256[](signedContexts_.length);
-            uint256[][] memory flowContext_ = new uint256[][](
-                signedContexts_.length + 2
-            );
-            for (uint256 i_ = 0; i_ < signedContexts_.length; i_++) {
-                signers_[i_] = uint256(uint160(signedContexts_[i_].signer));
-
-                require(
-                    SignatureChecker.isValidSignatureNow(
-                        signedContexts_[i_].signer,
-                        ECDSA.toEthSignedMessageHash(
-                            keccak256(
-                                abi.encodePacked(signedContexts_[i_].context)
-                            )
-                        ),
-                        signedContexts_[i_].signature
-                    ),
-                    "INVALID_SIGNATURE"
-                );
-                flowContext_[i_ + 2] = signedContexts_[i_].context;
-            }
-
-            flowContext_[0] = flowBaseContext_;
-            flowContext_[1] = signers_;
-
-            IInterpreterV1 interpreter_ = _interpreter;
-
-            (
-                uint256[] memory stack_,
-                uint[] memory stateChanges_
-            ) = interpreter_.eval(dispatch_, flowContext_);
-            return (
-                stack_.asStackTopUp(),
-                stack_.asStackTopAfter(),
-                stateChanges_
-            );
-        }
+        return (stack_.asStackTopUp(), stack_.asStackTopAfter(), stateChanges_);
     }
 
     receive() external payable virtual {}

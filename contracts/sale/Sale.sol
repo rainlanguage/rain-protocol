@@ -144,8 +144,7 @@ uint constant CALCULATE_BUY_MAX_OUTPUTS = 2;
 uint constant HANDLE_BUY_MIN_OUTPUTS = 0;
 uint constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint constant CONTEXT_COLUMNS = 3;
-uint constant CONTEXT_BASE_COLUMN = 0;
+uint constant CONTEXT_COLUMNS = 2;
 uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
 uint constant CONTEXT_BUY_COLUMN = 2;
 
@@ -413,9 +412,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     function _previewCalculateBuy(
         uint256 targetUnits_
     ) internal view returns (uint256, uint256, uint[][] memory, uint[] memory) {
-        uint[][] memory context_ = new uint[][](CONTEXT_COLUMNS);
-        context_[CONTEXT_BASE_COLUMN] = LibContext.base(
-            targetUnits_.arrayFrom()
+        uint[][] memory context_ = LibContext.build(
+            new uint256[][](CONTEXT_COLUMNS),
+            targetUnits_.arrayFrom(),
+            new SignedContext[](0)
         );
         (uint[] memory stack_, uint[] memory stateChanges_) = interpreter.eval(
             dispatchCalculateBuy,

@@ -23,11 +23,11 @@ uint constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the
-/// sourceConfig MUST be all the combined tiers that are known statically. Of
+/// stateConfig MUST be all the combined tiers that are known statically. Of
 /// course some tier addresses MAY only be known at runtime and so these cannot
 /// be included. For those that are included there will be additional deploy
 /// time checks to ensure compatibility with each other (i.e. reportUnits).
-/// @param sourceConfig Source to run for both report and reportForTier as
+/// @param stateConfig Source to run for both report and reportForTier as
 /// sources 0 and 1 respectively.
 struct CombineTierConfig {
     address expressionDeployer;
@@ -89,21 +89,19 @@ contract CombineTier is TierV2 {
     /// @inheritdoc ITierV2
     function report(
         address account_,
-        uint256[] memory context_
+        uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
-        uint256[][] memory interpreterContext_ = new uint256[][](2);
-        interpreterContext_[0] = LibContext.base(
-            uint256(uint160(account_)).arrayFrom()
-        );
-        interpreterContext_[1] = context_;
-
         (uint[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_ENTRYPOINT,
                 REPORT_MAX_OUTPUTS
             ),
-            interpreterContext_
+            LibContext.build(
+                uint256(uint160(account_)).arrayFrom().matrixFrom(),
+                callerContext_,
+                new SignedContext[](0)
+            )
         );
         return stack_.asStackTopAfter().peek();
     }
@@ -112,21 +110,21 @@ contract CombineTier is TierV2 {
     function reportTimeForTier(
         address account_,
         uint256 tier_,
-        uint256[] memory context_
+        uint256[] memory callerContext_
     ) external view returns (uint256) {
-        uint256[][] memory interpreterContext_ = new uint256[][](2);
-        interpreterContext_[0] = LibContext.base(
-            LibUint256Array.arrayFrom(uint256(uint160(account_)), tier_)
-        );
-        interpreterContext_[1] = context_;
-
         (uint[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_FOR_TIER_ENTRYPOINT,
                 REPORT_FOR_TIER_MAX_OUTPUTS
             ),
-            interpreterContext_
+            LibContext.build(
+                LibUint256Array
+                    .arrayFrom(uint256(uint160(account_)), tier_)
+                    .matrixFrom(),
+                callerContext_,
+                new SignedContext[](0)
+            )
         );
         return stack_.asStackTopAfter().peek();
     }
