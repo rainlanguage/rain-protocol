@@ -63,7 +63,6 @@ contract OrderBook is
     using FixedPointMath for uint256;
     using LibOrder for Order;
     using LibInterpreterState for InterpreterState;
-    using LibIdempotentFlag for IdempotentFlag;
     using LibUint256Array for uint;
 
     event Deposit(address sender, DepositConfig config);
@@ -130,9 +129,8 @@ contract OrderBook is
     }
 
     function addOrder(OrderConfig calldata config_) external nonReentrant {
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.interpreterStateConfig,
                 LibUint256Array.arrayFrom(
                     ORDER_MIN_OUTPUTS,

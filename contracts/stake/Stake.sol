@@ -123,9 +123,8 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         __ERC4626_init(config_.asset);
         __TierV2_init();
         interpreter = IInterpreterV1(config_.interpreter);
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
                     MAX_DEPOSIT_MIN_OUTPUTS,

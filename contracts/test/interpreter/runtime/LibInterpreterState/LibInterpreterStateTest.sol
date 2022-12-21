@@ -72,8 +72,7 @@ contract LibInterpreterStateTest {
 
         serialized_ = config_.serialize(
             stackLength_,
-            interpreter_
-                .functionPointers()
+            interpreter_.functionPointers()
         );
     }
 

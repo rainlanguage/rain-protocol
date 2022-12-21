@@ -45,13 +45,11 @@ contract AutoApprove is VerifyCallback {
     ) external initializer {
         __VerifyCallback_init();
 
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
-        expression = expression_;
         interpreter = IInterpreterV1(config_.interpreter);
 
         _transferOwnership(msg.sender);

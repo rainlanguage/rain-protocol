@@ -5,7 +5,6 @@ import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
 import "./OpCall.sol";
-import "../../../idempotent/LibIdempotentFlag.sol";
 
 /// @title OpFoldContext
 /// Folds over columns of context from their start to end. Expressions do not
@@ -30,19 +29,11 @@ library OpFoldContext {
     ) internal view returns (StackTop) {
         unchecked {
             uint sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
-            uint column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
+            // We don't use the column for anything in the integrity check.
+            // uint column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
             uint width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
             uint inputs_ = Operand.unwrap(operand_) >> 12;
             uint callInputs_ = width_ + inputs_;
-
-            for (uint i_ = 0; i_ < width_; i_++) {
-                integrityState_.contextReads = IdempotentFlag.unwrap(
-                    LibIdempotentFlag.set16x16Column(
-                        IdempotentFlag.wrap(integrityState_.contextReads),
-                        column_ + i_
-                    )
-                );
-            }
 
             // Outputs for call is the same as the inputs.
             Operand callOperand_ = Operand.wrap(

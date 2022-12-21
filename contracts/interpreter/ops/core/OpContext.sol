@@ -5,7 +5,6 @@ import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/t
 import "../../run/LibStackTop.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityState.sol";
-import "../../../idempotent/LibIdempotentFlag.sol";
 import "../../../math/Binary.sol";
 
 /// @title OpContext
@@ -24,15 +23,6 @@ library OpContext {
         Operand operand_,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
-        uint256 row_ = Operand.unwrap(operand_) & MASK_8BIT;
-        uint256 column_ = Operand.unwrap(operand_) >> 8;
-        integrityState_.contextReads = IdempotentFlag.unwrap(
-            LibIdempotentFlag.set16x16(
-                IdempotentFlag.wrap(integrityState_.contextReads),
-                column_,
-                row_
-            )
-        );
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         return integrityState_.push(stackTop_);

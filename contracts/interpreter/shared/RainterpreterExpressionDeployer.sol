@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "../deploy/IExpressionDeployerV1.sol";
-import "../deploy/StandardIntegrity.sol";
+import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
 
@@ -14,10 +14,7 @@ bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
     0x9555776441bec42df8ec833bfa043727111e6e1327a4fd0c129ff6d449e7f682
 );
 
-contract RainterpreterExpressionDeployer is
-    StandardIntegrity,
-    IExpressionDeployerV1
-{
+contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibInterpreterState for StateConfig;
     using LibStackTop for StackTop;
 
@@ -25,8 +22,7 @@ contract RainterpreterExpressionDeployer is
     event DeployExpression(
         address sender,
         StateConfig config,
-        address expressionAddress,
-        uint256 contextReads
+        address expressionAddress
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -57,11 +53,10 @@ contract RainterpreterExpressionDeployer is
         emit ValidInterpreter(msg.sender, interpreter_);
     }
 
-    function localIntegrityFunctionPointers()
+    function integrityFunctionPointers()
         internal
-        pure
+        view
         virtual
-        override
         returns (
             function(IntegrityState memory, Operand, StackTop)
                 view
@@ -78,14 +73,14 @@ contract RainterpreterExpressionDeployer is
                 StackTop
             ) view returns (StackTop)[](1);
         localFnPtrs_[0] = OpGet.integrity;
-        return localFnPtrs_;
+        return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
     }
 
     function deployExpression(
         StateConfig memory config_,
         uint[] memory minStackOutputs_
-    ) external returns (address, uint256) {
-        (uint256 contextReads_, uint256 stackLength_) = ensureIntegrity(
+    ) external returns (address) {
+        uint256 stackLength_ = ensureIntegrity(
             config_.sources,
             config_.constants.length,
             minStackOutputs_
@@ -98,27 +93,21 @@ contract RainterpreterExpressionDeployer is
 
         address expressionAddress_ = SSTORE2.write(stateBytes_);
 
-        emit DeployExpression(
-            msg.sender,
-            config_,
-            expressionAddress_,
-            contextReads_
-        );
-        return (expressionAddress_, contextReads_);
+        emit DeployExpression(msg.sender, config_, expressionAddress_);
+        return expressionAddress_;
     }
 
     function ensureIntegrity(
         bytes[] memory sources_,
         uint256 constantsLength_,
         uint[] memory minStackOutputs_
-    ) internal view returns (uint256 contextReads_, uint256 stackLength_) {
+    ) internal view returns (uint256 stackLength_) {
         require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
         IntegrityState memory integrityState_ = IntegrityState(
             sources_,
             constantsLength_,
             StackTop.wrap(0),
             StackTop.wrap(0),
-            0,
             integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
@@ -129,9 +118,6 @@ contract RainterpreterExpressionDeployer is
                 minStackOutputs_[i_]
             );
         }
-        return (
-            integrityState_.contextReads,
-            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
-        );
+        return integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop);
     }
 }

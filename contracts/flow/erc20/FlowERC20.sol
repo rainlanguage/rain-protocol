@@ -8,7 +8,6 @@ import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../libraries/LibFlow.sol";
 import "../../math/FixedPointMath.sol";
-import "../../idempotent/LibIdempotentFlag.sol";
 import "../FlowCommon.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 
@@ -76,9 +75,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        // Ignoring context scratch here as we never use it, all context is
-        // provided unconditionally.
-        (address expression_, ) = IExpressionDeployerV1(
+        address expression_ = IExpressionDeployerV1(
             config_.flowConfig.expressionDeployer
         ).deployExpression(
                 config_.stateConfig,

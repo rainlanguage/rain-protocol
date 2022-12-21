@@ -55,7 +55,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         __ERC1155_init(config_.uri);
         // Ignoring context scratch here as we never use it, all context is
         // provided unconditionally.
-        (address expression_, ) = IExpressionDeployerV1(
+        address expression_ = IExpressionDeployerV1(
             config_.flowConfig.expressionDeployer
         ).deployExpression(
                 config_.stateConfig,

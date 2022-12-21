@@ -279,10 +279,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        (
-            address expression_, // Sale doesn't use conditional context so we don't need the scratch.
-
-        ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
+        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.interpreterStateConfig,
                 LibUint256Array.arrayFrom(
                     CAN_LIVE_MIN_OUTPUTS,

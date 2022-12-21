@@ -61,16 +61,14 @@ contract CombineTier is TierV2 {
     ) external initializer {
         __TierV2_init();
         interpreter = IInterpreterV1(config_.interpreter);
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
                     REPORT_MIN_OUTPUTS,
                     REPORT_FOR_TIER_MIN_OUTPUTS
                 )
             );
-        expression = expression_;
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {

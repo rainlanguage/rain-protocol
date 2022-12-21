@@ -2,7 +2,6 @@
 pragma solidity =0.8.17;
 
 import "./libraries/LibFlow.sol";
-import "../idempotent/LibIdempotentFlag.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
@@ -31,7 +30,6 @@ struct FlowCommonConfig {
 }
 
 contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
-    using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
     using LibStackTop for StackTop;
     using LibStackTop for uint256[];
@@ -64,7 +62,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         require(flowMinOutputs_ >= MIN_FLOW_SENTINELS, "BAD MIN STACKS LENGTH");
         _interpreter = IInterpreterV1(config_.interpreter);
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
-            (address expression_, ) = IExpressionDeployerV1(
+            address expression_ = IExpressionDeployerV1(
                 config_.expressionDeployer
             ).deployExpression(
                     config_.flows[i_],

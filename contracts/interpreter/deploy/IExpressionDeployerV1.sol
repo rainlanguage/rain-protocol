@@ -13,5 +13,5 @@ interface IExpressionDeployerV1 {
     function deployExpression(
         StateConfig memory config,
         uint[] memory minOutputs
-    ) external returns (address expressionAddress, uint256 contextReads);
+    ) external returns (address expressionAddress);
 }

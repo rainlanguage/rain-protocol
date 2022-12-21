@@ -12,7 +12,6 @@ struct IntegrityState {
     uint256 constantsLength;
     StackTop stackBottom;
     StackTop stackMaxTop;
-    uint256 contextReads;
     function(IntegrityState memory, Operand, StackTop)
         view
         returns (StackTop)[] integrityFunctionPointers;
