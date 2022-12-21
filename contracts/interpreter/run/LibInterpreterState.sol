@@ -8,10 +8,9 @@ import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
 import "../../memory/LibMemorySize.sol";
-import "hardhat/console.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
-import {Operand} from "./RainInterpreter.sol";
 import "../../kv/LibMemoryKV.sol";
+import "hardhat/console.sol";
 
 enum DebugStyle {
     Stack,

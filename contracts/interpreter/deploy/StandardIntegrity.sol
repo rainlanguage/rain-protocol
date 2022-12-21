@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import "../run/RainInterpreter.sol";
-import "./RainInterpreterIntegrity.sol";
 import "../ops/AllStandardOps.sol";
 
-contract StandardIntegrity is RainInterpreterIntegrity {
+contract StandardIntegrity {
     function localIntegrityFunctionPointers()
         internal
         pure
@@ -18,12 +16,10 @@ contract StandardIntegrity is RainInterpreterIntegrity {
         )
     {}
 
-    /// @inheritdoc RainInterpreterIntegrity
     function integrityFunctionPointers()
         internal
         view
         virtual
-        override
         returns (
             function(IntegrityState memory, Operand, StackTop)
                 view

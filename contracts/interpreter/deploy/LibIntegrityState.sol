@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../run/RainInterpreter.sol";
 import "../run/LibStackTop.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 

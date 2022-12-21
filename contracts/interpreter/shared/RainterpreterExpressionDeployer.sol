@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 import "../ops/core/OpGet.sol";
+import "../../sstore2/SSTORE2.sol";
 
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0c6d0c7b0cd10d230da10dcd0e660f300f650f83100b101a102810361044101a10521060106e107d108c109a10a81120112f113e114d115c116b11b411c611d41206121412221230123f124e125d126c127b128a129912a812b712c612d512e312f112ff130d131b1329133713461355136313da0bdb";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
@@ -18,6 +19,7 @@ contract RainterpreterExpressionDeployer is
     IExpressionDeployerV1
 {
     using LibInterpreterState for StateConfig;
+    using LibStackTop for StackTop;
 
     event ValidInterpreter(address sender, address interpreter);
     event DeployExpression(
@@ -103,5 +105,33 @@ contract RainterpreterExpressionDeployer is
             contextReads_
         );
         return (expressionAddress_, contextReads_);
+    }
+
+    function ensureIntegrity(
+        bytes[] memory sources_,
+        uint256 constantsLength_,
+        uint[] memory minStackOutputs_
+    ) internal view returns (uint256 contextReads_, uint256 stackLength_) {
+        require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
+        IntegrityState memory integrityState_ = IntegrityState(
+            sources_,
+            constantsLength_,
+            StackTop.wrap(0),
+            StackTop.wrap(0),
+            0,
+            integrityFunctionPointers()
+        );
+        for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
+            LibIntegrityState.ensureIntegrity(
+                integrityState_,
+                SourceIndex.wrap(i_),
+                StackTop.wrap(0),
+                minStackOutputs_[i_]
+            );
+        }
+        return (
+            integrityState_.contextReads,
+            integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop)
+        );
     }
 }

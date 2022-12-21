@@ -9,7 +9,7 @@ import "../../../../array/LibUint256Array.sol";
 
 /// @title LibInterpreterStateTest
 /// Test wrapper around `LibInterpreterState` library.
-contract LibInterpreterStateTest is RainInterpreter {
+contract LibInterpreterStateTest {
     using LibInterpreterState for InterpreterState;
     using LibInterpreterState for bytes;
     using LibInterpreterState for StateConfig;
@@ -25,35 +25,6 @@ contract LibInterpreterStateTest is RainInterpreter {
 
     constructor(address interpreterIntegrity_) {
         interpreterIntegrity = interpreterIntegrity_;
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        virtual
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory localFnPtrs_
-        )
-    {}
-
-    /// @inheritdoc RainInterpreter
-    function opcodeFunctionPointers()
-        internal
-        view
-        virtual
-        override
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory
-        )
-    {
-        return
-            AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
     }
 
     function debug(
@@ -77,26 +48,32 @@ contract LibInterpreterStateTest is RainInterpreter {
         uint256[][] memory context_,
         uint[] memory minStackOutputs_
     ) public view returns (InterpreterState memory state_) {
-        bytes memory serialized_ = serialize(config_, minStackOutputs_);
-        state_ = serialized_.deserialize();
+        // TODO FIXME
+        // bytes memory serialized_ = serialize(config_, minStackOutputs_);
+        // state_ = serialized_.deserialize();
         state_.context = context_;
     }
 
     function serialize(
+        IInterpreterV1 interpreter_,
         StateConfig memory config_,
         uint[] memory minStackOutputs_
     ) public view returns (bytes memory serialized_) {
-        (, uint256 stackLength_) = IRainInterpreterIntegrity(
-            interpreterIntegrity
-        ).ensureIntegrity(
-                config_.sources,
-                config_.constants.length,
-                minStackOutputs_
-            );
+        // (, uint256 stackLength_) = IRainInterpreterIntegrity(
+        //     interpreterIntegrity
+        // ).ensureIntegrity(
+        //         config_.sources,
+        //         config_.constants.length,
+        //         minStackOutputs_
+        //     );
+
+        // @TODO FIXME
+        uint256 stackLength_ = 0;
 
         serialized_ = config_.serialize(
             stackLength_,
-            opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes()
+            interpreter_
+                .functionPointers()
         );
     }
 

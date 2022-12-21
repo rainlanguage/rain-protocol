@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
 import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
+import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-contract Rainterpreter is IInterpreterV1, RainInterpreter {
+contract Rainterpreter is IInterpreterV1 {
     using LibStackTop for StackTop;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
@@ -175,12 +175,10 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         return localPtrs_;
     }
 
-    /// @inheritdoc RainInterpreter
     function opcodeFunctionPointers()
         internal
         view
         virtual
-        override
         returns (
             function(InterpreterState memory, Operand, StackTop)
                 view

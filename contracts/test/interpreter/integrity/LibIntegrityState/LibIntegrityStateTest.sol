@@ -13,7 +13,6 @@ contract LibIntegrityStateTest is StandardIntegrity {
     using LibIntegrityState for IntegrityState;
     using LibCast for uint256[];
 
-    /// @inheritdoc RainInterpreterIntegrity
     function integrityFunctionPointers()
         internal
         view

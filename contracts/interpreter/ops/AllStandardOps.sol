@@ -4,7 +4,6 @@ pragma solidity =0.8.17;
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
-import "../run/RainInterpreter.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
 import "./core/OpSet.sol";

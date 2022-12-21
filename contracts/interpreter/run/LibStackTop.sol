@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "./RainInterpreter.sol";
+import "./IInterpreterV1.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibBytes.sol";
 

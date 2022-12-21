@@ -4,7 +4,6 @@ pragma solidity ^0.8.15;
 import "../interpreter/run/LibStackTop.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/deploy/LibIntegrityState.sol";
-import "../interpreter/run/RainInterpreter.sol";
 
 /// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
