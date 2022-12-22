@@ -23,6 +23,7 @@ import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/f
 import { getEvents } from "../../../utils/events";
 import { fillEmptyAddressERC721 } from "../../../utils/flow";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -35,14 +36,14 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC721 previewFlow tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
-  const ME = () => op(Opcode.CALLER);
+  const ME = () => op(Opcode.CONTEXT, 0x0000);
   const YOU = () => op(Opcode.CONTEXT, 0x0000);
 
   before(async () => {
     flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
-  it("should preview defined flow IO for native Ether", async () => {
+  it.only("should preview defined flow IO for native Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
@@ -91,6 +92,10 @@ describe("FlowERC721 previewFlow tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
 
     const sourceFlowIO = concat([
+      YOU(),
+      ME(),
+      op(Opcode.DEBUG, Debug.StatePacked),
+
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
@@ -132,7 +137,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
     compareStructs(
       flowTransferPreview,
       fillEmptyAddressERC721(flowERC721IO, flow.address),
@@ -305,7 +310,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -459,7 +464,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -630,7 +635,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -757,7 +762,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -872,7 +877,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -1009,7 +1014,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -1070,7 +1075,8 @@ describe("FlowERC721 previewFlow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     await assertError(
-      async () => await flow.previewFlow(flowInitialized[0].dispatch, 1234, []),
+      async () =>
+        await flow.previewFlow(flowInitialized[0].dispatch, [1234], []),
       "",
       "flowed when it should not"
     );
@@ -1139,7 +1145,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,

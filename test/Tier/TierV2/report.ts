@@ -17,7 +17,7 @@ import { compareTierReports } from "../../../utils/tier";
 import { Tier } from "../../../utils/types/tier";
 
 describe("TierV2 report op", async function () {
-  it.only("should return ITierV2 report when using opcode", async () => {
+  it("should return ITierV2 report when using opcode", async () => {
     const signers = await ethers.getSigners();
 
     const signer1 = signers[1];
@@ -37,7 +37,7 @@ describe("TierV2 report op", async function () {
     // prettier-ignore
     const source = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CONTEXT, 0x0001), // this address
+      op(Opcode.CONTEXT, 0x0000), // signer1 address
       op(Opcode.ITIERV2_REPORT)
     ]);
 

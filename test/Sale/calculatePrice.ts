@@ -745,7 +745,7 @@ describe("Sale calculate price", async function () {
         op(Opcode.CONTEXT, 0x0001),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
-        op(Opcode.CALLER),
+        op(Opcode.CALLER), // sale address
         op(Opcode.ISALEV2_REMAINING_TOKEN_INVENTORY),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
