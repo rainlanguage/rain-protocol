@@ -6,6 +6,8 @@ import "../../array/LibUint256Array.sol";
 import {SignatureCheckerUpgradeable as SignatureChecker} from "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import {ECDSAUpgradeable as ECDSA} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
+import "hardhat/console.sol";
+
 struct SignedContext {
     address signer;
     bytes signature;
@@ -58,6 +60,8 @@ library LibContext {
                 context_[i_ + offset_] = baseContext_[i_];
             }
             offset_ = baseContext_.length;
+            console.log(offset_, baseContext_.length);
+
             context_[offset_] = callingContext_;
             context_[offset_ + 1] = signers_;
             offset_ = offset_ + 2;

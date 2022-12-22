@@ -36,8 +36,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC721 previewFlow tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
-  const ME = () => op(Opcode.CONTEXT, 0x0000);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0101); // calling context you.address
 
   before(async () => {
     flowERC721Factory = await flowERC721FactoryDeploy();
@@ -137,7 +137,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].dispatch, [1234, you.address], []);
     compareStructs(
       flowTransferPreview,
       fillEmptyAddressERC721(flowERC721IO, flow.address),
