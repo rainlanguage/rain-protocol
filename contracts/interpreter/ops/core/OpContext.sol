@@ -45,13 +45,10 @@ library OpContext {
         InterpreterState memory state_,
         Operand operand_,
         StackTop stackTop_
-    ) internal pure returns (StackTop) {
+    ) internal view returns (StackTop) {
         // The indexing syntax here enforces OOB checks at runtime.
-        return
-            stackTop_.push(
-                state_.context[Operand.unwrap(operand_) >> 8][
-                    Operand.unwrap(operand_) & MASK_8BIT
-                ]
-            );
+        return stackTop_.push(state_.context[Operand.unwrap(operand_) >> 8][
+            Operand.unwrap(operand_) & MASK_8BIT
+        ]);
     }
 }
