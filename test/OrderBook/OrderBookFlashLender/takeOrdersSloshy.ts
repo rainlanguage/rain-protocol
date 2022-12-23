@@ -210,8 +210,8 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                       },
                       {
                         name: "data",
-                        type: "bytes"
-                      }
+                        type: "bytes",
+                      },
                     ],
                   },
                   { name: "inputIOIndex", type: "uint256" },
@@ -295,7 +295,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
         sources: [source, []],
         constants: constants,
       },
-      data: []
+      data: [],
     };
 
     const txAddOrderAlice = await orderBook

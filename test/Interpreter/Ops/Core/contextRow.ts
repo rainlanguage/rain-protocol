@@ -63,7 +63,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     const sources = [
       concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.CONTEXT_ROW, 0), // context[0][10]
+        op(Opcode.CONTEXT_ROW, 0), // context[0][0]
       ]),
     ];
 

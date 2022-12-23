@@ -29,8 +29,8 @@ const Opcode = AllStandardOps;
 
 describe("Flow previewFlow tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();
@@ -104,7 +104,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -255,7 +255,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -385,7 +385,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -533,7 +533,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -635,7 +635,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -727,7 +727,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -841,7 +841,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -924,7 +924,7 @@ describe("Flow previewFlow tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .previewFlow(flowInitialized[0].dispatch, 1234, []),
+          .previewFlow(flowInitialized[0].dispatch, [1234], []),
       "",
       "flowed when it should not"
     );
@@ -971,7 +971,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow.previewFlow(
       flowInitialized[0].dispatch,
-      1234,
+      [1234],
       []
     );
 

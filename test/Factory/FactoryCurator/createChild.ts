@@ -450,39 +450,39 @@ describe("FactoryCurator createChild", async function () {
     // CombineTier
     // prettier-ignore
     const sourceReportStake0 = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
-      op(Opcode.CONTEXT, 0x0000), // address
-      op(Opcode.CONTEXT, 0x0001), // TIER
-      op(Opcode.CONTEXT, 0x0100), // THRESHOLD
-      op(Opcode.CONTEXT, 0x0101),
-      op(Opcode.CONTEXT, 0x0102),
-      op(Opcode.CONTEXT, 0x0103),
-      op(Opcode.CONTEXT, 0x0104),
-      op(Opcode.CONTEXT, 0x0105),
-      op(Opcode.CONTEXT, 0x0106),
-      op(Opcode.CONTEXT, 0x0107),
-    op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
-  ]);
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract stake0
+        op(Opcode.CONTEXT, 0x0100), // address
+        op(Opcode.CONTEXT, 0x0101), // TIER
+        op(Opcode.CONTEXT, 0x0200), // THRESHOLD
+        op(Opcode.CONTEXT, 0x0201),
+        op(Opcode.CONTEXT, 0x0202),
+        op(Opcode.CONTEXT, 0x0203),
+        op(Opcode.CONTEXT, 0x0204),
+        op(Opcode.CONTEXT, 0x0205),
+        op(Opcode.CONTEXT, 0x0206),
+        op(Opcode.CONTEXT, 0x0207),
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+    ]);
 
     // prettier-ignore
     const sourceReportStake1 = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
-      op(Opcode.CONTEXT, 0x0000), // address
-      op(Opcode.CONTEXT, 0x0001), // TIER
-      op(Opcode.CONTEXT, 0x0100), // THRESHOLD
-      op(Opcode.CONTEXT, 0x0101),
-      op(Opcode.CONTEXT, 0x0102),
-      op(Opcode.CONTEXT, 0x0103),
-      op(Opcode.CONTEXT, 0x0104),
-      op(Opcode.CONTEXT, 0x0105),
-      op(Opcode.CONTEXT, 0x0106),
-      op(Opcode.CONTEXT, 0x0107),
-    op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
-  ]);
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ITierV2 contract stake1
+        op(Opcode.CONTEXT, 0x0100), // address
+        op(Opcode.CONTEXT, 0x0101), // TIER
+        op(Opcode.CONTEXT, 0x0200), // THRESHOLD
+        op(Opcode.CONTEXT, 0x0201),
+        op(Opcode.CONTEXT, 0x0202),
+        op(Opcode.CONTEXT, 0x0203),
+        op(Opcode.CONTEXT, 0x0204),
+        op(Opcode.CONTEXT, 0x0205),
+        op(Opcode.CONTEXT, 0x0206),
+        op(Opcode.CONTEXT, 0x0207),
+      op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER, THRESHOLDS.length)
+    ]);
 
     const sourceReportDefault = concat([
-      op(Opcode.THIS_ADDRESS),
-      op(Opcode.CONTEXT, 0x0000),
+      op(Opcode.CONTEXT, 0x0201),
+      op(Opcode.CONTEXT, 0x0200),
       op(Opcode.ITIERV2_REPORT),
     ]);
 
@@ -490,17 +490,17 @@ describe("FactoryCurator createChild", async function () {
     // The source will check Alice's report of a TIER for stake0 and stake1 contract. If valid, return stake0 report else max_uint32
     // prettier-ignore
     const sourceMain = concat([
-          sourceReportStake0, // stake0 report
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-        op(Opcode.LESS_THAN),
-          sourceReportStake1, // stake1 report
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
-        op(Opcode.LESS_THAN),
-      op(Opcode.EVERY, 2), // Condition
-      sourceReportStake0, // TRUE
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
-    op(Opcode.EAGER_IF)
-  ]);
+            sourceReportStake0, // stake0 report
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.LESS_THAN),
+            sourceReportStake1, // stake1 report
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // max_uint32
+          op(Opcode.LESS_THAN),
+        op(Opcode.EVERY, 2), // Condition
+        sourceReportStake0, // TRUE
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // FALSE
+      op(Opcode.EAGER_IF)
+    ]);
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,

@@ -64,7 +64,7 @@ contract IInterpreterV1Consumer {
     function stack() external view returns (uint[] memory) {
         return _stack;
     }
-    
+
     function stackTop() external view returns (uint256) {
         return _stack[_stack.length - 1];
     }

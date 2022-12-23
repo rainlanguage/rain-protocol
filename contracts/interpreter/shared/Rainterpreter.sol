@@ -21,18 +21,37 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
     using LibMemoryKV for MemoryKVPtr;
 
     // state is several tiers of sandbox
+    //
     // 0. address is msg.sender so that callers cannot attack each other
     // 1. StateNamespace is caller-provided namespace so that expressions cannot attack each other
     // 2. uint is expression-provided key
     // 3. uint is expression-provided value
-    mapping(address => mapping(StateNamespace => mapping(uint => uint)))
-        internal state;
+    //
+    // tiers 0 and 1 are both embodied in the FullyQualifiedNamespace.
+    mapping(FullyQualifiedNamespace => mapping(uint => uint)) internal state;
 
-    function evalWithNamespace(
-        StateNamespace namespace_,
+    function _qualifyNamespace(
+        StateNamespace stateNamespace_
+    ) internal view returns (FullyQualifiedNamespace) {
+        return
+            FullyQualifiedNamespace.wrap(
+                uint256(
+                    keccak256(
+                        abi.encodePacked(
+                            msg.sender,
+                            StateNamespace.unwrap(stateNamespace_)
+                        )
+                    )
+                )
+            );
+    }
+
+    function staticEval(
+        FullyQualifiedNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    ) public view returns (uint256[] memory, uint[] memory) {
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        require(msg.sender == address(this), "NOT_THIS");
         (
             address expression_,
             SourceIndex sourceIndex_,
@@ -41,7 +60,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         InterpreterState memory state_ = SSTORE2
             .read(expression_)
             .deserialize();
-        state_.stateNamespace = namespace_;
+        state_.namespace = namespace_;
         state_.context = context_;
         StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
@@ -51,27 +70,39 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         return (tail_, state_.stateKV.toUint256Array());
     }
 
+    function evalWithNamespace(
+        StateNamespace namespace_,
+        EncodedDispatch dispatch_,
+        uint256[][] calldata context_
+    ) public view returns (uint256[] memory, uint256[] memory) {
+        return
+            this.staticEval(_qualifyNamespace(namespace_), dispatch_, context_);
+    }
+
     function eval(
         EncodedDispatch dispatch_,
-        uint[][] memory context_
-    ) external view returns (uint[] memory, uint[] memory) {
+        uint256[][] calldata context_
+    ) external view returns (uint256[] memory, uint256[] memory) {
         return evalWithNamespace(StateNamespace.wrap(0), dispatch_, context_);
     }
 
     function stateChangesWithNamespace(
         StateNamespace stateNamespace_,
-        uint[] memory stateChanges_
+        uint256[] calldata stateChanges_
     ) public {
+        FullyQualifiedNamespace fullyQualifiedNamespace_ = _qualifyNamespace(
+            stateNamespace_
+        );
         unchecked {
-            for (uint i_ = 0; i_ < stateChanges_.length; i_ += 2) {
-                state[msg.sender][stateNamespace_][
+            for (uint256 i_ = 0; i_ < stateChanges_.length; i_ += 2) {
+                state[fullyQualifiedNamespace_][
                     stateChanges_[i_]
                 ] = stateChanges_[i_ + 1];
             }
         }
     }
 
-    function stateChanges(uint[] memory stateChanges_) external {
+    function stateChanges(uint[] calldata stateChanges_) external {
         stateChangesWithNamespace(StateNamespace.wrap(0), stateChanges_);
     }
 
@@ -93,7 +124,7 @@ contract Rainterpreter is IInterpreterV1, RainInterpreter {
         if (MemoryKVPtr.unwrap(kvPtr_) > 0) {
             v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
         } else {
-            v_ = state[msg.sender][interpreterState_.stateNamespace][k_];
+            v_ = state[interpreterState_.namespace][k_];
         }
         return stackTop_.push(v_);
     }

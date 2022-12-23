@@ -6,13 +6,17 @@ import "../../../../interpreter/run/LibEncodedDispatch.sol";
 /// @title LibEncodedDispatchTest
 /// Thin wrapper around `LibEncodedDispatchTest` library exposing methods for testing
 contract LibEncodedDispatchTest {
-
-     function encode(
+    function encode(
         address expressionPointer_,
         uint sourceIndex_,
         uint maxOutputs_
     ) external pure returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(expressionPointer_, SourceIndex.wrap(sourceIndex_), maxOutputs_);
+        return
+            LibEncodedDispatch.encode(
+                expressionPointer_,
+                SourceIndex.wrap(sourceIndex_),
+                maxOutputs_
+            );
     }
 
     function decode(
