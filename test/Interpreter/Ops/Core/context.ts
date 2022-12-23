@@ -43,36 +43,6 @@ describe("RainInterpreter context", async function () {
     assert(resultRow_, "should read context value at 0x00ff");
   });
 
-  it("should error if accessing OOB COLUMN", async () => {
-    const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x1000)])];
-
-    await assertError(
-      async () =>
-        await await iinterpreterV1ConsumerDeploy({
-          sources,
-          constants,
-        }),
-      "OOB_COLUMN",
-      "did not error when accessing OOB COLUMN"
-    );
-  });
-
-  it("should error if accessing OOB ROW", async () => {
-    const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x0010)])];
-
-    await assertError(
-      async () =>
-        await iinterpreterV1ConsumerDeploy({
-          sources,
-          constants,
-        }),
-      "OOB_ROW",
-      "did not error when accessing OOB ROW"
-    );
-  });
-
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0003)])];

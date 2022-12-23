@@ -21,10 +21,9 @@ contract LibInterpreterStateTest {
         returns (StackTop)[];
     using LibConvert for uint256[];
 
-    address internal immutable interpreterIntegrity;
+    // address internal immutable interpreterIntegrity;
 
-    constructor(address interpreterIntegrity_) {
-        interpreterIntegrity = interpreterIntegrity_;
+    constructor() {
     }
 
     function debug(
@@ -56,8 +55,8 @@ contract LibInterpreterStateTest {
 
     function serialize(
         IInterpreterV1 interpreter_,
-        StateConfig memory config_,
-        uint[] memory minStackOutputs_
+        StateConfig memory config_
+        // uint[] memory minStackOutputs_
     ) public view returns (bytes memory serialized_) {
         // (, uint256 stackLength_) = IRainInterpreterIntegrity(
         //     interpreterIntegrity
