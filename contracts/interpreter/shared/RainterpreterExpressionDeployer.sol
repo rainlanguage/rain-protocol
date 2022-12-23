@@ -5,12 +5,12 @@ import "../deploy/IExpressionDeployerV1.sol";
 import "../deploy/StandardIntegrity.sol";
 import "../ops/core/OpGet.sol";
 
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0b130b210b770bc90c470c730d0c0dd60e0b0e290eb10ec00ece0edc0eea0ec00ef80f060f140f230f320f400f4e0f5c0f6a0fe20ff11000100f101e102d10761088109610c810d610e410f211011110111f112e113d114c115b116a11791188119711a511b311c111cf11dd11eb11f9120812171225129c0a79";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0c6d0c7b0cd10d230da10dcd0e660f300f650f83100b101a102810361044101a10521060106e107d108c109a10a81120112f113e114d115c116b11b411c611d41206121412221230123f124e125d126c127b128a129912a812b712c612d512e312f112ff130d131b1329133713461355136313da0bdb";
 bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x669743e8176e49002f0405f5bb5d93c0b1fc34a30ca6448145de2891cd3bd0ca
+    0x10560bfccaa08318a6530f8d22d00b0c3c4fb62583379317438ee5f741a842e1
 );
 
 contract RainterpreterExpressionDeployer is
@@ -20,11 +20,14 @@ contract RainterpreterExpressionDeployer is
     using LibInterpreterState for StateConfig;
 
     event ValidInterpreter(address sender, address interpreter);
-    event DeployExpression(
+    event ExpressionConfig(
         address sender,
         StateConfig config,
-        address expressionAddress,
-        uint256 contextReads
+        uint contextReads
+    );
+    event ExpressionDeployed(
+        address sender,
+        address expression
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -89,19 +92,20 @@ contract RainterpreterExpressionDeployer is
             minStackOutputs_
         );
 
+        emit ExpressionConfig(
+            msg.sender,
+            config_,
+            contextReads_
+        );
+
         bytes memory stateBytes_ = config_.serialize(
             stackLength_,
             OPCODE_FUNCTION_POINTERS
         );
 
-        address expressionAddress_ = SSTORE2.write(stateBytes_);
+        address expression_ = SSTORE2.write(stateBytes_);
 
-        emit DeployExpression(
-            msg.sender,
-            config_,
-            expressionAddress_,
-            contextReads_
-        );
-        return (expressionAddress_, contextReads_);
+        emit ExpressionDeployed(msg.sender, expression_);
+        return (expression_, contextReads_);
     }
 }

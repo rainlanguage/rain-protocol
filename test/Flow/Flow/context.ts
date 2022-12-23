@@ -27,8 +27,8 @@ const Opcode = RainterpreterOps;
 
 describe("Flow context tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();
@@ -114,7 +114,7 @@ describe("Flow context tests", async function () {
     const ONE_DAY = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
 
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_
@@ -189,17 +189,17 @@ describe("Flow context tests", async function () {
     console.log("FLOW 0");
     const flowStruct0 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
 
     const _txFlow0 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -255,10 +255,10 @@ describe("Flow context tests", async function () {
 
     const flowStruct1 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct1,
@@ -267,7 +267,7 @@ describe("Flow context tests", async function () {
 
     const _txFlow1 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn1 = await erc20In.balanceOf(me.address);
     const meBalanceOut1 = await erc20Out.balanceOf(me.address);
@@ -323,17 +323,17 @@ describe("Flow context tests", async function () {
 
     const flowStruct2 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
 
     const _txFlow2 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn2 = await erc20In.balanceOf(me.address);
     const meBalanceOut2 = await erc20Out.balanceOf(me.address);
@@ -427,7 +427,7 @@ describe("Flow context tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
 
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_
@@ -488,17 +488,17 @@ describe("Flow context tests", async function () {
 
     const flowStruct0 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow0 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -539,7 +539,7 @@ describe("Flow context tests", async function () {
 
     await assertError(
       async () =>
-        await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
+        await flow.connect(you).flow(flowInitialized[0].dispatch, [1234], []),
       "Transaction reverted without a reason string",
       "did not prevent flow when a flow time already registered"
     );

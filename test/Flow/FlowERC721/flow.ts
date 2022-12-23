@@ -38,8 +38,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC721 flow tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
 
   before(async () => {
     flowERC721Factory = await flowERC721FactoryDeploy();
@@ -165,11 +165,11 @@ describe("FlowERC721 flow tests", async function () {
 
     const _txFlowCanTransfer = await flowCanTransfer
       .connect(you)
-      .flow(flowExpressionsCanTransfer[0].dispatch, 1234, []);
+      .flow(flowExpressionsCanTransfer[0].dispatch, [1234], []);
 
     const _txFlowCannotTransfer = await flowCannotTransfer
       .connect(you)
-      .flow(flowExpressionsCannotTransfer[0].dispatch, 1234, []);
+      .flow(flowExpressionsCannotTransfer[0].dispatch, [1234], []);
 
     await flowCanTransfer
       .connect(you)
@@ -361,7 +361,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStructMint = await flow
       .connect(you)
-      .callStatic.flow(mintFlowId, 1234, [], {
+      .callStatic.flow(mintFlowId, [1234], [], {
         value: ethers.BigNumber.from(flowERC721IOMint.flow.native[0].amount),
       });
 
@@ -370,7 +370,7 @@ describe("FlowERC721 flow tests", async function () {
       fillEmptyAddressERC721(flowERC721IOMint, flow.address)
     );
 
-    const txFlowMint = await flow.connect(you).flow(mintFlowId, 1234, [], {
+    const txFlowMint = await flow.connect(you).flow(mintFlowId, [1234], [], {
       value: ethers.BigNumber.from(flowERC721IOMint.flow.native[0].amount),
     });
 
@@ -415,14 +415,14 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStructBurn = await flow
       .connect(you)
-      .callStatic.flow(burnFlowId, 1234, []);
+      .callStatic.flow(burnFlowId, [1234], []);
 
     compareStructs(
       flowStructBurn,
       fillEmptyAddressERC721(flowERC721IOBurn, flow.address)
     );
 
-    const txFlowBurn = await flow.connect(you).flow(burnFlowId, 1234, []);
+    const txFlowBurn = await flow.connect(you).flow(burnFlowId, [1234], []);
 
     const { gasUsed: gasUsedBurn } = await txFlowBurn.wait();
     const { gasPrice: gasPriceBurn } = txFlowBurn;
@@ -603,7 +603,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -612,7 +612,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     // check input ERC1155 affected balances correctly
 
@@ -796,7 +796,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -805,7 +805,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     // check input ERC721 affected balances correctly
 
@@ -963,7 +963,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -972,7 +972,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     // check input ERC721 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -1103,7 +1103,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, [], {
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1114,7 +1114,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, [], {
+      .flow(flowInitialized[0].dispatch, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1301,7 +1301,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -1310,7 +1310,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -1479,7 +1479,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -1488,7 +1488,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1644,7 +1644,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -1653,7 +1653,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, []);
+      .flow(flowInitialized[0].dispatch, [1234], []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1792,7 +1792,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, [], {
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], [], {
         value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
       });
 
@@ -1803,7 +1803,7 @@ describe("FlowERC721 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, 1234, [], {
+      .flow(flowInitialized[0].dispatch, [1234], [], {
         value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
       });
 

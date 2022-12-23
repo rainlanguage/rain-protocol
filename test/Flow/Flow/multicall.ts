@@ -32,8 +32,8 @@ const Opcode = AllStandardOps;
 
 describe("Flow multiCall tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
   const flowABI = JSON.parse(
     fs.readFileSync(
       "artifacts/contracts/flow/basic/Flow.sol/Flow.json",
@@ -233,11 +233,11 @@ describe("Flow multiCall tests", async function () {
 
     const flowStruct = await flow_A
       .connect(you)
-      .previewFlow(flowInitialized_A[0].dispatch, 1234, []);
+      .previewFlow(flowInitialized_A[0].dispatch, [1234], []);
 
     await flow_A
       .connect(you)
-      .callStatic.flow(flowInitialized_A[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized_A[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -274,11 +274,11 @@ describe("Flow multiCall tests", async function () {
 
     const flowStruct_B = await flow_A
       .connect(you)
-      .previewFlow(flowInitialized_A[1].dispatch, 1234, []);
+      .previewFlow(flowInitialized_A[1].dispatch, [1234], []);
 
     await flow_A
       .connect(you)
-      .callStatic.flow(flowInitialized_A[1].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized_A[1].dispatch, [1234], []);
 
     compareStructs(
       flowStruct_B,
@@ -288,12 +288,12 @@ describe("Flow multiCall tests", async function () {
     const iFlow = new ethers.utils.Interface(flowABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
       flowInitialized_A[0].dispatch,
-      1234,
+      [1234],
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
       flowInitialized_A[1].dispatch,
-      1234,
+      [1234],
       [],
     ]);
 

@@ -19,6 +19,7 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackTop.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/run/LibContext.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -143,8 +144,7 @@ uint constant CALCULATE_BUY_MAX_OUTPUTS = 2;
 uint constant HANDLE_BUY_MIN_OUTPUTS = 0;
 uint constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint constant CONTEXT_COLUMNS = 3;
-uint constant CONTEXT_BASE_COLUMN = 0;
+uint constant CONTEXT_COLUMNS = 2;
 uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
 uint constant CONTEXT_BUY_COLUMN = 2;
 
@@ -370,7 +370,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                 uint[] memory interpreterStateChanges_
             ) = interpreter.eval(
                     dispatchCanLive,
-                    uint(uint160(msg.sender)).arrayFrom().matrixFrom()
+                    LibContext.base().matrixFrom()
                 );
             return (
                 stack_.asStackTopAfter().peek() > 0,
@@ -412,16 +412,14 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     function _previewCalculateBuy(
         uint256 targetUnits_
     ) internal view returns (uint256, uint256, uint[][] memory, uint[] memory) {
-        uint[][] memory context_ = new uint[][](CONTEXT_COLUMNS);
-        context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(
-            uint(uint160(msg.sender)),
-            targetUnits_
+        uint[][] memory context_ = LibContext.build(
+            new uint256[][](CONTEXT_COLUMNS),
+            targetUnits_.arrayFrom(),
+            new SignedContext[](0)
         );
         (uint[] memory stack_, uint[] memory stateChanges_) = interpreter.eval(
             dispatchCalculateBuy,
-            LibUint256Array
-                .arrayFrom(uint(uint160(msg.sender)), targetUnits_)
-                .matrixFrom()
+            context_
         );
         (uint amount_, uint ratio_) = stack_.asStackTopAfter().peek2();
         uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(

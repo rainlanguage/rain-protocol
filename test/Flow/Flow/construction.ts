@@ -40,12 +40,12 @@ describe("Flow construction tests", async function () {
 
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
 
-      op(Opcode.THIS_ADDRESS), // from
-      op(Opcode.CALLER), // to
+      op(Opcode.CONTEXT, 0x0001), // from
+      op(Opcode.CONTEXT, 0x0000), // to
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
-      op(Opcode.CALLER), // from
-      op(Opcode.THIS_ADDRESS), // to
+      op(Opcode.CONTEXT, 0x0000), // from
+      op(Opcode.CONTEXT, 0x0001), // to
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
     ]);
 

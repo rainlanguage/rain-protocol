@@ -103,18 +103,22 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            uint256[][] memory context_ = LibUint256Array
-                .arrayFrom(
-                    uint(uint160(msg.sender)),
-                    uint256(uint160(from_)),
-                    uint256(uint160(to_)),
-                    tokenId_,
-                    batchSize_
-                )
-                .matrixFrom();
+            uint256[] memory callerContext_ = LibUint256Array.arrayFrom(
+                uint256(uint160(from_)),
+                uint256(uint160(to_)),
+                tokenId_,
+                batchSize_
+            );
             EncodedDispatch dispatch_ = _dispatch;
             (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
-                .eval(dispatch_, context_);
+                .eval(
+                    dispatch_,
+                    LibContext.build(
+                        new uint[][](0),
+                        callerContext_,
+                        new SignedContext[](0)
+                    )
+                );
             require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
             if (stateChanges_.length > 0) {
                 _interpreter.stateChanges(stateChanges_);
@@ -124,7 +128,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function _previewFlow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowERC721IO memory, uint[] memory) {
         uint256[] memory refs_;
@@ -133,7 +137,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             StackTop stackBottom_,
             StackTop stackTop_,
             uint[] memory stateChanges_
-        ) = flowStack(dispatch_, id_, signedContexts_);
+        ) = flowStack(dispatch_, callerContext_, signedContexts_);
         // mints
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
@@ -158,14 +162,14 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function _flow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
             (
                 FlowERC721IO memory flowIO_,
                 uint[] memory stateChanges_
-            ) = _previewFlow(dispatch_, id_, signedContexts_);
+            ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }
@@ -184,12 +188,12 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function previewFlow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
         (FlowERC721IO memory flowERC721IO_, ) = _previewFlow(
             dispatch_,
-            id_,
+            callerContext_,
             signedContexts_
         );
         return flowERC721IO_;
@@ -197,9 +201,9 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function flow(
         EncodedDispatch dispatch_,
-        uint256 id_,
+        uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC721IO memory) {
-        return _flow(dispatch_, id_, signedContexts_);
+        return _flow(dispatch_, callerContext_, signedContexts_);
     }
 }
