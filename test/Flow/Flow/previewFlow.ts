@@ -29,8 +29,8 @@ const Opcode = AllStandardOps;
 
 describe("Flow previewFlow tests", async function () {
   let flowFactory: FlowFactory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
 
   before(async () => {
     flowFactory = await flowFactoryDeploy();

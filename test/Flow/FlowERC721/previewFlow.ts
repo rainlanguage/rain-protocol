@@ -37,13 +37,13 @@ const Opcode = AllStandardOps;
 describe("FlowERC721 previewFlow tests", async function () {
   let flowERC721Factory: FlowERC721Factory;
   const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
-  const YOU = () => op(Opcode.CONTEXT, 0x0000); // calling context you.address
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
 
   before(async () => {
     flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
-  it.only("should preview defined flow IO for native Ether", async () => {
+  it("should preview defined flow IO for native Ether", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
@@ -137,7 +137,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234, you.address], []);
+      .previewFlow(flowInitialized[0].dispatch, [1234], []);
     compareStructs(
       flowTransferPreview,
       fillEmptyAddressERC721(flowERC721IO, flow.address),

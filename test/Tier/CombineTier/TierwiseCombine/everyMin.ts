@@ -28,7 +28,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.THIS_ADDRESS),
+      op(Opcode.CONTEXT, 0x0001),
       ctxAccount,
     op(Opcode.ITIERV2_REPORT),
   ]);

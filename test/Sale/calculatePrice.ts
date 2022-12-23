@@ -98,12 +98,12 @@ describe("Sale calculate price", async function () {
         // price
           vBasePrice,
               vFractionMultiplier,
-                  op(Opcode.CALLER),
+                  op(Opcode.CONTEXT, 0x0000),
                 op(Opcode.ISALEV2_TOKEN),
                 op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-                  op(Opcode.CALLER),
+                  op(Opcode.CONTEXT, 0x0000),
               op(Opcode.ISALEV2_TOKEN),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
@@ -251,12 +251,12 @@ describe("Sale calculate price", async function () {
         // price
           vBasePrice,
               vFractionMultiplier,
-                  op(Opcode.CALLER),
+                  op(Opcode.CONTEXT, 0x0000),
                 op(Opcode.ISALEV2_RESERVE),
                 op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-                  op(Opcode.CALLER),
+                  op(Opcode.CONTEXT, 0x0000),
               op(Opcode.ISALEV2_RESERVE),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
@@ -745,7 +745,7 @@ describe("Sale calculate price", async function () {
         op(Opcode.CONTEXT, 0x0001),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
-        op(Opcode.CALLER), // sale address
+        op(Opcode.CONTEXT, 0x0000), // sale address
         op(Opcode.ISALEV2_REMAINING_TOKEN_INVENTORY),
         vSupplyDivisor,
         op(Opcode.DIV, 2),

@@ -481,7 +481,7 @@ describe("FactoryCurator createChild", async function () {
   ]);
 
     const sourceReportDefault = concat([
-      op(Opcode.THIS_ADDRESS),
+      op(Opcode.CONTEXT, 0x0001),
       op(Opcode.CONTEXT, 0x0000),
       op(Opcode.ITIERV2_REPORT),
     ]);

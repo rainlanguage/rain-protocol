@@ -25,8 +25,8 @@ const Opcode = RainterpreterOps;
 
 describe("FlowERC1155 flowTime tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
 
   before(async () => {
     flowERC1155Factory = await flowERC1155FactoryDeploy();
@@ -158,7 +158,7 @@ describe("FlowERC1155 flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, [1234], []);
 
     // id 5678 - 1st flow
 
@@ -170,7 +170,7 @@ describe("FlowERC1155 flowTime tests", async function () {
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow.connect(you).flow(flowInitialized[0].dispatch, 5678, []);
+    await flow.connect(you).flow(flowInitialized[0].dispatch, [5678], []);
 
     // id 1234 - 2nd flow
 
@@ -184,7 +184,7 @@ describe("FlowERC1155 flowTime tests", async function () {
 
     await assertError(
       async () =>
-        await flow.connect(you).flow(flowInitialized[0].dispatch, 1234, []),
+        await flow.connect(you).flow(flowInitialized[0].dispatch, [1234], []),
       "Transaction reverted without a reason string",
       "did not gate flow where flow time already registered for the given flow & id"
     );
