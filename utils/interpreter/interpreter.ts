@@ -1,5 +1,6 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { AllStandardOps } from "./ops/allStandardOps";
 
 export enum MemoryType {
   Stack,
@@ -20,6 +21,14 @@ export enum selectLteMode {
   min,
   max,
   first,
+}
+
+export function DEBUG_0(): BytesLike {
+  return op(AllStandardOps.DEBUG, Debug.StatePacked);
+}
+
+export function DEBUG_1(): BytesLike {
+  return op(AllStandardOps.DEBUG, Debug.Stack);
 }
 
 /**
