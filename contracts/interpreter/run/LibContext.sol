@@ -23,23 +23,8 @@ library LibContext {
             );
     }
 
-    function hash(uint256[] memory context_) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(context_));
-    }
-
-    function ensureSignedContextSignatureIsValid(
-        SignedContext memory signedContext_
-    ) internal view {
-        require(
-            SignatureChecker.isValidSignatureNow(
-                signedContext_.signer,
-                ECDSA.toEthSignedMessageHash(
-                    keccak256(abi.encodePacked(signedContext_.context))
-                ),
-                signedContext_.signature
-            ),
-            "INVALID_SIGNATURE"
-        );
+    function hash(SignedContext[] memory signedContexts_) internal pure returns (bytes32) {
+        return keccak256(abi.encode(signedContexts_));
     }
 
     function build(
@@ -51,11 +36,11 @@ library LibContext {
             uint256[] memory signers_ = new uint256[](signedContexts_.length);
 
             // - LibContext.base() + whatever we are provided.
-            // - calling context if it exists else nothing.
+            // - calling context always even if empty
             // - signed contexts + signers if they exist else nothing.
             uint256 contextLength_ = 1 +
                 baseContext_.length +
-                (callingContext_.length > 0 ? 1 : 0) +
+                1 +
                 (signedContexts_.length > 0 ? signedContexts_.length + 1 : 0);
 
             uint256[][] memory context_ = new uint256[][](contextLength_);
@@ -67,17 +52,28 @@ library LibContext {
                 context_[offset_] = baseContext_[i_];
             }
 
-            if (callingContext_.length > 0) {
-                offset_++;
-                context_[offset_] = callingContext_;
-            }
+            // Calling context is added unconditionally so that a 0 length array
+            // is simply an empty column. We don't want callers to be able to
+            // manipulate the overall structure of context columns that the
+            // expression indexes into.
+            offset_++;
+            context_[offset_] = callingContext_;
 
             if (signedContexts_.length > 0) {
                 offset_++;
                 context_[offset_] = signers_;
 
                 for (uint256 i_ = 0; i_ < signedContexts_.length; i_++) {
-                    ensureSignedContextSignatureIsValid(signedContexts_[i_]);
+                    require(
+                        SignatureChecker.isValidSignatureNow(
+                            signedContexts_[i_].signer,
+                            ECDSA.toEthSignedMessageHash(
+                                keccak256(abi.encodePacked(signedContexts_[i_].context))
+                            ),
+                            signedContexts_[i_].signature
+                        ),
+                        "INVALID_SIGNATURE"
+                    );
 
                     signers_[i_] = uint256(uint160(signedContexts_[i_].signer));
                     offset_++;

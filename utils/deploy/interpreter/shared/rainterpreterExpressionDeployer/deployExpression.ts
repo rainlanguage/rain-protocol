@@ -26,8 +26,7 @@ export const rainterpreterExpression = async (
     expressionTx,
     "ExpressionDeployed",
     expressionDeployer
-  ) ) as ExpressionDeployedEvent["args"][]
-  
-  return eventData[0].expression; 
-  
+  )) as ExpressionDeployedEvent["args"][];
+
+  return eventData[0].expression;
 };

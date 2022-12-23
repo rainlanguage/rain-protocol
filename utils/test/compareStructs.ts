@@ -3,7 +3,6 @@ import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
 import { StateConfig } from "../types";
 
-
 /**
  * Uses chai `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
  * Will safely recurse over nested structs and compare nested properties.
@@ -185,7 +184,7 @@ const testSolStructs = (
  * @param config2 - second StateConfig
  * @returns boolean
  */
- export const areEqualStateConfigs = (
+export const areEqualStateConfigs = (
   config1: StateConfig,
   config2: StateConfig
 ): boolean => {
@@ -193,21 +192,23 @@ const testSolStructs = (
   if (config1.sources.length !== config2.sources.length) return false;
 
   for (let i = 0; i < config1.constants.length; i++) {
-      if (
-        !BigNumber.from(config1.constants[i]).eq(
-          BigNumber.from(config2.constants[i])
-        )
-      ) return false;
+    if (
+      !BigNumber.from(config1.constants[i]).eq(
+        BigNumber.from(config2.constants[i])
+      )
+    )
+      return false;
   }
 
   for (let i = 0; i < config1.sources.length; i++) {
-      if (
-        hexlify(config1.sources[i], { allowMissingPrefix: true }) !== 
-        hexlify(config2.sources[i], { allowMissingPrefix: true })
-      ) return false;
+    if (
+      hexlify(config1.sources[i], { allowMissingPrefix: true }) !==
+      hexlify(config2.sources[i], { allowMissingPrefix: true })
+    )
+      return false;
   }
 
   return true;
-}
+};
 
 export const compareObjects = testStructs;

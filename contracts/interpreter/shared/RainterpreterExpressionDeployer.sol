@@ -19,14 +19,8 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibStackTop for StackTop;
 
     event ValidInterpreter(address sender, address interpreter);
-    event ExpressionConfig(
-        address sender,
-        StateConfig config
-    );
-    event ExpressionDeployed(
-        address sender,
-        address expression
-    );
+    event ExpressionConfig(address sender, StateConfig config);
+    event ExpressionDeployed(address sender, address expression);
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
     /// MISTAKES. IT CANNOT PREVENT EITHER A MALICIOUS INTERPRETER OR DEPLOYER
@@ -89,10 +83,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
             minStackOutputs_
         );
 
-        emit ExpressionConfig(
-            msg.sender,
-            config_
-        );
+        emit ExpressionConfig(msg.sender, config_);
 
         bytes memory stateBytes_ = config_.serialize(
             stackLength_,
