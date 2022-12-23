@@ -10,8 +10,6 @@ import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable
 import "../../sentinel/LibSentinel.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-import "hardhat/console.sol";
-
 // We want a sentinel with the following properties:
 // - Won't collide with token amounts (| with very large number)
 // - Won't collide with token addresses
