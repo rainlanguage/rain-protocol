@@ -26,7 +26,7 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 /// such as a winner list that can be produced upon demand from some API.
 /// @param ref The ref is some address that is expected to provide signatures of
 /// the results that allow the `Lobby` to complete or move to invalid.
-struct Config {
+struct LobbyConfig {
     bool refMustAgree;
     address ref;
     address expressionDeployer;
@@ -110,7 +110,7 @@ contract Lobby is Phased, ReentrancyGuard {
     using SaturatingMath for uint256;
     using FixedPointMath for uint256;
 
-    event Initialize(address sender, Config config);
+    event Initialize(address sender, LobbyConfig config);
 
     event Deposit(address sender, address token, uint256 amount);
 
@@ -164,7 +164,7 @@ contract Lobby is Phased, ReentrancyGuard {
         maxTimeoutDuration = maxTimeoutDuration_;
     }
 
-    function initialize(Config calldata config_) external initializer {
+    function initialize(LobbyConfig calldata config_) external initializer {
         // anon initializes with the passed config
         // we initialize rather than construct as there would be some factory
         // producing cheap clones of an implementation contract
