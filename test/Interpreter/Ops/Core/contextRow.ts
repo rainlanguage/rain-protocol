@@ -81,22 +81,6 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     );
   });
 
-  it("should error if accessing OOB COLUMN", async () => {
-    const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT_ROW, 0x0100)])];
-
-    await assertError(
-      async () =>
-        await iinterpreterV1ConsumerDeploy({
-          sources,
-          constants,
-        }),
-      "OOB_COLUMN",
-      "did not error when accessing OOB COLUMN"
-    );
-    // OOB ROW is checked at runtime
-  });
-
   it("should return correct context value when specifying CONTEXT_ROW operand for 2D context", async () => {
     const constants = [0, 1, 2, 3];
     const sources = [
