@@ -3872,7 +3872,7 @@ describe("OrderBook clear order", async function () {
   });   
 
 
-  it.only("should ensure that percision loss does not affect the non interactive participant", async function () {
+  it("should ensure that percision loss does not affect the non interactive participant", async function () {
     const signers = await ethers.getSigners(); 
 
     const tokenADecimals = 18;
@@ -3998,7 +3998,8 @@ describe("OrderBook clear order", async function () {
 
     // DEPOSITS
 
-    const amountB = ethers.BigNumber.from("1000000");
+     // amount deposited with precision 
+    const amountB = ethers.BigNumber.from("1000001");  
     const amountA = ethers.BigNumber.from("1000000000000000001");
 
     await tokenB06.transfer(alice.address, amountB);
@@ -4064,71 +4065,53 @@ describe("OrderBook clear order", async function () {
       .connect(bountyBot)
       .clear(askOrder, bidOrder, clearConfig); 
 
-
-      const bal1 = await orderBook.vaultBalance(alice.address,tokenA18.address,aliceInputVault) 
-      console.log("bal1 : " , bal1) 
-
-      const bal2 = await orderBook.vaultBalance(alice.address,tokenB06.address,aliceOutputVault) 
-      console.log("bal2 : " , bal2) 
-
-
-      const bal3 = await orderBook.vaultBalance(bob.address,tokenB06.address,bobInputVault) 
-      console.log("bal3 : " , bal3) 
- 
+      const {
+        sender: clearSender,
+        a: clearA_,
+        b: clearB_,
+        clearConfig: clearBountyConfig,
+      } = (await getEventArgs(
+        txClearOrder,
+        "Clear",
+        orderBook
+      )) as ClearEvent["args"];
+      const { stateChange: clearStateChange } = (await getEventArgs(
+        txClearOrder,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
   
-      const bal4 = await orderBook.vaultBalance(bob.address,tokenA18.address,bobOutputVault) 
-      console.log("bal4 : " , bal4)  
+      const aOutputMaxExpected = amountA;
+      const bOutputMaxExpected = amountB;
+  
+      const aOutputExpected = minBN(
+        aOutputMaxExpected,
+        fixedPointMul(bidRatio, amountA)
+      );
+      const bOutputExpected = minBN(
+        bOutputMaxExpected,
+        fixedPointMul(askRatio, amountB)
+      );
+  
+      const expectedClearStateChange: ClearStateChangeStruct = {
+        aOutput: aOutputExpected,
+        bOutput: bOutputExpected,
+        aInput: fixedPointMul(askRatio, aOutputExpected),
+        bInput: fixedPointMul(bidRatio, bOutputExpected),
+      };
+  
+      assert(clearSender === bountyBot.address);
+      compareSolStructs(clearA_, askOrder);
+      compareSolStructs(clearB_, bidOrder);
+      compareStructs(clearBountyConfig, clearConfig);
+      compareStructs(clearStateChange, expectedClearStateChange); 
+  
 
-      const bal5 = await orderBook.vaultBalance(bountyBot.address,tokenB06.address,bountyBotVaultA) 
-      console.log("bal5 : " , bal5) 
+
       
-      const bal6 = await orderBook.vaultBalance(bountyBot.address,tokenA18.address,bountyBotVaultB) 
-      console.log("bal6 : " , bal6)
 
     
-
-    // const {
-    //   sender: clearSender,
-    //   a: clearA_,
-    //   b: clearB_,
-    //   clearConfig: clearBountyConfig,
-    // } = (await getEventArgs(
-    //   txClearOrder,
-    //   "Clear",
-    //   orderBook
-    // )) as ClearEvent["args"];
-    // const { stateChange: clearStateChange } = (await getEventArgs(
-    //   txClearOrder,
-    //   "AfterClear",
-    //   orderBook
-    // )) as AfterClearEvent["args"];
-
-    // const aOutputMaxExpected = amountA;
-    // const bOutputMaxExpected = amountB;
-
-    // const aOutputExpected = minBN(
-    //   aOutputMaxExpected,
-    //   fixedPointMul(bidRatio, amountA)
-    // );
-    // const bOutputExpected = minBN(
-    //   bOutputMaxExpected,
-    //   fixedPointMul(askRatio, amountB)
-    // );
-
-    // const expectedClearStateChange: ClearStateChangeStruct = {
-    //   aOutput: aOutputExpected,
-    //   bOutput: bOutputExpected,
-    //   aInput: fixedPointMul(askRatio, aOutputExpected),
-    //   bInput: fixedPointMul(bidRatio, bOutputExpected),
-    // };
-
-    // assert(clearSender === bountyBot.address);
-    // compareSolStructs(clearA_, askOrder);
-    // compareSolStructs(clearB_, bidOrder);
-    // compareStructs(clearBountyConfig, clearConfig);
-    // compareStructs(clearStateChange, expectedClearStateChange); 
-
-
+  
 
   });
 
