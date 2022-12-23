@@ -114,7 +114,7 @@ describe("Flow context tests", async function () {
     const ONE_DAY = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
 
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_
@@ -427,7 +427,7 @@ describe("Flow context tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
 
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_

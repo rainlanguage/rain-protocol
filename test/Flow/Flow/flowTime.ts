@@ -83,7 +83,7 @@ describe("Flow flowTime tests", async function () {
     const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
 
     const FLOW_TIME = () =>
       concat([

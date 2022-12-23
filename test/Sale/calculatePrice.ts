@@ -24,6 +24,7 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
+  DEBUG_STATE_PACKED,
   memoryOperand,
   MemoryType,
   op,
@@ -94,16 +95,16 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0300),
         // price
           vBasePrice,
               vFractionMultiplier,
-                  op(Opcode.CONTEXT, 0x0000),
+                  op(Opcode.CONTEXT, 0x0001), // sale address
                 op(Opcode.ISALEV2_TOKEN),
                 op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-                  op(Opcode.CONTEXT, 0x0000),
+                  op(Opcode.CONTEXT, 0x0001), // sale address
               op(Opcode.ISALEV2_TOKEN),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
@@ -247,21 +248,22 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0300),
         // price
           vBasePrice,
               vFractionMultiplier,
-                  op(Opcode.CONTEXT, 0x0000),
+                  op(Opcode.CONTEXT, 0x0001), // sale address
                 op(Opcode.ISALEV2_RESERVE),
                 op(Opcode.CONTEXT, 0x0000), // sender
               op(Opcode.ERC20_BALANCE_OF),
             op(Opcode.MUL, 2),
-                  op(Opcode.CONTEXT, 0x0000),
+                  op(Opcode.CONTEXT, 0x0001), // sale address
               op(Opcode.ISALEV2_RESERVE),
             op(Opcode.ERC20_TOTAL_SUPPLY),
           op(Opcode.DIV, 2),
         op(Opcode.SUB, 2),
-      ]),concat([]),
+      ]),
+      concat([]),
     ];
     const [sale] = await saleDeploy(
       signers,
@@ -456,10 +458,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0300),
         // price
         // ((CURRENT_BUY_UNITS priceDivisor /) 75 +)
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0300),
         vSupplyDivisor,
         op(Opcode.DIV, 2),
         vBasePrice,
@@ -596,7 +598,7 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // targetUnits
-        op(Opcode.CONTEXT, 0x0002),
+        op(Opcode.CONTEXT, 0x0300),
         // price
         // ((TOTAL_RESERVE_IN reserveDivisor /) 75 +)
         // sale contract
@@ -742,10 +744,10 @@ describe("Sale calculate price", async function () {
       betweenBlockNumbersSource(vStart, vEnd),
       concat([
         // maxUnits
-        op(Opcode.CONTEXT, 0x0001),
+        op(Opcode.CONTEXT, 0x0300),
         // price
         // ((REMAINING_UNITS 10000000000000000 /) 75 +)
-        op(Opcode.CONTEXT, 0x0000), // sale address
+        op(Opcode.CONTEXT, 0x0001), // sale address
         op(Opcode.ISALEV2_REMAINING_TOKEN_INVENTORY),
         vSupplyDivisor,
         op(Opcode.DIV, 2),

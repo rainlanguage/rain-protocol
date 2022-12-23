@@ -92,7 +92,7 @@ describe("FlowERC20 flowTime tests", async function () {
     const SENTINEL_ERC20 = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
 
-    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0001);
+    const CONTEXT_FLOW_ID = () => op(Opcode.CONTEXT, 0x0100);
 
     const FLOW_TIME = () => [
       CONTEXT_FLOW_ID(), // k_

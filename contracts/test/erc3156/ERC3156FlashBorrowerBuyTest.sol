@@ -8,8 +8,6 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import "../../math/FixedPointMath.sol";
 import {OrderBook, TakeOrderConfig, TakeOrdersConfig} from "../../orderbook/OrderBook.sol";
 
-import "hardhat/console.sol";
-
 /// @title ERC3156FlashBorrowerBuyTest
 contract ERC3156FlashBorrowerBuyTest is IERC3156FlashBorrower {
     using FixedPointMath for uint256;
