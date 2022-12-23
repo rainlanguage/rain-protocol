@@ -4,8 +4,6 @@ pragma solidity =0.8.17;
 import "../../../math/Random.sol";
 import "../../../sstore2/SSTORE2.sol";
 
-// import "hardhat/console.sol";
-
 contract RandomTest {
     address public shuffled;
 

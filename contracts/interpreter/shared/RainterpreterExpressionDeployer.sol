@@ -11,7 +11,7 @@ bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x9555776441bec42df8ec833bfa043727111e6e1327a4fd0c129ff6d449e7f682
+    0x2230a80fd94fd929380b02e3ad34c3da313ad6be3ee9bae9ff5e05352fc40a49
 );
 
 contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
@@ -19,10 +19,13 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibStackTop for StackTop;
 
     event ValidInterpreter(address sender, address interpreter);
-    event DeployExpression(
+    event ExpressionConfig(
         address sender,
-        StateConfig config,
-        address expressionAddress
+        StateConfig config
+    );
+    event ExpressionDeployed(
+        address sender,
+        address expression
     );
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -86,15 +89,20 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
             minStackOutputs_
         );
 
+        emit ExpressionConfig(
+            msg.sender,
+            config_
+        );
+
         bytes memory stateBytes_ = config_.serialize(
             stackLength_,
             OPCODE_FUNCTION_POINTERS
         );
 
-        address expressionAddress_ = SSTORE2.write(stateBytes_);
+        address expression_ = SSTORE2.write(stateBytes_);
 
-        emit DeployExpression(msg.sender, config_, expressionAddress_);
-        return expressionAddress_;
+        emit ExpressionDeployed(msg.sender, expression_);
+        return expression_;
     }
 
     function ensureIntegrity(

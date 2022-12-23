@@ -20,7 +20,7 @@ library OpContext {
     /// Context pushes a single value to the stack from memory.
     function integrity(
         IntegrityState memory integrityState_,
-        Operand operand_,
+        Operand,
         StackTop stackTop_
     ) internal pure returns (StackTop) {
         // Note that a expression with context can error at runtime due to OOB

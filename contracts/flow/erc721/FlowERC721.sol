@@ -100,18 +100,22 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         // Mint and burn access MUST be handled by CAN_FLOW.
         // CAN_TRANSFER will only restrict subsequent transfers.
         if (!(from_ == address(0) || to_ == address(0))) {
-            uint256[][] memory context_ = LibUint256Array
-                .arrayFrom(
-                    uint(uint160(msg.sender)),
-                    uint256(uint160(from_)),
-                    uint256(uint160(to_)),
-                    tokenId_,
-                    batchSize_
-                )
-                .matrixFrom();
+            uint256[] memory callerContext_ = LibUint256Array.arrayFrom(
+                uint256(uint160(from_)),
+                uint256(uint160(to_)),
+                tokenId_,
+                batchSize_
+            );
             EncodedDispatch dispatch_ = _dispatch;
             (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
-                .eval(dispatch_, context_);
+                .eval(
+                    dispatch_,
+                    LibContext.build(
+                        new uint[][](0),
+                        callerContext_,
+                        new SignedContext[](0)
+                    )
+                );
             require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
             if (stateChanges_.length > 0) {
                 _interpreter.stateChanges(stateChanges_);
