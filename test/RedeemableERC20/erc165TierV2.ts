@@ -59,7 +59,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.THIS_ADDRESS),
+      op(Opcode.CONTEXT, 0x0001),
       ctxAccount,
     op(Opcode.ITIERV2_REPORT),
   ]);

@@ -123,7 +123,7 @@ describe("OrderBook counterparty in context", async function () {
       op(Opcode.EAGER_IF),
       vAskRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -138,7 +138,7 @@ describe("OrderBook counterparty in context", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -171,7 +171,7 @@ describe("OrderBook counterparty in context", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -186,7 +186,7 @@ describe("OrderBook counterparty in context", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -217,7 +217,7 @@ describe("OrderBook counterparty in context", async function () {
       vBidOutputMaxCarol,
       vBidRatioCarol,
     ]);
-    const carolBidOrder = ethers.utils.toUtf8Bytes("carolBidOrder")
+    const carolBidOrder = ethers.utils.toUtf8Bytes("carolBidOrder");
 
     const bidOrderConfigCarol: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -232,7 +232,7 @@ describe("OrderBook counterparty in context", async function () {
         sources: [bidSourceCarol, []],
         constants: bidConstantsCarol,
       },
-      data : carolBidOrder
+      data: carolBidOrder,
     };
 
     const txBidAddOrderCarol = await orderBook

@@ -188,9 +188,7 @@ describe("Random Micro lottery", async function () {
 
     const MAX_N = 30;
 
-    for (const seed of [
-      1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000,
-    ]) {
+    for (const seed of [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000]) {
       const shuffled = [];
       for (let n = 0; n < MAX_N; n++) {
         const item = await random.microLottery(seed, MAX_N, n);

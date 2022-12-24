@@ -19,7 +19,6 @@ import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iint
 const Opcode = AllStandardOps;
 
 describe("CALL Opcode test", async function () {
-
   it("should change the eval's scope using CALL opcode", async () => {
     const constants = [0, 1];
 

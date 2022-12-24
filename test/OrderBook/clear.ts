@@ -138,7 +138,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -187,7 +187,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -343,7 +343,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -392,7 +392,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -548,7 +548,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -597,7 +597,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -753,7 +753,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -802,7 +802,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -958,7 +958,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -1007,7 +1007,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -1163,7 +1163,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -1212,7 +1212,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -1367,7 +1367,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -1416,7 +1416,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -1554,7 +1554,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -1603,7 +1603,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -1741,7 +1741,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -1790,7 +1790,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -1928,7 +1928,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -1977,7 +1977,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -2115,7 +2115,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -2164,7 +2164,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -2302,7 +2302,7 @@ describe("OrderBook clear order", async function () {
           sources: [askSource, []],
           constants: askConstants,
         },
-        data: []
+        data: [],
       };
       const txAskAddOrderAlice = await orderBook
         .connect(alice)
@@ -2351,7 +2351,7 @@ describe("OrderBook clear order", async function () {
           sources: [bidSource, []],
           constants: bidConstants,
         },
-        data: []
+        data: [],
       };
       const txBidAddOrder = await orderBook
         .connect(bob)
@@ -2455,7 +2455,7 @@ describe("OrderBook clear order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2470,7 +2470,7 @@ describe("OrderBook clear order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -2503,7 +2503,7 @@ describe("OrderBook clear order", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2518,7 +2518,7 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -2642,7 +2642,7 @@ describe("OrderBook clear order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2657,7 +2657,7 @@ describe("OrderBook clear order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -2690,7 +2690,7 @@ describe("OrderBook clear order", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2705,7 +2705,7 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -2829,7 +2829,7 @@ describe("OrderBook clear order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2844,7 +2844,7 @@ describe("OrderBook clear order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -2877,7 +2877,7 @@ describe("OrderBook clear order", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -2892,7 +2892,7 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -3041,7 +3041,7 @@ describe("OrderBook clear order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -3056,7 +3056,7 @@ describe("OrderBook clear order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -3089,7 +3089,7 @@ describe("OrderBook clear order", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -3104,7 +3104,7 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook
@@ -3228,7 +3228,7 @@ describe("OrderBook clear order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -3243,7 +3243,7 @@ describe("OrderBook clear order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -3276,7 +3276,7 @@ describe("OrderBook clear order", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -3291,7 +3291,7 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
