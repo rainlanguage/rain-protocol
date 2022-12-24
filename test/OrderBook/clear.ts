@@ -3863,8 +3863,8 @@ describe("OrderBook clear order", async function () {
     assert(aliceInputVaultBalance.add(bobOutputVaultBalance).eq(depositAmountA));
     assert(bobInputVaultBalance.add(bountyBotVaultA_).eq(depositAmountB));
 
-    assert(aliceInputVaultBalance.eq(expectedAliceInputVaultAmount) , 'here1');
-    assert(aliceOutputVaultBalance.isZero() , 'here2');  
+    assert(aliceInputVaultBalance.eq(expectedAliceInputVaultAmount));
+    assert(aliceOutputVaultBalance.isZero() );  
 
   
 
@@ -4117,7 +4117,7 @@ describe("OrderBook clear order", async function () {
 
 
 
-  it.only("should ensure that percision loss does not affect the non interactive participant ", async function () {
+  it("should ensure that percision loss does not affect the non interactive participant ", async function () {
     const signers = await ethers.getSigners(); 
 
     const tokenADecimals = 6 ;
