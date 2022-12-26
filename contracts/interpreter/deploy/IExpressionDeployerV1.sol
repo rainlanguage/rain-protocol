@@ -21,7 +21,31 @@ struct StateConfig {
 }
 
 /// @title IExpressionDeployerV1
-
+/// @notice Companion to `IInterpreterV1` responsible for onchain static code
+/// analysis and deploying expressions. Each `IExpressionDeployerV1` is tightly
+/// coupled at the bytecode level to some interpreter that it knows how to
+/// analyse and deploy expressions for. The expression deployer can perform an
+/// integrity check "dry run" of candidate source code for the intepreter. The
+/// critical analysis/transformation includes:
+///
+/// - Enforcement of no out of bounds memory reads/writes
+/// - Calculation of memory required to eval the stack with a single allocation
+/// - Replacing index based opcodes with absolute interpreter function pointers
+///
+/// This analysis is highly sensitive to the specific implementation and position
+/// of all opcodes and function pointers as compiled into the interpreter. This
+/// is what makes the coupling between an interpreter and expression deployer
+/// so tight. Ideally all responsibilities would be handled by a single contract
+/// but this introduces code size issues quickly by roughly doubling the compiled
+/// logic of each opcode (half for the integrity check and half for evaluation).
+///
+/// Interpreters MUST assume that expression deployers are malicious and fail
+/// gracefully if the integrity check is corrupt/bypassed and/or function
+/// pointers are incorrect, etc. i.e. the interpreter MUST always return a stack
+/// from `eval` in a read only way or error. I.e. it is the expression deployer's
+/// responsibility to do everything it can to prevent undefined behaviour in the
+/// interpreter, and the interpreter's responsibility to handle the expression
+/// deployer completely failing to do so.
 interface IExpressionDeployerV1 {
     /// Expressions are expected to be deployed onchain as immutable contract
     /// code with a first class address like any other contract or account.
@@ -54,14 +78,6 @@ interface IExpressionDeployerV1 {
     /// `IExpressionDeployerV1` MAY NEED to replace the indexed opcodes in the
     /// `StateConfig` sources with real function pointers from the corresponding
     /// interpreter.
-    ///
-    /// Interpreters MUST assume that expression deployers are malicious and fail
-    /// gracefully if the integrity check is corrupt/bypassed and/or function
-    /// pointers are incorrect, etc. i.e. the interpreter MUST always return a stack
-    /// from `eval` in a read only way or error. I.e. it is the expression deployer's
-    /// responsibility to do everything it can to prevent undefined behaviour in the
-    /// interpreter, and the interpreter's responsibility to handle the expression
-    /// deployer completely failing to do so.
     ///
     /// @param config All the state config associated with an expression.
     /// @param minOutputs The first N sources on the state config are entrypoints to

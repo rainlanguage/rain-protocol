@@ -9,7 +9,10 @@ import "../run/IInterpreterV1.sol";
 /// Running an integrity check is a stateful operation. As well as the basic
 /// configuration of what is being checked such as the sources and size of the
 /// constants, the current and maximum stack height is being recomputed on every
-/// checked opcode.
+/// checked opcode. The stack is virtual during the integrity check so whatever
+/// the `StackPointer` values are during the check, it's always undefined
+/// behaviour to actually try to read/write to them.
+///
 /// @param sources All the sources of the expression are provided to the
 /// integrity check as any entrypoint and non-entrypoint can `call` into some
 /// other source at any time, provided the overall inputs and outputs to the
@@ -20,7 +23,14 @@ import "../run/IInterpreterV1.sol";
 /// included in most setups. The integrity check only needs the length of the
 /// constants array to check for out of bounds reads, which allows runtime
 /// behaviour to read without additional gas for OOB index checks.
-/// @param stackBottom The
+/// @param stackBottom Pointer to the bottom of the virtual stack that the
+/// integrity check uses to simulate a real eval.
+/// @param stackMaxTop Pointer to the maximum height the virtual stack has
+/// reached during the integrity check. The current virtual stack height will
+/// be handled separately to the state during the check.
+/// @param integrityFunctionPointers We pass an array of all the function
+/// pointers to per-opcode integrity checks around with the state to facilitate
+/// simple recursive integrity checking.
 struct IntegrityCheckState {
     // Sources in zeroth position as we read from it in assembly without paying
     // gas to calculate offsets.
@@ -33,25 +43,60 @@ struct IntegrityCheckState {
         returns (StackPointer)[] integrityFunctionPointers;
 }
 
+/// @title LibIntegrityCheck
+/// @notice "Dry run" versions of the key logic from `LibStackPointer` that
+/// allows us to simulate a virtual stack based on the Solidity type system
+/// itself. The core loop of an integrity check is to dispatch an integrity-only
+/// version of a runtime opcode that then uses `LibIntegrityCheck` to apply a
+/// function that simulates a stack movement. The simulated stack movement will
+/// move a pointer to memory in the same way as a real pop/push would at runtime
+/// but without any associated logic or even allocating and writing data in
+/// memory on the other side of the pointer. Every pop is checked for out of
+/// bounds reads, even if it is an intermediate pop within the logic of a single
+/// opcode. The _gross_ stack movement is just as important as the net movement.
+/// For example, consider a simple ERC20 total supply read. The _net_ movement
+/// of a total supply read is 0, it pops the token address then pushes the total
+/// supply. However the _gross_ movement is first -1 then +1, so we have to guard
+/// against the -1 underflowing while reading the token address _during_ the
+/// simulated opcode dispatch. In general this can be subtle, complex and error
+/// prone, which is why `LibIntegrityCheck` and `LibStackPointer` take function
+/// signatures as arguments, so that the overloading mechanism in Solidity itself
+/// enforces correct pop/push calculations for every opcode.
 library LibIntegrityCheck {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for StackPointer;
     using Math for uint256;
 
+    /// If the given stack pointer is above the current state of the max stack
+    /// top, the max stack top will be moved to the stack pointer.
+    /// i.e. this works like `stackMaxTop = stackMaxTop.max(stackPointer_)` but
+    /// with the type unwrapping boilerplate included for convenience.
+    /// @param integrityCheckState_ The state of the current integrity check
+    /// including the current max stack top.
+    /// @param stackPointer_ The stack pointer to compare and potentially swap
+    /// the max stack top for.
     function syncStackMaxTop(
         IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_
+        StackPointer stackPointer_
     ) internal pure {
         if (
-            StackPointer.unwrap(stackTop_) >
+            StackPointer.unwrap(stackPointer_) >
             StackPointer.unwrap(integrityCheckState_.stackMaxTop)
         ) {
-            integrityCheckState_.stackMaxTop = stackTop_;
+            integrityCheckState_.stackMaxTop = stackPointer_;
         }
     }
 
+    /// The main integrity check loop. Designed so that it can be called
+    /// recursively by the dispatched integrity opcodes to support arbitrary
+    /// nesting of sources and substacks, loops, etc.
+    /// If ANY of the integrity checks for ANY opcode fails the entire integrity
+    /// check will revert.
+    /// @param integrityCheckState_ Current state of the integrity check passed
+    /// by reference to allow for recursive/nested integrity checking.
+    /// @param sourceIndex
     function ensureIntegrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         SourceIndex sourceIndex_,
         StackPointer stackTop_,
         uint minStackOutputs_
@@ -62,7 +107,7 @@ library LibIntegrityCheck {
             assembly ("memory-safe") {
                 cursor_ := mload(
                     add(
-                        mload(integrityState_),
+                        mload(integrityCheckState_),
                         add(0x20, mul(0x20, sourceIndex_))
                     )
                 )
@@ -81,15 +126,15 @@ library LibIntegrityCheck {
                 }
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.
-                stackTop_ = integrityState_.integrityFunctionPointers[opcode_](
-                    integrityState_,
+                stackTop_ = integrityCheckState_.integrityFunctionPointers[opcode_](
+                    integrityCheckState_,
                     operand_,
                     stackTop_
                 );
             }
             require(
                 minStackOutputs_ <=
-                    integrityState_.stackBottom.toIndex(stackTop_),
+                    integrityCheckState_.stackBottom.toIndex(stackTop_),
                 "MIN_FINAL_STACK"
             );
             return stackTop_;
