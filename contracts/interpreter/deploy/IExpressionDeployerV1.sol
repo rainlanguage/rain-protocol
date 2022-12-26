@@ -6,7 +6,11 @@ pragma solidity =0.8.17;
 /// sequential/index opcode form as the deployment process will need to index
 /// into BOTH the integrity check and the final runtime function pointers.
 /// This will be emitted in an event for offchain processing to use the indexed
-/// opcode sources.
+/// opcode sources. The first N sources are considered entrypoints and will be
+/// integrity checked by the expression deployer against a starting stack height
+/// of 0. Non-entrypoint sources MAY be provided for internal use such as the
+/// `call` opcode but will NOT be integrity checked UNLESS entered by an opcode
+/// in an entrypoint.
 /// @param constants Constants verbatim. Constants are provided alongside sources
 /// rather than inline as it allows us to avoid variable length opcodes and can
 /// be more memory efficient if the same constant is referenced several times
@@ -39,12 +43,15 @@ struct StateConfig {
 /// memory required to be allocated for the stack in total, and that no out of
 /// bounds memory reads/writes occur within this stack. A simple example of an
 /// invalid source would be one that pushes one value to the stack then attempts
-/// to pops two values, clearly we cannot remove more values than we added.
+/// to pops two values, clearly we cannot remove more values than we added. The
+/// `IExpressionDeployerV1` MUST revert in the case of any integrity failure, all
+/// integrity checks MUST pass in order for the deployment to complete.
 ///
-/// Once the integrity check is complete the deployer MUST do any additional
-/// processing required by its paired interpreter. For example, the expression
-/// deployer MAY NEED to replace the indexed opcodes in the `StateConfig` sources
-/// with real function pointers from the corresponding interpreter.
+/// Once the integrity check is complete the `IExpressionDeployerV1` MUST do any
+/// additional processing required by its paired interpreter. For example, the
+/// `IExpressionDeployerV1` MAY NEED to replace the indexed opcodes in the
+/// `StateConfig` sources with real function pointers from the corresponding
+/// interpreter.
 ///
 /// Interpreters MUST assume that expression deployers are malicious and fail
 /// gracefully if the integrity check is corrupt/bypassed and/or function
@@ -53,9 +60,19 @@ struct StateConfig {
 /// responsibility to do everything it can to prevent undefined behaviour in the
 /// interpreter, and the interpreter's responsibility to handle the expression
 /// deployer completely failing to do so.
+///
+/// @param config All the state config associated with an expression.
+/// @param minOutputs The first N sources on the state config are entrypoints to
+/// the expression where N is the length of the `minOutputs` array. Each item in
+/// the `minOutputs` array specifies the number of outputs that MUST be present
+/// on the final stack for an evaluation of each entrypoint. The minimum output
+/// for some entrypoint MAY be zero if the expectation is that the expression
+/// only applies checks and error logic. Non-entrypoint sources MUST NOT have a
+/// minimum outputs length specified.
+/// @return expression The onchain address of the deployed expression
 interface IExpressionDeployerV1 {
     function deployExpression(
         StateConfig memory config,
         uint[] memory minOutputs
-    ) external returns (address expressionAddress);
+    ) external returns (address expression);
 }
