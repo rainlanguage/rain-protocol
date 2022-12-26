@@ -47,10 +47,12 @@ library LibStackPointer {
     /// @param stackPointer_ Position to read past/above.
     function peekUp(
         StackPointer stackPointer_
-    ) internal pure returns (uint256 a_) {
+    ) internal pure returns (uint256) {
+        uint256 a_;
         assembly ("memory-safe") {
             a_ := mload(stackPointer_)
         }
+        return a_;
     }
 
     /// Read the value immediately below the given stack pointer. Equivalent to
@@ -58,12 +60,12 @@ library LibStackPointer {
     /// less gas than setting and discarding a value.
     /// @param stackPointer_ The stack pointer to read below.
     /// @return a_ The value that was read.
-    function peek(
-        StackPointer stackPointer_
-    ) internal pure returns (uint256 a_) {
+    function peek(StackPointer stackPointer_) internal pure returns (uint256) {
+        uint256 a_;
         assembly ("memory-safe") {
             a_ := mload(sub(stackPointer_, 0x20))
         }
+        return a_;
     }
 
     /// Reads 2 values below the given stack pointer.
@@ -82,11 +84,14 @@ library LibStackPointer {
     /// @param stackPointer_ The stack top to peek below.
     function peek2(
         StackPointer stackPointer_
-    ) internal pure returns (uint256 a_, uint256 b_) {
+    ) internal pure returns (uint256, uint256) {
+        uint256 a_;
+        uint256 b_;
         assembly ("memory-safe") {
             a_ := mload(sub(stackPointer_, 0x40))
             b_ := mload(sub(stackPointer_, 0x20))
         }
+        return (a_, b_);
     }
 
     /// Read the value immediately below the given stack pointer and return the
@@ -108,11 +113,14 @@ library LibStackPointer {
     /// @return a_ The value that was read.
     function pop(
         StackPointer stackPointer_
-    ) internal pure returns (StackPointer stackPointerAfter_, uint256 a_) {
+    ) internal pure returns (StackPointer, uint256) {
+        StackPointer stackPointerAfter_;
+        uint256 a_;
         assembly ("memory-safe") {
             stackPointerAfter_ := sub(stackPointer_, 0x20)
             a_ := mload(stackPointerAfter_)
         }
+        return (stackPointerAfter_, a_);
     }
 
     /// Given two stack pointers that bound a stack build an array of all values
@@ -245,119 +253,119 @@ library LibStackPointer {
         }
     }
 
-    /// Store a `uint256` at the stack position and return the stack pointer
+    /// Store a `uint256` at the stack pointer and return the stack pointer
     /// above the written value. The following statements are equivalent in
     /// functionality but A may be less gas if the compiler fails to inline
     /// some function calls.
     /// A:
     /// ```
-    /// stackPosition_ = stackPosition_.push(a_);
+    /// stackPointer_ = stackPointer_.push(a_);
     /// ```
     /// B:
     /// ```
-    /// stackPosition_.set(a_);
-    /// stackPosition_ = stackPosition_.up();
+    /// stackPointer_.set(a_);
+    /// stackPointer_ = stackPointer_.up();
     /// ```
-    /// @param stackPosition_ The stack position to write at.
+    /// @param stackPointer_ The stack pointer to write at.
     /// @param a_ The value to write.
-    /// @return The stack position above where `a_` was written to.
+    /// @return The stack pointer above where `a_` was written to.
     function push(
-        StackPointer stackPosition_,
+        StackPointer stackPointer_,
         uint256 a_
     ) internal pure returns (StackPointer) {
         assembly ("memory-safe") {
-            mstore(stackPosition_, a_)
-            stackPosition_ := add(stackPosition_, 0x20)
+            mstore(stackPointer_, a_)
+            stackPointer_ := add(stackPointer_, 0x20)
         }
-        return stackPosition_;
+        return stackPointer_;
     }
 
-    /// Store a `uint256[]` at the stack top position and return the stack top
+    /// Store a `uint256[]` at the stack pointer and return the stack pointer
     /// above the written values. The length of the array is NOT written to the
     /// stack, ONLY the array values are copied to the stack. The following
     /// statements are equivalent in functionality but A may be less gas if the
     /// compiler fails to inline some function calls.
     /// A:
     /// ```
-    /// stackTop_ = stackTop_.push(array_);
+    /// stackPointer_ = stackPointer_.push(array_);
     /// ```
     /// B:
     /// ```
     /// unchecked {
     ///   for (uint i_ = 0; i_ < array_.length; i_++) {
-    ///     stackTop_ = stackTop_.push(array_[i_]);
+    ///     stackPointer_ = stackPointer_.push(array_[i_]);
     ///   }
     /// }
     /// ```
-    /// @param stackTop_ The stack top to write at.
+    /// @param stackPointer_ The stack pointer to write at.
     /// @param array_ The array of values to write.
-    /// @return The stack top above the array.
+    /// @return The stack pointer above the array.
     function push(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         uint256[] memory array_
     ) internal pure returns (StackPointer) {
-        array_.unsafeCopyValuesTo(StackPointer.unwrap(stackTop_));
-        return stackTop_.up(array_.length);
+        array_.unsafeCopyValuesTo(StackPointer.unwrap(stackPointer_));
+        return stackPointer_.up(array_.length);
     }
 
-    /// Store a `uint256[]` at the stack top position and return the stack top
+    /// Store a `uint256[]` at the stack pointer and return the stack pointer
     /// above the written values. The length of the array IS written to the
     /// stack.
-    /// @param stackTop_ The stack top to write at.
+    /// @param stackPointer_ The stack pointer to write at.
     /// @param array_ The array of values and length to write.
-    /// @return The stack top above the array.
+    /// @return The stack pointer above the array.
     function pushWithLength(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         uint256[] memory array_
     ) internal pure returns (StackPointer) {
-        return stackTop_.push(array_.length).push(array_);
+        return stackPointer_.push(array_.length).push(array_);
     }
 
-    /// Store `bytes` at the stack top position and return the stack top above
+    /// Store `bytes` at the stack pointer and return the stack pointer above
     /// the written bytes. The length of the bytes is NOT written to the stack,
     /// ONLY the bytes are written. As `bytes` may be of arbitrary length, i.e.
     /// it MAY NOT be a multiple of 32, the push is unaligned. The caller MUST
     /// ensure that this is safe in context of subsequent reads and writes.
-    /// @param stackTop_ The stack top to write at.
+    /// @param stackPointer_ The stack top to write at.
     /// @param bytes_ The bytes to write at the stack top.
     /// @return The stack top above the written bytes.
     function unalignedPush(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         bytes memory bytes_
     ) internal pure returns (StackPointer) {
         StackPointer.unwrap(bytes_.asStackPointer().up()).unsafeCopyBytesTo(
-            StackPointer.unwrap(stackTop_),
+            StackPointer.unwrap(stackPointer_),
             bytes_.length
         );
-        return stackTop_.upBytes(bytes_.length);
+        return stackPointer_.upBytes(bytes_.length);
     }
 
-    /// Store `bytes` at the stack top position and return the stack top above
-    /// the written bytes. The length of the bytes IS written to the stack in
+    /// Store `bytes` at the stack pointer and return the stack top above the
+    /// written bytes. The length of the bytes IS written to the stack in
     /// addition to the bytes. As `bytes` may be of arbitrary length, i.e. it
     /// MAY NOT be a multiple of 32, the push is unaligned. The caller MUST
     /// ensure that this is safe in context of subsequent reads and writes.
-    /// @param stackTop_ The stack top to write at.
-    /// @param bytes_ The bytes to write with their length at the stack top.
-    /// @return The stack top above the written bytes.
+    /// @param stackPointer_ The stack pointer to write at.
+    /// @param bytes_ The bytes to write with their length at the stack pointer.
+    /// @return The stack pointer above the written bytes.
     function unalignedPushWithLength(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         bytes memory bytes_
     ) internal pure returns (StackPointer) {
-        return stackTop_.push(bytes_.length).unalignedPush(bytes_);
+        return stackPointer_.push(bytes_.length).unalignedPush(bytes_);
     }
 
-    /// Store 8x `uint256` at the stack top position and return the stack top
+    /// Store 8x `uint256` at the stack pointer and return the stack pointer
     /// above the written value. The following statements are equivalent in
     /// functionality but A may be cheaper if the compiler fails to
     /// inline some function calls.
     /// A:
     /// ```
-    /// stackTop_ = stackTop_.push(a_, b_, c_, d_, e_, f_, g_, h_);
+    /// stackPointer_ = stackPointer_.push(a_, b_, c_, d_, e_, f_, g_, h_);
     /// ```
     /// B:
     /// ```
-    /// stackTop_ = stackTop_
+    /// stackPointer_ = stackPointer_
     ///   .push(a_)
     ///   .push(b_)
     ///   .push(c_)
@@ -366,7 +374,7 @@ library LibStackPointer {
     ///   .push(f_)
     ///   .push(g_)
     ///   .push(h_);
-    /// @param stackTop_ The stack top to write at.
+    /// @param stackPointer_ The stack pointer to write at.
     /// @param a_ The first value to write.
     /// @param b_ The second value to write.
     /// @param c_ The third value to write.
@@ -375,9 +383,9 @@ library LibStackPointer {
     /// @param f_ The sixth value to write.
     /// @param g_ The seventh value to write.
     /// @param h_ The eighth value to write.
-    /// @return The stack top above where `h_` was written.
+    /// @return The stack pointer above where `h_` was written.
     function push(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         uint256 a_,
         uint256 b_,
         uint256 c_,
@@ -388,17 +396,17 @@ library LibStackPointer {
         uint256 h_
     ) internal pure returns (StackPointer) {
         assembly ("memory-safe") {
-            mstore(stackTop_, a_)
-            mstore(add(stackTop_, 0x20), b_)
-            mstore(add(stackTop_, 0x40), c_)
-            mstore(add(stackTop_, 0x60), d_)
-            mstore(add(stackTop_, 0x80), e_)
-            mstore(add(stackTop_, 0xA0), f_)
-            mstore(add(stackTop_, 0xC0), g_)
-            mstore(add(stackTop_, 0xE0), h_)
-            stackTop_ := add(stackTop_, 0x100)
+            mstore(stackPointer_, a_)
+            mstore(add(stackPointer_, 0x20), b_)
+            mstore(add(stackPointer_, 0x40), c_)
+            mstore(add(stackPointer_, 0x60), d_)
+            mstore(add(stackPointer_, 0x80), e_)
+            mstore(add(stackPointer_, 0xA0), f_)
+            mstore(add(stackPointer_, 0xC0), g_)
+            mstore(add(stackPointer_, 0xE0), h_)
+            stackPointer_ := add(stackPointer_, 0x100)
         }
-        return stackTop_;
+        return stackPointer_;
     }
 
     /// Execute a function, reading and writing inputs and outputs on the stack.
@@ -482,12 +490,13 @@ library LibStackPointer {
         StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256) fn_,
         uint256 n_
-    ) internal view returns (StackPointer stackTopAfter_) {
+    ) internal view returns (StackPointer) {
         unchecked {
             uint256 bottom_;
             uint256 cursor_;
             uint256 a_;
             uint256 b_;
+            StackPointer stackTopAfter_;
             assembly ("memory-safe") {
                 bottom_ := sub(stackTop_, mul(n_, 0x20))
                 a_ := mload(bottom_)
@@ -504,16 +513,25 @@ library LibStackPointer {
             assembly ("memory-safe") {
                 mstore(bottom_, a_)
             }
+            return stackTopAfter_;
         }
     }
 
+    /// Reduce a function N times, reading and writing inputs and the accumulated
+    /// result on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param n_ The number of times to apply fn_ to accumulate a final result.
+    /// @return stackTopAfter_ The new stack top above the outputs of fn_.
     function applyFnN(
         StackPointer stackTop_,
         function(uint256) internal view fn_,
         uint256 n_
-    ) internal view returns (StackPointer stackTopAfter_) {
+    ) internal view returns (StackPointer) {
         uint256 cursor_;
         uint256 a_;
+        StackPointer stackTopAfter_;
         assembly ("memory-safe") {
             stackTopAfter_ := sub(stackTop_, mul(n_, 0x20))
             cursor_ := stackTopAfter_
@@ -525,6 +543,7 @@ library LibStackPointer {
             }
             fn_(a_);
         }
+        return stackTopAfter_;
     }
 
     /// Execute a function, reading and writing inputs and outputs on the stack.
@@ -613,11 +632,17 @@ library LibStackPointer {
         return stackTop_;
     }
 
+    /// Execute a function, reading and writing inputs and outputs on the stack.
+    /// The caller MUST ensure this does not result in unsafe reads and writes.
+    /// @param stackTop_ The stack top to read and write to.
+    /// @param fn_ The function to run on the stack.
+    /// @param length_ The length of the array to pass to fn_ from the stack.
+    /// @return stackTopAfter_ The new stack top above the outputs of fn_.
     function applyFn(
         StackPointer stackTop_,
         function(uint256[] memory) internal view returns (uint256) fn_,
         uint256 length_
-    ) internal view returns (StackPointer stackTopAfter_) {
+    ) internal view returns (StackPointer) {
         (uint256 a_, uint256[] memory tail_) = stackTop_.list(length_);
         uint256 b_ = fn_(tail_);
         return tail_.asStackPointer().push(a_).push(b_);
@@ -636,11 +661,12 @@ library LibStackPointer {
             view
             returns (uint256) fn_,
         uint256 length_
-    ) internal view returns (StackPointer stackTopAfter_) {
+    ) internal view returns (StackPointer) {
         (uint256 b_, uint256[] memory tail_) = stackTop_.list(length_);
-        stackTopAfter_ = tail_.asStackPointer();
+        StackPointer stackTopAfter_ = tail_.asStackPointer();
         (StackPointer location_, uint256 a_) = stackTopAfter_.pop();
         location_.set(fn_(a_, b_, tail_));
+        return stackTopAfter_;
     }
 
     /// Execute a function, reading and writing inputs and outputs on the stack.
@@ -709,171 +735,208 @@ library LibStackPointer {
     /// the array it will be corrupt. The caller MUST ensure that it does not
     /// read from the returned array after it has been corrupted by subsequent
     /// stack writes.
-    /// @param stackTop_ The stack top to read the values below into an array.
+    /// @param stackPointer_ The stack pointer to read the values below into an
+    /// array.
     /// @param length_ The number of values to include in the returned array.
     /// @return head_ The value that was overwritten with the length.
     /// @return tail_ The array constructed from the stack memory.
     function list(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         uint256 length_
-    ) internal pure returns (uint256 head_, uint256[] memory tail_) {
+    ) internal pure returns (uint256, uint256[] memory) {
+        uint256 head_;
+        uint256[] memory tail_;
         assembly ("memory-safe") {
-            tail_ := sub(stackTop_, add(0x20, mul(length_, 0x20)))
+            tail_ := sub(stackPointer_, add(0x20, mul(length_, 0x20)))
             head_ := mload(tail_)
             mstore(tail_, length_)
         }
+        return (head_, tail_);
     }
 
-    /// Cast a `uint256[]` array to a stack top. The stack top will point to the
-    /// length of the array, NOT its first value.
-    /// @param array_ The array to cast to a stack top.
-    /// @return stackTop_ The stack top that points to the length of the array.
+    /// Cast a `uint256[]` array to a stack pointer. The stack pointer will
+    /// point to the length of the array, NOT its first value.
+    /// @param array_ The array to cast to a stack pointer.
+    /// @return stackPointer_ The stack pointer that points to the length of the
+    /// array.
     function asStackPointer(
         uint256[] memory array_
-    ) internal pure returns (StackPointer stackTop_) {
+    ) internal pure returns (StackPointer) {
+        StackPointer stackPointer_;
         assembly ("memory-safe") {
-            stackTop_ := array_
+            stackPointer_ := array_
         }
+        return stackPointer_;
     }
 
-    /// Cast a stack top to an array. The value immediately above the stack top
-    /// will be treated as the length of the array, so the proceeding length
-    /// values will be the items of the array. The caller MUST ensure the values
-    /// above the stack top constitute a valid array. The retured array will be
-    /// corrupt if/when the stack subsequently moves into it and writes to those
-    /// memory locations. The caller MUST ensure that it does NOT read from the
-    /// returned array after the stack writes over it.
-    /// @param stackTop_ The stack top that will be cast to an array.
-    /// @return array_ The array above the stack top.
-    function asUint256Array(
-        StackPointer stackTop_
-    ) internal pure returns (uint256[] memory array_) {
-        assembly ("memory-safe") {
-            array_ := stackTop_
-        }
-    }
-
-    /// Cast a stack top to bytes. The value immediately above the stack top will
-    /// be treated as the length of the `bytes`, so the proceeding length bytes
-    /// will be the data of the `bytes`. The caller MUST ensure the length and
-    /// bytes above the stack top constitute valid `bytes` data. The returned
-    /// `bytes` will be corrupt if/when the stack subsequently moves into it and
+    /// Cast a stack pointer to an array. The value immediately above the stack
+    /// pointer will be treated as the length of the array, so the proceeding
+    /// length values will be the items of the array. The caller MUST ensure the
+    /// values above the stack position constitute a valid array. The returned
+    /// array will be corrupt if/when the stack subsequently moves into it and
     /// writes to those memory locations. The caller MUST ensure that it does
-    /// NOT read from the returned bytes after the stack writes over it.
-    /// @param stackTop_ The stack top that will be cast to bytes.
+    /// NOT read from the returned array after the stack writes over it.
+    /// @param stackPointer_ The stack pointer that will be cast to an array.
+    /// @return array_ The array above the stack pointer.
+    function asUint256Array(
+        StackPointer stackPointer_
+    ) internal pure returns (uint256[] memory) {
+        uint256[] memory array_;
+        assembly ("memory-safe") {
+            array_ := stackPointer_
+        }
+        return array_;
+    }
+
+    /// Cast a stack position to bytes. The value immediately above the stack
+    /// position will be treated as the length of the `bytes`, so the proceeding
+    /// length bytes will be the data of the `bytes`. The caller MUST ensure the
+    /// length and bytes above the stack top constitute valid `bytes` data. The
+    /// returned `bytes` will be corrupt if/when the stack subsequently moves
+    /// into it and writes to those memory locations. The caller MUST ensure
+    // that it does NOT read from the returned bytes after the stack writes over
+    /// it.
+    /// @param stackPointer_ The stack pointer that will be cast to bytes.
     /// @return bytes_ The bytes above the stack top.
     function asBytes(
-        StackPointer stackTop_
-    ) internal pure returns (bytes memory bytes_) {
+        StackPointer stackPointer_
+    ) internal pure returns (bytes memory) {
+        bytes memory bytes_;
         assembly ("memory-safe") {
-            bytes_ := stackTop_
+            bytes_ := stackPointer_
         }
+        return bytes_;
     }
 
-    /// Cast a `uint256[]` array to a stack top after its length. The stack top
-    /// will point to the first item of the array, NOT its length.
-    /// @param array_ The array to cast to a stack top.
-    /// @return stackTop_ The stack top that points to the first item of the array.
+    /// Cast a `uint256[]` array to a stack pointer after its length. The stack
+    /// pointer will point to the first item of the array, NOT its length.
+    /// @param array_ The array to cast to a stack pointer.
+    /// @return stackPointer_ The stack pointer that points to the first item of
+    /// the array.
     function asStackPointerUp(
         uint256[] memory array_
-    ) internal pure returns (StackPointer stackTop_) {
+    ) internal pure returns (StackPointer) {
+        StackPointer stackPointer_;
         assembly ("memory-safe") {
-            stackTop_ := add(array_, 0x20)
+            stackPointer_ := add(array_, 0x20)
         }
+        return stackPointer_;
     }
 
+    /// Cast a `uint256[]` array to a stack pointer after its items. The stack
+    /// pointer will point after the last item of the array. It is out of bounds
+    /// to read above the returned pointer. This can be interpreted as the stack
+    /// top assuming the entire given array is a valid stack.
+    /// @param array_ The array to cast to a stack pointer.
+    /// @return stackPointer_ The stack pointer that points after the last item
+    /// of the array.
     function asStackPointerAfter(
         uint256[] memory array_
-    ) internal pure returns (StackPointer stackTop_) {
+    ) internal pure returns (StackPointer) {
+        StackPointer stackPointer_;
         assembly ("memory-safe") {
-            stackTop_ := add(array_, add(0x20, mul(mload(array_), 0x20)))
+            stackPointer_ := add(array_, add(0x20, mul(mload(array_), 0x20)))
         }
+        return stackPointer_;
     }
 
-    /// Cast `bytes` to a stack top. The stack top will point to the length of
-    /// the `bytes`, NOT the first byte.
-    /// @param bytes_ The `bytes` to cast to a stack top.
-    /// @return stackTop_ The stack top that points to the length of the bytes.
+    /// Cast `bytes` to a stack pointer. The stack pointer will point to the
+    /// length of the `bytes`, NOT the first byte.
+    /// @param bytes_ The `bytes` to cast to a stack pointer.
+    /// @return stackPointer_ The stack top that points to the length of the
+    /// bytes.
     function asStackPointer(
         bytes memory bytes_
-    ) internal pure returns (StackPointer stackTop_) {
+    ) internal pure returns (StackPointer) {
+        StackPointer stackPointer_;
         assembly ("memory-safe") {
-            stackTop_ := bytes_
+            stackPointer_ := bytes_
         }
+        return stackPointer_;
     }
 
-    /// Returns the stack top 32 bytes above/past the passed stack top.
-    /// @param stackTop_ The stack top at the starting position.
-    /// @return The stack top 32 bytes above the passed stack top.
-    function up(StackPointer stackTop_) internal pure returns (StackPointer) {
-        unchecked {
-            return StackPointer.wrap(StackPointer.unwrap(stackTop_) + 0x20);
-        }
-    }
-
-    /// Returns the stack top `n_ * 32` bytes above/past the passed stack top.
-    /// @param stackTop_ The stack top at the starting position.
-    /// @param n_ The multiplier on the stack movement. MAY be zero.
-    /// @return The stack top `n_ * 32` bytes above/past the passed stack top.
+    /// Returns the stack pointer 32 bytes above/past the given stack pointer.
+    /// @param stackPointer_ The stack pointer at the starting position.
+    /// @return The stack pointer 32 bytes above the input stack pointer.
     function up(
-        StackPointer stackTop_,
+        StackPointer stackPointer_
+    ) internal pure returns (StackPointer) {
+        unchecked {
+            return StackPointer.wrap(StackPointer.unwrap(stackPointer_) + 0x20);
+        }
+    }
+
+    /// Returns the stack pointer `n_ * 32` bytes above/past the given stack
+    /// pointer.
+    /// @param stackPointer_ The stack pointer at the starting position.
+    /// @param n_ The multiplier on the stack movement. MAY be zero.
+    /// @return The stack pointer `n_ * 32` bytes above/past the input stack
+    /// pointer.
+    function up(
+        StackPointer stackPointer_,
         uint256 n_
     ) internal pure returns (StackPointer) {
         unchecked {
             return
-                StackPointer.wrap(StackPointer.unwrap(stackTop_) + 0x20 * n_);
+                StackPointer.wrap(
+                    StackPointer.unwrap(stackPointer_) + 0x20 * n_
+                );
         }
     }
 
-    /// Returns the stack top `n_` bytes above/past the passed stack top.
-    /// The returned stack top MAY NOT be aligned with the passed stack top for
-    /// subsequent 32 byte reads and writes. The caller MUST ensure that it is
-    /// safe to read and write data relative to the returned stack top.
-    /// @param stackTop_ The stack top at the starting position.
+    /// Returns the stack pointer `n_` bytes above/past the given stack pointer.
+    /// The returned stack pointer MAY NOT be aligned with the given stack
+    /// pointer for subsequent 32 byte reads and writes. The caller MUST ensure
+    /// that it is safe to read and write data relative to the returned stack
+    /// pointer.
+    /// @param stackPointer_ The stack pointer at the starting position.
     /// @param n_ The number of bytes to move.
-    /// @return The stack top `n_` bytes above/past the passed stack top.
+    /// @return The stack pointer `n_` bytes above/past the given stack pointer.
     function upBytes(
-        StackPointer stackTop_,
+        StackPointer stackPointer_,
         uint256 n_
     ) internal pure returns (StackPointer) {
         unchecked {
-            return StackPointer.wrap(StackPointer.unwrap(stackTop_) + n_);
+            return StackPointer.wrap(StackPointer.unwrap(stackPointer_) + n_);
         }
     }
 
-    /// Returns the stack top 32 bytes below/before the passed stack top.
-    /// @param stackTop_ The stack top at the starting position.
-    /// @return The stack top 32 bytes below/before the passed stack top.
-    function down(StackPointer stackTop_) internal pure returns (StackPointer) {
-        unchecked {
-            return StackPointer.wrap(StackPointer.unwrap(stackTop_) - 0x20);
-        }
-    }
-
-    /// Returns the stack top `n_ * 32` bytes below/before the passed stack top.
-    /// @param stackTop_ The stack top at the starting position.
-    /// @param n_ The multiplier on the movement.
-    /// @return The stack top `n_ * 32` bytes below/before the passed stack top.
+    /// Returns the stack pointer 32 bytes below/before the given stack pointer.
+    /// @param stackPointer_ The stack pointer at the starting position.
+    /// @return The stack pointer 32 bytes below/before the given stack pointer.
     function down(
-        StackPointer stackTop_,
+        StackPointer stackPointer_
+    ) internal pure returns (StackPointer) {
+        unchecked {
+            return StackPointer.wrap(StackPointer.unwrap(stackPointer_) - 0x20);
+        }
+    }
+
+    /// Returns the stack pointer `n_ * 32` bytes below/before the given stack
+    /// pointer.
+    /// @param stackPointer_ The stack pointer at the starting position.
+    /// @param n_ The multiplier on the movement.
+    /// @return The stack pointer `n_ * 32` bytes below/before the given stack
+    /// pointer.
+    function down(
+        StackPointer stackPointer_,
         uint256 n_
     ) internal pure returns (StackPointer) {
         unchecked {
             return
-                StackPointer.wrap(StackPointer.unwrap(stackTop_) - 0x20 * n_);
+                StackPointer.wrap(StackPointer.unwrap(stackPointer_) - 0x20 * n_);
         }
     }
 
-    /// Convert two stack top values to a single stack index. A stack index is
-    /// the distance in 32 byte increments between two stack positions. The
-    /// calculations assumes the two stack positions are aligned. The caller MUST
+    /// Convert two stack pointer values to a single stack index. A stack index
+    /// is the distance in 32 byte increments between two stack pointers. The
+    /// calculations assumes the two stack pointers are aligned. The caller MUST
     /// ensure the alignment of both values. The calculation is unchecked and MAY
     /// underflow. The caller MUST ensure that the stack top is always above the
     /// stack bottom.
     /// @param stackBottom_ The lower of the two values.
     /// @param stackTop_ The higher of the two values.
-    /// @return The stack index as 32 byte distance between the two stack
-    /// positions.
+    /// @return The stack index as 32 byte distance between the top and bottom.
     function toIndex(
         StackPointer stackBottom_,
         StackPointer stackTop_
