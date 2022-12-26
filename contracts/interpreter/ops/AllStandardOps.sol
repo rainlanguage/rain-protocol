@@ -63,10 +63,14 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
+error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
+
+/// @dev Number of ops currently provided by `AllStandardOps`.
 uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
 
 /// @title AllStandardOps
-/// @notice RainInterpreter opcode pack to expose all other packs.
+/// @notice Every opcode available from the core repository laid out as a single
+/// array to easily build function pointers for `IInterpreterV1`.
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
@@ -115,17 +119,17 @@ library AllStandardOps {
         view
         returns (StackPointer)[];
 
-    /// An oddly specific conversion between a fixed and dynamic uint256 array.
-    /// This is useful for the purpose of building metadata for bounds checks
-    /// and dispatch of all the standard ops provided by RainInterpreter.
+    /// An oddly specific length conversion between a fixed and dynamic `uint256`
+    /// array. This is useful for the purpose of building metadata for bounds
+    /// checks and dispatch of all the standard ops provided by `Rainterpreter`.
     /// The cast will fail if the length of the dynamic array doesn't match the
     /// first item of the fixed array; it relies on differences in memory
     /// layout in Solidity that MAY change in the future. The rollback guards
     /// against changes in Solidity memory layout silently breaking this cast.
-    /// @param fixed_ The fixed size uint256 array to cast to a dynamic uint256
-    /// array. Specifically the size is fixed to match the number of standard
-    /// ops.
-    /// @param dynamic_ The dynamic uint256 array with length of the standard
+    /// @param fixed_ The fixed size `uint256` array to cast to a dynamic
+    /// `uint256` array. Specifically the size is fixed to match the number of
+    /// standard ops.
+    /// @param dynamic_ The dynamic `uint256` array with length of the standard
     /// ops.
     function asUint256Array(
         function(IntegrityCheckState memory, Operand, StackPointer)
@@ -136,12 +140,23 @@ library AllStandardOps {
         assembly ("memory-safe") {
             dynamic_ := fixed_
         }
-        require(
-            dynamic_.length == ALL_STANDARD_OPS_LENGTH,
-            "BAD_DYNAMIC_LENGTH"
-        );
+        if (dynamic_.length != ALL_STANDARD_OPS_LENGTH) {
+            revert BadDynamicLength(dynamic_.length, ALL_STANDARD_OPS_LENGTH);
+        }
     }
 
+    /// An oddly specific conversion between a fixed and dynamic `uint256` array.
+    /// This is useful for the purpose of building function pointers for the
+    /// runtime dispatch of all the standard ops provided by `Rainterpreter`.
+    /// The cast will fail if the length of the dynamic array doesn't match the
+    /// first item of the fixed array; it relies on differences in memory
+    /// layout in Solidity that MAY change in the future. The rollback guards
+    /// against changes in Solidity memory layout silently breaking this cast.
+    /// @param fixed_ The fixed size `uint256` array to cast to a dynamic
+    /// `uint256` array. Specifically the size is fixed to match the number of
+    /// standard ops.
+    /// @param dynamic_ The dynamic `uint256` array with length of the standard
+    /// ops.
     function asUint256Array(
         function(InterpreterState memory, Operand, StackPointer)
             view
@@ -151,10 +166,9 @@ library AllStandardOps {
         assembly ("memory-safe") {
             dynamic_ := fixed_
         }
-        require(
-            dynamic_.length == ALL_STANDARD_OPS_LENGTH,
-            "BAD_DYNAMIC_LENGTH"
-        );
+        if (dynamic_.length != ALL_STANDARD_OPS_LENGTH) {
+            revert BadDynamicLength(dynamic_.length, ALL_STANDARD_OPS_LENGTH);
+        }
     }
 
     function integrityFunctionPointers(
