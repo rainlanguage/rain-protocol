@@ -13,7 +13,7 @@ struct FlowConfig {
 
 contract Flow is ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
-    using LibUint256Array for uint[];
+    using LibUint256Array for uint256[];
 
     event Initialize(address sender, FlowConfig config);
 
@@ -27,11 +27,11 @@ contract Flow is ReentrancyGuard, FlowCommon {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowTransfer memory, uint[] memory) {
+    ) internal view returns (FlowTransfer memory, uint256[] memory) {
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
-            uint[] memory stateChanges_
+            uint256[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         return (LibFlow.stackToFlow(stackBottom_, stackTop_), stateChanges_);
     }
@@ -56,7 +56,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
     ) external payable virtual nonReentrant {
         (
             FlowTransfer memory flowTransfer_,
-            uint[] memory stateChanges_
+            uint256[] memory stateChanges_
         ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
         LibFlow.flow(flowTransfer_, _interpreter, stateChanges_);
     }

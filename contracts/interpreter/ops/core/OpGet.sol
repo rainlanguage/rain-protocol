@@ -21,7 +21,7 @@ library OpGet {
         unchecked {
             // Pop key
             // Stack value
-            function(uint) internal pure returns (uint) fn_;
+            function(uint256) internal pure returns (uint256) fn_;
             return integrityCheckState_.applyFn(stackTop_, fn_);
         }
     }

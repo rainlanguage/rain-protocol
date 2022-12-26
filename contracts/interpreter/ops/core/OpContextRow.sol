@@ -29,7 +29,7 @@ library OpContextRow {
     ) internal pure returns (StackPointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
-        function(uint) internal pure returns (uint) fn_;
+        function(uint256) internal pure returns (uint256) fn_;
         return integrityCheckState_.applyFn(stackTop_, fn_);
     }
 

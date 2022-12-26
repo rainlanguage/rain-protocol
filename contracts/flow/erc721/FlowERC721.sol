@@ -107,11 +107,11 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 batchSize_
             );
             EncodedDispatch dispatch_ = _dispatch;
-            (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
+            (uint256[] memory stack_, uint256[] memory stateChanges_) = _interpreter
                 .eval(
                     dispatch_,
                     LibContext.build(
-                        new uint[][](0),
+                        new uint256[][](0),
                         callerContext_,
                         new SignedContext[](0)
                     )
@@ -130,13 +130,13 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowERC721IO memory, uint[] memory) {
+    ) internal view returns (FlowERC721IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
-            uint[] memory stateChanges_
+            uint256[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         // mints
         (stackTop_, refs_) = stackTop_.consumeStructs(
@@ -168,7 +168,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         unchecked {
             (
                 FlowERC721IO memory flowIO_,
-                uint[] memory stateChanges_
+                uint256[] memory stateChanges_
             ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);

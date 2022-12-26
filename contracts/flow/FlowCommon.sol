@@ -39,7 +39,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     IInterpreterV1 internal _interpreter;
 
     /// flow expression pointer => is registered
-    mapping(EncodedDispatch => uint) internal _flows;
+    mapping(EncodedDispatch => uint256) internal _flows;
 
     event FlowInitialized(
         address sender,
@@ -91,9 +91,9 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         internal
         view
         onlyRegisteredDispatch(dispatch_)
-        returns (StackPointer, StackPointer, uint[] memory)
+        returns (StackPointer, StackPointer, uint256[] memory)
     {
-        (uint256[] memory stack_, uint[] memory stateChanges_) = _interpreter
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = _interpreter
             .eval(
                 dispatch_,
                 LibContext.build(

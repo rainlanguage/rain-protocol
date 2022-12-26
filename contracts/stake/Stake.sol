@@ -97,7 +97,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     using SafeCast for uint256;
     using Math for uint256;
     using LibUint256Array for uint;
-    using LibStackPointer for uint[];
+    using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
 
     /// Emitted when the contract initializes.
@@ -153,8 +153,8 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     function _eval(
         EncodedDispatch dispatch_,
         address account_
-    ) internal view returns (uint) {
-        uint[][] memory context_ = new uint[][](1);
+    ) internal view returns (uint256) {
+        uint256[][] memory context_ = new uint256[][](1);
         context_[0] = LibUint256Array.arrayFrom(
             uint(uint160(msg.sender)),
             uint(uint160(account_))
@@ -162,8 +162,8 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         // ERC4626 mandates that maxDeposit MUST NOT revert. Any error must be
         // caught and converted to a 0 max deposit.
         try interpreter.eval(dispatch_, context_) returns (
-            uint[] memory stack_,
-            uint[] memory
+            uint256[] memory stack_,
+            uint256[] memory
         ) {
             return stack_.asStackPointerAfter().peek();
         } catch {
@@ -173,7 +173,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
 
     /// Thin wrapper around _eval for max deposit calculations.
     /// @param receiver_ As per `maxDeposit`.
-    function _maxDeposit(address receiver_) internal view returns (uint) {
+    function _maxDeposit(address receiver_) internal view returns (uint256) {
         return _eval(dispatchMaxDeposit, receiver_);
     }
 
@@ -181,7 +181,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// The interpreter expression MAY revert due to internal `ensure` calls or
     /// similar so we have to try/catch down to a `0` value max withdrawal in
     /// that case.
-    function _maxWithdraw(address owner_) internal view returns (uint) {
+    function _maxWithdraw(address owner_) internal view returns (uint256) {
         return _eval(dispatchMaxWithdraw, owner_);
     }
 
@@ -190,7 +190,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @inheritdoc ERC4626
     function maxDeposit(
         address receiver_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         return _maxDeposit(receiver_).min(super.maxDeposit(receiver_));
     }
 
@@ -199,7 +199,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @inheritdoc ERC4626
     function maxMint(
         address receiver_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         // > If (1) it’s calculating how many shares to issue to a user for a
         // > certain amount of the underlying tokens they provide or (2) it’s
         // > determining the amount of the underlying tokens to transfer to them
@@ -213,14 +213,14 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @inheritdoc ERC4626
     function maxWithdraw(
         address owner_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         return _maxWithdraw(owner_).min(super.maxWithdraw(owner_));
     }
 
     /// @inheritdoc ERC4626
     function maxRedeem(
         address owner_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         // > If (1) it’s calculating the amount of shares a user has to supply
         // > to receive a given amount of the underlying tokens or (2) it’s
         // > calculating the amount of underlying tokens a user has to provide

@@ -358,14 +358,14 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
     /// evaluating the expression.
-    function _previewCanLive() internal view returns (bool, uint[] memory) {
+    function _previewCanLive() internal view returns (bool, uint256[] memory) {
         unchecked {
             if (remainingTokenInventory < 1) {
-                return (false, new uint[](0));
+                return (false, new uint256[](0));
             }
             (
-                uint[] memory stack_,
-                uint[] memory interpreterStateChanges_
+                uint256[] memory stack_,
+                uint256[] memory interpreterStateChanges_
             ) = interpreter.eval(
                     dispatchCanLive,
                     LibContext.base().matrixFrom()
@@ -442,7 +442,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        (bool canLive_, uint[] memory stateChanges_) = _previewCanLive();
+        (bool canLive_, uint256[] memory stateChanges_) = _previewCanLive();
         require(canLive_, "NOT_LIVE");
         if (stateChanges_.length > 0) {
             interpreter.stateChanges(stateChanges_);
@@ -456,7 +456,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        (bool canLive_, uint[] memory stateChanges_) = _previewCanLive();
+        (bool canLive_, uint256[] memory stateChanges_) = _previewCanLive();
         require(!canLive_, "LIVE");
         if (stateChanges_.length > 0) {
             interpreter.stateChanges(stateChanges_);
@@ -508,7 +508,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // Start or end the sale as required.
         (
             bool canLive0_,
-            uint[] memory stateChangesCanLive0_
+            uint256[] memory stateChangesCanLive0_
         ) = _previewCanLive();
         // Register state changes with intepreter _before_ potentially ending and
         // returning early.
@@ -621,7 +621,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
             EncodedDispatch dispatchHandleBuy_ = dispatchHandleBuy;
             if (EncodedDispatch.unwrap(dispatchHandleBuy_) > 0) {
-                (, uint[] memory stateChangesHandleBuy_) = interpreter_.eval(
+                (, uint256[] memory stateChangesHandleBuy_) = interpreter_.eval(
                     dispatchHandleBuy_,
                     context_
                 );
@@ -650,7 +650,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // it simply prevents further purchases.
         (
             bool canLive1_,
-            uint[] memory stateChangesCanLive1_
+            uint256[] memory stateChangesCanLive1_
         ) = _previewCanLive();
         if (stateChangesCanLive1_.length > 0) {
             interpreter_.stateChanges(stateChangesCanLive1_);

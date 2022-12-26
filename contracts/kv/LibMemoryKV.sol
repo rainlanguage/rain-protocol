@@ -78,7 +78,7 @@ library LibMemoryKV {
 
     function toUint256Array(
         MemoryKV kv_
-    ) internal pure returns (uint[] memory) {
+    ) internal pure returns (uint256[] memory) {
         unchecked {
             uint256 ptr_ = MemoryKV.unwrap(kv_) & MASK_16BIT;
             uint256 length_ = MemoryKV.unwrap(kv_) >> 16;

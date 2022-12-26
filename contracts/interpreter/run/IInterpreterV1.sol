@@ -17,7 +17,7 @@ interface IInterpreterV1 {
         view
         returns (uint256[] memory stack, uint256[] memory stateChanges);
 
-    function stateChanges(uint[] calldata stateChanges) external;
+    function stateChanges(uint256[] calldata stateChanges) external;
 
     function evalWithNamespace(
         StateNamespace namespace,

@@ -102,7 +102,7 @@ contract Rainterpreter is IInterpreterV1 {
         }
     }
 
-    function stateChanges(uint[] calldata stateChanges_) external {
+    function stateChanges(uint256[] calldata stateChanges_) external {
         stateChangesWithNamespace(StateNamespace.wrap(0), stateChanges_);
     }
 

@@ -351,8 +351,8 @@ contract Lobby is Phased, ReentrancyGuard {
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
             (
-                uint[] memory stack_,
-                uint[] memory stateChanges_
+                uint256[] memory stack_,
+                uint256[] memory stateChanges_
             ) = IInterpreterV1(interpreter).eval(
                     claimEncodedDispatch,
                     LibContext.build(
@@ -397,7 +397,7 @@ contract Lobby is Phased, ReentrancyGuard {
         }
 
         IInterpreterV1 interpreter_ = interpreter;
-        (uint[] memory stack_, uint[] memory stateChanges_) = interpreter_.eval(
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_.eval(
             invalidEncodedDispatch,
             LibContext.build(
                 new uint256[][](0),

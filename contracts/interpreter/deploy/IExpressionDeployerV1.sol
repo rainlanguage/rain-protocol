@@ -91,6 +91,6 @@ interface IExpressionDeployerV1 {
     /// @return expression The onchain address of the deployed expression.
     function deployExpression(
         StateConfig memory config,
-        uint[] memory minOutputs
+        uint256[] memory minOutputs
     ) external returns (address expression);
 }

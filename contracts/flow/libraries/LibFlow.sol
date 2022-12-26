@@ -10,11 +10,12 @@ import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable
 import "../../sentinel/LibSentinel.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-// We want a sentinel with the following properties:
-// - Won't collide with token amounts (| with very large number)
-// - Won't collide with token addresses
-// - Won't collide with common values like type(uint).max and type(uint).min
-// - Won't collide with other sentinels from unrelated contexts
+/// @dev We want a sentinel with the following properties:
+/// - Won't collide with token amounts (| with very large number)
+/// - Won't collide with token addresses
+/// - Won't collide with common values like `type(uint256).max` and
+///   `type(uint256).min`
+/// - Won't collide with other sentinels from unrelated contexts
 uint256 constant RAIN_FLOW_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS
 );
@@ -60,7 +61,7 @@ library LibFlow {
     using LibStackPointer for StackPointer;
     using SafeCast for uint256;
     using LibFlow for FlowTransfer;
-    using LibUint256Array for uint[];
+    using LibUint256Array for uint256[];
 
     function stackToFlow(
         StackPointer stackBottom_,
@@ -216,7 +217,7 @@ library LibFlow {
     function flow(
         FlowTransfer memory flowTransfer_,
         IInterpreterV1 interpreter_,
-        uint[] memory stateChanges_
+        uint256[] memory stateChanges_
     ) internal {
         if (stateChanges_.length > 0) {
             interpreter_.stateChanges(stateChanges_);

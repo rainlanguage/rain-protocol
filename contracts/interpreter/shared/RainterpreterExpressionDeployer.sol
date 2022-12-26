@@ -75,7 +75,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
 
     function deployExpression(
         StateConfig memory config_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     ) external returns (address) {
         uint256 stackLength_ = ensureIntegrity(
             config_.sources,
@@ -99,7 +99,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     function ensureIntegrity(
         bytes[] memory sources_,
         uint256 constantsLength_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     ) internal view returns (uint256 stackLength_) {
         require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
         IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(

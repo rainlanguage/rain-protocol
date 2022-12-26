@@ -114,8 +114,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                         )
                         .matrixFrom();
                     (
-                        uint[] memory stack_,
-                        uint[] memory stateChanges_
+                        uint256[] memory stack_,
+                        uint256[] memory stateChanges_
                     ) = interpreter_.eval(dispatch_, context_);
                     require(
                         stack_.asStackPointerAfter().peek() > 0,
@@ -133,13 +133,13 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowERC1155IO memory, uint[] memory) {
+    ) internal view returns (FlowERC1155IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
-            uint[] memory stateChanges_
+            uint256[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
@@ -169,7 +169,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         unchecked {
             (
                 FlowERC1155IO memory flowIO_,
-                uint[] memory stateChanges_
+                uint256[] memory stateChanges_
             ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.

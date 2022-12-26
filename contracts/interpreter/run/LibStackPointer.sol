@@ -580,7 +580,7 @@ library LibStackPointer {
     /// @return The new stack top above the outputs of fn_.
     function applyFn(
         StackPointer stackTop_,
-        function(uint256, uint256, uint256, uint)
+        function(uint256, uint256, uint256, uint256)
             internal
             view
             returns (uint256) fn_

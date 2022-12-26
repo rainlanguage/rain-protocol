@@ -89,7 +89,7 @@ contract CombineTier is TierV2 {
         address account_,
         uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
-        (uint[] memory stack_, ) = interpreter.eval(
+        (uint256[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_ENTRYPOINT,
@@ -110,7 +110,7 @@ contract CombineTier is TierV2 {
         uint256 tier_,
         uint256[] memory callerContext_
     ) external view returns (uint256) {
-        (uint[] memory stack_, ) = interpreter.eval(
+        (uint256[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_FOR_TIER_ENTRYPOINT,

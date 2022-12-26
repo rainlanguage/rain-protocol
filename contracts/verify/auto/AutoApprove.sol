@@ -66,7 +66,7 @@ contract AutoApprove is VerifyCallback {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[][] memory context_ = new uint256[][](1);
-            context_[0] = new uint[](2);
+            context_[0] = new uint256[](2);
             EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
                 expression,
                 CAN_APPROVE_ENTRYPOINT,
@@ -78,8 +78,8 @@ contract AutoApprove is VerifyCallback {
                     context_[0][0] = uint256(uint160(evidences_[i_].account));
                     context_[0][1] = uint256(bytes32(evidences_[i_].data));
                     (
-                        uint[] memory stack_,
-                        uint[] memory stateChanges_
+                        uint256[] memory stack_,
+                        uint256[] memory stateChanges_
                     ) = interpreter_.eval(dispatch_, context_);
                     if (stack_.asStackPointerAfter().peek() > 0) {
                         LibEvidence._updateEvidenceRef(

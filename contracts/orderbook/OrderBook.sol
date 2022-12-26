@@ -238,7 +238,7 @@ contract OrderBook is
 
         // The state changes produced here are handled in _recordVaultIO so that
         // local storage writes happen before writes on the interpreter.
-        (uint[] memory stack_, uint[] memory stateChanges_) = IInterpreterV1(
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = IInterpreterV1(
             order_.interpreter
         ).evalWithNamespace(
                 StateNamespace.wrap(uint(uint160(order_.owner))),
@@ -259,7 +259,7 @@ contract OrderBook is
             order_.validInputs[inputIOIndex_].decimals
         );
 
-        uint[] memory calculationsContext_ = new uint[](2);
+        uint256[] memory calculationsContext_ = new uint256[](2);
         calculationsContext_[0] = orderOutputMax_;
         calculationsContext_[1] = orderIORatio_;
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
@@ -279,8 +279,8 @@ contract OrderBook is
         Order memory order_,
         uint256 input_,
         uint256 output_,
-        uint[][] memory context_,
-        uint[] memory stateChangesCalculate_
+        uint256[][] memory context_,
+        uint256[] memory stateChangesCalculate_
     ) internal {
         context_[CONTEXT_VAULT_INPUTS_COLUMN][
             CONTEXT_VAULT_IO_BALANCE_DIFF
@@ -327,7 +327,7 @@ contract OrderBook is
             );
         }
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
-            (, uint[] memory stateChangesHandleIO_) = IInterpreterV1(
+            (, uint256[] memory stateChangesHandleIO_) = IInterpreterV1(
                 order_.interpreter
             ).evalWithNamespace(
                     StateNamespace.wrap(uint(uint160(order_.owner))),
@@ -375,8 +375,8 @@ contract OrderBook is
                 (
                     uint256 orderOutputMax_,
                     uint256 orderIORatio_,
-                    uint[][] memory context_,
-                    uint[] memory stateChangesCalculate_
+                    uint256[][] memory context_,
+                    uint256[] memory stateChangesCalculate_
                 ) = _calculateOrderIO(
                         order_,
                         takeOrder_.inputIOIndex,
@@ -456,10 +456,10 @@ contract OrderBook is
         }
 
         ClearStateChange memory stateChange_;
-        uint[][] memory aContext_;
-        uint[] memory aStateChangesCalculate_;
-        uint[][] memory bContext_;
-        uint[] memory bStateChangesCalculate_;
+        uint256[][] memory aContext_;
+        uint256[] memory aStateChangesCalculate_;
+        uint256[][] memory bContext_;
+        uint256[] memory bStateChangesCalculate_;
 
         {
             // `IORatio` is input per output for both `a_` and `b_`.

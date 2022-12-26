@@ -30,7 +30,7 @@ contract LibInterpreterStateTest {
         uint256[][] memory context_,
         DebugStyle debugStyle_,
         SourceIndex sourceIndex_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     )
         external
         view
@@ -48,7 +48,7 @@ contract LibInterpreterStateTest {
     function serDeserialize(
         StateConfig memory config_,
         uint256[][] memory context_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     ) public view returns (InterpreterState memory state_) {
         // TODO FIXME
         // bytes memory serialized_ = serialize(config_, minStackOutputs_);
@@ -63,7 +63,7 @@ contract LibInterpreterStateTest {
         public
         view
         returns (
-            // uint[] memory minStackOutputs_
+            // uint256[] memory minStackOutputs_
             bytes memory serialized_
         )
     {
@@ -86,7 +86,7 @@ contract LibInterpreterStateTest {
 
     function eval(
         StateConfig memory config_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     )
         external
         view
@@ -105,7 +105,7 @@ contract LibInterpreterStateTest {
     function eval(
         StateConfig memory config_,
         SourceIndex sourceIndex_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     )
         external
         view
@@ -123,7 +123,7 @@ contract LibInterpreterStateTest {
 
     function evalStackPointer(
         StateConfig memory config_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     )
         external
         view
@@ -142,7 +142,7 @@ contract LibInterpreterStateTest {
     function evalStackPointer(
         StateConfig memory config_,
         SourceIndex sourceIndex_,
-        uint[] memory minStackOutputs_
+        uint256[] memory minStackOutputs_
     )
         external
         view
