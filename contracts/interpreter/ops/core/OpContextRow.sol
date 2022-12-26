@@ -42,7 +42,7 @@ library OpContextRow {
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         // The indexing syntax here enforces OOB checks at runtime.
-        (StackPointer location_, uint row_) = stackTop_.pop();
+        (StackPointer location_, uint256 row_) = stackTop_.pop();
         location_.set(state_.context[Operand.unwrap(operand_)][row_]);
         return stackTop_;
     }

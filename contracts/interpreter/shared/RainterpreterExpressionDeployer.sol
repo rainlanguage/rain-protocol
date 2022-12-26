@@ -105,8 +105,8 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
             sources_,
             constantsLength_,
-            StackPointer.wrap(0),
-            StackPointer.wrap(0),
+            INITIAL_STACK_BOTTOM,
+            INITIAL_STACK_BOTTOM,
             integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {

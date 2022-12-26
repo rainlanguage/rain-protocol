@@ -28,12 +28,12 @@ library OpFoldContext {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            uint sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
+            uint256 sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
             // We don't use the column for anything in the integrity check.
-            // uint column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
-            uint width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
-            uint inputs_ = Operand.unwrap(operand_) >> 12;
-            uint callInputs_ = width_ + inputs_;
+            // uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
+            uint256 width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
+            uint256 inputs_ = Operand.unwrap(operand_) >> 12;
+            uint256 callInputs_ = width_ + inputs_;
 
             // Outputs for call is the same as the inputs.
             Operand callOperand_ = Operand.wrap(
@@ -56,19 +56,19 @@ library OpFoldContext {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            uint sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
-            uint column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
-            uint width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
-            uint inputs_ = Operand.unwrap(operand_) >> 12;
+            uint256 sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
+            uint256 column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
+            uint256 width_ = (Operand.unwrap(operand_) >> 8) & MASK_4BIT;
+            uint256 inputs_ = Operand.unwrap(operand_) >> 12;
             // Call will take the width of the context rows being copied and the
             // base inputs that will be the accumulators of the fold.
-            uint callInputs_ = width_ + inputs_;
+            uint256 callInputs_ = width_ + inputs_;
 
             // Fold over the entire context. This will error with an OOB index
             // if the context columns are not of the same length.
-            for (uint i_ = 0; i_ < state_.context[column_].length; i_++) {
+            for (uint256 i_ = 0; i_ < state_.context[column_].length; i_++) {
                 // Push the width of the context columns onto the stack as rows.
-                for (uint j_ = 0; j_ < width_; j_++) {
+                for (uint256 j_ = 0; j_ < width_; j_++) {
                     stackTop_ = stackTop_.push(
                         state_.context[column_ + j_][i_]
                     );

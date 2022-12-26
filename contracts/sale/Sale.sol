@@ -138,24 +138,24 @@ SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant HANDLE_BUY_ENTRYPOINT = SourceIndex.wrap(2);
 
 uint256 constant CAN_LIVE_MIN_OUTPUTS = 1;
-uint constant CAN_LIVE_MAX_OUTPUTS = 1;
+uint256 constant CAN_LIVE_MAX_OUTPUTS = 1;
 uint256 constant CALCULATE_BUY_MIN_OUTPUTS = 2;
-uint constant CALCULATE_BUY_MAX_OUTPUTS = 2;
-uint constant HANDLE_BUY_MIN_OUTPUTS = 0;
-uint constant HANDLE_BUY_MAX_OUTPUTS = 0;
+uint256 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
+uint256 constant HANDLE_BUY_MIN_OUTPUTS = 0;
+uint256 constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint constant CONTEXT_COLUMNS = 2;
-uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
-uint constant CONTEXT_BUY_COLUMN = 2;
+uint256 constant CONTEXT_COLUMNS = 2;
+uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint256 constant CONTEXT_BUY_COLUMN = 2;
 
-uint constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
-uint constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
-uint constant CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW = 2;
-uint constant CONTEXT_BUY_RESERVE_FEE_ROW = 3;
-uint constant CONTEXT_BUY_RESERVE_COST_ROW = 4;
-uint constant CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW = 5;
-uint constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
-uint constant CONTEXT_BUY_ROWS = 7;
+uint256 constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
+uint256 constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
+uint256 constant CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW = 2;
+uint256 constant CONTEXT_BUY_RESERVE_FEE_ROW = 3;
+uint256 constant CONTEXT_BUY_RESERVE_COST_ROW = 4;
+uint256 constant CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW = 5;
+uint256 constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
+uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
@@ -409,30 +409,30 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
     function _previewCalculateBuy(
         uint256 targetUnits_
-    ) internal view returns (uint256, uint256, uint[][] memory, uint[] memory) {
-        uint[][] memory context_ = LibContext.build(
+    ) internal view returns (uint256, uint256, uint256[][] memory, uint256[] memory) {
+        uint256[][] memory context_ = LibContext.build(
             new uint256[][](CONTEXT_COLUMNS),
             targetUnits_.arrayFrom(),
             new SignedContext[](0)
         );
-        (uint[] memory stack_, uint[] memory stateChanges_) = interpreter.eval(
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter.eval(
             dispatchCalculateBuy,
             context_
         );
-        (uint amount_, uint ratio_) = stack_.asStackPointerAfter().peek2();
-        uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(
+        (uint256 amount_, uint256 ratio_) = stack_.asStackPointerAfter().peek2();
+        uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
             amount_,
             ratio_
         );
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
-        context_[CONTEXT_BUY_COLUMN] = new uint[](CONTEXT_BUY_ROWS);
+        context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
         return (amount_, ratio_, context_, stateChanges_);
     }
 
     function previewCalculateBuy(
         uint256 targetUnits_
     ) external view returns (uint256, uint256) {
-        (uint amount_, uint ratio_, , ) = _previewCalculateBuy(targetUnits_);
+        (uint256 amount_, uint256 ratio_, , ) = _previewCalculateBuy(targetUnits_);
         return (amount_, ratio_);
     }
 
@@ -537,11 +537,11 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             remainingTokenInventory
         );
 
-        uint maxUnits_;
-        uint price_;
-        uint[][] memory context_;
+        uint256 maxUnits_;
+        uint256 price_;
+        uint256[][] memory context_;
         {
-            uint[] memory stateChangesCalculateBuy_;
+            uint256[] memory stateChangesCalculateBuy_;
             (
                 maxUnits_,
                 price_,

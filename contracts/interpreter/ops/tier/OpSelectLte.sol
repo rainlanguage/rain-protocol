@@ -42,9 +42,9 @@ library OpSelectLte {
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         unchecked {
-            uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
-            uint logic_ = Operand.unwrap(operand_) >> 10;
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
+            uint256 mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
+            uint256 logic_ = Operand.unwrap(operand_) >> 10;
             (uint256 time_, uint256[] memory reports_) = stackTop_.list(
                 inputs_
             );

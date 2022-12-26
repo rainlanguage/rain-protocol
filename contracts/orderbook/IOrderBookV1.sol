@@ -81,8 +81,8 @@ interface IOrderBookV1 {
     function vaultBalance(
         address owner,
         address token,
-        uint id
-    ) external view returns (uint balance);
+        uint256 id
+    ) external view returns (uint256 balance);
 
     function deposit(DepositConfig calldata config) external;
 

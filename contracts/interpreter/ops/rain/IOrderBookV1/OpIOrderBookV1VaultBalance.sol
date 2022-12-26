@@ -14,9 +14,9 @@ library OpIOrderBookV1VaultBalance {
 
     function f(
         uint256 orderbook_,
-        uint owner_,
-        uint token_,
-        uint id_
+        uint256 owner_,
+        uint256 token_,
+        uint256 id_
     ) internal view returns (uint256) {
         return
             uint256(

@@ -34,11 +34,11 @@ library OpDoWhile {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             /// We need outputs to be larger than inputs so inputs can't be the
             /// max value possible in 4 bits or outputs will overflow.
             require(inputs_ < MASK_4BIT, "OP_DO_WHILE_INPUTS");
-            uint outputs_ = inputs_ + 1;
+            uint256 outputs_ = inputs_ + 1;
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) | (outputs_ << 4)
             );
@@ -63,8 +63,8 @@ library OpDoWhile {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint outputs_ = inputs_ + 1;
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
+            uint256 outputs_ = inputs_ + 1;
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) | (outputs_ << 4)
             );

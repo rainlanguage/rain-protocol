@@ -21,7 +21,7 @@ library OpSet {
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         unchecked {
-            function(uint, uint) internal pure fn_;
+            function(uint256, uint256) internal pure fn_;
             return integrityCheckState_.applyFn(stackTop_, fn_);
         }
     }
@@ -32,8 +32,8 @@ library OpSet {
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         unchecked {
-            uint k_;
-            uint v_;
+            uint256 k_;
+            uint256 v_;
             (stackTop_, v_) = stackTop_.pop();
             (stackTop_, k_) = stackTop_.pop();
             state_.stateKV = state_.stateKV.setVal(

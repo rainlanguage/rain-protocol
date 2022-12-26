@@ -122,9 +122,11 @@ library AllStandardOps {
     /// first item of the fixed array; it relies on differences in memory
     /// layout in Solidity that MAY change in the future. The rollback guards
     /// against changes in Solidity memory layout silently breaking this cast.
-    /// @param fixed_ The fixed size uint array to cast to a dynamic uint array.
-    /// Specifically the size is fixed to match the number of standard ops.
-    /// @param dynamic_ The dynamic uint array with length of the standard ops.
+    /// @param fixed_ The fixed size uint256 array to cast to a dynamic uint256
+    /// array. Specifically the size is fixed to match the number of standard
+    /// ops.
+    /// @param dynamic_ The dynamic uint256 array with length of the standard
+    /// ops.
     function asUint256Array(
         function(IntegrityCheckState memory, Operand, StackPointer)
             view

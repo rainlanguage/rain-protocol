@@ -114,7 +114,7 @@ export function doWhileOperand(
  * Builds the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
  * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
- * @param loopSize - number of times to subdivide vals, reduces uint size but allows for more vals (range 0-7)
+ * @param loopSize - number of times to subdivide vals, reduces uint256 size but allows for more vals (range 0-7)
  * @param valSize - number of vals in outer stack (range 0-7)
  */
 export function zipmapSize(

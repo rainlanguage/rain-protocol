@@ -332,7 +332,7 @@ contract Verify is IVerifyV1, AccessControl {
     /// @inheritdoc IVerifyV1
     function accountStatusAtTime(
         address account_,
-        uint timestamp_
+        uint256 timestamp_
     ) external view virtual returns (VerifyStatus) {
         return statusAtTime(states[account_], timestamp_);
     }

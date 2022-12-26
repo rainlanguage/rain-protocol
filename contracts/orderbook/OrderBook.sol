@@ -16,24 +16,24 @@ import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgrade
 SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant HANDLE_IO_ENTRYPOINT = SourceIndex.wrap(1);
 
-uint constant ORDER_MIN_OUTPUTS = 2;
-uint constant ORDER_MAX_OUTPUTS = 2;
+uint256 constant ORDER_MIN_OUTPUTS = 2;
+uint256 constant ORDER_MAX_OUTPUTS = 2;
 
-uint constant HANDLE_IO_MIN_OUTPUTS = 0;
-uint constant HANDLE_IO_MAX_OUTPUTS = type(uint16).max;
+uint256 constant HANDLE_IO_MIN_OUTPUTS = 0;
+uint256 constant HANDLE_IO_MAX_OUTPUTS = type(uint16).max;
 
-uint constant CONTEXT_COLUMNS = 4;
-uint constant CONTEXT_BASE_COLUMN = 0;
-uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
-uint constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
-uint constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
+uint256 constant CONTEXT_COLUMNS = 4;
+uint256 constant CONTEXT_BASE_COLUMN = 0;
+uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
+uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
 
-uint constant CONTEXT_VAULT_IO_TOKEN = 0;
-uint constant CONTEXT_VAULT_IO_TOKEN_DECIMALS = 1;
-uint constant CONTEXT_VAULT_IO_VAULT_ID = 2;
-uint constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 3;
-uint constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
-uint constant CONTEXT_VAULT_IO_ROWS = 5;
+uint256 constant CONTEXT_VAULT_IO_TOKEN = 0;
+uint256 constant CONTEXT_VAULT_IO_TOKEN_DECIMALS = 1;
+uint256 constant CONTEXT_VAULT_IO_VAULT_ID = 2;
+uint256 constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 3;
+uint256 constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
+uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 
 struct ClearStateChange {
     uint256 aOutput;
@@ -43,7 +43,7 @@ struct ClearStateChange {
 }
 
 library LibOrder {
-    function hash(Order memory order_) internal pure returns (uint) {
+    function hash(Order memory order_) internal pure returns (uint256) {
         return uint256(keccak256(abi.encode(order_)));
     }
 }
@@ -72,22 +72,22 @@ contract OrderBook is
     /// config amount if the vault does not have the funds available to cover
     /// the config amount.
     event Withdraw(address sender, WithdrawConfig config, uint256 amount);
-    event AddOrder(address sender, Order order, uint orderHash);
-    event RemoveOrder(address sender, Order order, uint orderHash);
+    event AddOrder(address sender, Order order, uint256 orderHash);
+    event RemoveOrder(address sender, Order order, uint256 orderHash);
     event TakeOrder(
         address sender,
         TakeOrderConfig takeOrder,
         uint256 input,
         uint256 output
     );
-    event OrderNotFound(address sender, address owner, uint orderHash);
-    event OrderZeroAmount(address sender, address owner, uint orderHash);
-    event OrderExceedsMaxRatio(address sender, address owner, uint orderHash);
+    event OrderNotFound(address sender, address owner, uint256 orderHash);
+    event OrderZeroAmount(address sender, address owner, uint256 orderHash);
+    event OrderExceedsMaxRatio(address sender, address owner, uint256 orderHash);
     event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
 
     // order hash => order is live
-    mapping(uint => uint) private orders;
+    mapping(uint256 => uint256) private orders;
     /// @inheritdoc IOrderBookV1
     mapping(address => mapping(address => mapping(uint256 => uint256)))
         public vaultBalance;
@@ -159,21 +159,21 @@ contract OrderBook is
             config_.validOutputs,
             config_.data
         );
-        uint orderHash_ = order_.hash();
+        uint256 orderHash_ = order_.hash();
         orders[orderHash_] = 1;
         emit AddOrder(msg.sender, order_, orderHash_);
     }
 
     function removeOrder(Order calldata order_) external nonReentrant {
         require(msg.sender == order_.owner, "OWNER");
-        uint orderHash_ = order_.hash();
+        uint256 orderHash_ = order_.hash();
         delete (orders[orderHash_]);
         emit RemoveOrder(msg.sender, order_, orderHash_);
     }
 
     function _calculateOrderIO(
         Order memory order_,
-        uint inputIOIndex_,
+        uint256 inputIOIndex_,
         uint256 outputIOIndex_,
         address counterparty_
     )
@@ -182,24 +182,24 @@ contract OrderBook is
         returns (
             uint256 orderOutputMax_,
             uint256 orderIORatio_,
-            uint[][] memory,
-            uint[] memory
+            uint256[][] memory,
+            uint256[] memory
         )
     {
-        uint orderHash_ = order_.hash();
-        uint[][] memory context_ = new uint[][](CONTEXT_COLUMNS);
+        uint256 orderHash_ = order_.hash();
+        uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
 
         {
             context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(
                 orderHash_,
-                uint(uint160(order_.owner)),
-                uint(uint160(counterparty_))
+                uint256(uint160(order_.owner)),
+                uint256(uint160(counterparty_))
             );
 
-            context_[CONTEXT_VAULT_INPUTS_COLUMN] = new uint[](
+            context_[CONTEXT_VAULT_INPUTS_COLUMN] = new uint256[](
                 CONTEXT_VAULT_IO_ROWS
             );
-            context_[CONTEXT_VAULT_OUTPUTS_COLUMN] = new uint[](
+            context_[CONTEXT_VAULT_OUTPUTS_COLUMN] = new uint256[](
                 CONTEXT_VAULT_IO_ROWS
             );
 
@@ -357,7 +357,7 @@ contract OrderBook is
         while (i_ < takeOrders_.orders.length && remainingInput_ > 0) {
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
-            uint orderHash_ = order_.hash();
+            uint256 orderHash_ = order_.hash();
             if (orders[orderHash_] == 0) {
                 emit OrderNotFound(msg.sender, order_.owner, orderHash_);
             } else {

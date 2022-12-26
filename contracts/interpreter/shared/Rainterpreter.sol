@@ -24,11 +24,11 @@ contract Rainterpreter is IInterpreterV1 {
     //
     // 0. address is msg.sender so that callers cannot attack each other
     // 1. StateNamespace is caller-provided namespace so that expressions cannot attack each other
-    // 2. uint is expression-provided key
-    // 3. uint is expression-provided value
+    // 2. uint256 is expression-provided key
+    // 3. uint256 is expression-provided value
     //
     // tiers 0 and 1 are both embodied in the FullyQualifiedNamespace.
-    mapping(FullyQualifiedNamespace => mapping(uint => uint)) internal state;
+    mapping(FullyQualifiedNamespace => mapping(uint256 => uint256)) internal state;
 
     function _qualifyNamespace(
         StateNamespace stateNamespace_
@@ -55,7 +55,7 @@ contract Rainterpreter is IInterpreterV1 {
         (
             address expression_,
             SourceIndex sourceIndex_,
-            uint maxOutputs_
+            uint256 maxOutputs_
         ) = LibEncodedDispatch.decode(dispatch_);
         InterpreterState memory state_ = SSTORE2
             .read(expression_)
@@ -115,12 +115,12 @@ contract Rainterpreter is IInterpreterV1 {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        uint k_;
+        uint256 k_;
         (stackTop_, k_) = stackTop_.pop();
         MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
             MemoryKVKey.wrap(k_)
         );
-        uint v_ = 0;
+        uint256 v_ = 0;
         if (MemoryKVPtr.unwrap(kvPtr_) > 0) {
             v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
         } else {

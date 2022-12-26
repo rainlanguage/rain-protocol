@@ -22,11 +22,11 @@ import "../tier/libraries/TierReport.sol";
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant MAX_WITHDRAW_ENTRYPOINT = SourceIndex.wrap(1);
 
-uint constant MAX_DEPOSIT_MIN_OUTPUTS = 1;
-uint constant MAX_WITHDRAW_MIN_OUTPUTS = 1;
+uint256 constant MAX_DEPOSIT_MIN_OUTPUTS = 1;
+uint256 constant MAX_WITHDRAW_MIN_OUTPUTS = 1;
 
-uint constant MAX_DEPOSIT_MAX_OUTPUTS = 1;
-uint constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
+uint256 constant MAX_DEPOSIT_MAX_OUTPUTS = 1;
+uint256 constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
 
 /// Configuration required to initialized the Stake contract.
 /// @param asset The underlying ERC20 asset for the 4626 vault.

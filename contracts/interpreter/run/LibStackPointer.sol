@@ -73,13 +73,13 @@ library LibStackPointer {
     /// compiler fails to inline some function calls.
     /// A:
     /// ```
-    /// (uint a_, uint b_) = stackPointer_.peek2();
+    /// (uint256 a_, uint256 b_) = stackPointer_.peek2();
     /// ```
     /// B:
     /// ```
-    /// uint b_;
+    /// uint256 b_;
     /// (stackPointer_, b_) = stackPointer_.pop();
-    /// uint a_ = stackPointer_.peek();
+    /// uint256 a_ = stackPointer_.peek();
     /// ```
     /// @param stackPointer_ The stack top to peek below.
     function peek2(
@@ -100,13 +100,13 @@ library LibStackPointer {
     /// fails to inline some function calls:
     /// A:
     /// ```
-    /// uint a_;
+    /// uint256 a_;
     /// (stackPointer_, a_) = stackPointer_.pop();
     /// ```
     /// B:
     /// ```
     /// stackPointer_ = stackPointer_.down();
-    /// uint a_ = stackPointer_.peekUp();
+    /// uint256 a_ = stackPointer_.peekUp();
     /// ```
     /// @param stackPointer_ The stack pointer to read below.
     /// @return stackPointerAfter_ Points to the value that was read.
@@ -292,7 +292,7 @@ library LibStackPointer {
     /// B:
     /// ```
     /// unchecked {
-    ///   for (uint i_ = 0; i_ < array_.length; i_++) {
+    ///   for (uint256 i_ = 0; i_ < array_.length; i_++) {
     ///     stackPointer_ = stackPointer_.push(array_[i_]);
     ///   }
     /// }
@@ -588,7 +588,7 @@ library LibStackPointer {
         uint256 a_;
         uint256 b_;
         uint256 c_;
-        uint d_;
+        uint256 d_;
         uint256 location_;
         assembly ("memory-safe") {
             stackTop_ := sub(stackTop_, 0x60)

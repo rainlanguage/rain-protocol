@@ -10,8 +10,8 @@ import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 
-uint constant CAN_APPROVE_MIN_OUTPUTS = 1;
-uint constant CAN_APPROVE_MAX_OUTPUTS = 1;
+uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
+uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
 struct AutoApproveConfig {

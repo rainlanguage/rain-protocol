@@ -24,7 +24,7 @@ library LibMemoryKV {
         MemoryKV kv_,
         MemoryKVKey k_
     ) internal pure returns (MemoryKVPtr) {
-        uint mask_ = MASK_16BIT;
+        uint256 mask_ = MASK_16BIT;
         MemoryKVPtr ptr_;
         assembly ("memory-safe") {
             // loop until k found or give up if ptr is zero
@@ -47,7 +47,7 @@ library LibMemoryKV {
         MemoryKVVal v_
     ) internal pure returns (MemoryKV) {
         MemoryKVPtr ptr_ = getPtr(kv_, k_);
-        uint mask_ = MASK_16BIT;
+        uint256 mask_ = MASK_16BIT;
         // update
         if (MemoryKVPtr.unwrap(ptr_) > 0) {
             assembly ("memory-safe") {
@@ -80,9 +80,9 @@ library LibMemoryKV {
         MemoryKV kv_
     ) internal pure returns (uint[] memory) {
         unchecked {
-            uint ptr_ = MemoryKV.unwrap(kv_) & MASK_16BIT;
-            uint length_ = MemoryKV.unwrap(kv_) >> 16;
-            uint[] memory arr_ = new uint[](length_);
+            uint256 ptr_ = MemoryKV.unwrap(kv_) & MASK_16BIT;
+            uint256 length_ = MemoryKV.unwrap(kv_) >> 16;
+            uint256[] memory arr_ = new uint256[](length_);
             assembly ("memory-safe") {
                 for {
                     let cursor_ := add(arr_, 0x20)

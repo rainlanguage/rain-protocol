@@ -41,8 +41,8 @@ struct FlowERC721IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
@@ -94,7 +94,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         address from_,
         address to_,
         uint256 tokenId_,
-        uint batchSize_
+        uint256 batchSize_
     ) internal virtual override {
         super._afterTokenTransfer(from_, to_, tokenId_, batchSize_);
         // Mint and burn access MUST be handled by CAN_FLOW.

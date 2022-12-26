@@ -90,7 +90,7 @@ library LibUint256Array {
         uint256 c_,
         uint256 d_,
         uint256 e_,
-        uint f_
+        uint256 f_
     ) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](6);
         assembly ("memory-safe") {

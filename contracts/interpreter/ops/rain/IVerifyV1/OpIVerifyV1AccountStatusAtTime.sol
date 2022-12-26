@@ -13,9 +13,9 @@ library OpIVerifyV1AccountStatusAtTime {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(
-        uint contract_,
+        uint256 contract_,
         uint256 account_,
-        uint timestamp_
+        uint256 timestamp_
     ) internal view returns (uint256) {
         return
             VerifyStatus.unwrap(

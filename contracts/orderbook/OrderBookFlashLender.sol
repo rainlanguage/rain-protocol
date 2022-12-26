@@ -17,12 +17,12 @@ contract OrderBookFlashLender is IERC3156FlashLender {
     using SafeERC20 for IERC20;
 
     // token => receiver => active debt
-    mapping(address => mapping(address => uint)) internal activeFlashDebts;
+    mapping(address => mapping(address => uint256)) internal activeFlashDebts;
 
     function _increaseFlashDebtThenSendToken(
         address token_,
         address receiver_,
-        uint amount_
+        uint256 amount_
     ) internal {
         activeFlashDebts[token_][receiver_] += amount_;
         IERC20(token_).safeTransfer(receiver_, amount_);
@@ -31,9 +31,9 @@ contract OrderBookFlashLender is IERC3156FlashLender {
     function _decreaseFlashDebtThenSendToken(
         address token_,
         address receiver_,
-        uint amount_
+        uint256 amount_
     ) internal {
-        uint activeFlashDebt_ = activeFlashDebts[token_][receiver_];
+        uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
         if (amount_ > activeFlashDebt_) {
             if (activeFlashDebt_ > 0) {
                 delete activeFlashDebts[token_][receiver_];
@@ -46,7 +46,7 @@ contract OrderBookFlashLender is IERC3156FlashLender {
     }
 
     function _finalizeDebt(address token_, address receiver_) internal {
-        uint activeFlashDebt_ = activeFlashDebts[token_][receiver_];
+        uint256 activeFlashDebt_ = activeFlashDebts[token_][receiver_];
         if (activeFlashDebt_ > 0) {
             IERC20(token_).safeTransferFrom(
                 receiver_,

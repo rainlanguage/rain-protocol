@@ -6,6 +6,26 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 
 import "../run/IInterpreterV1.sol";
 
+/// @dev The virtual stack pointers are never read or written so don't need to
+/// point to a real location in memory. We only care that the stack never moves
+/// below its starting point at the stack bottom. For the virtual stack used by
+/// the integrity check we can start it in the middle of the `uint256` range and
+/// achieve something analogous to signed integers with unsigned integer types.
+StackPointer constant INITIAL_STACK_BOTTOM = StackPointer.wrap(
+    type(uint256).max / 2
+);
+StackPointer constant MINIMUM_STACK_BOTTOM = StackPointer.wrap(
+    type(uint256).max / 4
+);
+
+/// It is a misconfiguration to set the initial stack bottom to zero or some
+/// small value as this trivially exposes the integrity check to potential
+/// underflow issues that are gas intensive to repeatedly guard against on every
+/// pop. The initial stack bottom for an `IntegrityCheckState` should be
+/// `INITIAL_STACK_BOTTOM` to safely avoid the need for underflow checks due to
+/// pops and pushes.
+error MinStackBottom();
+
 /// The virtual stack top has underflowed the stack bottom (or zero) during an
 /// integrity check.
 /// @param stackBottom Pointer to the stack bottom at the moment of underflow.
@@ -129,6 +149,15 @@ library LibIntegrityCheck {
         uint256 minStackOutputs_
     ) internal view returns (StackPointer) {
         unchecked {
+            // It's generally more efficient to ensure the stack bottom has
+            // plenty of headroom to make underflows from pops impossible rather
+            // than guard every single pop against underflow.
+            if (
+                StackPointer.unwrap(integrityCheckState_.stackBottom) <
+                StackPointer.unwrap(MINIMUM_STACK_BOTTOM)
+            ) {
+                revert MinStackBottom();
+            }
             uint256 cursor_;
             uint256 end_;
             assembly ("memory-safe") {
@@ -157,7 +186,7 @@ library LibIntegrityCheck {
                     opcode_
                 ](integrityCheckState_, operand_, stackTop_);
             }
-            uint finalStackOutputs_ = integrityCheckState_.stackBottom.toIndex(
+            uint256 finalStackOutputs_ = integrityCheckState_.stackBottom.toIndex(
                 stackTop_
             );
             if (minStackOutputs_ > finalStackOutputs_) {
@@ -178,9 +207,9 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        StackPointer stackTopAfter_ = stackTop_.up();
-        integrityCheckState_.syncStackMaxTop(stackTopAfter_);
-        return stackTopAfter_;
+        stackTop_ = stackTop_.up();
+        integrityCheckState_.syncStackMaxTop(stackTop_);
+        return stackTop_;
     }
 
     /// Overloaded `push` to support `n_` pushes in a single movement.
@@ -193,43 +222,32 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         uint256 n_
     ) internal pure returns (StackPointer) {
-        StackPointer stackTopAfter_ = stackTop_.up(n_);
-        integrityCheckState_.syncStackMaxTop(stackTopAfter_);
-        return stackTopAfter_;
+        stackTop_ = stackTop_.up(n_);
+        integrityCheckState_.syncStackMaxTop(stackTop_);
+        return stackTop_;
     }
 
-    /// Ensures that pops have not underflowed the stack, i.e. that the stack
-    /// top is not below the stack bottom nor silently underflowed 0 during the
-    /// integrity check. Note that underflowing 0 in the integrity check does NOT
-    /// mean that the runtime behaviour will underflow 0. The runtime stack
-    /// bottom is a function of the Solidity memory allocator while the deploy
-    /// time stack bottom is arbitrary and used for virtual/relative calculations
-    /// only.
-    function popUnderflowCheck(
-        IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_
-    ) internal pure {
-        if (
-            // Stack bottom may be non-zero so check we aren't below it.
-            StackPointer.unwrap(stackTop_) <
-            StackPointer.unwrap(integrityCheckState_.stackBottom) ||
-            // An underflow below 0 will put the stack top above the max stack
-            // top during a pop (i.e. subtraction results in a larger integer).
-            StackPointer.unwrap(stackTop_) >
-            StackPointer.unwrap(integrityCheckState_.stackMaxTop)
-        ) {
-            revert StackUnderflow(integrityCheckState_.stackBottom, stackTop_);
-        }
-    }
-
+    /// Move the stock top down one item then check that it hasn't underflowed
+    /// the stack bottom. If all virtual stack movements are defined in terms
+    /// of pops and pushes this will enforce that the gross stack movements do
+    /// not underflow, which would lead to out of bounds stack reads at runtime.
+    /// @param integrityCheckState_ The state of the current integrity check.
+    /// @param stackTop_ The virtual stack top before an item is popped.
+    /// @return The virtual stack top after the pop.
     function pop(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer stackTopAfter_) {
-        stackTopAfter_ = stackTop_.down();
-        integrityCheckState_.popUnderflowCheck(stackTopAfter_);
+    ) internal pure returns (StackPointer) {
+        stackTop_ = stackTop_.down();
+        integrityCheckState_.popUnderflowCheck(stackTop_);
+        return stackTop_;
     }
 
+    /// Overloaded `pop` to support `n_` pops in a single movement.
+    /// `n_` MAY be 0 and this is a virtual noop stack movement.
+    /// @param integrityCheckState_ as per `pop`.
+    /// @param stackTop_ as per `pop`.
+    /// @param n_ The number of items to pop off the virtual stack.
     function pop(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -242,6 +260,32 @@ library LibIntegrityCheck {
         return stackTop_;
     }
 
+    /// Ensures that pops have not underflowed the stack, i.e. that the stack
+    /// top is not below the stack bottom. We set a large stack bottom that is
+    /// impossible to underflow within gas limits with realistic pops so that
+    /// we don't have to deal with a numeric underflow of the stack top.
+    /// @param integrityCheckState_ As per `pop`.
+    /// @param stackTop_ as per `pop`.
+    function popUnderflowCheck(
+        IntegrityCheckState memory integrityCheckState_,
+        StackPointer stackTop_
+    ) internal pure {
+        if (
+            // Stack bottom may be non-zero so check we aren't below it.
+            StackPointer.unwrap(stackTop_) <
+            StackPointer.unwrap(integrityCheckState_.stackBottom)
+        ) {
+            revert StackUnderflow(integrityCheckState_.stackBottom, stackTop_);
+        }
+    }
+
+    /// Maps `function(uint256, uint256) internal view returns (uint256)` to pops
+    /// and pushes repeatedly N times. The function itself is irrelevant we only
+    /// care about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @param n_ The number of times the function is applied to the stack.
+    /// @return The stack top after the function has been applied n times.
     function applyFnN(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -252,6 +296,13 @@ library LibIntegrityCheck {
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, n_));
     }
 
+    /// Maps `function(uint256) internal view` to pops and pushes repeatedly N
+    /// times. The function itself is irrelevant we only care about the
+    /// signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @param n_ The number of times the function is applied to the stack.
+    /// @return The stack top after the function has been applied n times.
     function applyFnN(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -261,6 +312,12 @@ library LibIntegrityCheck {
         return integrityCheckState_.pop(stackTop_, n_);
     }
 
+    /// Maps `function(uint256) internal view returns (uint256)` to pops and
+    /// pushes once. The function itself is irrelevant we only care about the
+    /// signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -269,14 +326,12 @@ library LibIntegrityCheck {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 
-    function applyFn(
-        IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
-        function(Operand, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
-    }
-
+    /// Maps `function(uint256, uint256) internal view` to pops and pushes once.
+    /// The function itself is irrelevant we only care about the signature to
+    /// know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -285,6 +340,12 @@ library LibIntegrityCheck {
         return integrityCheckState_.pop(stackTop_, 2);
     }
 
+    /// Maps `function(uint256, uint256) internal view returns (uint256)` to
+    /// pops and pushes once. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -294,15 +355,13 @@ library LibIntegrityCheck {
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }
 
-    function applyFn(
-        IntegrityCheckState memory integrityCheckState_,
-        StackPointer stackTop_,
-        function(Operand, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
-        return
-            integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
-    }
-
+    /// Maps
+    /// `function(uint256, uint256, uint256) internal view returns (uint256)` to
+    /// pops and pushes once. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -312,10 +371,22 @@ library LibIntegrityCheck {
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 3));
     }
 
+    /// Maps
+    /// ```
+    /// function(uint256, uint256, uint256, uint256)
+    ///     internal
+    ///     view
+    ///     returns (uint256)
+    /// ```
+    /// to pops and pushes once. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
-        function(uint256, uint256, uint256, uint)
+        function(uint256, uint256, uint256, uint256)
             internal
             view
             returns (uint256)
@@ -324,6 +395,14 @@ library LibIntegrityCheck {
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 4));
     }
 
+    /// Maps `function(uint256[] memory) internal view returns (uint256)` to
+    /// pops and pushes once given that we know the length of the dynamic array
+    /// at deploy time. The function itself is irrelevant we only care about the
+    /// signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @param length_ The length of the dynamic input array.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -336,6 +415,20 @@ library LibIntegrityCheck {
             );
     }
 
+    /// Maps
+    /// ```
+    /// function(uint256, uint256, uint256[] memory)
+    ///     internal
+    ///     view
+    ///     returns (uint256)
+    /// ```
+    /// to pops and pushes once given that we know the length of the dynamic
+    /// array at deploy time. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @param length_ The length of the dynamic input array.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -353,6 +446,20 @@ library LibIntegrityCheck {
         }
     }
 
+    /// Maps
+    /// ```
+    /// function(uint256, uint256, uint256, uint256[] memory)
+    ///     internal
+    ///     view
+    ///     returns (uint256)
+    /// ```
+    /// to pops and pushes once given that we know the length of the dynamic
+    /// array at deploy time. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @param length_ The length of the dynamic input array.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
@@ -386,5 +493,43 @@ library LibIntegrityCheck {
                     length_
                 );
         }
+    }
+
+    /// Maps `function(Operand, uint256) internal view returns (uint256)` to
+    /// pops and pushes once. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    ///
+    /// The operand MUST NOT influence the stack movements if this application
+    /// is to be valid.
+    ///
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
+    function applyFn(
+        IntegrityCheckState memory integrityCheckState_,
+        StackPointer stackTop_,
+        function(Operand, uint256) internal view returns (uint256)
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
+    }
+
+    /// Maps
+    /// `function(Operand, uint256, uint256) internal view returns (uint256)` to
+    /// pops and pushes once. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    ///
+    /// The operand MUST NOT influence the stack movements if this application
+    /// is to be valid.
+    ///
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @return The stack top after the function has been applied once.
+    function applyFn(
+        IntegrityCheckState memory integrityCheckState_,
+        StackPointer stackTop_,
+        function(Operand, uint256, uint256) internal view returns (uint256)
+    ) internal pure returns (StackPointer) {
+        return
+            integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }
 }

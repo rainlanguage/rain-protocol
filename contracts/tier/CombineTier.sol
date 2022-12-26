@@ -16,10 +16,10 @@ SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant REPORT_MIN_OUTPUTS = 1;
-uint constant REPORT_MAX_OUTPUTS = 1;
+uint256 constant REPORT_MAX_OUTPUTS = 1;
 
-uint constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
-uint constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
+uint256 constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
+uint256 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the

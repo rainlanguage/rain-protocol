@@ -5,7 +5,7 @@ import { readBytes, zeroPad32 } from "../../../utils/bytes";
 import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackPointer/deploy";
 import { Tuple } from "../../../utils/types";
 
-describe("LibStackPointer uint array tests", async function () {
+describe("LibStackPointer uint256 array tests", async function () {
   let libStackPointer: LibStackPointerTest;
 
   before(async () => {

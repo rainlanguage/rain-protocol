@@ -21,7 +21,7 @@ uint256 constant FLAG_ROW_FLOW_TIME = 2;
 uint256 constant MIN_FLOW_SENTINELS = 4;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant FLOW_MAX_OUTPUTS = type(uint16).max;
+uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
 struct FlowCommonConfig {
     address expressionDeployer;
@@ -54,7 +54,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     // solhint-disable-next-line func-name-mixedcase
     function __FlowCommon_init(
         FlowCommonConfig memory config_,
-        uint flowMinOutputs_
+        uint256 flowMinOutputs_
     ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();

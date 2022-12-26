@@ -39,8 +39,8 @@ struct FlowERC20IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is

@@ -21,7 +21,7 @@ library LibChainlink {
         // solhint-disable-next-line not-rely-on-time
         require(block.timestamp - updatedAt_ < staleAfter_, "STALE_PRICE");
 
-        // Safely cast the answer to uint and scale it to 18 decimal FP.
+        // Safely cast the answer to uint256 and scale it to 18 decimal FP.
         return
             answer_.toUint256().scale18(
                 AggregatorV3Interface(feed_).decimals()

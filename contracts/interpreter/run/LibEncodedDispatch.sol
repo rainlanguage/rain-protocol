@@ -7,11 +7,11 @@ library LibEncodedDispatch {
     function encode(
         address expressionPointer_,
         SourceIndex sourceIndex_,
-        uint maxOutputs_
+        uint256 maxOutputs_
     ) internal pure returns (EncodedDispatch) {
         return
             EncodedDispatch.wrap(
-                (uint(uint160(expressionPointer_)) << 32) |
+                (uint256(uint160(expressionPointer_)) << 32) |
                     (SourceIndex.unwrap(sourceIndex_) << 16) |
                     maxOutputs_
             );
@@ -19,7 +19,7 @@ library LibEncodedDispatch {
 
     function decode(
         EncodedDispatch dispatch_
-    ) internal pure returns (address, SourceIndex, uint) {
+    ) internal pure returns (address, SourceIndex, uint256) {
         return (
             address(uint160(EncodedDispatch.unwrap(dispatch_) >> 32)),
             SourceIndex.wrap((EncodedDispatch.unwrap(dispatch_) >> 16) & 0xFF),

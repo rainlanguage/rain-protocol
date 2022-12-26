@@ -32,10 +32,10 @@ struct FlowERC1155IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
-uint constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
+uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
 contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     using LibStackPointer for StackPointer;

@@ -104,14 +104,14 @@ library FixedPointMath {
     /// that it would have as though `a_` and `b_` were both `DECIMALS` and we
     /// hadn't rescaled the ratio.
     function scaleRatio(
-        uint ratio_,
+        uint256 ratio_,
         uint8 aDecimals_,
         uint8 bDecimals_
-    ) internal pure returns (uint) {
+    ) internal pure returns (uint256) {
         return
             scaleBy(
                 ratio_,
-                (int(uint(bDecimals_)) - int(uint(aDecimals_))).toInt8()
+                (int256(uint(bDecimals_)) - int256(uint256(aDecimals_))).toInt8()
             );
     }
 
