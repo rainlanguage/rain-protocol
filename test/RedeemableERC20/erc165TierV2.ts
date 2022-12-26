@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
+import { concat, hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { ERC20PulleeTest, ReserveToken } from "../../typechain";
 import { CombineTier, StakeFactory } from "../../typechain";
@@ -16,11 +16,13 @@ import {
   combineTierDeploy,
   compareStructs,
   getEventArgs,
+  max_uint256,
   stakeDeploy,
   Tier,
 } from "../../utils";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import {
@@ -57,7 +59,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.THIS_ADDRESS),
+      op(Opcode.CONTEXT, 0x0001),
       ctxAccount,
     op(Opcode.ITIERV2_REPORT),
   ]);
@@ -108,10 +110,24 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       {}
     )) as ReserveToken;
 
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: reserveToken.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const tier = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -141,14 +157,14 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
   it("should fail ERC165 check by passing invalid contract not inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
 
-    const tier = await allStandardOpsDeploy();
+    const tier = hexlify(randomBytes(20));
 
     const minimumTier = Tier.FOUR;
 
     const tokenConfig = {
       reserve: reserve.address,
       erc20Config: redeemableERC20Config,
-      tier: tier.address,
+      tier: tier,
       minimumTier,
       distributionEndForwardingAddress: ethers.constants.AddressZero,
     };

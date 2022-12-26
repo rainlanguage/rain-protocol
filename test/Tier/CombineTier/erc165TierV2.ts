@@ -9,8 +9,11 @@ import {
   basicDeploy,
   compareStructs,
   getEventArgs,
+  max_uint256,
   stakeDeploy,
 } from "../../../utils";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
@@ -36,7 +39,7 @@ describe("CombineTier ERC165 tests", async function () {
   // prettier-ignore
   // return default report
   const sourceReportTimeForTierDefault = concat([
-      op(Opcode.THIS_ADDRESS),
+      op(Opcode.CONTEXT, 0x0001),
       ctxAccount,
     op(Opcode.ITIERV2_REPORT),
   ]);
@@ -93,10 +96,24 @@ describe("CombineTier ERC165 tests", async function () {
     const deployer = signers[0];
     const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployer(
+      interpreter
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      stateConfig: {
+        sources: [
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        ],
+        constants: [max_uint256],
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

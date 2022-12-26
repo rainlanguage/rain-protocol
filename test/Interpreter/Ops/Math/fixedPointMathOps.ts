@@ -1,9 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest } from "../../../../typechain";
+import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { eighteenZeros, ONE, sixZeros } from "../../../../utils/constants";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -14,10 +15,17 @@ import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter fixed point math ops", async function () {
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should scale an arbitrary fixed point number DOWN by scale N", async () => {
@@ -35,9 +43,16 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(100);
 
@@ -64,9 +79,16 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros + "0000");
 
@@ -92,9 +114,16 @@ describe("RainInterpreter fixed point math ops", async function () {
         op(Opcode.SCALEN, n)
       ]),
     ];
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + eighteenZeros + "00");
 
@@ -121,9 +150,16 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros);
 
@@ -152,9 +188,16 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(ONE)
@@ -184,9 +227,16 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
       .mul(value2)
@@ -213,9 +263,16 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const expression0 = await expressionDeployConsumer(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter
+    );
 
-    await logic["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value + eighteenZeros);
     assert(

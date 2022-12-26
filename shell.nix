@@ -1,9 +1,9 @@
 let
   pkgs = import
     (builtins.fetchTarball {
-      name = "nixos-unstable-2022-09-26";
-      url = "https://github.com/nixos/nixpkgs/archive/b8e83fd7e16529ee331313993508c3bf918f1d57.tar.gz";
-      sha256 = "1a98pgnhdhyg66176i36rcn3rklihy36y9z4176la7pxlzm4khwf";
+      name = "nixos-unstable-2022-12-18";
+      url = "https://github.com/nixos/nixpkgs/archive/b65120b662a663f997ddc795c3e42fe9218864c4.tar.gz";
+      sha256 = "sha256:1xa1fif440zhlhc5s3pk9mkprkzvk0rcgif8k4mscbcl6c8sgqw0";
     })
     { };
 
@@ -55,7 +55,7 @@ let
     # Run slither against all our contracts.
     # Disable npx as nix-shell already handles availability of what we need.
     # Dependencies and tests are out of scope.
-    slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies
+    slither . --npx-disable --filter-paths="contracts/test" --exclude-dependencies --fail-high
   '';
 
   solt-the-earth = pkgs.writeShellScriptBin "solt-the-earth" ''
@@ -161,7 +161,6 @@ pkgs.stdenv.mkDerivation {
   buildInputs = [
     pkgs.watch
     pkgs.nixpkgs-fmt
-    pkgs.yarn
     pkgs.nodejs-16_x
     pkgs.slither-analyzer
     local-node

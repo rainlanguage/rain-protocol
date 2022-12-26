@@ -42,20 +42,20 @@ describe("FlowERC721 construction tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC721 SKIP
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // ERC20 SKIP
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // NATIVE END
-      op(Opcode.THIS_ADDRESS), // from
+      op(Opcode.CONTEXT, 0x0001), // from
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // to
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native me->you amount
 
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // from
-      op(Opcode.THIS_ADDRESS), // to
+      op(Opcode.CONTEXT, 0x0001), // to
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
 
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // BURN END
-      op(Opcode.THIS_ADDRESS), // to
+      op(Opcode.CONTEXT, 0x0001), // to
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // burn amount
 
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // MINT END
-      op(Opcode.THIS_ADDRESS), // to
+      op(Opcode.CONTEXT, 0x0001), // to
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // mint amount
     ]);
 

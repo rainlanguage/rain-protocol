@@ -1,7 +1,11 @@
 import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { AllStandardOpsTest, Verify } from "../../typechain";
+import type {
+  IInterpreterV1Consumer,
+  Rainterpreter,
+  Verify,
+} from "../../typechain";
 import { VerifyFactory } from "../../typechain";
 import * as Util from "../../utils";
 import {
@@ -11,7 +15,8 @@ import {
   op,
   verifyFactoryDeploy,
 } from "../../utils";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -19,11 +24,18 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
   const ONE_SECOND = 1;
 
   let verifyFactory: VerifyFactory;
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
 
   before(async () => {
     verifyFactory = await verifyFactoryDeploy();
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
   it("should correctly verify tier", async function () {
@@ -47,12 +59,12 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       op(Opcode.IVERIFYV1_ACCOUNT_STATUS_AT_TIME), // STATUS
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [],
       },
-      [1]
+      rainInterpreter
     );
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), newAdmin.address);
@@ -74,7 +86,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     let timestamp = await getBlockTimestamp();
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp],
     ]);
     assert(
@@ -91,7 +103,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     timestamp = await getBlockTimestamp();
 
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp - ONE_SECOND],
     ]);
 
@@ -103,7 +115,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     // Checking status after 'add'
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp],
     ]);
     assert(
@@ -119,7 +131,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     timestamp = await getBlockTimestamp();
 
     // Checking status before 'approve'
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp - ONE_SECOND],
     ]);
     assertError(
@@ -128,7 +140,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       "[STATUS_ADDED] expected"
     );
     // Checking status after 'approve'
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp],
     ]);
     assert(
@@ -144,7 +156,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     timestamp = await getBlockTimestamp();
 
     // Checking status before 'ban'
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp - ONE_SECOND],
     ]);
     assertError(
@@ -154,7 +166,7 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     // Checking status after 'ban'
-    await logic["runContext(uint256[][])"]([
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
       [verify.address, signer1.address, timestamp],
     ]);
     assert(

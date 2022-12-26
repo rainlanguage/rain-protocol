@@ -37,8 +37,8 @@ const Opcode = AllStandardOps;
 
 describe("FlowERC1155 multiCall tests", async function () {
   let flowERC1155Factory: FlowERC1155Factory;
-  const ME = () => op(Opcode.CALLER);
-  const YOU = () => op(Opcode.CONTEXT, 0x0000);
+  const ME = () => op(Opcode.CONTEXT, 0x0001); // base context this
+  const YOU = () => op(Opcode.CONTEXT, 0x0000); // base context sender
   const flowERC1155ABI = JSON.parse(
     fs.readFileSync(
       "artifacts/contracts/flow/erc1155/FlowERC1155.sol/FlowERC1155.json",
@@ -289,7 +289,7 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
 
     compareStructs(
       flowStruct_A,
@@ -298,7 +298,7 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[1].dispatch, 1234, []);
+      .callStatic.flow(flowInitialized[1].dispatch, [1234], []);
 
     compareStructs(
       flowStruct_B,
@@ -309,12 +309,12 @@ describe("FlowERC1155 multiCall tests", async function () {
     const iFlow = new ethers.utils.Interface(flowERC1155ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
       flowInitialized[0].dispatch,
-      1234,
+      [1234],
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
       flowInitialized[1].dispatch,
-      1234,
+      [1234],
       [],
     ]);
 

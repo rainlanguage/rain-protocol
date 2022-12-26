@@ -2,7 +2,9 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  AllStandardOpsTest,
+  IInterpreterV1Consumer,
+  Rainterpreter,
+  RainterpreterExpressionDeployer,
   ReserveToken18,
   StakeFactory,
 } from "../../typechain";
@@ -10,9 +12,11 @@ import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
+import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { allStandardOpsDeploy } from "../../utils/deploy/test/allStandardOps/deploy";
+import { expressionDeployConsumer } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
   memoryOperand,
@@ -25,13 +29,16 @@ import { numArrayToReport } from "../../utils/tier";
 describe("Stake ITIERV2_REPORT Op", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let logic: AllStandardOpsTest;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
+  let interpreter: Rainterpreter;
+  let expressionDeployer: RainterpreterExpressionDeployer;
 
   // Passing context data in constants
   // prettier-ignore
   const source = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CALLER), // address
+      op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -45,7 +52,15 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
-    logic = await allStandardOpsDeploy();
+    rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
+    interpreter = await rainterpreterDeploy();
+    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
   });
 
   beforeEach(async () => {
@@ -58,10 +73,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -69,19 +103,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.ITIERV2_REPORT)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants: [stake.address],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result = await logic.stackTop();
 
@@ -93,10 +129,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -107,15 +162,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const expected = max_uint256;
 
@@ -134,10 +191,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -150,15 +226,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp = await getBlockTimestamp();
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result = await logic.stackTop();
 
@@ -186,10 +264,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -202,15 +299,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp0 = await getBlockTimestamp();
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
     const result0 = await logic.stackTop();
 
     const expected0 = numArrayToReport([
@@ -239,15 +338,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp1 = await getBlockTimestamp();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
     const result1 = await logic.stackTop();
 
     const expected1 = numArrayToReport([
@@ -274,10 +367,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -290,15 +402,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp = await getBlockTimestamp();
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result = await logic.stackTop();
 
@@ -326,10 +440,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -342,15 +475,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result0 = await logic.stackTop();
 
@@ -379,15 +514,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result1 = await logic.stackTop();
 
@@ -414,15 +543,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result2 = await logic.stackTop();
 
@@ -450,10 +573,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -466,15 +608,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result0 = await logic.stackTop();
 
@@ -503,15 +647,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result1 = await logic.stackTop();
 
@@ -532,15 +670,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.initialize(
-      {
-        sources: [source],
-        constants: [stake.address, ...THRESHOLDS],
-      },
-      [1]
-    );
-
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result2 = await logic.stackTop();
 
@@ -568,10 +700,29 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
+    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const stakeStateConfigSources = [max_deposit, max_withdraw];
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: stakeStateConfigSources,
+        constants: stakeStateConfigConstants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -593,7 +744,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     // prettier-ignore
     const source0 = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // address
+        op(Opcode.CONTEXT, 0x0000), // address
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // context
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -605,22 +756,24 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       op(Opcode.ITIERV2_REPORT, thresholds0.length),
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source0],
         constants: [stake.address, ...thresholds0],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [alice.address],
+    ]);
 
     const result0 = await logic.stackTop();
 
     // Passing context data in constants
     const source1 = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CALLER), // address
+      op(Opcode.CONTEXT, 0x0000), // address
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
@@ -632,15 +785,17 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       op(Opcode.ITIERV2_REPORT, thresholds1.length),
     ]);
 
-    await logic.initialize(
+    const expression1 = await expressionDeployConsumer(
       {
         sources: [source1],
         constants: [stake.address, ...thresholds1],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(alice)["run()"]();
+    await logic.eval(rainInterpreter.address, expression1.dispatch, [
+      [alice.address],
+    ]);
 
     const result1 = await logic.stackTop();
 

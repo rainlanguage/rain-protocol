@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { AllStandardOpsTest } from "../../../../typechain";
 import { flatten2D } from "../../../../utils/array/flatten";
-import { allStandardOpsDeploy } from "../../../../utils/deploy/test/allStandardOps/deploy";
+import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
@@ -10,22 +9,20 @@ import { assertError } from "../../../../utils/test/assertError";
 const Opcode = AllStandardOps;
 
 describe("RainInterpreter context", async function () {
-  let logic: AllStandardOpsTest;
-
-  before(async () => {
-    logic = await allStandardOpsDeploy();
-  });
-
   it("should support context height [COLUMN] up to 16", async () => {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0f00)])];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
-    await logic["runContext(uint256[][])"](context);
-    const resultCol_ = await logic.stack();
+    await consumerLogic.eval(interpreter.address, dispatch, context);
+    const resultCol_ = await consumerLogic.stack();
     assert(resultCol_, "should read context value at 0xff00");
   });
 
@@ -33,12 +30,16 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x000f)])];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const row: number[] = new Array<number>(16).fill(1, 0, 256);
     const context = [row];
-    await logic["runContext(uint256[][])"](context);
-    const resultRow_ = await logic.stack();
+    await consumerLogic.eval(interpreter.address, dispatch, context);
+    const resultRow_ = await consumerLogic.stack();
     assert(resultRow_, "should read context value at 0x00ff");
   });
 
@@ -47,7 +48,11 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x1000)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await await iinterpreterV1ConsumerDeploy({
+          sources,
+          constants,
+        }),
       "OOB_COLUMN",
       "did not error when accessing OOB COLUMN"
     );
@@ -58,7 +63,11 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x0010)])];
 
     await assertError(
-      async () => await logic.initialize({ sources, constants }, [1]),
+      async () =>
+        await iinterpreterV1ConsumerDeploy({
+          sources,
+          constants,
+        }),
       "OOB_ROW",
       "did not error when accessing OOB ROW"
     );
@@ -68,12 +77,16 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0003)])];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const data = [[10, 20, 30]];
 
     await assertError(
-      async () => await logic["runContext(uint256[][])"](data),
+      async () => await consumerLogic.eval(interpreter.address, dispatch, data),
       "Array accessed at an out-of-bounds or negative index",
       "did not error when accessing memory outside of context memory range"
     );
@@ -97,7 +110,11 @@ describe("RainInterpreter context", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [11]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const context = [
       [0, 1, 2, 3],
@@ -106,7 +123,8 @@ describe("RainInterpreter context", async function () {
     ];
 
     assertError(
-      async () => await logic["runContext(uint256[][])"](context),
+      async () =>
+        await consumerLogic.eval(interpreter.address, dispatch, context),
       "VM Exception while processing transaction: reverted with panic code 0x32 (Array accessed at an out-of-bounds or negative index)",
       "did not trigger OOB read error"
     );
@@ -129,7 +147,11 @@ describe("RainInterpreter context", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [10]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const context = [
       [0, 1, 2, 3],
@@ -137,9 +159,9 @@ describe("RainInterpreter context", async function () {
       [8, 9],
     ];
 
-    await logic["runContext(uint256[][])"](context);
+    await consumerLogic.eval(interpreter.address, dispatch, context);
 
-    const result_ = await logic.stack();
+    const result_ = await consumerLogic.stack();
 
     const expectedFlattenedContext = flatten2D(context);
 
@@ -163,13 +185,17 @@ describe("RainInterpreter context", async function () {
       ]),
     ];
 
-    await logic.initialize({ sources, constants }, [3]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const context = [[10, 20, 30]];
 
-    await logic["runContext(uint256[][])"](context);
+    await consumerLogic.eval(interpreter.address, dispatch, context);
 
-    const result_ = await logic.stack();
+    const result_ = await consumerLogic.stack();
 
     context[0].forEach((expectedValue, i_) => {
       assert(
@@ -185,13 +211,17 @@ describe("RainInterpreter context", async function () {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
 
-    await logic.initialize({ sources, constants }, [1]);
+    const { consumerLogic, interpreter, dispatch } =
+      await iinterpreterV1ConsumerDeploy({
+        sources,
+        constants,
+      });
 
     const data = [[42]];
 
-    await logic["runContext(uint256[][])"](data);
+    await consumerLogic.eval(interpreter.address, dispatch, data);
 
-    const result = await logic.stackTop();
+    const result = await consumerLogic.stackTop();
     const expected = 42;
 
     assert(

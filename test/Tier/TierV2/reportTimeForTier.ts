@@ -1,7 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { allStandardOpsDeploy } from "../../../utils/deploy/test/allStandardOps/deploy";
+import { IInterpreterV1Consumer } from "../../../typechain";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionDeployConsumer } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import {
@@ -18,7 +20,13 @@ describe("TierV2 report time for tier op", async function () {
 
     const signer1 = signers[1];
 
-    const logic = await allStandardOpsDeploy();
+    const rainInterpreter = await rainterpreterDeploy();
+
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    const logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
     const readWriteTier = await readWriteTierDeploy();
 
     await readWriteTier.setTier(signer1.address, Tier.FOUR);
@@ -27,20 +35,22 @@ describe("TierV2 report time for tier op", async function () {
     // prettier-ignore
     const source = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-        op(Opcode.CALLER), // account
+        op(Opcode.CONTEXT, 0x0000), // account
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // tier
       op(Opcode.ITIERV2_REPORT_TIME_FOR_TIER)
     ]);
 
-    await logic.initialize(
+    const expression0 = await expressionDeployConsumer(
       {
         sources: [source],
         constants: [readWriteTier.address, Tier.FOUR],
       },
-      [1]
+      rainInterpreter
     );
 
-    await logic.connect(signer1)["run()"]();
+    await logic.eval(rainInterpreter.address, expression0.dispatch, [
+      [signer1.address],
+    ]);
     const result = await logic.stackTop();
 
     assert(
