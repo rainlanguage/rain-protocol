@@ -31,6 +31,7 @@ struct StateConfig {
 /// - Enforcement of no out of bounds memory reads/writes
 /// - Calculation of memory required to eval the stack with a single allocation
 /// - Replacing index based opcodes with absolute interpreter function pointers
+/// - Enforcement that all opcodes and operands used exist and are valid
 ///
 /// This analysis is highly sensitive to the specific implementation and position
 /// of all opcodes and function pointers as compiled into the interpreter. This

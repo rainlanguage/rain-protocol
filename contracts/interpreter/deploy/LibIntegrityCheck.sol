@@ -6,6 +6,13 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 
 import "../run/IInterpreterV1.sol";
 
+/// The final stack produced by some source did not hit the minimum required for
+/// its calling context.
+/// @param minStackOutputs The required minimum stack height.
+/// @param actualStackOutputs The final stack height after evaluating a source.
+/// Will be less than the min stack outputs if this error is thrown.
+error MinFinalStack(uint256 minStackOutputs, uint256 actualStackOutputs);
+
 /// Running an integrity check is a stateful operation. As well as the basic
 /// configuration of what is being checked such as the sources and size of the
 /// constants, the current and maximum stack height is being recomputed on every
@@ -94,12 +101,26 @@ library LibIntegrityCheck {
     /// check will revert.
     /// @param integrityCheckState_ Current state of the integrity check passed
     /// by reference to allow for recursive/nested integrity checking.
-    /// @param sourceIndex
+    /// @param sourceIndex_ The source to check the integrity of which can be
+    /// either an entrypoint or a non-entrypoint source if this is a recursive
+    /// call to `ensureIntegrity`.
+    /// @param stackTop_ The current top of the virtual stack as a pointer. This
+    /// can be manipulated to create effective substacks/scoped/immutable
+    /// runtime values by restricting how the `stackTop_` can move at deploy
+    /// time.
+    /// @param minStackOutputs_ The minimum stack height required by the end of
+    /// this integrity check. The caller MUST ensure that it sets this value high
+    /// enough so that it can safely read enough values from the final stack
+    /// without out of bounds reads. The external interface to the expression
+    /// deployer accepts an array of minimum stack heights against entrypoints,
+    /// but the internal checks can be recursive against non-entrypoints and each
+    /// opcode such as `call` can build scoped stacks, etc. so here we just put
+    /// defining the requirements back on the caller.
     function ensureIntegrity(
         IntegrityCheckState memory integrityCheckState_,
         SourceIndex sourceIndex_,
         StackPointer stackTop_,
-        uint minStackOutputs_
+        uint256 minStackOutputs_
     ) internal view returns (StackPointer) {
         unchecked {
             uint256 cursor_;
@@ -126,21 +147,24 @@ library LibIntegrityCheck {
                 }
                 // We index into the function pointers here to ensure that any
                 // opcodes that we don't have a pointer for will error.
-                stackTop_ = integrityCheckState_.integrityFunctionPointers[opcode_](
-                    integrityCheckState_,
-                    operand_,
-                    stackTop_
-                );
+                stackTop_ = integrityCheckState_.integrityFunctionPointers[
+                    opcode_
+                ](integrityCheckState_, operand_, stackTop_);
             }
-            require(
-                minStackOutputs_ <=
-                    integrityCheckState_.stackBottom.toIndex(stackTop_),
-                "MIN_FINAL_STACK"
+            uint finalStackOutputs_ = integrityCheckState_.stackBottom.toIndex(
+                stackTop_
             );
+            if (minStackOutputs_ > finalStackOutputs_) {
+                revert MinFinalStack(minStackOutputs_, finalStackOutputs_);
+            }
             return stackTop_;
         }
     }
 
+    /// Push a single virtual item onto the virtual stack.
+    /// Simply moves the stack top up one and syncs the interpreter max stack
+    /// height with it if needed.
+    /// @param
     function push(
         IntegrityCheckState memory integrityState_,
         StackPointer stackTop_

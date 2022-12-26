@@ -924,7 +924,9 @@ library LibStackPointer {
     ) internal pure returns (StackPointer) {
         unchecked {
             return
-                StackPointer.wrap(StackPointer.unwrap(stackPointer_) - 0x20 * n_);
+                StackPointer.wrap(
+                    StackPointer.unwrap(stackPointer_) - 0x20 * n_
+                );
         }
     }
 
