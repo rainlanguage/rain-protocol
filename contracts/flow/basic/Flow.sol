@@ -29,8 +29,8 @@ contract Flow is ReentrancyGuard, FlowCommon {
         SignedContext[] memory signedContexts_
     ) internal view returns (FlowTransfer memory, uint[] memory) {
         (
-            StackTop stackBottom_,
-            StackTop stackTop_,
+            StackPointer stackBottom_,
+            StackPointer stackTop_,
             uint[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         return (LibFlow.stackToFlow(stackBottom_, stackTop_), stateChanges_);

@@ -38,8 +38,8 @@ uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 uint constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
 contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -118,7 +118,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                         uint[] memory stateChanges_
                     ) = interpreter_.eval(dispatch_, context_);
                     require(
-                        stack_.asStackTopAfter().peek() > 0,
+                        stack_.asStackPointerAfter().peek() > 0,
                         "INVALID_TRANSFER"
                     );
                     if (stateChanges_.length > 0) {
@@ -137,8 +137,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
         (
-            StackTop stackBottom_,
-            StackTop stackTop_,
+            StackPointer stackBottom_,
+            StackPointer stackTop_,
             uint[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(

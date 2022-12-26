@@ -2,16 +2,16 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpFixedPointScaleN
 /// @notice Opcode for scaling a number to N fixed point.
 library OpFixedPointScaleN {
     using FixedPointMath for uint256;
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function _scaleN(
         Operand operand_,
@@ -21,18 +21,18 @@ library OpFixedPointScaleN {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return integrityState_.applyFn(stackTop_, _scaleN);
     }
 
     function scaleN(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return stackTop_.applyFn(_scaleN, operand_);
     }
 }

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
 /// @title OpWhile
@@ -19,8 +19,8 @@ import "./OpCall.sol";
 /// height does not change between iterations we do not care how many times we
 /// loop (although the user paying gas might).
 library OpDoWhile {
-    using LibIntegrityState for IntegrityState;
-    using LibStackTop for StackTop;
+    using LibIntegrityCheck for IntegrityCheckState;
+    using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;
 
     /// Interpreter integrity for do while.
@@ -29,10 +29,10 @@ library OpDoWhile {
     /// loop must then put a value back on the stack in the same position to
     /// either continue or break the loop.
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
             uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             /// We need outputs to be larger than inputs so inputs can't be the
@@ -56,8 +56,8 @@ library OpDoWhile {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
             uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             uint outputs_ = inputs_ + 1;

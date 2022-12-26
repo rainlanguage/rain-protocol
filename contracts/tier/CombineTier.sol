@@ -6,7 +6,7 @@ import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/run/LibContext.sol";
 
@@ -41,8 +41,8 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2 {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
@@ -101,7 +101,7 @@ contract CombineTier is TierV2 {
                 new SignedContext[](0)
             )
         );
-        return stack_.asStackTopAfter().peek();
+        return stack_.asStackPointerAfter().peek();
     }
 
     /// @inheritdoc ITierV2
@@ -124,6 +124,6 @@ contract CombineTier is TierV2 {
                 new SignedContext[](0)
             )
         );
-        return stack_.asStackTopAfter().peek();
+        return stack_.asStackPointerAfter().peek();
     }
 }

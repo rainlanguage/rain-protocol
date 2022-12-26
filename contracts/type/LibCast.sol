@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/deploy/LibIntegrityState.sol";
+import "../interpreter/deploy/LibIntegrityCheck.sol";
 
 /// @title LibCast
 /// @notice Additional type casting logic that the Solidity compiler doesn't
@@ -26,9 +26,9 @@ library LibCast {
         internal
         pure
         returns (
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop) fn_
+                returns (StackPointer) fn_
         )
     {
         assembly ("memory-safe") {
@@ -46,9 +46,9 @@ library LibCast {
         internal
         pure
         returns (
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory fns_
         )
     {
@@ -66,10 +66,10 @@ library LibCast {
         internal
         pure
         returns (
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 internal
                 view
-                returns (StackTop) fn_
+                returns (StackPointer) fn_
         )
     {
         assembly ("memory-safe") {
@@ -86,9 +86,9 @@ library LibCast {
         internal
         pure
         returns (
-            function(InterpreterState memory, SourceIndex, StackTop)
+            function(InterpreterState memory, SourceIndex, StackPointer)
                 view
-                returns (StackTop) fn_
+                returns (StackPointer) fn_
         )
     {
         assembly ("memory-safe") {
@@ -119,10 +119,10 @@ library LibCast {
     }
 
     function asUint256(
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             internal
             view
-            returns (StackTop) fn_
+            returns (StackPointer) fn_
     ) internal pure returns (uint256 u_) {
         assembly ("memory-safe") {
             u_ := fn_
@@ -130,10 +130,10 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             internal
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory fns_
     ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
@@ -148,9 +148,9 @@ library LibCast {
     }
 
     function asUint256(
-        function(InterpreterState memory, SourceIndex, StackTop)
+        function(InterpreterState memory, SourceIndex, StackPointer)
             view
-            returns (StackTop) fn_
+            returns (StackPointer) fn_
     ) internal pure returns (uint256 u_) {
         assembly ("memory-safe") {
             u_ := fn_
@@ -158,9 +158,9 @@ library LibCast {
     }
 
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackTop)
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory fns_
     ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
@@ -190,9 +190,9 @@ library LibCast {
         internal
         pure
         returns (
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory fns_
         )
     {

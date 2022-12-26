@@ -1,16 +1,16 @@
 import { assert } from "chai";
-import type { LibIntegrityStateTest } from "../../../../typechain";
+import type { LibIntegrityCheckTest } from "../../../../typechain";
 
-import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
+import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityCheckState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
-describe("LibIntegrityState pop tests", async function () {
-  let libIntegrityState: LibIntegrityStateTest;
+describe("LibIntegrityCheck pop tests", async function () {
+  let libIntegrityCheckState: LibIntegrityCheckTest;
 
   before(async () => {
-    libIntegrityState = await libIntegrityStateDeploy();
+    libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
   // pop n
@@ -30,7 +30,7 @@ describe("LibIntegrityState pop tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState[
+        await libIntegrityCheckState[
           "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
@@ -54,7 +54,7 @@ describe("LibIntegrityState pop tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState[
+        await libIntegrityCheckState[
           "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
@@ -76,7 +76,7 @@ describe("LibIntegrityState pop tests", async function () {
     const stackTop = 96;
     const n = 2;
 
-    const stackTopAfter_ = await libIntegrityState[
+    const stackTopAfter_ = await libIntegrityCheckState[
       "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
     ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
 
@@ -96,7 +96,7 @@ describe("LibIntegrityState pop tests", async function () {
     const stackTop = 96;
     const n = 2;
 
-    const stackTopAfter_ = await libIntegrityState[
+    const stackTopAfter_ = await libIntegrityCheckState[
       "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
     ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
 
@@ -119,13 +119,9 @@ describe("LibIntegrityState pop tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState["pop(bytes[],uint256,uint256,uint256,uint256)"](
-          sources,
-          constantsLength,
-          stackBottom,
-          stackMaxTop,
-          stackTop
-        );
+        await libIntegrityCheckState[
+          "pop(bytes[],uint256,uint256,uint256,uint256)"
+        ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
       },
       "STACK_UNDERFLOW",
       "did not fail check"
@@ -146,13 +142,9 @@ describe("LibIntegrityState pop tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState["pop(bytes[],uint256,uint256,uint256,uint256)"](
-          sources,
-          constantsLength,
-          stackBottom,
-          stackMaxTop,
-          stackTop
-        );
+        await libIntegrityCheckState[
+          "pop(bytes[],uint256,uint256,uint256,uint256)"
+        ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
       },
       "STACK_UNDERFLOW",
       "did not fail check"
@@ -171,7 +163,7 @@ describe("LibIntegrityState pop tests", async function () {
     const stackMaxTop = 64;
     const stackTop = 64;
 
-    const stackTopAfter_ = await libIntegrityState[
+    const stackTopAfter_ = await libIntegrityCheckState[
       "pop(bytes[],uint256,uint256,uint256,uint256)"
     ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
 
@@ -190,7 +182,7 @@ describe("LibIntegrityState pop tests", async function () {
     const stackMaxTop = 64;
     const stackTop = 64;
 
-    const stackTopAfter_ = await libIntegrityState[
+    const stackTopAfter_ = await libIntegrityCheckState[
       "pop(bytes[],uint256,uint256,uint256,uint256)"
     ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
 

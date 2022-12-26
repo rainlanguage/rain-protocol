@@ -1,15 +1,15 @@
-import type { LibIntegrityStateTest } from "../../../../typechain";
+import type { LibIntegrityCheckTest } from "../../../../typechain";
 
-import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
+import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityCheckState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
-describe("LibIntegrityState popUnderflowCheck tests", async function () {
-  let libIntegrityState: LibIntegrityStateTest;
+describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
+  let libIntegrityCheckState: LibIntegrityCheckTest;
 
   before(async () => {
-    libIntegrityState = await libIntegrityStateDeploy();
+    libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
   it("should fail check for stack underflow if stackTop > stackMaxTop", async function () {
@@ -26,7 +26,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState.popUnderflowCheck(
+        await libIntegrityCheckState.popUnderflowCheck(
           sources,
           constantsLength,
           stackBottom,
@@ -53,7 +53,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState.popUnderflowCheck(
+        await libIntegrityCheckState.popUnderflowCheck(
           sources,
           constantsLength,
           stackBottom,
@@ -78,7 +78,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
     const stackMaxTop = 64;
     const stackTop = 32;
 
-    await libIntegrityState.popUnderflowCheck(
+    await libIntegrityCheckState.popUnderflowCheck(
       sources,
       constantsLength,
       stackBottom,
@@ -101,7 +101,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
 
     await assertError(
       async () => {
-        await libIntegrityState.popUnderflowCheck(
+        await libIntegrityCheckState.popUnderflowCheck(
           sources,
           constantsLength,
           stackBottom,
@@ -126,7 +126,7 @@ describe("LibIntegrityState popUnderflowCheck tests", async function () {
     const stackMaxTop = 64;
     const stackTop = 32;
 
-    await libIntegrityState.popUnderflowCheck(
+    await libIntegrityCheckState.popUnderflowCheck(
       sources,
       constantsLength,
       stackBottom,

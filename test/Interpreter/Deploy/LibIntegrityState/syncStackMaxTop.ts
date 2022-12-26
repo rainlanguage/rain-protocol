@@ -1,13 +1,13 @@
 import { assert } from "chai";
-import type { LibIntegrityStateTest } from "../../../../typechain";
+import type { LibIntegrityCheckTest } from "../../../../typechain";
 
-import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
+import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityCheckState/deploy";
 
-describe("LibIntegrityState syncStackMaxTop tests", async function () {
-  let libIntegrityState: LibIntegrityStateTest;
+describe("LibIntegrityCheck syncStackMaxTop tests", async function () {
+  let libIntegrityCheckState: LibIntegrityCheckTest;
 
   before(async () => {
-    libIntegrityState = await libIntegrityStateDeploy();
+    libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
   it("should sync stack max top if stackTop gt stackMaxTop", async function () {
@@ -18,14 +18,15 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
     const stackMaxTop = 0;
     const stackTop = 1; // stackTop > stackMaxTop
 
-    const newStackMaxTop_ = await libIntegrityState.callStatic.syncStackMaxTop(
-      sources,
-      constantsLength,
-      stackMaxTop,
-      stackTop
-    );
+    const newStackMaxTop_ =
+      await libIntegrityCheckState.callStatic.syncStackMaxTop(
+        sources,
+        constantsLength,
+        stackMaxTop,
+        stackTop
+      );
 
-    const tx_ = await libIntegrityState.syncStackMaxTop(
+    const tx_ = await libIntegrityCheckState.syncStackMaxTop(
       sources,
       constantsLength,
       stackMaxTop,
@@ -54,14 +55,15 @@ describe("LibIntegrityState syncStackMaxTop tests", async function () {
     const stackMaxTop = 2;
     const stackTop = 1; // stackTop < stackMaxTop
 
-    const newStackMaxTop_ = await libIntegrityState.callStatic.syncStackMaxTop(
-      sources,
-      constantsLength,
-      stackMaxTop,
-      stackTop
-    );
+    const newStackMaxTop_ =
+      await libIntegrityCheckState.callStatic.syncStackMaxTop(
+        sources,
+        constantsLength,
+        stackMaxTop,
+        stackTop
+      );
 
-    const tx_ = await libIntegrityState.syncStackMaxTop(
+    const tx_ = await libIntegrityCheckState.syncStackMaxTop(
       sources,
       constantsLength,
       stackMaxTop,

@@ -2,10 +2,10 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../../array/LibUint256Array.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 import "../../../math/Binary.sol";
 
 /// @title OpCall
@@ -24,8 +24,8 @@ import "../../../math/Binary.sol";
 /// in the called source will 0 index from the first input, NOT the bottom of
 /// the calling stack.
 library OpCall {
-    using LibIntegrityState for IntegrityState;
-    using LibStackTop for StackTop;
+    using LibIntegrityCheck for IntegrityCheckState;
+    using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint;
 
@@ -41,10 +41,10 @@ library OpCall {
     /// @param stackTop_ The current stack top within the integrity check.
     /// @return stackTopAfter_ The stack top after the call movements are applied.
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer stackTopAfter_) {
         // Unpack the operand to get IO and the source to be called.
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
@@ -53,7 +53,7 @@ library OpCall {
         );
 
         // Remember the outer stack bottom.
-        StackTop stackBottom_ = integrityState_.stackBottom;
+        StackPointer stackBottom_ = integrityState_.stackBottom;
 
         // Set the inner stack bottom to below the inputs.
         integrityState_.stackBottom = integrityState_.pop(stackTop_, inputs_);
@@ -83,8 +83,8 @@ library OpCall {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer stackTopAfter_) {
         // Unpack the operand to get IO and the source to be called.
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
@@ -93,7 +93,7 @@ library OpCall {
         );
 
         // Remember the outer stack bottom.
-        StackTop stackBottom_ = state_.stackBottom;
+        StackPointer stackBottom_ = state_.stackBottom;
 
         // Set the inner stack bottom to below the inputs.
         state_.stackBottom = stackTop_.down(inputs_);
@@ -101,12 +101,12 @@ library OpCall {
         // Eval the source from the operand on the current state using the stack
         // top above the inputs as the starting stack top. The final stack top
         // is where we will read outputs from below.
-        StackTop stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
+        StackPointer stackTopEval_ = state_.eval(callSourceIndex_, stackTop_);
         // Normalize the inner final stack so that it contains only the outputs
         // starting from the inner stack bottom.
         LibUint256Array.unsafeCopyValuesTo(
-            StackTop.unwrap(stackTopEval_.down(outputs_)),
-            StackTop.unwrap(state_.stackBottom),
+            StackPointer.unwrap(stackTopEval_.down(outputs_)),
+            StackPointer.unwrap(state_.stackBottom),
             outputs_
         );
 

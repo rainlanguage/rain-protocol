@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpAny
 /// @notice Opcode to compare the top N stack values.
 library OpAny {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         function(uint256[] memory) internal view returns (uint256) fn_;
         return
             integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
@@ -26,12 +26,12 @@ library OpAny {
     function any(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        StackTop bottom_ = stackTop_.down(Operand.unwrap(operand_));
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
+        StackPointer bottom_ = stackTop_.down(Operand.unwrap(operand_));
         for (
-            StackTop i_ = bottom_;
-            StackTop.unwrap(i_) < StackTop.unwrap(stackTop_);
+            StackPointer i_ = bottom_;
+            StackPointer.unwrap(i_) < StackPointer.unwrap(stackTop_);
             i_ = i_.up()
         ) {
             uint256 item_ = i_.peekUp();

@@ -2,22 +2,22 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/SaturatingMath.sol";
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpSaturatingSub
 /// @notice Opcode for subtracting N numbers with saturating subtraction.
 library OpSaturatingSub {
     using SaturatingMath for uint256;
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return
             integrityState_.applyFnN(
                 stackTop_,
@@ -29,8 +29,8 @@ library OpSaturatingSub {
     function saturatingSub(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer stackTopAfter_) {
         return
             stackTop_.applyFnN(
                 SaturatingMath.saturatingSub,

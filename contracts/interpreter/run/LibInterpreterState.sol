@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../run/IInterpreterV1.sol";
 import "../deploy/IExpressionDeployerV1.sol";
-import "./LibStackTop.sol";
+import "./LibStackPointer.sol";
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
@@ -40,8 +40,8 @@ type FullyQualifiedNamespace is uint256;
 /// @param arguments `ZIPMAP` populates arguments which can be copied to the
 /// stack by `VAL`.
 struct InterpreterState {
-    StackTop stackBottom;
-    StackTop constantsBottom;
+    StackPointer stackBottom;
+    StackPointer constantsBottom;
     MemoryKV stateKV;
     FullyQualifiedNamespace namespace;
     uint256[][] context;
@@ -58,16 +58,18 @@ library LibInterpreterState {
     using LibUint256Array for uint256[];
     using LibUint256Array for uint256;
     using LibInterpreterState for InterpreterState;
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
-    using LibStackTop for bytes;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for bytes;
     using LibCast for uint256;
-    using LibCast for function(InterpreterState memory, SourceIndex, StackTop)
+    using LibCast for function(
+        InterpreterState memory,
+        SourceIndex,
+        StackPointer
+    ) view returns (StackPointer);
+    using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
-        returns (StackTop);
-    using LibCast for function(InterpreterState memory, Operand, StackTop)
-        view
-        returns (StackTop)[];
+        returns (StackPointer)[];
     using LibConvert for uint256[];
 
     function debugArray(uint256[] memory array_) internal view {
@@ -79,12 +81,12 @@ library LibInterpreterState {
     }
 
     function debugStack(
-        StackTop stackBottom_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackBottom_,
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         uint256 length_ = stackBottom_.toIndex(stackTop_);
         debugArray(
-            StackTop.unwrap(stackTop_.down(length_)).copyToNewUint256Array(
+            StackPointer.unwrap(stackTop_.down(length_)).copyToNewUint256Array(
                 length_
             )
         );
@@ -93,8 +95,8 @@ library LibInterpreterState {
 
     function debugStack(
         InterpreterState memory state_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return debugStack(state_.stackBottom, stackTop_);
     }
 
@@ -103,9 +105,9 @@ library LibInterpreterState {
     /// production but great for debugging Rain expressions.
     function debug(
         InterpreterState memory state_,
-        StackTop stackTop_,
+        StackPointer stackTop_,
         DebugStyle debugStyle_
-    ) internal view returns (StackTop) {
+    ) internal view returns (StackPointer) {
         if (debugStyle_ == DebugStyle.Source) {
             for (uint256 i_ = 0; i_ < state_.compiledSources.length; i_++) {
                 console.logBytes(state_.compiledSources[i_]);
@@ -137,7 +139,7 @@ library LibInterpreterState {
                 size_ += config_.sources[i_].size();
             }
             bytes memory serialized_ = new bytes(size_);
-            StackTop cursor_ = serialized_.asStackTop().up();
+            StackPointer cursor_ = serialized_.asStackPointer().up();
 
             // Copy stack length.
             cursor_ = cursor_.push(stackLength_);
@@ -167,9 +169,9 @@ library LibInterpreterState {
             // here.
             state_.context = new uint256[][](0);
 
-            StackTop cursor_ = serialized_.asStackTop().up();
+            StackPointer cursor_ = serialized_.asStackPointer().up();
             // The end of processing is the end of the state bytes.
-            StackTop end_ = cursor_.upBytes(cursor_.peek());
+            StackPointer end_ = cursor_.upBytes(cursor_.peek());
 
             // Read the stack length and build a stack.
             cursor_ = cursor_.up();
@@ -179,7 +181,7 @@ library LibInterpreterState {
             // array for it with length as per the indexes and point the state
             // at it.
             uint256[] memory stack_ = new uint256[](stackLength_);
-            state_.stackBottom = stack_.asStackTopUp();
+            state_.stackBottom = stack_.asStackPointerUp();
 
             // Reference the constants array and move cursor past it.
             cursor_ = cursor_.up();
@@ -188,16 +190,18 @@ library LibInterpreterState {
 
             // Rebuild the sources array.
             uint256 i_ = 0;
-            StackTop lengthCursor_ = cursor_;
+            StackPointer lengthCursor_ = cursor_;
             uint256 sourcesLength_ = 0;
-            while (StackTop.unwrap(lengthCursor_) < StackTop.unwrap(end_)) {
+            while (
+                StackPointer.unwrap(lengthCursor_) < StackPointer.unwrap(end_)
+            ) {
                 lengthCursor_ = lengthCursor_
                     .upBytes(lengthCursor_.peekUp())
                     .up();
                 sourcesLength_++;
             }
             state_.compiledSources = new bytes[](sourcesLength_);
-            while (StackTop.unwrap(cursor_) < StackTop.unwrap(end_)) {
+            while (StackPointer.unwrap(cursor_) < StackPointer.unwrap(end_)) {
                 state_.compiledSources[i_] = cursor_.asBytes();
                 cursor_ = cursor_.upBytes(cursor_.peekUp()).up();
                 i_++;
@@ -257,8 +261,8 @@ library LibInterpreterState {
     function eval(
         InterpreterState memory state_,
         SourceIndex sourceIndex_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
             uint256 cursor_;
             uint256 end_;
@@ -274,10 +278,10 @@ library LibInterpreterState {
 
             // Loop until complete.
             while (cursor_ < end_) {
-                function(InterpreterState memory, Operand, StackTop)
+                function(InterpreterState memory, Operand, StackPointer)
                     internal
                     view
-                    returns (StackTop) fn_;
+                    returns (StackPointer) fn_;
                 Operand operand_;
                 cursor_ += 4;
                 {

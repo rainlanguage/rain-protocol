@@ -12,7 +12,7 @@ describe("LibInterpreterState eval tests", async function () {
     libInterpreterState = await libInterpreterStateDeploy();
   });
 
-  it("should eval state for specified sourceIndex 1 when StackTop is specified", async () => {
+  it("should eval state for specified sourceIndex 1 when StackPointer is specified", async () => {
     // prettier-ignore
     const sources = [
       concat([ // sourceIndex 0
@@ -29,7 +29,7 @@ describe("LibInterpreterState eval tests", async function () {
 
     const { stackBottom_, stackTopAfter_ } =
       await libInterpreterState.callStatic[
-        "evalStackTop((bytes[],uint256[]),uint256,uint256[])"
+        "evalStackPointer((bytes[],uint256[]),uint256,uint256[])"
       ]({ sources, constants }, sourceIndex, [1, 8]); // simply sets stackTop to stackBottom for ease of testing
 
     assert(
@@ -40,7 +40,7 @@ describe("LibInterpreterState eval tests", async function () {
     );
   });
 
-  it("should eval state for default sourceIndex 0 when StackTop is specified", async () => {
+  it("should eval state for default sourceIndex 0 when StackPointer is specified", async () => {
     // prettier-ignore
     const sources = [
       concat([ // sourceIndex 0
@@ -55,7 +55,7 @@ describe("LibInterpreterState eval tests", async function () {
 
     const { stackBottom_, stackTopAfter_ } =
       await libInterpreterState.callStatic[
-        "evalStackTop((bytes[],uint256[]),uint256[])"
+        "evalStackPointer((bytes[],uint256[]),uint256[])"
       ]({ sources, constants }, [1, 8]); // simply sets stackTop to stackBottom for ease of testing
 
     assert(

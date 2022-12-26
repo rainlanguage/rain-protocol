@@ -200,7 +200,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const stack1 = await consumerLogic.stack();
 
-    // StackTop
+    // StackPointer
     const val1_ = stack1[stack1.length - 1];
 
     assert(val1_.eq(val), "Invalid value was SET / GET");
@@ -234,7 +234,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const val2_ = stack2[stack2.length - 1];
 
-    // StackTop
+    // StackPointer
     assert(
       val2_.eq(hashedValue),
       "Invalid value was SET / GET for hashed bytes"
@@ -269,7 +269,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const val3_ = stack3[stack3.length - 1];
 
-    // StackTop
+    // StackPointer
     assert(
       val3_.eq(maxValue),
       "Invalid value was SET / GET for max key value pair"
@@ -304,7 +304,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const val4_ = stack4[stack4.length - 1];
 
-    // StackTop
+    // StackPointer
     assert(
       val4_.eq(addressValue),
       "Invalid value was SET / GET for string key value pair"
@@ -335,7 +335,7 @@ describe("SET/GET Opcode tests", async function () {
 
     const stateChanges = await consumerLogic["stateChanges()"]();
 
-    // StackTop
+    // StackPointer
     const key_ = stateChanges[0];
     const val_ = stateChanges[1];
 

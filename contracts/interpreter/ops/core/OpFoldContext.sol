@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
 /// @title OpFoldContext
@@ -19,14 +19,14 @@ import "./OpCall.sol";
 /// expression. The additional inputs are the accumulators and so the number of
 /// outputs in the called source needs to match the number of accumulator inputs.
 library OpFoldContext {
-    using LibIntegrityState for IntegrityState;
-    using LibStackTop for StackTop;
+    using LibIntegrityCheck for IntegrityCheckState;
+    using LibStackPointer for StackPointer;
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
             uint sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
             // We don't use the column for anything in the integrity check.
@@ -52,8 +52,8 @@ library OpFoldContext {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
             uint sourceIndex_ = Operand.unwrap(operand_) & MASK_4BIT;
             uint column_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;

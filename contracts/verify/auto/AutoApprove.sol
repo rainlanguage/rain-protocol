@@ -7,7 +7,7 @@ import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
-import "../../interpreter/run/LibStackTop.sol";
+import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 
 uint constant CAN_APPROVE_MIN_OUTPUTS = 1;
@@ -21,12 +21,12 @@ struct AutoApproveConfig {
 }
 
 contract AutoApprove is VerifyCallback {
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -81,7 +81,7 @@ contract AutoApprove is VerifyCallback {
                         uint[] memory stack_,
                         uint[] memory stateChanges_
                     ) = interpreter_.eval(dispatch_, context_);
-                    if (stack_.asStackTopAfter().peek() > 0) {
+                    if (stack_.asStackPointerAfter().peek() > 0) {
                         LibEvidence._updateEvidenceRef(
                             approvedRefs_,
                             evidences_[i_],

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibIntegrityStateTest } from "../../../../typechain";
-import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
+import type { LibIntegrityCheckTest } from "../../../../typechain";
+import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityCheckState/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -10,11 +10,11 @@ import {
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
 import { assertError } from "../../../../utils/test/assertError";
 
-describe("LibIntegrityState ensureIntegrity tests", async function () {
-  let libIntegrityState: LibIntegrityStateTest;
+describe("LibIntegrityCheck ensureIntegrity tests", async function () {
+  let libIntegrityCheckState: LibIntegrityCheckTest;
 
   before(async () => {
-    libIntegrityState = await libIntegrityStateDeploy();
+    libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
   it("should check the integrity of the specified source", async function () {
@@ -31,7 +31,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     const stackTop = 0;
     const minimumFinalStackIndex = 0;
 
-    const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
       sources,
       constantsLength,
       sourceIndex,
@@ -56,7 +56,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     const stackTop = 0;
     const minimumFinalStackIndex = 1;
 
-    const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
       sources,
       constantsLength,
       sourceIndex,
@@ -94,7 +94,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     const stackTop = 0;
     const minimumFinalStackIndex = 1;
 
-    const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
       sources,
       constantsLength,
       sourceIndex,
@@ -132,15 +132,16 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     const stackTop = 0;
     const minimumFinalStackIndex = 1;
 
-    const _stackTop_ = await libIntegrityState.callStatic.ensureIntegrityTest(
-      sources,
-      constantsLength,
-      sourceIndex,
-      stackTop,
-      minimumFinalStackIndex
-    );
+    const _stackTop_ =
+      await libIntegrityCheckState.callStatic.ensureIntegrityTest(
+        sources,
+        constantsLength,
+        sourceIndex,
+        stackTop,
+        minimumFinalStackIndex
+      );
 
-    const tx_ = await libIntegrityState.ensureIntegrityTest(
+    const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
       sources,
       constantsLength,
       sourceIndex,
@@ -166,7 +167,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     const stackTop = 0;
     const minimumFinalStackIndex = 1;
 
-    const ensureIntegrity_ = libIntegrityState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
       sources,
       constantsLength,
       sourceIndex,
@@ -183,7 +184,7 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     );
   });
 
-  it("should ensure integrity of very basic IntegrityState", async function () {
+  it("should ensure integrity of very basic IntegrityCheckState", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
 
@@ -192,15 +193,16 @@ describe("LibIntegrityState ensureIntegrity tests", async function () {
     const stackTop = 0;
     const minimumFinalStackIndex = 0;
 
-    const stackTop_ = await libIntegrityState.callStatic.ensureIntegrityTest(
-      sources,
-      constantsLength,
-      sourceIndex,
-      stackTop,
-      minimumFinalStackIndex
-    );
+    const stackTop_ =
+      await libIntegrityCheckState.callStatic.ensureIntegrityTest(
+        sources,
+        constantsLength,
+        sourceIndex,
+        stackTop,
+        minimumFinalStackIndex
+      );
 
-    const tx_ = await libIntegrityState.ensureIntegrityTest(
+    const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
       sources,
       constantsLength,
       sourceIndex,

@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpMod
 /// @notice Opcode to mod N numbers.
 library OpMod {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function _mod(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_ % b_;
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return
             integrityState_.applyFnN(stackTop_, _mod, Operand.unwrap(operand_));
     }
@@ -27,8 +27,8 @@ library OpMod {
     function mod(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer stackTopAfter_) {
         return stackTop_.applyFnN(_mod, Operand.unwrap(operand_));
     }
 }

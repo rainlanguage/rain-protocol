@@ -56,8 +56,8 @@ uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
@@ -110,7 +110,10 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             EncodedDispatch dispatch_ = _dispatch;
             (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
                 .eval(dispatch_, context_);
-            require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
+            require(
+                stack_.asStackPointerAfter().peek() > 0,
+                "INVALID_TRANSFER"
+            );
             if (stateChanges_.length > 0) {
                 _interpreter.stateChanges(stateChanges_);
             }
@@ -125,8 +128,8 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         (
-            StackTop stackBottom_,
-            StackTop stackTop_,
+            StackPointer stackBottom_,
+            StackPointer stackTop_,
             uint[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(

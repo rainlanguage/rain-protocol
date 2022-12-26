@@ -46,8 +46,8 @@ uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC721
 contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
@@ -116,7 +116,10 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                         new SignedContext[](0)
                     )
                 );
-            require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
+            require(
+                stack_.asStackPointerAfter().peek() > 0,
+                "INVALID_TRANSFER"
+            );
             if (stateChanges_.length > 0) {
                 _interpreter.stateChanges(stateChanges_);
             }
@@ -131,8 +134,8 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
         (
-            StackTop stackBottom_,
-            StackTop stackTop_,
+            StackPointer stackBottom_,
+            StackPointer stackTop_,
             uint[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         // mints

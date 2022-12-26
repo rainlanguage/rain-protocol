@@ -11,7 +11,7 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../array/LibUint256Array.sol";
 
 import "../tier/TierV2.sol";
@@ -97,8 +97,8 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     using SafeCast for uint256;
     using Math for uint256;
     using LibUint256Array for uint;
-    using LibStackTop for uint[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint[];
+    using LibStackPointer for StackPointer;
 
     /// Emitted when the contract initializes.
     /// @param sender msg.sender that initializes the contract.
@@ -165,7 +165,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
             uint[] memory stack_,
             uint[] memory
         ) {
-            return stack_.asStackTopAfter().peek();
+            return stack_.asStackPointerAfter().peek();
         } catch {
             return 0;
         }

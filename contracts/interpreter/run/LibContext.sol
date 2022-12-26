@@ -23,7 +23,9 @@ library LibContext {
             );
     }
 
-    function hash(SignedContext[] memory signedContexts_) internal pure returns (bytes32) {
+    function hash(
+        SignedContext[] memory signedContexts_
+    ) internal pure returns (bytes32) {
         return keccak256(abi.encode(signedContexts_));
     }
 
@@ -68,7 +70,11 @@ library LibContext {
                         SignatureChecker.isValidSignatureNow(
                             signedContexts_[i_].signer,
                             ECDSA.toEthSignedMessageHash(
-                                keccak256(abi.encodePacked(signedContexts_[i_].context))
+                                keccak256(
+                                    abi.encodePacked(
+                                        signedContexts_[i_].context
+                                    )
+                                )
                             ),
                             signedContexts_[i_].signature
                         ),

@@ -17,7 +17,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
 
@@ -162,8 +162,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -371,7 +371,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                     LibContext.base().matrixFrom()
                 );
             return (
-                stack_.asStackTopAfter().peek() > 0,
+                stack_.asStackPointerAfter().peek() > 0,
                 interpreterStateChanges_
             );
         }
@@ -419,7 +419,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             dispatchCalculateBuy,
             context_
         );
-        (uint amount_, uint ratio_) = stack_.asStackTopAfter().peek2();
+        (uint amount_, uint ratio_) = stack_.asStackPointerAfter().peek2();
         uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(
             amount_,
             ratio_

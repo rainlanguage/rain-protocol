@@ -1,13 +1,13 @@
 import { assert } from "chai";
-import type { LibIntegrityStateTest } from "../../../../typechain";
+import type { LibIntegrityCheckTest } from "../../../../typechain";
 
-import { libIntegrityStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
+import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityCheckState/deploy";
 
-describe("LibIntegrityState push tests", async function () {
-  let libIntegrityState: LibIntegrityStateTest;
+describe("LibIntegrityCheck push tests", async function () {
+  let libIntegrityCheckState: LibIntegrityCheckTest;
 
   before(async () => {
-    libIntegrityState = await libIntegrityStateDeploy();
+    libIntegrityCheckState = await libIntegrityCheckStateDeploy();
   });
 
   it("should push n", async function () {
@@ -21,7 +21,7 @@ describe("LibIntegrityState push tests", async function () {
     const stackTop = 0;
     const n = 3;
 
-    const stackTopAfter_ = await libIntegrityState[
+    const stackTopAfter_ = await libIntegrityCheckState[
       "push(bytes[],uint256,uint256,uint256,uint256)"
     ](sources, constantsLength, stackMaxTop, stackTop, n);
 
@@ -41,7 +41,7 @@ describe("LibIntegrityState push tests", async function () {
     const stackMaxTop = 0;
     const stackTop = 0;
 
-    const stackTopAfter_ = await libIntegrityState[
+    const stackTopAfter_ = await libIntegrityCheckState[
       "push(bytes[],uint256,uint256,uint256)"
     ](sources, constantsLength, stackMaxTop, stackTop);
 

@@ -2,14 +2,14 @@
 pragma solidity ^0.8.15;
 
 import "../../../array/LibUint256Array.sol";
-import "../../../interpreter/run/LibStackTop.sol";
+import "../../../interpreter/run/LibStackPointer.sol";
 
 /// @title LibUint256ArrayTest
 /// Thin wrapper around `LibUint256Array` library exposing methods for testing
 contract LibUint256ArrayTest {
     using LibUint256Array for uint256[];
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
 
     function arrayFrom(uint256 a_) external pure returns (uint256[] memory) {
         return LibUint256Array.arrayFrom(a_);
@@ -90,7 +90,7 @@ contract LibUint256ArrayTest {
         baseCopy_ = new uint256[](base_.length);
         LibUint256Array.unsafeCopyValuesTo(
             base_,
-            StackTop.unwrap(baseCopy_.asStackTop().up())
+            StackPointer.unwrap(baseCopy_.asStackPointer().up())
         );
         baseCopy_.extend(extend_);
         return baseCopy_;
@@ -102,7 +102,7 @@ contract LibUint256ArrayTest {
         uint256[] memory outputs_ = new uint256[](inputs_.length);
         LibUint256Array.unsafeCopyValuesTo(
             inputs_,
-            StackTop.unwrap(outputs_.asStackTop().up())
+            StackPointer.unwrap(outputs_.asStackPointer().up())
         );
         return outputs_;
     }

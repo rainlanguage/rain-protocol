@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../interpreter/run/LibStackTop.sol";
+import "../../interpreter/run/LibStackPointer.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
@@ -57,14 +57,14 @@ struct FlowTransfer {
 library LibFlow {
     using Address for address payable;
     using SafeERC20 for IERC20;
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using SafeCast for uint256;
     using LibFlow for FlowTransfer;
     using LibUint256Array for uint[];
 
     function stackToFlow(
-        StackTop stackBottom_,
-        StackTop stackTop_
+        StackPointer stackBottom_,
+        StackPointer stackTop_
     ) internal pure returns (FlowTransfer memory) {
         unchecked {
             FlowTransfer memory transfer_;

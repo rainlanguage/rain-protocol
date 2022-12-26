@@ -1,22 +1,21 @@
 import { assert } from "chai";
-import type { LibStackTopTest } from "../../../typechain";
-import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
+import type { LibStackPointerTest } from "../../../typechain";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackPointer/deploy";
 
-describe("LibStackTop stackTop tests", async function () {
-  let libStackTop: LibStackTopTest;
+describe("LibStackPointer stackTop tests", async function () {
+  let libStackPointer: LibStackPointerTest;
 
   before(async () => {
-    libStackTop = await libStackTopDeploy();
+    libStackPointer = await libStackPointerDeploy();
   });
 
   it("should go up 32 bytes", async () => {
     const array0 = [5, 6, 7, 8];
 
-    const { stackTopBefore_, stackTopAfter_ } = await libStackTop.callStatic[
-      "up(uint256[])"
-    ](array0);
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libStackPointer.callStatic["up(uint256[])"](array0);
 
-    const tx0_ = await libStackTop["up(uint256[])"](array0);
+    const tx0_ = await libStackPointer["up(uint256[])"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -32,11 +31,10 @@ describe("LibStackTop stackTop tests", async function () {
     const array0 = [5, 6, 7, 8];
     const n = 3;
 
-    const { stackTopBefore_, stackTopAfter_ } = await libStackTop.callStatic[
-      "up(uint256[],uint256)"
-    ](array0, n);
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libStackPointer.callStatic["up(uint256[],uint256)"](array0, n);
 
-    const tx0_ = await libStackTop["up(uint256[],uint256)"](array0, n);
+    const tx0_ = await libStackPointer["up(uint256[],uint256)"](array0, n);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -51,11 +49,10 @@ describe("LibStackTop stackTop tests", async function () {
   it("should go down 32 bytes", async () => {
     const array0 = [5, 6, 7, 8];
 
-    const { stackTopBefore_, stackTopAfter_ } = await libStackTop.callStatic[
-      "down(uint256[])"
-    ](array0);
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libStackPointer.callStatic["down(uint256[])"](array0);
 
-    const tx0_ = await libStackTop["down(uint256[])"](array0);
+    const tx0_ = await libStackPointer["down(uint256[])"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -71,11 +68,10 @@ describe("LibStackTop stackTop tests", async function () {
     const array0 = [5, 6, 7, 8];
     const n = 3;
 
-    const { stackTopBefore_, stackTopAfter_ } = await libStackTop.callStatic[
-      "down(uint256[],uint256)"
-    ](array0, n);
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libStackPointer.callStatic["down(uint256[],uint256)"](array0, n);
 
-    const tx0_ = await libStackTop["down(uint256[],uint256)"](array0, n);
+    const tx0_ = await libStackPointer["down(uint256[],uint256)"](array0, n);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -91,11 +87,10 @@ describe("LibStackTop stackTop tests", async function () {
     const array0 = [5, 6, 7, 8];
     const n = 3;
 
-    const { stackTopBefore_, stackTopAfter_ } = await libStackTop.callStatic[
-      "upBytes(uint256[],uint256)"
-    ](array0, n);
+    const { stackTopBefore_, stackTopAfter_ } =
+      await libStackPointer.callStatic["upBytes(uint256[],uint256)"](array0, n);
 
-    const tx0_ = await libStackTop["upBytes(uint256[],uint256)"](array0, n);
+    const tx0_ = await libStackPointer["upBytes(uint256[],uint256)"](array0, n);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -109,9 +104,9 @@ describe("LibStackTop stackTop tests", async function () {
     const array1 = [50, 60, 70, 80, 90];
 
     const { index_, stackBottom_, stackTop_ } =
-      await libStackTop.callStatic.toIndex(array0, array1);
+      await libStackPointer.callStatic.toIndex(array0, array1);
 
-    const tx0_ = await libStackTop.toIndex(array0, array1);
+    const tx0_ = await libStackPointer.toIndex(array0, array1);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 

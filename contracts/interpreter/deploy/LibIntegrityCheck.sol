@@ -1,45 +1,61 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../run/LibStackTop.sol";
+import "../run/LibStackPointer.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 import "../run/IInterpreterV1.sol";
 
-struct IntegrityState {
-    // Sources first as we read it in assembly.
+/// Running an integrity check is a stateful operation. As well as the basic
+/// configuration of what is being checked such as the sources and size of the
+/// constants, the current and maximum stack height is being recomputed on every
+/// checked opcode.
+/// @param sources All the sources of the expression are provided to the
+/// integrity check as any entrypoint and non-entrypoint can `call` into some
+/// other source at any time, provided the overall inputs and outputs to the
+/// stack are valid.
+/// @param constantsLength The integrity check assumes the existence of some
+/// opcode that will read from a predefined list of constants. Technically this
+/// opcode MAY NOT exist in some interpreter but it seems highly likely to be
+/// included in most setups. The integrity check only needs the length of the
+/// constants array to check for out of bounds reads, which allows runtime
+/// behaviour to read without additional gas for OOB index checks.
+/// @param stackBottom The
+struct IntegrityCheckState {
+    // Sources in zeroth position as we read from it in assembly without paying
+    // gas to calculate offsets.
     bytes[] sources;
     uint256 constantsLength;
-    StackTop stackBottom;
-    StackTop stackMaxTop;
-    function(IntegrityState memory, Operand, StackTop)
+    StackPointer stackBottom;
+    StackPointer stackMaxTop;
+    function(IntegrityCheckState memory, Operand, StackPointer)
         view
-        returns (StackTop)[] integrityFunctionPointers;
+        returns (StackPointer)[] integrityFunctionPointers;
 }
 
-library LibIntegrityState {
-    using LibIntegrityState for IntegrityState;
-    using LibStackTop for StackTop;
+library LibIntegrityCheck {
+    using LibIntegrityCheck for IntegrityCheckState;
+    using LibStackPointer for StackPointer;
     using Math for uint256;
 
     function syncStackMaxTop(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_
+        IntegrityCheckState memory integrityCheckState_,
+        StackPointer stackTop_
     ) internal pure {
         if (
-            StackTop.unwrap(stackTop_) >
-            StackTop.unwrap(integrityState_.stackMaxTop)
+            StackPointer.unwrap(stackTop_) >
+            StackPointer.unwrap(integrityCheckState_.stackMaxTop)
         ) {
-            integrityState_.stackMaxTop = stackTop_;
+            integrityCheckState_.stackMaxTop = stackTop_;
         }
     }
 
     function ensureIntegrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         SourceIndex sourceIndex_,
-        StackTop stackTop_,
+        StackPointer stackTop_,
         uint minStackOutputs_
-    ) internal view returns (StackTop) {
+    ) internal view returns (StackPointer) {
         unchecked {
             uint256 cursor_;
             uint256 end_;
@@ -81,52 +97,52 @@ library LibIntegrityState {
     }
 
     function push(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop stackTopAfter_) {
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer stackTopAfter_) {
         stackTopAfter_ = stackTop_.up();
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
 
     function push(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackTop stackTopAfter_) {
+    ) internal pure returns (StackPointer stackTopAfter_) {
         stackTopAfter_ = stackTop_.up(n_);
         integrityState_.syncStackMaxTop(stackTopAfter_);
     }
 
     function popUnderflowCheck(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_
     ) internal pure {
         require(
             // Stack bottom may be non-zero so check we are above it.
-            (StackTop.unwrap(stackTop_) >=
-                StackTop.unwrap(integrityState_.stackBottom)) &&
+            (StackPointer.unwrap(stackTop_) >=
+                StackPointer.unwrap(integrityState_.stackBottom)) &&
                 // If we underflowed zero then we will be above the stack max
                 // top. Assumes that at least 1 item was popped so we can do a
                 // strict inequality check here.
-                (StackTop.unwrap(stackTop_) <
-                    StackTop.unwrap(integrityState_.stackMaxTop)),
+                (StackPointer.unwrap(stackTop_) <
+                    StackPointer.unwrap(integrityState_.stackMaxTop)),
             "STACK_UNDERFLOW"
         );
     }
 
     function pop(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop stackTopAfter_) {
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer stackTopAfter_) {
         stackTopAfter_ = stackTop_.down();
         integrityState_.popUnderflowCheck(stackTopAfter_);
     }
 
     function pop(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         if (n_ > 0) {
             stackTop_ = stackTop_.down(n_);
             integrityState_.popUnderflowCheck(stackTop_);
@@ -135,100 +151,100 @@ library LibIntegrityState {
     }
 
     function applyFnN(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256),
         uint256 n_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_, n_));
     }
 
     function applyFnN(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256) internal view,
         uint256 n_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.pop(stackTop_, n_);
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256) internal view returns (uint256)
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(Operand, uint256) internal view returns (uint256)
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256) internal view
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.pop(stackTop_, 2);
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_, 2));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(Operand, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_, 2));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_, 3));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256, uint256, uint)
             internal
             view
             returns (uint256)
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_, 4));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256[] memory) internal view returns (uint256),
         uint256 length_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         return integrityState_.push(integrityState_.pop(stackTop_, length_));
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256, uint256[] memory)
             internal
             view
             returns (uint256),
         uint256 length_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             return
                 integrityState_.push(
@@ -238,14 +254,14 @@ library LibIntegrityState {
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256, uint256, uint256[] memory)
             internal
             view
             returns (uint256),
         uint256 length_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             return
                 integrityState_.push(
@@ -255,14 +271,14 @@ library LibIntegrityState {
     }
 
     function applyFn(
-        IntegrityState memory integrityState_,
-        StackTop stackTop_,
+        IntegrityCheckState memory integrityState_,
+        StackPointer stackTop_,
         function(uint256, uint256[] memory, uint256[] memory)
             internal
             view
             returns (uint256[] memory),
         uint256 length_
-    ) internal pure returns (StackTop) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             return
                 integrityState_.push(

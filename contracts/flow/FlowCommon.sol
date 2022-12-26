@@ -31,8 +31,8 @@ struct FlowCommonConfig {
 
 contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     using LibInterpreterState for InterpreterState;
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -91,7 +91,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         internal
         view
         onlyRegisteredDispatch(dispatch_)
-        returns (StackTop, StackTop, uint[] memory)
+        returns (StackPointer, StackPointer, uint[] memory)
     {
         (uint256[] memory stack_, uint[] memory stateChanges_) = _interpreter
             .eval(
@@ -102,7 +102,11 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
                     signedContexts_
                 )
             );
-        return (stack_.asStackTopUp(), stack_.asStackTopAfter(), stateChanges_);
+        return (
+            stack_.asStackPointerUp(),
+            stack_.asStackPointerAfter(),
+            stateChanges_
+        );
     }
 
     receive() external payable virtual {}

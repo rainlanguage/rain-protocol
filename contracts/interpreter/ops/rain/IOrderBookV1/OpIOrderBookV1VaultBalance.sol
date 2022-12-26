@@ -2,15 +2,15 @@
 pragma solidity ^0.8.15;
 
 import "../../../../orderbook/IOrderBookV1.sol";
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpIOrderBookV1VaultBalance
 /// @notice Opcode for IOrderBookV1 `vaultBalance`.
 library OpIOrderBookV1VaultBalance {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function f(
         uint256 orderbook_,
@@ -31,18 +31,18 @@ library OpIOrderBookV1VaultBalance {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return integrityState_.applyFn(stackTop_, f);
     }
 
     function run(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return stackTop_.applyFn(f);
     }
 }

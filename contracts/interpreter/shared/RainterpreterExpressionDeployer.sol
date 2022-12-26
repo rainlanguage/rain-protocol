@@ -16,7 +16,7 @@ bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
 
 contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibInterpreterState for StateConfig;
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
 
     event ValidInterpreter(address sender, address interpreter);
     event ExpressionConfig(address sender, StateConfig config);
@@ -55,20 +55,20 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         view
         virtual
         returns (
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory
         )
     {
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory localFnPtrs_ = new function(
-                IntegrityState memory,
+                IntegrityCheckState memory,
                 Operand,
-                StackTop
-            ) view returns (StackTop)[](1);
+                StackPointer
+            ) view returns (StackPointer)[](1);
         localFnPtrs_[0] = OpGet.integrity;
         return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
     }
@@ -102,18 +102,18 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         uint[] memory minStackOutputs_
     ) internal view returns (uint256 stackLength_) {
         require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
-        IntegrityState memory integrityState_ = IntegrityState(
+        IntegrityCheckState memory integrityState_ = IntegrityCheckState(
             sources_,
             constantsLength_,
-            StackTop.wrap(0),
-            StackTop.wrap(0),
+            StackPointer.wrap(0),
+            StackPointer.wrap(0),
             integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
-            LibIntegrityState.ensureIntegrity(
+            LibIntegrityCheck.ensureIntegrity(
                 integrityState_,
                 SourceIndex.wrap(i_),
-                StackTop.wrap(0),
+                StackPointer.wrap(0),
                 minStackOutputs_[i_]
             );
         }

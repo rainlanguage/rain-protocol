@@ -9,12 +9,12 @@ import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 contract Rainterpreter is IInterpreterV1 {
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
-    using LibCast for function(InterpreterState memory, Operand, StackTop)
+    using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
-        returns (StackTop)[];
+        returns (StackPointer)[];
     using LibConvert for uint256[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
@@ -62,7 +62,7 @@ contract Rainterpreter is IInterpreterV1 {
             .deserialize();
         state_.namespace = namespace_;
         state_.context = context_;
-        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+        StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
@@ -113,8 +113,8 @@ contract Rainterpreter is IInterpreterV1 {
     function opGet(
         InterpreterState memory interpreterState_,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         uint k_;
         (stackTop_, k_) = stackTop_.pop();
         MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
@@ -134,20 +134,20 @@ contract Rainterpreter is IInterpreterV1 {
         pure
         virtual
         returns (
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory
         )
     {
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory localPtrs_ = new function(
-                IntegrityState memory,
+                IntegrityCheckState memory,
                 Operand,
-                StackTop
-            ) view returns (StackTop)[](1);
+                StackPointer
+            ) view returns (StackPointer)[](1);
         localPtrs_[0] = OpGet.integrity;
         return localPtrs_;
     }
@@ -157,20 +157,20 @@ contract Rainterpreter is IInterpreterV1 {
         pure
         virtual
         returns (
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory
         )
     {
-        function(InterpreterState memory, Operand, StackTop)
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory localPtrs_ = new function(
                 InterpreterState memory,
                 Operand,
-                StackTop
-            ) view returns (StackTop)[](1);
+                StackPointer
+            ) view returns (StackPointer)[](1);
         localPtrs_[0] = opGet;
         return localPtrs_;
     }
@@ -180,9 +180,9 @@ contract Rainterpreter is IInterpreterV1 {
         view
         virtual
         returns (
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory
         )
     {

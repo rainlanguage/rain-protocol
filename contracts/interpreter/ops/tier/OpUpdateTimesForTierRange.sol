@@ -2,13 +2,13 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 library OpUpdateTimesForTierRange {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function _updateTimesForTierRange(
         Operand operand_,
@@ -29,10 +29,10 @@ library OpUpdateTimesForTierRange {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return integrityState_.applyFn(stackTop_, _updateTimesForTierRange);
     }
 
@@ -44,8 +44,8 @@ library OpUpdateTimesForTierRange {
     function updateTimesForTierRange(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return stackTop_.applyFn(_updateTimesForTierRange, operand_);
     }
 }

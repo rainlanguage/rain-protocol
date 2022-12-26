@@ -2,7 +2,7 @@
 pragma solidity =0.8.17;
 
 import "./IOrderBookV1.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
@@ -55,8 +55,8 @@ contract OrderBook is
     OrderBookFlashLender
 {
     using LibInterpreterState for bytes;
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256[];
     using SafeERC20 for IERC20;
     using Math for uint256;
@@ -245,7 +245,7 @@ contract OrderBook is
                 order_.dispatch,
                 context_
             );
-        (orderOutputMax_, orderIORatio_) = stack_.asStackTopAfter().peek2();
+        (orderOutputMax_, orderIORatio_) = stack_.asStackPointerAfter().peek2();
 
         // Rescale order output max from 18 FP to whatever decimals the output
         // token is using.

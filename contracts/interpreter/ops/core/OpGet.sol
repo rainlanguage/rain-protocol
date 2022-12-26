@@ -2,22 +2,22 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpGet
 /// @notice Opcode for reading from storage.
 library OpGet {
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         unchecked {
             // Pop key
             // Stack value
@@ -29,8 +29,8 @@ library OpGet {
     function run(
         InterpreterState memory,
         Operand,
-        StackTop
-    ) internal pure returns (StackTop) {
+        StackPointer
+    ) internal pure returns (StackPointer) {
         // This must be implemented on the interpreter itself so that storage
         // reads can happen.
         revert("UNIMPLEMENTED");

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibContext.sol";
 import "../math/SaturatingMath.sol";
 import "../math/FixedPointMath.sol";
@@ -104,8 +104,8 @@ contract Lobby is Phased, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using Math for uint256;
     using SaturatingMath for uint256;
     using FixedPointMath for uint256;
@@ -315,7 +315,7 @@ contract Lobby is Phased, ReentrancyGuard {
             );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
-        uint amount_ = stack_.asStackTopAfter().peek().min(deposit_);
+        uint amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
         // the calculated amount is refunded and their entire deposit forfeited
         // from the internal ledger.
         IERC20(token).safeTransfer(msg.sender, amount_);
@@ -363,7 +363,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 );
             // Share for this claimant is the smaller of the calculated share and
             // 1 - shares already claimed.
-            shares[msg.sender] = stack_.asStackTopAfter().peek().min(
+            shares[msg.sender] = stack_.asStackPointerAfter().peek().min(
                 uint256(1e18).saturatingSub(totalShares)
             );
             if (stateChanges_.length > 0) {

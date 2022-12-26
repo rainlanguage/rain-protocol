@@ -70,42 +70,50 @@ uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(InterpreterState memory, uint256, StackTop)
+    using LibCast for function(InterpreterState memory, uint256, StackPointer)
         view
-        returns (StackTop);
-    using LibCast for function(InterpreterState memory, uint256, StackTop)
+        returns (StackPointer);
+    using LibCast for function(InterpreterState memory, uint256, StackPointer)
         pure
-        returns (StackTop);
-    using LibCast for function(InterpreterState memory, uint256, StackTop)
+        returns (StackPointer);
+    using LibCast for function(InterpreterState memory, uint256, StackPointer)
         view
-        returns (StackTop)[];
+        returns (StackPointer)[];
 
-    using AllStandardOps for function(IntegrityState memory, Operand, StackTop)
-        view
-        returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
     using AllStandardOps for function(
         InterpreterState memory,
         Operand,
-        StackTop
-    ) view returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+        StackPointer
+    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
 
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
 
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
-    using LibCast for function(IntegrityState memory, Operand, StackTop)
+    using LibCast for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) view returns (StackPointer);
+    using LibCast for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) pure returns (StackPointer);
+    using LibCast for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) view returns (StackPointer)[];
+    using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
-        returns (StackTop);
-    using LibCast for function(IntegrityState memory, Operand, StackTop)
-        pure
-        returns (StackTop);
-    using LibCast for function(IntegrityState memory, Operand, StackTop)
-        view
-        returns (StackTop)[];
-    using LibCast for function(InterpreterState memory, Operand, StackTop)
-        view
-        returns (StackTop)[];
+        returns (StackPointer)[];
 
     /// An oddly specific conversion between a fixed and dynamic uint256 array.
     /// This is useful for the purpose of building metadata for bounds checks
@@ -118,9 +126,9 @@ library AllStandardOps {
     /// Specifically the size is fixed to match the number of standard ops.
     /// @param dynamic_ The dynamic uint array with length of the standard ops.
     function asUint256Array(
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             view
-            returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -133,9 +141,9 @@ library AllStandardOps {
     }
 
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackTop)
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
@@ -148,24 +156,24 @@ library AllStandardOps {
     }
 
     function integrityFunctionPointers(
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory locals_
     )
         internal
         pure
         returns (
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory
         )
     {
         unchecked {
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
                     OpChainlinkOraclePrice.integrity,
@@ -234,24 +242,24 @@ library AllStandardOps {
     }
 
     function opcodeFunctionPointers(
-        function(InterpreterState memory, Operand, StackTop)
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory locals_
     )
         internal
         pure
         returns (
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory opcodeFunctionPointers_
         )
     {
         unchecked {
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
                     OpChainlinkOraclePrice.price,

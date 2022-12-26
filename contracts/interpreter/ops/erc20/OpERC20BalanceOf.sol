@@ -2,15 +2,15 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC20BalanceOf
 /// @notice Opcode for ERC20 `balanceOf`.
 library OpERC20BalanceOf {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function _balanceOf(
         uint256 token_,
@@ -23,10 +23,10 @@ library OpERC20BalanceOf {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return integrityState_.applyFn(stackTop_, _balanceOf);
     }
 
@@ -34,8 +34,8 @@ library OpERC20BalanceOf {
     function balanceOf(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return stackTop_.applyFn(_balanceOf);
     }
 }

@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpEnsure
 /// @notice Opcode for requiring some truthy values.
 library OpEnsure {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function _ensure(uint256 a_) internal pure {
         assembly ("memory-safe") {
@@ -21,10 +21,10 @@ library OpEnsure {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return
             integrityState_.applyFnN(
                 stackTop_,
@@ -36,8 +36,8 @@ library OpEnsure {
     function ensure(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return stackTop_.applyFnN(_ensure, Operand.unwrap(operand_));
     }
 }
