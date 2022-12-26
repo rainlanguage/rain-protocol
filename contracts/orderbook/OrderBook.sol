@@ -82,7 +82,11 @@ contract OrderBook is
     );
     event OrderNotFound(address sender, address owner, uint256 orderHash);
     event OrderZeroAmount(address sender, address owner, uint256 orderHash);
-    event OrderExceedsMaxRatio(address sender, address owner, uint256 orderHash);
+    event OrderExceedsMaxRatio(
+        address sender,
+        address owner,
+        uint256 orderHash
+    );
     event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
     event AfterClear(ClearStateChange stateChange);
 
@@ -238,9 +242,10 @@ contract OrderBook is
 
         // The state changes produced here are handled in _recordVaultIO so that
         // local storage writes happen before writes on the interpreter.
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = IInterpreterV1(
-            order_.interpreter
-        ).evalWithNamespace(
+        (
+            uint256[] memory stack_,
+            uint256[] memory stateChanges_
+        ) = IInterpreterV1(order_.interpreter).evalWithNamespace(
                 StateNamespace.wrap(uint(uint160(order_.owner))),
                 order_.dispatch,
                 context_

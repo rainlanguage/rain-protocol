@@ -303,9 +303,10 @@ contract Lobby is Phased, ReentrancyGuard {
         players[msg.sender] = 0;
         uint256 deposit_ = deposits[msg.sender];
 
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = IInterpreterV1(
-            interpreter
-        ).eval(
+        (
+            uint256[] memory stack_,
+            uint256[] memory stateChanges_
+        ) = IInterpreterV1(interpreter).eval(
                 leaveEncodedDispatch,
                 LibContext.build(
                     new uint256[][](0),
@@ -397,14 +398,15 @@ contract Lobby is Phased, ReentrancyGuard {
         }
 
         IInterpreterV1 interpreter_ = interpreter;
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_.eval(
-            invalidEncodedDispatch,
-            LibContext.build(
-                new uint256[][](0),
-                callerContext_,
-                signedContexts_
-            )
-        );
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
+            .eval(
+                invalidEncodedDispatch,
+                LibContext.build(
+                    new uint256[][](0),
+                    callerContext_,
+                    signedContexts_
+                )
+            );
 
         if (stateChanges_.length > 0) {
             interpreter_.stateChanges(stateChanges_);

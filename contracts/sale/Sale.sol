@@ -409,17 +409,21 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
     function _previewCalculateBuy(
         uint256 targetUnits_
-    ) internal view returns (uint256, uint256, uint256[][] memory, uint256[] memory) {
+    )
+        internal
+        view
+        returns (uint256, uint256, uint256[][] memory, uint256[] memory)
+    {
         uint256[][] memory context_ = LibContext.build(
             new uint256[][](CONTEXT_COLUMNS),
             targetUnits_.arrayFrom(),
             new SignedContext[](0)
         );
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter.eval(
-            dispatchCalculateBuy,
-            context_
-        );
-        (uint256 amount_, uint256 ratio_) = stack_.asStackPointerAfter().peek2();
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter
+            .eval(dispatchCalculateBuy, context_);
+        (uint256 amount_, uint256 ratio_) = stack_
+            .asStackPointerAfter()
+            .peek2();
         uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
             amount_,
             ratio_
@@ -432,7 +436,9 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     function previewCalculateBuy(
         uint256 targetUnits_
     ) external view returns (uint256, uint256) {
-        (uint256 amount_, uint256 ratio_, , ) = _previewCalculateBuy(targetUnits_);
+        (uint256 amount_, uint256 ratio_, , ) = _previewCalculateBuy(
+            targetUnits_
+        );
         return (amount_, ratio_);
     }
 

@@ -108,8 +108,10 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                 )
                 .matrixFrom();
             EncodedDispatch dispatch_ = _dispatch;
-            (uint256[] memory stack_, uint256[] memory stateChanges_) = _interpreter
-                .eval(dispatch_, context_);
+            (
+                uint256[] memory stack_,
+                uint256[] memory stateChanges_
+            ) = _interpreter.eval(dispatch_, context_);
             require(
                 stack_.asStackPointerAfter().peek() > 0,
                 "INVALID_TRANSFER"

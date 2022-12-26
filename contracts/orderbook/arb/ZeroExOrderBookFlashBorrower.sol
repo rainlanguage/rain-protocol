@@ -110,7 +110,9 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // Refund any unspent 0x protocol fees to the sender.
         payable(msg.sender).transfer(address(this).balance);
 
-        uint256 inputBalance_ = IERC20(takeOrders_.input).balanceOf(address(this));
+        uint256 inputBalance_ = IERC20(takeOrders_.input).balanceOf(
+            address(this)
+        );
         if (inputBalance_ > 0) {
             IERC20(takeOrders_.input).safeTransfer(msg.sender, inputBalance_);
         }

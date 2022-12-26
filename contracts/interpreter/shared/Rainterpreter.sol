@@ -28,7 +28,8 @@ contract Rainterpreter is IInterpreterV1 {
     // 3. uint256 is expression-provided value
     //
     // tiers 0 and 1 are both embodied in the FullyQualifiedNamespace.
-    mapping(FullyQualifiedNamespace => mapping(uint256 => uint256)) internal state;
+    mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
+        internal state;
 
     function _qualifyNamespace(
         StateNamespace stateNamespace_

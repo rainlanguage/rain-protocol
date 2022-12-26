@@ -14,9 +14,6 @@ import "../run/IInterpreterV1.sol";
 StackPointer constant INITIAL_STACK_BOTTOM = StackPointer.wrap(
     type(uint256).max / 2
 );
-StackPointer constant MINIMUM_STACK_BOTTOM = StackPointer.wrap(
-    type(uint256).max / 4
-);
 
 /// It is a misconfiguration to set the initial stack bottom to zero or some
 /// small value as this trivially exposes the integrity check to potential
@@ -154,7 +151,7 @@ library LibIntegrityCheck {
             // than guard every single pop against underflow.
             if (
                 StackPointer.unwrap(integrityCheckState_.stackBottom) <
-                StackPointer.unwrap(MINIMUM_STACK_BOTTOM)
+                StackPointer.unwrap(INITIAL_STACK_BOTTOM)
             ) {
                 revert MinStackBottom();
             }
@@ -186,9 +183,9 @@ library LibIntegrityCheck {
                     opcode_
                 ](integrityCheckState_, operand_, stackTop_);
             }
-            uint256 finalStackOutputs_ = integrityCheckState_.stackBottom.toIndex(
-                stackTop_
-            );
+            uint256 finalStackOutputs_ = integrityCheckState_
+                .stackBottom
+                .toIndex(stackTop_);
             if (minStackOutputs_ > finalStackOutputs_) {
                 revert MinFinalStack(minStackOutputs_, finalStackOutputs_);
             }
@@ -477,6 +474,20 @@ library LibIntegrityCheck {
         }
     }
 
+    /// Maps
+    /// ```
+    /// function(uint256, uint256[] memory, uint256[] memory)
+    ///     internal
+    ///     view
+    ///     returns (uint256[] memory)
+    /// ```
+    /// to pops and pushes once given that we know the length of the dynamic
+    /// array at deploy time. The function itself is irrelevant we only care
+    /// about the signature to know how many items are popped/pushed.
+    /// @param integrityCheckState_ as per `pop` and `push`.
+    /// @param stackTop_ as per `pop` and `push`.
+    /// @param length_ The length of the dynamic input array.
+    /// @return The stack top after the function has been applied once.
     function applyFn(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,

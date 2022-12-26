@@ -15,10 +15,8 @@ contract IInterpreterV1Consumer {
         uint256[][] memory context_
     ) external {
         uint256 a_ = gasleft();
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_.eval(
-            dispatch_,
-            context_
-        );
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
+            .eval(dispatch_, context_);
         uint256 b_ = gasleft();
         console.log("eval gas", a_ - b_);
         _stack = stack_;

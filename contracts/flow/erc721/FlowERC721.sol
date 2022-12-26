@@ -107,8 +107,10 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 batchSize_
             );
             EncodedDispatch dispatch_ = _dispatch;
-            (uint256[] memory stack_, uint256[] memory stateChanges_) = _interpreter
-                .eval(
+            (
+                uint256[] memory stack_,
+                uint256[] memory stateChanges_
+            ) = _interpreter.eval(
                     dispatch_,
                     LibContext.build(
                         new uint256[][](0),

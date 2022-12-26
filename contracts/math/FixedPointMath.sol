@@ -111,7 +111,8 @@ library FixedPointMath {
         return
             scaleBy(
                 ratio_,
-                (int256(uint(bDecimals_)) - int256(uint256(aDecimals_))).toInt8()
+                (int256(uint(bDecimals_)) - int256(uint256(aDecimals_)))
+                    .toInt8()
             );
     }
 
