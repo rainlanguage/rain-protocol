@@ -14,12 +14,12 @@ library OpSaturatingSub {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         return
-            integrityState_.applyFnN(
+            integrityCheckState_.applyFnN(
                 stackTop_,
                 SaturatingMath.saturatingSub,
                 Operand.unwrap(operand_)

@@ -36,12 +36,12 @@ library OpCall {
     /// allocation for all executions and sub-executions, so we recursively run
     /// integrity checks on the called source relative to the current stack
     /// position.
-    /// @param integrityState_ The state of the current integrity check.
+    /// @param integrityCheckState_ The state of the current integrity check.
     /// @param operand_ The operand associated with this call.
     /// @param stackTop_ The current stack top within the integrity check.
     /// @return stackTopAfter_ The stack top after the call movements are applied.
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer stackTopAfter_) {
@@ -53,26 +53,33 @@ library OpCall {
         );
 
         // Remember the outer stack bottom.
-        StackPointer stackBottom_ = integrityState_.stackBottom;
+        StackPointer stackBottom_ = integrityCheckState_.stackBottom;
 
         // Set the inner stack bottom to below the inputs.
-        integrityState_.stackBottom = integrityState_.pop(stackTop_, inputs_);
+        integrityCheckState_.stackBottom = integrityCheckState_.pop(
+            stackTop_,
+            inputs_
+        );
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
         // Contraints namespace is irrelevant here.
-        integrityState_.ensureIntegrity(callSourceIndex_, stackTop_, outputs_);
+        integrityCheckState_.ensureIntegrity(
+            callSourceIndex_,
+            stackTop_,
+            outputs_
+        );
 
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be
         // removed so they do not need to be accounted for here.
-        stackTopAfter_ = integrityState_.push(
-            integrityState_.stackBottom,
+        stackTopAfter_ = integrityCheckState_.push(
+            integrityCheckState_.stackBottom,
             outputs_
         );
 
         // Reinstate the outer stack bottom.
-        integrityState_.stackBottom = stackBottom_;
+        integrityCheckState_.stackBottom = stackBottom_;
     }
 
     /// Call eval with a new scope.

@@ -14,7 +14,7 @@ library OpGet {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
@@ -22,7 +22,7 @@ library OpGet {
             // Pop key
             // Stack value
             function(uint) internal pure returns (uint) fn_;
-            return integrityState_.applyFn(stackTop_, fn_);
+            return integrityCheckState_.applyFn(stackTop_, fn_);
         }
     }
 

@@ -22,7 +22,7 @@ library OpLoopN {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
@@ -36,7 +36,7 @@ library OpLoopN {
             );
             for (uint i_ = 0; i_ < n_; i_++) {
                 stackTop_ = OpCall.integrity(
-                    integrityState_,
+                    integrityCheckState_,
                     callOperand_,
                     stackTop_
                 );

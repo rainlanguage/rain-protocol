@@ -23,14 +23,14 @@ library OpContextRow {
     /// Interpreter integrity logic.
     /// Context pushes a single value to the stack from memory.
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         function(uint) internal pure returns (uint) fn_;
-        return integrityState_.applyFn(stackTop_, fn_);
+        return integrityCheckState_.applyFn(stackTop_, fn_);
     }
 
     /// Stack a value from the context WITH OOB checks from solidity.

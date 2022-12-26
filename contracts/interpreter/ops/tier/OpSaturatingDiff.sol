@@ -11,12 +11,15 @@ library OpSaturatingDiff {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         return
-            integrityState_.applyFn(stackTop_, TierwiseCombine.saturatingSub);
+            integrityCheckState_.applyFn(
+                stackTop_,
+                TierwiseCombine.saturatingSub
+            );
     }
 
     // Stack the tierwise saturating subtraction of two reports.

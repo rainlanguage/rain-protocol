@@ -11,13 +11,17 @@ library OpEvery {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         function(uint256[] memory) internal view returns (uint256) fn_;
         return
-            integrityState_.applyFn(stackTop_, fn_, Operand.unwrap(operand_));
+            integrityCheckState_.applyFn(
+                stackTop_,
+                fn_,
+                Operand.unwrap(operand_)
+            );
     }
 
     // EVERY

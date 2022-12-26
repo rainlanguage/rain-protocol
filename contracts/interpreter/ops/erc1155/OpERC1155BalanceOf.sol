@@ -25,11 +25,11 @@ library OpERC1155BalanceOf {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.applyFn(stackTop_, _balanceOf);
+        return integrityCheckState_.applyFn(stackTop_, _balanceOf);
     }
 
     // Stack the return of `balanceOf`.

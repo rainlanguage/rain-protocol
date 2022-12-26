@@ -29,7 +29,7 @@ library OpDoWhile {
     /// loop must then put a value back on the stack in the same position to
     /// either continue or break the loop.
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
@@ -46,8 +46,12 @@ library OpDoWhile {
             // called a thousand times. Also we pop one output off the result of
             // the call to check the while condition.
             return
-                integrityState_.pop(
-                    OpCall.integrity(integrityState_, callOperand_, stackTop_)
+                integrityCheckState_.pop(
+                    OpCall.integrity(
+                        integrityCheckState_,
+                        callOperand_,
+                        stackTop_
+                    )
                 );
         }
     }

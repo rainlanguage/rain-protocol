@@ -19,12 +19,12 @@ library OpEagerIf {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         return
-            integrityState_.applyFn(
+            integrityCheckState_.applyFn(
                 stackTop_,
                 _eagerIf,
                 Operand.unwrap(operand_) + 1

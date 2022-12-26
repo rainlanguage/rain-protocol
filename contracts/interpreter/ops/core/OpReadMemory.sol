@@ -18,7 +18,7 @@ library OpReadMemory {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
@@ -26,16 +26,16 @@ library OpReadMemory {
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPCODE_MEMORY_TYPE_STACK) {
             require(
-                offset_ < integrityState_.stackBottom.toIndex(stackTop_),
+                offset_ < integrityCheckState_.stackBottom.toIndex(stackTop_),
                 "OOB_STACK_READ"
             );
         } else {
             require(
-                offset_ < integrityState_.constantsLength,
+                offset_ < integrityCheckState_.constantsLength,
                 "OOB_CONSTANT_READ"
             );
         }
-        return integrityState_.push(stackTop_);
+        return integrityCheckState_.push(stackTop_);
     }
 
     function run(

@@ -17,12 +17,16 @@ library OpAdd {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         return
-            integrityState_.applyFnN(stackTop_, _add, Operand.unwrap(operand_));
+            integrityCheckState_.applyFnN(
+                stackTop_,
+                _add,
+                Operand.unwrap(operand_)
+            );
     }
 
     function add(

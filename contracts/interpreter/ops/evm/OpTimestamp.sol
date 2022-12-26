@@ -12,11 +12,11 @@ library OpTimestamp {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.push(stackTop_);
+        return integrityCheckState_.push(stackTop_);
     }
 
     function timestamp(

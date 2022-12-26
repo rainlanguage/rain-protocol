@@ -21,11 +21,11 @@ library OpFixedPointScale18 {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.applyFn(stackTop_, _scale18);
+        return integrityCheckState_.applyFn(stackTop_, _scale18);
     }
 
     function scale18(

@@ -17,11 +17,11 @@ library OpLessThan {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.applyFn(stackTop_, _lessThan);
+        return integrityCheckState_.applyFn(stackTop_, _lessThan);
     }
 
     function lessThan(

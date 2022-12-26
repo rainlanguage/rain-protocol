@@ -16,12 +16,16 @@ library OpMod {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         return
-            integrityState_.applyFnN(stackTop_, _mod, Operand.unwrap(operand_));
+            integrityCheckState_.applyFnN(
+                stackTop_,
+                _mod,
+                Operand.unwrap(operand_)
+            );
     }
 
     function mod(

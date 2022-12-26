@@ -102,7 +102,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         uint[] memory minStackOutputs_
     ) internal view returns (uint256 stackLength_) {
         require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
-        IntegrityCheckState memory integrityState_ = IntegrityCheckState(
+        IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
             sources_,
             constantsLength_,
             StackPointer.wrap(0),
@@ -111,12 +111,15 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         );
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
             LibIntegrityCheck.ensureIntegrity(
-                integrityState_,
+                integrityCheckState_,
                 SourceIndex.wrap(i_),
                 StackPointer.wrap(0),
                 minStackOutputs_[i_]
             );
         }
-        return integrityState_.stackBottom.toIndex(integrityState_.stackMaxTop);
+        return
+            integrityCheckState_.stackBottom.toIndex(
+                integrityCheckState_.stackMaxTop
+            );
     }
 }

@@ -26,11 +26,11 @@ library OpERC20SnapshotBalanceOfAt {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.applyFn(stackTop_, _balanceOfAt);
+        return integrityCheckState_.applyFn(stackTop_, _balanceOfAt);
     }
 
     /// Stack `balanceOfAt`.

@@ -19,13 +19,13 @@ library OpContext {
     /// Interpreter integrity logic.
     /// Context pushes a single value to the stack from memory.
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
-        return integrityState_.push(stackTop_);
+        return integrityCheckState_.push(stackTop_);
     }
 
     /// Stack a value from the context WITH OOB checks from solidity.

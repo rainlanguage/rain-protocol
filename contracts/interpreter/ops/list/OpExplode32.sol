@@ -13,11 +13,12 @@ library OpExplode32 {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.push(integrityState_.pop(stackTop_), 8);
+        return
+            integrityCheckState_.push(integrityCheckState_.pop(stackTop_), 8);
     }
 
     function explode32(

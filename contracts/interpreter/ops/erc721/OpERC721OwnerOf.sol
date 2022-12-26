@@ -20,11 +20,11 @@ library OpERC721OwnerOf {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityState_.applyFn(stackTop_, _ownerOf);
+        return integrityCheckState_.applyFn(stackTop_, _ownerOf);
     }
 
     // Stack the return of `ownerOf`.

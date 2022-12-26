@@ -19,12 +19,16 @@ library OpHash {
     }
 
     function integrity(
-        IntegrityCheckState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         return
-            integrityState_.applyFn(stackTop_, _hash, Operand.unwrap(operand_));
+            integrityCheckState_.applyFn(
+                stackTop_,
+                _hash,
+                Operand.unwrap(operand_)
+            );
     }
 
     // Stack the return of `balanceOfBatch`.
