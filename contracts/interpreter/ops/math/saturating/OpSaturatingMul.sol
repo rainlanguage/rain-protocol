@@ -26,7 +26,7 @@ library OpSaturatingMul {
             );
     }
 
-    function saturatingMul(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

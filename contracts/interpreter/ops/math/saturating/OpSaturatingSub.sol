@@ -26,7 +26,7 @@ library OpSaturatingSub {
             );
     }
 
-    function saturatingSub(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

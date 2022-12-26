@@ -27,7 +27,7 @@ library OpAny {
     // ANY
     // ANY is the first nonzero item, else 0.
     // operand_ id the length of items to check.
-    function any(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

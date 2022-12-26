@@ -24,7 +24,7 @@ library OpEqualTo {
         return integrityCheckState_.applyFn(stackTop_, _equalTo);
     }
 
-    function equalTo(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

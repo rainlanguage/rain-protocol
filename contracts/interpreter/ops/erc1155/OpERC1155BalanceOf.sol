@@ -32,8 +32,7 @@ library OpERC1155BalanceOf {
         return integrityCheckState_.applyFn(stackTop_, _balanceOf);
     }
 
-    // Stack the return of `balanceOf`.
-    function balanceOf(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

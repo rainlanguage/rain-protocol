@@ -19,7 +19,7 @@ library OpBlockNumber {
         return integrityCheckState_.push(stackTop_);
     }
 
-    function blockNumber(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

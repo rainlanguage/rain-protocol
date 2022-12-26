@@ -41,7 +41,7 @@ library OpITierV2ReportTimeForTier {
     }
 
     // Stack the `reportTimeForTier` returned by an `ITierV2` contract.
-    function reportTimeForTier(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

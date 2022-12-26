@@ -28,7 +28,7 @@ library OpFixedPointScaleBy {
         return integrityCheckState_.applyFn(stackTop_, _scaleBy);
     }
 
-    function scaleBy(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

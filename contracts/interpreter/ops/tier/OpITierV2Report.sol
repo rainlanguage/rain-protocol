@@ -39,7 +39,7 @@ library OpITierV2Report {
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

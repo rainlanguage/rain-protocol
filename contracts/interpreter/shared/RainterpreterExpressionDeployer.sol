@@ -11,7 +11,7 @@ bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
     OPCODE_FUNCTION_POINTERS
 );
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x2230a80fd94fd929380b02e3ad34c3da313ad6be3ee9bae9ff5e05352fc40a49
+    0x263d711c5c083bd1045b2a8c19bb8750967d8ed8e00ff89a89b35d14f3f091ea
 );
 
 contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
@@ -107,13 +107,14 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
             constantsLength_,
             INITIAL_STACK_BOTTOM,
             INITIAL_STACK_BOTTOM,
+            INITIAL_STACK_BOTTOM,
             integrityFunctionPointers()
         );
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
             LibIntegrityCheck.ensureIntegrity(
                 integrityCheckState_,
                 SourceIndex.wrap(i_),
-                StackPointer.wrap(0),
+                INITIAL_STACK_BOTTOM,
                 minStackOutputs_[i_]
             );
         }

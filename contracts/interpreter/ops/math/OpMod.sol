@@ -28,7 +28,7 @@ library OpMod {
             );
     }
 
-    function mod(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

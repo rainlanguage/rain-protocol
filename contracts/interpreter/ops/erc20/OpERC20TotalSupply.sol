@@ -24,8 +24,7 @@ library OpERC20TotalSupply {
         return integrityCheckState_.applyFn(stackTop_, _totalSupply);
     }
 
-    // Stack the return of `totalSupply`.
-    function totalSupply(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

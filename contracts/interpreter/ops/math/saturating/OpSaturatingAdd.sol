@@ -26,7 +26,7 @@ library OpSaturatingAdd {
             );
     }
 
-    function saturatingAdd(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

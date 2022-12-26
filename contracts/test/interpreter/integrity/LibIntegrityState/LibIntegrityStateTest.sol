@@ -44,6 +44,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             StackPointer.wrap(stackMaxTop_), // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -64,6 +65,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             INITIAL_STACK_BOTTOM, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -87,6 +89,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             StackPointer.wrap(stackMaxTop_), // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -104,6 +107,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             StackPointer.wrap(stackMaxTop_), // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -121,6 +125,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             StackPointer.wrap(stackBottom_), // stackBottom
+            StackPointer.wrap(stackBottom_), // stackHighwater
             StackPointer.wrap(stackMaxTop_), // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -138,6 +143,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             StackPointer.wrap(stackBottom_), // stackBottom
+            StackPointer.wrap(stackBottom_), // stackHighwater
             StackPointer.wrap(stackMaxTop_), // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -156,6 +162,7 @@ contract LibIntegrityCheckTest {
             sources_, // sources
             constantsLength_, // constantsLength
             StackPointer.wrap(stackBottom_), // stackBottom
+            StackPointer.wrap(stackBottom_), // stachHighwater
             StackPointer.wrap(stackMaxTop_), // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -220,6 +227,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -234,6 +242,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -248,6 +257,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -262,6 +272,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -276,6 +287,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -290,6 +302,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -305,6 +318,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -320,6 +334,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -335,6 +350,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );
@@ -350,6 +366,7 @@ contract LibIntegrityCheckTest {
             new bytes[](0), // sources
             0, // constantsLength
             INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
             stackTop_, // stackMaxTop
             integrityFunctionPointers() // integrityFunctionPointers
         );

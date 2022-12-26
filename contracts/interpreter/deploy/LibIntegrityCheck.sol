@@ -67,6 +67,7 @@ struct IntegrityCheckState {
     bytes[] sources;
     uint256 constantsLength;
     StackPointer stackBottom;
+    StackPointer stackHighwater;
     StackPointer stackMaxTop;
     function(IntegrityCheckState memory, Operand, StackPointer)
         view
@@ -215,6 +216,27 @@ library LibIntegrityCheck {
     /// @param stackTop_ as per `push`.
     /// @param n_ The number of items to push to the virtual stack.
     function push(
+        IntegrityCheckState memory integrityCheckState_,
+        StackPointer stackTop_,
+        uint256 n_
+    ) internal pure returns (StackPointer) {
+        stackTop_ = stackTop_.up(n_);
+        // Any time we push more than 1 item to the stack we move the highwater
+        // _past_ it as nested multioutput is disallowed.
+        if (
+            n_ > 1 &&
+            StackPointer.unwrap(stackTop_) >
+            StackPointer.unwrap(integrityCheckState_.stackHighwater)
+        ) {
+            integrityCheckState_.stackHighwater = stackTop_;
+        }
+        integrityCheckState_.syncStackMaxTop(stackTop_);
+        return stackTop_;
+    }
+
+    /// As push for 0+ values. Does NOT move the highwater. This may be useful if
+    /// the highwater is already calculated somehow by the caller.
+    function pushIgnoreHighwater(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         uint256 n_

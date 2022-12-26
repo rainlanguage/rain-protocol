@@ -30,8 +30,7 @@ library OpERC20BalanceOf {
         return integrityCheckState_.applyFn(stackTop_, _balanceOf);
     }
 
-    /// Stack `balanceOf`.
-    function balanceOf(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

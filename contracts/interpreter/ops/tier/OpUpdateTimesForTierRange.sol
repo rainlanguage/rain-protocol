@@ -42,7 +42,7 @@ library OpUpdateTimesForTierRange {
     // the `operand_` respectively.
     // The report to update and timestamp to update to are both
     // taken from the stack.
-    function updateTimesForTierRange(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

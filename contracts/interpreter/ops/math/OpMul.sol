@@ -28,7 +28,7 @@ library OpMul {
             );
     }
 
-    function mul(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

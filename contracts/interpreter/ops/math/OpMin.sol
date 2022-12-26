@@ -28,7 +28,7 @@ library OpMin {
             );
     }
 
-    function min(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

@@ -52,14 +52,16 @@ library OpCall {
             Operand.unwrap(operand_) >> 8
         );
 
-        // Remember the outer stack bottom.
+        // Remember the outer stack bottom and highwater.
         StackPointer stackBottom_ = integrityCheckState_.stackBottom;
+        StackPointer stackHighwater_ = integrityCheckState_.stackHighwater;
 
-        // Set the inner stack bottom to below the inputs.
+        // Set the inner stack bottom to below the inputs and highwater above.
         integrityCheckState_.stackBottom = integrityCheckState_.pop(
             stackTop_,
             inputs_
         );
+        integrityCheckState_.stackHighwater = stackTop_;
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
@@ -69,6 +71,10 @@ library OpCall {
             stackTop_,
             outputs_
         );
+
+        // Reinstate the original highwater before handling outputs as single
+        // outputs can be nested but multioutput will move the highwater.
+        integrityCheckState_.stackHighwater = stackHighwater_;
 
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be

@@ -29,7 +29,7 @@ library OpFixedPointScale18Mul {
         return integrityCheckState_.applyFn(stackTop_, _scale18Mul);
     }
 
-    function scale18Mul(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

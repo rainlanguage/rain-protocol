@@ -27,8 +27,7 @@ library OpERC721OwnerOf {
         return integrityCheckState_.applyFn(stackTop_, _ownerOf);
     }
 
-    // Stack the return of `ownerOf`.
-    function ownerOf(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

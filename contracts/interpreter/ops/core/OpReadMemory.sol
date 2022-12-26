@@ -6,6 +6,7 @@ import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "../../../math/Binary.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
@@ -16,6 +17,7 @@ library OpReadMemory {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;
     using LibIntegrityCheck for IntegrityCheckState;
+    using Math for uint256;
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
@@ -28,6 +30,13 @@ library OpReadMemory {
             require(
                 offset_ < integrityCheckState_.stackBottom.toIndex(stackTop_),
                 "OOB_STACK_READ"
+            );
+            // Ensure that highwater is moved past any stack item that we
+            // read so that copied values cannot later be consumed.
+            integrityCheckState_.stackHighwater = StackPointer.wrap(
+                StackPointer.unwrap(integrityCheckState_.stackHighwater).max(
+                    StackPointer.unwrap(integrityCheckState_.stackBottom.up(offset_))
+                )
             );
         } else {
             require(

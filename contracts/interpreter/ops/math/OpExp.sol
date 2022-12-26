@@ -28,7 +28,7 @@ library OpExp {
             );
     }
 
-    function exp(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

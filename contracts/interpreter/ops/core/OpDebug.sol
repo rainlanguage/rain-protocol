@@ -27,7 +27,7 @@ library OpDebug {
     }
 
     /// Debug the current state.
-    function debug(
+    function run(
         InterpreterState memory state_,
         Operand operand_,
         StackPointer stackTop_

@@ -12,7 +12,7 @@ library OpChainlinkOraclePrice {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _price(
+    function f(
         uint256 feed_,
         uint256 staleAfter_
     ) internal view returns (uint256) {
@@ -24,14 +24,14 @@ library OpChainlinkOraclePrice {
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _price);
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    function price(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_price);
+        return stackTop_.applyFn(f);
     }
 }

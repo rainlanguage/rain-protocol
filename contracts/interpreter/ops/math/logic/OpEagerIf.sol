@@ -35,7 +35,7 @@ library OpEagerIf {
     /// before EAGER_IF will select one of them. If both x_ and y_
     /// are cheap (e.g. constant values) then this may also be the
     /// simplest and cheapest way to select one of them.
-    function eagerIf(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_

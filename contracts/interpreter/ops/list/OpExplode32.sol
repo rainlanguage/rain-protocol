@@ -21,7 +21,7 @@ library OpExplode32 {
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_), 8);
     }
 
-    function explode32(
+    function run(
         InterpreterState memory,
         Operand,
         StackPointer stackTop_

@@ -40,9 +40,8 @@ library OpERC1155BalanceOfBatch {
             );
     }
 
-    // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function balanceOfBatch(
+    function run(
         InterpreterState memory,
         Operand operand_,
         StackPointer stackTop_
