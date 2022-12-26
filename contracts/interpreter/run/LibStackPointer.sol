@@ -18,6 +18,14 @@ type StackPointer is uint256;
 /// means we have to introduce some mechanism that gives us equivalent guarantees
 /// and we do, in the form of the `IExpressionDeployerV1` integrity check.
 ///
+/// The pointer to the bottom of a stack points at the 0th item, NOT the length
+/// of the implied `uint256[]` and the top of a stack points AFTER the last item.
+/// e.g. consider a `uint256[]` in memory with values `3 A B C` and assume this
+/// starts at position `0` in memory, i.e. `0` points to value `3` for the
+/// array length. In this case the stack bottom would be
+/// `StackPointer.wrap(0x20)` (32 bytes above 0, past the length) and the stack
+/// top would be `StackPointer.wrap(0x80)` (96 bytes above the stack bottom).
+///
 /// Most of the functions in this library are equivalent to each other via
 /// composition, i.e. everything could be achieved with just `up`, `down`,
 /// `pop`, `push`, `peek`. The reason there is so much overloaded/duplicated
@@ -50,7 +58,9 @@ library LibStackPointer {
     /// less gas than setting and discarding a value.
     /// @param stackPointer_ The stack pointer to read below.
     /// @return a_ The value that was read.
-    function peek(StackPointer stackPointer_) internal pure returns (uint256 a_) {
+    function peek(
+        StackPointer stackPointer_
+    ) internal pure returns (uint256 a_) {
         assembly ("memory-safe") {
             a_ := mload(sub(stackPointer_, 0x20))
         }
@@ -105,6 +115,36 @@ library LibStackPointer {
         }
     }
 
+    /// Given two stack pointers that bound a stack build an array of all values
+    /// above the given sentinel value. The sentinel will be _replaced_ by the
+    /// length of the array, allowing for efficient construction of a valid
+    /// `uint256[]` without additional allocation or copying in memory. As the
+    /// returned value is a `uint256[]` it can be treated as a substack and the
+    /// same (or different) sentinel can be consumed many times to build many
+    /// arrays from the main stack.
+    ///
+    /// As the sentinel is mutated in place into a length it is NOT safe to call
+    /// this in a context where the stack is expected to be immutable.
+    ///
+    /// The sentinel MUST be chosen to have a negligible chance of colliding with
+    /// a real value in the array, otherwise an intended array item will be
+    /// interpreted as a sentinel and the array will be split into two slices.
+    ///
+    /// If the sentinel is absent in the stack this WILL REVERT. The intent is
+    /// to represent dynamic length arrays without forcing expression authors to
+    /// calculate lengths on the stack. If the expression author wants to model
+    /// an empty/optional/absent value they MAY provided a sentinel for a zero
+    /// length array and the calling contract SHOULD handle this.
+    ///
+    /// @param stackTop_ Pointer to the top of the stack.
+    /// @param stackBottom_ Pointer to the bottom of the stack.
+    /// @param sentinel_ The value to expect as the sentinel. MUST be present in
+    /// the stack or `consumeSentinel` will revert. MUST NOT collide with valid
+    /// stack items (or be cryptographically improbable to do so).
+    /// @param stepSize_ Number of items to move over in the array per loop
+    /// iteration. If the array has a known multiple of items it can be more
+    /// efficient to find a sentinel moving in N-item increments rather than
+    /// reading every item individually.
     function consumeSentinel(
         StackPointer stackTop_,
         StackPointer stackBottom_,
@@ -143,18 +183,38 @@ library LibStackPointer {
         return (stackTop_, array_);
     }
 
+    /// Abstraction over `consumeSentinel` to build an array of solidity structs.
+    /// Solidity won't exactly allow this due to its type system not supporting
+    /// generics, so instead we return an array of references to struct data that
+    /// can be assigned/cast to an array of structs easily with assembly. This
+    /// is NOT intended to be a general purpose workhorse for this task, only
+    /// structs of pointers to `uint256[]` values are supported.
+    ///
+    /// ```
+    /// struct Foo {
+    ///   uint256[] a;
+    ///   uint256[] b;
+    /// }
+    ///
+    /// (StackPointer stackPointer_, uint256[] memory refs_) = consumeStructs(...);
+    /// Foo[] memory foo_;
+    /// assembly ("memory-safe") {
+    ///   mstore(foo_, refs_)
+    /// }
+    /// ```
+    ///
+    /// @param stackTop_ The top of the stack as per `consumeSentinel`.
+    /// @param stackBottom_ The bottom of the stack as per `consumeSentinel`.
+    /// @param sentinel_ The sentinel as per `consumeSentinel`.
+    /// @param structSize_ The number of `uint256[]` fields on the struct.
     function consumeStructs(
         StackPointer stackTop_,
         StackPointer stackBottom_,
         uint256 sentinel_,
         uint256 structSize_
     ) internal pure returns (StackPointer, uint256[] memory) {
-        uint256[] memory tempArray_;
-        (stackTop_, tempArray_) = stackTop_.consumeSentinel(
-            stackBottom_,
-            sentinel_,
-            structSize_
-        );
+        (StackPointer stackTopAfter_, uint256[] memory tempArray_) = stackTop_
+            .consumeSentinel(stackBottom_, sentinel_, structSize_);
         uint256 structsLength_ = tempArray_.length / structSize_;
         uint256[] memory refs_ = new uint256[](structsLength_);
         assembly ("memory-safe") {
@@ -170,46 +230,46 @@ library LibStackPointer {
                 mstore(refCursor_, tempCursor_)
             }
         }
-        return (stackTop_, refs_);
+        return (stackTopAfter_, refs_);
     }
 
-    /// Write a value at the stack top location. Typically not useful if the
-    /// given stack top is not subsequently moved past the written value , or
-    /// if the given stack top is actually located somewhere below the "true"
-    /// stack top.
-    /// @param stackTop_ The stack top to write the value at.
+    /// Write a value at the stack pointer. Typically only useful as intermediate
+    /// logic within some opcode etc. as the value will be treated as an out of
+    /// bounds for future reads unless the stack top after the opcode logic is
+    /// above the pointer.
+    /// @param stackPointer_ The stack top to write the value at.
     /// @param a_ The value to write.
-    function set(StackPointer stackTop_, uint256 a_) internal pure {
+    function set(StackPointer stackPointer_, uint256 a_) internal pure {
         assembly ("memory-safe") {
-            mstore(stackTop_, a_)
+            mstore(stackPointer_, a_)
         }
     }
 
-    /// Store a `uint256` at the stack top position and return the stack top
+    /// Store a `uint256` at the stack position and return the stack pointer
     /// above the written value. The following statements are equivalent in
     /// functionality but A may be less gas if the compiler fails to inline
     /// some function calls.
     /// A:
     /// ```
-    /// stackTop_ = stackTop_.push(a_);
+    /// stackPosition_ = stackPosition_.push(a_);
     /// ```
     /// B:
     /// ```
-    /// stackTop_.set(a_);
-    /// stackTop_ = stackTop_.up();
+    /// stackPosition_.set(a_);
+    /// stackPosition_ = stackPosition_.up();
     /// ```
-    /// @param stackTop_ The stack top to write at.
+    /// @param stackPosition_ The stack position to write at.
     /// @param a_ The value to write.
-    /// @return The stack top above where `a_` was written to.
+    /// @return The stack position above where `a_` was written to.
     function push(
-        StackPointer stackTop_,
+        StackPointer stackPosition_,
         uint256 a_
     ) internal pure returns (StackPointer) {
         assembly ("memory-safe") {
-            mstore(stackTop_, a_)
-            stackTop_ := add(stackTop_, 0x20)
+            mstore(stackPosition_, a_)
+            stackPosition_ := add(stackPosition_, 0x20)
         }
-        return stackTop_;
+        return stackPosition_;
     }
 
     /// Store a `uint256[]` at the stack top position and return the stack top
