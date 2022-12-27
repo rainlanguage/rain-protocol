@@ -106,6 +106,9 @@ library LibCast {
         }
     }
 
+    /// Retype a list of `uint256[]` to `address[]`.
+    /// @param us_ The list of integers to cast to addresses.
+    /// @return addresses_ The list of addresses cast from each integer.
     function asAddresses(
         uint256[] memory us_
     ) internal pure returns (address[] memory addresses_) {
@@ -114,6 +117,9 @@ library LibCast {
         }
     }
 
+    /// Retype a list of integers to integrity check function pointers.
+    /// @param us_ The list of integers to use as function pointers.
+    /// @return fns_ The list of integrity check function pointers.
     function asIntegrityPointers(
         uint256[] memory us_
     )

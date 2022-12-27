@@ -12,7 +12,10 @@ library OpLessThan {
     using LibCast for bool;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _lessThan(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {
+    function _lessThan(
+        uint256 a_,
+        uint256 b_
+    ) internal pure returns (uint256 c_) {
         assembly ("memory-safe") {
             c_ := lt(a_, b_)
         }

@@ -63,7 +63,7 @@ contract OrderBook is
     using FixedPointMath for uint256;
     using LibOrder for Order;
     using LibInterpreterState for InterpreterState;
-    using LibUint256Array for uint;
+    using LibUint256Array for uint256;
 
     event Deposit(address sender, DepositConfig config);
     /// @param sender `msg.sender` withdrawing tokens.

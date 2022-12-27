@@ -27,7 +27,7 @@ library OpCall {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;
-    using LibUint256Array for uint;
+    using LibUint256Array for uint256;
 
     /// Interpreter integrity logic.
     /// The basic movements on the outer stack are to pop the inputs and push the

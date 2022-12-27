@@ -96,7 +96,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using Math for uint256;
-    using LibUint256Array for uint;
+    using LibUint256Array for uint256;
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
 
