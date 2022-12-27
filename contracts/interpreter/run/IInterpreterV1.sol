@@ -1,9 +1,20 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
+/// @dev The index of a source within a deployed expression that can be evaluated
+/// by an `IInterpreterV1`. MAY be an entrypoint or the index of a source called
+/// internally such as by the `call` opcode.
 type SourceIndex is uint256;
+/// @dev Encoded information about a specific evaluation including the expression
+/// address onchain, entrypoint and expected return values.
 type EncodedDispatch is uint256;
+/// @dev The namespace for state changes as requested by the calling contract.
+/// The interpreter MUST apply this namespace IN ADDITION to namespacing by
+/// caller etc.
 type StateNamespace is uint256;
+/// @dev Additional bytes that can be used to configure a single opcode dispatch.
+/// Commonly used to specify the number of inputs to a variadic function such
+/// as addition or multiplication.
 type Operand is uint256;
 
 /// @title IInterpreterV1
@@ -45,6 +56,16 @@ type Operand is uint256;
 /// malicious caller can only damage their own state changes, while honest
 /// callers respect, benefit from and are protected by the interpreter's state
 /// change handling.
+///
+/// The two step eval-state model allows eval to be read-only which provides
+/// security guarantees for the caller such as no stateful reentrancy, either
+/// from the interpreter or some contract interface used by some word, while
+/// still allowing for storage writes. As the storage writes happen on the
+/// interpreter rather than the caller (c.f. delegate call) the caller DOES NOT
+/// need to trust the interpreter, which allows for permissionless selection of
+/// interpreters by end users. Delegate call always implies an admin key on the
+/// caller because the delegatee contract can write arbitrarily to the state of
+/// the delegator, which severely limits the generality of contract composition.
 interface IInterpreterV1 {
     /// Exposes the function pointers as `uint16` values packed into a single
     /// `bytes` in the same order as they would be indexed into by opcodes. For
@@ -75,7 +96,16 @@ interface IInterpreterV1 {
     /// @param dispatch All the information required for the interpreter to load
     /// an expression, select an entrypoint and return the values expected by the
     /// caller. The interpreter MAY encode dispatches differently to
-    /// `LibEncodedDispatch` but this WILL negatively impact compatibility.
+    /// `LibEncodedDispatch` but this WILL negatively impact compatibility for
+    /// calling contracts that hardcode the encoding logic.
+    /// @param context A 2-dimensional array of data that can be indexed into at
+    /// runtime by the interpreter. The calling contract is responsible for
+    /// ensuring the authenticity and completeness of context data. The
+    /// interpreter MUST revert at runtime if an expression attempts to index
+    /// into some context value that is not provided by the caller. This implies
+    /// that context reads cannot be checked for out of bounds reads at deploy
+    /// time, as the runtime context MAY be provided in a different shape to what
+    /// the expression is expecting.
     function eval(
         EncodedDispatch dispatch,
         uint256[][] calldata context
@@ -84,6 +114,27 @@ interface IInterpreterV1 {
         view
         returns (uint256[] memory stack, uint256[] memory stateChanges);
 
+    /// Applies state changes from a prior eval to the storage of the
+    /// interpreter. The interpreter is responsible for ensuring that applying
+    /// these state changes is safe from key collisions, both with any internal
+    /// state the interpreter needs for itself and with calls to `stateChanges`
+    /// from different `msg.sender` callers. I.e. it MUST NOT be possible for
+    /// a caller to modify the state changes associated with some other caller.
+    ///
+    /// The interpreter defines the shape of its own state changes, which is
+    /// opaque to the calling contract. For example, some interpreter may treat
+    /// the list of state changes as a pairwise key/value set, and some other
+    /// interpreter may treat it as a literal list to be stored as-is.
+    ///
+    /// The interpreter MUST assume the state changes have been corrupted by the
+    /// calling contract due to bugs or malicious intent, and enforce state
+    /// isolation between callers despite arbitrarily invalid state changes. The
+    /// interpreter MUST revert if it can detect invalid state changes, such
+    /// as a key/value list having an odd number of items, but this MAY NOT be
+    /// possible if the corruption is undetectable.
+    ///
+    /// @param stateChanges The list of changes to apply to the interpreter's
+    /// internal state.
     function stateChanges(uint256[] calldata stateChanges) external;
 
     /// Same as `eval` but allowing the caller to specify a namespace under which
