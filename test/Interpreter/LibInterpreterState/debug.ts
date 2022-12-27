@@ -1,6 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibInterpreterStateTest, Rainterpreter } from "../../../typechain";
+import type {
+  LibInterpreterStateTest,
+  Rainterpreter,
+} from "../../../typechain";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
@@ -43,14 +46,13 @@ describe("LibInterpreterState debug tests", async function () {
 
     console.log("Begin Stack debug logs");
 
-    const { stackTop_, stackTopAfter_ } =
-      await libInterpreterState.debug(
-        rainInterpreter.address,
-        { sources, constants },
-        context,
-        debugStyle,
-        sourceIndex
-      );
+    const { stackTop_, stackTopAfter_ } = await libInterpreterState.debug(
+      rainInterpreter.address,
+      { sources, constants },
+      context,
+      debugStyle,
+      sourceIndex
+    );
 
     console.log("End Stack debug logs");
 

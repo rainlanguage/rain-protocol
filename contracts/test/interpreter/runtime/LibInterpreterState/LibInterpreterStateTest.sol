@@ -52,8 +52,11 @@ contract LibInterpreterStateTest {
         uint256[][] memory context_,
         uint256 maxStackLength
     ) public view returns (InterpreterState memory state_) {
-
-        bytes memory serialized_ = serialize(interpreter_, config_, maxStackLength);
+        bytes memory serialized_ = serialize(
+            interpreter_,
+            config_,
+            maxStackLength
+        );
         state_ = serialized_.deserialize();
         state_.context = context_;
     }
@@ -62,13 +65,7 @@ contract LibInterpreterStateTest {
         IInterpreterV1 interpreter_,
         StateConfig memory config_,
         uint256 maxStackLength
-    )
-        public
-        view
-        returns (
-            bytes memory serialized_
-        )
-    {
+    ) public view returns (bytes memory serialized_) {
         serialized_ = config_.serialize(
             maxStackLength,
             interpreter_.functionPointers()

@@ -35,7 +35,9 @@ library OpReadMemory {
             // read so that copied values cannot later be consumed.
             integrityCheckState_.stackHighwater = StackPointer.wrap(
                 StackPointer.unwrap(integrityCheckState_.stackHighwater).max(
-                    StackPointer.unwrap(integrityCheckState_.stackBottom.up(offset_))
+                    StackPointer.unwrap(
+                        integrityCheckState_.stackBottom.up(offset_)
+                    )
                 )
             );
         } else {
