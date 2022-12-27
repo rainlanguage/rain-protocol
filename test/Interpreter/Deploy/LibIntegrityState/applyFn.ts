@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { LibIntegrityCheckTest } from "../../../../typechain";
-import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityCheckState/deploy";
+import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { assertError } from "../../../../utils/test/assertError";
 
 describe("LibIntegrityCheck applyFn tests", async function () {

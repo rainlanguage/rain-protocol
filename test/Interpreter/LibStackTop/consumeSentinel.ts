@@ -3,7 +3,7 @@ import { keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { LibStackPointerTest } from "../../../typechain";
 import { SENTINEL_HIGH_BITS } from "../../../utils/constants/sentinel";
-import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackPointer/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { assertError } from "../../../utils/test/assertError";
 
 describe("LibStackPointer consumeSentinel tests", async function () {

@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import type { LibStackPointerTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
-import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackPointer/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 
 describe("LibStackPointer applyFn tests", async function () {
   let libStackPointer: LibStackPointerTest;

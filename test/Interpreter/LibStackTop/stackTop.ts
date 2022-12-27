@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import type { LibStackPointerTest } from "../../../typechain";
-import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackPointer/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 
 describe("LibStackPointer stackTop tests", async function () {
   let libStackPointer: LibStackPointerTest;

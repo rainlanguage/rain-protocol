@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { hexConcat } from "ethers/lib/utils";
 import type { LibStackPointerTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
-import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackPointer/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { Tuple } from "../../../utils/types";
 
 describe("LibStackPointer uint256 array tests", async function () {
