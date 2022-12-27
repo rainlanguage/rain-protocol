@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibInterpreterStateTest } from "../../../typechain";
+import type { LibInterpreterStateTest, Rainterpreter } from "../../../typechain";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
@@ -13,13 +14,16 @@ export enum DebugStyle {
 }
 
 describe("LibInterpreterState debug tests", async function () {
+  let rainInterpreter: Rainterpreter;
   let libInterpreterState: LibInterpreterStateTest;
 
   before(async () => {
+    rainInterpreter = await rainterpreterDeploy();
+
     libInterpreterState = await libInterpreterStateDeploy();
   });
 
-  it("should debug Stack", async () => {
+  it.only("should debug Stack", async () => {
     const debugStyle = DebugStyle.Stack;
     // prettier-ignore
     const sources = [
@@ -40,12 +44,12 @@ describe("LibInterpreterState debug tests", async function () {
     console.log("Begin Stack debug logs");
 
     const { stackTop_, stackTopAfter_ } =
-      await libInterpreterState.callStatic.debug(
+      await libInterpreterState.debug(
+        rainInterpreter.address,
         { sources, constants },
         context,
         debugStyle,
-        sourceIndex,
-        [1, 1]
+        sourceIndex
       );
 
     console.log("End Stack debug logs");
