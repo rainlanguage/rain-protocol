@@ -12,8 +12,12 @@ library OpEqualTo {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _equalTo(uint256 a_, uint256 b_) internal pure returns (uint256) {
-        return (a_ == b_).asUint256();
+    function _equalTo(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {
+        // Perhaps surprisingly it seems to require assembly to efficiently get
+        // a `uint256` from boolean equality.
+        assembly ("memory-safe") {
+            c_ := eq(a_, b_)
+        }
     }
 
     function integrity(

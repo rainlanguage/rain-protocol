@@ -12,8 +12,10 @@ library OpIsZero {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _isZero(uint256 a_) internal pure returns (uint256) {
-        return (a_ == 0).asUint256();
+    function _isZero(uint256 a_) internal pure returns (uint256 b_) {
+        assembly ("memory-safe") {
+            b_ := iszero(a_)
+        }
     }
 
     function integrity(

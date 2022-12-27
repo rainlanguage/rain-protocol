@@ -77,6 +77,9 @@ library LibCast {
         }
     }
 
+    /// Retype a list of opcode function pointers to a `uint256[]`.
+    /// @param fns_ The list of function pointers.
+    /// @return us_ The list of pointers as `uint256[]`.
     function asUint256Array(
         function(IntegrityCheckState memory, Operand, StackPointer)
             internal
@@ -86,12 +89,6 @@ library LibCast {
     ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
             us_ := fns_
-        }
-    }
-
-    function asUint256(bool bool_) internal pure returns (uint256 u_) {
-        assembly ("memory-safe") {
-            u_ := bool_
         }
     }
 

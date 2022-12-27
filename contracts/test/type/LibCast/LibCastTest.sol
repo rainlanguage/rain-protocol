@@ -41,12 +41,6 @@ contract LibCastTest {
         return is_;
     }
 
-    function asUint256Bool(bool bool_) external returns (uint256 i_) {
-        LibDebug.dumpMemory();
-        i_ = LibCast.asUint256(bool_);
-        LibDebug.dumpMemory();
-    }
-
     function asAddresses(
         uint256[] memory is_
     ) external pure returns (address[] memory addresses_) {
