@@ -56,4 +56,26 @@ describe("LibIntegrityCheck push tests", async function () {
       "did not sync new stackMaxTop when pushing past original stackMaxTop"
     );
   });
+
+  it("should pushIgnoreHighwater and sync stack top", async function () {
+    // prettier-ignore
+    const sources = [
+      new Uint8Array(),
+    ];
+
+    const constantsLength = 0;
+    const stackMaxTop = 0;
+    const stackTop = 0;
+
+    const { stackTopAfter_, newStackMaxTop } = await libIntegrityCheckState[
+      "pushIgnoreHighwater(bytes[],uint256,uint256,uint256)"
+    ](sources, constantsLength, stackMaxTop, stackTop);
+
+    assert(stackTopAfter_.eq(stackTop + 32), "did not push up correct bytes");
+
+    assert(
+      newStackMaxTop.eq(stackTopAfter_),
+      "did not sync new stackMaxTop when pushing past original stackMaxTop"
+    );
+  });
 });
