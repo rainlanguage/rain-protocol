@@ -8,10 +8,19 @@ import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
+/// @title Rainterpreter
+/// @notice Minimal binding of the `IIinterpreterV1` interface to the
+/// `LibInterpreterState` library, including every opcode in `AllStandardOps`.
+/// This is the default implementation of "an interpreter" but is designed such
+/// that other interpreters can easily be developed alongside. Alterpreters can
+/// either be built by inheriting and overriding the functions on this contract,
+/// or using the relevant libraries to construct an alternative binding to the
+/// same interface.
 contract Rainterpreter is IInterpreterV1 {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
+    using LibInterpreterState for StateNamespace;
     using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
         returns (StackPointer)[];
@@ -20,32 +29,17 @@ contract Rainterpreter is IInterpreterV1 {
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
 
-    // state is several tiers of sandbox
-    //
-    // 0. address is msg.sender so that callers cannot attack each other
-    // 1. StateNamespace is caller-provided namespace so that expressions cannot attack each other
-    // 2. uint256 is expression-provided key
-    // 3. uint256 is expression-provided value
-    //
-    // tiers 0 and 1 are both embodied in the FullyQualifiedNamespace.
+    /// State is several tiers of sandbox.
+    ///
+    /// 0. address is msg.sender so that callers cannot attack each other
+    /// 1. StateNamespace is caller-provided namespace so that expressions cannot
+    ///    attack each other
+    /// 2. uint256 is expression-provided key
+    /// 3. uint256 is expression-provided value
+    ///
+    /// tiers 0 and 1 are both embodied in the `FullyQualifiedNamespace`.
     mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
         internal state;
-
-    function _qualifyNamespace(
-        StateNamespace stateNamespace_
-    ) internal view returns (FullyQualifiedNamespace) {
-        return
-            FullyQualifiedNamespace.wrap(
-                uint256(
-                    keccak256(
-                        abi.encodePacked(
-                            msg.sender,
-                            StateNamespace.unwrap(stateNamespace_)
-                        )
-                    )
-                )
-            );
-    }
 
     function staticEval(
         FullyQualifiedNamespace namespace_,
@@ -77,7 +71,7 @@ contract Rainterpreter is IInterpreterV1 {
         uint256[][] calldata context_
     ) public view returns (uint256[] memory, uint256[] memory) {
         return
-            this.staticEval(_qualifyNamespace(namespace_), dispatch_, context_);
+            this.staticEval(namespace_.qualifyNamespace(), dispatch_, context_);
     }
 
     function eval(
@@ -88,12 +82,11 @@ contract Rainterpreter is IInterpreterV1 {
     }
 
     function stateChangesWithNamespace(
-        StateNamespace stateNamespace_,
+        StateNamespace namespace_,
         uint256[] calldata stateChanges_
     ) public {
-        FullyQualifiedNamespace fullyQualifiedNamespace_ = _qualifyNamespace(
-            stateNamespace_
-        );
+        FullyQualifiedNamespace fullyQualifiedNamespace_ = namespace_
+            .qualifyNamespace();
         unchecked {
             for (uint256 i_ = 0; i_ < stateChanges_.length; i_ += 2) {
                 state[fullyQualifiedNamespace_][
@@ -176,6 +169,11 @@ contract Rainterpreter is IInterpreterV1 {
         return localPtrs_;
     }
 
+    /// Internal function to produce all the function pointers for opcodes that
+    /// will be returned by `functionPointers`. Inheriting contracts MAY override
+    /// this to rebuild the function pointers list from scratch, which MAY
+    /// include some or none of the opcodes from the default list.
+    /// @return A list of opcode function pointers.
     function opcodeFunctionPointers()
         internal
         view
