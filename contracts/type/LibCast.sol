@@ -77,7 +77,7 @@ library LibCast {
         }
     }
 
-    /// Retype a list of opcode function pointers to a `uint256[]`.
+    /// Retype a list of integrity check function pointers to a `uint256[]`.
     /// @param fns_ The list of function pointers.
     /// @return us_ The list of pointers as `uint256[]`.
     function asUint256Array(
@@ -92,19 +92,14 @@ library LibCast {
         }
     }
 
+    /// Retype a list of interpreter opcode function pointers to a `uint256[]`.
+    /// @param fns_ The list of function pointers.
+    /// @return us_ The list of pointers as `uint256[]`.
     function asUint256Array(
         function(InterpreterState memory, Operand, StackPointer)
             view
             returns (StackPointer)[]
             memory fns_
-    ) internal pure returns (uint256[] memory us_) {
-        assembly ("memory-safe") {
-            us_ := fns_
-        }
-    }
-
-    function asUint256Array(
-        function(uint256) pure returns (uint256)[] memory fns_
     ) internal pure returns (uint256[] memory us_) {
         assembly ("memory-safe") {
             us_ := fns_
