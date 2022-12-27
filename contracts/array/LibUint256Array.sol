@@ -36,6 +36,13 @@ library LibUint256Array {
         return array_;
     }
 
+    /// Building arrays from literal components is a common task that introduces
+    /// boilerplate that is either inefficient or error prone.
+    /// @param a_ the first integer to build an array around.
+    /// @param b_ the second integer to build an array around.
+    /// @param c_ the third integer to build an array around.
+    /// @return the newly allocated array including a_, b_ and c_ as the only
+    /// items.
     function arrayFrom(
         uint256 a_,
         uint256 b_,
@@ -50,6 +57,14 @@ library LibUint256Array {
         return array_;
     }
 
+    /// Building arrays from literal components is a common task that introduces
+    /// boilerplate that is either inefficient or error prone.
+    /// @param a_ the first integer to build an array around.
+    /// @param b_ the second integer to build an array around.
+    /// @param c_ the third integer to build an array around.
+    /// @param d_ the fourth integer to build an array around.
+    /// @return the newly allocated array including a_, b_, c_ and d_ as the only
+    /// items.
     function arrayFrom(
         uint256 a_,
         uint256 b_,
@@ -66,6 +81,15 @@ library LibUint256Array {
         return array_;
     }
 
+    /// Building arrays from literal components is a common task that introduces
+    /// boilerplate that is either inefficient or error prone.
+    /// @param a_ the first integer to build an array around.
+    /// @param b_ the second integer to build an array around.
+    /// @param c_ the third integer to build an array around.
+    /// @param d_ the fourth integer to build an array around.
+    /// @param e_ the fifth integer to build an array around.
+    /// @return the newly allocated array including a_, b_, c_, d_ and e_ as the
+    /// only items.
     function arrayFrom(
         uint256 a_,
         uint256 b_,
@@ -84,6 +108,16 @@ library LibUint256Array {
         return array_;
     }
 
+    /// Building arrays from literal components is a common task that introduces
+    /// boilerplate that is either inefficient or error prone.
+    /// @param a_ the first integer to build an array around.
+    /// @param b_ the second integer to build an array around.
+    /// @param c_ the third integer to build an array around.
+    /// @param d_ the fourth integer to build an array around.
+    /// @param e_ the fifth integer to build an array around.
+    /// @param f_ the sixth integer to build an array around.
+    /// @return the newly allocated array including a_, b_, c_, d_, e_ and f_ as
+    /// the only items.
     function arrayFrom(
         uint256 a_,
         uint256 b_,
@@ -141,6 +175,11 @@ library LibUint256Array {
         return array_;
     }
 
+    /// 2-dimensional analogue of `arrayFrom`. Takes a 1-dimensional array and
+    /// coerces it to a 2-dimensional matrix where the first and only item in the
+    /// matrix is the 1-dimensional array.
+    /// @param a_ The 1-dimensional array to coerce.
+    /// @return The 2-dimensional matrix containing `a_`.
     function matrixFrom(
         uint256[] memory a_
     ) internal pure returns (uint256[][] memory) {
