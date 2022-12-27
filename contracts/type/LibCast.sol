@@ -77,58 +77,6 @@ library LibCast {
         }
     }
 
-    /// Retype an integer to a pointer to the interpreter eval function.
-    /// @param u_ The integer to cast to the eval function.
-    /// @return fn_ The eval function.
-    function asEvalFunctionPointer(
-        uint256 u_
-    )
-        internal
-        pure
-        returns (
-            function(InterpreterState memory, SourceIndex, StackPointer)
-                view
-                returns (StackPointer) fn_
-        )
-    {
-        assembly ("memory-safe") {
-            fn_ := u_
-        }
-    }
-
-    /// Retype a stack move function pointer to an integer.
-    /// Provided the origin of the function pointer is solidity and NOT yul, the
-    /// returned integer will be valid to run if retyped back via yul. If the
-    /// origin of the function pointer is yul then we cannot guarantee anything
-    /// about the validity beyond the correctness of the yul code in question.
-    ///
-    /// Function pointers as integers are NOT portable across contracts as the
-    /// code in different contracts is different so function pointers will point
-    /// to a different, incompatible part of the code.
-    ///
-    /// Function pointers as integers lose the information about their signature
-    /// so MUST ONLY be called in an appropriate context once restored.
-    /// @param fn_ The stack move function pointer to integerify.
-    /// @return u_ The integer of the function pointer.
-    function asUint256(
-        function(uint256) view returns (uint256) fn_
-    ) internal pure returns (uint256 u_) {
-        assembly ("memory-safe") {
-            u_ := fn_
-        }
-    }
-
-    function asUint256(
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            internal
-            view
-            returns (StackPointer) fn_
-    ) internal pure returns (uint256 u_) {
-        assembly ("memory-safe") {
-            u_ := fn_
-        }
-    }
-
     function asUint256Array(
         function(IntegrityCheckState memory, Operand, StackPointer)
             internal
