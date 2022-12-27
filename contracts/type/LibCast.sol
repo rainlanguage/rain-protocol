@@ -92,16 +92,6 @@ library LibCast {
         }
     }
 
-    function asUint256(
-        function(InterpreterState memory, SourceIndex, StackPointer)
-            view
-            returns (StackPointer) fn_
-    ) internal pure returns (uint256 u_) {
-        assembly ("memory-safe") {
-            u_ := fn_
-        }
-    }
-
     function asUint256Array(
         function(InterpreterState memory, Operand, StackPointer)
             view
