@@ -40,7 +40,7 @@ describe("LibInterpreterState debug tests", async function () {
     const constants = [2, 4, 6, 8, 10];
     const context = [[3, 5, 7, 9, 11]];
     const sourceIndex = 1;
-
+    const maxStackLength = 255;
     console.log("Begin Stack debug logs");
 
     const { stackTop_, stackTopAfter_ } =
@@ -49,7 +49,8 @@ describe("LibInterpreterState debug tests", async function () {
         { sources, constants },
         context,
         debugStyle,
-        sourceIndex
+        sourceIndex, 
+        maxStackLength
       );
 
     console.log("End Stack debug logs");
