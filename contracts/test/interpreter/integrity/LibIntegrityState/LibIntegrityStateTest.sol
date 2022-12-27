@@ -9,7 +9,7 @@ import "../../../../interpreter/ops/AllStandardOps.sol";
 import "hardhat/console.sol";
 
 /// @title LibIntegrityCheckTest
-/// Test wrapper around `LibIntegrityCheck` library for testing.
+/// Test wrapper around `LibIntegrityCheck` library.
 contract LibIntegrityCheckTest {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibCast for uint256[];

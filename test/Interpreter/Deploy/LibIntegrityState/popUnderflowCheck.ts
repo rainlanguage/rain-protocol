@@ -1,4 +1,5 @@
 import type { LibIntegrityCheckTest } from "../../../../typechain";
+import { INITIAL_STACK_BOTTOM } from "../../../../utils/constants/interpreter";
 import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import { op } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
@@ -19,9 +20,9 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     ];
 
     const constantsLength = 0;
-    const stackBottom = 0;
-    const stackMaxTop = 32;
-    const stackTop = 64;
+    const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(32);
+    const stackTop = INITIAL_STACK_BOTTOM.add(64);
 
     await assertError(
       async () => {
@@ -46,9 +47,9 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     ];
 
     const constantsLength = 0;
-    const stackBottom = 0;
-    const stackMaxTop = 32;
-    const stackTop = 32;
+    const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(32);
+    const stackTop = INITIAL_STACK_BOTTOM.add(32);
 
     await assertError(
       async () => {
@@ -73,9 +74,9 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     ];
 
     const constantsLength = 0;
-    const stackBottom = 32;
-    const stackMaxTop = 64;
-    const stackTop = 32;
+    const stackBottom = INITIAL_STACK_BOTTOM.add(32);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
+    const stackTop = INITIAL_STACK_BOTTOM.add(32);
 
     await libIntegrityCheckState.popUnderflowCheck(
       sources,
@@ -94,9 +95,9 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     ];
 
     const constantsLength = 0;
-    const stackBottom = 32;
-    const stackMaxTop = 64;
-    const stackTop = 0;
+    const stackBottom = INITIAL_STACK_BOTTOM.add(32);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
+    const stackTop = INITIAL_STACK_BOTTOM.add(0);
 
     await assertError(
       async () => {
@@ -121,9 +122,9 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     ];
 
     const constantsLength = 0;
-    const stackBottom = 0;
-    const stackMaxTop = 64;
-    const stackTop = 32;
+    const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
+    const stackTop = INITIAL_STACK_BOTTOM.add(32);
 
     await libIntegrityCheckState.popUnderflowCheck(
       sources,
