@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import {} from "../../interpreter/integrity/standardIntegrity/deploy";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 import { StateConfigStruct } from "../../../../typechain/contracts/orderbook/IOrderBookV1";
 import { libEncodedDispatchDeploy } from "../../interpreter/run/libEncodedDispatch/deploy";

@@ -29,7 +29,8 @@ contract LibInterpreterStateTest {
         StateConfig memory config_,
         uint256[][] memory context_,
         DebugStyle debugStyle_,
-        SourceIndex sourceIndex_
+        SourceIndex sourceIndex_,
+        uint256 maxStackLength
     )
         external
         view
@@ -38,7 +39,8 @@ contract LibInterpreterStateTest {
         InterpreterState memory deserialized_ = serDeserialize(
             interpreter_,
             config_,
-            context_
+            context_,
+            maxStackLength
         );
         stackTop_ = deserialized_.eval(sourceIndex_, deserialized_.stackBottom);
         stackTopAfter_ = deserialized_.debug(stackTop_, debugStyle_);
@@ -47,10 +49,11 @@ contract LibInterpreterStateTest {
     function serDeserialize(
         IInterpreterV1 interpreter_,
         StateConfig memory config_,
-        uint256[][] memory context_
+        uint256[][] memory context_,
+        uint256 maxStackLength
     ) public view returns (InterpreterState memory state_) {
 
-        bytes memory serialized_ = serialize(interpreter_, config_, 10);
+        bytes memory serialized_ = serialize(interpreter_, config_, maxStackLength);
         state_ = serialized_.deserialize();
         state_.context = context_;
     }
