@@ -40,9 +40,23 @@ describe("LibInterpreterState deserialize tests", async function () {
 
     compareStructs(state_, expectedStatePartial);
 
-    assert(state_.compiledSources.length === 2);
-    assert(state_.compiledSources[0].length === 10);
-    assert(state_.compiledSources[1].length === 18);
-    assert(state_.constantsBottom < state_.stackBottom);
+    assert(
+      state_.compiledSources.length === 2,
+      "wrong length, got " + state_.compiledSources.length
+    );
+    assert(
+      state_.compiledSources[0].length === 10,
+      "wrong length, got" + state_.compiledSources[0].length
+    );
+    assert(
+      state_.compiledSources[1].length === 18,
+      "wrong length, got" + state_.compiledSources[1].length
+    );
+    assert(
+      state_.constantsBottom < state_.stackBottom,
+      `wrong constants position
+      constantsBottom  ${state_.constantsBottom}
+      stackBottom      ${state_.stackBottom}`
+    );
   });
 });

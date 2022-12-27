@@ -33,7 +33,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
           stackTop
         );
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check when stackTop > stackMaxTop"
     );
   });
@@ -60,7 +60,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
           stackTop
         );
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check when stackTop == stackMaxTop"
     );
   });
@@ -108,7 +108,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
           stackTop
         );
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check when stackTop < stackBottom"
     );
   });

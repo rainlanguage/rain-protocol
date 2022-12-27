@@ -471,7 +471,7 @@ describe("LOOP_N Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "Integrity check passed even when enough values are not available on the stack"
     );
   });

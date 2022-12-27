@@ -337,7 +337,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
   });
@@ -368,7 +368,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
   });

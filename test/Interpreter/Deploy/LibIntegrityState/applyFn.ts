@@ -17,7 +17,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFnN(stackTop - 32, n),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -32,7 +32,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32 * length));
     await assertError(
       async () => await libIntegrityCheckState.applyFn8(stackTop - 32, length),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -47,7 +47,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn7(stackTop - 32, length),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -62,7 +62,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn6(stackTop - 32, length),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -77,7 +77,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn5(stackTop - 32, length),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -88,7 +88,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn4(stackTop - 32),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -99,7 +99,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn3(stackTop - 32),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -110,7 +110,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn2(stackTop - 32),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -121,7 +121,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn1(stackTop - 32),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });
@@ -132,7 +132,7 @@ describe("LibIntegrityCheck applyFn tests", async function () {
     assert(stackTopAfter_.eq(32));
     await assertError(
       async () => await libIntegrityCheckState.applyFn0(stackTop - 32),
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not underflow with insufficient stack height"
     );
   });

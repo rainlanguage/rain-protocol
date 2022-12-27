@@ -33,7 +33,7 @@ describe("LibIntegrityCheck pop tests", async function () {
           "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check"
     );
   });
@@ -57,7 +57,7 @@ describe("LibIntegrityCheck pop tests", async function () {
           "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check"
     );
   });
@@ -122,7 +122,7 @@ describe("LibIntegrityCheck pop tests", async function () {
           "pop(bytes[],uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check"
     );
   });
@@ -145,7 +145,7 @@ describe("LibIntegrityCheck pop tests", async function () {
           "pop(bytes[],uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
       },
-      "STACK_UNDERFLOW",
+      "StackUnderflow",
       "did not fail check"
     );
   });
