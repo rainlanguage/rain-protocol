@@ -16,6 +16,12 @@ error UnexpectedPointers(bytes actualPointers);
 /// expression behaviour so MUST REVERT.
 error UnexpectedInterpreterBytecodeHash(bytes32 actualBytecodeHash);
 
+/// @dev There are more entrypoints defined by the minimum stack outputs than
+/// there are provided sources. This means the calling contract WILL attempt to
+/// eval a dangling reference to a non-existent source at some point, so this
+/// MUST REVERT.
+error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
+
 /// @dev The function pointers known to the expression deployer. These are
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
@@ -37,8 +43,26 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibInterpreterState for StateConfig;
     using LibStackPointer for StackPointer;
 
+    /// The interpreter passed in construction is valid. The only valid
+    /// interpreter has the exact bytecode hash known to the expression deployer.
+    /// @param sender The account that constructed the expression deployer.
+    /// @param interpreter The address of the interpreter that the expression
+    /// deployer agrees to perform integrity checks for. Note that the pairing
+    /// between interpreter and expression deployer needs to be checked and
+    /// enforced elsewhere offchain and/or onchain.
     event ValidInterpreter(address sender, address interpreter);
+
+    /// The config of the deployed expression including uncompiled sources. Will
+    /// only be emitted after the config passes the integrity check.
+    /// @param sender The caller of `deployExpression`.
+    /// @param config The config for the deployed expression.
     event ExpressionConfig(address sender, StateConfig config);
+
+    /// The address of the deployed expression. Will only be emitted once the
+    /// expression can be loaded and deserialized into an evaluable interpreter
+    /// state.
+    /// @param sender The caller of `deployExpression`.
+    /// @param expression The address of the deployed expression.
     event ExpressionDeployed(address sender, address expression);
 
     /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
@@ -49,7 +73,9 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         // cause undefined runtime behaviour for corrupted opcodes.
         bytes memory functionPointers_ = IInterpreterV1(interpreter_)
             .functionPointers();
-        if (keccak256(functionPointers_) != keccak256(OPCODE_FUNCTION_POINTERS)) {
+        if (
+            keccak256(functionPointers_) != keccak256(OPCODE_FUNCTION_POINTERS)
+        ) {
             revert UnexpectedPointers(functionPointers_);
         }
 
@@ -67,6 +93,16 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         emit ValidInterpreter(msg.sender, interpreter_);
     }
 
+    /// Defines all the function pointers to integrity checks. This is the
+    /// expression deployer's equivalent of the opcode function pointers and
+    /// follows a near identical dispatch process. These are never compiled into
+    /// source and are instead indexed into directly by the integrity check. The
+    /// indexing into integrity pointers (which has an out of bounds check) is a
+    /// proxy for enforcing that all opcode pointers exist at runtime, so the
+    /// length of the integrity pointers MUST match the length of opcode function
+    /// pointers. This function is `virtual` so that it can be overridden
+    /// pairwise with overrides to `functionPointers` on `Rainterpreter`.
+    /// @return The list of integrity function pointers.
     function integrityFunctionPointers()
         internal
         view
@@ -95,40 +131,34 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         StateConfig memory config_,
         uint256[] memory minStackOutputs_
     ) external returns (address) {
-        uint256 stackLength_ = ensureIntegrity(
+        // Ensure that we are not missing any entrypoints expected by the calling
+        // contract.
+        if (minStackOutputs_.length > config_.sources.length) {
+            revert MissingEntrypoint(minStackOutputs_.length, config_.sources.length);
+        }
+
+        // Build the initial state of the integrity check.
+        IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
             config_.sources,
             config_.constants.length,
-            minStackOutputs_
-        );
-
-        emit ExpressionConfig(msg.sender, config_);
-
-        bytes memory stateBytes_ = config_.serialize(
-            stackLength_,
-            OPCODE_FUNCTION_POINTERS
-        );
-
-        address expression_ = SSTORE2.write(stateBytes_);
-
-        emit ExpressionDeployed(msg.sender, expression_);
-        return expression_;
-    }
-
-    function ensureIntegrity(
-        bytes[] memory sources_,
-        uint256 constantsLength_,
-        uint256[] memory minStackOutputs_
-    ) internal view returns (uint256 stackLength_) {
-        require(sources_.length >= minStackOutputs_.length, "BAD_MSO_LENGTH");
-        IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
-            sources_,
-            constantsLength_,
             INITIAL_STACK_BOTTOM,
             INITIAL_STACK_BOTTOM,
             INITIAL_STACK_BOTTOM,
             integrityFunctionPointers()
         );
+        // Loop over each possible entrypoint as defined by the calling contract
+        // and check the integrity of each. At the least we need to be sure that
+        // there are no out of bounds stack reads/writes and to know the total
+        // memory to allocate when later deserializing an associated interpreter
+        // state for evaluation.
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
+            // Reset the top, bottom and highwater between each entrypoint as
+            // every external eval MUST have a fresh stack, but retain the max
+            // stack height as the latter is used for unconditional memory
+            // allocation so MUST be the max height across all possible
+            // entrypoints.
+            integrityCheckState_.stackBottom = INITIAL_STACK_BOTTOM;
+            integrityCheckState_.stackHighwater = INITIAL_STACK_BOTTOM;
             LibIntegrityCheck.ensureIntegrity(
                 integrityCheckState_,
                 SourceIndex.wrap(i_),
@@ -136,9 +166,28 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
                 minStackOutputs_[i_]
             );
         }
-        return
-            integrityCheckState_.stackBottom.toIndex(
-                integrityCheckState_.stackMaxTop
-            );
+        uint256 stackLength_ = integrityCheckState_.stackBottom.toIndex(
+            integrityCheckState_.stackMaxTop
+        );
+
+        // Emit the config of the expression _before_ we serialize it, as the
+        // serialization process itself is destructive of the config in memory.
+        emit ExpressionConfig(msg.sender, config_);
+
+        // Serialize the state config into bytes that can be deserialized later
+        // by the interpreter. This will compile the sources according to the
+        // provided function pointers.
+        bytes memory stateBytes_ = config_.serialize(
+            stackLength_,
+            OPCODE_FUNCTION_POINTERS
+        );
+
+        // Deploy the serialized expression onchain.
+        address expression_ = SSTORE2.write(stateBytes_);
+
+        // Emit and return the address of the deployed expression.
+        emit ExpressionDeployed(msg.sender, expression_);
+
+        return expression_;
     }
 }

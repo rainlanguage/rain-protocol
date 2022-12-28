@@ -5,6 +5,10 @@ import "./IInterpreterV1.sol";
 import "../../array/LibUint256Array.sol";
 import "../../bytes/LibBytes.sol";
 
+/// Thrown when the length of an array as the result of an applied function does
+/// not match expectations.
+error UnexpectedResultLength(uint256 expectedLength, uint256 actualLength);
+
 /// Custom type to point to memory ostensibly in a stack.
 type StackPointer is uint256;
 
@@ -714,7 +718,10 @@ library LibStackPointer {
         (uint256 a_, uint256[] memory bs_) = csStart_.list(length_);
 
         uint256[] memory results_ = fn_(a_, bs_, cs_);
-        require(results_.length == length_, "BAD_RESULT_LENGTH");
+        if (results_.length != length_) {
+            revert UnexpectedResultLength(length_, results_.length);
+        }
+
         StackPointer bottom_ = bs_.asStackPointer();
         LibUint256Array.unsafeCopyValuesTo(
             results_,
