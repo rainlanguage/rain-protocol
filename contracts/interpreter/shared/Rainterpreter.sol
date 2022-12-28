@@ -8,6 +8,9 @@ import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
+/// Thrown when the caller of a self static call is not self.
+error SelfStaticCaller(address caller);
+
 /// @title Rainterpreter
 /// @notice Minimal binding of the `IIinterpreterV1` interface to the
 /// `LibInterpreterState` library, including every opcode in `AllStandardOps`.
@@ -41,22 +44,42 @@ contract Rainterpreter is IInterpreterV1 {
     mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
         internal state;
 
-    function staticEval(
+    /// Guards against `msg.sender` calling `eval` in a non-static way and
+    /// providing function pointers in the eval to attempt to manipulate state.
+    /// For example, perhaps there is some way an attacker could carefully craft
+    /// function pointers such that `stateChanges` is executed within an `eval`.
+    /// This function can only be called externally by the interpreter itself and
+    /// guards all code paths that dispatch logic by direct function pointer. The
+    /// interpreter will only ever call itself statically according to
+    /// `external view` so restricting callers to self is enough to restrict all
+    /// calls to static over untrusted function pointers.
+    /// @param namespace_ The fully qualified namespace can be provided directly
+    /// here as this function can only be called by self.
+    /// @param dispatch_ As per `eval`.
+    /// @param context_ As per `eval`.
+    function selfStaticEval(
         FullyQualifiedNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
     ) external view returns (uint256[] memory, uint256[] memory) {
-        require(msg.sender == address(this), "NOT_THIS");
+        if (msg.sender != address(this)) {
+            revert SelfStaticCaller(msg.sender);
+        }
+        // Decode the dispatch.
         (
             address expression_,
             SourceIndex sourceIndex_,
             uint256 maxOutputs_
         ) = LibEncodedDispatch.decode(dispatch_);
+
+        // Build the interpreter state from the onchain expression.
         InterpreterState memory state_ = SSTORE2
             .read(expression_)
             .deserialize();
         state_.namespace = namespace_;
         state_.context = context_;
+
+        // Eval the expression and return up to maxOutputs_ from the final stack.
         StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(
@@ -65,15 +88,21 @@ contract Rainterpreter is IInterpreterV1 {
         return (tail_, state_.stateKV.toUint256Array());
     }
 
+    /// @inheritdoc IInterpreterV1
     function evalWithNamespace(
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] calldata context_
     ) public view returns (uint256[] memory, uint256[] memory) {
         return
-            this.staticEval(namespace_.qualifyNamespace(), dispatch_, context_);
+            this.selfStaticEval(
+                namespace_.qualifyNamespace(),
+                dispatch_,
+                context_
+            );
     }
 
+    /// @inheritdoc IInterpreterV1
     function eval(
         EncodedDispatch dispatch_,
         uint256[][] calldata context_
@@ -81,6 +110,7 @@ contract Rainterpreter is IInterpreterV1 {
         return evalWithNamespace(StateNamespace.wrap(0), dispatch_, context_);
     }
 
+    /// @inheritdoc IInterpreterV1
     function stateChangesWithNamespace(
         StateNamespace namespace_,
         uint256[] calldata stateChanges_
@@ -96,14 +126,35 @@ contract Rainterpreter is IInterpreterV1 {
         }
     }
 
+    /// @inheritdoc IInterpreterV1
     function stateChanges(uint256[] calldata stateChanges_) external {
         stateChangesWithNamespace(StateNamespace.wrap(0), stateChanges_);
     }
 
-    function functionPointers() external view returns (bytes memory) {
-        return opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes();
+    /// @inheritdoc IInterpreterV1
+    function functionPointers() external view virtual returns (bytes memory) {
+        function(InterpreterState memory, Operand, StackPointer)
+            view
+            returns (StackPointer)[]
+            memory localPtrs_ = new function(
+                InterpreterState memory,
+                Operand,
+                StackPointer
+            ) view returns (StackPointer)[](1);
+        localPtrs_[0] = opGet;
+        return
+            AllStandardOps
+                .opcodeFunctionPointers(localPtrs_)
+                .asUint256Array()
+                .unsafeTo16BitBytes();
     }
 
+    /// Implements runtime behaviour of the `get` opcode. Attempts to lookup the
+    /// key in the memory key/value store then falls back to the interpreter's
+    /// storage mapping of state changes. If the key is not found in either the
+    /// value will fallback to `0` as per default Solidity/EVM behaviour.
+    /// @param interpreterState_ The interpreter state of the current eval.
+    /// @param stackTop_ Pointer to the current stack top.
     function opGet(
         InterpreterState memory interpreterState_,
         Operand,
@@ -121,71 +172,5 @@ contract Rainterpreter is IInterpreterV1 {
             v_ = state[interpreterState_.namespace][k_];
         }
         return stackTop_.push(v_);
-    }
-
-    function localIntegrityFunctionPointers()
-        internal
-        pure
-        virtual
-        returns (
-            function(IntegrityCheckState memory, Operand, StackPointer)
-                view
-                returns (StackPointer)[]
-                memory
-        )
-    {
-        function(IntegrityCheckState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localPtrs_ = new function(
-                IntegrityCheckState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](1);
-        localPtrs_[0] = OpGet.integrity;
-        return localPtrs_;
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        virtual
-        returns (
-            function(InterpreterState memory, Operand, StackPointer)
-                view
-                returns (StackPointer)[]
-                memory
-        )
-    {
-        function(InterpreterState memory, Operand, StackPointer)
-            view
-            returns (StackPointer)[]
-            memory localPtrs_ = new function(
-                InterpreterState memory,
-                Operand,
-                StackPointer
-            ) view returns (StackPointer)[](1);
-        localPtrs_[0] = opGet;
-        return localPtrs_;
-    }
-
-    /// Internal function to produce all the function pointers for opcodes that
-    /// will be returned by `functionPointers`. Inheriting contracts MAY override
-    /// this to rebuild the function pointers list from scratch, which MAY
-    /// include some or none of the opcodes from the default list.
-    /// @return A list of opcode function pointers.
-    function opcodeFunctionPointers()
-        internal
-        view
-        virtual
-        returns (
-            function(InterpreterState memory, Operand, StackPointer)
-                view
-                returns (StackPointer)[]
-                memory
-        )
-    {
-        return
-            AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
     }
 }
