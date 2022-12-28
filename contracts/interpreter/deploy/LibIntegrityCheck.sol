@@ -299,7 +299,9 @@ library LibIntegrityCheck {
             StackPointer.unwrap(integrityCheckState_.stackHighwater)
         ) {
             revert StackPopUnderflow(
-                integrityCheckState_.stackBottom.toIndex(integrityCheckState_.stackHighwater),
+                integrityCheckState_.stackBottom.toIndex(
+                    integrityCheckState_.stackHighwater
+                ),
                 integrityCheckState_.stackBottom.toIndex(stackTop_)
             );
         }

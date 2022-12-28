@@ -11,6 +11,9 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 /// Thrown when a stack read index is outside the current stack top.
 error OutOfBoundsStackRead(uint256 stackTopIndex, uint256 stackRead);
 
+/// Thrown when a constant read index is outside the constants array.
+error OutOfBoundsConstantsRead(uint256 constantsLength, uint256 constantsRead);
+
 uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
 
@@ -47,10 +50,12 @@ library OpReadMemory {
                 )
             );
         } else {
-            require(
-                offset_ < integrityCheckState_.constantsLength,
-                "OOB_CONSTANT_READ"
-            );
+            if (offset_ >= integrityCheckState_.constantsLength) {
+                revert OutOfBoundsConstantsRead(
+                    integrityCheckState_.constantsLength,
+                    offset_
+                );
+            }
         }
         return integrityCheckState_.push(stackTop_);
     }
