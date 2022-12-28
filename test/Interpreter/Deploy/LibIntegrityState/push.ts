@@ -67,9 +67,13 @@ describe("LibIntegrityCheck push tests", async function () {
     const stackMaxTop = 0;
     const stackTop = 0;
 
-    const { stackTopAfter_, newStackMaxTop } = await libIntegrityCheckState[
-      "pushIgnoreHighwater(bytes[],uint256,uint256,uint256)"
-    ](sources, constantsLength, stackMaxTop, stackTop);
+    const { stackTopAfter_, newStackMaxTop } =
+      await libIntegrityCheckState.pushIgnoreHighwater(
+        sources,
+        constantsLength,
+        stackMaxTop,
+        stackTop
+      );
 
     assert(stackTopAfter_.eq(stackTop + 32), "did not push up correct bytes");
 

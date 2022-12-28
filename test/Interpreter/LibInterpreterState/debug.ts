@@ -26,7 +26,7 @@ describe("LibInterpreterState debug tests", async function () {
     libInterpreterState = await libInterpreterStateDeploy();
   });
 
-  it.only("should debug Stack", async () => {
+  it("should debug Stack", async () => {
     const debugStyle = DebugStyle.Stack;
     // prettier-ignore
     const sources = [
