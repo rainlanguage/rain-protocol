@@ -6,14 +6,33 @@ import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
 
+/// @dev Thrown when the pointers known to the expression deployer DO NOT match
+/// the interpreter it is constructed for. This WILL cause undefined expression
+/// behaviour so MUST REVERT.
+error UnexpectedPointers(bytes actualPointers);
+
+/// @dev Thrown when the bytecode hash known to the expression deployer DOES NOT
+/// match the interpreter it is constructed for. This WILL cause undefined
+/// expression behaviour so MUST REVERT.
+error UnexpectedInterpreterBytecodeHash(bytes32 actualBytecodeHash);
+
+/// @dev The function pointers known to the expression deployer. These are
+/// immutable for any given interpreter so once the expression deployer is
+/// constructed and has verified that this matches what the interpreter reports,
+/// it can use this constant value to compile and serialize expressions.
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0c790c870cdd0d2f0dad0dd90e720f3c0f710f8f101710261034104210501026105e106c107a1089109810a610b4112c113b114a11591168117711c011d211e012121220122e123c124b125a126912781287129612a512b412c312d212e112ef12fd130b131913271335134313521361136f13b90be7";
-bytes32 constant OPCODE_FUNCTION_POINTERS_HASH = keccak256(
-    OPCODE_FUNCTION_POINTERS
-);
+
+/// @dev The interpreter bytecode hash known to the expression deployer. Checking
+/// this guarantees that the code on the other side of the function pointers is
+/// what the expression deployer expects it to be, giving significantly higher
+/// confidence that the integrity checks are valid.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
     0x728dcc04f098f32741ef17d3eabf6e0389b81f559c38695249f4269f8dcaddca
 );
 
+/// @title RainterpreterExpressionDeployer
+/// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
+/// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
 contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibInterpreterState for StateConfig;
     using LibStackPointer for StackPointer;
@@ -30,9 +49,8 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         // cause undefined runtime behaviour for corrupted opcodes.
         bytes memory functionPointers_ = IInterpreterV1(interpreter_)
             .functionPointers();
-        if (keccak256(functionPointers_) != OPCODE_FUNCTION_POINTERS_HASH) {
-            console.logBytes(functionPointers_);
-            revert("BAD_POINTERS");
+        if (keccak256(functionPointers_) != keccak256(OPCODE_FUNCTION_POINTERS)) {
+            revert UnexpectedPointers(functionPointers_);
         }
 
         // Guard against an interpreter with unknown/untrusted bytecode that
@@ -43,8 +61,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
             interpreterHash_ := extcodehash(interpreter_)
         }
         if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
-            console.logBytes(abi.encodePacked(interpreterHash_));
-            revert("BAD_INTERPRETER_HASH");
+            revert UnexpectedInterpreterBytecodeHash(interpreterHash_);
         }
 
         emit ValidInterpreter(msg.sender, interpreter_);
@@ -73,6 +90,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
     }
 
+    /// @inheritdoc IExpressionDeployerV1
     function deployExpression(
         StateConfig memory config_,
         uint256[] memory minStackOutputs_
