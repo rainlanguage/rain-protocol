@@ -7,12 +7,13 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpAdd
-/// @notice Opcode for adding N numbers.
+/// @notice Opcode for adding N numbers with error on overflow.
 library OpAdd {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _add(uint256 a_, uint256 b_) internal pure returns (uint256) {
+    /// Addition with implied overflow checks from the Solidity 0.8.x compiler.
+    function f(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_ + b_;
     }
 
@@ -24,7 +25,7 @@ library OpAdd {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
-                _add,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -34,6 +35,6 @@ library OpAdd {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFnN(_add, Operand.unwrap(operand_));
+        return stackTop_.applyFnN(f, Operand.unwrap(operand_));
     }
 }

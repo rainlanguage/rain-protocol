@@ -18,7 +18,9 @@ uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
 uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
 
 /// @title OpReadMemory
-/// @notice Opcode for stacking from the state.
+/// @notice Opcode for stacking from the interpreter state in memory. This can
+/// either be copying values from anywhere in the stack or from the constants
+/// array by index.
 library OpReadMemory {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;

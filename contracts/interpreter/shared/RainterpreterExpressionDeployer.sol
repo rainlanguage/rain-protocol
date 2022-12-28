@@ -134,7 +134,10 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         // Ensure that we are not missing any entrypoints expected by the calling
         // contract.
         if (minStackOutputs_.length > config_.sources.length) {
-            revert MissingEntrypoint(minStackOutputs_.length, config_.sources.length);
+            revert MissingEntrypoint(
+                minStackOutputs_.length,
+                config_.sources.length
+            );
         }
 
         // Build the initial state of the integrity check.
