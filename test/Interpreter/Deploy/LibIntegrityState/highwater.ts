@@ -45,10 +45,10 @@ describe("LibIntegrityCheck highwater tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
 
       // _: add(add(1 stack(0)) stack(0));
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.ADD, 2),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.ADD, 2),
     ]);
 
