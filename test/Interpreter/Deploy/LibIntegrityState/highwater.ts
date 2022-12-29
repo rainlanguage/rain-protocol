@@ -7,9 +7,10 @@ import {
   op,
 } from "../../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../../utils/interpreter/ops/allStandardOps";
+import { assertError } from "../../../../utils/test/assertError";
 
 describe("LibIntegrityCheck highwater tests", async function () {
-  it("multioutput opcode MUST move the highwater past ALL its outputs (prevent nested multioutput on the stack)", async () => {
+  it("should prevent nested multioutput on the stack", async () => {
     const constants = [1, 2, 3, 4];
 
     const sourceONE = concat([
@@ -24,16 +25,41 @@ describe("LibIntegrityCheck highwater tests", async function () {
       op(Opcode.ADD, 4),
     ]);
 
-    const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceONE],
-        constants,
-      });
-
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await assertError(
+      async () =>
+        await iinterpreterV1ConsumerDeploy({
+          sources: [sourceMAIN, sourceONE],
+          constants,
+        }),
+      "StackPopUnderflow(4, 0)",
+      "did not prevent nested multioutput"
+    );
   });
 
-  it("stack opcode MUST move the highwater past the index it reads from (prevent pop after copy from the stack)", async () => {
-    throw new Error("TODO");
+  it("should prevent pop after copy from the stack", async () => {
+    const constants = [1];
+
+    // prettier-ignore
+    const sourceMAIN = concat([
+      // _: 1
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+
+      // _: add(add(1 stack(0)) stack(0));
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.ADD, 2),
+      op(Opcode.ADD, 2),
+    ]);
+
+    await assertError(
+      async () =>
+        await iinterpreterV1ConsumerDeploy({
+          sources: [sourceMAIN],
+          constants,
+        }),
+      "StackPopUnderflow",
+      "did not prevent pop after copy from the stack"
+    );
   });
 });

@@ -47,7 +47,7 @@ describe("DO_WHILE Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
@@ -89,7 +89,7 @@ describe("DO_WHILE Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stackTop();
 
     console.log("Result: ", result.toString());
@@ -136,7 +136,7 @@ describe("DO_WHILE Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
@@ -197,7 +197,7 @@ describe("DO_WHILE Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stack();
 
     // Calculating the expected result

@@ -207,7 +207,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       rainInterpreter
     );
 
-    const context = [[]];
+    const context = [];
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const result = await logic.stackTop();

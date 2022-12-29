@@ -57,7 +57,7 @@ describe("CALL Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
@@ -94,7 +94,7 @@ describe("CALL Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
@@ -138,7 +138,7 @@ describe("CALL Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
@@ -168,7 +168,7 @@ describe("CALL Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("4");
@@ -203,7 +203,7 @@ describe("CALL Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stack();
 
     const expectedResult0 = [
@@ -297,7 +297,7 @@ describe("CALL Opcode test", async function () {
         constants,
       });
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("236");

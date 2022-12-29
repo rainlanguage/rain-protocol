@@ -107,7 +107,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "OOB_STACK_READ",
+      "OutOfBoundsStackRead(2, 2)",
       "Integrity check failed while reading an OOB stack value"
     );
   });
@@ -129,7 +129,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "OOB_CONSTANT_READ",
+      "OutOfBoundsConstantsRead(1, 1)",
       "Integrity check failed while reading an OOB constant value"
     );
   });
@@ -154,7 +154,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "OOB_STACK_READ", // at least an error
+      "OutOfBoundsStackRead(2, 3)", // at least an error
       "did not error when STACK operand references a stack element that hasn't yet been evaluated"
     );
   });
@@ -179,7 +179,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "OOB_STACK_READ", // at least an error
+      "OutOfBoundsStackRead(3, 3)", // at least an error
       "did not error when STACK operand references itself"
     );
   });
@@ -337,7 +337,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "StackUnderflow",
+      "StackPopUnderflow",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
   });
@@ -368,7 +368,7 @@ describe("READ_MEMORY Opcode test", async function () {
           },
           rainInterpreter
         ),
-      "StackUnderflow",
+      "StackPopUnderflow",
       "did not prevent bad RainInterpreter script accessing stack index out of bounds"
     );
   });

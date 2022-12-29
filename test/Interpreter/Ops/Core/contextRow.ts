@@ -75,7 +75,7 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
     // OOB check for row is being made at runtime
     await assertError(
-      async () => await consumerLogic.eval(interpreter.address, dispatch, [[]]),
+      async () => await consumerLogic.eval(interpreter.address, dispatch, []),
       "Array accessed at an out-of-bounds or negative index",
       "did not error when accessing OOB ROW"
     );

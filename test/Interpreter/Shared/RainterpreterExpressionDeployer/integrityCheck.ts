@@ -8,7 +8,7 @@ import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared
 import { rainterpreterExpressionDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 describe("RainterpreterExpressionDeployer integrityCheck tests", async function () {
-  it("should revert if interpreter bytecode is unexpected", async () => {
+  it("should revert if interpreter bytecode is undefined", async () => {
     const fakeInterpreter: FakeContract<Rainterpreter> = await smock.fake(
       "Rainterpreter"
     ); // should not contain same bytecode as real contract
@@ -19,7 +19,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
         await rainterpreterExpressionDeployer(
           fakeInterpreter as unknown as Rainterpreter
         ),
-      "BAD_POINTERS",
+      'UnexpectedPointers(\\"0x00\\")',
       "did not revert when bytecode hash was unexpected"
     );
   });
@@ -37,7 +37,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
         await rainterpreterExpressionDeployer(
           fakeInterpreter as unknown as Rainterpreter
         ),
-      "BAD_INTERPRETER_HASH",
+      "UnexpectedPointers",
       "did not revert when bytecode hash was unexpected"
     );
   });

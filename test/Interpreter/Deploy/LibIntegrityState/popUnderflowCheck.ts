@@ -55,7 +55,7 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
           stackTop
         );
       },
-      "StackUnderflow",
+      "StackPopUnderflow",
       "did not fail check when stackTop < stackBottom"
     );
   });

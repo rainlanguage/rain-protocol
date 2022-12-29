@@ -54,7 +54,7 @@ describe("LibIntegrityCheck pop tests", async function () {
           "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
       },
-      "StackUnderflow",
+      "StackPopUnderflow",
       "did not fail check when stackTop < stackBottom"
     );
   });
@@ -118,7 +118,7 @@ describe("LibIntegrityCheck pop tests", async function () {
           "pop(bytes[],uint256,uint256,uint256,uint256)"
         ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
       },
-      "StackUnderflow",
+      "StackPopUnderflow",
       "did not fail check when stackTop < stackBottom"
     );
   });

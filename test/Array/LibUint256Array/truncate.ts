@@ -29,7 +29,7 @@ describe("LibUint256Array truncate tests", async function () {
 
     await assertError(
       async () => await libUint256Array.truncate(array, newLength),
-      "OOB_TRUNCATE",
+      `errorArgs=[{"type":"BigNumber","hex":"0x03"},{"type":"BigNumber","hex":"0x04"}], errorName="OutOfBoundsTruncate"`,
       "did not revert when new length greater than array length"
     );
   });

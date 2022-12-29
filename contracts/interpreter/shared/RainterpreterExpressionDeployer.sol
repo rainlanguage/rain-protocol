@@ -26,14 +26,14 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0c790c870cdd0d2f0dad0dd90e720f3c0f710f8f101710261034104210501026105e106c107a1089109810a610b4112c113b114a11591168117711c011d211e012121220122e123c124b125a126912781287129612a512b412c312d212e112ef12fd130b131913271335134313521361136f13b90be7";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0cb50cc30d190d6b0de90e150eae0f780fad0fcb105310621070107e108c1062109a10a810b610c510d410e210f0116811771186119511a411b311fc120e121c124e125c126a12781287129612a512b412c312d212e112f012ff130e131d132b13391347135513631371137f138e139d13ab13f507e5";
 
 /// @dev The interpreter bytecode hash known to the expression deployer. Checking
 /// this guarantees that the code on the other side of the function pointers is
 /// what the expression deployer expects it to be, giving significantly higher
 /// confidence that the integrity checks are valid.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x728dcc04f098f32741ef17d3eabf6e0389b81f559c38695249f4269f8dcaddca
+    0x6ee97d5b3f7c6a8dcef395f1b1f50c625509c3023c5abb9e8d23cfbdc7a89df1
 );
 
 /// @title RainterpreterExpressionDeployer

@@ -107,7 +107,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
       async () => {
         await ensureIntegrity_;
       },
-      "OOB_CONSTANT_READ",
+      "OutOfBoundsConstantsRead(2, 2)",
       "did not error with OOB constant read"
     );
   });
