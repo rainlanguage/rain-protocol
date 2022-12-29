@@ -23,11 +23,15 @@ StackPointer constant INITIAL_STACK_BOTTOM = StackPointer.wrap(
 /// pops and pushes.
 error MinStackBottom();
 
-/// The virtual stack top has underflowed the stack bottom (or zero) during an
-/// integrity check.
-/// @param stackBottom Pointer to the stack bottom at the moment of underflow.
-/// @param stackTop Pointer to the stack top at the moment of underflow.
-error StackUnderflow(StackPointer stackBottom, StackPointer stackTop);
+/// The virtual stack top has underflowed the stack highwater (or zero) during an
+/// integrity check. The highwater will initially be the stack bottom but MAY
+/// move higher due to certain operations such as placing multiple outputs on the
+/// stack or copying from a stack position. The highwater prevents subsequent
+/// popping of values that are considered immutable.
+/// @param stackHighwaterIndex Index of the stack highwater at the moment of
+/// underflow.
+/// @param stackTopIndex Index of the stack top at the moment of underflow.
+error StackPopUnderflow(uint256 stackHighwaterIndex, uint256 stackTopIndex);
 
 /// The final stack produced by some source did not hit the minimum required for
 /// its calling context.
@@ -292,9 +296,14 @@ library LibIntegrityCheck {
         if (
             // Stack bottom may be non-zero so check we aren't below it.
             StackPointer.unwrap(stackTop_) <
-            StackPointer.unwrap(integrityCheckState_.stackBottom)
+            StackPointer.unwrap(integrityCheckState_.stackHighwater)
         ) {
-            revert StackUnderflow(integrityCheckState_.stackBottom, stackTop_);
+            revert StackPopUnderflow(
+                integrityCheckState_.stackBottom.toIndex(
+                    integrityCheckState_.stackHighwater
+                ),
+                integrityCheckState_.stackBottom.toIndex(stackTop_)
+            );
         }
     }
 

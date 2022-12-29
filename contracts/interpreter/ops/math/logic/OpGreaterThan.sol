@@ -15,8 +15,10 @@ library OpGreaterThan {
     function _greaterThan(
         uint256 a_,
         uint256 b_
-    ) internal pure returns (uint256) {
-        return (a_ > b_).asUint256();
+    ) internal pure returns (uint256 c_) {
+        assembly ("memory-safe") {
+            c_ := gt(a_, b_)
+        }
     }
 
     function integrity(

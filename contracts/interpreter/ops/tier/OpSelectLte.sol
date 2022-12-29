@@ -7,6 +7,9 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "../../../math/Binary.sol";
 
+/// Zero inputs to select lte is NOT supported.
+error ZeroInputs();
+
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
@@ -21,7 +24,10 @@ library OpSelectLte {
     ) internal pure returns (StackPointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            require(inputs_ > 0, "SELECT_LTE_ZERO_INPUTS");
+            if (inputs_ == 0) {
+                revert ZeroInputs();
+            }
+
             return
                 integrityCheckState_.push(
                     integrityCheckState_.pop(stackTop_, inputs_)

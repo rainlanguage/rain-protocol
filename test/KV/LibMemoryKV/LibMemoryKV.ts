@@ -85,7 +85,7 @@ describe("LibMemoryKV tests", async function () {
   it("should revert readPtrVal if pointer is zero", async function () {
     await assertError(
       async () => await libMemoryKV.readPtrVal(0),
-      "INVALID_PTR",
+      "InvalidPtr(0)",
       "did not revert when passing zero pointer"
     );
   });

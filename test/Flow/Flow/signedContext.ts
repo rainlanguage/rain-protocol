@@ -103,7 +103,7 @@ describe("Flow signed context tests", async function () {
         await flow
           .connect(goodSigner)
           .flow(flowInitialized[0].dispatch, [1234], signedContexts1, {}),
-      "INVALID_SIGNATURE",
+      "InvalidSignature(1)",
       "did not error with signature from incorrect signer"
     );
   });
@@ -173,7 +173,7 @@ describe("Flow signed context tests", async function () {
         await flow
           .connect(goodSigner)
           .flow(flowInitialized[0].dispatch, [1234], signedContexts1, {}),
-      "INVALID_SIGNATURE",
+      "InvalidSignature(0)",
       "did not error with signature from incorrect signer"
     );
   });

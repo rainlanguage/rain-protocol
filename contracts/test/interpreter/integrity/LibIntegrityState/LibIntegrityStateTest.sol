@@ -9,7 +9,7 @@ import "../../../../interpreter/ops/AllStandardOps.sol";
 import "hardhat/console.sol";
 
 /// @title LibIntegrityCheckTest
-/// Test wrapper around `LibIntegrityCheck` library for testing.
+/// Test wrapper around `LibIntegrityCheck` library.
 contract LibIntegrityCheckTest {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibCast for uint256[];
@@ -86,7 +86,11 @@ contract LibIntegrityCheckTest {
         uint256 constantsLength_,
         uint256 stackMaxTop_,
         StackPointer stackTop_
-    ) external view returns (StackPointer stackTopAfter_) {
+    )
+        external
+        view
+        returns (StackPointer stackTopAfter_, uint256 newStackMaxTop)
+    {
         IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
             sources_, // sources
             constantsLength_, // constantsLength
@@ -96,6 +100,7 @@ contract LibIntegrityCheckTest {
             integrityFunctionPointers() // integrityFunctionPointers
         );
         stackTopAfter_ = integrityCheckState_.push(stackTop_);
+        newStackMaxTop = StackPointer.unwrap(integrityCheckState_.stackMaxTop);
     }
 
     function push(
@@ -104,7 +109,11 @@ contract LibIntegrityCheckTest {
         uint256 stackMaxTop_,
         StackPointer stackTop_,
         uint256 n_
-    ) external view returns (StackPointer stackTopAfter_) {
+    )
+        external
+        view
+        returns (StackPointer stackTopAfter_, uint256 newStackMaxTop)
+    {
         IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
             sources_, // sources
             constantsLength_, // constantsLength
@@ -114,6 +123,29 @@ contract LibIntegrityCheckTest {
             integrityFunctionPointers() // integrityFunctionPointers
         );
         stackTopAfter_ = integrityCheckState_.push(stackTop_, n_);
+        newStackMaxTop = StackPointer.unwrap(integrityCheckState_.stackMaxTop);
+    }
+
+    function pushIgnoreHighwater(
+        bytes[] memory sources_,
+        uint256 constantsLength_,
+        uint256 stackMaxTop_,
+        StackPointer stackTop_
+    )
+        external
+        view
+        returns (StackPointer stackTopAfter_, uint256 newStackMaxTop)
+    {
+        IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
+            sources_, // sources
+            constantsLength_, // constantsLength
+            INITIAL_STACK_BOTTOM, // stackBottom
+            INITIAL_STACK_BOTTOM, // stackHighwater
+            StackPointer.wrap(stackMaxTop_), // stackMaxTop
+            integrityFunctionPointers() // integrityFunctionPointers
+        );
+        stackTopAfter_ = integrityCheckState_.push(stackTop_);
+        newStackMaxTop = StackPointer.unwrap(integrityCheckState_.stackMaxTop);
     }
 
     function popUnderflowCheck(

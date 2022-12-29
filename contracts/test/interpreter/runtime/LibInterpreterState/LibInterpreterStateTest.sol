@@ -5,8 +5,8 @@ import "../../../../interpreter/run/LibInterpreterState.sol";
 import "../../../../interpreter/run/LibStackPointer.sol";
 import "../../../../interpreter/ops/AllStandardOps.sol";
 import "../../../../type/LibCast.sol";
-import "../../../../array/LibUint256Array.sol"; 
-import "hardhat/console.sol" ;
+import "../../../../array/LibUint256Array.sol";
+import "hardhat/console.sol";
 
 /// @title LibInterpreterStateTest
 /// Test wrapper around `LibInterpreterState` library.
@@ -22,9 +22,7 @@ contract LibInterpreterStateTest {
         returns (StackPointer)[];
     using LibConvert for uint256[];
 
-    // address internal immutable interpreterIntegrity;
-
-    constructor() {}  
+    constructor() {}
 
     
     function debug(

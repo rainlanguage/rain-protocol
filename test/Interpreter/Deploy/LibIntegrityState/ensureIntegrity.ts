@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import type { LibIntegrityCheckTest } from "../../../../typechain";
+import { INITIAL_STACK_BOTTOM } from "../../../../utils/constants/interpreter";
 import { libIntegrityCheckStateDeploy } from "../../../../utils/deploy/test/libIntegrityState/deploy";
 import {
   memoryOperand,
@@ -28,7 +29,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
 
     const constantsLength = 0;
     const sourceIndex = 1;
-    const stackTop = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 0;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
@@ -53,7 +54,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
 
     const constantsLength = 0;
     const sourceIndex = 0;
-    const stackTop = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
@@ -91,7 +92,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
 
     const constantsLength = 2;
     const sourceIndex = 0;
-    const stackTop = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
@@ -129,7 +130,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
 
     const constantsLength = 3;
     const sourceIndex = 0;
-    const stackTop = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const _stackTop_ =
@@ -164,7 +165,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
 
     const constantsLength = 0;
     const sourceIndex = 0;
-    const stackTop = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
@@ -179,7 +180,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
       async () => {
         await ensureIntegrity_;
       },
-      "MIN_FINAL_STACK",
+      "MinFinalStack(1, 0)",
       "did not error with final stack top less than minimum"
     );
   });
@@ -190,7 +191,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
 
     const constantsLength = 0;
     const sourceIndex = 0;
-    const stackTop = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 0;
 
     const stackTop_ =

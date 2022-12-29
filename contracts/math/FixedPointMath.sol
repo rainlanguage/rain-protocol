@@ -47,7 +47,7 @@ uint256 constant FP_ONE = 1e18;
 /// precision in the case of downscaling DO NOT use this library.
 library FixedPointMath {
     using Math for uint256;
-    using SafeCast for int;
+    using SafeCast for int256;
     using SaturatingMath for uint256;
 
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.

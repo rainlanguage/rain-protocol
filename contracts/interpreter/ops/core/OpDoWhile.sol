@@ -7,7 +7,11 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
-/// @title OpWhile
+/// More inputs were encoded in the operand than can be dispatched internally by
+/// a do-while loop.
+error DoWhileMaxInputs(uint256 inputs);
+
+/// @title OpDoWhile
 /// @notice Opcode for looping while the stack top is nonzero. As we pre-allocate
 /// all the memory for execution during integrity checks we have an apparent
 /// contradiction here. If we do not know how many times the loop will run then
@@ -35,9 +39,12 @@ library OpDoWhile {
     ) internal view returns (StackPointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            /// We need outputs to be larger than inputs so inputs can't be the
-            /// max value possible in 4 bits or outputs will overflow.
-            require(inputs_ < MASK_4BIT, "OP_DO_WHILE_INPUTS");
+            /// We need outputs to be _larger than_ inputs so inputs must be
+            /// _strictly less than_ the max value possible in 4 bits or outputs
+            /// will overflow.
+            if (inputs_ >= MASK_4BIT) {
+                revert DoWhileMaxInputs(inputs_);
+            }
             uint256 outputs_ = inputs_ + 1;
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) | (outputs_ << 4)
