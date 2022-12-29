@@ -64,7 +64,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     await assertError(
       async () => await consumerLogic.eval(interpreter.address, dispatch, []),
-      "StalePrice(1800, 1672449276)",
+      "StalePrice(1800, ",
       "did not revert when chainlink price was stale"
     );
   });
