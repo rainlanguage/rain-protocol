@@ -30,7 +30,11 @@ describe("CALL Opcode test", async function () {
     const callADD = op(Opcode.CALL, callOperand(2, 1, 1));
 
     // Source to add 2 numbers, input will be provided from another source
-    const sourceADD = concat([op(Opcode.ADD, 2)]);
+    const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.ADD, 2)
+    ]);
 
     // Source for calculating fibonacci sequence uptill 5
     // prettier-ignore

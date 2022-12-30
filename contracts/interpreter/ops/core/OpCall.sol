@@ -56,12 +56,13 @@ library OpCall {
         StackPointer stackBottom_ = integrityCheckState_.stackBottom;
         StackPointer stackHighwater_ = integrityCheckState_.stackHighwater;
 
-        // Set the inner stack bottom to below the inputs and highwater above.
+        // Set the inner stack bottom to below the inputs and highwater to
+        // protect the inputs from being popped internally.
         integrityCheckState_.stackBottom = integrityCheckState_.pop(
             stackTop_,
             inputs_
         );
-        integrityCheckState_.stackHighwater = stackTop_;
+        integrityCheckState_.stackHighwater = stackTop_.down();
 
         // Ensure the integrity of the inner source on the current state using
         // the stack top above the inputs as the starting stack top.
