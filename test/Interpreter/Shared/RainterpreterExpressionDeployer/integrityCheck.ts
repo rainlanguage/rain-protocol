@@ -5,7 +5,7 @@ import { Rainterpreter } from "../../../../typechain/contracts/interpreter/share
 import { ValidInterpreterEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { assertError, getEventArgs } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 describe("RainterpreterExpressionDeployer integrityCheck tests", async function () {
   it("should revert if interpreter bytecode is undefined", async () => {
@@ -16,7 +16,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     await assertError(
       async () =>
-        await rainterpreterExpressionDeployer(
+        await rainterpreterExpressionDeployerDeploy(
           fakeInterpreter as unknown as Rainterpreter
         ),
       'UnexpectedPointers(\\"0x00\\")',
@@ -34,7 +34,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     await assertError(
       async () =>
-        await rainterpreterExpressionDeployer(
+        await rainterpreterExpressionDeployerDeploy(
           fakeInterpreter as unknown as Rainterpreter
         ),
       "UnexpectedPointers",
@@ -47,7 +47,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     const rainterpreter = await rainterpreterDeploy();
 
-    const expressionDeployer = await rainterpreterExpressionDeployer(
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       rainterpreter
     );
 

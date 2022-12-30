@@ -49,10 +49,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     // Eval
 
@@ -94,10 +97,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     await assertError(
       async () => await consumerLogic.eval(interpreter.address, dispatch, []),
@@ -131,10 +137,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const price_ = await consumerLogic.stackTop();
@@ -166,10 +175,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const constants = [feed, staleAfter];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const price_ = await consumerLogic.stackTop();

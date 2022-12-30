@@ -52,10 +52,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceADD],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceADD],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
 
@@ -89,10 +92,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, source1],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
@@ -133,10 +139,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
@@ -163,10 +172,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
@@ -198,10 +210,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stack();
@@ -283,19 +298,22 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [
-          sourceMAIN,
-          sourceADD,
-          sourceSUB,
-          sourceMUL,
-          sourceDIV,
-          sourceEXP,
-          sourceADD10,
-          sourceADD1,
-        ],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [
+            sourceMAIN,
+            sourceADD,
+            sourceSUB,
+            sourceMUL,
+            sourceDIV,
+            sourceEXP,
+            sourceADD10,
+            sourceADD1,
+          ],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
@@ -423,10 +441,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceGetDiscountedPrice, sourceGetDiscount],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceGetDiscountedPrice, sourceGetDiscount],
+          constants,
+        },
+        1
+      );
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);

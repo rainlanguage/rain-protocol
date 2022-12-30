@@ -23,10 +23,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
@@ -46,10 +49,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const row: number[] = new Array<number>(MAX_ROWS).fill(1, 0, MAX_ROWS);
     const context = [row];
@@ -68,10 +74,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     // OOB check for row is being made at runtime
     await assertError(
@@ -109,10 +118,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        20
+      );
 
     const context = [
       [0, 1, 2, 3],
@@ -152,10 +164,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        8
+      );
 
     const context = [[10, 20, 30, 40]];
 
@@ -183,10 +198,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const data = [
       [422, 213, 123, 413],

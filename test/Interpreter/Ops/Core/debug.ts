@@ -27,10 +27,13 @@ describe("RainInterpreter debug op", async function () {
     ])];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
 
@@ -49,10 +52,13 @@ describe("RainInterpreter debug op", async function () {
     ])];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
 
@@ -80,10 +86,13 @@ describe("RainInterpreter debug op", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source, checkValue],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source, checkValue],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
   });
@@ -111,10 +120,13 @@ describe("RainInterpreter debug op", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceWHILE],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceWHILE],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
   });
@@ -140,10 +152,13 @@ describe("RainInterpreter debug op", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceADD],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceADD],
+          constants,
+        },
+        1
+      );
 
     let expectedResult = initialValue;
     for (let i = 0; i < n; i++) {

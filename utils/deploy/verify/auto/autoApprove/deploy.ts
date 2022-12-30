@@ -10,7 +10,7 @@ import {
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
 import { rainterpreterDeploy } from "../../../interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const autoApproveFactoryDeploy = async () => {
   const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
@@ -47,7 +47,9 @@ export const autoApproveDeploy = async (
   );
 
   const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter
+  );
 
   const autoApproveConfig: AutoApproveConfigStruct = {
     expressionDeployer: expressionDeployer.address,

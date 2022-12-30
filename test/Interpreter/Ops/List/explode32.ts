@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { AllStandardOps, op } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -29,12 +29,13 @@ describe("EXPLODE32 Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMAIN],
         constants: [],
       },
-      rainInterpreter
+      rainInterpreter,
+      8
     );
     // 0
     await logic.eval(rainInterpreter.address, expression0.dispatch, [

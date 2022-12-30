@@ -13,7 +13,7 @@ import {
   stakeDeploy,
 } from "../../../utils";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
@@ -97,7 +97,7 @@ describe("CombineTier ERC165 tests", async function () {
     const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
     const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployer(
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       interpreter
     );
 
