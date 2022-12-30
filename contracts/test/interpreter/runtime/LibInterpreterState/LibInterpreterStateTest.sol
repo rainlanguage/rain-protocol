@@ -24,56 +24,53 @@ contract LibInterpreterStateTest {
 
     constructor() {}
 
-    
     function debug(
-        StateConfig memory config_,  
-        uint256 stackLength_ ,  
-        uint256[][] memory context_ ,
-        DebugStyle debugStyle_  ,
-        IInterpreterV1 interpreter_ 
-    ) 
-         external
+        StateConfig memory config_,
+        uint256 stackLength_,
+        uint256[][] memory context_,
+        DebugStyle debugStyle_,
+        IInterpreterV1 interpreter_
+    )
+        external
         view
         returns (StackPointer stackTop_, StackPointer stackTopAfter_)
     {
-        InterpreterState memory state_; 
-        bytes memory serialized_ = serialize( 
+        InterpreterState memory state_;
+        bytes memory serialized_ = serialize(
             interpreter_,
-            config_ ,
+            config_,
             stackLength_
         );
-        state_ = serialized_.deserialize() ;  
-        state_.context = context_ ; 
-        stackTop_ = state_.stackBottom ;  
-        stackTopAfter_ = state_.debug(stackTop_.up(stackLength_) ,  debugStyle_);  
-    }  
-
+        state_ = serialized_.deserialize();
+        state_.context = context_;
+        stackTop_ = state_.stackBottom;
+        stackTopAfter_ = state_.debug(stackTop_.up(stackLength_), debugStyle_);
+    }
 
     function serDeserialize(
-        StateConfig memory config_,  
-        uint256 stackLength_ ,  
-        uint256[][] memory context_ , 
-        IInterpreterV1 interpreter_ 
+        StateConfig memory config_,
+        uint256 stackLength_,
+        uint256[][] memory context_,
+        IInterpreterV1 interpreter_
     ) public view returns (InterpreterState memory state_) {
         // TODO FIXME
         // bytes memory serialized_ = serialize(config_, minStackOutputs_);
         // state_ = serialized_.deserialize();
-        //state_.context = context_; 
+        //state_.context = context_;
 
-        bytes memory serialized_ = serialize( 
+        bytes memory serialized_ = serialize(
             interpreter_,
-            config_ ,
+            config_,
             stackLength_
-        ); 
-        state_ = serialized_.deserialize() ;  
-        state_.context = context_ ; 
-
+        );
+        state_ = serialized_.deserialize();
+        state_.context = context_;
     }
 
     function serialize(
         IInterpreterV1 interpreter_,
-        StateConfig memory config_ ,
-        uint256 stackLength_ 
+        StateConfig memory config_,
+        uint256 stackLength_
     )
         public
         view

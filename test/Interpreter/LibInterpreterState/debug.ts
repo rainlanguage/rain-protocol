@@ -1,10 +1,17 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LibInterpreterStateTest, Rainterpreter } from "../../../typechain";
+import type {
+  LibInterpreterStateTest,
+  Rainterpreter,
+} from "../../../typechain";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
-import { memoryOperand, MemoryType, op } from "../../../utils/interpreter/interpreter";
+import {
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 
 export enum DebugStyle {
@@ -15,45 +22,43 @@ export enum DebugStyle {
 }
 
 describe("LibInterpreterState debug tests", async function () {
-  let libInterpreterState: LibInterpreterStateTest; 
+  let libInterpreterState: LibInterpreterStateTest;
   let interpreter: Rainterpreter;
 
   before(async () => {
-    libInterpreterState = await libInterpreterStateDeploy(); 
+    libInterpreterState = await libInterpreterStateDeploy();
     interpreter = await rainterpreterDeploy();
   });
 
-  it("should debug Stack", async () => { 
-
-    const debugStyle = DebugStyle.Stack; 
-    const stackLength = 1
+  it("should debug Stack", async () => {
+    const debugStyle = DebugStyle.Stack;
+    const stackLength = 1;
     // prettier-ignore
     const sources = [
       concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1))
       ])
-    ]; 
+    ];
     const context = [[3, 5, 7, 9, 11]];
     const constants = [2, 4, 6, 8, 10];
-  
+
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-              { sources, constants  }, 
-              stackLength , 
-              context,
-              debugStyle, 
-              interpreter.address
-             
-      ); 
-    
-    assert(stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32*stackLength)) ));
+        { sources, constants },
+        stackLength,
+        context,
+        debugStyle,
+        interpreter.address
+      );
 
-  });  
+    assert(
+      stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32 * stackLength)))
+    );
+  });
 
-  it("should debug Constants", async () => { 
-
-    const debugStyle = DebugStyle.Stack; 
-    const stackLength = 5
+  it("should debug Constants", async () => {
+    const debugStyle = DebugStyle.Stack;
+    const stackLength = 5;
 
     // prettier-ignore
     const sources = [
@@ -63,76 +68,76 @@ describe("LibInterpreterState debug tests", async function () {
     ];
     const constants = [2, 4, 6, 8, 10];
     const context = [[3, 5, 7, 9, 11]];
-    
+
     const { stackTop_, stackTopAfter_ } =
       await libInterpreterState.callStatic.debug(
-              { sources, constants  }, 
-              stackLength , 
-              context,
-              debugStyle, 
-              interpreter.address
-             
-      ); 
+        { sources, constants },
+        stackLength,
+        context,
+        debugStyle,
+        interpreter.address
+      );
 
-    assert(stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32*stackLength))));
+    assert(
+      stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32 * stackLength)))
+    );
+  });
 
-  }); 
-
-  it("should debug Context", async () => { 
-    
-    const debugStyle = DebugStyle.Context; 
-    const stackLength = 1
+  it("should debug Context", async () => {
+    const debugStyle = DebugStyle.Context;
+    const stackLength = 1;
 
     // prettier-ignore
     const sources = [
       concat([
         op(Opcode.BLOCK_NUMBER, 0),
       ])
-    ]; 
+    ];
 
     const constants = [2, 4, 6, 8, 10];
     const context = [[3, 5, 7, 9, 11]];
 
-    const { stackTop_, stackTopAfter_ } =  await libInterpreterState.callStatic.debug(
+    const { stackTop_, stackTopAfter_ } =
+      await libInterpreterState.callStatic.debug(
         { sources, constants },
-        stackLength ,
+        stackLength,
         context,
         debugStyle,
-        interpreter.address,
-      ); 
+        interpreter.address
+      );
 
-    assert(stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32*stackLength))));
+    assert(
+      stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32 * stackLength)))
+    );
+  });
 
-
-  }); 
-
-  it("should debug Source", async () => { 
-    
-    const debugStyle = DebugStyle.Source; 
-    const stackLength = 1
+  it("should debug Source", async () => {
+    const debugStyle = DebugStyle.Source;
+    const stackLength = 1;
 
     // prettier-ignore
     const sources = [
       concat([
         op(Opcode.BLOCK_NUMBER, 0),
       ])
-    ]; 
-    
+    ];
+
     const constants = [2, 4, 6, 8, 10];
     const context = [[3, 5, 7, 9, 11]];
 
-    const { stackTop_, stackTopAfter_ } =  await libInterpreterState.callStatic.debug(
+    const { stackTop_, stackTopAfter_ } =
+      await libInterpreterState.callStatic.debug(
         { sources, constants },
-        stackLength ,
+        stackLength,
         context,
         debugStyle,
-        interpreter.address,
-      ); 
+        interpreter.address
+      );
 
-    assert(stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32*stackLength))));
-
-
-    });
+    assert(
+      stackTopAfter_.eq(stackTop_.add(ethers.BigNumber.from(32 * stackLength)))
+    );
+  });
 
   // it("should debug Constants", async () => {
   //   const debugStyle = DebugStyle.Constant;
@@ -163,8 +168,6 @@ describe("LibInterpreterState debug tests", async function () {
 
   //   assert(stackTopAfter_.eq(stackTop_));
   // });
-
-  
 
   // it("should debug Source", async () => {
   //   const debugStyle = DebugStyle.Source;

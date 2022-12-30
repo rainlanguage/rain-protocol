@@ -5,7 +5,6 @@ import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpr
 import { op } from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 
-
 // Remove Eval Test Cases as they are checked in Ops.
 
 describe("LibInterpreterState eval tests", async function () {

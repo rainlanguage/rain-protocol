@@ -1,6 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibInterpreterStateTest, Rainterpreter } from "../../../typechain";
+import type {
+  LibInterpreterStateTest,
+  Rainterpreter,
+} from "../../../typechain";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
@@ -10,21 +13,15 @@ describe("LibInterpreterState context tests", async function () {
   let libInterpreterState: LibInterpreterStateTest;
   let interpreter: Rainterpreter;
 
-
   before(async () => {
     libInterpreterState = await libInterpreterStateDeploy();
     interpreter = await rainterpreterDeploy();
-
   });
 
   it("should store a 2D context upon deserializing", async () => {
-    // prettier-ignore 
+    // prettier-ignore
     const stackLength = 1
-    const sources = [
-      concat([
-        op(Opcode.CONTEXT, 0x0000)
-      ])
-    ];
+    const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
     const constants = [];
 
     const context = [

@@ -8,6 +8,8 @@ import "../../deploy/LibIntegrityCheck.sol";
 import "../../../math/Binary.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
+import "hardhat/console.sol";
+
 /// Thrown when a stack read index is outside the current stack top.
 error OutOfBoundsStackRead(uint256 stackTopIndex, uint256 stackRead);
 
@@ -31,7 +33,7 @@ library OpReadMemory {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
         if (type_ == OPCODE_MEMORY_TYPE_STACK) {
@@ -42,6 +44,12 @@ library OpReadMemory {
                 revert OutOfBoundsStackRead(stackTopIndex_, offset_);
             }
 
+            console.log(
+                "before",
+                integrityCheckState_.stackBottom.toIndex(
+                    integrityCheckState_.stackHighwater
+                )
+            );
             // Ensure that highwater is moved past any stack item that we
             // read so that copied values cannot later be consumed.
             integrityCheckState_.stackHighwater = StackPointer.wrap(
@@ -49,6 +57,12 @@ library OpReadMemory {
                     StackPointer.unwrap(
                         integrityCheckState_.stackBottom.up(offset_)
                     )
+                )
+            );
+            console.log(
+                "after",
+                integrityCheckState_.stackBottom.toIndex(
+                    integrityCheckState_.stackHighwater
                 )
             );
         } else {

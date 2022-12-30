@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../run/LibStackPointer.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
+import "./IExpressionDeployerV1.sol";
 import "../run/IInterpreterV1.sol";
 
 /// @dev The virtual stack pointers are never read or written so don't need to
@@ -101,6 +102,26 @@ library LibIntegrityCheck {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for StackPointer;
     using Math for uint256;
+
+    function newState(
+        StateConfig memory config_,
+        function(IntegrityCheckState memory, Operand, StackPointer)
+            view
+            returns (StackPointer)[]
+            memory integrityFns_
+    ) internal pure returns (IntegrityCheckState memory) {
+        return
+            IntegrityCheckState(
+                config_.sources,
+                config_.constants.length,
+                INITIAL_STACK_BOTTOM,
+                // Highwater starts underneath stack bottom as it errors on an
+                // greater than _or equal to_ check.
+                INITIAL_STACK_BOTTOM.down(),
+                INITIAL_STACK_BOTTOM,
+                integrityFns_
+            );
+    }
 
     /// If the given stack pointer is above the current state of the max stack
     /// top, the max stack top will be moved to the stack pointer.
@@ -294,8 +315,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_
     ) internal pure {
         if (
-            // Stack bottom may be non-zero so check we aren't below it.
-            StackPointer.unwrap(stackTop_) <
+            StackPointer.unwrap(stackTop_) <=
             StackPointer.unwrap(integrityCheckState_.stackHighwater)
         ) {
             revert StackPopUnderflow(

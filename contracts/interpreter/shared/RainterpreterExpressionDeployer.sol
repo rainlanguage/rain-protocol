@@ -33,7 +33,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0cb50cc30d190d6b0de90e150eae0f780f
 /// what the expression deployer expects it to be, giving significantly higher
 /// confidence that the integrity checks are valid.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x6ee97d5b3f7c6a8dcef395f1b1f50c625509c3023c5abb9e8d23cfbdc7a89df1
+    0x2576883cb80955ab66620e4f708b8857453cc09c718dea8576016887abf10a88
 );
 
 /// @title RainterpreterExpressionDeployer
@@ -141,14 +141,8 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         }
 
         // Build the initial state of the integrity check.
-        IntegrityCheckState memory integrityCheckState_ = IntegrityCheckState(
-            config_.sources,
-            config_.constants.length,
-            INITIAL_STACK_BOTTOM,
-            INITIAL_STACK_BOTTOM,
-            INITIAL_STACK_BOTTOM,
-            integrityFunctionPointers()
-        );
+        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
+            .newState(config_, integrityFunctionPointers());
         // Loop over each possible entrypoint as defined by the calling contract
         // and check the integrity of each. At the least we need to be sure that
         // there are no out of bounds stack reads/writes and to know the total

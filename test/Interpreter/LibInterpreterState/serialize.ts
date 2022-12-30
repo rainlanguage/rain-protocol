@@ -1,6 +1,9 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibInterpreterStateTest, Rainterpreter } from "../../../typechain";
+import type {
+  LibInterpreterStateTest,
+  Rainterpreter,
+} from "../../../typechain";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
@@ -13,21 +16,21 @@ describe("LibInterpreterState serialize tests", async function () {
   before(async () => {
     libInterpreterState = await libInterpreterStateDeploy();
     interpreter = await rainterpreterDeploy();
-
   });
 
   it("should convert InterpreterState to packed bytes with serialize", async () => {
-    // prettier-ignore 
+    // prettier-ignore
 
-    const stackLength = 1 
+    const stackLength = 1
     const sources = [
-      concat([ // sourceIndex 0
-        op(Opcode.BLOCK_NUMBER)
-      ])
+      concat([
+        // sourceIndex 0
+        op(Opcode.BLOCK_NUMBER),
+      ]),
     ];
     const constants = [];
 
-    const serialized_ = await libInterpreterState.callStatic.serialize( 
+    const serialized_ = await libInterpreterState.callStatic.serialize(
       interpreter.address,
       {
         sources,
