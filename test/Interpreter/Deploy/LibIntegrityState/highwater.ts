@@ -30,7 +30,8 @@ describe("LibIntegrityCheck highwater tests", async function () {
         await iinterpreterV1ConsumerDeploy({
           sources: [sourceMAIN, sourceONE],
           constants,
-        }),
+        }, 
+        1),
       "StackPopUnderflow(4, 0)",
       "did not prevent nested multioutput"
     );
@@ -57,7 +58,8 @@ describe("LibIntegrityCheck highwater tests", async function () {
         await iinterpreterV1ConsumerDeploy({
           sources: [sourceMAIN],
           constants,
-        }),
+        }, 
+        1),
       "StackPopUnderflow",
       "did not prevent pop after copy from the stack"
     );
