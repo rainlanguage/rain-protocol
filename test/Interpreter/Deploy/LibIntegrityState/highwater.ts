@@ -52,7 +52,7 @@ describe("LibIntegrityCheck highwater tests", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.ADD, 2),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.ADD, 2),
+      op(Opcode.ADD, 3),
     ]);
 
     await assertError(

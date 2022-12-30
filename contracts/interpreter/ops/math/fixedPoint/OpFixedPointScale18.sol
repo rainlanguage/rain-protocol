@@ -13,7 +13,7 @@ library OpFixedPointScale18 {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _scale18(
+    function f(
         Operand operand_,
         uint256 a_
     ) internal pure returns (uint256) {
@@ -24,8 +24,8 @@ library OpFixedPointScale18 {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _scale18);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -33,6 +33,6 @@ library OpFixedPointScale18 {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_scale18, operand_);
+        return stackTop_.applyFn(f, operand_);
     }
 }

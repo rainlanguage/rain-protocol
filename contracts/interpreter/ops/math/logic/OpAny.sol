@@ -14,7 +14,7 @@ library OpAny {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         function(uint256[] memory) internal view returns (uint256) fn_;
         return
             integrityCheckState_.applyFn(

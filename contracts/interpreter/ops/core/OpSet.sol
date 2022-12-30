@@ -19,7 +19,7 @@ library OpSet {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         unchecked {
             function(uint256, uint256) internal pure fn_;
             return integrityCheckState_.applyFn(stackTop_, fn_);

@@ -10,7 +10,7 @@ library OpUpdateTimesForTierRange {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _updateTimesForTierRange(
+    function f(
         Operand operand_,
         uint256 report_,
         uint256 timestamp_
@@ -32,9 +32,9 @@ library OpUpdateTimesForTierRange {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
-            integrityCheckState_.applyFn(stackTop_, _updateTimesForTierRange);
+            integrityCheckState_.applyFn(stackTop_, f);
     }
 
     // Stacks a report with updated times over tier range.
@@ -47,6 +47,6 @@ library OpUpdateTimesForTierRange {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_updateTimesForTierRange, operand_);
+        return stackTop_.applyFn(f, operand_);
     }
 }

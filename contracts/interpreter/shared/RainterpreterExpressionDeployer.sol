@@ -33,7 +33,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0cb50cc30d190d6b0de90e150eae0f780f
 /// what the expression deployer expects it to be, giving significantly higher
 /// confidence that the integrity checks are valid.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x2576883cb80955ab66620e4f708b8857453cc09c718dea8576016887abf10a88
+    0x5d1105b247375f271ca646c93d5ef2a7e9514a36b8b4c3945dfad78c36204c3d
 );
 
 /// @title RainterpreterExpressionDeployer
@@ -148,14 +148,16 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         // there are no out of bounds stack reads/writes and to know the total
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
+        StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
+        StackPointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max
             // stack height as the latter is used for unconditional memory
             // allocation so MUST be the max height across all possible
             // entrypoints.
-            integrityCheckState_.stackBottom = INITIAL_STACK_BOTTOM;
-            integrityCheckState_.stackHighwater = INITIAL_STACK_BOTTOM;
+            integrityCheckState_.stackBottom = initialStackBottom_;
+            integrityCheckState_.stackHighwater = initialStackHighwater_;
             LibIntegrityCheck.ensureIntegrity(
                 integrityCheckState_,
                 SourceIndex.wrap(i_),

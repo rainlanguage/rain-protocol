@@ -30,7 +30,7 @@ library OpIVerifyV1AccountStatusAtTime {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 

@@ -17,7 +17,7 @@ library OpSaturatingAdd {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,

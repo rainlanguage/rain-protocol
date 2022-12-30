@@ -15,7 +15,7 @@ library OpERC1155BalanceOfBatch {
     using LibCast for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _balanceOfBatch(
+    function f(
         uint256 token_,
         uint256[] memory accounts_,
         uint256[] memory ids_
@@ -31,11 +31,11 @@ library OpERC1155BalanceOfBatch {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
-                _balanceOfBatch,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -46,6 +46,6 @@ library OpERC1155BalanceOfBatch {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
+        return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

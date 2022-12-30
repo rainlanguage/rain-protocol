@@ -13,7 +13,7 @@ library OpERC20SnapshotBalanceOfAt {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _balanceOfAt(
+    function f(
         uint256 token_,
         uint256 account_,
         uint256 snapshotId_
@@ -29,8 +29,8 @@ library OpERC20SnapshotBalanceOfAt {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _balanceOfAt);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -38,6 +38,6 @@ library OpERC20SnapshotBalanceOfAt {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_balanceOfAt);
+        return stackTop_.applyFn(f);
     }
 }

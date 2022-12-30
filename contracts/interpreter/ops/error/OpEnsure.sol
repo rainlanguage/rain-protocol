@@ -12,7 +12,7 @@ library OpEnsure {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _ensure(uint256 a_) internal pure {
+    function f(uint256 a_) internal pure {
         assembly ("memory-safe") {
             if iszero(a_) {
                 revert(0, 0)
@@ -24,11 +24,11 @@ library OpEnsure {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
-                _ensure,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -38,6 +38,6 @@ library OpEnsure {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFnN(_ensure, Operand.unwrap(operand_));
+        return stackTop_.applyFnN(f, Operand.unwrap(operand_));
     }
 }

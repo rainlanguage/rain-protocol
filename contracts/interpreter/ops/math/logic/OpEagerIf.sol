@@ -22,7 +22,7 @@ library OpEagerIf {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,

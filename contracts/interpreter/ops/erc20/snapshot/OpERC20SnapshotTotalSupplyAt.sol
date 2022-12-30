@@ -13,7 +13,7 @@ library OpERC20SnapshotTotalSupplyAt {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _totalSupplyAt(
+    function f(
         uint256 token_,
         uint256 snapshotId_
     ) internal view returns (uint256) {
@@ -25,8 +25,8 @@ library OpERC20SnapshotTotalSupplyAt {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _totalSupplyAt);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -34,6 +34,6 @@ library OpERC20SnapshotTotalSupplyAt {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_totalSupplyAt);
+        return stackTop_.applyFn(f);
     }
 }

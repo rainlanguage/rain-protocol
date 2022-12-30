@@ -46,9 +46,8 @@ library OpReadMemory {
 
             console.log(
                 "before",
-                integrityCheckState_.stackBottom.toIndex(
-                    integrityCheckState_.stackHighwater
-                )
+                StackPointer.unwrap(integrityCheckState_.stackBottom),
+                StackPointer.unwrap(integrityCheckState_.stackHighwater)
             );
             // Ensure that highwater is moved past any stack item that we
             // read so that copied values cannot later be consumed.
@@ -61,9 +60,8 @@ library OpReadMemory {
             );
             console.log(
                 "after",
-                integrityCheckState_.stackBottom.toIndex(
-                    integrityCheckState_.stackHighwater
-                )
+                StackPointer.unwrap(integrityCheckState_.stackBottom),
+                StackPointer.unwrap(integrityCheckState_.stackHighwater)
             );
         } else {
             if (offset_ >= integrityCheckState_.constantsLength) {

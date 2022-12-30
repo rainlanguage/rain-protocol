@@ -12,7 +12,7 @@ library OpERC20BalanceOf {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _balanceOf(
+    function f(
         uint256 token_,
         uint256 account_
     ) internal view returns (uint256) {
@@ -26,8 +26,8 @@ library OpERC20BalanceOf {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _balanceOf);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -35,6 +35,6 @@ library OpERC20BalanceOf {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_balanceOf);
+        return stackTop_.applyFn(f);
     }
 }

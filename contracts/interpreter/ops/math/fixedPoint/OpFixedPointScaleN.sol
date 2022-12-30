@@ -13,7 +13,7 @@ library OpFixedPointScaleN {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _scaleN(
+    function f(
         Operand operand_,
         uint256 a_
     ) internal pure returns (uint256) {
@@ -24,8 +24,8 @@ library OpFixedPointScaleN {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _scaleN);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -33,6 +33,6 @@ library OpFixedPointScaleN {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_scaleN, operand_);
+        return stackTop_.applyFn(f, operand_);
     }
 }

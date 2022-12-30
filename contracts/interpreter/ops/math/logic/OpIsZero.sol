@@ -12,7 +12,7 @@ library OpIsZero {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _isZero(uint256 a_) internal pure returns (uint256 b_) {
+    function f(uint256 a_) internal pure returns (uint256 b_) {
         assembly ("memory-safe") {
             b_ := iszero(a_)
         }
@@ -22,8 +22,8 @@ library OpIsZero {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _isZero);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -31,6 +31,6 @@ library OpIsZero {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_isZero);
+        return stackTop_.applyFn(f);
     }
 }

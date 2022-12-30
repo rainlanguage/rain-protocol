@@ -13,7 +13,7 @@ library OpFixedPointScale18Div {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _scale18Div(
+    function f(
         Operand operand_,
         uint256 a_,
         uint256 b_
@@ -25,8 +25,8 @@ library OpFixedPointScale18Div {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _scale18Div);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -34,6 +34,6 @@ library OpFixedPointScale18Div {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_scale18Div, operand_);
+        return stackTop_.applyFn(f, operand_);
     }
 }

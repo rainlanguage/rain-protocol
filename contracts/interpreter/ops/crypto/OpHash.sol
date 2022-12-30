@@ -14,7 +14,7 @@ library OpHash {
     using LibCast for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _hash(uint256[] memory values_) internal pure returns (uint256) {
+    function f(uint256[] memory values_) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(values_)));
     }
 
@@ -22,11 +22,11 @@ library OpHash {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
-                _hash,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -38,6 +38,6 @@ library OpHash {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_hash, Operand.unwrap(operand_));
+        return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

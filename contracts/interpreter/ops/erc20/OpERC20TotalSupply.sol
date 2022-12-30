@@ -12,7 +12,7 @@ library OpERC20TotalSupply {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _totalSupply(uint256 token_) internal view returns (uint256) {
+    function f(uint256 token_) internal view returns (uint256) {
         return IERC20(address(uint160(token_))).totalSupply();
     }
 
@@ -20,8 +20,8 @@ library OpERC20TotalSupply {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _totalSupply);
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -29,6 +29,6 @@ library OpERC20TotalSupply {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_totalSupply);
+        return stackTop_.applyFn(f);
     }
 }

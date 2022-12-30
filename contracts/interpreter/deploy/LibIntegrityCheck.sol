@@ -7,6 +7,8 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "./IExpressionDeployerV1.sol";
 import "../run/IInterpreterV1.sol";
 
+import "hardhat/console.sol";
+
 /// @dev The virtual stack pointers are never read or written so don't need to
 /// point to a real location in memory. We only care that the stack never moves
 /// below its starting point at the stack bottom. For the virtual stack used by
@@ -281,7 +283,7 @@ library LibIntegrityCheck {
     function pop(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         stackTop_ = stackTop_.down();
         integrityCheckState_.popUnderflowCheck(stackTop_);
         return stackTop_;
@@ -296,7 +298,8 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
+        console.log("pop", n_, StackPointer.unwrap(stackTop_));
         if (n_ > 0) {
             stackTop_ = stackTop_.down(n_);
             integrityCheckState_.popUnderflowCheck(stackTop_);
@@ -313,7 +316,8 @@ library LibIntegrityCheck {
     function popUnderflowCheck(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_
-    ) internal pure {
+    ) internal view {
+        console.log("puc", StackPointer.unwrap(stackTop_), StackPointer.unwrap(integrityCheckState_.stackHighwater));
         if (
             StackPointer.unwrap(stackTop_) <=
             StackPointer.unwrap(integrityCheckState_.stackHighwater)
@@ -339,7 +343,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256),
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, n_));
     }
@@ -356,7 +360,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         function(uint256) internal view,
         uint256 n_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return integrityCheckState_.pop(stackTop_, n_);
     }
 
@@ -370,7 +374,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 
@@ -384,7 +388,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256, uint256) internal view
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return integrityCheckState_.pop(stackTop_, 2);
     }
 
@@ -398,7 +402,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }
@@ -414,7 +418,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 3));
     }
@@ -438,7 +442,7 @@ library LibIntegrityCheck {
             internal
             view
             returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 4));
     }
@@ -456,7 +460,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         function(uint256[] memory) internal view returns (uint256),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.push(
                 integrityCheckState_.pop(stackTop_, length_)
@@ -485,7 +489,7 @@ library LibIntegrityCheck {
             view
             returns (uint256),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -516,7 +520,7 @@ library LibIntegrityCheck {
             view
             returns (uint256),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -547,7 +551,7 @@ library LibIntegrityCheck {
             view
             returns (uint256[] memory),
         uint256 length_
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -571,7 +575,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(Operand, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 
@@ -590,7 +594,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(Operand, uint256, uint256) internal view returns (uint256)
-    ) internal pure returns (StackPointer) {
+    ) internal view returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }
