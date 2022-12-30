@@ -39,7 +39,7 @@ describe("LibIntegrityCheck highwater tests", async function () {
     );
   });
 
-  it.only("should prevent pop after copy from the stack", async () => {
+  it("should prevent pop after copy from the stack", async () => {
     const constants = [1];
 
     // prettier-ignore
