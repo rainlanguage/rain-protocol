@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -49,12 +49,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: sourcesUnsat,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -74,12 +75,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: sourcesSat,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
@@ -107,12 +109,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: sourcesUnsat,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -132,12 +135,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: sourcesSat,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
@@ -168,12 +172,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: sourcesUnsat,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -193,12 +198,13 @@ describe("RainInterpreter MathOps saturating math", async () => {
       ]),
     ];
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: sourcesSat,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);

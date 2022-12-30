@@ -9,7 +9,7 @@ import type {
 } from "../../../../typechain";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -92,12 +92,13 @@ describe("RainInterpreter ERC1155 ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      2
     );
 
     const transferAmount = 100;
@@ -160,12 +161,13 @@ describe("RainInterpreter ERC1155 ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();

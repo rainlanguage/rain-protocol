@@ -10,7 +10,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -46,12 +46,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
@@ -65,12 +66,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 2),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
@@ -85,12 +87,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ANY, 3),
     ]);
 
-    const expression2 = await expressionDeployConsumer(
+    const expression2 = await expressionConsumerDeploy(
       {
         sources: [source2],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
@@ -114,12 +117,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
@@ -134,12 +138,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 3),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
@@ -153,12 +158,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EVERY, 2),
     ]);
 
-    const expression2 = await expressionDeployConsumer(
+    const expression2 = await expressionConsumerDeploy(
       {
         sources: [source2],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
@@ -183,12 +189,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
@@ -204,12 +211,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop();
@@ -225,12 +233,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EAGER_IF),
     ]);
 
-    const expression2 = await expressionDeployConsumer(
+    const expression2 = await expressionConsumerDeploy(
       {
         sources: [source2],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression2.dispatch, []);
     const result2 = await logic.stackTop();
@@ -248,12 +257,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop(); // expect 1
@@ -267,12 +277,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.GREATER_THAN),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop(); // expect 0
@@ -290,12 +301,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop(); // expect 0
@@ -309,12 +321,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop(); // expect 1
@@ -334,12 +347,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop(); // expect 1
@@ -353,12 +367,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
     const result1 = await logic.stackTop(); // expect 0
@@ -372,12 +387,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const expression2 = await expressionDeployConsumer(
+    const expression2 = await expressionConsumerDeploy(
       {
         sources: [source2],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression2.dispatch, [[1]]);
     const result2 = await logic.stackTop(); // expect 1
@@ -394,12 +410,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const expression3 = await expressionDeployConsumer(
+    const expression3 = await expressionConsumerDeploy(
       {
         sources: [source3],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression3.dispatch, [[id]]);
     const result3 = await logic.stackTop(); // expect 1
@@ -419,12 +436,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ISZERO),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
@@ -438,12 +456,13 @@ describe("RainInterpreter logic ops", async function () {
       op(Opcode.ISZERO),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
 

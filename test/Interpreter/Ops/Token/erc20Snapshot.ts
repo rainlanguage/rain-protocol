@@ -10,7 +10,7 @@ import type {
 import { SnapshotEvent } from "../../../../typechain/contracts/test/testToken/ReserveTokenERC20Snapshot";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getEventArgs } from "../../../../utils/events";
 import {
   memoryOperand,
@@ -67,12 +67,13 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const txSnapshot = await tokenERC20Snapshot.snapshot();
@@ -112,12 +113,13 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await tokenERC20Snapshot.transfer(signer1.address, 100);

@@ -42,10 +42,13 @@ describe("DO_WHILE Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceADD],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceADD],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stackTop();
@@ -84,10 +87,13 @@ describe("DO_WHILE Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceSUB],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceSUB],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stackTop();
@@ -131,10 +137,13 @@ describe("DO_WHILE Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceADD],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceADD],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stackTop();
@@ -192,10 +201,13 @@ describe("DO_WHILE Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceWHILE, sourceCHECK_ACC, sourceIncrease],
+          constants,
+        },
+        1
+      );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
     const result = await consumerLogic.stack();

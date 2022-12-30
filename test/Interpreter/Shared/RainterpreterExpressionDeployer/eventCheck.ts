@@ -10,12 +10,12 @@ import {
   StateConfig,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
   it("DeployExpression event should emit original StateConfig", async () => {
     const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployer(
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       interpreter
     );
 
