@@ -1,6 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibInterpreterStateTest } from "../../../typechain";
+import type {
+  LibInterpreterStateTest,
+  Rainterpreter,
+} from "../../../typechain";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
@@ -8,21 +12,26 @@ import { compareStructs } from "../../../utils/test/compareStructs";
 
 describe("LibInterpreterState deserialize tests", async function () {
   let libInterpreterState: LibInterpreterStateTest;
+  let interpreter: Rainterpreter;
 
   before(async () => {
     libInterpreterState = await libInterpreterStateDeploy();
+    interpreter = await rainterpreterDeploy();
   });
 
   it("should convert packed bytes to InterpreterState with deserialize", async () => {
     // prettier-ignore
+    const stackLength = 2
     const sources = [
-      concat([ // sourceIndex 0
-        op(Opcode.BLOCK_NUMBER)
+      concat([
+        // sourceIndex 0
+        op(Opcode.BLOCK_NUMBER),
       ]),
-      concat([ // sourceIndex 1
-          op(Opcode.BLOCK_NUMBER),
+      concat([
+        // sourceIndex 1
+        op(Opcode.BLOCK_NUMBER),
         op(Opcode.EXPLODE32),
-      ])
+      ]),
     ];
     const constants = [];
     const context = [];
@@ -30,8 +39,9 @@ describe("LibInterpreterState deserialize tests", async function () {
     // test fn serializes and then deserialises
     const state_ = await libInterpreterState.callStatic.serDeserialize(
       { sources, constants },
+      stackLength,
       context,
-      [1, 8]
+      interpreter.address
     );
 
     const expectedStatePartial = {
@@ -40,9 +50,23 @@ describe("LibInterpreterState deserialize tests", async function () {
 
     compareStructs(state_, expectedStatePartial);
 
-    assert(state_.compiledSources.length === 2);
-    assert(state_.compiledSources[0].length === 10);
-    assert(state_.compiledSources[1].length === 18);
-    assert(state_.constantsBottom < state_.stackBottom);
+    assert(
+      state_.compiledSources.length === 2,
+      "wrong length, got " + state_.compiledSources.length
+    );
+    assert(
+      state_.compiledSources[0].length === 10,
+      "wrong length, got" + state_.compiledSources[0].length
+    );
+    assert(
+      state_.compiledSources[1].length === 18,
+      "wrong length, got" + state_.compiledSources[1].length
+    );
+    assert(
+      state_.constantsBottom < state_.stackBottom,
+      `wrong constants position
+      constantsBottom  ${state_.constantsBottom}
+      stackBottom      ${state_.stackBottom}`
+    );
   });
 });

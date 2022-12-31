@@ -16,7 +16,7 @@ import {
   verifyFactoryDeploy,
 } from "../../utils";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -59,12 +59,13 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       op(Opcode.IVERIFYV1_ACCOUNT_STATUS_AT_TIME), // STATUS
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await verify.grantRole(await verify.APPROVER_ADMIN(), newAdmin.address);

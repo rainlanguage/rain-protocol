@@ -1,23 +1,23 @@
 import { assert } from "chai";
-import type { LibStackTopTest } from "../../../typechain";
+import type { LibStackPointerTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
-import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 
-describe("LibStackTop applyFn tests", async function () {
-  let libStackTop: LibStackTopTest;
+describe("LibStackPointer applyFn tests", async function () {
+  let libStackPointer: LibStackPointerTest;
 
   before(async () => {
-    libStackTop = await libStackTopDeploy();
+    libStackPointer = await libStackPointerDeploy();
   });
 
   it("should applyFn for `function(uint256) internal view returns (uint256)`", async () => {
     const array0 = [5, 6, 7, 8];
 
-    const stackTop_ = await libStackTop.callStatic["applyFn(uint256[])"](
+    const stackTop_ = await libStackPointer.callStatic["applyFn(uint256[])"](
       array0
     );
 
-    const tx0_ = await libStackTop["applyFn(uint256[])"](array0);
+    const tx0_ = await libStackPointer["applyFn(uint256[])"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -42,11 +42,11 @@ describe("LibStackTop applyFn tests", async function () {
     const array0 = [5, 6, 7, 8];
     const operand = 3;
 
-    const stackTop_ = await libStackTop.callStatic[
+    const stackTop_ = await libStackPointer.callStatic[
       "applyFn(uint256[],uint256)"
     ](array0, operand);
 
-    const tx0_ = await libStackTop["applyFn(uint256[],uint256)"](
+    const tx0_ = await libStackPointer["applyFn(uint256[],uint256)"](
       array0,
       operand
     );
@@ -73,11 +73,11 @@ describe("LibStackTop applyFn tests", async function () {
   it("should applyFn for `function(uint256, uint256) internal view returns (uint256)`", async () => {
     const array0 = [5, 6, 7, 8];
 
-    const stackTop_ = await libStackTop.callStatic["applyFnSummer(uint256[])"](
-      array0
-    );
+    const stackTop_ = await libStackPointer.callStatic[
+      "applyFnSummer(uint256[])"
+    ](array0);
 
-    const tx0_ = await libStackTop["applyFnSummer(uint256[])"](array0);
+    const tx0_ = await libStackPointer["applyFnSummer(uint256[])"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -104,11 +104,11 @@ describe("LibStackTop applyFn tests", async function () {
   it("should applyFnN for `function(uint256, uint256) internal view returns (uint256)`", async () => {
     const array0 = [5, 6, 7, 8];
 
-    const stackTop_ = await libStackTop.callStatic[
+    const stackTop_ = await libStackPointer.callStatic[
       "applyFnNSummer(uint256[],uint256)"
     ](array0, array0.length);
 
-    const tx0_ = await libStackTop["applyFnNSummer(uint256[],uint256)"](
+    const tx0_ = await libStackPointer["applyFnNSummer(uint256[],uint256)"](
       array0,
       array0.length
     );
@@ -137,11 +137,11 @@ describe("LibStackTop applyFn tests", async function () {
   it("should applyFn for `function(uint256, uint256, uint256) internal view returns (uint256)`", async () => {
     const array0 = [5, 6, 7, 8];
 
-    const stackTop_ = await libStackTop.callStatic["applyFn3Summer(uint256[])"](
-      array0
-    );
+    const stackTop_ = await libStackPointer.callStatic[
+      "applyFn3Summer(uint256[])"
+    ](array0);
 
-    const tx0_ = await libStackTop["applyFn3Summer(uint256[])"](array0);
+    const tx0_ = await libStackPointer["applyFn3Summer(uint256[])"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -170,11 +170,11 @@ describe("LibStackTop applyFn tests", async function () {
     const array0 = [5, 6, 7, 8];
     const operand = 3;
 
-    const stackTop_ = await libStackTop.callStatic[
+    const stackTop_ = await libStackPointer.callStatic[
       "applyFn2Operand(uint256[],uint256)"
     ](array0, operand);
 
-    const tx0_ = await libStackTop["applyFn2Operand(uint256[],uint256)"](
+    const tx0_ = await libStackPointer["applyFn2Operand(uint256[],uint256)"](
       array0,
       operand
     );
@@ -205,11 +205,11 @@ describe("LibStackTop applyFn tests", async function () {
     const array0 = [2, 4, 6, 8, 10, 12, 14, 16];
     const tailLength = 6;
 
-    const stackTop_ = await libStackTop.callStatic[
+    const stackTop_ = await libStackPointer.callStatic[
       "applyFn2Heads(uint256[],uint256)"
     ](array0, tailLength);
 
-    const tx0_ = await libStackTop["applyFn2Heads(uint256[],uint256)"](
+    const tx0_ = await libStackPointer["applyFn2Heads(uint256[],uint256)"](
       array0,
       tailLength
     );
@@ -244,11 +244,11 @@ describe("LibStackTop applyFn tests", async function () {
     const array0 = [2, 4, 6, 8, 10, 12, 14, 16];
     const tailLength = 5;
 
-    const stackTop_ = await libStackTop.callStatic[
+    const stackTop_ = await libStackPointer.callStatic[
       "applyFn3Heads(uint256[],uint256)"
     ](array0, tailLength);
 
-    const tx0_ = await libStackTop["applyFn3Heads(uint256[],uint256)"](
+    const tx0_ = await libStackPointer["applyFn3Heads(uint256[],uint256)"](
       array0,
       tailLength
     );
@@ -284,11 +284,11 @@ describe("LibStackTop applyFn tests", async function () {
     const array0 = [2, 4, 6, 8, 10, 12, 14, 16, 18];
     const tailLength = 4;
 
-    const stackTop_ = await libStackTop.callStatic[
+    const stackTop_ = await libStackPointer.callStatic[
       "applyFn2Tails(uint256[],uint256)"
     ](array0, tailLength);
 
-    const tx0_ = await libStackTop["applyFn2Tails(uint256[],uint256)"](
+    const tx0_ = await libStackPointer["applyFn2Tails(uint256[],uint256)"](
       array0,
       tailLength
     );

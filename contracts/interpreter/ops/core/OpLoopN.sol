@@ -2,9 +2,9 @@
 pragma solidity ^0.8.15;
 
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
 /// @title OpLoopN
@@ -17,26 +17,26 @@ import "./OpCall.sol";
 /// all the intermediate excess outputs as:
 /// `outputs + (inputs - outputs) * n`
 library OpLoopN {
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using LibInterpreterState for InterpreterState;
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
-            uint n_ = Operand.unwrap(operand_) >> 12;
-            uint inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
-            uint outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
+            uint256 n_ = Operand.unwrap(operand_) >> 12;
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
+            uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
             require(inputs_ >= outputs_, "LOOP_N_INPUTS");
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) & MASK_12BIT
             );
-            for (uint i_ = 0; i_ < n_; i_++) {
+            for (uint256 i_ = 0; i_ < n_; i_++) {
                 stackTop_ = OpCall.integrity(
-                    integrityState_,
+                    integrityCheckState_,
                     callOperand_,
                     stackTop_
                 );
@@ -48,8 +48,8 @@ library OpLoopN {
     function run(
         InterpreterState memory state_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         uint256 n_ = Operand.unwrap(operand_) >> 12;
         Operand callOperand_ = Operand.wrap(
             Operand.unwrap(operand_) & MASK_12BIT

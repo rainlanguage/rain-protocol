@@ -32,14 +32,14 @@ struct FlowERC1155IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
-uint constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
+uint256 constant FLOW_ERC1155_MIN_OUTPUTS = MIN_FLOW_SENTINELS + 2;
 
 contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -114,11 +114,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                         )
                         .matrixFrom();
                     (
-                        uint[] memory stack_,
-                        uint[] memory stateChanges_
+                        uint256[] memory stack_,
+                        uint256[] memory stateChanges_
                     ) = interpreter_.eval(dispatch_, context_);
                     require(
-                        stack_.asStackTopAfter().peek() > 0,
+                        stack_.asStackPointerAfter().peek() > 0,
                         "INVALID_TRANSFER"
                     );
                     if (stateChanges_.length > 0) {
@@ -133,13 +133,13 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowERC1155IO memory, uint[] memory) {
+    ) internal view returns (FlowERC1155IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
         (
-            StackTop stackBottom_,
-            StackTop stackTop_,
-            uint[] memory stateChanges_
+            StackPointer stackBottom_,
+            StackPointer stackTop_,
+            uint256[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
@@ -169,7 +169,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         unchecked {
             (
                 FlowERC1155IO memory flowIO_,
-                uint[] memory stateChanges_
+                uint256[] memory stateChanges_
             ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.

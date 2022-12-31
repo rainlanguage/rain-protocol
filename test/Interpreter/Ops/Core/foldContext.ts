@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { assertError } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   callOperand,
   Debug,
@@ -48,12 +48,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [
@@ -108,12 +109,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.ADD, 5),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceCount],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [
@@ -155,12 +157,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [
@@ -199,15 +202,16 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
-    const context = [[]];
+    const context = [];
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, context);
     const result = await logic.stackTop();
@@ -235,12 +239,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context1 = [
@@ -348,12 +353,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.ADD, 4), // Adding all the mod values
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceCalculate, sourceCountEven],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [

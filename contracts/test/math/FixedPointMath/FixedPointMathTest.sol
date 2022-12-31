@@ -3,6 +3,8 @@ pragma solidity =0.8.17;
 
 import {FixedPointMath} from "../../../math/FixedPointMath.sol";
 
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+
 /// @title FixedPointMathTest
 /// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
 contract FixedPointMathTest {
@@ -56,6 +58,15 @@ contract FixedPointMathTest {
         return a_.fixedPointMul(b_);
     }
 
+    /// Overloaded `fixedPointMul` that exposes underlying `mulDiv` rounding.
+    function fixedPointMul(
+        uint256 a_,
+        uint256 b_,
+        Math.Rounding rounding_
+    ) external pure returns (uint256) {
+        return a_.fixedPointMul(b_, rounding_);
+    }
+
     /// Wraps `FixedPointMath.fixedPointDiv`.
     /// Fixed point division in native scale decimals.
     /// Both `a_` and `b_` MUST be `DECIMALS` fixed point decimals.
@@ -67,5 +78,14 @@ contract FixedPointMathTest {
         uint256 b_
     ) external pure returns (uint256) {
         return a_.fixedPointDiv(b_);
+    }
+
+    /// Overloaded `fixedPointDiv` that exposes underlying `mulDiv` rounding.
+    function fixedPointDiv(
+        uint256 a_,
+        uint256 b_,
+        Math.Rounding rounding_
+    ) external pure returns (uint256) {
+        return a_.fixedPointDiv(b_, rounding_);
     }
 }

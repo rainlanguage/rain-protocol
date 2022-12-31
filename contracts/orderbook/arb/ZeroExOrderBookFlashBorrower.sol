@@ -52,8 +52,8 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
     function onFlashLoan(
         address initiator_,
         address,
-        uint,
-        uint,
+        uint256,
+        uint256,
         bytes calldata data_
     ) external returns (bytes32) {
         require(msg.sender == orderBook, "FlashBorrower: Bad lender");
@@ -85,7 +85,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         address flashLoanToken_ = takeOrders_.input;
         // We can't repay more than the minimum that the orders are going to
         // give us and there's no reason to borrow less.
-        uint flashLoanAmount_ = takeOrders_.minimumInput;
+        uint256 flashLoanAmount_ = takeOrders_.minimumInput;
 
         // This is overkill to infinite approve every time.
         // @todo make this hammer smaller.
@@ -110,11 +110,13 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
         // Refund any unspent 0x protocol fees to the sender.
         payable(msg.sender).transfer(address(this).balance);
 
-        uint inputBalance_ = IERC20(takeOrders_.input).balanceOf(address(this));
+        uint256 inputBalance_ = IERC20(takeOrders_.input).balanceOf(
+            address(this)
+        );
         if (inputBalance_ > 0) {
             IERC20(takeOrders_.input).safeTransfer(msg.sender, inputBalance_);
         }
-        uint outputBalance_ = IERC20(takeOrders_.output).balanceOf(
+        uint256 outputBalance_ = IERC20(takeOrders_.output).balanceOf(
             address(this)
         );
         if (outputBalance_ > 0) {

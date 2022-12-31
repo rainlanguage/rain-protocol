@@ -2,18 +2,18 @@
 pragma solidity ^0.8.15;
 
 import "../../../../math/FixedPointMath.sol";
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpFixedPointScale18
 /// @notice Opcode for scaling a number to 18 fixed point.
 library OpFixedPointScale18 {
     using FixedPointMath for uint256;
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _scale18(
+    function f(
         Operand operand_,
         uint256 a_
     ) internal pure returns (uint256) {
@@ -21,18 +21,18 @@ library OpFixedPointScale18 {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _scale18);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    function scale18(
+    function run(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_scale18, operand_);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f, operand_);
     }
 }

@@ -21,7 +21,7 @@ uint256 constant FLAG_ROW_FLOW_TIME = 2;
 uint256 constant MIN_FLOW_SENTINELS = 4;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant FLOW_MAX_OUTPUTS = type(uint16).max;
+uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
 struct FlowCommonConfig {
     address expressionDeployer;
@@ -31,15 +31,15 @@ struct FlowCommonConfig {
 
 contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     using LibInterpreterState for InterpreterState;
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
     IInterpreterV1 internal _interpreter;
 
     /// flow expression pointer => is registered
-    mapping(EncodedDispatch => uint) internal _flows;
+    mapping(EncodedDispatch => uint256) internal _flows;
 
     event FlowInitialized(
         address sender,
@@ -54,7 +54,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     // solhint-disable-next-line func-name-mixedcase
     function __FlowCommon_init(
         FlowCommonConfig memory config_,
-        uint flowMinOutputs_
+        uint256 flowMinOutputs_
     ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();
@@ -91,9 +91,9 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         internal
         view
         onlyRegisteredDispatch(dispatch_)
-        returns (StackTop, StackTop, uint[] memory)
+        returns (StackPointer, StackPointer, uint256[] memory)
     {
-        (uint256[] memory stack_, uint[] memory stateChanges_) = _interpreter
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = _interpreter
             .eval(
                 dispatch_,
                 LibContext.build(
@@ -102,7 +102,11 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
                     signedContexts_
                 )
             );
-        return (stack_.asStackTopUp(), stack_.asStackTopAfter(), stateChanges_);
+        return (
+            stack_.asStackPointerUp(),
+            stack_.asStackPointerAfter(),
+            stateChanges_
+        );
     }
 
     receive() external payable virtual {}

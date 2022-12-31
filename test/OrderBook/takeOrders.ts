@@ -36,7 +36,7 @@ import {
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs, getEvents } from "../../utils/events";
 import {
   memoryOperand,
@@ -64,7 +64,9 @@ describe("OrderBook take orders", async function () {
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
     interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
   });
 
   it("should respect output maximum of a given order", async function () {

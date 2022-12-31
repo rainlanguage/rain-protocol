@@ -2,7 +2,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { createEmptyBlock } from "../../../../utils/hardhat";
 import {
   memoryOperand,
@@ -68,12 +68,13 @@ describe("RainInterpreter update tier range op", async function () {
       ),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants: constants0,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(

@@ -30,7 +30,11 @@ describe("CALL Opcode test", async function () {
     const callADD = op(Opcode.CALL, callOperand(2, 1, 1));
 
     // Source to add 2 numbers, input will be provided from another source
-    const sourceADD = concat([op(Opcode.ADD, 2)]);
+    const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.ADD, 2)
+    ]);
 
     // Source for calculating fibonacci sequence uptill 5
     // prettier-ignore
@@ -52,12 +56,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceADD],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceADD],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
@@ -89,12 +96,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
@@ -109,7 +119,16 @@ describe("CALL Opcode test", async function () {
 
     // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(maxInputs, 1, 1));
-    const source1 = concat([op(Opcode.MUL, maxInputs)]);
+    const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 6)),
+      op(Opcode.MUL, maxInputs),
+    ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([
@@ -124,12 +143,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
@@ -154,12 +176,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("4");
@@ -189,12 +214,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stack();
 
     const expectedResult0 = [
@@ -274,21 +302,24 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [
-          sourceMAIN,
-          sourceADD,
-          sourceSUB,
-          sourceMUL,
-          sourceDIV,
-          sourceEXP,
-          sourceADD10,
-          sourceADD1,
-        ],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [
+            sourceMAIN,
+            sourceADD,
+            sourceSUB,
+            sourceMUL,
+            sourceDIV,
+            sourceEXP,
+            sourceADD10,
+            sourceADD1,
+          ],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("236");
@@ -414,10 +445,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceGetDiscountedPrice, sourceGetDiscount],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceGetDiscountedPrice, sourceGetDiscount],
+          constants,
+        },
+        1
+      );
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);

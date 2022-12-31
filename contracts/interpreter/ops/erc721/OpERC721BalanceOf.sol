@@ -2,17 +2,17 @@
 pragma solidity ^0.8.15;
 
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC721BalanceOf
 /// @notice Opcode for getting the current erc721 balance of an account.
 library OpERC721BalanceOf {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _balanceOf(
+    function f(
         uint256 token_,
         uint256 account_
     ) internal view returns (uint256) {
@@ -23,19 +23,18 @@ library OpERC721BalanceOf {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _balanceOf);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    // Stack the return of `balanceOf`.
-    function balanceOf(
+    function run(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_balanceOf);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f);
     }
 }

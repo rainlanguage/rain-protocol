@@ -85,7 +85,7 @@ describe("LibMemoryKV tests", async function () {
   it("should revert readPtrVal if pointer is zero", async function () {
     await assertError(
       async () => await libMemoryKV.readPtrVal(0),
-      "INVALID_PTR",
+      "InvalidPtr(0)",
       "did not revert when passing zero pointer"
     );
   });
@@ -174,7 +174,7 @@ describe("LibMemoryKV tests", async function () {
     });
   });
 
-  it("should copy the linked list into a vanilla uint[] and the length is correct and all items are present", async function () {
+  it("should copy the linked list into a vanilla uint256[] and the length is correct and all items are present", async function () {
     const kv = 0;
     const kvSize = 100; // 100 key-value pairs
 

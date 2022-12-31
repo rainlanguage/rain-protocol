@@ -1,24 +1,27 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
-import type { LibInterpreterStateTest } from "../../../typechain";
+import type {
+  LibInterpreterStateTest,
+  Rainterpreter,
+} from "../../../typechain";
+import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
 import { op } from "../../../utils/interpreter/interpreter";
 import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 
 describe("LibInterpreterState context tests", async function () {
   let libInterpreterState: LibInterpreterStateTest;
+  let interpreter: Rainterpreter;
 
   before(async () => {
     libInterpreterState = await libInterpreterStateDeploy();
+    interpreter = await rainterpreterDeploy();
   });
 
   it("should store a 2D context upon deserializing", async () => {
     // prettier-ignore
-    const sources = [
-      concat([
-        op(Opcode.CONTEXT, 0x0000)
-      ])
-    ];
+    const stackLength = 1
+    const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
     const constants = [];
 
     const context = [
@@ -31,8 +34,9 @@ describe("LibInterpreterState context tests", async function () {
     // test fn serializes and then deserialises
     const state_ = await libInterpreterState.callStatic.serDeserialize(
       { sources, constants },
+      stackLength,
       context,
-      [1]
+      interpreter.address
     );
 
     const { context: context_ } = state_;

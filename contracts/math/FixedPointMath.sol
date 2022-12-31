@@ -47,7 +47,7 @@ uint256 constant FP_ONE = 1e18;
 /// precision in the case of downscaling DO NOT use this library.
 library FixedPointMath {
     using Math for uint256;
-    using SafeCast for int;
+    using SafeCast for int256;
     using SaturatingMath for uint256;
 
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
@@ -104,14 +104,15 @@ library FixedPointMath {
     /// that it would have as though `a_` and `b_` were both `DECIMALS` and we
     /// hadn't rescaled the ratio.
     function scaleRatio(
-        uint ratio_,
+        uint256 ratio_,
         uint8 aDecimals_,
         uint8 bDecimals_
-    ) internal pure returns (uint) {
+    ) internal pure returns (uint256) {
         return
             scaleBy(
                 ratio_,
-                (int(uint(bDecimals_)) - int(uint(aDecimals_))).toInt8()
+                (int256(uint(bDecimals_)) - int256(uint256(aDecimals_)))
+                    .toInt8()
             );
     }
 
@@ -152,6 +153,15 @@ library FixedPointMath {
         return a_.mulDiv(b_, FP_ONE);
     }
 
+    /// Overloaded `fixedPointMul` that exposes underlying `mulDiv` rounding.
+    function fixedPointMul(
+        uint256 a_,
+        uint256 b_,
+        Math.Rounding rounding_
+    ) internal pure returns (uint256) {
+        return a_.mulDiv(b_, FP_ONE, rounding_);
+    }
+
     /// Fixed point division in native scale decimals.
     /// Both `a_` and `b_` MUST be `DECIMALS` fixed point decimals.
     /// @param a_ First term.
@@ -162,5 +172,14 @@ library FixedPointMath {
         uint256 b_
     ) internal pure returns (uint256) {
         return a_.mulDiv(FP_ONE, b_);
+    }
+
+    /// Overloaded `fixedPointDiv` that exposes underlying `mulDiv` rounding.
+    function fixedPointDiv(
+        uint256 a_,
+        uint256 b_,
+        Math.Rounding rounding_
+    ) internal pure returns (uint256) {
+        return a_.mulDiv(FP_ONE, b_, rounding_);
     }
 }

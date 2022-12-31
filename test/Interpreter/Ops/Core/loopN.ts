@@ -12,7 +12,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -52,12 +52,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     let expectedResult = initialValue;
@@ -92,12 +93,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     let expectedResult = initialValue;
@@ -132,12 +134,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 1))
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     let expectedResult = initialValue;
@@ -179,12 +182,13 @@ describe("LOOP_N Opcode test", async function () {
         op(Opcode.ADD, 2),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMAIN, sourceADDOuter, sourceADDInner],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     let expectedResult = initialValue;
@@ -271,7 +275,7 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.EXPLODE32),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [
           sourceMAIN,
@@ -281,7 +285,8 @@ describe("LOOP_N Opcode test", async function () {
         ],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     let expectedResult = [];
@@ -373,7 +378,7 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(7, 2, 1, 4)),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [
           sourceMAIN,
@@ -384,7 +389,8 @@ describe("LOOP_N Opcode test", async function () {
         ],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     let expectedResult = ethers.BigNumber.from(0);
@@ -424,12 +430,13 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 2, 1, 1))
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMAIN, sourceADD],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const expectedResult = 5;
@@ -464,14 +471,15 @@ describe("LOOP_N Opcode test", async function () {
 
     await assertError(
       async () =>
-        await expressionDeployConsumer(
+        await expressionConsumerDeploy(
           {
             sources: [sourceMAIN, sourceADD],
             constants,
           },
-          rainInterpreter
+          rainInterpreter,
+          1
         ),
-      "STACK_UNDERFLOW",
+      "StackPopUnderflow(1, 3618502788666131106986593281521497120414687020801267626233049500247285301247)",
       "Integrity check passed even when enough values are not available on the stack"
     );
   });

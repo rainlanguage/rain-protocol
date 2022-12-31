@@ -2,28 +2,36 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierwiseCombine.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 import "../../../math/Binary.sol";
+
+/// Zero inputs to select lte is NOT supported.
+error ZeroInputs();
 
 /// @title OpSelectLte
 /// @notice Exposes `TierwiseCombine.selectLte` as an opcode.
 library OpSelectLte {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            require(inputs_ > 0, "SELECT_LTE_ZERO_INPUTS");
+            if (inputs_ == 0) {
+                revert ZeroInputs();
+            }
+
             return
-                integrityState_.push(integrityState_.pop(stackTop_, inputs_));
+                integrityCheckState_.push(
+                    integrityCheckState_.pop(stackTop_, inputs_)
+                );
         }
     }
 
@@ -34,20 +42,20 @@ library OpSelectLte {
     // `mode_` is the 2 highest bits after `logic_`.
     // The other bits specify how many values to take from the stack
     // as reports to compare against each other and the block number.
-    function selectLte(
+    function run(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         unchecked {
-            uint inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
-            uint logic_ = Operand.unwrap(operand_) >> 10;
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
+            uint256 mode_ = (Operand.unwrap(operand_) >> 8) & MASK_2BIT;
+            uint256 logic_ = Operand.unwrap(operand_) >> 10;
             (uint256 time_, uint256[] memory reports_) = stackTop_.list(
                 inputs_
             );
             return
-                reports_.asStackTop().push(
+                reports_.asStackPointer().push(
                     TierwiseCombine.selectLte(logic_, mode_, time_, reports_)
                 );
         }

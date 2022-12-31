@@ -2,16 +2,16 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/ITierV2.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpITierV2Report
 /// @notice Exposes `ITierV2.report` as an opcode.
 library OpITierV2Report {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
+    using LibIntegrityCheck for IntegrityCheckState;
 
     function _report(
         uint256 tierContract_,
@@ -26,12 +26,12 @@ library OpITierV2Report {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return
-            integrityState_.applyFn(
+            integrityCheckState_.applyFn(
                 stackTop_,
                 _report,
                 Operand.unwrap(operand_)
@@ -39,11 +39,11 @@ library OpITierV2Report {
     }
 
     // Stack the `report` returned by an `ITierV2` contract.
-    function report(
+    function run(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop stackTopAfter_) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer stackTopAfter_) {
         return stackTop_.applyFn(_report, Operand.unwrap(operand_));
     }
 }

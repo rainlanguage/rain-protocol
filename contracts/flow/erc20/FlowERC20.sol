@@ -39,8 +39,8 @@ struct FlowERC20IO {
 }
 
 SourceIndex constant CAN_TRANSFER_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant CAN_TRANSFER_MIN_OUTPUTS = 1;
-uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MIN_OUTPUTS = 1;
+uint256 constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 
 /// @title FlowERC20
 /// @notice Mints itself according to some predefined schedule. The schedule is
@@ -56,8 +56,8 @@ uint constant CAN_TRANSFER_MAX_OUTPUTS = 1;
 /// See `test/Claim/FlowERC20.sol.ts` for examples, including providing
 /// staggered rewards where more tokens are minted for higher tier accounts.
 contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
@@ -108,9 +108,14 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                 )
                 .matrixFrom();
             EncodedDispatch dispatch_ = _dispatch;
-            (uint[] memory stack_, uint[] memory stateChanges_) = _interpreter
-                .eval(dispatch_, context_);
-            require(stack_.asStackTopAfter().peek() > 0, "INVALID_TRANSFER");
+            (
+                uint256[] memory stack_,
+                uint256[] memory stateChanges_
+            ) = _interpreter.eval(dispatch_, context_);
+            require(
+                stack_.asStackPointerAfter().peek() > 0,
+                "INVALID_TRANSFER"
+            );
             if (stateChanges_.length > 0) {
                 _interpreter.stateChanges(stateChanges_);
             }
@@ -121,13 +126,13 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view virtual returns (FlowERC20IO memory, uint[] memory) {
+    ) internal view virtual returns (FlowERC20IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         (
-            StackTop stackBottom_,
-            StackTop stackTop_,
-            uint[] memory stateChanges_
+            StackPointer stackBottom_,
+            StackPointer stackTop_,
+            uint256[] memory stateChanges_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
@@ -157,7 +162,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
         (
             FlowERC20IO memory flowIO_,
-            uint[] memory stateChanges_
+            uint256[] memory stateChanges_
         ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
         for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
             _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);

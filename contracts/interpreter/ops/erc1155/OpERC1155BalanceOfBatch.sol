@@ -2,20 +2,20 @@
 pragma solidity ^0.8.15;
 
 import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../../array/LibUint256Array.sol";
 import "../../../type/LibCast.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC1155BalanceOfBatch
 /// @notice Opcode for getting the current erc1155 balance of an accounts batch.
 library OpERC1155BalanceOfBatch {
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using LibCast for uint256[];
-    using LibIntegrityState for IntegrityState;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _balanceOfBatch(
+    function f(
         uint256 token_,
         uint256[] memory accounts_,
         uint256[] memory ids_
@@ -28,25 +28,24 @@ library OpERC1155BalanceOfBatch {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return
-            integrityState_.applyFn(
+            integrityCheckState_.applyFn(
                 stackTop_,
-                _balanceOfBatch,
+                f,
                 Operand.unwrap(operand_)
             );
     }
 
-    // Stack the return of `balanceOfBatch`.
     // Operand will be the length
-    function balanceOfBatch(
+    function run(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_balanceOfBatch, Operand.unwrap(operand_));
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

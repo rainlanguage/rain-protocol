@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibContext.sol";
 import "../math/SaturatingMath.sol";
 import "../math/FixedPointMath.sol";
@@ -104,8 +104,8 @@ contract Lobby is Phased, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using Math for uint256;
     using SaturatingMath for uint256;
     using FixedPointMath for uint256;
@@ -150,12 +150,12 @@ contract Lobby is Phased, ReentrancyGuard {
     EncodedDispatch internal claimEncodedDispatch;
     EncodedDispatch internal invalidEncodedDispatch;
 
-    mapping(address => uint) internal players;
-    mapping(address => uint) internal deposits;
-    uint internal totalDeposited;
-    mapping(address => uint) internal shares;
-    uint internal totalShares;
-    mapping(address => uint) internal withdrawals;
+    mapping(address => uint256) internal players;
+    mapping(address => uint256) internal deposits;
+    uint256 internal totalDeposited;
+    mapping(address => uint256) internal shares;
+    uint256 internal totalShares;
+    mapping(address => uint256) internal withdrawals;
 
     /// A max timeout is enforced in the constructor so that all cloned proxies
     /// share it, which prevents an initiator from setting a far future timeout
@@ -249,7 +249,7 @@ contract Lobby is Phased, ReentrancyGuard {
 
     // At any time anyone can deposit without joining or leaving.
     // This will become available to claimants.
-    function deposit(uint amount_) public nonReentrant {
+    function deposit(uint256 amount_) public nonReentrant {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);
@@ -301,11 +301,12 @@ contract Lobby is Phased, ReentrancyGuard {
         SignedContext[] memory signedContext_
     ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
         players[msg.sender] = 0;
-        uint deposit_ = deposits[msg.sender];
+        uint256 deposit_ = deposits[msg.sender];
 
-        (uint[] memory stack_, uint[] memory stateChanges_) = IInterpreterV1(
-            interpreter
-        ).eval(
+        (
+            uint256[] memory stack_,
+            uint256[] memory stateChanges_
+        ) = IInterpreterV1(interpreter).eval(
                 leaveEncodedDispatch,
                 LibContext.build(
                     new uint256[][](0),
@@ -315,7 +316,7 @@ contract Lobby is Phased, ReentrancyGuard {
             );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
-        uint amount_ = stack_.asStackTopAfter().peek().min(deposit_);
+        uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
         // the calculated amount is refunded and their entire deposit forfeited
         // from the internal ledger.
         IERC20(token).safeTransfer(msg.sender, amount_);
@@ -351,8 +352,8 @@ contract Lobby is Phased, ReentrancyGuard {
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
             (
-                uint[] memory stack_,
-                uint[] memory stateChanges_
+                uint256[] memory stack_,
+                uint256[] memory stateChanges_
             ) = interpreter.eval(
                     claimEncodedDispatch,
                     LibContext.build(
@@ -378,7 +379,7 @@ contract Lobby is Phased, ReentrancyGuard {
         // they will be eligible to claim their prorata share of the future
         // deposits.
         if (shares[msg.sender] > 0) {
-            uint amount_ = (totalDeposited - withdrawals[msg.sender])
+            uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
                 .fixedPointMul(shares[msg.sender]);
             token.safeTransfer(msg.sender, amount_);
             withdrawals[msg.sender] = totalDeposited;
@@ -399,14 +400,15 @@ contract Lobby is Phased, ReentrancyGuard {
         }
 
         IInterpreterV1 interpreter_ = interpreter;
-        (uint[] memory stack_, uint[] memory stateChanges_) = interpreter_.eval(
-            invalidEncodedDispatch,
-            LibContext.build(
-                new uint256[][](0),
-                callerContext_,
-                signedContexts_
-            )
-        );
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
+            .eval(
+                invalidEncodedDispatch,
+                LibContext.build(
+                    new uint256[][](0),
+                    callerContext_,
+                    signedContexts_
+                )
+            );
 
         if (stateChanges_.length > 0) {
             interpreter_.stateChanges(stateChanges_);
@@ -439,7 +441,7 @@ contract Lobby is Phased, ReentrancyGuard {
     }
 
     function refund() external onlyPhase(PHASE_INVALID) {
-        uint amount_ = deposits[msg.sender];
+        uint256 amount_ = deposits[msg.sender];
         token.safeTransfer(msg.sender, amount_);
         deposits[msg.sender] = 0;
         emit Refund(msg.sender, amount_);

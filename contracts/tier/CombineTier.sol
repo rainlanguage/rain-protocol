@@ -6,7 +6,7 @@ import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/run/LibContext.sol";
 
@@ -16,10 +16,10 @@ SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant REPORT_MIN_OUTPUTS = 1;
-uint constant REPORT_MAX_OUTPUTS = 1;
+uint256 constant REPORT_MAX_OUTPUTS = 1;
 
-uint constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
-uint constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
+uint256 constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
+uint256 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the
@@ -41,8 +41,8 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2 {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
@@ -89,7 +89,7 @@ contract CombineTier is TierV2 {
         address account_,
         uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
-        (uint[] memory stack_, ) = interpreter.eval(
+        (uint256[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_ENTRYPOINT,
@@ -101,7 +101,7 @@ contract CombineTier is TierV2 {
                 new SignedContext[](0)
             )
         );
-        return stack_.asStackTopAfter().peek();
+        return stack_.asStackPointerAfter().peek();
     }
 
     /// @inheritdoc ITierV2
@@ -110,7 +110,7 @@ contract CombineTier is TierV2 {
         uint256 tier_,
         uint256[] memory callerContext_
     ) external view returns (uint256) {
-        (uint[] memory stack_, ) = interpreter.eval(
+        (uint256[] memory stack_, ) = interpreter.eval(
             LibEncodedDispatch.encode(
                 expression,
                 REPORT_FOR_TIER_ENTRYPOINT,
@@ -124,6 +124,6 @@ contract CombineTier is TierV2 {
                 new SignedContext[](0)
             )
         );
-        return stack_.asStackTopAfter().peek();
+        return stack_.asStackPointerAfter().peek();
     }
 }
