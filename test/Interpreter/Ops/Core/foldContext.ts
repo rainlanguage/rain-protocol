@@ -52,7 +52,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.ADD, width + inputSize)
+      op(Opcode.ADD, width + inputSize),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -168,7 +168,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.ADD, width + inputSize)
+      op(Opcode.ADD, width + inputSize),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -216,7 +216,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     const sourceAdd = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
-      op(Opcode.ADD, width + inputSize)
+      op(Opcode.ADD, width + inputSize),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -262,7 +262,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
-      op(Opcode.ADD, width + inputSize)
+      op(Opcode.ADD, width + inputSize),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

@@ -308,11 +308,10 @@ library LibIntegrityCheck {
 
     /// DANGEROUS pop that does no underflow/highwater checks. The caller MUST
     /// ensure that this does not result in illegal stack reads.
-    /// @param integrityCheckState_ as per `pop`.
     /// @param stackTop_ as per `pop`.
     /// @param n_ as per `pop`.
     function popIgnoreHighwater(
-        IntegrityCheckState memory integrityCheckState_,
+        IntegrityCheckState memory,
         StackPointer stackTop_,
         uint256 n_
     ) internal pure returns (StackPointer) {
@@ -354,7 +353,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256),
         uint256 n_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, n_));
     }
@@ -371,7 +370,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         function(uint256) internal view,
         uint256 n_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.pop(stackTop_, n_);
     }
 
@@ -385,7 +384,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256) internal view returns (uint256)
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 
@@ -399,7 +398,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256, uint256) internal view
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.pop(stackTop_, 2);
     }
 
@@ -413,7 +412,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256, uint256) internal view returns (uint256)
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }
@@ -429,7 +428,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(uint256, uint256, uint256) internal view returns (uint256)
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 3));
     }
@@ -453,7 +452,7 @@ library LibIntegrityCheck {
             internal
             view
             returns (uint256)
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 4));
     }
@@ -471,7 +470,7 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         function(uint256[] memory) internal view returns (uint256),
         uint256 length_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(
                 integrityCheckState_.pop(stackTop_, length_)
@@ -500,7 +499,7 @@ library LibIntegrityCheck {
             view
             returns (uint256),
         uint256 length_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -531,7 +530,7 @@ library LibIntegrityCheck {
             view
             returns (uint256),
         uint256 length_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -562,7 +561,7 @@ library LibIntegrityCheck {
             view
             returns (uint256[] memory),
         uint256 length_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             return
                 integrityCheckState_.push(
@@ -586,7 +585,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(Operand, uint256) internal view returns (uint256)
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.push(integrityCheckState_.pop(stackTop_));
     }
 

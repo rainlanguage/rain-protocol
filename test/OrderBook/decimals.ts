@@ -5,7 +5,6 @@ import type {
   OrderBook,
   Rainterpreter,
   RainterpreterExpressionDeployer,
-  ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
 import {

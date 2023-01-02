@@ -305,7 +305,7 @@ describe("LOOP_N Opcode test", async function () {
     }
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
-    let result0 = await logic.stack();
+    const result0 = await logic.stack();
 
     expectedResult = expectedResult.reverse();
     expect(result0).deep.equal(

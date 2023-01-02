@@ -26,7 +26,7 @@ library OpContextRow {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         // Note that a expression with context can error at runtime due to OOB
         // reads that we don't know about here.
         function(uint256) internal pure returns (uint256) fn_;
