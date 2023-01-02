@@ -40,13 +40,16 @@ describe.only('Lobby Tests',async function () {
     before(async () => {
         const signers = await ethers.getSigners();
 
-        tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+        tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18; 
+
+        await tokenA.initialize();
 
         interpreter = await rainterpreterDeploy();
         expressionDeployer = await rainterpreterExpressionDeployerDeploy(interpreter);
         Lobby = await basicDeploy('Lobby' , {} , [15000000])
 
-        let constants = [0,1,0,0]
+        let constants = [0,ONE,ONE,0] 
+
         // prettier-ignore
         const joinSource = concat([
             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)),
@@ -61,7 +64,7 @@ describe.only('Lobby Tests',async function () {
         ])
 
         let lobbyStateConfig = {
-            sources : [joinSource , leaveSource , claimSource ] ,
+            sources : [joinSource , leaveSource , claimSource, [] ] ,
             constants : constants
         }
 
@@ -80,30 +83,87 @@ describe.only('Lobby Tests',async function () {
 
       });
 
-      it("should ensure player joins lobby" , async function () {
+    it("should ensure player joins lobby" , async function () {
 
-        const signers = await ethers.getSigners();
+      const signers = await ethers.getSigners();
 
-        const alice = signers[1];
-        const bob = signers[2];
+      const alice = signers[1]; 
+      console.log("ALice here :" , alice.address )
+      console.log("Lobby here  :" , Lobby.address )
 
-        const context0 = [1, 2, 3];
-        const hash0 = solidityKeccak256(["uint256[]"], [context0]);
-        const goodSignature0 = await alice.signMessage(arrayify(hash0));
+      const bob = signers[2]; 
 
-        const signedContexts0: SignedContextStruct[] = [
-            {
-              signer: alice.address,
-              signature: goodSignature0,
-              context: context0,
-            }
-          ];
+      await tokenA.connect(signers[0]).transfer(alice.address , ONE.mul(100)) 
+      console.log("alice :" , await tokenA.balanceOf(alice.address)  )
 
-        await Lobby
-            .connect(alice)
-            .join( [1234], signedContexts0);
+      await tokenA.connect(alice).approve(Lobby.address , ONE.mul(100))
 
-      })
+
+      const context0 = [1, 2, 3];
+      const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+      const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+      const signedContexts0: SignedContextStruct[] = [
+          {
+            signer: alice.address,
+            signature: goodSignature0,
+            context: context0,
+          }
+        ];
+  
+      await Lobby
+          .connect(alice)
+          .join( [1234], signedContexts0);   
+
+      console.log("alice here 2 :" , await tokenA.balanceOf(alice.address)  )
+
+
+      await Lobby
+      .connect(alice)
+      .leave( [1234], signedContexts0); 
+
+      console.log("alice here 3 :" , await tokenA.balanceOf(alice.address)  )
+
+
+      
+
+    })  
+
+
+    // it("should ensure player leaves lobby" , async function () {
+
+    //   const signers = await ethers.getSigners();
+
+    //   const alice = signers[1]; 
+    //   const bob = signers[2]; 
+
+    //   // await tokenA.connect(signers[0]).transfer(alice.address , ONE.mul(100)) 
+    //   console.log("alice balance before:" , await tokenA.balanceOf(alice.address)  )
+
+
+
+    //   const context0 = [1, 2, 3];
+    //   const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    //   const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    //   const signedContexts0: SignedContextStruct[] = [
+    //       {
+    //         signer: alice.address,
+    //         signature: goodSignature0,
+    //         context: context0,
+    //       }
+    //     ];
+
+    //   await Lobby
+    //       .connect(alice)
+    //       .leave( [1234], signedContexts0); 
+
+    //   console.log("alice balance after:" , await tokenA.balanceOf(alice.address)  )
+      
+
+    // })
+
+
 
 
 
