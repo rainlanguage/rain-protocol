@@ -34,7 +34,7 @@ describe("LibIntegrityCheck highwater tests", async function () {
           },
           1
         ),
-      "StackPopUnderflow(4, 0)",
+      "StackPopUnderflow(3, 0)",
       "did not prevent nested multioutput"
     );
   });
