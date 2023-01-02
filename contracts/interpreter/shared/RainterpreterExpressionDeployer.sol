@@ -33,7 +33,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0cb50cc30d190d6b0de90e150eae0f780f
 /// what the expression deployer expects it to be, giving significantly higher
 /// confidence that the integrity checks are valid.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xda914e60d06a83d8099b6562ac80dd60acbac7c35f0fcee9bffa8e160b377f63
+    0x6f569af2e1477a7b44a9666e3e52e2491b047345cc50a1cedd32cac91b6aae05
 );
 
 /// @title RainterpreterExpressionDeployer
@@ -149,7 +149,8 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         // memory to allocate when later deserializing an associated interpreter
         // state for evaluation.
         StackPointer initialStackBottom_ = integrityCheckState_.stackBottom;
-        StackPointer initialStackHighwater_ = integrityCheckState_.stackHighwater;
+        StackPointer initialStackHighwater_ = integrityCheckState_
+            .stackHighwater;
         for (uint256 i_ = 0; i_ < minStackOutputs_.length; i_++) {
             // Reset the top, bottom and highwater between each entrypoint as
             // every external eval MUST have a fresh stack, but retain the max

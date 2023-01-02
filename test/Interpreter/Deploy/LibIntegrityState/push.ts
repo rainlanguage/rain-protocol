@@ -15,14 +15,13 @@ describe("LibIntegrityCheck push tests", async function () {
       new Uint8Array(),
     ];
 
-    const constantsLength = 0;
     const stackMaxTop = 0;
     const stackTop = 0;
     const n = 3;
 
     const { stackTopAfter_, newStackMaxTop } = await libIntegrityCheckState[
-      "push(bytes[],uint256,uint256,uint256,uint256)"
-    ](sources, constantsLength, stackMaxTop, stackTop, n);
+      "push((bytes[],uint256[]),uint256,uint256,uint256)"
+    ]({ sources, constants: [] }, stackMaxTop, stackTop, n);
 
     assert(
       stackTopAfter_.eq(stackTop + 32 * n),
@@ -41,13 +40,12 @@ describe("LibIntegrityCheck push tests", async function () {
       new Uint8Array(),
     ];
 
-    const constantsLength = 0;
     const stackMaxTop = 0;
     const stackTop = 0;
 
     const { stackTopAfter_, newStackMaxTop } = await libIntegrityCheckState[
-      "push(bytes[],uint256,uint256,uint256)"
-    ](sources, constantsLength, stackMaxTop, stackTop);
+      "push((bytes[],uint256[]),uint256,uint256)"
+    ]({ sources, constants: [] }, stackMaxTop, stackTop);
 
     assert(stackTopAfter_.eq(stackTop + 32), "did not push up correct bytes");
 
@@ -63,14 +61,12 @@ describe("LibIntegrityCheck push tests", async function () {
       new Uint8Array(),
     ];
 
-    const constantsLength = 0;
     const stackMaxTop = 0;
     const stackTop = 0;
 
     const { stackTopAfter_, newStackMaxTop } =
       await libIntegrityCheckState.pushIgnoreHighwater(
-        sources,
-        constantsLength,
+        { sources, constants: [] },
         stackMaxTop,
         stackTop
       );

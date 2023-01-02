@@ -57,9 +57,9 @@ describe("Stake deposit", async function () {
     const constants = [max_uint256, max_uint256, 0, 1, 2, 3];
 
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const _v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
-    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const _v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -116,7 +116,7 @@ describe("Stake deposit", async function () {
 
     const constants = [TEN, max_uint256, 0, 1, 2, 3];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const _v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));

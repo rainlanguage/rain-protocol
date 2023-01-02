@@ -1,7 +1,7 @@
 /* eslint-disable no-unexpected-multiline */
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
-import { concat, hexlify } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   CombineTier,
@@ -27,7 +27,6 @@ import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../utils/hardhat";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,

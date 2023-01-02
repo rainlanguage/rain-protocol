@@ -21,7 +21,7 @@ library OpSelectLte {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
             if (inputs_ == 0) {

@@ -17,7 +17,7 @@ library OpGet {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         unchecked {
             // Pop key
             // Stack value

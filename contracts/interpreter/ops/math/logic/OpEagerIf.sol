@@ -10,7 +10,7 @@ library OpEagerIf {
     using LibIntegrityCheck for IntegrityCheckState;
     using LibStackPointer for StackPointer;
 
-    function _eagerIf(
+    function f(
         uint256 a_,
         uint256[] memory bs_,
         uint256[] memory cs_
@@ -22,11 +22,11 @@ library OpEagerIf {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
-                _eagerIf,
+                f,
                 Operand.unwrap(operand_) + 1
             );
     }
@@ -41,7 +41,7 @@ library OpEagerIf {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            return stackTop_.applyFn(_eagerIf, Operand.unwrap(operand_) + 1);
+            return stackTop_.applyFn(f, Operand.unwrap(operand_) + 1);
         }
     }
 }

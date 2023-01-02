@@ -12,10 +12,7 @@ library OpERC721OwnerOf {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function f(
-        uint256 token_,
-        uint256 id_
-    ) internal view returns (uint256) {
+    function f(uint256 token_, uint256 id_) internal view returns (uint256) {
         return uint256(uint160(IERC721(address(uint160(token_))).ownerOf(id_)));
     }
 
@@ -23,7 +20,7 @@ library OpERC721OwnerOf {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
