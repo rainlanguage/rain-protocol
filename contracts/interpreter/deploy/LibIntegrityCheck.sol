@@ -7,8 +7,6 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 import "./IExpressionDeployerV1.sol";
 import "../run/IInterpreterV1.sol";
 
-import "hardhat/console.sol";
-
 /// @dev The virtual stack pointers are never read or written so don't need to
 /// point to a real location in memory. We only care that the stack never moves
 /// below its starting point at the stack bottom. For the virtual stack used by
