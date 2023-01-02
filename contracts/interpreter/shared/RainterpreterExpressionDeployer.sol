@@ -86,9 +86,9 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         assembly ("memory-safe") {
             interpreterHash_ := extcodehash(interpreter_)
         }
-        // if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
-        //     revert UnexpectedInterpreterBytecodeHash(interpreterHash_);
-        // }
+        if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
+            revert UnexpectedInterpreterBytecodeHash(interpreterHash_);
+        }
 
         emit ValidInterpreter(msg.sender, interpreter_);
     }
