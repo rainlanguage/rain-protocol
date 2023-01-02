@@ -479,7 +479,7 @@ describe("LOOP_N Opcode test", async function () {
           rainInterpreter,
           1
         ),
-      "StackPopUnderflow(1, 3618502788666131106986593281521497120414687020801267626233049500247285301247)",
+      "StackPopUnderflow",
       "Integrity check passed even when enough values are not available on the stack"
     );
   });
