@@ -149,7 +149,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
       {
         sources,
-        constants: [],
+        constants: [1, 2, 3],
       },
       sourceIndex,
       stackTop,

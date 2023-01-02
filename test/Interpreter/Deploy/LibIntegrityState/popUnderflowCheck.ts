@@ -60,7 +60,61 @@ describe("LibIntegrityCheck popUnderflowCheck tests", async function () {
     );
   });
 
-  it("should pass check for stack underflow after pop on good path", async function () {
+  it("should fail check for stack underflow if stackTop < stackHighwater", async function () {
+    // prettier-ignore
+    const sources = [
+      op(Opcode.BLOCK_NUMBER, 0),
+      op(Opcode.BLOCK_NUMBER, 0),
+    ];
+
+    const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(64);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
+    const stackTop = INITIAL_STACK_BOTTOM.add(32);
+
+    await assertError(
+      async () => {
+        await libIntegrityCheckState.popUnderflowCheck(
+          { sources, constants: [] },
+          stackBottom,
+          stackHighwater,
+          stackMaxTop,
+          stackTop
+        );
+      },
+      "StackPopUnderflow",
+      "did not fail check when stackTop < stackHighwater"
+    );
+  });
+
+  it("should fail check for stack underflow if stackTop == stackHighwater", async function () {
+    // prettier-ignore
+    const sources = [
+      op(Opcode.BLOCK_NUMBER, 0),
+      op(Opcode.BLOCK_NUMBER, 0),
+    ];
+
+    const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(32);
+    const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
+    const stackTop = INITIAL_STACK_BOTTOM.add(32);
+
+    await assertError(
+      async () => {
+        await libIntegrityCheckState.popUnderflowCheck(
+          { sources, constants: [] },
+          stackBottom,
+          stackHighwater,
+          stackMaxTop,
+          stackTop
+        );
+      },
+      "StackPopUnderflow",
+      "did not fail check when stackTop == stackHighwater"
+    );
+  });
+
+  it("should pass check for stack underflow on good path", async function () {
     // prettier-ignore
     const sources = [
       op(Opcode.BLOCK_NUMBER, 0),
