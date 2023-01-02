@@ -39,9 +39,6 @@ library OpLoopN {
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) & MASK_12BIT
             );
-            console.log(inputs_, outputs_);
-            console.log(integrityCheckState_.stackBottom.toIndex(integrityCheckState_.stackHighwater));
-            console.log(integrityCheckState_.stackBottom.toIndex(stackTop_));
             StackPointer highwater_ = integrityCheckState_.stackHighwater;
             for (uint256 i_ = 0; i_ < n_; i_++) {
                 // ignore intermediate highwaters because call will set it past
@@ -53,7 +50,6 @@ library OpLoopN {
                     stackTop_
                 );
             }
-                        console.log("t", integrityCheckState_.stackBottom.toIndex(stackTop_));
 
             return stackTop_;
         }

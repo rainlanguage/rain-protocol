@@ -306,6 +306,19 @@ library LibIntegrityCheck {
         return stackTop_;
     }
 
+    /// DANGEROUS pop that does no underflow/highwater checks. The caller MUST
+    /// ensure that this does not result in illegal stack reads.
+    /// @param integrityCheckState_ as per `pop`.
+    /// @param stackTop_ as per `pop`.
+    /// @param n_ as per `pop`.
+    function popIgnoreHighwater(
+        IntegrityCheckState memory integrityCheckState_,
+        StackPointer stackTop_,
+        uint256 n_
+    ) internal pure returns (StackPointer) {
+        return stackTop_.down(n_);
+    }
+
     /// Ensures that pops have not underflowed the stack, i.e. that the stack
     /// top is not below the stack bottom. We set a large stack bottom that is
     /// impossible to underflow within gas limits with realistic pops so that

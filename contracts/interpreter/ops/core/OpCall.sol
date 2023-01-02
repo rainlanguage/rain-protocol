@@ -44,7 +44,7 @@ library OpCall {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal view returns (StackPointer stackTopAfter_) {
+    ) internal view returns (StackPointer) {
         // Unpack the operand to get IO and the source to be called.
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
         uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
@@ -80,13 +80,15 @@ library OpCall {
         // The outer stack top will move above the outputs relative to the inner
         // stack bottom. At runtime any values that are not outputs will be
         // removed so they do not need to be accounted for here.
-        stackTopAfter_ = integrityCheckState_.push(
+        stackTop_ = integrityCheckState_.push(
             integrityCheckState_.stackBottom,
             outputs_
         );
 
         // Reinstate the outer stack bottom.
         integrityCheckState_.stackBottom = stackBottom_;
+
+        return stackTop_;
     }
 
     /// Call eval with a new scope.

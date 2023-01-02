@@ -9,7 +9,7 @@ import {
   loopNOperand,
   memoryOperand,
   MemoryType,
-  op
+  op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
