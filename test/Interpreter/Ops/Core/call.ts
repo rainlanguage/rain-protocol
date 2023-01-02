@@ -166,7 +166,11 @@ describe("CALL Opcode test", async function () {
 
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(2, minOutput, 1));
-    const source1 = concat([op(Opcode.MUL, 2)]);
+    const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.MUL, 2)
+    ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([
