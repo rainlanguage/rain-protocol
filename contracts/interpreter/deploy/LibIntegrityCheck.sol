@@ -249,13 +249,13 @@ library LibIntegrityCheck {
     ) internal pure returns (StackPointer) {
         stackTop_ = stackTop_.up(n_);
         // Any time we push more than 1 item to the stack we move the highwater
-        // _past_ it as nested multioutput is disallowed.
-        if (
-            n_ > 1 &&
-            StackPointer.unwrap(stackTop_) >
-            StackPointer.unwrap(integrityCheckState_.stackHighwater)
-        ) {
-            integrityCheckState_.stackHighwater = stackTop_;
+        // to the last item, as nested multioutput is disallowed.
+        if (n_ > 1) {
+            integrityCheckState_.stackHighwater = StackPointer.wrap(
+                StackPointer.unwrap(integrityCheckState_.stackHighwater).max(
+                    StackPointer.unwrap(stackTop_.down())
+                )
+            );
         }
         integrityCheckState_.syncStackMaxTop(stackTop_);
         return stackTop_;
@@ -283,7 +283,7 @@ library LibIntegrityCheck {
     function pop(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         stackTop_ = stackTop_.down();
         integrityCheckState_.popUnderflowCheck(stackTop_);
         return stackTop_;
@@ -298,7 +298,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         uint256 n_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         if (n_ > 0) {
             stackTop_ = stackTop_.down(n_);
             integrityCheckState_.popUnderflowCheck(stackTop_);
@@ -315,8 +315,7 @@ library LibIntegrityCheck {
     function popUnderflowCheck(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_
-    ) internal view {
-        console.log("puc", StackPointer.unwrap(stackTop_), StackPointer.unwrap(integrityCheckState_.stackHighwater));
+    ) internal pure {
         if (
             StackPointer.unwrap(stackTop_) <=
             StackPointer.unwrap(integrityCheckState_.stackHighwater)
@@ -593,7 +592,7 @@ library LibIntegrityCheck {
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,
         function(Operand, uint256, uint256) internal view returns (uint256)
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_, 2));
     }

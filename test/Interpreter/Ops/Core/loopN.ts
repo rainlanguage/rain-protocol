@@ -9,7 +9,7 @@ import {
   loopNOperand,
   memoryOperand,
   MemoryType,
-  op,
+  op
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
@@ -42,6 +42,7 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       ]);
@@ -83,6 +84,7 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       ]);
@@ -124,6 +126,7 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       ]);
@@ -171,6 +174,7 @@ describe("LOOP_N Opcode test", async function () {
     ]);
     // prettier-ignore
     const sourceADDOuter = concat([
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
       op(Opcode.LOOP_N, loopNOperand(n, 1, 1, 2))
@@ -178,6 +182,7 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADDInner = concat([
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.ADD, 2),
     ]);
@@ -262,6 +267,9 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.CALL, callOperand(3, 3, 2)),
     ]);
 
@@ -286,7 +294,7 @@ describe("LOOP_N Opcode test", async function () {
         constants,
       },
       rainInterpreter,
-      1
+      8
     );
 
     let expectedResult = [];
@@ -298,7 +306,6 @@ describe("LOOP_N Opcode test", async function () {
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     let result0 = await logic.stack();
-    result0 = result0.slice(3); // Slicing the Exploded Values
 
     expectedResult = expectedResult.reverse();
     expect(result0).deep.equal(
@@ -307,7 +314,14 @@ describe("LOOP_N Opcode test", async function () {
     );
   });
 
-  it("should loop over an exploded value", async () => {
+  // @TODO
+  // This is an impossible situation when we disallow having more inputs than
+  // outputs. The original intention was that the result of the explode would be
+  // reduced from 8 values down to a single value through the loop N, but since
+  // we restricted inputs to be less than or equal to outputs, it is not possible
+  // to reduce the stack in this way.
+  // We should revisit this when we have a way to represent it in rainlang.
+  xit("should loop over an exploded value", async () => {
     // This test builds a (32 * 8) 256 bit value using LOOP_N and explodes it using EXPLODE32
 
     const n = 8;
@@ -362,10 +376,17 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADDUsingFunction = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
       op(Opcode.CALL, callOperand(3, 3, 2)),
     ]);
 
-    const sourceADD = concat([op(Opcode.ADD, 2)]);
+    const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.ADD, 2),
+    ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
@@ -375,7 +396,10 @@ describe("LOOP_N Opcode test", async function () {
       op(Opcode.LOOP_N, loopNOperand(n, 3, 3, 1)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // FINAL VALUE
       op(Opcode.EXPLODE32), // EXPLODING the Value
-      op(Opcode.LOOP_N, loopNOperand(7, 2, 1, 4)),
+      // explode is multioutput so the highwater has moved
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 9)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 10)),
+      op(Opcode.LOOP_N, loopNOperand(7, 2, 2, 4)),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -419,15 +443,17 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-         op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+        op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore
     const sourceMAIN = concat([
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
-      op(Opcode.LOOP_N, loopNOperand(n, 2, 1, 1))
+      op(Opcode.LOOP_N, loopNOperand(n, 2, 2, 1))
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -458,8 +484,10 @@ describe("LOOP_N Opcode test", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
-         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
-         op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+        op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
       ]);
 
     // prettier-ignore

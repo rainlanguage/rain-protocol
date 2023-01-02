@@ -33,8 +33,7 @@ library OpUpdateTimesForTierRange {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return
-            integrityCheckState_.applyFn(stackTop_, f);
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     // Stacks a report with updated times over tier range.

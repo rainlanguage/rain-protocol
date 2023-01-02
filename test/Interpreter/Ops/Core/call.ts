@@ -33,7 +33,7 @@ describe("CALL Opcode test", async function () {
     const sourceADD = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.ADD, 2)
+      op(Opcode.ADD, 2),
     ]);
 
     // Source for calculating fibonacci sequence uptill 5
@@ -169,7 +169,7 @@ describe("CALL Opcode test", async function () {
     const source1 = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.MUL, 2)
+      op(Opcode.MUL, 2),
     ]);
 
     // prettier-ignore
