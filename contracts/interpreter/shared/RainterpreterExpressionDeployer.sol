@@ -33,7 +33,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"0cb50cc30d190d6b0de90e150eae0f780f
 /// what the expression deployer expects it to be, giving significantly higher
 /// confidence that the integrity checks are valid.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xce4bb14abfae958ce7c336659864941c4776ec1656fd2da7a9c620a711d8766c
+    0x6f569af2e1477a7b44a9666e3e52e2491b047345cc50a1cedd32cac91b6aae05
 );
 
 /// @title RainterpreterExpressionDeployer
