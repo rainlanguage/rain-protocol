@@ -24,7 +24,6 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
-  DEBUG_STATE_PACKED,
   memoryOperand,
   MemoryType,
   op,

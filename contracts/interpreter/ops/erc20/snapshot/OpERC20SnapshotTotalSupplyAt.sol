@@ -2,18 +2,18 @@
 pragma solidity ^0.8.15;
 
 import {ERC20SnapshotUpgradeable as ERC20Snapshot} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20SnapshotUpgradeable.sol";
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC20SnapshotTotalSupplyAt
 /// @notice Opcode for Open Zeppelin `ERC20Snapshot.totalSupplyAt`.
 /// https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20Snapshot
 library OpERC20SnapshotTotalSupplyAt {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _totalSupplyAt(
+    function f(
         uint256 token_,
         uint256 snapshotId_
     ) internal view returns (uint256) {
@@ -22,19 +22,18 @@ library OpERC20SnapshotTotalSupplyAt {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _totalSupplyAt);
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    /// Stack `totalSupplyAt`.
-    function totalSupplyAt(
+    function run(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_totalSupplyAt);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f);
     }
 }

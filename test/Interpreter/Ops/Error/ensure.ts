@@ -10,7 +10,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -47,12 +47,13 @@ describe("ENSURE Opcode test", async function () {
       v1,
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -71,12 +72,13 @@ describe("ENSURE Opcode test", async function () {
       v3
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
@@ -95,12 +97,13 @@ describe("ENSURE Opcode test", async function () {
       v0
     ]);
 
-    const expression2 = await expressionDeployConsumer(
+    const expression2 = await expressionConsumerDeploy(
       {
         sources: [source2],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression2.dispatch, []);
@@ -128,12 +131,13 @@ describe("ENSURE Opcode test", async function () {
       v1,
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -152,12 +156,13 @@ describe("ENSURE Opcode test", async function () {
       v3,
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -178,12 +183,13 @@ describe("ENSURE Opcode test", async function () {
       v0
     ]);
 
-    const expression2 = await expressionDeployConsumer(
+    const expression2 = await expressionConsumerDeploy(
       {
         sources: [source2],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(

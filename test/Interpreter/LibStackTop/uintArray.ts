@@ -1,28 +1,28 @@
 import { assert } from "chai";
 import { hexConcat } from "ethers/lib/utils";
-import type { LibStackTopTest } from "../../../typechain";
+import type { LibStackPointerTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
-import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { Tuple } from "../../../utils/types";
 
-describe("LibStackTop uint array tests", async function () {
-  let libStackTop: LibStackTopTest;
+describe("LibStackPointer uint256 array tests", async function () {
+  let libStackPointer: LibStackPointerTest;
 
   before(async () => {
-    libStackTop = await libStackTopDeploy();
+    libStackPointer = await libStackPointerDeploy();
   });
 
   it("should peek up", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
 
-    const a0_ = await libStackTop.callStatic["peekUp(uint256[])"](array0);
+    const a0_ = await libStackPointer.callStatic["peekUp(uint256[])"](array0);
 
     assert(a0_.eq(array0.length));
 
-    const stackTop0_ = await libStackTop.callStatic[
-      "peekUpStackTop(uint256[])"
+    const stackTop0_ = await libStackPointer.callStatic[
+      "peekUpStackPointer(uint256[])"
     ](array0);
-    const tx0_ = await libStackTop["peekUpStackTop(uint256[])"](array0);
+    const tx0_ = await libStackPointer["peekUpStackPointer(uint256[])"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -45,7 +45,7 @@ describe("LibStackTop uint array tests", async function () {
     });
 
     array0.forEach(async (element_, i_) => {
-      const a_ = await libStackTop.callStatic["peekUp(uint256[],uint256)"](
+      const a_ = await libStackPointer.callStatic["peekUp(uint256[],uint256)"](
         array0,
         i_ + 1
       );
@@ -62,9 +62,9 @@ describe("LibStackTop uint array tests", async function () {
   it("should peek", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
 
-    const a0_ = await libStackTop.callStatic["peek(uint256[])"](array0);
+    const a0_ = await libStackPointer.callStatic["peek(uint256[])"](array0);
 
-    const tx0_ = await libStackTop["peek(bytes)"](array0);
+    const tx0_ = await libStackPointer["peek(bytes)"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -72,7 +72,7 @@ describe("LibStackTop uint array tests", async function () {
 
     assert(a0_.isZero(), "memory should be out of bounds");
 
-    const a1_ = await libStackTop.callStatic["peek(uint256[],uint256)"](
+    const a1_ = await libStackPointer.callStatic["peek(uint256[],uint256)"](
       array0,
       1
     );
@@ -80,7 +80,7 @@ describe("LibStackTop uint array tests", async function () {
     assert(a1_.eq(array0.length));
 
     array0.forEach(async (element_, i_) => {
-      const a_ = await libStackTop.callStatic["peek(uint256[],uint256)"](
+      const a_ = await libStackPointer.callStatic["peek(uint256[],uint256)"](
         array0,
         i_ + 2
       );
@@ -97,7 +97,9 @@ describe("LibStackTop uint array tests", async function () {
   it("should peek2", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
 
-    const [a_, b_] = await libStackTop.callStatic["peek2(uint256[],uint256)"](
+    const [a_, b_] = await libStackPointer.callStatic[
+      "peek2(uint256[],uint256)"
+    ](
       array0,
       2 // shift up before calling `peek2`
     );
@@ -109,14 +111,14 @@ describe("LibStackTop uint array tests", async function () {
   it("should pop", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
 
-    const { stackTopAfter_, a_ } = await libStackTop.callStatic[
+    const { stackTopAfter_, a_ } = await libStackPointer.callStatic[
       "pop(uint256[],uint256)"
     ](
       array0,
       1 // shift up past array size value before calling `pop`
     );
 
-    const tx0_ = await libStackTop["pop(bytes,uint256)"](array0, 1);
+    const tx0_ = await libStackPointer["pop(bytes,uint256)"](array0, 1);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -139,11 +141,11 @@ describe("LibStackTop uint array tests", async function () {
     const value0 = 6;
 
     // set a new array length
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "set(uint256[],uint256,uint256)"
     ](array0, value0, 0);
 
-    const tx0_ = await libStackTop["set(uint256[],uint256,uint256)"](
+    const tx0_ = await libStackPointer["set(uint256[],uint256,uint256)"](
       array0,
       value0,
       0 // no shift up, we are writing over array size value
@@ -175,12 +177,14 @@ describe("LibStackTop uint array tests", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
     const value0 = 6;
 
-    const stackTop0_ = await libStackTop.callStatic["push(uint256[],uint256)"](
+    const stackTop0_ = await libStackPointer.callStatic[
+      "push(uint256[],uint256)"
+    ](array0, value0);
+
+    const tx0_ = await libStackPointer["push(uint256[],uint256)"](
       array0,
       value0
     );
-
-    const tx0_ = await libStackTop["push(uint256[],uint256)"](array0, value0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -222,11 +226,11 @@ describe("LibStackTop uint array tests", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
     const values0 = [6, 7, 8];
 
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "push(uint256[],uint256[])"
     ](array0, values0);
 
-    const tx0_ = await libStackTop["push(uint256[],uint256[])"](
+    const tx0_ = await libStackPointer["push(uint256[],uint256[])"](
       array0,
       values0
     );
@@ -282,11 +286,11 @@ describe("LibStackTop uint array tests", async function () {
     const array0 = [10, 20, 30, 40, 50, 0, 1, 2];
     const values0 = [6, 7, 8];
 
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "pushWithLength(uint256[],uint256[])"
     ](array0, values0);
 
-    const tx0_ = await libStackTop["pushWithLength(uint256[],uint256[])"](
+    const tx0_ = await libStackPointer["pushWithLength(uint256[],uint256[])"](
       array0,
       values0
     );
@@ -355,11 +359,11 @@ describe("LibStackTop uint array tests", async function () {
     const array0 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const values0: Tuple<number, 8> = [11, 12, 13, 14, 15, 16, 17, 18];
 
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "push(uint256[],uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
     ](array0, ...values0);
 
-    const tx0_ = await libStackTop[
+    const tx0_ = await libStackPointer[
       "push(uint256[],uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)"
     ](array0, ...values0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
@@ -416,11 +420,14 @@ describe("LibStackTop uint array tests", async function () {
     const array0 = [10, 20, 30, 40, 50];
     const length0 = 3;
 
-    const { head_, tail_ } = await libStackTop.callStatic[
+    const { head_, tail_ } = await libStackPointer.callStatic[
       "list(uint256[],uint256)"
     ](array0, length0);
 
-    const tx0_ = await libStackTop["list(uint256[],uint256)"](array0, length0);
+    const tx0_ = await libStackPointer["list(uint256[],uint256)"](
+      array0,
+      length0
+    );
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -438,15 +445,15 @@ describe("LibStackTop uint array tests", async function () {
   it("should return uint256Array as stack top", async () => {
     const array = [10, 20, 30, 40, 50, 0, 1, 2];
 
-    const stackTop0_ = await libStackTop.callStatic["asStackTop(uint256[])"](
-      array
-    );
+    const stackTop0_ = await libStackPointer.callStatic[
+      "asStackPointer(uint256[])"
+    ](array);
 
-    const tx0_ = await libStackTop["asStackTop(uint256[])"](array);
+    const tx0_ = await libStackPointer["asStackPointer(uint256[])"](array);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
-    assert(memDumpBefore_ === memDumpAfter_, "asStackTop corrupted memory");
+    assert(memDumpBefore_ === memDumpAfter_, "asStackPointer corrupted memory");
 
     const bytes_ = readBytes(
       memDumpBefore_,
@@ -471,13 +478,13 @@ describe("LibStackTop uint array tests", async function () {
   it("should return stack top as uint256Array", async () => {
     const array = [10, 20, 30, 40, 50, 0, 1, 2];
 
-    const array_ = await libStackTop.callStatic[
-      "asStackTopAsUint256Array(uint256[])"
+    const array_ = await libStackPointer.callStatic[
+      "asStackPointerAsUint256Array(uint256[])"
     ](array);
 
-    const tx0_ = await libStackTop["asStackTopAsUint256Array(uint256[])"](
-      array
-    );
+    const tx0_ = await libStackPointer[
+      "asStackPointerAsUint256Array(uint256[])"
+    ](array);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 

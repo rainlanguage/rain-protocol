@@ -4,7 +4,7 @@ import {
   Rainterpreter,
 } from "../../../../../typechain";
 
-export const rainterpreterExpressionDeployer = async (
+export const rainterpreterExpressionDeployerDeploy = async (
   interpreter: Rainterpreter
 ) => {
   const expressionDeployerFactory = await ethers.getContractFactory(

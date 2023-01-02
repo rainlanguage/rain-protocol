@@ -13,27 +13,34 @@ library LibConvert {
     /// increments while the length of `bytes` is the literal number of bytes.
     /// @return bytes_ The integer array converted to `bytes` data.
     function toBytes(
-        uint256[] memory is_
+        uint256[] memory us_
     ) internal pure returns (bytes memory bytes_) {
         assembly ("memory-safe") {
-            bytes_ := is_
+            bytes_ := us_
             // Length in bytes is 32x the length in uint256
             mstore(bytes_, mul(0x20, mload(bytes_)))
         }
     }
 
+    /// Truncate `uint256[]` values down to `uint16[]` then pack this to `bytes`
+    /// without padding or length prefix. Unsafe because the starting `uint256`
+    /// values are not checked for overflow due to the truncation. The caller
+    /// MUST ensure that all values fit in `type(uint16).max` or that silent
+    /// overflow is safe.
+    /// @param us_ The `uint256[]` to truncate and concatenate to 16 bit `bytes`.
+    /// @return The concatenated 2-byte chunks.
     function unsafeTo16BitBytes(
-        uint256[] memory is_
+        uint256[] memory us_
     ) internal pure returns (bytes memory) {
         unchecked {
             // We will keep 2 bytes (16 bits) from each integer.
-            bytes memory bytes_ = new bytes(is_.length * 2);
+            bytes memory bytes_ = new bytes(us_.length * 2);
             assembly ("memory-safe") {
                 let replaceMask_ := 0xFFFF
                 let preserveMask_ := not(replaceMask_)
                 for {
-                    let cursor_ := add(is_, 0x20)
-                    let end_ := add(cursor_, mul(mload(is_), 0x20))
+                    let cursor_ := add(us_, 0x20)
+                    let end_ := add(cursor_, mul(mload(us_), 0x20))
                     let bytesCursor_ := add(bytes_, 0x02)
                 } lt(cursor_, end_) {
                     cursor_ := add(cursor_, 0x20)

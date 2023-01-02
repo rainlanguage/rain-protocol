@@ -4,7 +4,6 @@ pragma solidity =0.8.17;
 import "../../type/LibCast.sol";
 import "../../type/LibConvert.sol";
 import "../../array/LibUint256Array.sol";
-import "../run/RainInterpreter.sol";
 import "./chainlink/OpChainlinkOraclePrice.sol";
 import "./core/OpCall.sol";
 import "./core/OpSet.sol";
@@ -64,109 +63,135 @@ import "./tier/OpSaturatingDiff.sol";
 import "./tier/OpSelectLte.sol";
 import "./tier/OpUpdateTimesForTierRange.sol";
 
+/// Thrown when a dynamic length array is NOT 1 more than a fixed length array.
+/// Should never happen outside a major breaking change to memory layouts.
+error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
+
+/// @dev Number of ops currently provided by `AllStandardOps`.
 uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
 
 /// @title AllStandardOps
-/// @notice RainInterpreter opcode pack to expose all other packs.
+/// @notice Every opcode available from the core repository laid out as a single
+/// array to easily build function pointers for `IInterpreterV1`.
 library AllStandardOps {
     using LibCast for uint256;
     using LibCast for function(uint256) pure returns (uint256);
-    using LibCast for function(InterpreterState memory, uint256, StackTop)
+    using LibCast for function(InterpreterState memory, uint256, StackPointer)
         view
-        returns (StackTop);
-    using LibCast for function(InterpreterState memory, uint256, StackTop)
+        returns (StackPointer);
+    using LibCast for function(InterpreterState memory, uint256, StackPointer)
         pure
-        returns (StackTop);
-    using LibCast for function(InterpreterState memory, uint256, StackTop)
+        returns (StackPointer);
+    using LibCast for function(InterpreterState memory, uint256, StackPointer)
         view
-        returns (StackTop)[];
+        returns (StackPointer)[];
 
-    using AllStandardOps for function(IntegrityState memory, Operand, StackTop)
-        view
-        returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+    using AllStandardOps for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
     using AllStandardOps for function(
         InterpreterState memory,
         Operand,
-        StackTop
-    ) view returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1];
+        StackPointer
+    ) view returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1];
 
     using AllStandardOps for uint256[ALL_STANDARD_OPS_LENGTH + 1];
 
     using LibUint256Array for uint256[];
     using LibConvert for uint256[];
     using LibCast for uint256[];
-    using LibCast for function(IntegrityState memory, Operand, StackTop)
+    using LibCast for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) view returns (StackPointer);
+    using LibCast for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) pure returns (StackPointer);
+    using LibCast for function(
+        IntegrityCheckState memory,
+        Operand,
+        StackPointer
+    ) view returns (StackPointer)[];
+    using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
-        returns (StackTop);
-    using LibCast for function(IntegrityState memory, Operand, StackTop)
-        pure
-        returns (StackTop);
-    using LibCast for function(IntegrityState memory, Operand, StackTop)
-        view
-        returns (StackTop)[];
-    using LibCast for function(InterpreterState memory, Operand, StackTop)
-        view
-        returns (StackTop)[];
+        returns (StackPointer)[];
 
-    /// An oddly specific conversion between a fixed and dynamic uint256 array.
-    /// This is useful for the purpose of building metadata for bounds checks
-    /// and dispatch of all the standard ops provided by RainInterpreter.
+    /// An oddly specific length conversion between a fixed and dynamic `uint256`
+    /// array. This is useful for the purpose of building metadata for bounds
+    /// checks and dispatch of all the standard ops provided by `Rainterpreter`.
     /// The cast will fail if the length of the dynamic array doesn't match the
     /// first item of the fixed array; it relies on differences in memory
     /// layout in Solidity that MAY change in the future. The rollback guards
     /// against changes in Solidity memory layout silently breaking this cast.
-    /// @param fixed_ The fixed size uint array to cast to a dynamic uint array.
-    /// Specifically the size is fixed to match the number of standard ops.
-    /// @param dynamic_ The dynamic uint array with length of the standard ops.
+    /// @param fixed_ The fixed size `uint256` array to cast to a dynamic
+    /// `uint256` array. Specifically the size is fixed to match the number of
+    /// standard ops.
+    /// @param dynamic_ The dynamic `uint256` array with length of the standard
+    /// ops.
     function asUint256Array(
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             view
-            returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
             dynamic_ := fixed_
         }
-        require(
-            dynamic_.length == ALL_STANDARD_OPS_LENGTH,
-            "BAD_DYNAMIC_LENGTH"
-        );
+        if (dynamic_.length != ALL_STANDARD_OPS_LENGTH) {
+            revert BadDynamicLength(dynamic_.length, ALL_STANDARD_OPS_LENGTH);
+        }
     }
 
+    /// An oddly specific conversion between a fixed and dynamic `uint256` array.
+    /// This is useful for the purpose of building function pointers for the
+    /// runtime dispatch of all the standard ops provided by `Rainterpreter`.
+    /// The cast will fail if the length of the dynamic array doesn't match the
+    /// first item of the fixed array; it relies on differences in memory
+    /// layout in Solidity that MAY change in the future. The rollback guards
+    /// against changes in Solidity memory layout silently breaking this cast.
+    /// @param fixed_ The fixed size `uint256` array to cast to a dynamic
+    /// `uint256` array. Specifically the size is fixed to match the number of
+    /// standard ops.
+    /// @param dynamic_ The dynamic `uint256` array with length of the standard
+    /// ops.
     function asUint256Array(
-        function(InterpreterState memory, Operand, StackTop)
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+            returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
             memory fixed_
     ) internal pure returns (uint256[] memory dynamic_) {
         assembly ("memory-safe") {
             dynamic_ := fixed_
         }
-        require(
-            dynamic_.length == ALL_STANDARD_OPS_LENGTH,
-            "BAD_DYNAMIC_LENGTH"
-        );
+        if (dynamic_.length != ALL_STANDARD_OPS_LENGTH) {
+            revert BadDynamicLength(dynamic_.length, ALL_STANDARD_OPS_LENGTH);
+        }
     }
 
     function integrityFunctionPointers(
-        function(IntegrityState memory, Operand, StackTop)
+        function(IntegrityCheckState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory locals_
     )
         internal
         pure
         returns (
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory
         )
     {
         unchecked {
-            function(IntegrityState memory, Operand, StackTop)
+            function(IntegrityCheckState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
                     OpChainlinkOraclePrice.integrity,
@@ -235,72 +260,72 @@ library AllStandardOps {
     }
 
     function opcodeFunctionPointers(
-        function(InterpreterState memory, Operand, StackTop)
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory locals_
     )
         internal
         pure
         returns (
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[]
+                returns (StackPointer)[]
                 memory opcodeFunctionPointers_
         )
     {
         unchecked {
-            function(InterpreterState memory, Operand, StackTop)
+            function(InterpreterState memory, Operand, StackPointer)
                 view
-                returns (StackTop)[ALL_STANDARD_OPS_LENGTH + 1]
+                returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
-                    OpChainlinkOraclePrice.price,
+                    OpChainlinkOraclePrice.run,
                     OpCall.run,
                     OpContext.run,
                     OpContextRow.run,
-                    OpDebug.debug,
+                    OpDebug.run,
                     OpDoWhile.run,
                     OpFoldContext.run,
                     OpLoopN.run,
                     OpReadMemory.run,
                     OpSet.run,
-                    OpHash.hash,
-                    OpERC20BalanceOf.balanceOf,
-                    OpERC20TotalSupply.totalSupply,
-                    OpERC20SnapshotBalanceOfAt.balanceOfAt,
-                    OpERC20SnapshotTotalSupplyAt.totalSupplyAt,
-                    OpERC721BalanceOf.balanceOf,
-                    OpERC721OwnerOf.ownerOf,
-                    OpERC1155BalanceOf.balanceOf,
-                    OpERC1155BalanceOfBatch.balanceOfBatch,
-                    OpEnsure.ensure,
-                    OpBlockNumber.blockNumber,
-                    OpTimestamp.timestamp,
-                    OpExplode32.explode32,
-                    OpFixedPointScale18.scale18,
-                    OpFixedPointScale18Div.scale18Div,
-                    OpFixedPointScale18Mul.scale18Mul,
-                    OpFixedPointScaleBy.scaleBy,
-                    OpFixedPointScaleN.scaleN,
-                    OpAny.any,
-                    OpEagerIf.eagerIf,
-                    OpEqualTo.equalTo,
-                    OpEvery.every,
-                    OpGreaterThan.greaterThan,
-                    OpIsZero.isZero,
-                    OpLessThan.lessThan,
-                    OpSaturatingAdd.saturatingAdd,
-                    OpSaturatingMul.saturatingMul,
-                    OpSaturatingSub.saturatingSub,
-                    OpAdd.add,
-                    OpDiv.div,
-                    OpExp.exp,
-                    OpMax.max,
-                    OpMin.min,
-                    OpMod.mod,
-                    OpMul.mul,
-                    OpSub.sub,
+                    OpHash.run,
+                    OpERC20BalanceOf.run,
+                    OpERC20TotalSupply.run,
+                    OpERC20SnapshotBalanceOfAt.run,
+                    OpERC20SnapshotTotalSupplyAt.run,
+                    OpERC721BalanceOf.run,
+                    OpERC721OwnerOf.run,
+                    OpERC1155BalanceOf.run,
+                    OpERC1155BalanceOfBatch.run,
+                    OpEnsure.run,
+                    OpBlockNumber.run,
+                    OpTimestamp.run,
+                    OpExplode32.run,
+                    OpFixedPointScale18.run,
+                    OpFixedPointScale18Div.run,
+                    OpFixedPointScale18Mul.run,
+                    OpFixedPointScaleBy.run,
+                    OpFixedPointScaleN.run,
+                    OpAny.run,
+                    OpEagerIf.run,
+                    OpEqualTo.run,
+                    OpEvery.run,
+                    OpGreaterThan.run,
+                    OpIsZero.run,
+                    OpLessThan.run,
+                    OpSaturatingAdd.run,
+                    OpSaturatingMul.run,
+                    OpSaturatingSub.run,
+                    OpAdd.run,
+                    OpDiv.run,
+                    OpExp.run,
+                    OpMax.run,
+                    OpMin.run,
+                    OpMod.run,
+                    OpMul.run,
+                    OpSub.run,
                     OpIOrderBookV1VaultBalance.run,
                     OpISaleV2RemainingTokenInventory.run,
                     OpISaleV2Reserve.run,
@@ -308,11 +333,11 @@ library AllStandardOps {
                     OpISaleV2Token.run,
                     OpISaleV2TotalReserveReceived.run,
                     OpIVerifyV1AccountStatusAtTime.run,
-                    OpITierV2Report.report,
-                    OpITierV2ReportTimeForTier.reportTimeForTier,
-                    OpSaturatingDiff.saturatingDiff,
-                    OpSelectLte.selectLte,
-                    OpUpdateTimesForTierRange.updateTimesForTierRange
+                    OpITierV2Report.run,
+                    OpITierV2ReportTimeForTier.run,
+                    OpSaturatingDiff.run,
+                    OpSelectLte.run,
+                    OpUpdateTimesForTierRange.run
                 ];
             uint256[] memory pointers_ = pointersFixed_.asUint256Array();
             pointers_.extend(locals_.asUint256Array());

@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { max_uint256 } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -44,12 +44,13 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.EXP, 2)
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -79,12 +80,13 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.MUL, 2)
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -108,12 +110,13 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.SUB, 2)
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
@@ -140,12 +143,13 @@ describe("RainInterpreter unchecked math", async () => {
       op(Opcode.ADD, 2)
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await assertError(
