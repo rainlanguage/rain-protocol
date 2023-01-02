@@ -205,6 +205,8 @@ describe("CALL Opcode test", async function () {
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 3 outputs
     const call0 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
     const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.MUL, 2),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
@@ -223,7 +225,7 @@ describe("CALL Opcode test", async function () {
           sources: [sourceMAIN0, source1],
           constants,
         },
-        1
+        maxOutput
       );
 
     await consumerLogic.eval(interpreter.address, dispatch, []);
@@ -247,12 +249,15 @@ describe("CALL Opcode test", async function () {
     const callADD = op(Opcode.CALL, callOperand(2, 1, 1));
     // prettier-ignore
     const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.ADD, 2)
     ]);
 
     const callSUB = op(Opcode.CALL, callOperand(1, 1, 2));
     // prettier-ignore
     const sourceSUB = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
       op(Opcode.SUB, 2)
     ]);
@@ -260,6 +265,7 @@ describe("CALL Opcode test", async function () {
     const callMUL = op(Opcode.CALL, callOperand(1, 1, 3));
     // prettier-ignore
     const sourceMUL = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 10
       op(Opcode.MUL, 2)
     ]);
@@ -267,6 +273,7 @@ describe("CALL Opcode test", async function () {
     const callDIV = op(Opcode.CALL, callOperand(1, 1, 4));
     // prettier-ignore
     const sourceDIV = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
       op(Opcode.DIV, 2)
     ]);
@@ -274,6 +281,7 @@ describe("CALL Opcode test", async function () {
     const callEXP = op(Opcode.CALL, callOperand(1, 1, 5));
     // prettier-ignore
     const sourceEXP = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
       op(Opcode.EXP, 2)
     ]);
@@ -281,6 +289,7 @@ describe("CALL Opcode test", async function () {
     const callADD10 = op(Opcode.CALL, callOperand(1, 1, 6));
     // prettier-ignore
     const sourceADD10 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 10
       op(Opcode.ADD, 2)
     ]);
@@ -288,7 +297,8 @@ describe("CALL Opcode test", async function () {
     const callADD1 = op(Opcode.CALL, callOperand(1, 1, 7));
     // prettier-ignore
     const sourceADD1 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
       op(Opcode.ADD, 2)
     ]);
 

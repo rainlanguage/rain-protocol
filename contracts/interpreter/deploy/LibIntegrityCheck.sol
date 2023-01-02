@@ -299,7 +299,6 @@ library LibIntegrityCheck {
         StackPointer stackTop_,
         uint256 n_
     ) internal view returns (StackPointer) {
-        console.log("pop", n_, StackPointer.unwrap(stackTop_));
         if (n_ > 0) {
             stackTop_ = stackTop_.down(n_);
             integrityCheckState_.popUnderflowCheck(stackTop_);
