@@ -13,7 +13,7 @@ library OpITierV2Report {
     using LibStackPointer for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _report(
+    function f(
         uint256 tierContract_,
         uint256 account_,
         uint256[] memory context_
@@ -33,7 +33,7 @@ library OpITierV2Report {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
-                _report,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -44,6 +44,6 @@ library OpITierV2Report {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer stackTopAfter_) {
-        return stackTop_.applyFn(_report, Operand.unwrap(operand_));
+        return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

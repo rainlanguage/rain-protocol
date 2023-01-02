@@ -13,7 +13,7 @@ library OpITierV2ReportTimeForTier {
     using LibStackPointer for uint256[];
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _reportTimeForTier(
+    function f(
         uint256 tierContract_,
         uint256 account_,
         uint256 tier_,
@@ -35,7 +35,7 @@ library OpITierV2ReportTimeForTier {
         return
             integrityCheckState_.applyFn(
                 stackTop_,
-                _reportTimeForTier,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -46,6 +46,6 @@ library OpITierV2ReportTimeForTier {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_reportTimeForTier, Operand.unwrap(operand_));
+        return stackTop_.applyFn(f, Operand.unwrap(operand_));
     }
 }

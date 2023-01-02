@@ -11,7 +11,7 @@ library OpSub {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _sub(uint256 a_, uint256 b_) internal pure returns (uint256) {
+    function f(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_ - b_;
     }
 
@@ -23,7 +23,7 @@ library OpSub {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
-                _sub,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -33,6 +33,6 @@ library OpSub {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer stackTopAfter_) {
-        return stackTop_.applyFnN(_sub, Operand.unwrap(operand_));
+        return stackTop_.applyFnN(f, Operand.unwrap(operand_));
     }
 }
