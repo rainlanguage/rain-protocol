@@ -13,21 +13,20 @@ describe("LibIntegrityCheck syncStackMaxTop tests", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
 
-    const constantsLength = 0;
     const stackMaxTop = 0;
     const stackTop = 1; // stackTop > stackMaxTop
 
     const newStackMaxTop_ =
       await libIntegrityCheckState.callStatic.syncStackMaxTop(
-        sources,
-        constantsLength,
+        { sources, constants: [] },
+
         stackMaxTop,
         stackTop
       );
 
     const tx_ = await libIntegrityCheckState.syncStackMaxTop(
-      sources,
-      constantsLength,
+      { sources, constants: [] },
+
       stackMaxTop,
       stackTop
     );
@@ -50,21 +49,20 @@ describe("LibIntegrityCheck syncStackMaxTop tests", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
 
-    const constantsLength = 0;
     const stackMaxTop = 2;
     const stackTop = 1; // stackTop < stackMaxTop
 
     const newStackMaxTop_ =
       await libIntegrityCheckState.callStatic.syncStackMaxTop(
-        sources,
-        constantsLength,
+        { sources, constants: [] },
+
         stackMaxTop,
         stackTop
       );
 
     const tx_ = await libIntegrityCheckState.syncStackMaxTop(
-      sources,
-      constantsLength,
+      { sources, constants: [] },
+
       stackMaxTop,
       stackTop
     );

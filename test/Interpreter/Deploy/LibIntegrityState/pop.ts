@@ -22,15 +22,22 @@ describe("LibIntegrityCheck pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
     ];
 
-    const constantsLength = 0;
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(0);
     const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
     const stackTop = INITIAL_STACK_BOTTOM.add(96);
     const n = 2;
 
     const stackTopAfter_ = await libIntegrityCheckState[
-      "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
-    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
+      "pop((bytes[],uint256[]),uint256,uint256,uint256,uint256,uint256)"
+    ](
+      { sources, constants: [] },
+      stackBottom,
+      stackHighwater,
+      stackMaxTop,
+      stackTop,
+      n
+    );
 
     assert(stackTopAfter_.eq(stackTop.sub(32 * n)));
   });
@@ -42,8 +49,8 @@ describe("LibIntegrityCheck pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
     ];
 
-    const constantsLength = 0;
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(0);
     const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
     const stackTop = INITIAL_STACK_BOTTOM.add(0);
     const n = 2;
@@ -51,8 +58,15 @@ describe("LibIntegrityCheck pop tests", async function () {
     await assertError(
       async () => {
         await libIntegrityCheckState[
-          "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
-        ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
+          "pop((bytes[],uint256[]),uint256,uint256,uint256,uint256,uint256)"
+        ](
+          { sources, constants: [] },
+          stackBottom,
+          stackHighwater,
+          stackMaxTop,
+          stackTop,
+          n
+        );
       },
       "StackPopUnderflow",
       "did not fail check when stackTop < stackBottom"
@@ -66,15 +80,22 @@ describe("LibIntegrityCheck pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
     ];
 
-    const constantsLength = 0;
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(0);
     const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
     const stackTop = INITIAL_STACK_BOTTOM.add(96);
     const n = 2;
 
     const stackTopAfter_ = await libIntegrityCheckState[
-      "pop(bytes[],uint256,uint256,uint256,uint256,uint256)"
-    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop, n);
+      "pop((bytes[],uint256[]),uint256,uint256,uint256,uint256,uint256)"
+    ](
+      { sources, constants: [] },
+      stackBottom,
+      stackHighwater,
+      stackMaxTop,
+      stackTop,
+      n
+    );
 
     assert(stackTopAfter_.eq(stackTop.sub(32 * n)));
   });
@@ -88,14 +109,20 @@ describe("LibIntegrityCheck pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
     ];
 
-    const constantsLength = 0;
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(0);
     const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
     const stackTop = INITIAL_STACK_BOTTOM.add(64);
 
     const stackTopAfter_ = await libIntegrityCheckState[
-      "pop(bytes[],uint256,uint256,uint256,uint256)"
-    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
+      "pop((bytes[],uint256[]),uint256,uint256,uint256,uint256)"
+    ](
+      { sources, constants: [] },
+      stackBottom,
+      stackHighwater,
+      stackMaxTop,
+      stackTop
+    );
 
     assert(stackTopAfter_.eq(stackTop.sub(32)));
   });
@@ -107,16 +134,22 @@ describe("LibIntegrityCheck pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
     ];
 
-    const constantsLength = 0;
     const stackBottom = INITIAL_STACK_BOTTOM.add(32);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(0);
     const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
     const stackTop = INITIAL_STACK_BOTTOM.add(0);
 
     await assertError(
       async () => {
         await libIntegrityCheckState[
-          "pop(bytes[],uint256,uint256,uint256,uint256)"
-        ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
+          "pop((bytes[],uint256[]),uint256,uint256,uint256,uint256)"
+        ](
+          { sources, constants: [] },
+          stackBottom,
+          stackHighwater,
+          stackMaxTop,
+          stackTop
+        );
       },
       "StackPopUnderflow",
       "did not fail check when stackTop < stackBottom"
@@ -130,14 +163,20 @@ describe("LibIntegrityCheck pop tests", async function () {
       op(Opcode.BLOCK_NUMBER, 0),
     ];
 
-    const constantsLength = 0;
     const stackBottom = INITIAL_STACK_BOTTOM.add(0);
+    const stackHighwater = INITIAL_STACK_BOTTOM.add(0);
     const stackMaxTop = INITIAL_STACK_BOTTOM.add(64);
     const stackTop = INITIAL_STACK_BOTTOM.add(64);
 
     const stackTopAfter_ = await libIntegrityCheckState[
-      "pop(bytes[],uint256,uint256,uint256,uint256)"
-    ](sources, constantsLength, stackBottom, stackMaxTop, stackTop);
+      "pop((bytes[],uint256[]),uint256,uint256,uint256,uint256)"
+    ](
+      { sources, constants: [] },
+      stackBottom,
+      stackHighwater,
+      stackMaxTop,
+      stackTop
+    );
 
     assert(stackTopAfter_.eq(stackTop.sub(32)));
   });

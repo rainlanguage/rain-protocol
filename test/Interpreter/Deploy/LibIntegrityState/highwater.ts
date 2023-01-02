@@ -55,26 +55,17 @@ describe("LibIntegrityCheck highwater tests", async function () {
       op(Opcode.ADD, 3),
     ]);
 
-    // should fail
-    await iinterpreterV1ConsumerDeploy(
-      {
-        sources: [sourceMAIN],
-        constants,
-      },
-      1
+    await assertError(
+      async () =>
+        await iinterpreterV1ConsumerDeploy(
+          {
+            sources: [sourceMAIN],
+            constants,
+          },
+          1
+        ),
+      "StackPopUnderflow(0, 0)",
+      "did not prevent pop after copy from the stack"
     );
-
-    // await assertError(
-    //   async () =>
-    //     await iinterpreterV1ConsumerDeploy(
-    //       {
-    //         sources: [sourceMAIN],
-    //         constants,
-    //       },
-    //       1
-    //     ),
-    //   "StackPopUnderflow", // TODO: update to exact error string
-    //   "did not prevent pop after copy from the stack"
-    // );
   });
 });
