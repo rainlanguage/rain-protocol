@@ -196,35 +196,39 @@ contract Lobby is Phased, ReentrancyGuard {
     }
 
     function _joinEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_JOIN,
-            JOIN_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_JOIN,
+                JOIN_MAX_OUTPUTS
+            );
     }
 
     function _leaveEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_LEAVE,
-            LEAVE_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_LEAVE,
+                LEAVE_MAX_OUTPUTS
+            );
     }
 
     function _claimEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_CLAIM,
-            CLAIM_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_CLAIM,
+                CLAIM_MAX_OUTPUTS
+            );
     }
 
     function _invalidEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_INVALID,
-            INVALID_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_INVALID,
+                INVALID_MAX_OUTPUTS
+            );
     }
 
     /// Enforces that only the ref can call the modified function.
@@ -345,7 +349,12 @@ contract Lobby is Phased, ReentrancyGuard {
     function claim(
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) external onlyAtLeastPhase(PHASE_RESULT_PENDING) onlyNotPhase(PHASE_INVALID) nonReentrant {
+    )
+        external
+        onlyAtLeastPhase(PHASE_RESULT_PENDING)
+        onlyNotPhase(PHASE_INVALID)
+        nonReentrant
+    {
         bytes32 signedContextsHash_ = LibContext.hash(signedContexts_);
 
         // The first time claim is called we move to complete and register the
