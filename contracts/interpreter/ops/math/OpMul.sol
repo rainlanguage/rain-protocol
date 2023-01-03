@@ -11,7 +11,7 @@ library OpMul {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _mul(uint256 a_, uint256 b_) internal pure returns (uint256) {
+    function f(uint256 a_, uint256 b_) internal pure returns (uint256) {
         return a_ * b_;
     }
 
@@ -19,11 +19,11 @@ library OpMul {
         IntegrityCheckState memory integrityCheckState_,
         Operand operand_,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.applyFnN(
                 stackTop_,
-                _mul,
+                f,
                 Operand.unwrap(operand_)
             );
     }
@@ -33,6 +33,6 @@ library OpMul {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer stackTopAfter_) {
-        return stackTop_.applyFnN(_mul, Operand.unwrap(operand_));
+        return stackTop_.applyFnN(f, Operand.unwrap(operand_));
     }
 }

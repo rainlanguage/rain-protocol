@@ -12,10 +12,7 @@ library OpGreaterThan {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _greaterThan(
-        uint256 a_,
-        uint256 b_
-    ) internal pure returns (uint256 c_) {
+    function f(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {
         assembly ("memory-safe") {
             c_ := gt(a_, b_)
         }
@@ -25,8 +22,8 @@ library OpGreaterThan {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _greaterThan);
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -34,6 +31,6 @@ library OpGreaterThan {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_greaterThan);
+        return stackTop_.applyFn(f);
     }
 }

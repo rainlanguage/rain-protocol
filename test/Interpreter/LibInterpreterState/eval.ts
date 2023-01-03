@@ -1,14 +1,10 @@
-import { assert } from "chai";
-import { concat } from "ethers/lib/utils";
 import type { LibInterpreterStateTest } from "../../../typechain";
 import { libInterpreterStateDeploy } from "../../../utils/deploy/test/libInterpreterState/deploy";
-import { op } from "../../../utils/interpreter/interpreter";
-import { Opcode } from "../../../utils/interpreter/ops/allStandardOps";
 
 // Remove Eval Test Cases as they are checked in Ops.
 
 describe("LibInterpreterState eval tests", async function () {
-  let libInterpreterState: LibInterpreterStateTest;
+  let _libInterpreterState: LibInterpreterStateTest;
 
   before(async () => {
     libInterpreterState = await libInterpreterStateDeploy();

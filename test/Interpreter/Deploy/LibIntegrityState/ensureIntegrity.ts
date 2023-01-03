@@ -27,14 +27,15 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
       new Uint8Array(),
     ];
 
-    const constantsLength = 0;
     const sourceIndex = 1;
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 0;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
-      sources,
-      constantsLength,
+      {
+        sources,
+        constants: [],
+      },
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -52,14 +53,15 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
       ]),
     ];
 
-    const constantsLength = 0;
     const sourceIndex = 0;
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
-      sources,
-      constantsLength,
+      {
+        sources,
+        constants: [],
+      },
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -90,14 +92,15 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
       ]),
     ];
 
-    const constantsLength = 2;
     const sourceIndex = 0;
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
-      sources,
-      constantsLength,
+      {
+        sources,
+        constants: [1, 2],
+      },
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -128,23 +131,26 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
       ]),
     ];
 
-    const constantsLength = 3;
     const sourceIndex = 0;
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const _stackTop_ =
       await libIntegrityCheckState.callStatic.ensureIntegrityTest(
-        sources,
-        constantsLength,
+        {
+          sources,
+          constants: [1, 2, 3],
+        },
         sourceIndex,
         stackTop,
         minimumFinalStackIndex
       );
 
     const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
-      sources,
-      constantsLength,
+      {
+        sources,
+        constants: [1, 2, 3],
+      },
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -163,14 +169,15 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
 
-    const constantsLength = 0;
     const sourceIndex = 0;
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
     const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
-      sources,
-      constantsLength,
+      {
+        sources,
+        constants: [],
+      },
       sourceIndex,
       stackTop,
       minimumFinalStackIndex
@@ -189,23 +196,26 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
 
-    const constantsLength = 0;
     const sourceIndex = 0;
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 0;
 
     const stackTop_ =
       await libIntegrityCheckState.callStatic.ensureIntegrityTest(
-        sources,
-        constantsLength,
+        {
+          sources,
+          constants: [],
+        },
         sourceIndex,
         stackTop,
         minimumFinalStackIndex
       );
 
     const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
-      sources,
-      constantsLength,
+      {
+        sources,
+        constants: [],
+      },
       sourceIndex,
       stackTop,
       minimumFinalStackIndex

@@ -7,6 +7,9 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
+/// Thrown if there are fewer outputs than inputs which is currently unsupported.
+error InsufficientLoopOutputs(uint256 inputs, uint256 outputs);
+
 /// @title OpLoopN
 /// @notice Opcode for looping a static number of times. A thin wrapper around
 /// `OpCall` with the 4 high bits as a number of times to loop. Each iteration
@@ -30,17 +33,24 @@ library OpLoopN {
             uint256 n_ = Operand.unwrap(operand_) >> 12;
             uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
             uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
-            require(inputs_ >= outputs_, "LOOP_N_INPUTS");
+            if (outputs_ < inputs_) {
+                revert InsufficientLoopOutputs(inputs_, outputs_);
+            }
             Operand callOperand_ = Operand.wrap(
                 Operand.unwrap(operand_) & MASK_12BIT
             );
+            StackPointer highwater_ = integrityCheckState_.stackHighwater;
             for (uint256 i_ = 0; i_ < n_; i_++) {
+                // ignore intermediate highwaters because call will set it past
+                // the inputs and then the outputs each time.
+                integrityCheckState_.stackHighwater = highwater_;
                 stackTop_ = OpCall.integrity(
                     integrityCheckState_,
                     callOperand_,
                     stackTop_
                 );
             }
+
             return stackTop_;
         }
     }

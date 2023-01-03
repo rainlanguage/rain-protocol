@@ -34,7 +34,7 @@ describe("LibIntegrityCheck highwater tests", async function () {
           },
           1
         ),
-      "StackPopUnderflow(4, 0)",
+      "StackPopUnderflow(3, 0)",
       "did not prevent nested multioutput"
     );
   });
@@ -47,7 +47,7 @@ describe("LibIntegrityCheck highwater tests", async function () {
       // _: 1
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
 
-      // _: add<3> add(1 stack(0)) stack(0);
+      // _: add<3>(add(1 stack(0)) stack(0));
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.ADD, 2),
@@ -64,7 +64,7 @@ describe("LibIntegrityCheck highwater tests", async function () {
           },
           1
         ),
-      "StackPopUnderflow",
+      "StackPopUnderflow(0, 0)",
       "did not prevent pop after copy from the stack"
     );
   });

@@ -16,7 +16,7 @@ library OpExplode32 {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return
             integrityCheckState_.push(integrityCheckState_.pop(stackTop_), 8);
     }

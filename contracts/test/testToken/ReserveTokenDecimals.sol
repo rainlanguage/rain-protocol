@@ -13,23 +13,24 @@ contract ReserveTokenDecimals is ERC20, ERC20Burnable {
     /// Accounts to freeze during testing.
     mapping(address => bool) public freezables;
 
-    uint256 public immutable DECIMALS;
-    uint256 public immutable TOTAL_SUPPLY;
+    uint8 public immutable _decimals;
+    uint256 public immutable initialSupply;
 
     constructor(uint256 decimals_) {
-        DECIMALS = decimals_;
+        _decimals = uint8(decimals_);
         // One _septillion_ dollars 👷😈.
-        TOTAL_SUPPLY = 10 ** (DECIMALS + 24);
+        initialSupply = 10 ** (decimals_ + 24);
     }
 
     /// Define and mint the erc20 token.
     function initialize() external initializer {
         __ERC20_init("USD Classic", "USDCC");
-        _mint(msg.sender, TOTAL_SUPPLY);
+        _mint(msg.sender, initialSupply);
     }
 
-    function decimals() public view override returns (uint8) {
-        return uint8(DECIMALS);
+    /// @inheritdoc ERC20
+    function decimals() public view virtual override returns (uint8) {
+        return _decimals;
     }
 
     /// Add an account to the freezables list.

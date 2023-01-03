@@ -21,7 +21,7 @@ library OpDebug {
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         // Try to build a debug style from the operand to ensure we can enumerate
-        // it.
+        // it at runtime.
         DebugStyle(Operand.unwrap(operand_));
         return stackTop_;
     }

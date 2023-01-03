@@ -52,13 +52,19 @@ library OpDoWhile {
             // Stack height changes are deterministic so if we call once we've
             // called a thousand times. Also we pop one output off the result of
             // the call to check the while condition.
+            //
+            // We IGNORE THE HIGHWATER on the pop here because we always set the
+            // outputs to inputs + 1 and the highwater check can error due to
+            // trying to pop a multioutput return value which is normally
+            // disallowed but is required by the internal runtime behaviour.
             return
-                integrityCheckState_.pop(
+                integrityCheckState_.popIgnoreHighwater(
                     OpCall.integrity(
                         integrityCheckState_,
                         callOperand_,
                         stackTop_
-                    )
+                    ),
+                    1
                 );
         }
     }

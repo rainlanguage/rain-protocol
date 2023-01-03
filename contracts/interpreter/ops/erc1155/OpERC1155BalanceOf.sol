@@ -28,7 +28,7 @@ library OpERC1155BalanceOf {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 

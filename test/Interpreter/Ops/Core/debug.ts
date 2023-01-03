@@ -111,9 +111,10 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sourceWHILE = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.ADD, 2),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.LESS_THAN),
       op(Opcode.DEBUG, Debug.Stack),
@@ -140,6 +141,7 @@ describe("RainInterpreter debug op", async function () {
 
     // prettier-ignore
     const sourceADD = concat([
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
         op(Opcode.ADD, 2),
         op(Opcode.DEBUG, Debug.Stack),

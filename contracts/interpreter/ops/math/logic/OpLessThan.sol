@@ -12,10 +12,7 @@ library OpLessThan {
     using LibCast for bool;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function _lessThan(
-        uint256 a_,
-        uint256 b_
-    ) internal pure returns (uint256 c_) {
+    function f(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {
         assembly ("memory-safe") {
             c_ := lt(a_, b_)
         }
@@ -25,8 +22,8 @@ library OpLessThan {
         IntegrityCheckState memory integrityCheckState_,
         Operand,
         StackPointer stackTop_
-    ) internal view returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, _lessThan);
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     function run(
@@ -34,6 +31,6 @@ library OpLessThan {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(_lessThan);
+        return stackTop_.applyFn(f);
     }
 }
