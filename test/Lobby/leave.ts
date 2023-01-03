@@ -1,9 +1,7 @@
 import { assert } from "chai";
-import { ContractFactory } from "ethers";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  Lobby,
   Rainterpreter,
   RainterpreterExpressionDeployer,
   ReserveToken18,
@@ -16,10 +14,7 @@ import {
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
 import { assertError } from "../../utils";
-import { randomUint256 } from "../../utils/bytes";
 import {
-  eighteenZeros,
-  max_uint256,
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -27,14 +22,11 @@ import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/raint
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
 import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
-import { fixedPointDiv } from "../../utils/math";
-import { compareStructs } from "../../utils/test/compareStructs";
 
 describe("Lobby Tests leave", async function () {
   const Opcode = RainterpreterOps;
@@ -43,11 +35,7 @@ describe("Lobby Tests leave", async function () {
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
 
-  const PHASE_REF_PENDING = ethers.BigNumber.from(0);
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
-  const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
-  const PHASE_COMPLETE = ethers.BigNumber.from(3);
-  const PHASE_INVALID = ethers.BigNumber.from(4);
 
   before(async () => {
     interpreter = await rainterpreterDeploy();
@@ -64,17 +52,16 @@ describe("Lobby Tests leave", async function () {
   it("should ensure player is refunded on leave (interpreter amount > deposit amount)", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    let Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
 
     const truthyValue = 0;
     const depositAmount = ONE.mul(10);
     const claimAmount = ONE;
     const TEN = 10;
 
-    let constants = [
+    const constants = [
       truthyValue,
       claimAmount,
       TEN,
@@ -111,12 +98,12 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    let lobbyStateConfig = {
+    const lobbyStateConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
-    let initialConfig: LobbyConfigStruct = {
+    const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
       expressionDeployer: expressionDeployer.address,
@@ -142,7 +129,7 @@ describe("Lobby Tests leave", async function () {
       },
     ];
 
-    let joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
 
     const { sender: joinSender } = (await getEventArgs(
       joinTx,
@@ -157,13 +144,14 @@ describe("Lobby Tests leave", async function () {
     } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
 
     assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
     assert(depositAmount0.eq(depositAmount), "wrong deposit amount");
     assert(joinSender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
     assert(currentPhase.eq(PHASE_PLAYERS_PENDING), "Bad Phase");
 
-    let leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
+    const leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
 
     const {
       sender: leaveSender,
@@ -173,6 +161,7 @@ describe("Lobby Tests leave", async function () {
     } = (await getEventArgs(leaveTx, "Leave", Lobby)) as LeaveEvent["args"];
 
     assert(leaveSender === alice.address, "wrong deposit sender");
+    assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
     assert(leaveAmount0.eq(depositAmount), "wrong leave amount");
   });
@@ -180,17 +169,16 @@ describe("Lobby Tests leave", async function () {
   it("should ensure player is refunded on leave (interpreter amount < deposit amount)", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    let Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
 
     const truthyValue = 0;
     const depositAmount = ONE.mul(10);
     const claimAmount = ONE;
     const TEN = 10;
 
-    let constants = [
+    const constants = [
       truthyValue,
       claimAmount,
       TEN,
@@ -227,12 +215,12 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    let lobbyStateConfig = {
+    const lobbyStateConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
-    let initialConfig: LobbyConfigStruct = {
+    const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
       expressionDeployer: expressionDeployer.address,
@@ -258,7 +246,7 @@ describe("Lobby Tests leave", async function () {
       },
     ];
 
-    let joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
 
     const { sender: joinSender } = (await getEventArgs(
       joinTx,
@@ -273,13 +261,14 @@ describe("Lobby Tests leave", async function () {
     } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
 
     assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
     assert(depositAmount0.eq(depositAmount), "wrong deposit amount");
     assert(joinSender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
     assert(currentPhase.eq(PHASE_PLAYERS_PENDING), "Bad Phase");
 
-    let leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
+    const leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
 
     const expectedLeaveAmount = depositAmount.sub(ethers.BigNumber.from(10));
 
@@ -290,7 +279,8 @@ describe("Lobby Tests leave", async function () {
       amount: leaveAmount0,
     } = (await getEventArgs(leaveTx, "Leave", Lobby)) as LeaveEvent["args"];
 
-    assert(leaveSender === alice.address, "wrong deposit sender");
+    assert(leaveSender === alice.address, "wrong deposit sender"); 
+    assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
     assert(leaveAmount0.eq(expectedLeaveAmount), "wrong leave amount");
   });
@@ -301,14 +291,14 @@ describe("Lobby Tests leave", async function () {
     const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    let Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
 
     const truthyValue = 0;
     const depositAmount = ONE;
     const leaveAmount = ONE;
     const claimAmount = ONE;
 
-    let constants = [truthyValue, depositAmount, leaveAmount, claimAmount];
+    const constants = [truthyValue, depositAmount, leaveAmount, claimAmount];
 
     // prettier-ignore
     const joinSource = concat([
@@ -326,12 +316,12 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    let lobbyStateConfig = {
+    const lobbyStateConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
-    let initialConfig: LobbyConfigStruct = {
+    const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
       expressionDeployer: expressionDeployer.address,
@@ -357,7 +347,7 @@ describe("Lobby Tests leave", async function () {
       },
     ];
 
-    let joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
 
     const { sender: joinSender } = (await getEventArgs(
       joinTx,
@@ -372,6 +362,7 @@ describe("Lobby Tests leave", async function () {
     } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
 
     assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
     assert(depositAmount0.eq(ONE), "wrong deposit amount");
     assert(joinSender === alice.address, "wrong sender");
 
@@ -402,17 +393,16 @@ describe("Lobby Tests leave", async function () {
   it("should ensure player is able to leave on a happy path", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2];
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    let Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
 
     const truthyValue = 0;
     const depositAmount = ONE;
     const leaveAmount = ONE;
     const claimAmount = ONE;
 
-    let constants = [truthyValue, depositAmount, leaveAmount, claimAmount];
+    const constants = [truthyValue, depositAmount, leaveAmount, claimAmount];
 
     // prettier-ignore
     const joinSource = concat([
@@ -430,12 +420,12 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    let lobbyStateConfig = {
+    const lobbyStateConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
-    let initialConfig: LobbyConfigStruct = {
+    const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
       expressionDeployer: expressionDeployer.address,
@@ -461,7 +451,7 @@ describe("Lobby Tests leave", async function () {
       },
     ];
 
-    let joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
 
     const { sender: joinSender } = (await getEventArgs(
       joinTx,
@@ -476,13 +466,14 @@ describe("Lobby Tests leave", async function () {
     } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
 
     assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
     assert(depositAmount0.eq(ONE), "wrong deposit amount");
     assert(joinSender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
     assert(currentPhase.eq(PHASE_PLAYERS_PENDING), "Bad Phase");
 
-    let leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
+    const leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
 
     const {
       sender: leaveSender,
@@ -492,6 +483,7 @@ describe("Lobby Tests leave", async function () {
     } = (await getEventArgs(leaveTx, "Leave", Lobby)) as LeaveEvent["args"];
 
     assert(leaveSender === alice.address, "wrong deposit sender");
+    assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
     assert(leaveAmount0.eq(depositAmount), "wrong leave amount");
   });
