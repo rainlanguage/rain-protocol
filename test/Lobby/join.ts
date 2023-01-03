@@ -13,24 +13,19 @@ import {
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
 import { assertError } from "../../utils";
-import {
-  ONE,
-} from "../../utils/constants/bigNumber";
+import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
-   memoryOperand,
+  memoryOperand,
   MemoryType,
   op,
 } from "../../utils/interpreter/interpreter";
-import {
-  RainterpreterOps,
-} from "../../utils/interpreter/ops/allStandardOps";
+import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
-
-describe("Lobby Tests join", async function () { 
+describe("Lobby Tests join", async function () {
   const Opcode = RainterpreterOps;
 
   let tokenA: ReserveToken18;
@@ -149,7 +144,6 @@ describe("Lobby Tests join", async function () {
     const signers = await ethers.getSigners();
     const ref = signers[0];
     const alice = signers[1];
-
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
 

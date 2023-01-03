@@ -14,9 +14,7 @@ import {
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
 import { assertError } from "../../utils";
-import {
-  ONE,
-} from "../../utils/constants/bigNumber";
+import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -279,7 +277,7 @@ describe("Lobby Tests leave", async function () {
       amount: leaveAmount0,
     } = (await getEventArgs(leaveTx, "Leave", Lobby)) as LeaveEvent["args"];
 
-    assert(leaveSender === alice.address, "wrong deposit sender"); 
+    assert(leaveSender === alice.address, "wrong deposit sender");
     assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
     assert(leaveAmount0.eq(expectedLeaveAmount), "wrong leave amount");
