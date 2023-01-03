@@ -11,8 +11,7 @@ import "../interpreter/run/LibContext.sol";
 import "../math/SaturatingMath.sol";
 import "../math/FixedPointMath.sol";
 
-import "../phased/Phased.sol"; 
-import "hardhat/console.sol" ;
+import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -259,10 +258,7 @@ contract Lobby is Phased, ReentrancyGuard {
         schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
     }
 
-    function _deposit(uint256 amount_) internal { 
-        console.log("sender : %s" , msg.sender) ; 
-        console.log("amount_ : %s" , amount_ ) ; 
-
+    function _deposit(uint256 amount_) internal {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);
@@ -299,13 +295,7 @@ contract Lobby is Phased, ReentrancyGuard {
                     )
                 );
             uint256 playersFinalised_ = stack_[stack_.length - 2];
-            uint256 amount_ = stack_[stack_.length - 1]; 
-
-            console.log("stack_.length : %s" , stack_.length ) ; 
-            console.log("stack_ 0 : %s" , stack_[0] ) ;
-            console.log("stack_ 1 : %s" , stack_[stack_.length - 1] ) ;
-            console.log("amount_ in join : %s" , amount_ ) ;  
-
+            uint256 amount_ = stack_[stack_.length - 1];
 
             players[msg.sender] = 1;
             interpreter_.stateChanges(stateChanges_);
@@ -343,8 +333,7 @@ contract Lobby is Phased, ReentrancyGuard {
         // deposit as the amount they will be refunded.
         uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
         // the calculated amount is refunded and their entire deposit forfeited
-        // from the internal ledger. 
-        console.log("amount_ leave : %s" ,amount_ )  ;
+        // from the internal ledger.
         IERC20(token).safeTransfer(msg.sender, amount_);
         deposits[msg.sender] = 0;
         totalDeposited -= amount_;
@@ -402,7 +391,7 @@ contract Lobby is Phased, ReentrancyGuard {
 
         // Send caller their prorata share of total deposits to date and log the
         // withdrawal so they cannot double-claim. If future deposits are made
-        // they will be eligible to claim their prorata share of the future 
+        // they will be eligible to claim their prorata share of the future
         // deposits.
         if (shares[msg.sender] > 0) {
             uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
