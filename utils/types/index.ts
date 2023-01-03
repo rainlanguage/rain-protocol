@@ -1,7 +1,7 @@
 export * from "./redeemableERC20";
 export * from "./sale";
 export * from "./tier";
-export * from "./stateConfig"
+export * from "./stateConfig";
 
 // @see https://stackoverflow.com/a/52490977
 type _TupleOf<T, N extends number, R extends unknown[]> = R["length"] extends N

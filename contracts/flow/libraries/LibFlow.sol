@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../interpreter/run/LibStackTop.sol";
+import "../../interpreter/run/LibStackPointer.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
@@ -10,11 +10,12 @@ import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable
 import "../../sentinel/LibSentinel.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-// We want a sentinel with the following properties:
-// - Won't collide with token amounts (| with very large number)
-// - Won't collide with token addresses
-// - Won't collide with common values like type(uint).max and type(uint).min
-// - Won't collide with other sentinels from unrelated contexts
+/// @dev We want a sentinel with the following properties:
+/// - Won't collide with token amounts (| with very large number)
+/// - Won't collide with token addresses
+/// - Won't collide with common values like `type(uint256).max` and
+///   `type(uint256).min`
+/// - Won't collide with other sentinels from unrelated contexts
 uint256 constant RAIN_FLOW_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_SENTINEL")) | SENTINEL_HIGH_BITS
 );
@@ -57,14 +58,14 @@ struct FlowTransfer {
 library LibFlow {
     using Address for address payable;
     using SafeERC20 for IERC20;
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using SafeCast for uint256;
     using LibFlow for FlowTransfer;
-    using LibUint256Array for uint[];
+    using LibUint256Array for uint256[];
 
     function stackToFlow(
-        StackTop stackBottom_,
-        StackTop stackTop_
+        StackPointer stackBottom_,
+        StackPointer stackTop_
     ) internal pure returns (FlowTransfer memory) {
         unchecked {
             FlowTransfer memory transfer_;
@@ -216,7 +217,7 @@ library LibFlow {
     function flow(
         FlowTransfer memory flowTransfer_,
         IInterpreterV1 interpreter_,
-        uint[] memory stateChanges_
+        uint256[] memory stateChanges_
     ) internal {
         if (stateChanges_.length > 0) {
             interpreter_.stateChanges(stateChanges_);

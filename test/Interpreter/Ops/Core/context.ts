@@ -14,10 +14,13 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x0f00)])];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
@@ -31,10 +34,13 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x000f)])];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const row: number[] = new Array<number>(16).fill(1, 0, 256);
     const context = [row];
@@ -43,45 +49,18 @@ describe("RainInterpreter context", async function () {
     assert(resultRow_, "should read context value at 0x00ff");
   });
 
-  it("should error if accessing OOB COLUMN", async () => {
-    const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x1000)])];
-
-    await assertError(
-      async () =>
-        await await iinterpreterV1ConsumerDeploy({
-          sources,
-          constants,
-        }),
-      "OOB_COLUMN",
-      "did not error when accessing OOB COLUMN"
-    );
-  });
-
-  it("should error if accessing OOB ROW", async () => {
-    const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT, 0x0010)])];
-
-    await assertError(
-      async () =>
-        await iinterpreterV1ConsumerDeploy({
-          sources,
-          constants,
-        }),
-      "OOB_ROW",
-      "did not error when accessing OOB ROW"
-    );
-  });
-
   it("should error if accessing memory outside of context memory range", async () => {
     const constants = [];
     const sources = [concat([op(Opcode.CONTEXT, 0x0003)])];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const data = [[10, 20, 30]];
 
@@ -111,10 +90,13 @@ describe("RainInterpreter context", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const context = [
       [0, 1, 2, 3],
@@ -148,10 +130,13 @@ describe("RainInterpreter context", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        10
+      );
 
     const context = [
       [0, 1, 2, 3],
@@ -186,10 +171,13 @@ describe("RainInterpreter context", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        3
+      );
 
     const context = [[10, 20, 30]];
 
@@ -212,10 +200,13 @@ describe("RainInterpreter context", async function () {
     const sources = [concat([op(Opcode.CONTEXT, 0x0000)])];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const data = [[42]];
 

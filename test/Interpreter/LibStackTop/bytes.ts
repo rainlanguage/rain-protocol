@@ -1,29 +1,29 @@
 import { assert } from "chai";
 import { arrayify, hexlify } from "ethers/lib/utils";
-import type { LibStackTopTest } from "../../../typechain";
+import type { LibStackPointerTest } from "../../../typechain";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
-import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { range } from "../../../utils/range";
 
-describe("LibStackTop bytes tests", async function () {
-  let libStackTop: LibStackTopTest;
+describe("LibStackPointer bytes tests", async function () {
+  let libStackPointer: LibStackPointerTest;
 
   before(async () => {
-    libStackTop = await libStackTopDeploy();
+    libStackPointer = await libStackPointerDeploy();
   });
 
   it("should peek up", async function () {
     // get first 32 bytes
     const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
 
-    const a0_ = await libStackTop.callStatic["peekUp(bytes)"](array0);
+    const a0_ = await libStackPointer.callStatic["peekUp(bytes)"](array0);
 
     assert(a0_.eq(array0.length));
 
-    const stackTop0_ = await libStackTop.callStatic["peekUpStackTop(bytes)"](
-      array0
-    );
-    const tx0_ = await libStackTop["peekUpStackTop(bytes)"](array0);
+    const stackTop0_ = await libStackPointer.callStatic[
+      "peekUpStackPointer(bytes)"
+    ](array0);
+    const tx0_ = await libStackPointer["peekUpStackPointer(bytes)"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -44,12 +44,12 @@ describe("LibStackTop bytes tests", async function () {
   it("should peek 32 byte chunks", async function () {
     const array0 = Uint8Array.from(range(1, 48));
 
-    const a0_ = await libStackTop.callStatic["peekUp(bytes)"](array0);
+    const a0_ = await libStackPointer.callStatic["peekUp(bytes)"](array0);
 
     assert(a0_.eq(array0.length));
 
     // get first 32 bytes
-    const a1_ = await libStackTop.callStatic["peekUp(bytes,uint256)"](
+    const a1_ = await libStackPointer.callStatic["peekUp(bytes,uint256)"](
       array0,
       1
     );
@@ -65,7 +65,7 @@ describe("LibStackTop bytes tests", async function () {
     );
 
     // get next 32 bytes
-    const a2_ = await libStackTop.callStatic["peekUp(bytes,uint256)"](
+    const a2_ = await libStackPointer.callStatic["peekUp(bytes,uint256)"](
       array0,
       2
     );
@@ -76,9 +76,9 @@ describe("LibStackTop bytes tests", async function () {
   it("should peek", async function () {
     const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
 
-    const a0_ = await libStackTop.callStatic["peek(bytes)"](array0);
+    const a0_ = await libStackPointer.callStatic["peek(bytes)"](array0);
 
-    const tx0_ = await libStackTop["peek(bytes)"](array0);
+    const tx0_ = await libStackPointer["peek(bytes)"](array0);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -87,12 +87,18 @@ describe("LibStackTop bytes tests", async function () {
     assert(a0_.isZero(), "memory should be out of bounds");
 
     // get first 32 bytes
-    const a1_ = await libStackTop.callStatic["peek(bytes,uint256)"](array0, 1);
+    const a1_ = await libStackPointer.callStatic["peek(bytes,uint256)"](
+      array0,
+      1
+    );
 
     assert(a1_.eq(array0.length));
 
     // get second 32 bytes
-    const a2_ = await libStackTop.callStatic["peek(bytes,uint256)"](array0, 2);
+    const a2_ = await libStackPointer.callStatic["peek(bytes,uint256)"](
+      array0,
+      2
+    );
 
     array0.forEach((element_, i_) => {
       assert(
@@ -107,11 +113,11 @@ describe("LibStackTop bytes tests", async function () {
   it("should peek2", async function () {
     const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
 
-    const [a_, b_] = await libStackTop.callStatic["peek2(bytes,uint256)"](
+    const [a_, b_] = await libStackPointer.callStatic["peek2(bytes,uint256)"](
       array0,
       2 // shift up before calling `peek2`
     );
-    const tx0_ = await libStackTop["peek2(bytes,uint256)"](array0, 2);
+    const tx0_ = await libStackPointer["peek2(bytes,uint256)"](array0, 2);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -132,14 +138,14 @@ describe("LibStackTop bytes tests", async function () {
   it("should pop", async function () {
     const array0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
 
-    const { stackTopAfter_, a_ } = await libStackTop.callStatic[
+    const { stackTopAfter_, a_ } = await libStackPointer.callStatic[
       "pop(bytes,uint256)"
     ](
       array0,
       1 // shift up past array size value before calling `pop`
     );
 
-    const tx0_ = await libStackTop["pop(bytes,uint256)"](array0, 1);
+    const tx0_ = await libStackPointer["pop(bytes,uint256)"](array0, 1);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
@@ -162,11 +168,11 @@ describe("LibStackTop bytes tests", async function () {
     const value0 = 6;
 
     // set a new array length
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "set(bytes,uint256,uint256)"
     ](array0, value0, 0);
 
-    const tx0_ = await libStackTop["set(bytes,uint256,uint256)"](
+    const tx0_ = await libStackPointer["set(bytes,uint256,uint256)"](
       array0,
       value0,
       0 // no shift up, we are writing over array size value
@@ -193,11 +199,11 @@ describe("LibStackTop bytes tests", async function () {
     const bytes0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
     const bytes1 = Uint8Array.from([6, 7, 8]);
 
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "unalignedPush(bytes,bytes)"
     ](bytes0, bytes1);
 
-    const tx0_ = await libStackTop["unalignedPush(bytes,bytes)"](
+    const tx0_ = await libStackPointer["unalignedPush(bytes,bytes)"](
       bytes0,
       bytes1
     );
@@ -251,11 +257,11 @@ describe("LibStackTop bytes tests", async function () {
     const bytes0 = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
     const bytes1 = Uint8Array.from([6, 7, 8]);
 
-    const stackTop0_ = await libStackTop.callStatic[
+    const stackTop0_ = await libStackPointer.callStatic[
       "unalignedPushWithLength(bytes,bytes)"
     ](bytes0, bytes1);
 
-    const tx0_ = await libStackTop["unalignedPushWithLength(bytes,bytes)"](
+    const tx0_ = await libStackPointer["unalignedPushWithLength(bytes,bytes)"](
       bytes0,
       bytes1
     );
@@ -302,13 +308,15 @@ describe("LibStackTop bytes tests", async function () {
   it("should return bytes as stack top", async () => {
     const bytes = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
 
-    const stackTop0_ = await libStackTop.callStatic["asStackTop(bytes)"](bytes);
+    const stackTop0_ = await libStackPointer.callStatic[
+      "asStackPointer(bytes)"
+    ](bytes);
 
-    const tx0_ = await libStackTop["asStackTop(bytes)"](bytes);
+    const tx0_ = await libStackPointer["asStackPointer(bytes)"](bytes);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 
-    assert(memDumpBefore_ === memDumpAfter_, "asStackTop corrupted memory");
+    assert(memDumpBefore_ === memDumpAfter_, "asStackPointer corrupted memory");
 
     const bytes_ = readBytes(
       memDumpBefore_,
@@ -328,11 +336,11 @@ describe("LibStackTop bytes tests", async function () {
   it("should return stack top as bytes", async () => {
     const bytes = Uint8Array.from([10, 20, 30, 40, 50, 0, 1, 2]);
 
-    const bytes_ = await libStackTop.callStatic["asStackTopAsBytes(bytes)"](
-      bytes
-    );
+    const bytes_ = await libStackPointer.callStatic[
+      "asStackPointerAsBytes(bytes)"
+    ](bytes);
 
-    const tx0_ = await libStackTop["asStackTopAsBytes(bytes)"](bytes);
+    const tx0_ = await libStackPointer["asStackPointerAsBytes(bytes)"](bytes);
     const { data: memDumpBefore_ } = (await tx0_.wait()).events[0];
     const { data: memDumpAfter_ } = (await tx0_.wait()).events[1];
 

@@ -2,15 +2,15 @@
 pragma solidity ^0.8.15;
 
 import "../../../tier/libraries/TierReport.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 library OpUpdateTimesForTierRange {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _updateTimesForTierRange(
+    function f(
         Operand operand_,
         uint256 report_,
         uint256 timestamp_
@@ -29,11 +29,11 @@ library OpUpdateTimesForTierRange {
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _updateTimesForTierRange);
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
     // Stacks a report with updated times over tier range.
@@ -41,11 +41,11 @@ library OpUpdateTimesForTierRange {
     // the `operand_` respectively.
     // The report to update and timestamp to update to are both
     // taken from the stack.
-    function updateTimesForTierRange(
+    function run(
         InterpreterState memory,
         Operand operand_,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_updateTimesForTierRange, operand_);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f, operand_);
     }
 }

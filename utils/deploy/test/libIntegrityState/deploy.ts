@@ -1,12 +1,12 @@
 import { ethers } from "hardhat";
-import { LibIntegrityStateTest } from "../../../../typechain/contracts/test/interpreter/integrity/LibIntegrityState/LibIntegrityStateTest";
+import { LibIntegrityCheckTest } from "../../../../typechain/contracts/test/interpreter/integrity/LibIntegrityState/LibIntegrityStateTest.sol/LibIntegrityCheckTest";
 
-export const libIntegrityStateDeploy = async () => {
-  const libIntegrityStateFactory = await ethers.getContractFactory(
-    "LibIntegrityStateTest"
+export const libIntegrityCheckStateDeploy = async () => {
+  const libIntegrityCheckStateFactory = await ethers.getContractFactory(
+    "LibIntegrityCheckTest"
   );
-  const libIntegrityState =
-    (await libIntegrityStateFactory.deploy()) as LibIntegrityStateTest;
-  await libIntegrityState.deployed();
-  return libIntegrityState;
+  const libIntegrityCheckState =
+    (await libIntegrityCheckStateFactory.deploy()) as LibIntegrityCheckTest;
+  await libIntegrityCheckState.deployed();
+  return libIntegrityCheckState;
 };

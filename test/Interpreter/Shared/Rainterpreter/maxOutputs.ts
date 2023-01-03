@@ -38,7 +38,7 @@ describe("Rainterpreter maxOutputs test", async function () {
       );
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     // Asserting stack
     const stack1 = await consumerLogic.stack();
@@ -80,7 +80,7 @@ describe("Rainterpreter maxOutputs test", async function () {
       ));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     // Asserting stack
     const stack2 = await consumerLogic.stack();
@@ -115,7 +115,7 @@ describe("Rainterpreter maxOutputs test", async function () {
       ));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     // Asserting stack
     const stack3 = await consumerLogic.stack();

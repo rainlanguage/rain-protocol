@@ -12,7 +12,7 @@ import { memoryOperand, MemoryType, op, Opcode } from "../../utils";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
@@ -28,7 +28,9 @@ describe("Stake many successive deposits and withdraws", async function () {
     stakeFactory = await stakeFactoryDeploy();
     reportOMeter = await reportOMeterDeploy();
     interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
   });
 
   beforeEach(async () => {

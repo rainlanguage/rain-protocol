@@ -1,16 +1,16 @@
 import { assert } from "chai";
 import { keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type { LibStackTopTest } from "../../../typechain";
+import type { LibStackPointerTest } from "../../../typechain";
 import { SENTINEL_HIGH_BITS } from "../../../utils/constants/sentinel";
-import { libStackTopDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
+import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 import { assertError } from "../../../utils/test/assertError";
 
-describe("LibStackTop consumeSentinel tests", async function () {
-  let libStackTop: LibStackTopTest;
+describe("LibStackPointer consumeSentinel tests", async function () {
+  let libStackPointer: LibStackPointerTest;
 
   before(async () => {
-    libStackTop = await libStackTopDeploy();
+    libStackPointer = await libStackPointerDeploy();
   });
 
   it("should consume sentinels successively with different step sizes", async () => {
@@ -27,7 +27,7 @@ describe("LibStackTop consumeSentinel tests", async function () {
       arraySentinel1_,
       stackBottom_,
       stackTop_,
-    } = await libStackTop.consumeSentinels(
+    } = await libStackPointer.consumeSentinels(
       array,
       SENTINEL,
       stepSize0,
@@ -57,7 +57,7 @@ describe("LibStackTop consumeSentinel tests", async function () {
       arraySentinel1_,
       stackBottom_,
       stackTop_,
-    } = await libStackTop.consumeSentinels(
+    } = await libStackPointer.consumeSentinels(
       array,
       SENTINEL,
       stepSize0,
@@ -80,23 +80,23 @@ describe("LibStackTop consumeSentinel tests", async function () {
 
     const array0 = [1, 2, SENTINEL, SENTINEL, 5, 6];
 
-    await libStackTop.consumeSentinel(array0, SENTINEL, 2);
-    await libStackTop.consumeSentinel(array0, SENTINEL, 3);
+    await libStackPointer.consumeSentinel(array0, SENTINEL, 2);
+    await libStackPointer.consumeSentinel(array0, SENTINEL, 3);
 
     const array1 = [1, 2, SENTINEL, 4, 5, 6];
 
     await assertError(
-      async () => await libStackTop.consumeSentinel(array1, SENTINEL, 2),
+      async () => await libStackPointer.consumeSentinel(array1, SENTINEL, 2),
       "",
       "did not revert when no sentinel was found"
     );
-    await libStackTop.consumeSentinel(array1, SENTINEL, 3);
+    await libStackPointer.consumeSentinel(array1, SENTINEL, 3);
 
     const array2 = [1, 2, 3, SENTINEL, 5, 6];
 
-    await libStackTop.consumeSentinel(array2, SENTINEL, 2);
+    await libStackPointer.consumeSentinel(array2, SENTINEL, 2);
     await assertError(
-      async () => await libStackTop.consumeSentinel(array2, SENTINEL, 3),
+      async () => await libStackPointer.consumeSentinel(array2, SENTINEL, 3),
       "",
       "did not revert when no sentinel was found"
     );
@@ -110,7 +110,8 @@ describe("LibStackTop consumeSentinel tests", async function () {
     const stepSize = 1;
 
     await assertError(
-      async () => await libStackTop.consumeSentinel(array, SENTINEL, stepSize),
+      async () =>
+        await libStackPointer.consumeSentinel(array, SENTINEL, stepSize),
       "",
       "did not revert when no sentinel was found"
     );
@@ -126,7 +127,7 @@ describe("LibStackTop consumeSentinel tests", async function () {
     const stepSize = 3; // 1 would also work
 
     const { stackTopSentinel_, arraySentinel_, stackBottom_, stackTop_ } =
-      await libStackTop.consumeSentinel(array, SENTINEL, stepSize);
+      await libStackPointer.consumeSentinel(array, SENTINEL, stepSize);
 
     assert(stackTopSentinel_.eq(stackTop_.sub(4 * 32)));
     assert(stackTopSentinel_.eq(stackBottom_.add(3 * 32)));

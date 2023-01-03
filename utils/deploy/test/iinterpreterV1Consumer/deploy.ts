@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import {} from "../../interpreter/integrity/standardIntegrity/deploy";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
 import { StateConfigStruct } from "../../../../typechain/contracts/orderbook/IOrderBookV1";
 import { libEncodedDispatchDeploy } from "../../interpreter/run/libEncodedDispatch/deploy";
@@ -10,7 +9,7 @@ const ENTRYPOINT = 0;
 
 export const iinterpreterV1ConsumerDeploy = async (
   stateConfig: StateConfigStruct,
-  maxOutputs = 255
+  maxOutputs: number
 ) => {
   const interpreter = await rainterpreterDeploy();
   const expressionDeployer = await rainterpreterExpression(
@@ -39,10 +38,10 @@ export const iinterpreterV1ConsumerDeploy = async (
   };
 };
 
-export const expressionDeployConsumer = async (
+export const expressionConsumerDeploy = async (
   stateConfig: StateConfigStruct,
   interpreter: Rainterpreter,
-  maxOutputs = 255
+  maxOutputs: number
 ) => {
   const expressionDeployer = await rainterpreterExpression(
     interpreter,

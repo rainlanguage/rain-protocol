@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { eighteenZeros, ONE, sixZeros } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
@@ -43,12 +43,13 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -79,12 +80,13 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -114,12 +116,13 @@ describe("RainInterpreter fixed point math ops", async function () {
         op(Opcode.SCALEN, n)
       ]),
     ];
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -150,12 +153,13 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -188,12 +192,13 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -227,12 +232,13 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -263,12 +269,13 @@ describe("RainInterpreter fixed point math ops", async function () {
       ]),
     ];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);

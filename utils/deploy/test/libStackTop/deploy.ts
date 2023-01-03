@@ -1,10 +1,12 @@
 import { ethers } from "hardhat";
-import { LibStackTopTest } from "../../../../typechain/contracts/test/interpreter/runtime/LibStackTop/LibStackTopTest";
+import { LibStackPointerTest } from "../../../../typechain/contracts/test/interpreter/runtime/LibStackPointer/LibStackPointerTest";
 
-export const libStackTopDeploy = async () => {
-  const libStackTopFactory = await ethers.getContractFactory("LibStackTopTest");
-  const libStackTopTest =
-    (await libStackTopFactory.deploy()) as LibStackTopTest;
-  await libStackTopTest.deployed();
-  return libStackTopTest;
+export const libStackPointerDeploy = async () => {
+  const libStackPointerFactory = await ethers.getContractFactory(
+    "LibStackPointerTest"
+  );
+  const libStackPointerTest =
+    (await libStackPointerFactory.deploy()) as LibStackPointerTest;
+  await libStackPointerTest.deployed();
+  return libStackPointerTest;
 };

@@ -2,37 +2,33 @@
 pragma solidity ^0.8.15;
 
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "../../run/LibStackTop.sol";
+import "../../run/LibStackPointer.sol";
 import "../../run/LibInterpreterState.sol";
-import "../../deploy/LibIntegrityState.sol";
+import "../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpERC721OwnerOf
 /// @notice Opcode for getting the current erc721 owner of an account.
 library OpERC721OwnerOf {
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _ownerOf(
-        uint256 token_,
-        uint256 id_
-    ) internal view returns (uint256) {
+    function f(uint256 token_, uint256 id_) internal view returns (uint256) {
         return uint256(uint160(IERC721(address(uint160(token_))).ownerOf(id_)));
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _ownerOf);
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    // Stack the return of `ownerOf`.
-    function ownerOf(
+    function run(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_ownerOf);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f);
     }
 }

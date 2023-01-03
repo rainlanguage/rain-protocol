@@ -2,11 +2,11 @@
 pragma solidity =0.8.17;
 
 import "./libraries/LibFlow.sol";
-import "../idempotent/LibIdempotentFlag.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/LibInterpreterState.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -21,7 +21,7 @@ uint256 constant FLAG_ROW_FLOW_TIME = 2;
 uint256 constant MIN_FLOW_SENTINELS = 4;
 
 SourceIndex constant FLOW_ENTRYPOINT = SourceIndex.wrap(0);
-uint constant FLOW_MAX_OUTPUTS = type(uint16).max;
+uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 
 struct FlowCommonConfig {
     address expressionDeployer;
@@ -30,17 +30,16 @@ struct FlowCommonConfig {
 }
 
 contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
-    using LibIdempotentFlag for IdempotentFlag;
     using LibInterpreterState for InterpreterState;
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
     IInterpreterV1 internal _interpreter;
 
     /// flow expression pointer => is registered
-    mapping(EncodedDispatch => uint) internal _flows;
+    mapping(EncodedDispatch => uint256) internal _flows;
 
     event FlowInitialized(
         address sender,
@@ -55,7 +54,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
     // solhint-disable-next-line func-name-mixedcase
     function __FlowCommon_init(
         FlowCommonConfig memory config_,
-        uint flowMinOutputs_
+        uint256 flowMinOutputs_
     ) internal onlyInitializing {
         __ERC721Holder_init();
         __ERC1155Holder_init();
@@ -63,7 +62,7 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         require(flowMinOutputs_ >= MIN_FLOW_SENTINELS, "BAD MIN STACKS LENGTH");
         _interpreter = IInterpreterV1(config_.interpreter);
         for (uint256 i_ = 0; i_ < config_.flows.length; i_++) {
-            (address expression_, ) = IExpressionDeployerV1(
+            address expression_ = IExpressionDeployerV1(
                 config_.expressionDeployer
             ).deployExpression(
                     config_.flows[i_],
@@ -92,9 +91,9 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         internal
         view
         onlyRegisteredDispatch(dispatch_)
-        returns (StackTop, StackTop, uint[] memory)
+        returns (StackPointer, StackPointer, uint256[] memory)
     {
-        (uint256[] memory stack_, uint[] memory stateChanges_) = _interpreter
+        (uint256[] memory stack_, uint256[] memory stateChanges_) = _interpreter
             .eval(
                 dispatch_,
                 LibContext.build(
@@ -103,7 +102,11 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
                     signedContexts_
                 )
             );
-        return (stack_.asStackTopUp(), stack_.asStackTopAfter(), stateChanges_);
+        return (
+            stack_.asStackPointerUp(),
+            stack_.asStackPointerAfter(),
+            stateChanges_
+        );
     }
 
     receive() external payable virtual {}

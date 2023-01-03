@@ -4,7 +4,7 @@ import { IInterpreterV1Consumer } from "../../../typechain";
 import { paddedUInt256, paddedUInt32 } from "../../../utils/bytes";
 import { max_uint32 } from "../../../utils/constants/bigNumber";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { readWriteTierDeploy } from "../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../utils/hardhat";
 import {
@@ -41,12 +41,13 @@ describe("TierV2 report op", async function () {
       op(Opcode.ITIERV2_REPORT)
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [readWriteTier.address],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [

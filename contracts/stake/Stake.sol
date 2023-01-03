@@ -1,6 +1,17 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
+import "../interpreter/deploy/IExpressionDeployerV1.sol";
+import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/run/LibStackPointer.sol";
+import "../interpreter/run/LibContext.sol";
+import "../array/LibUint256Array.sol";
+
+import "../tier/TierV2.sol";
+import "../tier/libraries/TierConstants.sol";
+
+import "../tier/libraries/TierReport.sol";
+
 import {IERC20MetadataUpgradeable as IERC20Metadata} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -9,29 +20,28 @@ import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeab
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-import "../interpreter/deploy/IExpressionDeployerV1.sol";
-import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
-import "../array/LibUint256Array.sol";
-
-import "../tier/TierV2.sol";
-import "../tier/libraries/TierConstants.sol";
-
-import "../tier/libraries/TierReport.sol";
-
+/// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
+/// @dev Entrypoint for calculating the max withdraw as per ERC4626.
 SourceIndex constant MAX_WITHDRAW_ENTRYPOINT = SourceIndex.wrap(1);
 
-uint constant MAX_DEPOSIT_MIN_OUTPUTS = 1;
-uint constant MAX_WITHDRAW_MIN_OUTPUTS = 1;
+/// @dev Minimum required outputs for the max deposit entrypoint.
+uint256 constant MAX_DEPOSIT_MIN_OUTPUTS = 1;
+/// @dev Minimum required outputs for the max withdraw entrypoint.
+uint256 constant MAX_WITHDRAW_MIN_OUTPUTS = 1;
 
-uint constant MAX_DEPOSIT_MAX_OUTPUTS = 1;
-uint constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
+/// @dev Maximum usable outputs for the max deposit entrypoint.
+uint256 constant MAX_DEPOSIT_MAX_OUTPUTS = 1;
+/// @dev Maximum usable outputs for the max withdraw entrypoint.
+uint256 constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
 
 /// Configuration required to initialized the Stake contract.
 /// @param asset The underlying ERC20 asset for the 4626 vault.
 /// @param name ERC20 name of the 4626 share token to be minted.
 /// @param symbol ERC20 symbol of the 4626 share token to be minted.
+/// @param expressionDeployer the address of the `IExpressionDeployerV1`.
+/// @param interpreter the address of the `IInterpreterV1`.
+/// @param stateConfig the expression to calculate max deposits and withdrawals.
 struct StakeConfig {
     IERC20Metadata asset;
     string name;
@@ -87,6 +97,10 @@ struct DepositRecord {
 /// The external group simply winds up the thresholds passed as context to
 /// `report` over time and the existing ledger is reinterpreted accordingly.
 ///
+/// Deposits and withdrawals are throttled/gated behind a deployed expression
+/// that is interpreted to calculate the maximum deposit and withdrawal values
+/// as per ERC4626.
+///
 /// Note that the total shares in circulation and the totals of the final entries
 /// in every account's ledgers is always 1:1. `Stake` doesn't allow for
 /// expressing inflationary tokenomics in the share token itself. Third party
@@ -96,9 +110,10 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using Math for uint256;
-    using LibUint256Array for uint;
-    using LibStackTop for uint[];
-    using LibStackTop for StackTop;
+    using LibUint256Array for uint256;
+    using LibUint256Array for uint256[];
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
 
     /// Emitted when the contract initializes.
     /// @param sender msg.sender that initializes the contract.
@@ -108,14 +123,27 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// The ledger that records the time and amount of all share mints and burns.
     mapping(address => DepositRecord[]) public depositRecords;
 
-    IInterpreterV1 interpreter;
-    EncodedDispatch dispatchMaxDeposit;
-    EncodedDispatch dispatchMaxWithdraw;
+    /// The interpreter that evaluates max deposits and withdrawal limits.
+    IInterpreterV1 internal interpreter;
 
+    /// The onchain address of the deployed expression.
+    address internal expression;
+
+    /// The encoded dispatch of the max deposit entrypoint.
+    EncodedDispatch internal dispatchMaxDeposit;
+
+    /// The encoded dispatch of the max withdraw entrypoint.
+    EncodedDispatch internal dispatchMaxWithdraw;
+
+    /// Constructor does nothing but prevents accidental initialization of an
+    /// implementation template intended to be referenced by a cloning factory.
     constructor() {
         _disableInitializers();
     }
 
+    /// Initializes the `Stake` contract in a proxy compatible way to support
+    /// cloning many staking contracts from a single onchain factory.
+    /// @param config_ All the initialization config.
     function initialize(StakeConfig calldata config_) external initializer {
         require(address(config_.asset) != address(0), "0_ASSET");
         __ReentrancyGuard_init();
@@ -123,25 +151,15 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         __ERC4626_init(config_.asset);
         __TierV2_init();
         interpreter = IInterpreterV1(config_.interpreter);
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
                     MAX_DEPOSIT_MIN_OUTPUTS,
                     MAX_WITHDRAW_MIN_OUTPUTS
                 )
             );
-        dispatchMaxDeposit = LibEncodedDispatch.encode(
-            expression_,
-            MAX_DEPOSIT_ENTRYPOINT,
-            MAX_DEPOSIT_MAX_OUTPUTS
-        );
-        dispatchMaxWithdraw = LibEncodedDispatch.encode(
-            expression_,
-            MAX_WITHDRAW_ENTRYPOINT,
-            MAX_WITHDRAW_MAX_OUTPUTS
-        );
+        expression = expression_;
         emit Initialize(msg.sender, config_);
     }
 
@@ -151,39 +169,88 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// logic dispatch.
     /// @param account_ The account to add to context, e.g. the receiver or owner
     /// that is depositing or withdrawing.
+    /// @return The eval'd amount or `0` if there was an error during `eval` that
+    /// prevents an amount from being calculated.
     function _eval(
         EncodedDispatch dispatch_,
         address account_
-    ) internal view returns (uint) {
-        uint[][] memory context_ = new uint[][](1);
-        context_[0] = LibUint256Array.arrayFrom(
-            uint(uint160(msg.sender)),
-            uint(uint160(account_))
-        );
+    ) internal view returns (uint256) {
         // ERC4626 mandates that maxDeposit MUST NOT revert. Any error must be
-        // caught and converted to a 0 max deposit.
-        try interpreter.eval(dispatch_, context_) returns (
-            uint[] memory stack_,
-            uint[] memory
+        // caught and converted to a 0 max deposit. Note that `try` MAY NOT catch
+        // every error if the interpreter eval is sufficiently malformed the call
+        // will revert despite the `try`. For a well behaved expression on a well
+        // behaved interpreter the class of errors possible will be caught by the
+        // `try` and this will perform according to 4626 spec.
+        try
+            interpreter.eval(
+                dispatch_,
+                // Sadly there's no affordance in ERC4626 to allow either signed
+                // context or much in the way of caller context.
+                LibContext.build(
+                    new uint256[][](0),
+                    // We put the account being eval'd against as a single item
+                    // in caller context and that's the best we can do.
+                    uint256(uint160(account_)).arrayFrom(),
+                    new SignedContext[](0)
+                )
+            )
+        returns (
+            // Sadly ERC4626 mandates view behaviour of preview functions and that
+            // the preview and actual values are as close as possible. It is not
+            // obvious how to best handle state changes in this case so they are
+            // currently not supported.
+            uint256[] memory stack_,
+            uint256[] memory
         ) {
-            return stack_.asStackTopAfter().peek();
+            // Guard against a 0 length stack, which well behaved expression
+            // deployers and interpreters should never return, but in case we
+            // hit this codepath return `0` instead of reverting.
+            if (stack_.length == 0) {
+                return 0;
+            } else {
+                unchecked {
+                    return stack_[stack_.length - 1];
+                }
+            }
         } catch {
             return 0;
         }
     }
 
+    /// Encodes a dispatch for the max deposit calculations.
+    /// @return The encoded dispatch for a max deposit calculation.
+    function _dispatchMaxDeposit() internal view returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                MAX_DEPOSIT_ENTRYPOINT,
+                MAX_DEPOSIT_MAX_OUTPUTS
+            );
+    }
+
+    /// Encodes a dispatch for the max withdrawal calculations.
+    /// @return The encoded dispatch for a max withdrawal calculation.
+    function _dispatchMaxWithdraw() internal view returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                MAX_WITHDRAW_ENTRYPOINT,
+                MAX_WITHDRAW_MAX_OUTPUTS
+            );
+    }
+
     /// Thin wrapper around _eval for max deposit calculations.
     /// @param receiver_ As per `maxDeposit`.
-    function _maxDeposit(address receiver_) internal view returns (uint) {
-        return _eval(dispatchMaxDeposit, receiver_);
+    function _maxDeposit(address receiver_) internal view returns (uint256) {
+        return _eval(_dispatchMaxDeposit(), receiver_);
     }
 
     /// Dispatches a max withdraw calculation to the interpreter.
     /// The interpreter expression MAY revert due to internal `ensure` calls or
     /// similar so we have to try/catch down to a `0` value max withdrawal in
     /// that case.
-    function _maxWithdraw(address owner_) internal view returns (uint) {
-        return _eval(dispatchMaxWithdraw, owner_);
+    function _maxWithdraw(address owner_) internal view returns (uint256) {
+        return _eval(_dispatchMaxWithdraw(), owner_);
     }
 
     /// We will treat the max deposit as whatever the interpreter calculates,
@@ -191,7 +258,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @inheritdoc ERC4626
     function maxDeposit(
         address receiver_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         return _maxDeposit(receiver_).min(super.maxDeposit(receiver_));
     }
 
@@ -200,7 +267,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @inheritdoc ERC4626
     function maxMint(
         address receiver_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         // > If (1) it’s calculating how many shares to issue to a user for a
         // > certain amount of the underlying tokens they provide or (2) it’s
         // > determining the amount of the underlying tokens to transfer to them
@@ -214,14 +281,14 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @inheritdoc ERC4626
     function maxWithdraw(
         address owner_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         return _maxWithdraw(owner_).min(super.maxWithdraw(owner_));
     }
 
     /// @inheritdoc ERC4626
     function maxRedeem(
         address owner_
-    ) public view virtual override returns (uint) {
+    ) public view virtual override returns (uint256) {
         // > If (1) it’s calculating the amount of shares a user has to supply
         // > to receive a given amount of the underlying tokens or (2) it’s
         // > calculating the amount of underlying tokens a user has to provide

@@ -4,6 +4,11 @@ pragma solidity =0.8.17;
 import {IFactory} from "./IFactory.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+/// Thrown when a new factory deployment creates a child that was already created
+/// by a previous deployment. This should never happen without some kind of
+/// precompute such as CREATE2 and is generally unsupported at this time.
+error DuplicateChild(address child);
+
 /// @title Factory
 /// @notice Base contract for deploying and registering child contracts.
 abstract contract Factory is IFactory, ReentrancyGuard {
@@ -50,8 +55,12 @@ abstract contract Factory is IFactory, ReentrancyGuard {
     ) public virtual override nonReentrant returns (address) {
         // Create child contract using hook.
         address child_ = _createChild(data_);
+
         // Ensure the child at this address has not previously been deployed.
-        require(!contracts[child_], "DUPLICATE_CHILD");
+        if (contracts[child_]) {
+            revert DuplicateChild(child_);
+        }
+
         // Register child contract address to `contracts` mapping.
         contracts[child_] = true;
         // Emit `NewChild` event with child contract address.

@@ -1,33 +1,22 @@
-import { ethers } from "hardhat";
-import {
-  RainterpreterExpressionDeployer,
-  Rainterpreter,
-} from "../../../../../typechain";
+import { Rainterpreter } from "../../../../../typechain";
 import { ExpressionDeployedEvent } from "../../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { StateConfigStruct } from "../../../../../typechain/contracts/orderbook/IOrderBookV1";
 import { getEvents } from "../../../../events";
+import { rainterpreterExpressionDeployerDeploy } from "./deploy";
 
 export const rainterpreterExpression = async (
   interpreter: Rainterpreter,
   stateConfig: StateConfigStruct
 ) => {
-  const expressionDeployerFactory = await ethers.getContractFactory(
-    "RainterpreterExpressionDeployer"
-  );
-  const expressionDeployer = (await expressionDeployerFactory.deploy(
-    interpreter.address
-  )) as RainterpreterExpressionDeployer;
+  const expression = await rainterpreterExpressionDeployerDeploy(interpreter);
 
-  const expressionTx = await expressionDeployer.deployExpression(stateConfig, [
-    0,
-  ]);
+  const expressionTx = await expression.deployExpression(stateConfig, [0]);
 
   const eventData = (await getEvents(
     expressionTx,
     "ExpressionDeployed",
-    expressionDeployer
-  ) ) as ExpressionDeployedEvent["args"][]
-  
-  return eventData[0].expression; 
-  
+    expression
+  )) as ExpressionDeployedEvent["args"][];
+
+  return eventData[0].expression;
 };

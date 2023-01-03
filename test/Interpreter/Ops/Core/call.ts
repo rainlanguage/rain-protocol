@@ -30,7 +30,11 @@ describe("CALL Opcode test", async function () {
     const callADD = op(Opcode.CALL, callOperand(2, 1, 1));
 
     // Source to add 2 numbers, input will be provided from another source
-    const sourceADD = concat([op(Opcode.ADD, 2)]);
+    const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.ADD, 2),
+    ]);
 
     // Source for calculating fibonacci sequence uptill 5
     // prettier-ignore
@@ -52,12 +56,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, sourceADD],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, sourceADD],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
 
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
@@ -89,12 +96,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
@@ -109,7 +119,16 @@ describe("CALL Opcode test", async function () {
 
     // CALL opcode which will take 7 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(maxInputs, 1, 1));
-    const source1 = concat([op(Opcode.MUL, maxInputs)]);
+    const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 5)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 6)),
+      op(Opcode.MUL, maxInputs),
+    ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([
@@ -124,12 +143,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
@@ -144,7 +166,11 @@ describe("CALL Opcode test", async function () {
 
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 1 output
     const call0 = op(Opcode.CALL, callOperand(2, minOutput, 1));
-    const source1 = concat([op(Opcode.MUL, 2)]);
+    const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.MUL, 2),
+    ]);
 
     // prettier-ignore
     const sourceMAIN0 = concat([
@@ -154,12 +180,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("4");
@@ -176,6 +205,8 @@ describe("CALL Opcode test", async function () {
     // CALL opcode which will take 2 inputs, pass it to source at index 1, and return 3 outputs
     const call0 = op(Opcode.CALL, callOperand(2, maxOutput, 1));
     const source1 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.MUL, 2),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
@@ -189,12 +220,15 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceMAIN0, source1],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceMAIN0, source1],
+          constants,
+        },
+        maxOutput
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stack();
 
     const expectedResult0 = [
@@ -215,12 +249,15 @@ describe("CALL Opcode test", async function () {
     const callADD = op(Opcode.CALL, callOperand(2, 1, 1));
     // prettier-ignore
     const sourceADD = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.ADD, 2)
     ]);
 
     const callSUB = op(Opcode.CALL, callOperand(1, 1, 2));
     // prettier-ignore
     const sourceSUB = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
       op(Opcode.SUB, 2)
     ]);
@@ -228,6 +265,7 @@ describe("CALL Opcode test", async function () {
     const callMUL = op(Opcode.CALL, callOperand(1, 1, 3));
     // prettier-ignore
     const sourceMUL = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 10
       op(Opcode.MUL, 2)
     ]);
@@ -235,6 +273,7 @@ describe("CALL Opcode test", async function () {
     const callDIV = op(Opcode.CALL, callOperand(1, 1, 4));
     // prettier-ignore
     const sourceDIV = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
       op(Opcode.DIV, 2)
     ]);
@@ -242,6 +281,7 @@ describe("CALL Opcode test", async function () {
     const callEXP = op(Opcode.CALL, callOperand(1, 1, 5));
     // prettier-ignore
     const sourceEXP = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // 2
       op(Opcode.EXP, 2)
     ]);
@@ -249,6 +289,7 @@ describe("CALL Opcode test", async function () {
     const callADD10 = op(Opcode.CALL, callOperand(1, 1, 6));
     // prettier-ignore
     const sourceADD10 = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // 10
       op(Opcode.ADD, 2)
     ]);
@@ -256,7 +297,8 @@ describe("CALL Opcode test", async function () {
     const callADD1 = op(Opcode.CALL, callOperand(1, 1, 7));
     // prettier-ignore
     const sourceADD1 = concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // 1
       op(Opcode.ADD, 2)
     ]);
 
@@ -274,21 +316,24 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [
-          sourceMAIN,
-          sourceADD,
-          sourceSUB,
-          sourceMUL,
-          sourceDIV,
-          sourceEXP,
-          sourceADD10,
-          sourceADD1,
-        ],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [
+            sourceMAIN,
+            sourceADD,
+            sourceSUB,
+            sourceMUL,
+            sourceDIV,
+            sourceEXP,
+            sourceADD10,
+            sourceADD1,
+          ],
+          constants,
+        },
+        1
+      );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [[]]);
+    await consumerLogic.eval(interpreter.address, dispatch, []);
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("236");
@@ -414,10 +459,13 @@ describe("CALL Opcode test", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [sourceGetDiscountedPrice, sourceGetDiscount],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [sourceGetDiscountedPrice, sourceGetDiscount],
+          constants,
+        },
+        1
+      );
 
     // Calculating price for Alice
     const reportAlice = await readWriteTier.report(alice.address, []);

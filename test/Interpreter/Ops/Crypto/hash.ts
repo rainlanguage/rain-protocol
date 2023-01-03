@@ -9,7 +9,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = AllStandardOps;
 
@@ -37,12 +37,13 @@ describe("HASH Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
       op(Opcode.HASH, 3),
     ]);
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
@@ -70,12 +71,13 @@ describe("HASH Opcode test", async function () {
         op(Opcode.CONTEXT, 0x0001),
       op(Opcode.HASH, 2),
     ]);
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, context);
@@ -99,12 +101,13 @@ describe("HASH Opcode test", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
       op(Opcode.HASH, 1),
     ]);
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);

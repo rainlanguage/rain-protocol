@@ -23,7 +23,7 @@ import {
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
@@ -39,7 +39,9 @@ describe("Stake withdraw", async function () {
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
     interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
   });
 
   beforeEach(async () => {
@@ -55,9 +57,9 @@ describe("Stake withdraw", async function () {
     const constants = [max_uint256, max_uint256, 0, 1, 2, 3];
 
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const _v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
-    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const _v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -113,7 +115,7 @@ describe("Stake withdraw", async function () {
 
     const constants = [max_uint256, TEN, 0, 1, 2, 3];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const _v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
@@ -165,7 +167,7 @@ describe("Stake withdraw", async function () {
       ethers.BigNumber.from("1000" + eighteenZeros)
     );
 
-    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    const _tokenBalanceAlice0 = await token.balanceOf(alice.address);
     const stTokenSupply0 = await stake.totalSupply();
 
     assert(stTokenSupply0.isZero(), "initial stToken supply was not 0");
@@ -234,7 +236,7 @@ describe("Stake withdraw", async function () {
 
     await timewarp(86400);
 
-    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
+    const _stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
     const tokenPool0 = await token.balanceOf(stake.address);
 
     await timewarp(86400);

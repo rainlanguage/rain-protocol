@@ -1,34 +1,36 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../../type/LibCast.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpIsZero
 /// @notice Opcode for checking if the stack top is zero.
 library OpIsZero {
     using LibCast for bool;
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _isZero(uint256 a_) internal pure returns (uint256) {
-        return (a_ == 0).asUint256();
+    function f(uint256 a_) internal pure returns (uint256 b_) {
+        assembly ("memory-safe") {
+            b_ := iszero(a_)
+        }
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _isZero);
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    function isZero(
+    function run(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_isZero);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f);
     }
 }
