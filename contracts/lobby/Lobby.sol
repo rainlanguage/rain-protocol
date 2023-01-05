@@ -71,7 +71,8 @@ SourceIndex constant ENTRYPOINT_CLAIM = SourceIndex.wrap(2);
 /// hardcoded timeout value.
 SourceIndex constant ENTRYPOINT_INVALID = SourceIndex.wrap(3);
 
-// Need an amount (can be 0) for join deposits and a truthy value to start the event.
+/// @dev Need a truthy value to start the event and an amount (can be 0) for join
+/// deposits.
 uint256 constant JOIN_MIN_OUTPUTS = 2;
 uint256 constant JOIN_MAX_OUTPUTS = 2;
 
