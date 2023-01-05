@@ -145,10 +145,7 @@ contract Lobby is Phased, ReentrancyGuard {
     IERC20 internal token;
     IInterpreterV1 internal interpreter;
 
-    EncodedDispatch internal joinEncodedDispatch;
-    EncodedDispatch internal leaveEncodedDispatch;
-    EncodedDispatch internal claimEncodedDispatch;
-    EncodedDispatch internal invalidEncodedDispatch;
+    address internal expression;
 
     mapping(address => uint256) internal players;
     mapping(address => uint256) internal deposits;
@@ -177,7 +174,7 @@ contract Lobby is Phased, ReentrancyGuard {
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
-        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
             .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
@@ -194,23 +191,36 @@ contract Lobby is Phased, ReentrancyGuard {
         token = IERC20(config_.token);
         interpreter = IInterpreterV1(config_.interpreter);
 
-        joinEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
+        emit Initialize(msg.sender, config_);
+    }
+
+    function _joinEncodedDispatch() internal view returns (EncodedDispatch) {
+        return LibEncodedDispatch.encode(
+            expression,
             ENTRYPOINT_JOIN,
             JOIN_MAX_OUTPUTS
         );
-        leaveEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
+    }
+
+    function _leaveEncodedDispatch() internal view returns (EncodedDispatch) {
+        return LibEncodedDispatch.encode(
+            expression,
             ENTRYPOINT_LEAVE,
             LEAVE_MAX_OUTPUTS
         );
-        claimEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
+    }
+
+    function _claimEncodedDispatch() internal view returns (EncodedDispatch) {
+        return LibEncodedDispatch.encode(
+            expression,
             ENTRYPOINT_CLAIM,
             CLAIM_MAX_OUTPUTS
         );
-        invalidEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
+    }
+
+    function _invalidEncodedDispatch() internal view returns (EncodedDispatch) {
+        return LibEncodedDispatch.encode(
+            expression,
             ENTRYPOINT_INVALID,
             INVALID_MAX_OUTPUTS
         );
@@ -272,7 +282,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 uint256[] memory stack_,
                 uint256[] memory stateChanges_
             ) = interpreter_.eval(
-                    joinEncodedDispatch,
+                    _joinEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
                         callerContext_,
@@ -307,7 +317,7 @@ contract Lobby is Phased, ReentrancyGuard {
             uint256[] memory stack_,
             uint256[] memory stateChanges_
         ) = IInterpreterV1(interpreter).eval(
-                leaveEncodedDispatch,
+                _leaveEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),
                     callerContext_,
@@ -355,7 +365,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 uint256[] memory stack_,
                 uint256[] memory stateChanges_
             ) = IInterpreterV1(interpreter).eval(
-                    claimEncodedDispatch,
+                    _claimEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
                         callerContext_,
@@ -400,7 +410,7 @@ contract Lobby is Phased, ReentrancyGuard {
         IInterpreterV1 interpreter_ = interpreter;
         (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
             .eval(
-                invalidEncodedDispatch,
+                _invalidEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),
                     callerContext_,
