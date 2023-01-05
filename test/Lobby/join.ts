@@ -50,14 +50,20 @@ describe("Lobby Tests join", async function () {
   it("should ensure no more players are able to join after players are finalized", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2];
+    const bob = signers[2]; 
 
-    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    await tokenA.connect(signers[0]).transfer(bob.address, ONE.mul(100));
+    const depositAmount = ONE
+    const leaveAmount = ONE
+    const claimAmount = ONE
+    const timeoutDuration = 15000000
 
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
 
-    const constants = [0, ONE, ONE, ONE];
+    await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
+    await tokenA.connect(signers[0]).transfer(bob.address, depositAmount);
+
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+
+    const constants = [0, depositAmount, leaveAmount, claimAmount];
 
     // prettier-ignore
     const joinSource = concat([
@@ -88,13 +94,13 @@ describe("Lobby Tests join", async function () {
       token: tokenA.address,
       stateConfig: lobbyStateConfig,
       description: [],
-      timeoutDuration: 15000000,
+      timeoutDuration: timeoutDuration,
     };
 
     await Lobby.initialize(initialConfig);
 
-    await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
-    await tokenA.connect(bob).approve(Lobby.address, ONE.mul(100));
+    await tokenA.connect(alice).approve(Lobby.address, depositAmount);
+    await tokenA.connect(bob).approve(Lobby.address, depositAmount);
 
     const context0 = [10, 11, 12];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
@@ -143,13 +149,18 @@ describe("Lobby Tests join", async function () {
   it("should ensure non-players are able to join and refs not able to join", async function () {
     const signers = await ethers.getSigners();
     const ref = signers[0];
-    const alice = signers[1];
+    const alice = signers[1]; 
 
-    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
+    const depositAmount = ONE
+    const leaveAmount = ONE
+    const claimAmount = ONE
+    const timeoutDuration = 15000000
 
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
-    const constants = [0, ONE, ONE, ONE];
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+
+    const constants = [0, depositAmount, leaveAmount, claimAmount];
 
     // prettier-ignore
     const joinSource = concat([
@@ -180,12 +191,12 @@ describe("Lobby Tests join", async function () {
       token: tokenA.address,
       stateConfig: lobbyStateConfig,
       description: [],
-      timeoutDuration: 15000000,
+      timeoutDuration: timeoutDuration,
     };
 
     await Lobby.initialize(initialConfig);
 
-    await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
+    await tokenA.connect(alice).approve(Lobby.address, depositAmount);
 
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
@@ -215,7 +226,7 @@ describe("Lobby Tests join", async function () {
 
     assert(depositSender === alice.address, "wrong deposit sender");
     assert(depositToken === tokenA.address, "wrong deposit token");
-    assert(amount.eq(ONE), "wrong deposit amount");
+    assert(amount.eq(depositAmount), "wrong deposit amount");
     assert(sender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
@@ -249,13 +260,18 @@ describe("Lobby Tests join", async function () {
   it("should ensure player joins lobby on happy path ", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2];
+    const bob = signers[2]; 
 
-    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
+    const depositAmount = ONE
+    const leaveAmount = ONE
+    const claimAmount = ONE
+    const timeoutDuration = 15000000
 
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+    await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
-    const constants = [1, ONE, ONE, ONE];
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+
+    const constants = [1, depositAmount, leaveAmount, claimAmount];
 
     // prettier-ignore
     const joinSource = concat([
@@ -286,12 +302,12 @@ describe("Lobby Tests join", async function () {
       token: tokenA.address,
       stateConfig: lobbyStateConfig,
       description: [],
-      timeoutDuration: 15000000,
+      timeoutDuration: timeoutDuration,
     };
 
     await Lobby.initialize(initialConfig);
 
-    await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
+    await tokenA.connect(alice).approve(Lobby.address, depositAmount);
 
     const context0 = [1, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
@@ -330,7 +346,7 @@ describe("Lobby Tests join", async function () {
 
     assert(depositSender === alice.address, "wrong deposit sender");
     assert(depositToken === tokenA.address, "wrong deposit token");
-    assert(amount.eq(ONE), "wrong deposit amount");
+    assert(amount.eq(depositAmount), "wrong deposit amount");
     assert(sender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
