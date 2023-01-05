@@ -742,4 +742,159 @@ describe("Stake withdraw", async function () {
     const depositsAlice2_ = await getDeposits(stake, alice.address);
     assert(depositsAlice2_.length === 0);
   });
+
+  it('should monitor user deposit on multiple deposits and withdraws', async () => {
+    /**
+     * 1. Alice deposits 10 tokens
+     * 2. Alice deposits 10 tokens
+     * 3. Alice withdraws 10 tokens
+     * 4. Alice withdraws 1 token
+     * 5. Alice withdraws 10 tokens => revert
+     * 6. Alice deposits 1 token
+     * 7. Alice withdraws 1 token
+     * 8. Alice withdraws 1 token
+     * 9. Alice withdraws 10 token => revert
+     */
+    const ONE = ethers.BigNumber.from("1" + eighteenZeros);
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+    const bob = signers[3];
+    const carol = signers[4];
+
+    const constants = [max_uint256, max_uint256];
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const source = [max_deposit, max_withdraw];
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("10" + eighteenZeros)
+    );
+
+    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
+    // Alice deposits 10 tokens
+    await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_.length === 1);
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
+
+    await timewarp(86400);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(alice.address, ethers.BigNumber.from("10" + eighteenZeros));
+    const tokenBalanceAlice1 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice1);
+    // Alice deposits 10 more tokens
+    await stake.connect(alice).deposit(tokenBalanceAlice1, alice.address);
+
+    const depositsAlice2_ = await getDeposits(stake, alice.address);
+    const time2_ = await getBlockTimestamp();
+    assert(depositsAlice2_.length === 2);
+    assert(depositsAlice2_[1].timestamp === time2_);
+    //because on last deposit, there will be accure amount of 2 consecutive deposits
+    assert(depositsAlice2_[1].amount.eq(tokenBalanceAlice1.add(tokenBalanceAlice0)));
+
+    await timewarp(86400);
+
+    //withdraw 10 tokens
+    await stake.connect(alice).withdraw(tokenBalanceAlice1, alice.address, alice.address);
+    const withdrawsAlice0_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice0_.length === 1);
+    assert(withdrawsAlice0_[0].timestamp === time1_);
+    assert(withdrawsAlice0_[0].amount.eq(tokenBalanceAlice0));
+
+    //withdraw 1 token
+    await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+    const withdrawsAlice1_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice1_.length === 1);
+    assert(withdrawsAlice1_[0].timestamp === time1_);
+    assert(withdrawsAlice1_[0].amount.eq(tokenBalanceAlice0.sub(ONE)));
+
+    //withdraw 10 tokens, this should revert
+    await assertError(
+      async () => {
+        await stake
+          .connect(alice)
+          .withdraw(tokenBalanceAlice0, alice.address, alice.address); // withdrawAmount > max_withdraw
+      },
+      "VM Exception while processing transaction: reverted with reason string 'ERC4626: withdraw more than max'",
+      "wrongly deposited amount grater than MAX_DEPOSIT"
+    );
+
+    //deposit 1 token
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(alice.address, ethers.BigNumber.from("1" + eighteenZeros));
+    const tokenBalanceAlice3 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice3);
+    //process deposit
+    await stake.connect(alice).deposit(ONE, alice.address);
+    const time3_ = await getBlockTimestamp();
+    const depositsAlice3_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice3_.length === 2);
+    assert(depositsAlice3_[1].timestamp === time3_);
+    assert(depositsAlice3_[1].amount.eq(tokenBalanceAlice0));
+
+    //withdraw 1 token
+    await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+    const withdrawsAlice3_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice3_.length === 1);
+    assert(withdrawsAlice3_[0].timestamp === time1_);
+    assert(withdrawsAlice3_[0].amount.eq(tokenBalanceAlice0.sub(ONE)));
+
+    //wtidraw 1 token
+    await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+    const withdrawsAlice4_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice4_.length === 1);
+    assert(withdrawsAlice4_[0].timestamp === time1_);
+    assert(withdrawsAlice4_[0].amount.eq(tokenBalanceAlice0.sub(ONE).sub(ONE)));
+
+    //withdraw 10 tokens, this should revert
+    await assertError(
+      async () => {
+        await stake
+          .connect(alice)
+          .withdraw(tokenBalanceAlice0, alice.address, alice.address); // withdrawAmount > max_withdraw
+      },
+      "VM Exception while processing transaction: reverted with reason string 'ERC4626: withdraw more than max'",
+      "wrongly deposited amount grater than MAX_DEPOSIT"
+    );
+
+    //get deposits
+    const depositsAlice_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice_.length === 1);
+    assert(depositsAlice_[0].timestamp === time1_);
+    assert(depositsAlice_[0].amount.eq(tokenBalanceAlice0.sub(ONE).sub(ONE)));
+    
+  })
 });
