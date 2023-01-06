@@ -406,7 +406,9 @@ contract Lobby is Phased, ReentrancyGuard {
         // deposits.
         if (shares[msg.sender] > 0) {
             uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
-                .fixedPointMul(shares[msg.sender]);
+                .fixedPointMul(shares[msg.sender])
+                // Guard against rounding issues locking funds.
+                .min(token.balanceOf(address(this)));
             token.safeTransfer(msg.sender, amount_);
             withdrawals[msg.sender] = totalDeposited;
             emit Claim(msg.sender, shares[msg.sender], amount_);

@@ -15,14 +15,19 @@ import {
   RefundEvent,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError, combineTierDeploy, compareStructs, fixedPointMul } from "../../utils";
+import {
+  assertError,
+  combineTierDeploy,
+  compareStructs,
+  fixedPointMul,
+} from "../../utils";
 import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
-    Debug,
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -40,7 +45,6 @@ describe("Lobby Invalid Refund", async function () {
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
   const PHASE_INVALID = ethers.BigNumber.from(4);
 
-  
   before(async () => {
     interpreter = await rainterpreterDeploy();
     expressionDeployer = await rainterpreterExpressionDeployerDeploy(
@@ -52,25 +56,24 @@ describe("Lobby Invalid Refund", async function () {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await tokenA.initialize();
   });
-  
-  it("should ensure players are refunded after lobby is invalidated", async function () { 
-    const timeoutDuration = 15000000
+
+  it("should ensure players are refunded after lobby is invalidated", async function () {
+    const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
     const alice = signers[1];
     const bob = signers[2];
     const bot = signers[3];
 
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
 
-    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]); 
-
-    const depositAmount = ONE 
-    const claimAmount = ONE 
-    const leaveAmount = ONE  
+    const depositAmount = ONE;
+    const claimAmount = ONE;
+    const leaveAmount = ONE;
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
     await tokenA.connect(signers[0]).transfer(bob.address, depositAmount);
 
-    const constants = [0, depositAmount, leaveAmount, claimAmount,bot.address];
+    const constants = [0, depositAmount, leaveAmount, claimAmount, bot.address];
 
     // prettier-ignore
     const joinSource = concat([
@@ -79,15 +82,15 @@ describe("Lobby Invalid Refund", async function () {
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2))
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3))
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-         op(Opcode.CONTEXT, 0x0200) ,
-         op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) , 
-        op(Opcode.EQUAL_TO) 
+      op(Opcode.CONTEXT, 0x0200),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4)),
+      op(Opcode.EQUAL_TO),
     ]);
 
     const lobbyStateConfig = {
@@ -111,7 +114,6 @@ describe("Lobby Invalid Refund", async function () {
     await tokenA.connect(alice).approve(Lobby.address, depositAmount);
     await tokenA.connect(bob).approve(Lobby.address, depositAmount);
 
-
     const context0 = [0, 2, 3];
     const hash0 = solidityKeccak256(["uint256[]"], [context0]);
     const goodSignature0 = await alice.signMessage(arrayify(hash0));
@@ -121,104 +123,121 @@ describe("Lobby Invalid Refund", async function () {
         signer: alice.address,
         signature: goodSignature0,
         context: context0,
-      }
+      },
     ];
 
-    const aliceJoinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+    const aliceJoinTx = await Lobby.connect(alice).join(
+      [1234],
+      signedContexts0
+    );
 
     const aliceJoinEvent = (await getEventArgs(
-     aliceJoinTx,
+      aliceJoinTx,
       "Join",
       Lobby
     )) as JoinEvent["args"];
 
-    const  aliceDepositEvent = (await getEventArgs(aliceJoinTx, "Deposit", Lobby)) as DepositEvent["args"];
+    const aliceDepositEvent = (await getEventArgs(
+      aliceJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
 
     assert(aliceDepositEvent.sender === alice.address, "wrong deposit sender");
     assert(aliceDepositEvent.token === tokenA.address, "wrong deposit token");
     assert(aliceDepositEvent.amount.eq(depositAmount), "wrong deposit amount");
-    assert(aliceJoinEvent.sender === alice.address, "wrong sender"); 
+    assert(aliceJoinEvent.sender === alice.address, "wrong sender");
 
     const context1 = [4, 5, 6];
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
-    const goodSignature1 = await bob.signMessage(arrayify(hash1)); 
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
 
     const signedContexts1: SignedContextStruct[] = [
-        {
-          signer: bob.address,
-          signature: goodSignature1,
-          context: context1,
-        }
-      ];  
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
 
     const bobJoinTx = await Lobby.connect(bob).join([1234], signedContexts1);
 
     const bobJoinEvent = (await getEventArgs(
-     bobJoinTx,
+      bobJoinTx,
       "Join",
       Lobby
     )) as JoinEvent["args"];
 
-    const  bobDepositEvent = (await getEventArgs(bobJoinTx, "Deposit", Lobby)) as DepositEvent["args"];
+    const bobDepositEvent = (await getEventArgs(
+      bobJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
 
     assert(bobDepositEvent.sender === bob.address, "wrong deposit sender");
     assert(bobDepositEvent.token === tokenA.address, "wrong deposit token");
     assert(bobDepositEvent.amount.eq(depositAmount), "wrong deposit amount");
-    assert(bobJoinEvent.sender === bob.address, "wrong sender"); 
+    assert(bobJoinEvent.sender === bob.address, "wrong sender");
 
-
-    const currentPhase0 = await Lobby.currentPhase(); 
-    assert(currentPhase0.eq(PHASE_RESULT_PENDING), "Bad Phase");  
+    const currentPhase0 = await Lobby.currentPhase();
+    assert(currentPhase0.eq(PHASE_RESULT_PENDING), "Bad Phase");
 
     const context2 = [1];
     const hash2 = solidityKeccak256(["uint256[]"], [context2]);
-    const goodSignature2 = await bot.signMessage(arrayify(hash2));  
+    const goodSignature2 = await bot.signMessage(arrayify(hash2));
 
-    const claimContext = [1234]
+    const claimContext = [1234];
 
     const signedContexts2: SignedContextStruct[] = [
-        {
-          signer: bot.address,
-          signature: goodSignature2,
-          context: context2,
-        }
-      ];  
+      {
+        signer: bot.address,
+        signature: goodSignature2,
+        context: context2,
+      },
+    ];
 
-    const aliceInvalidTx = await Lobby.connect(bot).invalid(claimContext, signedContexts2);  
-    
-    const currentPhase1 = await Lobby.currentPhase(); 
+    const aliceInvalidTx = await Lobby.connect(bot).invalid(
+      claimContext,
+      signedContexts2
+    );
+
+    const currentPhase1 = await Lobby.currentPhase();
     assert(currentPhase1.eq(PHASE_INVALID), "Bad Phase");
 
-    const {sender: invalidEventSender, callerContext,signedContext } = (await getEventArgs(
-        aliceInvalidTx,
-         "Invalid",
-         Lobby
-    )) as InvalidEvent["args"] 
+    const {
+      sender: invalidEventSender,
+      callerContext,
+      signedContext,
+    } = (await getEventArgs(
+      aliceInvalidTx,
+      "Invalid",
+      Lobby
+    )) as InvalidEvent["args"];
 
-    assert(invalidEventSender === bot.address, "wrong 'invalid' sender"); 
-     
-    const aliceRefund = await Lobby.connect(alice).refund()  
+    assert(invalidEventSender === bot.address, "wrong 'invalid' sender");
 
-    const aliceRefundEvent = (await getEventArgs(aliceRefund, "Refund", Lobby)) as RefundEvent["args"]; 
+    const aliceRefund = await Lobby.connect(alice).refund();
+
+    const aliceRefundEvent = (await getEventArgs(
+      aliceRefund,
+      "Refund",
+      Lobby
+    )) as RefundEvent["args"];
     assert(aliceRefundEvent.sender === alice.address, "wrong refund sender");
-    assert(aliceRefundEvent.amount.eq(depositAmount), "wrong amount refund");  
+    assert(aliceRefundEvent.amount.eq(depositAmount), "wrong amount refund");
 
-    const bobRefund = await Lobby.connect(bob).refund() 
+    const bobRefund = await Lobby.connect(bob).refund();
 
-    const bobRefundEvent = (await getEventArgs(bobRefund, "Refund", Lobby)) as RefundEvent["args"]; 
+    const bobRefundEvent = (await getEventArgs(
+      bobRefund,
+      "Refund",
+      Lobby
+    )) as RefundEvent["args"];
     assert(bobRefundEvent.sender === bob.address, "wrong refund sender");
-    assert(bobRefundEvent.amount.eq(depositAmount), "wrong amount refund"); 
+    assert(bobRefundEvent.amount.eq(depositAmount), "wrong amount refund");
+  });
 
-       
-
-
-
-    
-
-
-  }); 
-
-  it("should ensure players are not able to invalidate lobby or refund after PHASE_COMPLETE", async function () { 
+  it("should ensure players are not able to invalidate lobby or refund after PHASE_COMPLETE", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
     const alice = signers[1];
@@ -364,46 +383,40 @@ describe("Lobby Invalid Refund", async function () {
 
     // Checking Phase
     const currentPhase1 = await Lobby.currentPhase();
-    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase"); 
+    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");
 
     // Invalid Tx
     const context3 = [1];
     const hash3 = solidityKeccak256(["uint256[]"], [context3]);
-    const goodSignature3 = await bot.signMessage(arrayify(hash3));  
+    const goodSignature3 = await bot.signMessage(arrayify(hash3));
 
-    const claimContext = [1234]
+    const claimContext = [1234];
 
     const signedContexts3: SignedContextStruct[] = [
-        {
-          signer: bot.address,
-          signature: goodSignature3,
-          context: context3,
-        }
-      ];  
+      {
+        signer: bot.address,
+        signature: goodSignature3,
+        context: context3,
+      },
+    ];
 
     await assertError(
-      async () => await Lobby.connect(bot).invalid(claimContext, signedContexts3),
+      async () =>
+        await Lobby.connect(bot).invalid(claimContext, signedContexts3),
       "VM Exception while processing transaction: reverted with custom error 'BadPhase()",
       "did not revert when player 'invalid' after PHASE_COMPLATE phase"
-    ); 
+    );
 
     await assertError(
       async () => await Lobby.connect(alice).refund(),
       "VM Exception while processing transaction: reverted with custom error 'BadPhase()",
       "did not revert when player refund after PHASE_COMPLATE phase"
-    ); 
+    );
 
     await assertError(
       async () => await Lobby.connect(bob).refund(),
       "VM Exception while processing transaction: reverted with custom error 'BadPhase()",
       "did not revert when player refund after PHASE_COMPLATE phase"
     );
-     
-
-  
-
-    
-
   });
-  
 });

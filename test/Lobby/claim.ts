@@ -379,7 +379,5 @@ describe("Lobby Tests claim", async function () {
     assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
     assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
-
-
   });
 });

@@ -50,13 +50,12 @@ describe("Lobby Tests join", async function () {
   it("should ensure no more players are able to join after players are finalized", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2]; 
+    const bob = signers[2];
 
-    const depositAmount = ONE
-    const leaveAmount = ONE
-    const claimAmount = ONE
-    const timeoutDuration = 15000000
-
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+    const timeoutDuration = 15000000;
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
     await tokenA.connect(signers[0]).transfer(bob.address, depositAmount);
@@ -149,12 +148,12 @@ describe("Lobby Tests join", async function () {
   it("should ensure non-players are able to join and refs not able to join", async function () {
     const signers = await ethers.getSigners();
     const ref = signers[0];
-    const alice = signers[1]; 
+    const alice = signers[1];
 
-    const depositAmount = ONE
-    const leaveAmount = ONE
-    const claimAmount = ONE
-    const timeoutDuration = 15000000
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+    const timeoutDuration = 15000000;
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
@@ -260,12 +259,12 @@ describe("Lobby Tests join", async function () {
   it("should ensure player joins lobby on happy path ", async function () {
     const signers = await ethers.getSigners();
     const alice = signers[1];
-    const bob = signers[2]; 
+    const bob = signers[2];
 
-    const depositAmount = ONE
-    const leaveAmount = ONE
-    const claimAmount = ONE
-    const timeoutDuration = 15000000
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+    const timeoutDuration = 15000000;
 
     await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
 
