@@ -71,7 +71,8 @@ SourceIndex constant ENTRYPOINT_CLAIM = SourceIndex.wrap(2);
 /// hardcoded timeout value.
 SourceIndex constant ENTRYPOINT_INVALID = SourceIndex.wrap(3);
 
-// Need an amount (can be 0) for join deposits and a truthy value to start the event.
+/// @dev Need a truthy value to start the event and an amount (can be 0) for join
+/// deposits.
 uint256 constant JOIN_MIN_OUTPUTS = 2;
 uint256 constant JOIN_MAX_OUTPUTS = 2;
 
@@ -144,6 +145,7 @@ contract Lobby is Phased, ReentrancyGuard {
     address internal ref;
     IERC20 internal token;
     IInterpreterV1 internal interpreter;
+
     address internal expression;
 
     mapping(address => uint256) internal players;
@@ -179,7 +181,7 @@ contract Lobby is Phased, ReentrancyGuard {
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
-        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
             .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
@@ -188,11 +190,12 @@ contract Lobby is Phased, ReentrancyGuard {
                     CLAIM_MIN_OUTPUTS
                 )
             );
-        expression = expression_;
 
         ref = config_.ref;
         token = IERC20(config_.token);
         interpreter = IInterpreterV1(config_.interpreter);
+
+        emit Initialize(msg.sender, config_);
     }
 
     function _joinEncodedDispatch() internal view returns (EncodedDispatch) {
@@ -406,8 +409,9 @@ contract Lobby is Phased, ReentrancyGuard {
         // deposits.
         if (shares[msg.sender] > 0) {
             uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
-            .fixedPointMul(shares[msg.sender]).min(
-            // Guard against rounding issues locking funds.
+                .fixedPointMul(shares[msg.sender])
+                .min(
+                    // Guard against rounding issues locking funds.
                     token.balanceOf(address(this))
                 );
             token.safeTransfer(msg.sender, amount_);
