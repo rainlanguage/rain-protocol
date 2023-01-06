@@ -389,9 +389,11 @@ contract Lobby is Phased, ReentrancyGuard {
             // Share for this claimant is the smaller of the calculated share and
             // 1 - shares already claimed.
             unchecked {
-                shares[msg.sender] = stack_[stack_.length - 1].min(
+                uint256 claimantShares_ = stack_[stack_.length - 1].min(
                     uint256(1e18).saturatingSub(totalShares)
                 );
+                totalShares += claimantShares_;
+                shares[msg.sender] = claimantShares_;
             }
             if (stateChanges_.length > 0) {
                 interpreter.stateChanges(stateChanges_);

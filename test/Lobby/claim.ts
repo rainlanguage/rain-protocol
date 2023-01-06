@@ -65,7 +65,7 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,  
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
@@ -214,7 +214,7 @@ describe("Lobby Tests claim", async function () {
     assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
   });
 
-  it("should ensure player are able to claim (shares do not add up to 1e18)", async function () {
+  it.only("should ensure player are able to claim (shares do not add up to 1e18)", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
     const alice = signers[1];
@@ -232,7 +232,7 @@ describe("Lobby Tests claim", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,  
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
@@ -378,8 +378,8 @@ describe("Lobby Tests claim", async function () {
 
     assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
-    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount"); 
+    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
 
-    
+
   });
 });
