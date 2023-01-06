@@ -214,7 +214,7 @@ describe("Lobby Tests claim", async function () {
     assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
   });
 
-  it.only("should ensure player are able to claim (shares do not add up to 1e18)", async function () {
+  it("should ensure player are able to claim (shares do not add up to 1e18)", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
     const alice = signers[1];
@@ -325,7 +325,7 @@ describe("Lobby Tests claim", async function () {
 
     //Both computed amounts DO NOT add up to 1e18
     const aliceShares = ethers.BigNumber.from(80 + sixteenZeros);
-    const bobShares = ethers.BigNumber.from(30 + sixteenZeros);
+    const bobShares = ethers.BigNumber.from(30 + sixteenZeros); // incorrectly assigned shares
 
     //Signed Context by bot address
     const context2 = [aliceShares, bobShares];
@@ -362,13 +362,16 @@ describe("Lobby Tests claim", async function () {
     const currentPhase1 = await Lobby.currentPhase();
     assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");
 
-    // Bob Claims Amount
+    // Bob Claims with incorrect share amount
     const bobClaimTx = await Lobby.connect(bob).claim(
       [bobShares],
       signedContexts2
     );
 
-    const expectedClaimBob = fixedPointMul(depositAmount.mul(2), bobShares);
+    const expectedClaimBob = fixedPointMul(
+      depositAmount.mul(2),
+      ONE.sub(aliceShares)
+    );
 
     const bobClaimEvent = (await getEventArgs(
       bobClaimTx,
@@ -377,7 +380,12 @@ describe("Lobby Tests claim", async function () {
     )) as ClaimEvent["args"];
 
     assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
-    assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
+    assert(bobClaimEvent.share.eq(ONE.sub(aliceShares)), "wrong shares");
     assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
+
+    //assert both claim add up to total deposit
+    assert(
+      aliceClaimEvent.amount.add(bobClaimEvent.amount).eq(depositAmount.mul(2))
+    );
   });
 });

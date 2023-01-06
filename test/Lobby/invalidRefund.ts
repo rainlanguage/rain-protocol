@@ -15,19 +15,13 @@ import {
   RefundEvent,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import {
-  assertError,
-  combineTierDeploy,
-  compareStructs,
-  fixedPointMul,
-} from "../../utils";
+import { assertError, fixedPointMul } from "../../utils";
 import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
-  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -204,11 +198,7 @@ describe("Lobby Invalid Refund", async function () {
     const currentPhase1 = await Lobby.currentPhase();
     assert(currentPhase1.eq(PHASE_INVALID), "Bad Phase");
 
-    const {
-      sender: invalidEventSender,
-      callerContext,
-      signedContext,
-    } = (await getEventArgs(
+    const { sender: invalidEventSender } = (await getEventArgs(
       aliceInvalidTx,
       "Invalid",
       Lobby
