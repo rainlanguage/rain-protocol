@@ -122,7 +122,7 @@ describe("Phased test", async function () {
     assert(await phased.runsOnlyPhase(Phase.ZERO));
     await Util.assertError(
       async () => await phased.runsOnlyPhase(Phase.ONE),
-      "BAD_PHASE",
+      "BadPhase()",
       "onlyPhase did not error"
     );
 
@@ -144,12 +144,12 @@ describe("Phased test", async function () {
     assert(await phased.runsOnlyPhase(Phase.ONE));
     await Util.assertError(
       async () => await phased.runsOnlyPhase(Phase.ZERO),
-      "BAD_PHASE",
+      "BadPhase()",
       "onlyPhase did not error"
     );
     await Util.assertError(
       async () => await phased.runsOnlyPhase(Phase.TWO),
-      "BAD_PHASE",
+      "BadPhase()",
       "onlyPhase did not error"
     );
 

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: CAL
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
+
+error BadPhase();
 
 /// @title Phased
 /// @notice `Phased` is an abstract contract that defines up to `9` phases that
@@ -136,7 +138,18 @@ contract Phased {
     /// Modifies functions to only be callable in a specific phase.
     /// @param phase_ Modified functions can only be called during this phase.
     modifier onlyPhase(uint256 phase_) {
-        require(currentPhase() == phase_, "BAD_PHASE");
+        if (currentPhase() != phase_) {
+            revert BadPhase();
+        }
+        _;
+    }
+
+    /// Modifies function to NOT be callable in a specific phase.
+    /// @param phase_ Modified functions can be called in any phase except this.
+    modifier onlyNotPhase(uint256 phase_) {
+        if (currentPhase() == phase_) {
+            revert BadPhase();
+        }
         _;
     }
 
