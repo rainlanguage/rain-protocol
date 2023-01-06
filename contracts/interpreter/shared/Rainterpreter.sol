@@ -19,7 +19,7 @@ error SelfStaticCaller(address caller);
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1 {
+contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
@@ -32,7 +32,7 @@ contract Rainterpreter is IInterpreterV1 {
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
 
-    /// State is several tiers of sandbox.
+    /// Store is several tiers of sandbox.
     ///
     /// 0. address is msg.sender so that callers cannot attack each other
     /// 1. StateNamespace is caller-provided namespace so that expressions cannot
@@ -42,7 +42,7 @@ contract Rainterpreter is IInterpreterV1 {
     ///
     /// tiers 0 and 1 are both embodied in the `FullyQualifiedNamespace`.
     mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
-        internal state;
+        internal store;
 
     /// Guards against `msg.sender` calling `eval` in a non-static way and
     /// providing function pointers in the eval to attempt to manipulate state.
@@ -89,46 +89,17 @@ contract Rainterpreter is IInterpreterV1 {
     }
 
     /// @inheritdoc IInterpreterV1
-    function evalWithNamespace(
+    function eval(
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] calldata context_
-    ) public view returns (uint256[] memory, uint256[] memory) {
+    ) external view returns (uint256[] memory, uint256[] memory) {
         return
             this.selfStaticEval(
                 namespace_.qualifyNamespace(),
                 dispatch_,
                 context_
             );
-    }
-
-    /// @inheritdoc IInterpreterV1
-    function eval(
-        EncodedDispatch dispatch_,
-        uint256[][] calldata context_
-    ) external view returns (uint256[] memory, uint256[] memory) {
-        return evalWithNamespace(StateNamespace.wrap(0), dispatch_, context_);
-    }
-
-    /// @inheritdoc IInterpreterV1
-    function stateChangesWithNamespace(
-        StateNamespace namespace_,
-        uint256[] calldata stateChanges_
-    ) public {
-        FullyQualifiedNamespace fullyQualifiedNamespace_ = namespace_
-            .qualifyNamespace();
-        unchecked {
-            for (uint256 i_ = 0; i_ < stateChanges_.length; i_ += 2) {
-                state[fullyQualifiedNamespace_][
-                    stateChanges_[i_]
-                ] = stateChanges_[i_ + 1];
-            }
-        }
-    }
-
-    /// @inheritdoc IInterpreterV1
-    function stateChanges(uint256[] calldata stateChanges_) external {
-        stateChangesWithNamespace(StateNamespace.wrap(0), stateChanges_);
     }
 
     /// @inheritdoc IInterpreterV1
@@ -149,28 +120,24 @@ contract Rainterpreter is IInterpreterV1 {
                 .unsafeTo16BitBytes();
     }
 
-    /// Implements runtime behaviour of the `get` opcode. Attempts to lookup the
-    /// key in the memory key/value store then falls back to the interpreter's
-    /// storage mapping of state changes. If the key is not found in either the
-    /// value will fallback to `0` as per default Solidity/EVM behaviour.
-    /// @param interpreterState_ The interpreter state of the current eval.
-    /// @param stackTop_ Pointer to the current stack top.
-    function opGet(
-        InterpreterState memory interpreterState_,
-        Operand,
-        StackPointer stackTop_
-    ) internal view returns (StackPointer) {
-        uint256 k_;
-        (stackTop_, k_) = stackTop_.pop();
-        MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
-            MemoryKVKey.wrap(k_)
-        );
-        uint256 v_ = 0;
-        if (MemoryKVPtr.unwrap(kvPtr_) > 0) {
-            v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
-        } else {
-            v_ = state[interpreterState_.namespace][k_];
+    /// @inheritdoc IInterpreterStoreV1
+    function set(
+        StateNamespace namespace_,
+        uint256[] calldata kvs_
+    ) external {
+        FullyQualifiedNamespace fullyQualifiedNamespace_ = namespace_
+            .qualifyNamespace();
+        unchecked {
+            for (uint256 i_ = 0; i_ < kvs_.length; i_ += 2) {
+                state[fullyQualifiedNamespace_][
+                    kvs_[i_]
+                ] = kvs_[i_ + 1];
+            }
         }
-        return stackTop_.push(v_);
+    }
+
+    /// @inheritdoc IInterpreterStoreV1
+    function get(StateNamespace namespace_, uint256 key_) external view returns (uint256) {
+        return store[namespace_.qualify()][key_];
     }
 }

@@ -34,5 +34,30 @@ library OpGet {
         // This must be implemented on the interpreter itself so that storage
         // reads can happen.
         revert("UNIMPLEMENTED");
+
+            /// Implements runtime behaviour of the `get` opcode. Attempts to lookup the
+    /// key in the memory key/value store then falls back to the interpreter's
+    /// storage mapping of state changes. If the key is not found in either the
+    /// value will fallback to `0` as per default Solidity/EVM behaviour.
+    /// @param interpreterState_ The interpreter state of the current eval.
+    /// @param stackTop_ Pointer to the current stack top.
+    function opGet(
+        InterpreterState memory interpreterState_,
+        Operand,
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        uint256 k_;
+        (stackTop_, k_) = stackTop_.pop();
+        MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
+            MemoryKVKey.wrap(k_)
+        );
+        uint256 v_ = 0;
+        if (MemoryKVPtr.unwrap(kvPtr_) > 0) {
+            v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
+        } else {
+            v_ = state[interpreterState_.namespace][k_];
+        }
+        return stackTop_.push(v_);
+    }
     }
 }

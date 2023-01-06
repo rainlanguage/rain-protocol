@@ -106,37 +106,6 @@ interface IInterpreterV1 {
     /// that context reads cannot be checked for out of bounds reads at deploy
     /// time, as the runtime context MAY be provided in a different shape to what
     /// the expression is expecting.
-    function eval(
-        EncodedDispatch dispatch,
-        uint256[][] calldata context
-    )
-        external
-        view
-        returns (uint256[] memory stack, uint256[] memory stateChanges);
-
-    /// Applies state changes from a prior eval to the storage of the
-    /// interpreter. The interpreter is responsible for ensuring that applying
-    /// these state changes is safe from key collisions, both with any internal
-    /// state the interpreter needs for itself and with calls to `stateChanges`
-    /// from different `msg.sender` callers. I.e. it MUST NOT be possible for
-    /// a caller to modify the state changes associated with some other caller.
-    ///
-    /// The interpreter defines the shape of its own state changes, which is
-    /// opaque to the calling contract. For example, some interpreter may treat
-    /// the list of state changes as a pairwise key/value set, and some other
-    /// interpreter may treat it as a literal list to be stored as-is.
-    ///
-    /// The interpreter MUST assume the state changes have been corrupted by the
-    /// calling contract due to bugs or malicious intent, and enforce state
-    /// isolation between callers despite arbitrarily invalid state changes. The
-    /// interpreter MUST revert if it can detect invalid state changes, such
-    /// as a key/value list having an odd number of items, but this MAY NOT be
-    /// possible if the corruption is undetectable.
-    ///
-    /// @param stateChanges The list of changes to apply to the interpreter's
-    /// internal state.
-    function stateChanges(uint256[] calldata stateChanges) external;
-
     /// Same as `eval` but allowing the caller to specify a namespace under which
     /// the state changes will be applied. The interpeter MUST ensure that keys
     /// will never collide across namespaces, even if, for example:
@@ -162,7 +131,7 @@ interface IInterpreterV1 {
     /// @param context As per `eval`.
     /// @return stack As per `eval`.
     /// @return stateChanges As per `eval`.
-    function evalWithNamespace(
+    function eval(
         StateNamespace namespace,
         EncodedDispatch dispatch,
         uint256[][] calldata context
@@ -170,14 +139,4 @@ interface IInterpreterV1 {
         external
         view
         returns (uint256[] memory stack, uint256[] memory stateChanges);
-
-    /// Same as `stateChanges` but following `evalWithNamespace`. The caller MUST
-    /// use the same namespace for both `evalWithNamespace` and
-    /// `stateChangesWithNamespace` for a given expression evaluation.
-    /// @param namespace As per `evalWithNamespace`.
-    /// @param stateChanges as per `stateChanges`.
-    function stateChangesWithNamespace(
-        StateNamespace namespace,
-        uint256[] calldata stateChanges
-    ) external;
 }
