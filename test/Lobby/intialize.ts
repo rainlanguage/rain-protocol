@@ -7,7 +7,7 @@ import type {
   ReserveToken18,
 } from "../../typechain";
 import {
-    InitializeEvent,
+  InitializeEvent,
   LobbyConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
 import { assertError, compareStructs, fixedPointMul } from "../../utils";
@@ -23,13 +23,12 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
-describe("Lobby Tests Intialize", async function () { 
+describe.only("Lobby Tests Intialize", async function () {
   const Opcode = RainterpreterOps;
 
-  let tokenA:ReserveToken18;
+  let tokenA: ReserveToken18;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
-
 
   before(async () => {
     interpreter = await rainterpreterDeploy();
@@ -41,15 +40,15 @@ describe("Lobby Tests Intialize", async function () {
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
     await tokenA.initialize();
-  }); 
+  });
 
-  it("Lobby is intialized correctly", async function () { 
-    const signers = await ethers.getSigners(); 
-  
-    const timeoutDuration = 15000000
+  it("Lobby is intialized correctly", async function () {
+    const signers = await ethers.getSigners();
+
+    const timeoutDuration = 15000000;
     const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
 
-    const constants = [0,1,ONE];
+    const constants = [0, 1, ONE];
 
     // prettier-ignore
     const joinSource = concat([
@@ -58,11 +57,9 @@ describe("Lobby Tests Intialize", async function () {
       ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2))
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
     ]);
-    const claimSource = concat([
-        op(Opcode.CONTEXT, 0x0100)
-    ]);
+    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
 
     const invalidSource = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -84,25 +81,18 @@ describe("Lobby Tests Intialize", async function () {
       timeoutDuration: timeoutDuration,
     };
 
-    const intializeTx = await Lobby.initialize(initialConfig);  
+    const intializeTx = await Lobby.initialize(initialConfig);
 
-    const intializeEvent = await (await getEventArgs(intializeTx, "Initialzie", Lobby)) as InitializeEvent["args"]; 
+    const intializeEvent = (await await getEventArgs(
+      intializeTx,
+      "Initialzie",
+      Lobby
+    )) as InitializeEvent["args"];
 
-    assert(intializeEvent.sender === signers[0].address, "wrong deposit sender")
-    compareStructs(intializeEvent.config,initialConfig)
-    
-
-  });   
-
-
-  
-
-
-
-
-  
-  
-
-
-
+    assert(
+      intializeEvent.sender === signers[0].address,
+      "wrong deposit sender"
+    );
+    compareStructs(intializeEvent.config, initialConfig);
+  });
 });

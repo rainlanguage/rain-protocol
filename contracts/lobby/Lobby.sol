@@ -190,46 +190,48 @@ contract Lobby is Phased, ReentrancyGuard {
                     CLAIM_MIN_OUTPUTS
                 )
             );
-        expression = expression_;
 
         ref = config_.ref;
         token = IERC20(config_.token);
         interpreter = IInterpreterV1(config_.interpreter);
-    }
 
         emit Initialize(msg.sender, config_);
     }
 
     function _joinEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_JOIN,
-            JOIN_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_JOIN,
+                JOIN_MAX_OUTPUTS
+            );
     }
 
     function _leaveEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_LEAVE,
-            LEAVE_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_LEAVE,
+                LEAVE_MAX_OUTPUTS
+            );
     }
 
     function _claimEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_CLAIM,
-            CLAIM_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_CLAIM,
+                CLAIM_MAX_OUTPUTS
+            );
     }
 
     function _invalidEncodedDispatch() internal view returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
-            expression,
-            ENTRYPOINT_INVALID,
-            INVALID_MAX_OUTPUTS
-        );
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_INVALID,
+                INVALID_MAX_OUTPUTS
+            );
     }
 
     /// Enforces that only the ref can call the modified function.
@@ -379,7 +381,6 @@ contract Lobby is Phased, ReentrancyGuard {
             (
                 uint256[] memory stack_,
                 uint256[] memory stateChanges_
-
             ) = interpreter.eval(
                     _claimEncodedDispatch(),
                     LibContext.build(
@@ -408,8 +409,9 @@ contract Lobby is Phased, ReentrancyGuard {
         // deposits.
         if (shares[msg.sender] > 0) {
             uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
-            .fixedPointMul(shares[msg.sender]).min(
-            // Guard against rounding issues locking funds.
+                .fixedPointMul(shares[msg.sender])
+                .min(
+                    // Guard against rounding issues locking funds.
                     token.balanceOf(address(this))
                 );
             token.safeTransfer(msg.sender, amount_);
