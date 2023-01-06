@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   Rainterpreter,
@@ -10,8 +10,8 @@ import {
   InitializeEvent,
   LobbyConfigStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { assertError, compareStructs, fixedPointMul } from "../../utils";
-import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
+import { compareStructs } from "../../utils";
+import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -77,7 +77,7 @@ describe.only("Lobby Tests Intialize", async function () {
       interpreter: interpreter.address,
       token: tokenA.address,
       stateConfig: lobbyStateConfig,
-      description: [],
+      description: "0x00",
       timeoutDuration: timeoutDuration,
     };
 
@@ -85,7 +85,7 @@ describe.only("Lobby Tests Intialize", async function () {
 
     const intializeEvent = (await await getEventArgs(
       intializeTx,
-      "Initialzie",
+      "Initialize",
       Lobby
     )) as InitializeEvent["args"];
 
