@@ -12,8 +12,8 @@ import {
   LobbyConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { fixedPointMul } from "../../utils";
-import { ONE, sixteenZeros } from "../../utils/constants/bigNumber";
+import { fixedPointDiv, fixedPointMul } from "../../utils";
+import { eighteenZeros, ONE, sixteenZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -387,5 +387,420 @@ describe("Lobby Tests claim", async function () {
     assert(
       aliceClaimEvent.amount.add(bobClaimEvent.amount).eq(depositAmount.mul(2))
     );
-  });
+  }); 
+  
+  it("should ensure claimant is not able to double-claim", async function () {
+    const signers = await ethers.getSigners();
+    const timeoutDuration = 15000000;
+    const alice = signers[1];
+    const bob = signers[2];
+    const bot = signers[3];
+
+    await tokenA.connect(signers[0]).transfer(alice.address, ONE);
+    await tokenA.connect(signers[0]).transfer(bob.address, ONE);
+
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const depositAmount = ONE;
+
+    const constants = [0, depositAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+        op(Opcode.CONTEXT, 0x0300) ,
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+      ]);
+
+    const leaveSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+    ]);
+
+    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+
+    const invalidSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+    ]);
+
+    const lobbyStateConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      token: tokenA.address,
+      stateConfig: lobbyStateConfig,
+      description: [],
+      timeoutDuration: timeoutDuration,
+    };
+
+    await Lobby.initialize(initialConfig);
+
+    await tokenA.connect(alice).approve(Lobby.address, ONE);
+    await tokenA.connect(bob).approve(Lobby.address, ONE);
+
+    //Alice joins Lobby
+
+    const context0 = [0, 12, 13];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+    ];
+
+    const aliceJoinTx = await Lobby.connect(alice).join(
+      [1234],
+      signedContexts0
+    );
+
+    const aliceDepositEvent = (await getEventArgs(
+      aliceJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+
+    assert(aliceDepositEvent.sender === alice.address, "wrong deposit sender");
+    assert(aliceDepositEvent.amount.eq(ONE), "wrong deposit amount");
+
+    // Bob Joins lobby
+    const context1 = [14, 15, 16]; // context to finalize players
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+    const signedContexts1: SignedContextStruct[] = [
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    const bobJoinTx = await Lobby.connect(bob).join([4567], signedContexts1);
+
+    const bobDepositEvent = (await getEventArgs(
+      bobJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+
+    assert(bobDepositEvent.sender === bob.address, "wrong deposit sender");
+    assert(bobDepositEvent.amount.eq(ONE), "wrong deposit amount");
+
+    // Checking Phase
+    const currentPhase0 = await Lobby.currentPhase();
+    assert(currentPhase0.eq(PHASE_RESULT_PENDING), "Bad Phase");
+
+    // Asserting Claim Amounts and Context
+
+    //Both computed amounts add up to 1e18
+    const aliceShares = ethers.BigNumber.from(80 + sixteenZeros);
+    const bobShares = ethers.BigNumber.from(20 + sixteenZeros);
+
+    //Signed Context by bot address
+    const context2 = [aliceShares, bobShares];
+    const hash2 = solidityKeccak256(["uint256[]"], [context2]);
+    const goodSignature2 = await bot.signMessage(arrayify(hash2));
+
+    const signedContexts2: SignedContextStruct[] = [
+      {
+        signer: bot.address,
+        signature: goodSignature2,
+        context: context2,
+      },
+    ];
+
+    // Alice Claims Amount
+    const aliceClaimTx = await Lobby.connect(alice).claim(
+      [aliceShares],
+      signedContexts2
+    );
+
+    const expectedClaimAlice = fixedPointMul(depositAmount.mul(2), aliceShares);
+
+    const aliceClaimEvent = (await getEventArgs(
+      aliceClaimTx,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"];
+
+    assert(aliceClaimEvent.sender === alice.address, "wrong deposit sender");
+    assert(aliceClaimEvent.share.eq(aliceShares), "wrong shares");
+    assert(aliceClaimEvent.amount.eq(expectedClaimAlice), "wrong claim amount");
+
+    // Checking Phase
+    const currentPhase1 = await Lobby.currentPhase();
+    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");  
+
+    //Alice Double Claims 
+
+    const aliceClaimTx1 = await Lobby.connect(alice).claim(
+      [aliceShares],
+      signedContexts2
+    );
+
+    const expectedClaimAlice1 = 0 // No claim should be given
+
+    const aliceClaimEvent1 = (await getEventArgs(
+      aliceClaimTx1,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"];
+
+    assert(aliceClaimEvent1.sender === alice.address, "wrong deposit sender");
+    assert(aliceClaimEvent1.share.eq(aliceShares), "wrong shares");
+    assert(aliceClaimEvent1.amount.eq(expectedClaimAlice1), "wrong claim amount"); 
+    
+
+    // Bob Claims Amount
+    const bobClaimTx = await Lobby.connect(bob).claim(
+      [bobShares],
+      signedContexts2
+    );
+
+    const expectedClaimBob = fixedPointMul(depositAmount.mul(2), bobShares);
+
+    const bobClaimEvent = (await getEventArgs(
+      bobClaimTx,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"];
+
+    assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
+    assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
+    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount"); 
+
+  });  
+
+  it("should ensure claimants are able to claim their prorata share of the future deposits", async function () {
+    const signers = await ethers.getSigners();
+    const timeoutDuration = 15000000;
+    const alice = signers[1];
+    const bob = signers[2];
+    const bot = signers[3];
+    const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros)
+
+    await tokenA.connect(signers[0]).transfer(alice.address, ONE);
+    await tokenA.connect(signers[0]).transfer(bob.address, ONE);
+    await tokenA.connect(signers[0]).transfer(bot.address, botDespoitAmount);
+
+
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+    const depositAmount = ONE; 
+
+
+    const constants = [0, depositAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+        op(Opcode.CONTEXT, 0x0300) ,
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
+      ]);
+
+    const leaveSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // leave amount zero
+    ]);
+
+    const claimSource = concat([op(Opcode.CONTEXT, 0x0100)]);
+
+    const invalidSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
+    ]);
+
+    const lobbyStateConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      token: tokenA.address,
+      stateConfig: lobbyStateConfig,
+      description: [],
+      timeoutDuration: timeoutDuration,
+    };
+
+    await Lobby.initialize(initialConfig);
+
+    await tokenA.connect(alice).approve(Lobby.address, ONE);
+    await tokenA.connect(bob).approve(Lobby.address, ONE);
+    await tokenA.connect(bot).approve(Lobby.address, botDespoitAmount);
+
+
+    //Alice joins Lobby
+
+    const context0 = [0, 12, 13];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+    ];
+
+    const aliceJoinTx = await Lobby.connect(alice).join(
+      [1234],
+      signedContexts0
+    );
+
+    const aliceDepositEvent = (await getEventArgs(
+      aliceJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+
+    assert(aliceDepositEvent.sender === alice.address, "wrong deposit sender");
+    assert(aliceDepositEvent.amount.eq(ONE), "wrong deposit amount");
+
+    // Bob Joins lobby
+    const context1 = [14, 15, 16]; // context to finalize players
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+    const signedContexts1: SignedContextStruct[] = [
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    const bobJoinTx = await Lobby.connect(bob).join([4567], signedContexts1);
+
+    const bobDepositEvent = (await getEventArgs(
+      bobJoinTx,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+
+    assert(bobDepositEvent.sender === bob.address, "wrong deposit sender");
+    assert(bobDepositEvent.amount.eq(ONE), "wrong deposit amount");
+
+    // Checking Phase
+    const currentPhase0 = await Lobby.currentPhase();
+    assert(currentPhase0.eq(PHASE_RESULT_PENDING), "Bad Phase");
+
+    // Asserting Claim Amounts and Context
+
+    //Both computed amounts add up to 1e18
+    const aliceShares = ethers.BigNumber.from(80 + sixteenZeros);
+    const bobShares =   ethers.BigNumber.from(20 + sixteenZeros);
+
+    //Signed Context by bot address
+    const context2 = [aliceShares, bobShares];
+    const hash2 = solidityKeccak256(["uint256[]"], [context2]);
+    const goodSignature2 = await bot.signMessage(arrayify(hash2));
+
+    const signedContexts2: SignedContextStruct[] = [
+      {
+        signer: bot.address,
+        signature: goodSignature2,
+        context: context2,
+      },
+    ];
+
+    // Alice Claims Amount
+    const aliceClaimTx = await Lobby.connect(alice).claim(
+      [aliceShares],
+      signedContexts2
+    );
+
+    const expectedClaimAlice = fixedPointMul(depositAmount.mul(2), aliceShares);
+
+    const aliceClaimEvent = (await getEventArgs(
+      aliceClaimTx,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"];
+
+    assert(aliceClaimEvent.sender === alice.address, "wrong deposit sender");
+    assert(aliceClaimEvent.share.eq(aliceShares), "wrong shares");
+    assert(aliceClaimEvent.amount.eq(expectedClaimAlice), "wrong claim amount");
+
+    // Checking Phase
+    const currentPhase1 = await Lobby.currentPhase();
+    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");  
+
+    // Bob Claims Amount
+    const bobClaimTx = await Lobby.connect(bob).claim(
+      [bobShares],
+      signedContexts2
+    );
+
+    const expectedClaimBob = fixedPointMul(depositAmount.mul(2), bobShares);
+
+    const bobClaimEvent = (await getEventArgs(
+      bobClaimTx,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"];
+
+    assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
+    assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
+    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");  
+
+    // Bot Deposits after claims have been made
+    const botDeposit = await Lobby.connect(bot).deposit(botDespoitAmount) 
+
+    const botDepositEvent = (await getEventArgs(
+      botDeposit,
+      "Deposit",
+      Lobby
+    )) as DepositEvent["args"];
+    assert(botDepositEvent.sender === bot.address, "wrong deposit sender");
+    assert(botDepositEvent.amount.eq(botDespoitAmount), "wrong deposit amount"); 
+
+    // Alice Claims Again her prorata shares
+
+    const aliceClaimTx1 = await Lobby.connect(alice).claim(
+      [aliceShares],
+      signedContexts2
+    );
+
+    const expectedClaimAlice1 = fixedPointMul(botDespoitAmount, aliceShares); 
+   
+    const aliceClaimEvent1 = (await getEventArgs(
+      aliceClaimTx1,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"]; 
+
+    assert(aliceClaimEvent1.sender === alice.address, "wrong deposit sender");
+    assert(aliceClaimEvent1.share.eq(aliceShares), "wrong shares");
+    assert(aliceClaimEvent1.amount.eq(expectedClaimAlice1), "wrong claim amount");  
+
+    // Bob Claims Again his prorata shares
+    const bobClaimTx1 = await Lobby.connect(bob).claim(
+      [bobShares],
+      signedContexts2
+    );
+
+    const expectedClaimBob1 = fixedPointMul(botDespoitAmount, bobShares);
+  
+    const bobClaimEvent1 = (await getEventArgs(
+      bobClaimTx1,
+      "Claim",
+      Lobby
+    )) as ClaimEvent["args"];
+
+    assert(bobClaimEvent1.sender === bob.address, "wrong deposit sender");
+    assert(bobClaimEvent1.share.eq(bobShares), "wrong shares");
+    assert(bobClaimEvent1.amount.eq(expectedClaimBob1), "wrong claim amount");    
+
+ 
+
+
+
+  }); 
+
 });
