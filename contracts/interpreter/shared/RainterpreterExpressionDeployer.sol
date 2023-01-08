@@ -11,11 +11,6 @@ import "../../sstore2/SSTORE2.sol";
 /// behaviour so MUST REVERT.
 error UnexpectedPointers(bytes actualPointers);
 
-/// @dev Thrown when the bytecode hash known to the expression deployer DOES NOT
-/// match the interpreter it is constructed for. This WILL cause undefined
-/// expression behaviour so MUST REVERT.
-error UnexpectedInterpreterBytecodeHash(bytes32 actualBytecodeHash);
-
 /// @dev There are more entrypoints defined by the minimum stack outputs than
 /// there are provided sources. This means the calling contract WILL attempt to
 /// eval a dangling reference to a non-existent source at some point, so this
@@ -28,14 +23,6 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// it can use this constant value to compile and serialize expressions.
 bytes constant OPCODE_FUNCTION_POINTERS = hex"0a010a0f0a650ab70b350b610bfa0cc40df90e2e0e4c0ed40ee30ef10eff0f0d0ee30f1b0f290f370f460f550f630f710fe90ff81007101610251034107d108f109d10cf10dd10eb10f9110811171126113511441153116211711180118f119e11ac11ba11c811d611e411f21200120f121e122c12a3";
 
-/// @dev The interpreter bytecode hash known to the expression deployer. Checking
-/// this guarantees that the code on the other side of the function pointers is
-/// what the expression deployer expects it to be, giving significantly higher
-/// confidence that the integrity checks are valid.
-bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0x5962abab8769c499e94ff109e095fcaf3149670f53f19bb331c72237360aeaad
-);
-
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
@@ -43,8 +30,11 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     using LibInterpreterState for StateConfig;
     using LibStackPointer for StackPointer;
 
-    /// The interpreter passed in construction is valid. The only valid
-    /// interpreter has the exact bytecode hash known to the expression deployer.
+    /// The interpreter passed in construction is valid. ANY interpreter with
+    /// the same function pointers will be considered valid. It is the
+    /// responsibility of the caller to decide whether they trust the _bytecode_
+    /// of the interpreter as many possible bytecodes compile to the same set of
+    /// function pointers.
     /// @param sender The account that constructed the expression deployer.
     /// @param interpreter The address of the interpreter that the expression
     /// deployer agrees to perform integrity checks for. Note that the pairing
@@ -79,17 +69,6 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
             revert UnexpectedPointers(functionPointers_);
         }
 
-        // Guard against an interpreter with unknown/untrusted bytecode that
-        // could run arbitrary logic even if the function pointers are identical
-        // to the known/trusted interpreter.
-        bytes32 interpreterHash_;
-        assembly ("memory-safe") {
-            interpreterHash_ := extcodehash(interpreter_)
-        }
-        if (interpreterHash_ != INTERPRETER_BYTECODE_HASH) {
-            // revert UnexpectedInterpreterBytecodeHash(interpreterHash_);
-        }
-
         emit ValidInterpreter(msg.sender, interpreter_);
     }
 
@@ -121,8 +100,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
                 IntegrityCheckState memory,
                 Operand,
                 StackPointer
-            ) view returns (StackPointer)[](1);
-        localFnPtrs_[0] = OpGet.integrity;
+            ) view returns (StackPointer)[](0);
         return AllStandardOps.integrityFunctionPointers(localFnPtrs_);
     }
 
