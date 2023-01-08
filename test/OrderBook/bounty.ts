@@ -258,7 +258,7 @@ describe("OrderBook bounty", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { stateChange: _clearStateChange } = (await getEventArgs(
+    const { clearStateChange: _clearStateChange } = (await getEventArgs(
       txClearOrder,
       "AfterClear",
       orderBook

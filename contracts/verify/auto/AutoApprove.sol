@@ -79,9 +79,14 @@ contract AutoApprove is VerifyCallback {
                     context_[0][1] = uint256(bytes32(evidences_[i_].data));
                     (
                         uint256[] memory stack_,
-                        uint256[] memory stateChanges_
-                    ) = interpreter_.eval(dispatch_, context_);
-                    if (stack_.asStackPointerAfter().peek() > 0) {
+                        IInterpreterStoreV1 store_,
+                        uint256[] memory kvs_
+                    ) = interpreter_.eval(
+                            DEFAULT_STATE_NAMESPACE,
+                            dispatch_,
+                            context_
+                        );
+                    if (stack_[stack_.length - 1] > 0) {
                         LibEvidence._updateEvidenceRef(
                             approvedRefs_,
                             evidences_[i_],
@@ -89,8 +94,8 @@ contract AutoApprove is VerifyCallback {
                         );
                         approvals_++;
                     }
-                    if (stateChanges_.length > 0) {
-                        interpreter_.stateChanges(stateChanges_);
+                    if (kvs_.length > 0) {
+                        store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
                     }
                 }
             }

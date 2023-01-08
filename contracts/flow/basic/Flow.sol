@@ -27,13 +27,18 @@ contract Flow is ReentrancyGuard, FlowCommon {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowTransfer memory, uint256[] memory) {
+    )
+        internal
+        view
+        returns (FlowTransfer memory, IInterpreterStoreV1, uint256[] memory)
+    {
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
-            uint256[] memory stateChanges_
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
         ) = flowStack(dispatch_, callerContext_, signedContexts_);
-        return (LibFlow.stackToFlow(stackBottom_, stackTop_), stateChanges_);
+        return (LibFlow.stackToFlow(stackBottom_, stackTop_), store_, kvs_);
     }
 
     function previewFlow(
@@ -41,7 +46,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowTransfer memory) {
-        (FlowTransfer memory flowTransfer_, ) = _previewFlow(
+        (FlowTransfer memory flowTransfer_, , ) = _previewFlow(
             dispatch_,
             callerContext_,
             signedContexts_
@@ -56,8 +61,9 @@ contract Flow is ReentrancyGuard, FlowCommon {
     ) external payable virtual nonReentrant {
         (
             FlowTransfer memory flowTransfer_,
-            uint256[] memory stateChanges_
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
         ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
-        LibFlow.flow(flowTransfer_, _interpreter, stateChanges_);
+        LibFlow.flow(flowTransfer_, store_, kvs_);
     }
 }

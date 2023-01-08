@@ -12,6 +12,7 @@ import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
 import "./core/OpFoldContext.sol";
+import "./core/OpGet.sol";
 import "./core/OpLoopN.sol";
 import "./core/OpReadMemory.sol";
 import "./crypto/OpHash.sol";
@@ -68,7 +69,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 58;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -201,6 +202,7 @@ library AllStandardOps {
                     OpDebug.integrity,
                     OpDoWhile.integrity,
                     OpFoldContext.integrity,
+                    OpGet.integrity,
                     OpLoopN.integrity,
                     OpReadMemory.integrity,
                     OpSet.integrity,
@@ -287,6 +289,7 @@ library AllStandardOps {
                     OpDebug.run,
                     OpDoWhile.run,
                     OpFoldContext.run,
+                    OpGet.run,
                     OpLoopN.run,
                     OpReadMemory.run,
                     OpSet.run,

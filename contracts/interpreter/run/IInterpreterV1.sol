@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
+import "../store/IInterpreterStoreV1.sol";
+
 /// @dev The index of a source within a deployed expression that can be evaluated
 /// by an `IInterpreterV1`. MAY be an entrypoint or the index of a source called
 /// internally such as by the `call` opcode.
@@ -16,6 +18,10 @@ type StateNamespace is uint256;
 /// Commonly used to specify the number of inputs to a variadic function such
 /// as addition or multiplication.
 type Operand is uint256;
+
+/// @dev The default state namespace MUST be used when a calling contract has no
+/// particular opinion on or need for dynamic namespaces.
+StateNamespace constant DEFAULT_STATE_NAMESPACE = StateNamespace.wrap(0);
 
 /// @title IInterpreterV1
 /// Interface into a standard interpreter that supports:
@@ -51,11 +57,10 @@ type Operand is uint256;
 /// had an opportunity to apply their own intermediate logic such as reentrancy
 /// defenses against malicious interpreters. The interpreter is free to structure
 /// the state changes however it wants but MUST guard against the calling
-/// contract corrupting the changes between `eval` and `stateChanges`. For
-/// example an interpreter could sandbox storage writes per-caller so that a
-/// malicious caller can only damage their own state changes, while honest
-/// callers respect, benefit from and are protected by the interpreter's state
-/// change handling.
+/// contract corrupting the changes between `eval` and `set`. For example an
+/// interpreter could sandbox storage writes per-caller so that a malicious
+/// caller can only damage their own state changes, while honest callers respect,
+/// benefit from and are protected by the interpreter's state change handling.
 ///
 /// The two step eval-state model allows eval to be read-only which provides
 /// security guarantees for the caller such as no stateful reentrancy, either
@@ -92,7 +97,11 @@ interface IInterpreterV1 {
     /// The raison d'etre for an interpreter. Given some expression and per-call
     /// additional contextual data, produce a stack of results and a set of state
     /// changes that the caller MAY OPTIONALLY pass back to be persisted by a
-    /// call to `stateChanges`.
+    /// call to `IInterpreterStoreV1.set`.
+    /// @param namespace The state namespace that will be fully qualified by the
+    /// interpreter at runtime in order to perform gets on the underlying store.
+    /// MUST be the same namespace passed to the store by the calling contract
+    /// when sending the resulting key/value items to storage.
     /// @param dispatch All the information required for the interpreter to load
     /// an expression, select an entrypoint and return the values expected by the
     /// caller. The interpreter MAY encode dispatches differently to
@@ -106,37 +115,6 @@ interface IInterpreterV1 {
     /// that context reads cannot be checked for out of bounds reads at deploy
     /// time, as the runtime context MAY be provided in a different shape to what
     /// the expression is expecting.
-    function eval(
-        EncodedDispatch dispatch,
-        uint256[][] calldata context
-    )
-        external
-        view
-        returns (uint256[] memory stack, uint256[] memory stateChanges);
-
-    /// Applies state changes from a prior eval to the storage of the
-    /// interpreter. The interpreter is responsible for ensuring that applying
-    /// these state changes is safe from key collisions, both with any internal
-    /// state the interpreter needs for itself and with calls to `stateChanges`
-    /// from different `msg.sender` callers. I.e. it MUST NOT be possible for
-    /// a caller to modify the state changes associated with some other caller.
-    ///
-    /// The interpreter defines the shape of its own state changes, which is
-    /// opaque to the calling contract. For example, some interpreter may treat
-    /// the list of state changes as a pairwise key/value set, and some other
-    /// interpreter may treat it as a literal list to be stored as-is.
-    ///
-    /// The interpreter MUST assume the state changes have been corrupted by the
-    /// calling contract due to bugs or malicious intent, and enforce state
-    /// isolation between callers despite arbitrarily invalid state changes. The
-    /// interpreter MUST revert if it can detect invalid state changes, such
-    /// as a key/value list having an odd number of items, but this MAY NOT be
-    /// possible if the corruption is undetectable.
-    ///
-    /// @param stateChanges The list of changes to apply to the interpreter's
-    /// internal state.
-    function stateChanges(uint256[] calldata stateChanges) external;
-
     /// Same as `eval` but allowing the caller to specify a namespace under which
     /// the state changes will be applied. The interpeter MUST ensure that keys
     /// will never collide across namespaces, even if, for example:
@@ -156,28 +134,23 @@ interface IInterpreterV1 {
     /// Calls to `eval` without a namespace are implied to be under namespace `0`
     /// so an interpreter MAY implement `eval` in terms of `evalWithNamespace` if
     /// this simplifies the implementation.
-    ///
-    /// @param namespace The namespace specified by the calling contract.
-    /// @param dispatch As per `eval`.
-    /// @param context As per `eval`.
-    /// @return stack As per `eval`.
-    /// @return stateChanges As per `eval`.
-    function evalWithNamespace(
+    /// @return stack The list of values produced by evaluating the expression.
+    /// MUST NOT be longer than the maximum length specified by `dispatch`, if
+    /// applicable.
+    /// @return store The storage contract that the returned key/value pairs
+    /// MUST be passed to IF the calling contract is in a non-static calling
+    /// context.
+    /// @return kvs A list of pairwise key/value items to be saved in the store.
+    function eval(
         StateNamespace namespace,
         EncodedDispatch dispatch,
         uint256[][] calldata context
     )
         external
         view
-        returns (uint256[] memory stack, uint256[] memory stateChanges);
-
-    /// Same as `stateChanges` but following `evalWithNamespace`. The caller MUST
-    /// use the same namespace for both `evalWithNamespace` and
-    /// `stateChangesWithNamespace` for a given expression evaluation.
-    /// @param namespace As per `evalWithNamespace`.
-    /// @param stateChanges as per `stateChanges`.
-    function stateChangesWithNamespace(
-        StateNamespace namespace,
-        uint256[] calldata stateChanges
-    ) external;
+        returns (
+            uint256[] memory stack,
+            IInterpreterStoreV1 store,
+            uint256[] memory kvs
+        );
 }

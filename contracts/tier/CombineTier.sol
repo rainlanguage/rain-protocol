@@ -89,19 +89,22 @@ contract CombineTier is TierV2 {
         address account_,
         uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
-        (uint256[] memory stack_, ) = interpreter.eval(
-            LibEncodedDispatch.encode(
-                expression,
-                REPORT_ENTRYPOINT,
-                REPORT_MAX_OUTPUTS
-            ),
-            LibContext.build(
-                uint256(uint160(account_)).arrayFrom().matrixFrom(),
-                callerContext_,
-                new SignedContext[](0)
-            )
-        );
-        return stack_.asStackPointerAfter().peek();
+        unchecked {
+            (uint256[] memory stack_, , ) = interpreter.eval(
+                DEFAULT_STATE_NAMESPACE,
+                LibEncodedDispatch.encode(
+                    expression,
+                    REPORT_ENTRYPOINT,
+                    REPORT_MAX_OUTPUTS
+                ),
+                LibContext.build(
+                    uint256(uint160(account_)).arrayFrom().matrixFrom(),
+                    callerContext_,
+                    new SignedContext[](0)
+                )
+            );
+            return stack_[stack_.length - 1];
+        }
     }
 
     /// @inheritdoc ITierV2
@@ -110,20 +113,23 @@ contract CombineTier is TierV2 {
         uint256 tier_,
         uint256[] memory callerContext_
     ) external view returns (uint256) {
-        (uint256[] memory stack_, ) = interpreter.eval(
-            LibEncodedDispatch.encode(
-                expression,
-                REPORT_FOR_TIER_ENTRYPOINT,
-                REPORT_FOR_TIER_MAX_OUTPUTS
-            ),
-            LibContext.build(
-                LibUint256Array
-                    .arrayFrom(uint256(uint160(account_)), tier_)
-                    .matrixFrom(),
-                callerContext_,
-                new SignedContext[](0)
-            )
-        );
-        return stack_.asStackPointerAfter().peek();
+        unchecked {
+            (uint256[] memory stack_, , ) = interpreter.eval(
+                DEFAULT_STATE_NAMESPACE,
+                LibEncodedDispatch.encode(
+                    expression,
+                    REPORT_FOR_TIER_ENTRYPOINT,
+                    REPORT_FOR_TIER_MAX_OUTPUTS
+                ),
+                LibContext.build(
+                    LibUint256Array
+                        .arrayFrom(uint256(uint160(account_)), tier_)
+                        .matrixFrom(),
+                    callerContext_,
+                    new SignedContext[](0)
+                )
+            );
+            return stack_[stack_.length - 1];
+        }
     }
 }

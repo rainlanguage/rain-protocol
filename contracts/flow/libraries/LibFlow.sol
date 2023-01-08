@@ -2,12 +2,14 @@
 pragma solidity ^0.8.15;
 
 import "../../interpreter/run/LibStackPointer.sol";
+import "../../interpreter/store/IInterpreterStoreV1.sol";
+import "../../sentinel/LibSentinel.sol";
+
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable as IERC721} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "../../sentinel/LibSentinel.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 /// @dev We want a sentinel with the following properties:
@@ -216,11 +218,11 @@ library LibFlow {
 
     function flow(
         FlowTransfer memory flowTransfer_,
-        IInterpreterV1 interpreter_,
-        uint256[] memory stateChanges_
+        IInterpreterStoreV1 interpreterStore_,
+        uint256[] memory kvs_
     ) internal {
-        if (stateChanges_.length > 0) {
-            interpreter_.stateChanges(stateChanges_);
+        if (kvs_.length > 0) {
+            interpreterStore_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
         flowTransfer_.flowNative();
         flowTransfer_.flowERC20();

@@ -43,7 +43,7 @@ import { stakeDeploy } from "../../utils/deploy/stake";
 import { assertError } from "../../utils/test/assertError";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat/index";
 
-describe.only("Stake withdraw", async function () {
+describe("Stake withdraw", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
   let interpreter: Rainterpreter;
@@ -756,7 +756,7 @@ describe.only("Stake withdraw", async function () {
     assert(depositsAlice2_.length === 0);
   });
 
-  it.only("should monitor user deposit on multiple deposits and withdraws", async () => {
+  it("should monitor user deposit on multiple deposits and withdraws", async () => {
     /**
      * all tokens and calculations are in 18 decimals
      * 1. Alice deposits 10 tokens
@@ -777,7 +777,10 @@ describe.only("Stake withdraw", async function () {
     const alice = signers[2];
 
     const constants = [max_uint256];
-    const source = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))
+    const source = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -787,8 +790,8 @@ describe.only("Stake withdraw", async function () {
       interpreter: interpreter.address,
       stateConfig: {
         sources: [source, source],
-        constants: constants
-      }
+        constants: constants,
+      },
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -835,7 +838,9 @@ describe.only("Stake withdraw", async function () {
     await timewarp(86400);
 
     // withdraw 10 tokens
-    await stake.connect(alice).withdraw(tokenBalanceAlice1, alice.address, alice.address);
+    await stake
+      .connect(alice)
+      .withdraw(tokenBalanceAlice1, alice.address, alice.address);
     const withdrawsAlice0_ = await getDeposits(stake, alice.address);
     assert(withdrawsAlice0_[0].timestamp === time1_);
     assert(withdrawsAlice0_[0].amount.eq(tokenBalanceAlice0));
@@ -848,7 +853,10 @@ describe.only("Stake withdraw", async function () {
 
     // withdraw 10 tokens, this should REVERT
     await assertError(
-      async () => await stake.connect(alice).withdraw(tokenBalanceAlice0, alice.address, alice.address),
+      async () =>
+        await stake
+          .connect(alice)
+          .withdraw(tokenBalanceAlice0, alice.address, alice.address),
       "ERC4626: withdraw more than max",
       "overdrew when performing withdraw"
     );
@@ -882,7 +890,9 @@ describe.only("Stake withdraw", async function () {
     // withdraw 10 tokens, this should REVERT
     await assertError(
       async () => {
-        await stake.connect(alice).withdraw(tokenBalanceAlice0, alice.address, alice.address); // withdrawAmount > max_withdraw
+        await stake
+          .connect(alice)
+          .withdraw(tokenBalanceAlice0, alice.address, alice.address); // withdrawAmount > max_withdraw
       },
       "ERC4626: withdraw more than max",
       "wrongly withdrew amount greater than MAX_WITHDRAW"

@@ -42,6 +42,17 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
+struct OrderIOCalculation {
+    // `a_` and `b_` can both set a maximum output from the Interpreter.
+    uint256 outputMax;
+    // `IORatio` is input per output
+    uint256 IORatio;
+    uint256[][] context;
+    IInterpreterStoreV1 store;
+    StateNamespace namespace;
+    uint256[] kvs;
+}
+
 library LibOrder {
     function hash(Order memory order_) internal pure returns (uint256) {
         return uint256(keccak256(abi.encode(order_)));
@@ -88,7 +99,7 @@ contract OrderBook is
         uint256 orderHash
     );
     event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
-    event AfterClear(ClearStateChange stateChange);
+    event AfterClear(ClearStateChange clearStateChange);
 
     // order hash => order is live
     mapping(uint256 => uint256) private orders;
@@ -180,16 +191,7 @@ contract OrderBook is
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
         address counterparty_
-    )
-        internal
-        view
-        returns (
-            uint256 orderOutputMax_,
-            uint256 orderIORatio_,
-            uint256[][] memory,
-            uint256[] memory
-        )
-    {
+    ) internal view returns (OrderIOCalculation memory) {
         uint256 orderHash_ = order_.hash();
         uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
 
@@ -242,15 +244,21 @@ contract OrderBook is
 
         // The state changes produced here are handled in _recordVaultIO so that
         // local storage writes happen before writes on the interpreter.
+        StateNamespace namespace_ = StateNamespace.wrap(
+            uint(uint160(order_.owner))
+        );
         (
             uint256[] memory stack_,
-            uint256[] memory stateChanges_
-        ) = IInterpreterV1(order_.interpreter).evalWithNamespace(
-                StateNamespace.wrap(uint(uint160(order_.owner))),
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = IInterpreterV1(order_.interpreter).eval(
+                namespace_,
                 order_.dispatch,
                 context_
             );
-        (orderOutputMax_, orderIORatio_) = stack_.asStackPointerAfter().peek2();
+        (uint256 orderOutputMax_, uint256 orderIORatio_) = stack_
+            .asStackPointerAfter()
+            .peek2();
 
         // Rescale order output max from 18 FP to whatever decimals the output
         // token is using.
@@ -264,10 +272,12 @@ contract OrderBook is
             order_.validInputs[inputIOIndex_].decimals
         );
 
-        uint256[] memory calculationsContext_ = new uint256[](2);
-        calculationsContext_[0] = orderOutputMax_;
-        calculationsContext_[1] = orderIORatio_;
-        context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+        {
+            uint256[] memory calculationsContext_ = new uint256[](2);
+            calculationsContext_[0] = orderOutputMax_;
+            calculationsContext_[1] = orderIORatio_;
+            context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+        }
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -277,7 +287,15 @@ contract OrderBook is
             ][order_.validOutputs[outputIOIndex_].vaultId]
         );
 
-        return (orderOutputMax_, orderIORatio_, context_, stateChanges_);
+        return
+            OrderIOCalculation(
+                orderOutputMax_,
+                orderIORatio_,
+                context_,
+                store_,
+                namespace_,
+                kvs_
+            );
     }
 
     function _recordVaultIO(
@@ -285,7 +303,9 @@ contract OrderBook is
         uint256 input_,
         uint256 output_,
         uint256[][] memory context_,
-        uint256[] memory stateChangesCalculate_
+        IInterpreterStoreV1 calculateStore_,
+        StateNamespace namespace_,
+        uint256[] memory calculateKVs_
     ) internal {
         context_[CONTEXT_VAULT_INPUTS_COLUMN][
             CONTEXT_VAULT_IO_BALANCE_DIFF
@@ -325,25 +345,21 @@ contract OrderBook is
             ] -= output_;
         }
 
-        if (stateChangesCalculate_.length > 0) {
-            IInterpreterV1(order_.interpreter).stateChangesWithNamespace(
-                StateNamespace.wrap(uint(uint160(order_.owner))),
-                stateChangesCalculate_
-            );
+        if (calculateKVs_.length > 0) {
+            calculateStore_.set(namespace_, calculateKVs_);
         }
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
-            (, uint256[] memory stateChangesHandleIO_) = IInterpreterV1(
-                order_.interpreter
-            ).evalWithNamespace(
-                    StateNamespace.wrap(uint(uint160(order_.owner))),
+            (
+                ,
+                IInterpreterStoreV1 handleIOStore_,
+                uint256[] memory handleIOKVs_
+            ) = IInterpreterV1(order_.interpreter).eval(
+                    namespace_,
                     order_.handleIODispatch,
                     context_
                 );
-            if (stateChangesHandleIO_.length > 0) {
-                IInterpreterV1(order_.interpreter).stateChangesWithNamespace(
-                    StateNamespace.wrap(uint(uint160(order_.owner))),
-                    stateChangesHandleIO_
-                );
+            if (handleIOKVs_.length > 0) {
+                handleIOStore_.set(namespace_, handleIOKVs_);
             }
         }
     }
@@ -377,12 +393,8 @@ contract OrderBook is
                     "TOKEN_MISMATCH"
                 );
 
-                (
-                    uint256 orderOutputMax_,
-                    uint256 orderIORatio_,
-                    uint256[][] memory context_,
-                    uint256[] memory stateChangesCalculate_
-                ) = _calculateOrderIO(
+                OrderIOCalculation
+                    memory orderIOCalculation_ = _calculateOrderIO(
                         order_,
                         takeOrder_.inputIOIndex,
                         takeOrder_.outputIOIndex,
@@ -393,17 +405,21 @@ contract OrderBook is
                 // no way of knowing if a specific order becomes too expensive
                 // between submitting to mempool and execution, but other orders may
                 // be valid so we want to take advantage of those if possible.
-                if (orderIORatio_ > takeOrders_.maximumIORatio) {
+                if (orderIOCalculation_.IORatio > takeOrders_.maximumIORatio) {
                     emit OrderExceedsMaxRatio(
                         msg.sender,
                         order_.owner,
                         orderHash_
                     );
-                } else if (orderOutputMax_ == 0) {
+                } else if (orderIOCalculation_.outputMax == 0) {
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
-                    uint256 input_ = remainingInput_.min(orderOutputMax_);
-                    uint256 output_ = input_.fixedPointMul(orderIORatio_);
+                    uint256 input_ = remainingInput_.min(
+                        orderIOCalculation_.outputMax
+                    );
+                    uint256 output_ = input_.fixedPointMul(
+                        orderIOCalculation_.IORatio
+                    );
 
                     remainingInput_ -= input_;
                     totalOutput_ += output_;
@@ -412,8 +428,10 @@ contract OrderBook is
                         order_,
                         output_,
                         input_,
-                        context_,
-                        stateChangesCalculate_
+                        orderIOCalculation_.context,
+                        orderIOCalculation_.store,
+                        orderIOCalculation_.namespace,
+                        orderIOCalculation_.kvs
                     );
                     emit TakeOrder(msg.sender, takeOrder_, input_, output_);
                 }
@@ -458,85 +476,76 @@ contract OrderBook is
             );
             require(orders[a_.hash()] > 0, "A_NOT_LIVE");
             require(orders[b_.hash()] > 0, "B_NOT_LIVE");
-        }
-
-        ClearStateChange memory stateChange_;
-        uint256[][] memory aContext_;
-        uint256[] memory aStateChangesCalculate_;
-        uint256[][] memory bContext_;
-        uint256[] memory bStateChangesCalculate_;
-
-        {
-            // `IORatio` is input per output for both `a_` and `b_`.
-            uint256 aIORatio_;
-            uint256 bIORatio_;
-            // `a_` and `b_` can both set a maximum output from the Interpreter.
-            uint256 aOutputMax_;
-            uint256 bOutputMax_;
 
             // emit the Clear event before `a_` and `b_` are mutated due to the
             // Interpreter execution in eval.
             emit Clear(msg.sender, a_, b_, clearConfig_);
-
-            (
-                aOutputMax_,
-                aIORatio_,
-                aContext_,
-                aStateChangesCalculate_
-            ) = _calculateOrderIO(
+        }
+        OrderIOCalculation memory aOrderIOCalculation_;
+        OrderIOCalculation memory bOrderIOCalculation_;
+        ClearStateChange memory clearStateChange_;
+        {
+            aOrderIOCalculation_ = _calculateOrderIO(
                 a_,
                 clearConfig_.aInputIOIndex,
                 clearConfig_.aOutputIOIndex,
                 b_.owner
             );
-            (
-                bOutputMax_,
-                bIORatio_,
-                bContext_,
-                bStateChangesCalculate_
-            ) = _calculateOrderIO(
+            bOrderIOCalculation_ = _calculateOrderIO(
                 b_,
                 clearConfig_.bInputIOIndex,
                 clearConfig_.bOutputIOIndex,
                 a_.owner
             );
 
-            stateChange_.aOutput = aOutputMax_.min(
-                bOutputMax_.fixedPointMul(bIORatio_)
+            clearStateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
+                bOrderIOCalculation_.outputMax.fixedPointMul(
+                    bOrderIOCalculation_.IORatio
+                )
             );
-            stateChange_.bOutput = bOutputMax_.min(
-                aOutputMax_.fixedPointMul(aIORatio_)
+            clearStateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
+                aOrderIOCalculation_.outputMax.fixedPointMul(
+                    aOrderIOCalculation_.IORatio
+                )
             );
 
             require(
-                stateChange_.aOutput > 0 || stateChange_.bOutput > 0,
+                clearStateChange_.aOutput > 0 || clearStateChange_.bOutput > 0,
                 "0_CLEAR"
             );
 
-            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(aIORatio_);
-            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bIORatio_);
+            clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
+                aOrderIOCalculation_.IORatio
+            );
+            clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
+                bOrderIOCalculation_.IORatio
+            );
         }
 
         _recordVaultIO(
             a_,
-            stateChange_.aInput,
-            stateChange_.aOutput,
-            aContext_,
-            aStateChangesCalculate_
+            clearStateChange_.aInput,
+            clearStateChange_.aOutput,
+            aOrderIOCalculation_.context,
+            aOrderIOCalculation_.store,
+            aOrderIOCalculation_.namespace,
+            aOrderIOCalculation_.kvs
         );
         _recordVaultIO(
             b_,
-            stateChange_.bInput,
-            stateChange_.bOutput,
-            bContext_,
-            bStateChangesCalculate_
+            clearStateChange_.bInput,
+            clearStateChange_.bOutput,
+            bOrderIOCalculation_.context,
+            bOrderIOCalculation_.store,
+            bOrderIOCalculation_.namespace,
+            bOrderIOCalculation_.kvs
         );
 
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
-            uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
-            uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
+            uint256 aBounty_ = clearStateChange_.aOutput - clearStateChange_.bInput;
+            uint256 bBounty_ = clearStateChange_.bOutput - clearStateChange_.aInput;
             if (aBounty_ > 0) {
                 vaultBalance[msg.sender][
                     a_.validOutputs[clearConfig_.aOutputIOIndex].token
@@ -549,6 +558,6 @@ contract OrderBook is
             }
         }
 
-        emit AfterClear(stateChange_);
+        emit AfterClear(clearStateChange_);
     }
 }

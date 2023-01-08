@@ -321,7 +321,7 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { stateChange: clearStateChange0 } = (await getEventArgs(
+    const { clearStateChange: clearStateChange0 } = (await getEventArgs(
       txClearOrder0,
       "AfterClear",
       orderBook
@@ -374,7 +374,7 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { stateChange: clearStateChange1 } = (await getEventArgs(
+    const { clearStateChange: clearStateChange1 } = (await getEventArgs(
       txClearOrder1,
       "AfterClear",
       orderBook
