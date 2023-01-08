@@ -81,7 +81,9 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         InterpreterState memory state_ = SSTORE2
             .read(expression_)
             .deserialize();
+        state_.stateKV = MemoryKV.wrap(0);
         state_.namespace = namespace_;
+        state_.store = this;
         state_.context = context_;
 
         // Eval the expression and return up to maxOutputs_ from the final stack.
@@ -90,7 +92,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, this, state_.stateKV.toUint256Array());
+        return (tail_, state_.store, state_.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1

@@ -355,7 +355,9 @@ library LibInterpreterState {
             assembly ("memory-safe") {
                 cursor_ := mload(
                     add(
-                        mload(add(state_, 0xA0)),
+                        // MUST point to compiled sources. Needs updating if the
+                        // `IntepreterState` struct changes fields.
+                        mload(add(state_, 0xC0)),
                         add(0x20, mul(0x20, sourceIndex_))
                     )
                 )
