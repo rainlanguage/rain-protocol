@@ -48,7 +48,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
     /// Guards against `msg.sender` calling `eval` in a non-static way and
     /// providing function pointers in the eval to attempt to manipulate state.
     /// For example, perhaps there is some way an attacker could carefully craft
-    /// function pointers such that `stateChanges` is executed within an `eval`.
+    /// function pointers such that `set` is executed within an `eval`.
     /// This function can only be called externally by the interpreter itself and
     /// guards all code paths that dispatch logic by direct function pointer. The
     /// interpreter will only ever call itself statically according to

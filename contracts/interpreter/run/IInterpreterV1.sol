@@ -57,11 +57,10 @@ StateNamespace constant DEFAULT_STATE_NAMESPACE = StateNamespace.wrap(0);
 /// had an opportunity to apply their own intermediate logic such as reentrancy
 /// defenses against malicious interpreters. The interpreter is free to structure
 /// the state changes however it wants but MUST guard against the calling
-/// contract corrupting the changes between `eval` and `stateChanges`. For
-/// example an interpreter could sandbox storage writes per-caller so that a
-/// malicious caller can only damage their own state changes, while honest
-/// callers respect, benefit from and are protected by the interpreter's state
-/// change handling.
+/// contract corrupting the changes between `eval` and `set`. For example an
+/// interpreter could sandbox storage writes per-caller so that a malicious
+/// caller can only damage their own state changes, while honest callers respect,
+/// benefit from and are protected by the interpreter's state change handling.
 ///
 /// The two step eval-state model allows eval to be read-only which provides
 /// security guarantees for the caller such as no stateful reentrancy, either
@@ -98,7 +97,7 @@ interface IInterpreterV1 {
     /// The raison d'etre for an interpreter. Given some expression and per-call
     /// additional contextual data, produce a stack of results and a set of state
     /// changes that the caller MAY OPTIONALLY pass back to be persisted by a
-    /// call to `stateChanges`.
+    /// call to `IInterpreterStoreV1.set`.
     /// @param namespace The state namespace that will be fully qualified by the
     /// interpreter at runtime in order to perform gets on the underlying store.
     /// MUST be the same namespace passed to the store by the calling contract

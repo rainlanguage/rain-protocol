@@ -26,7 +26,7 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0ba70bb50c0b0c5d0cdb0d070da00e6a0e9f0ebd0f450f540f620f700f7e0f540f8c0f9a0fa80fb70fc60fd40fe2106510741083109210a110b010f9110b1119114b1159116711751184119311a211b111c011cf11de11ed11fc120b121a12281236124412521260126e127c128b129a12a812f2";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0d210d2f0d850dd70e550e810f1a0fe411d41209122712af12be12cc12da12e812be12f61304131213211330133e134c13c413d313e213f11400140f1458146a147814aa14b814c614d414e314f215011510151f152e153d154c155b156a15791587159515a315b115bf15cd15db15ea15f916071651";
 
 /// @dev The interpreter bytecode hash known to the expression deployer. Checking
 /// this guarantees that the code on the other side of the function pointers is

@@ -15,7 +15,7 @@ interface IInterpreterStoreV1 {
     /// Applies state changes from a prior eval to the storage of the
     /// interpreter. The interpreter is responsible for ensuring that applying
     /// these state changes is safe from key collisions, both with any internal
-    /// state the interpreter needs for itself and with calls to `stateChanges`
+    /// state the interpreter needs for itself and with calls to `set`
     /// from different `msg.sender` callers. I.e. it MUST NOT be possible for
     /// a caller to modify the state changes associated with some other caller.
     ///

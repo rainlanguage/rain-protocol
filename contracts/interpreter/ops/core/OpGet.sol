@@ -40,6 +40,7 @@ library OpGet {
         Operand,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
+        console.log("get");
         uint256 k_;
         (stackTop_, k_) = stackTop_.pop();
         MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
@@ -48,6 +49,7 @@ library OpGet {
         uint256 v_ = 0;
         // Cache MISS, get from external store.
         if (MemoryKVPtr.unwrap(kvPtr_) == 0) {
+            console.log("miss");
             v_ = interpreterState_.store.get(interpreterState_.namespace, k_);
             // Push fetched value to memory to make subsequent lookups on the
             // same key find a cache HIT.
@@ -58,6 +60,7 @@ library OpGet {
         }
         // Cache HIT.
         else {
+            console.log("hit");
             v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
         }
         return stackTop_.push(v_);

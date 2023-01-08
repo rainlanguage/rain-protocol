@@ -99,7 +99,7 @@ contract OrderBook is
         uint256 orderHash
     );
     event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
-    event AfterClear(ClearStateChange stateChange);
+    event AfterClear(ClearStateChange clearStateChange);
 
     // order hash => order is live
     mapping(uint256 => uint256) private orders;
@@ -483,7 +483,7 @@ contract OrderBook is
         }
         OrderIOCalculation memory aOrderIOCalculation_;
         OrderIOCalculation memory bOrderIOCalculation_;
-        ClearStateChange memory stateChange_;
+        ClearStateChange memory clearStateChange_;
         {
             aOrderIOCalculation_ = _calculateOrderIO(
                 a_,
@@ -498,34 +498,34 @@ contract OrderBook is
                 a_.owner
             );
 
-            stateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
+            clearStateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
                 bOrderIOCalculation_.outputMax.fixedPointMul(
                     bOrderIOCalculation_.IORatio
                 )
             );
-            stateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
+            clearStateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
                 aOrderIOCalculation_.outputMax.fixedPointMul(
                     aOrderIOCalculation_.IORatio
                 )
             );
 
             require(
-                stateChange_.aOutput > 0 || stateChange_.bOutput > 0,
+                clearStateChange_.aOutput > 0 || clearStateChange_.bOutput > 0,
                 "0_CLEAR"
             );
 
-            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(
+            clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
                 aOrderIOCalculation_.IORatio
             );
-            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(
+            clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
                 bOrderIOCalculation_.IORatio
             );
         }
 
         _recordVaultIO(
             a_,
-            stateChange_.aInput,
-            stateChange_.aOutput,
+            clearStateChange_.aInput,
+            clearStateChange_.aOutput,
             aOrderIOCalculation_.context,
             aOrderIOCalculation_.store,
             aOrderIOCalculation_.namespace,
@@ -533,8 +533,8 @@ contract OrderBook is
         );
         _recordVaultIO(
             b_,
-            stateChange_.bInput,
-            stateChange_.bOutput,
+            clearStateChange_.bInput,
+            clearStateChange_.bOutput,
             bOrderIOCalculation_.context,
             bOrderIOCalculation_.store,
             bOrderIOCalculation_.namespace,
@@ -544,8 +544,8 @@ contract OrderBook is
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
-            uint256 aBounty_ = stateChange_.aOutput - stateChange_.bInput;
-            uint256 bBounty_ = stateChange_.bOutput - stateChange_.aInput;
+            uint256 aBounty_ = clearStateChange_.aOutput - clearStateChange_.bInput;
+            uint256 bBounty_ = clearStateChange_.bOutput - clearStateChange_.aInput;
             if (aBounty_ > 0) {
                 vaultBalance[msg.sender][
                     a_.validOutputs[clearConfig_.aOutputIOIndex].token
@@ -558,6 +558,6 @@ contract OrderBook is
             }
         }
 
-        emit AfterClear(stateChange_);
+        emit AfterClear(clearStateChange_);
     }
 }

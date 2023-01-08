@@ -16,12 +16,21 @@ contract IInterpreterV1Consumer {
         EncodedDispatch dispatch_,
         uint256[][] memory context_
     ) external {
+        eval(interpreter_, DEFAULT_STATE_NAMESPACE, dispatch_, context_);
+    }
+
+    function eval(
+        IInterpreterV1 interpreter_,
+        StateNamespace namespace_,
+        EncodedDispatch dispatch_,
+        uint256[][] memory context_
+    ) public {
         uint256 a_ = gasleft();
         (
             uint256[] memory stack_,
             IInterpreterStoreV1 store_,
             uint256[] memory kvs_
-        ) = interpreter_.eval(DEFAULT_STATE_NAMESPACE, dispatch_, context_);
+        ) = interpreter_.eval(namespace_, dispatch_, context_);
         uint256 b_ = gasleft();
         console.log("eval gas", a_ - b_);
         _stack = stack_;
@@ -33,11 +42,15 @@ contract IInterpreterV1Consumer {
         IInterpreterStoreV1 store_,
         StateNamespace namespace_,
         uint256[] memory kvs_
-    ) external {
+    ) public {
         uint256 a_ = gasleft();
         store_.set(namespace_, kvs_);
         uint256 b_ = gasleft();
         console.log("set gas", a_ - b_);
+    }
+
+    function set(IInterpreterStoreV1 store_, uint256[] memory kvs_) external {
+        set(store_, DEFAULT_STATE_NAMESPACE, kvs_);
     }
 
     function stack() external view returns (uint256[] memory) {
