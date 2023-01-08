@@ -1,7 +1,24 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../store/IInterpreterStoreV1.sol";
+import "../run/LibInterpreterState.sol";
+
 contract RainterpreterStore is IInterpreterStoreV1 {
+    using LibInterpreterState for StateNamespace;
+
+    /// Store is several tiers of sandbox.
+    ///
+    /// 0. address is msg.sender so that callers cannot attack each other
+    /// 1. StateNamespace is caller-provided namespace so that expressions cannot
+    ///    attack each other
+    /// 2. uint256 is expression-provided key
+    /// 3. uint256 is expression-provided value
+    ///
+    /// tiers 0 and 1 are both embodied in the `FullyQualifiedNamespace`.
+    mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
+        internal store;
+
     /// @inheritdoc IInterpreterStoreV1
     function set(StateNamespace namespace_, uint256[] calldata kvs_) external {
         FullyQualifiedNamespace fullyQualifiedNamespace_ = namespace_

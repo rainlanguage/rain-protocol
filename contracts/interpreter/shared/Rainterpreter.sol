@@ -9,8 +9,11 @@ import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../store/IInterpreterStoreV1.sol";
 
-/// Thrown when the caller of a self static call is not self.
-error SelfStaticCaller(address caller);
+error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
+
+bytes32 constant STORE_BYTECODE_HASH = bytes32(
+    0xfe00b419e2ae9d3b8993922df8565334fc2a3d0ed4e28cbafdb04517dcf6050a
+);
 
 /// @title Rainterpreter
 /// @notice Minimal binding of the `IIinterpreterV1` interface to the
@@ -20,11 +23,10 @@ error SelfStaticCaller(address caller);
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
+contract Rainterpreter is IInterpreterV1 {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
-    using LibInterpreterState for StateNamespace;
     using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
         returns (StackPointer)[];
@@ -32,34 +34,31 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
+    using LibInterpreterState for StateNamespace;
 
-    /// Store is several tiers of sandbox.
-    ///
-    /// 0. address is msg.sender so that callers cannot attack each other
-    /// 1. StateNamespace is caller-provided namespace so that expressions cannot
-    ///    attack each other
-    /// 2. uint256 is expression-provided key
-    /// 3. uint256 is expression-provided value
-    ///
-    /// tiers 0 and 1 are both embodied in the `FullyQualifiedNamespace`.
-    mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
-        internal store;
+    IInterpreterStoreV1 internal immutable store;
 
-    /// Guards against `msg.sender` calling `eval` in a non-static way and
-    /// providing function pointers in the eval to attempt to manipulate state.
-    /// For example, perhaps there is some way an attacker could carefully craft
-    /// function pointers such that `set` is executed within an `eval`.
-    /// This function can only be called externally by the interpreter itself and
-    /// guards all code paths that dispatch logic by direct function pointer. The
-    /// interpreter will only ever call itself statically according to
-    /// `external view` so restricting callers to self is enough to restrict all
-    /// calls to static over untrusted function pointers.
-    /// @param namespace_ The fully qualified namespace can be provided directly
-    /// here as this function can only be called by self.
-    /// @param dispatch_ As per `eval`.
-    /// @param context_ As per `eval`.
-    function selfStaticEval(
-        FullyQualifiedNamespace namespace_,
+    event ValidStore(address sender, address store);
+
+    /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
+    /// MISTAKES.
+    constructor(address store_) {
+        // Guard against an store with unknown bytecode.
+        bytes32 storeHash_;
+        assembly ("memory-safe") {
+            storeHash_ := extcodehash(store_)
+        }
+        if (storeHash_ != STORE_BYTECODE_HASH) {
+            revert UnexpectedStoreBytecodeHash(storeHash_);
+        }
+
+        emit ValidStore(msg.sender, store_);
+        store = IInterpreterStoreV1(store_);
+    }
+
+    /// @inheritdoc IInterpreterV1
+    function eval(
+        StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
     )
@@ -67,9 +66,6 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         view
         returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory)
     {
-        if (msg.sender != address(this)) {
-            revert SelfStaticCaller(msg.sender);
-        }
         // Decode the dispatch.
         (
             address expression_,
@@ -82,8 +78,8 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
             .read(expression_)
             .deserialize();
         state_.stateKV = MemoryKV.wrap(0);
-        state_.namespace = namespace_;
-        state_.store = this;
+        state_.namespace = namespace_.qualifyNamespace();
+        state_.store = store;
         state_.context = context_;
 
         // Eval the expression and return up to maxOutputs_ from the final stack.
@@ -92,25 +88,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, state_.store, state_.stateKV.toUint256Array());
-    }
-
-    /// @inheritdoc IInterpreterV1
-    function eval(
-        StateNamespace namespace_,
-        EncodedDispatch dispatch_,
-        uint256[][] calldata context_
-    )
-        external
-        view
-        returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory)
-    {
-        return
-            this.selfStaticEval(
-                namespace_.qualifyNamespace(),
-                dispatch_,
-                context_
-            );
+        return (tail_, store, state_.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1
@@ -128,24 +106,5 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
                 .opcodeFunctionPointers(localPtrs_)
                 .asUint256Array()
                 .unsafeTo16BitBytes();
-    }
-
-    /// @inheritdoc IInterpreterStoreV1
-    function set(StateNamespace namespace_, uint256[] calldata kvs_) external {
-        FullyQualifiedNamespace fullyQualifiedNamespace_ = namespace_
-            .qualifyNamespace();
-        unchecked {
-            for (uint256 i_ = 0; i_ < kvs_.length; i_ += 2) {
-                store[fullyQualifiedNamespace_][kvs_[i_]] = kvs_[i_ + 1];
-            }
-        }
-    }
-
-    /// @inheritdoc IInterpreterStoreV1
-    function get(
-        FullyQualifiedNamespace namespace_,
-        uint256 key_
-    ) external view returns (uint256) {
-        return store[namespace_][key_];
     }
 }

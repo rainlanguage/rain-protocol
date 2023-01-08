@@ -609,7 +609,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    await consumerLogicA.evalWithNamespace(
       rainInterpreter.address,
       namespaceA,
       expressionA.dispatch,
