@@ -187,6 +187,8 @@ contract OrderBook is
             uint256 orderOutputMax_,
             uint256 orderIORatio_,
             uint256[][] memory,
+            IInterpreterStoreV1,
+            StateNamespace,
             uint256[] memory
         )
     {
@@ -242,11 +244,15 @@ contract OrderBook is
 
         // The state changes produced here are handled in _recordVaultIO so that
         // local storage writes happen before writes on the interpreter.
+        StateNamespace namespace_ = StateNamespace.wrap(
+            uint(uint160(order_.owner))
+        );
         (
             uint256[] memory stack_,
-            uint256[] memory stateChanges_
-        ) = IInterpreterV1(order_.interpreter).evalWithNamespace(
-                StateNamespace.wrap(uint(uint160(order_.owner))),
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = IInterpreterV1(order_.interpreter).eval(
+                namespace_,
                 order_.dispatch,
                 context_
             );
@@ -277,7 +283,14 @@ contract OrderBook is
             ][order_.validOutputs[outputIOIndex_].vaultId]
         );
 
-        return (orderOutputMax_, orderIORatio_, context_, stateChanges_);
+        return (
+            orderOutputMax_,
+            orderIORatio_,
+            context_,
+            store_,
+            namespace_,
+            kvs_
+        );
     }
 
     function _recordVaultIO(
@@ -285,7 +298,9 @@ contract OrderBook is
         uint256 input_,
         uint256 output_,
         uint256[][] memory context_,
-        uint256[] memory stateChangesCalculate_
+        IInterpreterStoreV1 store_,
+        StateNamespace namespace_,
+        uint256[] memory calculateKVs_
     ) internal {
         context_[CONTEXT_VAULT_INPUTS_COLUMN][
             CONTEXT_VAULT_IO_BALANCE_DIFF
@@ -325,25 +340,21 @@ contract OrderBook is
             ] -= output_;
         }
 
-        if (stateChangesCalculate_.length > 0) {
-            IInterpreterV1(order_.interpreter).stateChangesWithNamespace(
-                StateNamespace.wrap(uint(uint160(order_.owner))),
-                stateChangesCalculate_
-            );
+        if (calculateKVs_.length > 0) {
+            store_.set(namespace_, calculateKVs_);
         }
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
-            (, uint256[] memory stateChangesHandleIO_) = IInterpreterV1(
-                order_.interpreter
-            ).evalWithNamespace(
-                    StateNamespace.wrap(uint(uint160(order_.owner))),
+            (
+                ,
+                IInterpreterStoreV1 store_,
+                uint256[] memory handleIOKVs_
+            ) = IInterpreterV1(order_.interpreter).eval(
+                    namespace_,
                     order_.handleIODispatch,
                     context_
                 );
-            if (stateChangesHandleIO_.length > 0) {
-                IInterpreterV1(order_.interpreter).stateChangesWithNamespace(
-                    StateNamespace.wrap(uint(uint160(order_.owner))),
-                    stateChangesHandleIO_
-                );
+            if (handleIOKVs_.length > 0) {
+                store_.set(namespace_, handleIOKVs_);
             }
         }
     }
@@ -381,7 +392,9 @@ contract OrderBook is
                     uint256 orderOutputMax_,
                     uint256 orderIORatio_,
                     uint256[][] memory context_,
-                    uint256[] memory stateChangesCalculate_
+                    IInterpreterStoreV1 store_,
+                    StateNamespace namespace_,
+                    uint256[] memory calculateKVs_
                 ) = _calculateOrderIO(
                         order_,
                         takeOrder_.inputIOIndex,
@@ -413,7 +426,9 @@ contract OrderBook is
                         output_,
                         input_,
                         context_,
-                        stateChangesCalculate_
+                        store_,
+                        namespace_,
+                        calculateKVs_
                     );
                     emit TakeOrder(msg.sender, takeOrder_, input_, output_);
                 }
@@ -462,9 +477,13 @@ contract OrderBook is
 
         ClearStateChange memory stateChange_;
         uint256[][] memory aContext_;
-        uint256[] memory aStateChangesCalculate_;
+        IInterpreterStoreV1 aStore_;
+        StateNamespace aNamespace_;
+        uint256[] memory aCalculateKVs_;
         uint256[][] memory bContext_;
-        uint256[] memory bStateChangesCalculate_;
+        IInterpreterStoreV1 bStore_;
+        StateNamespace bNamespace_;
+        uint256[] memory bCalculateKVs_;
 
         {
             // `IORatio` is input per output for both `a_` and `b_`.
@@ -482,7 +501,9 @@ contract OrderBook is
                 aOutputMax_,
                 aIORatio_,
                 aContext_,
-                aStateChangesCalculate_
+                aStore_,
+                aNamespace_,
+                aCalculateKVs_
             ) = _calculateOrderIO(
                 a_,
                 clearConfig_.aInputIOIndex,
@@ -493,7 +514,9 @@ contract OrderBook is
                 bOutputMax_,
                 bIORatio_,
                 bContext_,
-                bStateChangesCalculate_
+                bStore_,
+                bNamespace_,
+                bCalculateKVs_
             ) = _calculateOrderIO(
                 b_,
                 clearConfig_.bInputIOIndex,
@@ -522,14 +545,18 @@ contract OrderBook is
             stateChange_.aInput,
             stateChange_.aOutput,
             aContext_,
-            aStateChangesCalculate_
+            aStore_,
+            aNamespace_,
+            aCalculateKVs_
         );
         _recordVaultIO(
             b_,
             stateChange_.bInput,
             stateChange_.bOutput,
             bContext_,
-            bStateChangesCalculate_
+            bStore_,
+            bNamespace_,
+            bCalculateKVs_
         );
 
         {

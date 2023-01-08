@@ -7,6 +7,7 @@ import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import "../store/IInterpreterStoreV1.sol";
 
 /// Thrown when the caller of a self static call is not self.
 error SelfStaticCaller(address caller);
@@ -61,7 +62,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         FullyQualifiedNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    ) external view returns (uint256[] memory, uint256[] memory) {
+    ) external view returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory) {
         if (msg.sender != address(this)) {
             revert SelfStaticCaller(msg.sender);
         }
@@ -85,7 +86,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, state_.stateKV.toUint256Array());
+        return (tail_, this, state_.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1
@@ -93,7 +94,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] calldata context_
-    ) external view returns (uint256[] memory, uint256[] memory) {
+    ) external view returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory) {
         return
             this.selfStaticEval(
                 namespace_.qualifyNamespace(),
@@ -111,8 +112,7 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
                 InterpreterState memory,
                 Operand,
                 StackPointer
-            ) view returns (StackPointer)[](1);
-        localPtrs_[0] = opGet;
+            ) view returns (StackPointer)[](0);
         return
             AllStandardOps
                 .opcodeFunctionPointers(localPtrs_)
@@ -121,23 +121,21 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
     }
 
     /// @inheritdoc IInterpreterStoreV1
-    function set(
-        StateNamespace namespace_,
-        uint256[] calldata kvs_
-    ) external {
+    function set(StateNamespace namespace_, uint256[] calldata kvs_) external {
         FullyQualifiedNamespace fullyQualifiedNamespace_ = namespace_
             .qualifyNamespace();
         unchecked {
             for (uint256 i_ = 0; i_ < kvs_.length; i_ += 2) {
-                state[fullyQualifiedNamespace_][
-                    kvs_[i_]
-                ] = kvs_[i_ + 1];
+                store[fullyQualifiedNamespace_][kvs_[i_]] = kvs_[i_ + 1];
             }
         }
     }
 
     /// @inheritdoc IInterpreterStoreV1
-    function get(StateNamespace namespace_, uint256 key_) external view returns (uint256) {
-        return store[namespace_.qualify()][key_];
+    function get(
+        FullyQualifiedNamespace namespace_,
+        uint256 key_
+    ) external view returns (uint256) {
+        return store[namespace_][key_];
     }
 }

@@ -26,14 +26,6 @@ enum DebugStyle {
     Source
 }
 
-/// A fully qualified namespace includes the interpreter's own namespacing logic
-/// IN ADDITION to the calling contract's requested `StateNamespace`. Typically
-/// this involves hashing the `msg.sender` into the `StateNamespace` so that each
-/// caller operates within its own disjoint state universe. Intepreters MUST NOT
-/// allow either the caller nor any expression/word to modify this directly on
-/// pain of potential key collisions on writes to the interpreter's own storage.
-type FullyQualifiedNamespace is uint256;
-
 /// The standard in-memory representation of an interpreter that facilitates
 /// decoupled coordination between opcodes. Opcodes MAY:
 ///
@@ -81,6 +73,7 @@ struct InterpreterState {
     StackPointer constantsBottom;
     MemoryKV stateKV;
     FullyQualifiedNamespace namespace;
+    IInterpreterStoreV1 store;
     uint256[][] context;
     bytes[] compiledSources;
 }

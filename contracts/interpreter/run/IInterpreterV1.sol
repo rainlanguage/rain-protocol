@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
+import "../store/IInterpreterStoreV1.sol";
+
 /// @dev The index of a source within a deployed expression that can be evaluated
 /// by an `IInterpreterV1`. MAY be an entrypoint or the index of a source called
 /// internally such as by the `call` opcode.
@@ -16,6 +18,10 @@ type StateNamespace is uint256;
 /// Commonly used to specify the number of inputs to a variadic function such
 /// as addition or multiplication.
 type Operand is uint256;
+
+/// @dev The default state namespace MUST be used when a calling contract has no
+/// particular opinion on or need for dynamic namespaces.
+StateNamespace constant DEFAULT_STATE_NAMESPACE = StateNamespace.wrap(0);
 
 /// @title IInterpreterV1
 /// Interface into a standard interpreter that supports:
@@ -93,6 +99,10 @@ interface IInterpreterV1 {
     /// additional contextual data, produce a stack of results and a set of state
     /// changes that the caller MAY OPTIONALLY pass back to be persisted by a
     /// call to `stateChanges`.
+    /// @param namespace The state namespace that will be fully qualified by the
+    /// interpreter at runtime in order to perform gets on the underlying store.
+    /// MUST be the same namespace passed to the store by the calling contract
+    /// when sending the resulting key/value items to storage.
     /// @param dispatch All the information required for the interpreter to load
     /// an expression, select an entrypoint and return the values expected by the
     /// caller. The interpreter MAY encode dispatches differently to
@@ -125,12 +135,13 @@ interface IInterpreterV1 {
     /// Calls to `eval` without a namespace are implied to be under namespace `0`
     /// so an interpreter MAY implement `eval` in terms of `evalWithNamespace` if
     /// this simplifies the implementation.
-    ///
-    /// @param namespace The namespace specified by the calling contract.
-    /// @param dispatch As per `eval`.
-    /// @param context As per `eval`.
-    /// @return stack As per `eval`.
-    /// @return stateChanges As per `eval`.
+    /// @return stack The list of values produced by evaluating the expression.
+    /// MUST NOT be longer than the maximum length specified by `dispatch`, if
+    /// applicable.
+    /// @return store The storage contract that the returned key/value pairs
+    /// MUST be passed to IF the calling contract is in a non-static calling
+    /// context.
+    /// @return kvs A list of pairwise key/value items to be saved in the store.
     function eval(
         StateNamespace namespace,
         EncodedDispatch dispatch,
@@ -138,5 +149,9 @@ interface IInterpreterV1 {
     )
         external
         view
-        returns (uint256[] memory stack, uint256[] memory stateChanges);
+        returns (
+            uint256[] memory stack,
+            IInterpreterStoreV1 store,
+            uint256[] memory kvs
+        );
 }

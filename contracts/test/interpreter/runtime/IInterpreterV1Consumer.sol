@@ -3,60 +3,40 @@ pragma solidity ^0.8.15;
 
 import "../../../interpreter/run/IInterpreterV1.sol";
 import "../../../interpreter/shared/Rainterpreter.sol";
+import "../../../interpreter/store/IInterpreterStoreV1.sol";
 import "hardhat/console.sol";
 
 contract IInterpreterV1Consumer {
     uint256[] private _stack;
-    uint256[] private _stateChanges;
+    uint256[] private _kvs;
 
     function eval(
         IInterpreterV1 interpreter_,
+        StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
     ) external {
         uint256 a_ = gasleft();
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
-            .eval(dispatch_, context_);
+        (
+            uint256[] memory stack_,
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = interpreter_.eval(namespace_, dispatch_, context_);
         uint256 b_ = gasleft();
         console.log("eval gas", a_ - b_);
         _stack = stack_;
-        _stateChanges = stateChanges_;
+        _kvs = kvs_;
     }
 
-    function stateChanges(
-        IInterpreterV1 interpreter_,
-        uint256[] memory stateChanges_
-    ) external {
-        uint256 a_ = gasleft();
-        interpreter_.stateChanges(stateChanges_);
-        uint256 b_ = gasleft();
-        console.log("state changes gas", a_ - b_);
-    }
-
-    function evalWithNamespace(
-        IInterpreterV1 interpreter_,
+    function set(
+        IInterpreterStoreV1 store_,
         StateNamespace namespace_,
-        EncodedDispatch dispatch_,
-        uint256[][] memory context_
+        uint256[] memory kvs_
     ) external {
         uint256 a_ = gasleft();
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
-            .evalWithNamespace(namespace_, dispatch_, context_);
+        store_.set(namespace_, kvs_);
         uint256 b_ = gasleft();
-        console.log("eval with namespace gas", a_ - b_);
-        _stack = stack_;
-        _stateChanges = stateChanges_;
-    }
-
-    function stateChangesWithNamespace(
-        IInterpreterV1 interpreter_,
-        StateNamespace namespace_,
-        uint256[] memory stateChanges_
-    ) external {
-        uint256 a_ = gasleft();
-        interpreter_.stateChangesWithNamespace(namespace_, stateChanges_);
-        uint256 b_ = gasleft();
-        console.log("state changes with namespace gas", a_ - b_);
+        console.log("set gas", a_ - b_);
     }
 
     function stack() external view returns (uint256[] memory) {
@@ -67,7 +47,7 @@ contract IInterpreterV1Consumer {
         return _stack[_stack.length - 1];
     }
 
-    function stateChanges() external view returns (uint256[] memory) {
-        return _stateChanges;
+    function kvs() external view returns (uint256[] memory) {
+        return _kvs;
     }
 }

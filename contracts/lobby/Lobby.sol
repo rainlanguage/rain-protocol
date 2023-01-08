@@ -292,8 +292,10 @@ contract Lobby is Phased, ReentrancyGuard {
             IInterpreterV1 interpreter_ = interpreter;
             (
                 uint256[] memory stack_,
-                uint256[] memory stateChanges_
+                IInterpreterStoreV1 store_,
+                uint256[] memory kvs_
             ) = interpreter_.eval(
+                DEFAULT_STATE_NAMESPACE,
                     _joinEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
@@ -305,7 +307,7 @@ contract Lobby is Phased, ReentrancyGuard {
             uint256 amount_ = stack_[stack_.length - 1];
 
             players[msg.sender] = 1;
-            interpreter_.stateChanges(stateChanges_);
+            store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
             _deposit(amount_);
 
             emit Join(msg.sender);
@@ -327,8 +329,10 @@ contract Lobby is Phased, ReentrancyGuard {
 
         (
             uint256[] memory stack_,
-            uint256[] memory stateChanges_
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
         ) = IInterpreterV1(interpreter).eval(
+            DEFAULT_STATE_NAMESPACE,
                 _leaveEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),
@@ -344,7 +348,7 @@ contract Lobby is Phased, ReentrancyGuard {
         IERC20(token).safeTransfer(msg.sender, amount_);
         deposits[msg.sender] = 0;
         totalDeposited -= amount_;
-        IInterpreterV1(interpreter).stateChanges(stateChanges_);
+        store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
 
         emit Leave(msg.sender, address(token), deposit_, amount_);
     }
@@ -380,8 +384,10 @@ contract Lobby is Phased, ReentrancyGuard {
         if (shares[msg.sender] == 0) {
             (
                 uint256[] memory stack_,
-                uint256[] memory stateChanges_
+                IInterpreterStoreV1 store_,
+                uint256[] memory kvs_
             ) = interpreter.eval(
+                    DEFAULT_STATE_NAMESPACE,
                     _claimEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
@@ -398,8 +404,8 @@ contract Lobby is Phased, ReentrancyGuard {
                 totalShares += claimantShares_;
                 shares[msg.sender] = claimantShares_;
             }
-            if (stateChanges_.length > 0) {
-                interpreter.stateChanges(stateChanges_);
+            if (kvs_.length > 0) {
+                store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
             }
         }
 
@@ -433,8 +439,12 @@ contract Lobby is Phased, ReentrancyGuard {
         }
 
         IInterpreterV1 interpreter_ = interpreter;
-        (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
-            .eval(
+        (
+            uint256[] memory stack_,
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = interpreter_.eval(
+                DEFAULT_STATE_NAMESPACE,
                 _invalidEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),
@@ -443,8 +453,8 @@ contract Lobby is Phased, ReentrancyGuard {
                 )
             );
 
-        if (stateChanges_.length > 0) {
-            interpreter_.stateChanges(stateChanges_);
+        if (kvs_.length > 0) {
+            store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
 
         unchecked {
