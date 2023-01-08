@@ -525,13 +525,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // Start or end the sale as required.
         (
             bool canLive0_,
-            IInterpreterStoreV1 store_,
+            IInterpreterStoreV1 canLive0Store_,
             uint256[] memory canLive0KVs_
         ) = _previewCanLive();
         // Register state changes with intepreter _before_ potentially ending and
         // returning early.
         if (canLive0KVs_.length > 0) {
-            store_.set(DEFAULT_STATE_NAMESPACE, canLive0KVs_);
+            canLive0Store_.set(DEFAULT_STATE_NAMESPACE, canLive0KVs_);
         }
         if (canLive0_) {
             if (saleStatus == SaleStatus.Pending) {
@@ -560,16 +560,16 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         uint256[][] memory context_;
         {
             uint256[] memory calculateBuyKVs_;
-            IInterpreterStoreV1 store_;
+            IInterpreterStoreV1 calculateBuyStore_;
             (
                 maxUnits_,
                 price_,
                 context_,
-                store_,
+                calculateBuyStore_,
                 calculateBuyKVs_
             ) = _previewCalculateBuy(targetUnits_);
             if (calculateBuyKVs_.length > 0) {
-                store_.set(DEFAULT_STATE_NAMESPACE, calculateBuyKVs_);
+                calculateBuyStore_.set(DEFAULT_STATE_NAMESPACE, calculateBuyKVs_);
             }
         }
 
@@ -643,7 +643,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             if (EncodedDispatch.unwrap(dispatchHandleBuy_) > 0) {
                 (
                     ,
-                    IInterpreterStoreV1 store_,
+                    IInterpreterStoreV1 handleBuyStore_,
                     uint256[] memory handleBuyKVs_
                 ) = interpreter_.eval(
                         DEFAULT_STATE_NAMESPACE,
@@ -651,7 +651,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
                         context_
                     );
                 if (handleBuyKVs_.length > 0) {
-                    store_.set(DEFAULT_STATE_NAMESPACE, handleBuyKVs_);
+                    handleBuyStore_.set(DEFAULT_STATE_NAMESPACE, handleBuyKVs_);
                 }
             }
         }
