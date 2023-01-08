@@ -23,7 +23,7 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { RainterpreterOps } from "../../utils/interpreter/ops/allStandardOps";
 
-describe.only("Lobby Tests Intialize", async function () {
+describe("Lobby Tests Intialize", async function () {
   const Opcode = RainterpreterOps;
 
   let tokenA: ReserveToken18;
