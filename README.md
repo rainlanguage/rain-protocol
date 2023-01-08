@@ -101,7 +101,7 @@ In package.json this can be done by adding a line like the following to
 the dependencies:
 
 ```json
-"@beehiveinnovation/rain-protocol": "git+https://github.com/beehive-innovation/rain-protocol.git#<COMMIT_HASH_HERE>",
+"@rainprotocol/rain-protocol": "git+https://github.com/rainprotocol/rain-protocol.git#<COMMIT_HASH_HERE>",
 ```
 
 Generally we recommend using an audited commit WITH REMEDIATIONS but often this
