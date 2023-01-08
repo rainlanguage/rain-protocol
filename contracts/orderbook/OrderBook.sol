@@ -191,12 +191,7 @@ contract OrderBook is
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
         address counterparty_
-    )
-        internal
-        view
-        returns (OrderIOCalculation memory
-        )
-    {
+    ) internal view returns (OrderIOCalculation memory) {
         uint256 orderHash_ = order_.hash();
         uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
 
@@ -261,7 +256,9 @@ contract OrderBook is
                 order_.dispatch,
                 context_
             );
-        (uint256 orderOutputMax_, uint256 orderIORatio_) = stack_.asStackPointerAfter().peek2();
+        (uint256 orderOutputMax_, uint256 orderIORatio_) = stack_
+            .asStackPointerAfter()
+            .peek2();
 
         // Rescale order output max from 18 FP to whatever decimals the output
         // token is using.
@@ -275,13 +272,12 @@ contract OrderBook is
             order_.validInputs[inputIOIndex_].decimals
         );
 
-{
-        uint256[] memory calculationsContext_ = new uint256[](2);
-        calculationsContext_[0] = orderOutputMax_;
-        calculationsContext_[1] = orderIORatio_;
-        context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
-}
-
+        {
+            uint256[] memory calculationsContext_ = new uint256[](2);
+            calculationsContext_[0] = orderOutputMax_;
+            calculationsContext_[1] = orderIORatio_;
+            context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+        }
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
@@ -291,14 +287,15 @@ contract OrderBook is
             ][order_.validOutputs[outputIOIndex_].vaultId]
         );
 
-        return OrderIOCalculation(
-            orderOutputMax_,
-            orderIORatio_,
-            context_,
-            store_,
-            namespace_,
-            kvs_
-        );
+        return
+            OrderIOCalculation(
+                orderOutputMax_,
+                orderIORatio_,
+                context_,
+                store_,
+                namespace_,
+                kvs_
+            );
     }
 
     function _recordVaultIO(
@@ -396,7 +393,8 @@ contract OrderBook is
                     "TOKEN_MISMATCH"
                 );
 
-                OrderIOCalculation memory orderIOCalculation_ = _calculateOrderIO(
+                OrderIOCalculation
+                    memory orderIOCalculation_ = _calculateOrderIO(
                         order_,
                         takeOrder_.inputIOIndex,
                         takeOrder_.outputIOIndex,
@@ -416,8 +414,12 @@ contract OrderBook is
                 } else if (orderIOCalculation_.outputMax == 0) {
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
-                    uint256 input_ = remainingInput_.min(orderIOCalculation_.outputMax);
-                    uint256 output_ = input_.fixedPointMul(orderIOCalculation_.IORatio);
+                    uint256 input_ = remainingInput_.min(
+                        orderIOCalculation_.outputMax
+                    );
+                    uint256 output_ = input_.fixedPointMul(
+                        orderIOCalculation_.IORatio
+                    );
 
                     remainingInput_ -= input_;
                     totalOutput_ += output_;
@@ -497,10 +499,14 @@ contract OrderBook is
             );
 
             stateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
-                bOrderIOCalculation_.outputMax.fixedPointMul(bOrderIOCalculation_.IORatio)
+                bOrderIOCalculation_.outputMax.fixedPointMul(
+                    bOrderIOCalculation_.IORatio
+                )
             );
             stateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
-                aOrderIOCalculation_.outputMax.fixedPointMul(aOrderIOCalculation_.IORatio)
+                aOrderIOCalculation_.outputMax.fixedPointMul(
+                    aOrderIOCalculation_.IORatio
+                )
             );
 
             require(
@@ -508,8 +514,12 @@ contract OrderBook is
                 "0_CLEAR"
             );
 
-            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(aOrderIOCalculation_.IORatio);
-            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(bOrderIOCalculation_.IORatio);
+            stateChange_.aInput = stateChange_.aOutput.fixedPointMul(
+                aOrderIOCalculation_.IORatio
+            );
+            stateChange_.bInput = stateChange_.bOutput.fixedPointMul(
+                bOrderIOCalculation_.IORatio
+            );
         }
 
         _recordVaultIO(

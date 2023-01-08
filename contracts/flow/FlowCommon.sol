@@ -92,10 +92,18 @@ contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
         internal
         view
         onlyRegisteredDispatch(dispatch_)
-        returns (StackPointer, StackPointer, IInterpreterStoreV1, uint256[] memory)
+        returns (
+            StackPointer,
+            StackPointer,
+            IInterpreterStoreV1,
+            uint256[] memory
+        )
     {
-        (uint256[] memory stack_, IInterpreterStoreV1 store_, uint256[] memory kvs_) = _interpreter
-            .eval(
+        (
+            uint256[] memory stack_,
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = _interpreter.eval(
                 DEFAULT_STATE_NAMESPACE,
                 dispatch_,
                 LibContext.build(

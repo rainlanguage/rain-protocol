@@ -138,7 +138,11 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowERC721IO memory, IInterpreterStoreV1, uint256[] memory) {
+    )
+        internal
+        view
+        returns (FlowERC721IO memory, IInterpreterStoreV1, uint256[] memory)
+    {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
         (
@@ -201,7 +205,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
-        (FlowERC721IO memory flowERC721IO_,, ) = _previewFlow(
+        (FlowERC721IO memory flowERC721IO_, , ) = _previewFlow(
             dispatch_,
             callerContext_,
             signedContexts_

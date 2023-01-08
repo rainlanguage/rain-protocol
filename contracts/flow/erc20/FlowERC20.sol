@@ -135,7 +135,12 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view virtual returns (FlowERC20IO memory, IInterpreterStoreV1, uint256[] memory) {
+    )
+        internal
+        view
+        virtual
+        returns (FlowERC20IO memory, IInterpreterStoreV1, uint256[] memory)
+    {
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         (
@@ -190,7 +195,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC20IO memory) {
-        (FlowERC20IO memory flowERC20IO_,, ) = _previewFlow(
+        (FlowERC20IO memory flowERC20IO_, , ) = _previewFlow(
             dispatch_,
             callerContext_,
             signedContexts_

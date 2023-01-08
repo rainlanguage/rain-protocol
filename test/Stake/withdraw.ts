@@ -43,7 +43,7 @@ import { stakeDeploy } from "../../utils/deploy/stake";
 import { assertError } from "../../utils/test/assertError";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat/index";
 
-describe.only("Stake withdraw", async function () {
+describe("Stake withdraw", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
   let interpreter: Rainterpreter;
@@ -756,7 +756,7 @@ describe.only("Stake withdraw", async function () {
     assert(depositsAlice2_.length === 0);
   });
 
-  it.only("should monitor user deposit on multiple deposits and withdraws", async () => {
+  it("should monitor user deposit on multiple deposits and withdraws", async () => {
     /**
      * all tokens and calculations are in 18 decimals
      * 1. Alice deposits 10 tokens

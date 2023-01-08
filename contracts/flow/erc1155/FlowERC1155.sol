@@ -139,7 +139,11 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowERC1155IO memory, IInterpreterStoreV1, uint256[] memory) {
+    )
+        internal
+        view
+        returns (FlowERC1155IO memory, IInterpreterStoreV1, uint256[] memory)
+    {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
         (
@@ -205,7 +209,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC1155IO memory) {
-        (FlowERC1155IO memory flowERC1155IO_,, ) = _previewFlow(
+        (FlowERC1155IO memory flowERC1155IO_, , ) = _previewFlow(
             dispatch_,
             callerContext_,
             signedContexts_

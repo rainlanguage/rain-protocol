@@ -62,7 +62,11 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         FullyQualifiedNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    ) external view returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory) {
+    )
+        external
+        view
+        returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory)
+    {
         if (msg.sender != address(this)) {
             revert SelfStaticCaller(msg.sender);
         }
@@ -94,7 +98,11 @@ contract Rainterpreter is IInterpreterV1, IInterpreterStoreV1 {
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] calldata context_
-    ) external view returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory) {
+    )
+        external
+        view
+        returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory)
+    {
         return
             this.selfStaticEval(
                 namespace_.qualifyNamespace(),

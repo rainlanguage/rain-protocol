@@ -295,7 +295,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 IInterpreterStoreV1 store_,
                 uint256[] memory kvs_
             ) = interpreter_.eval(
-                DEFAULT_STATE_NAMESPACE,
+                    DEFAULT_STATE_NAMESPACE,
                     _joinEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
@@ -332,7 +332,7 @@ contract Lobby is Phased, ReentrancyGuard {
             IInterpreterStoreV1 store_,
             uint256[] memory kvs_
         ) = IInterpreterV1(interpreter).eval(
-            DEFAULT_STATE_NAMESPACE,
+                DEFAULT_STATE_NAMESPACE,
                 _leaveEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),

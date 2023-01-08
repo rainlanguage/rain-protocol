@@ -8,6 +8,7 @@ import "hardhat/console.sol";
 
 contract IInterpreterV1Consumer {
     uint256[] private _stack;
+    IInterpreterStoreV1 _store;
     uint256[] private _kvs;
 
     function eval(
@@ -25,6 +26,7 @@ contract IInterpreterV1Consumer {
         uint256 b_ = gasleft();
         console.log("eval gas", a_ - b_);
         _stack = stack_;
+        _store = store_;
         _kvs = kvs_;
     }
 
@@ -45,6 +47,10 @@ contract IInterpreterV1Consumer {
 
     function stackTop() external view returns (uint256) {
         return _stack[_stack.length - 1];
+    }
+
+    function store() external view returns (IInterpreterStoreV1) {
+        return _store;
     }
 
     function kvs() external view returns (uint256[] memory) {

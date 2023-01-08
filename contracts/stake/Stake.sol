@@ -239,7 +239,9 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
 
     /// Thin wrapper around _eval for max deposit calculations.
     /// @param receiver_ As per `maxDeposit`.
-    function _maxDeposit(address receiver_) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
+    function _maxDeposit(
+        address receiver_
+    ) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
         return _eval(_dispatchMaxDeposit(), receiver_);
     }
 
@@ -247,7 +249,9 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// The interpreter expression MAY revert due to internal `ensure` calls or
     /// similar so we have to try/catch down to a `0` value max withdrawal in
     /// that case.
-    function _maxWithdraw(address owner_) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
+    function _maxWithdraw(
+        address owner_
+    ) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
         return _eval(_dispatchMaxWithdraw(), owner_);
     }
 
@@ -257,7 +261,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     function maxDeposit(
         address receiver_
     ) public view virtual override returns (uint256) {
-        (uint256 maxDeposit_,,) = _maxDeposit(receiver_);
+        (uint256 maxDeposit_, , ) = _maxDeposit(receiver_);
         return maxDeposit_.min(super.maxDeposit(receiver_));
     }
 
@@ -271,7 +275,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         // > certain amount of the underlying tokens they provide or (2) it’s
         // > determining the amount of the underlying tokens to transfer to them
         // > for returning a certain amount of shares, it should round down.
-        (uint256 maxDeposit_,,) = _maxDeposit(receiver_);
+        (uint256 maxDeposit_, , ) = _maxDeposit(receiver_);
         return
             _convertToShares(maxDeposit_, Math.Rounding.Down).min(
                 super.maxMint(receiver_)
@@ -282,7 +286,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     function maxWithdraw(
         address owner_
     ) public view virtual override returns (uint256) {
-        (uint256 maxWithdraw_, ,) = _maxWithdraw(owner_);
+        (uint256 maxWithdraw_, , ) = _maxWithdraw(owner_);
         return maxWithdraw_.min(super.maxWithdraw(owner_));
     }
 
@@ -294,7 +298,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         // > to receive a given amount of the underlying tokens or (2) it’s
         // > calculating the amount of underlying tokens a user has to provide
         // > to receive a certain amount of shares, it should round up.
-        (uint256 maxWithdraw_,,) = _maxWithdraw(owner_);
+        (uint256 maxWithdraw_, , ) = _maxWithdraw(owner_);
         return
             _convertToShares(maxWithdraw_, Math.Rounding.Up).min(
                 super.maxRedeem(owner_)

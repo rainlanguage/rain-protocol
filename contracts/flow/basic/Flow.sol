@@ -27,7 +27,11 @@ contract Flow is ReentrancyGuard, FlowCommon {
         EncodedDispatch dispatch_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal view returns (FlowTransfer memory, IInterpreterStoreV1, uint256[] memory) {
+    )
+        internal
+        view
+        returns (FlowTransfer memory, IInterpreterStoreV1, uint256[] memory)
+    {
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
@@ -42,7 +46,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowTransfer memory) {
-        (FlowTransfer memory flowTransfer_,, ) = _previewFlow(
+        (FlowTransfer memory flowTransfer_, , ) = _previewFlow(
             dispatch_,
             callerContext_,
             signedContexts_
