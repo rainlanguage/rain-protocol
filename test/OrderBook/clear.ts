@@ -3385,7 +3385,7 @@ describe("OrderBook clear order", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { stateChange: clearStateChange } = (await getEventArgs(
+    const { clearStateChange: clearStateChange } = (await getEventArgs(
       txClearOrder,
       "AfterClear",
       orderBook

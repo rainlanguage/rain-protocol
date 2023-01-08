@@ -10,8 +10,6 @@ import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 
-import "hardhat/console.sol";
-
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
@@ -79,7 +77,6 @@ contract AutoApprove is VerifyCallback {
                 if (evidences_[i_].data.length == 0x20) {
                     context_[0][0] = uint256(uint160(evidences_[i_].account));
                     context_[0][1] = uint256(bytes32(evidences_[i_].data));
-                    console.log("x", i_);
                     (
                         uint256[] memory stack_,
                         IInterpreterStoreV1 store_,
@@ -97,7 +94,6 @@ contract AutoApprove is VerifyCallback {
                         );
                         approvals_++;
                     }
-                    console.log("y", i_);
                     if (kvs_.length > 0) {
                         store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
                     }
