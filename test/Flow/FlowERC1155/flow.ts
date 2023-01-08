@@ -195,7 +195,7 @@ describe("FlowERC1155 flow tests", async function () {
             tokenAmount,
             []
           ),
-      "INVALID_TRANSFER",
+      "InvalidTransfer()",
       "transferred when it should not"
     );
   });

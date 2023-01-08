@@ -26,7 +26,6 @@ uint256 constant FLOW_MAX_OUTPUTS = type(uint16).max;
 struct FlowCommonConfig {
     address expressionDeployer;
     address interpreter;
-    address interpreterStore;
     StateConfig[] flows;
 }
 

@@ -187,7 +187,7 @@ describe("FlowERC20 flow tests", async function () {
         await flowCannotTransfer
           .connect(you)
           .transfer(signerReceiver.address, mint),
-      "INVALID_TRANSFER",
+      "InvalidTransfer()",
       "transferred when it should not"
     );
   });
