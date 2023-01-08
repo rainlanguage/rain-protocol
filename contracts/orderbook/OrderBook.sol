@@ -275,10 +275,13 @@ contract OrderBook is
             order_.validInputs[inputIOIndex_].decimals
         );
 
+{
         uint256[] memory calculationsContext_ = new uint256[](2);
         calculationsContext_[0] = orderOutputMax_;
         calculationsContext_[1] = orderIORatio_;
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
+}
+
 
         // The order owner can't send more than the smaller of their vault
         // balance or their per-order limit.
