@@ -11,7 +11,7 @@ import "../interpreter/run/LibContext.sol";
 import "../math/SaturatingMath.sol";
 import "../math/FixedPointMath.sol";
 
-import {Phased} from "../phased/Phased.sol";
+import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -71,7 +71,8 @@ SourceIndex constant ENTRYPOINT_CLAIM = SourceIndex.wrap(2);
 /// hardcoded timeout value.
 SourceIndex constant ENTRYPOINT_INVALID = SourceIndex.wrap(3);
 
-// Need an amount (can be 0) for join deposits and a truthy value to start the event.
+/// @dev Need a truthy value to start the event and an amount (can be 0) for join
+/// deposits.
 uint256 constant JOIN_MIN_OUTPUTS = 2;
 uint256 constant JOIN_MAX_OUTPUTS = 2;
 
@@ -145,10 +146,7 @@ contract Lobby is Phased, ReentrancyGuard {
     IERC20 internal token;
     IInterpreterV1 internal interpreter;
 
-    EncodedDispatch internal joinEncodedDispatch;
-    EncodedDispatch internal leaveEncodedDispatch;
-    EncodedDispatch internal claimEncodedDispatch;
-    EncodedDispatch internal invalidEncodedDispatch;
+    address internal expression;
 
     mapping(address => uint256) internal players;
     mapping(address => uint256) internal deposits;
@@ -169,15 +167,21 @@ contract Lobby is Phased, ReentrancyGuard {
         // we initialize rather than construct as there would be some factory
         // producing cheap clones of an implementation contract
 
+        initializePhased();
+        __ReentrancyGuard_init();
+
         // immediately move to pending player phase if ref doesn't need to agree
         if (!config_.refMustAgree) {
             schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
         }
 
+        require(config_.timeoutDuration <= maxTimeoutDuration, "MAX_TIMEOUT");
+        timeoutAt = block.timestamp + config_.timeoutDuration;
+
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
-        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
             .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
@@ -187,33 +191,47 @@ contract Lobby is Phased, ReentrancyGuard {
                 )
             );
 
-        require(config_.timeoutDuration <= maxTimeoutDuration, "MAX_TIMEOUT");
-        timeoutAt = block.timestamp + config_.timeoutDuration;
-
         ref = config_.ref;
         token = IERC20(config_.token);
         interpreter = IInterpreterV1(config_.interpreter);
 
-        joinEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
-            ENTRYPOINT_JOIN,
-            JOIN_MAX_OUTPUTS
-        );
-        leaveEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
-            ENTRYPOINT_LEAVE,
-            LEAVE_MAX_OUTPUTS
-        );
-        claimEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
-            ENTRYPOINT_CLAIM,
-            CLAIM_MAX_OUTPUTS
-        );
-        invalidEncodedDispatch = LibEncodedDispatch.encode(
-            expression_,
-            ENTRYPOINT_INVALID,
-            INVALID_MAX_OUTPUTS
-        );
+        emit Initialize(msg.sender, config_);
+    }
+
+    function _joinEncodedDispatch() internal view returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_JOIN,
+                JOIN_MAX_OUTPUTS
+            );
+    }
+
+    function _leaveEncodedDispatch() internal view returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_LEAVE,
+                LEAVE_MAX_OUTPUTS
+            );
+    }
+
+    function _claimEncodedDispatch() internal view returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_CLAIM,
+                CLAIM_MAX_OUTPUTS
+            );
+    }
+
+    function _invalidEncodedDispatch() internal view returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression,
+                ENTRYPOINT_INVALID,
+                INVALID_MAX_OUTPUTS
+            );
     }
 
     /// Enforces that only the ref can call the modified function.
@@ -247,13 +265,17 @@ contract Lobby is Phased, ReentrancyGuard {
         schedulePhase(PHASE_PLAYERS_PENDING, block.timestamp);
     }
 
-    // At any time anyone can deposit without joining or leaving.
-    // This will become available to claimants.
-    function deposit(uint256 amount_) public nonReentrant {
+    function _deposit(uint256 amount_) internal {
         deposits[msg.sender] = amount_;
         totalDeposited += amount_;
         token.safeTransferFrom(msg.sender, address(this), amount_);
         emit Deposit(msg.sender, address(token), amount_);
+    }
+
+    // At any time anyone can deposit without joining or leaving.
+    // This will become available to claimants.
+    function deposit(uint256 amount_) external nonReentrant {
+        _deposit(amount_);
     }
 
     function join(
@@ -272,7 +294,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 uint256[] memory stack_,
                 uint256[] memory stateChanges_
             ) = interpreter_.eval(
-                    joinEncodedDispatch,
+                    _joinEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
                         callerContext_,
@@ -284,7 +306,7 @@ contract Lobby is Phased, ReentrancyGuard {
 
             players[msg.sender] = 1;
             interpreter_.stateChanges(stateChanges_);
-            deposit(amount_);
+            _deposit(amount_);
 
             emit Join(msg.sender);
 
@@ -307,7 +329,7 @@ contract Lobby is Phased, ReentrancyGuard {
             uint256[] memory stack_,
             uint256[] memory stateChanges_
         ) = IInterpreterV1(interpreter).eval(
-                leaveEncodedDispatch,
+                _leaveEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),
                     callerContext_,
@@ -327,25 +349,30 @@ contract Lobby is Phased, ReentrancyGuard {
         emit Leave(msg.sender, address(token), deposit_, amount_);
     }
 
-    function complete(
-        uint256[] calldata callerContext_,
-        SignedContext[] calldata signedContexts_
-    ) external onlyPhase(PHASE_RESULT_PENDING) {
-        resultHash = LibContext.hash(signedContexts_);
-
-        schedulePhase(PHASE_COMPLETE, block.timestamp);
-
-        // Whoever completes the lobby can also attempt to process a claim.
-        // This implies that any `ensure` in the claim will also prevent the
-        // caller from completing the event.
-        claim(callerContext_, signedContexts_);
-    }
-
     function claim(
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) public onlyPhase(PHASE_COMPLETE) nonReentrant {
-        require(resultHash == LibContext.hash(signedContexts_), "BAD_HASH");
+    )
+        external
+        onlyAtLeastPhase(PHASE_RESULT_PENDING)
+        onlyNotPhase(PHASE_INVALID)
+        nonReentrant
+    {
+        bytes32 signedContextsHash_ = LibContext.hash(signedContexts_);
+
+        // The first time claim is called we move to complete and register the
+        // hash of the signed context used to phase shift.
+        if (currentPhase() == PHASE_RESULT_PENDING) {
+            require(resultHash == 0, "HASH_SET");
+            resultHash = signedContextsHash_;
+            schedulePhase(PHASE_COMPLETE, block.timestamp);
+        }
+
+        if (currentPhase() != PHASE_COMPLETE) {
+            revert BadPhase();
+        }
+
+        require(resultHash == signedContextsHash_, "BAD_HASH");
 
         // Calculating a claimant's share is a 1 time thing. Dynamic shares aren't
         // supported, the expression MUST ensure that each user has a stable share
@@ -354,8 +381,8 @@ contract Lobby is Phased, ReentrancyGuard {
             (
                 uint256[] memory stack_,
                 uint256[] memory stateChanges_
-            ) = IInterpreterV1(interpreter).eval(
-                    claimEncodedDispatch,
+            ) = interpreter.eval(
+                    _claimEncodedDispatch(),
                     LibContext.build(
                         new uint256[][](0),
                         callerContext_,
@@ -364,11 +391,15 @@ contract Lobby is Phased, ReentrancyGuard {
                 );
             // Share for this claimant is the smaller of the calculated share and
             // 1 - shares already claimed.
-            shares[msg.sender] = stack_.asStackPointerAfter().peek().min(
-                uint256(1e18).saturatingSub(totalShares)
-            );
+            unchecked {
+                uint256 claimantShares_ = stack_[stack_.length - 1].min(
+                    uint256(1e18).saturatingSub(totalShares)
+                );
+                totalShares += claimantShares_;
+                shares[msg.sender] = claimantShares_;
+            }
             if (stateChanges_.length > 0) {
-                IInterpreterV1(interpreter).stateChanges(stateChanges_);
+                interpreter.stateChanges(stateChanges_);
             }
         }
 
@@ -378,7 +409,11 @@ contract Lobby is Phased, ReentrancyGuard {
         // deposits.
         if (shares[msg.sender] > 0) {
             uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
-                .fixedPointMul(shares[msg.sender]);
+                .fixedPointMul(shares[msg.sender])
+                .min(
+                    // Guard against rounding issues locking funds.
+                    token.balanceOf(address(this))
+                );
             token.safeTransfer(msg.sender, amount_);
             withdrawals[msg.sender] = totalDeposited;
             emit Claim(msg.sender, shares[msg.sender], amount_);
@@ -400,7 +435,7 @@ contract Lobby is Phased, ReentrancyGuard {
         IInterpreterV1 interpreter_ = interpreter;
         (uint256[] memory stack_, uint256[] memory stateChanges_) = interpreter_
             .eval(
-                invalidEncodedDispatch,
+                _invalidEncodedDispatch(),
                 LibContext.build(
                     new uint256[][](0),
                     callerContext_,
@@ -420,7 +455,7 @@ contract Lobby is Phased, ReentrancyGuard {
     function invalid(
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) external {
+    ) external onlyNotPhase(PHASE_COMPLETE) {
         // It is NOT possible to rollback a prior completion. Complete/invalid
         // are mutually exclusive states because they imply incompatible token
         // allocations for withdrawal, which would lead to a bank run and/or
@@ -429,8 +464,6 @@ contract Lobby is Phased, ReentrancyGuard {
         // phase to the invalid phase, but this happens atomically within this
         // function call so there's no way that `claim` can be called before
         // `refund` is enabled.
-        require(currentPhase() != PHASE_COMPLETE, "BAD_PHASE");
-
         require(isInvalid(callerContext_, signedContexts_), "NOT_INVALID");
 
         // Fast forward all phases to invalid.
