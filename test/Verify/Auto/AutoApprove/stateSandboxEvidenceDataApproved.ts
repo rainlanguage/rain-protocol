@@ -148,7 +148,6 @@ describe("AutoApprove evidence data approved", async function () {
     const admin = signers[2];
     const aprAdmin = signers[3];
     const signer1 = signers[4];
-    const signer2 = signers[5];
 
     const stateConfig: StateConfigStruct = {
       // prettier-ignore
@@ -199,7 +198,9 @@ describe("AutoApprove evidence data approved", async function () {
       .grantRole(await verify.APPROVER(), autoApprove.address);
 
     // now signer1 can get their account automatically approved
-    const addTx0 = await verify.connect(signer1).add(evidenceAdd, {gasLimit: 1000000});
+    const addTx0 = await verify
+      .connect(signer1)
+      .add(evidenceAdd, { gasLimit: 1000000 });
 
     // Approve event should exist
     (await getEventArgs(addTx0, "Approve", verify)) as ApproveEvent["args"];

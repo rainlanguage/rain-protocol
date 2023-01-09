@@ -12,8 +12,12 @@ import {
   LobbyConfigStruct,
   SignedContextStruct,
 } from "../../typechain/contracts/lobby/Lobby";
-import { fixedPointDiv, fixedPointMul } from "../../utils";
-import { eighteenZeros, ONE, sixteenZeros } from "../../utils/constants/bigNumber";
+import { fixedPointMul } from "../../utils";
+import {
+  eighteenZeros,
+  ONE,
+  sixteenZeros,
+} from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
@@ -387,8 +391,8 @@ describe("Lobby Tests claim", async function () {
     assert(
       aliceClaimEvent.amount.add(bobClaimEvent.amount).eq(depositAmount.mul(2))
     );
-  }); 
-  
+  });
+
   it("should ensure claimant is not able to double-claim", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
@@ -535,16 +539,16 @@ describe("Lobby Tests claim", async function () {
 
     // Checking Phase
     const currentPhase1 = await Lobby.currentPhase();
-    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");  
+    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");
 
-    //Alice Double Claims 
+    //Alice Double Claims
 
     const aliceClaimTx1 = await Lobby.connect(alice).claim(
       [aliceShares],
       signedContexts2
     );
 
-    const expectedClaimAlice1 = 0 // No claim should be given
+    const expectedClaimAlice1 = 0; // No claim should be given
 
     const aliceClaimEvent1 = (await getEventArgs(
       aliceClaimTx1,
@@ -554,8 +558,10 @@ describe("Lobby Tests claim", async function () {
 
     assert(aliceClaimEvent1.sender === alice.address, "wrong deposit sender");
     assert(aliceClaimEvent1.share.eq(aliceShares), "wrong shares");
-    assert(aliceClaimEvent1.amount.eq(expectedClaimAlice1), "wrong claim amount"); 
-    
+    assert(
+      aliceClaimEvent1.amount.eq(expectedClaimAlice1),
+      "wrong claim amount"
+    );
 
     // Bob Claims Amount
     const bobClaimTx = await Lobby.connect(bob).claim(
@@ -573,9 +579,8 @@ describe("Lobby Tests claim", async function () {
 
     assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
-    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount"); 
-
-  });  
+    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
+  });
 
   it("should ensure claimants are able to claim their prorata share of the future deposits", async function () {
     const signers = await ethers.getSigners();
@@ -583,16 +588,14 @@ describe("Lobby Tests claim", async function () {
     const alice = signers[1];
     const bob = signers[2];
     const bot = signers[3];
-    const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros)
+    const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros);
 
     await tokenA.connect(signers[0]).transfer(alice.address, ONE);
     await tokenA.connect(signers[0]).transfer(bob.address, ONE);
     await tokenA.connect(signers[0]).transfer(bot.address, botDespoitAmount);
 
-
     const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
-    const depositAmount = ONE; 
-
+    const depositAmount = ONE;
 
     const constants = [0, depositAmount];
 
@@ -633,7 +636,6 @@ describe("Lobby Tests claim", async function () {
     await tokenA.connect(alice).approve(Lobby.address, ONE);
     await tokenA.connect(bob).approve(Lobby.address, ONE);
     await tokenA.connect(bot).approve(Lobby.address, botDespoitAmount);
-
 
     //Alice joins Lobby
 
@@ -694,7 +696,7 @@ describe("Lobby Tests claim", async function () {
 
     //Both computed amounts add up to 1e18
     const aliceShares = ethers.BigNumber.from(80 + sixteenZeros);
-    const bobShares =   ethers.BigNumber.from(20 + sixteenZeros);
+    const bobShares = ethers.BigNumber.from(20 + sixteenZeros);
 
     //Signed Context by bot address
     const context2 = [aliceShares, bobShares];
@@ -729,7 +731,7 @@ describe("Lobby Tests claim", async function () {
 
     // Checking Phase
     const currentPhase1 = await Lobby.currentPhase();
-    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");  
+    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");
 
     // Bob Claims Amount
     const bobClaimTx = await Lobby.connect(bob).claim(
@@ -747,10 +749,10 @@ describe("Lobby Tests claim", async function () {
 
     assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
-    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");  
+    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
 
     // Bot Deposits after claims have been made
-    const botDeposit = await Lobby.connect(bot).deposit(botDespoitAmount) 
+    const botDeposit = await Lobby.connect(bot).deposit(botDespoitAmount);
 
     const botDepositEvent = (await getEventArgs(
       botDeposit,
@@ -758,7 +760,7 @@ describe("Lobby Tests claim", async function () {
       Lobby
     )) as DepositEvent["args"];
     assert(botDepositEvent.sender === bot.address, "wrong deposit sender");
-    assert(botDepositEvent.amount.eq(botDespoitAmount), "wrong deposit amount"); 
+    assert(botDepositEvent.amount.eq(botDespoitAmount), "wrong deposit amount");
 
     // Alice Claims Again her prorata shares
 
@@ -767,17 +769,20 @@ describe("Lobby Tests claim", async function () {
       signedContexts2
     );
 
-    const expectedClaimAlice1 = fixedPointMul(botDespoitAmount, aliceShares); 
-   
+    const expectedClaimAlice1 = fixedPointMul(botDespoitAmount, aliceShares);
+
     const aliceClaimEvent1 = (await getEventArgs(
       aliceClaimTx1,
       "Claim",
       Lobby
-    )) as ClaimEvent["args"]; 
+    )) as ClaimEvent["args"];
 
     assert(aliceClaimEvent1.sender === alice.address, "wrong deposit sender");
     assert(aliceClaimEvent1.share.eq(aliceShares), "wrong shares");
-    assert(aliceClaimEvent1.amount.eq(expectedClaimAlice1), "wrong claim amount");  
+    assert(
+      aliceClaimEvent1.amount.eq(expectedClaimAlice1),
+      "wrong claim amount"
+    );
 
     // Bob Claims Again his prorata shares
     const bobClaimTx1 = await Lobby.connect(bob).claim(
@@ -786,7 +791,7 @@ describe("Lobby Tests claim", async function () {
     );
 
     const expectedClaimBob1 = fixedPointMul(botDespoitAmount, bobShares);
-  
+
     const bobClaimEvent1 = (await getEventArgs(
       bobClaimTx1,
       "Claim",
@@ -795,12 +800,6 @@ describe("Lobby Tests claim", async function () {
 
     assert(bobClaimEvent1.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent1.share.eq(bobShares), "wrong shares");
-    assert(bobClaimEvent1.amount.eq(expectedClaimBob1), "wrong claim amount");    
-
- 
-
-
-
-  }); 
-
+    assert(bobClaimEvent1.amount.eq(expectedClaimBob1), "wrong claim amount");
+  });
 });

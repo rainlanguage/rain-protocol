@@ -12,7 +12,7 @@ import "../store/IInterpreterStoreV1.sol";
 error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xfe00b419e2ae9d3b8993922df8565334fc2a3d0ed4e28cbafdb04517dcf6050a
+    0x873c646d9c16e7f0db19840a6306b190e1f2f98ae87b423609825ee0501df881
 );
 
 /// @title Rainterpreter
