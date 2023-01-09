@@ -9,6 +9,7 @@ import {
 } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import {
+  Debug,
   getBlockTimestamp,
   memoryOperand,
   MemoryType,
@@ -821,4 +822,80 @@ describe("Stake deposit", async function () {
       "alice has not received correct token units after withdrawing"
     );
   });
+  
+  it.only("should set and get a value in MAX_DEPOSIT_ENTRYPOINT source", async function () {
+
+    // This test changes the maxDeposit once 2 successful deposits are completed
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const FIVE = ethers.BigNumber.from("5" + eighteenZeros);
+    const TEN = ethers.BigNumber.from("10" + eighteenZeros);
+    const depositCount = 2;
+
+    const constants = [FIVE, TEN, max_uint256, depositCount, 1];
+
+    const max_deposit_initial = op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0));
+    
+    const max_deposit_later = op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1));
+    
+    const aliceAddress = op(Opcode.CONTEXT, 0x0100);
+    
+    const max_withdraw = op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2));
+
+    // prettier-ignore
+    const depositSource = concat([
+
+       
+            aliceAddress,
+            op(Opcode.GET), // Deposit count set for alice
+            op(Opcode.DEBUG, Debug.StatePacked),
+            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)), // Max Deposit Count
+          op(Opcode.GREATER_THAN),  // Condition
+          max_deposit_later, // true
+          max_deposit_initial, // false
+        op(Opcode.EAGER_IF),
+        
+              // Setting value
+            aliceAddress, // key
+            aliceAddress,
+          op(Opcode.GET), // Deposit count set for alice
+          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.ADD, 2), // Value
+      op(Opcode.SET),
+    ]);
+
+    const withdrawSource = max_withdraw;
+
+    const source = [depositSource, withdrawSource]; // max_deposit set to 10
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    let maxDeposit = await stake.maxDeposit(alice.address);
+    maxDeposit = await stake.maxDeposit(alice.address);
+    maxDeposit = await stake.maxDeposit(alice.address);
+    maxDeposit = await stake.maxDeposit(alice.address);
+    maxDeposit = await stake.maxDeposit(alice.address);
+    maxDeposit = await stake.maxDeposit(alice.address);
+    
+    assert(maxDeposit.eq(FIVE), "maxDeposit is not equal to FIVE");
+  });
+
+
 });
