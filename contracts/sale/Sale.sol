@@ -17,7 +17,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../sstore2/SSTORE2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
 
@@ -138,32 +138,32 @@ SourceIndex constant CALCULATE_BUY_ENTRYPOINT = SourceIndex.wrap(1);
 SourceIndex constant HANDLE_BUY_ENTRYPOINT = SourceIndex.wrap(2);
 
 uint256 constant CAN_LIVE_MIN_OUTPUTS = 1;
-uint constant CAN_LIVE_MAX_OUTPUTS = 1;
+uint256 constant CAN_LIVE_MAX_OUTPUTS = 1;
 uint256 constant CALCULATE_BUY_MIN_OUTPUTS = 2;
-uint constant CALCULATE_BUY_MAX_OUTPUTS = 2;
-uint constant HANDLE_BUY_MIN_OUTPUTS = 0;
-uint constant HANDLE_BUY_MAX_OUTPUTS = 0;
+uint256 constant CALCULATE_BUY_MAX_OUTPUTS = 2;
+uint256 constant HANDLE_BUY_MIN_OUTPUTS = 0;
+uint256 constant HANDLE_BUY_MAX_OUTPUTS = 0;
 
-uint constant CONTEXT_COLUMNS = 2;
-uint constant CONTEXT_CALCULATIONS_COLUMN = 1;
-uint constant CONTEXT_BUY_COLUMN = 2;
+uint256 constant CONTEXT_COLUMNS = 2;
+uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+uint256 constant CONTEXT_BUY_COLUMN = 2;
 
-uint constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
-uint constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
-uint constant CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW = 2;
-uint constant CONTEXT_BUY_RESERVE_FEE_ROW = 3;
-uint constant CONTEXT_BUY_RESERVE_COST_ROW = 4;
-uint constant CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW = 5;
-uint constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
-uint constant CONTEXT_BUY_ROWS = 7;
+uint256 constant CONTEXT_BUY_TOKEN_OUT_ROW = 0;
+uint256 constant CONTEXT_BUY_TOKEN_BALANCE_BEFORE_ROW = 1;
+uint256 constant CONTEXT_BUY_TOKEN_BALANCE_AFTER_ROW = 2;
+uint256 constant CONTEXT_BUY_RESERVE_FEE_ROW = 3;
+uint256 constant CONTEXT_BUY_RESERVE_COST_ROW = 4;
+uint256 constant CONTEXT_BUY_RESERVE_BALANCE_BEFORE_ROW = 5;
+uint256 constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
+uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
 
@@ -279,10 +279,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        (
-            address expression_, // Sale doesn't use conditional context so we don't need the scratch.
-
-        ) = IExpressionDeployerV1(config_.expressionDeployer).deployExpression(
+        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.interpreterStateConfig,
                 LibUint256Array.arrayFrom(
                     CAN_LIVE_MIN_OUTPUTS,
@@ -360,22 +358,29 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// active to a finalised status.
     /// An out of stock (0 remaining units) WILL ALWAYS return `false` without
     /// evaluating the expression.
-    function _previewCanLive() internal view returns (bool, uint[] memory) {
+    function _previewCanLive()
+        internal
+        view
+        returns (bool, IInterpreterStoreV1, uint256[] memory)
+    {
         unchecked {
             if (remainingTokenInventory < 1) {
-                return (false, new uint[](0));
+                return (
+                    false,
+                    IInterpreterStoreV1(address(0)),
+                    new uint256[](0)
+                );
             }
             (
-                uint[] memory stack_,
-                uint[] memory interpreterStateChanges_
+                uint256[] memory stack_,
+                IInterpreterStoreV1 store_,
+                uint256[] memory kvs_
             ) = interpreter.eval(
+                    DEFAULT_STATE_NAMESPACE,
                     dispatchCanLive,
                     LibContext.base().matrixFrom()
                 );
-            return (
-                stack_.asStackTopAfter().peek() > 0,
-                interpreterStateChanges_
-            );
+            return (stack_[stack_.length - 1] > 0, store_, kvs_);
         }
     }
 
@@ -405,36 +410,55 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// Offchain users MAY call this directly or calculate the outcome
     /// themselves.
     function previewCanLive() external view returns (bool) {
-        (bool canLive_, ) = _previewCanLive();
+        (bool canLive_, , ) = _previewCanLive();
         return canLive_;
     }
 
     function _previewCalculateBuy(
         uint256 targetUnits_
-    ) internal view returns (uint256, uint256, uint[][] memory, uint[] memory) {
-        uint[][] memory context_ = LibContext.build(
+    )
+        internal
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256[][] memory,
+            IInterpreterStoreV1,
+            uint256[] memory
+        )
+    {
+        uint256[][] memory context_ = LibContext.build(
             new uint256[][](CONTEXT_COLUMNS),
             targetUnits_.arrayFrom(),
             new SignedContext[](0)
         );
-        (uint[] memory stack_, uint[] memory stateChanges_) = interpreter.eval(
-            dispatchCalculateBuy,
-            context_
-        );
-        (uint amount_, uint ratio_) = stack_.asStackTopAfter().peek2();
-        uint[] memory calculationsContext_ = LibUint256Array.arrayFrom(
+        (
+            uint256[] memory stack_,
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = interpreter.eval(
+                DEFAULT_STATE_NAMESPACE,
+                dispatchCalculateBuy,
+                context_
+            );
+        (uint256 amount_, uint256 ratio_) = stack_
+            .asStackPointerAfter()
+            .peek2();
+        uint256[] memory calculationsContext_ = LibUint256Array.arrayFrom(
             amount_,
             ratio_
         );
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
-        context_[CONTEXT_BUY_COLUMN] = new uint[](CONTEXT_BUY_ROWS);
-        return (amount_, ratio_, context_, stateChanges_);
+        context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
+        return (amount_, ratio_, context_, store_, kvs_);
     }
 
     function previewCalculateBuy(
         uint256 targetUnits_
     ) external view returns (uint256, uint256) {
-        (uint amount_, uint ratio_, , ) = _previewCalculateBuy(targetUnits_);
+        (uint256 amount_, uint256 ratio_, , , ) = _previewCalculateBuy(
+            targetUnits_
+        );
         return (amount_, ratio_);
     }
 
@@ -444,10 +468,14 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// `canStart` MUST return true.
     function start() external {
         require(saleStatus == SaleStatus.Pending, "NOT_PENDING");
-        (bool canLive_, uint[] memory stateChanges_) = _previewCanLive();
+        (
+            bool canLive_,
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = _previewCanLive();
         require(canLive_, "NOT_LIVE");
-        if (stateChanges_.length > 0) {
-            interpreter.stateChanges(stateChanges_);
+        if (kvs_.length > 0) {
+            store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
         _start();
     }
@@ -458,10 +486,14 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
     /// `canEnd` MUST return true.
     function end() external {
         require(saleStatus == SaleStatus.Active, "NOT_ACTIVE");
-        (bool canLive_, uint[] memory stateChanges_) = _previewCanLive();
+        (
+            bool canLive_,
+            IInterpreterStoreV1 store_,
+            uint256[] memory kvs_
+        ) = _previewCanLive();
         require(!canLive_, "LIVE");
-        if (stateChanges_.length > 0) {
-            interpreter.stateChanges(stateChanges_);
+        if (kvs_.length > 0) {
+            store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
         _end();
     }
@@ -507,51 +539,59 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         );
         IInterpreterV1 interpreter_ = interpreter;
 
-        // Start or end the sale as required.
-        (
-            bool canLive0_,
-            uint[] memory stateChangesCanLive0_
-        ) = _previewCanLive();
-        // Register state changes with intepreter _before_ potentially ending and
-        // returning early.
-        if (stateChangesCanLive0_.length > 0) {
-            interpreter_.stateChanges(stateChangesCanLive0_);
-        }
-        if (canLive0_) {
-            if (saleStatus == SaleStatus.Pending) {
-                _start();
+        {
+            // Start or end the sale as required.
+            (
+                bool canLive0_,
+                IInterpreterStoreV1 canLive0Store_,
+                uint256[] memory canLive0KVs_
+            ) = _previewCanLive();
+            // Register state changes with intepreter _before_ potentially ending and
+            // returning early.
+            if (canLive0KVs_.length > 0) {
+                canLive0Store_.set(DEFAULT_STATE_NAMESPACE, canLive0KVs_);
             }
-        } else {
-            if (saleStatus == SaleStatus.Active) {
-                _end();
-                // Return early so that the state change of active to ended can
-                // take effect. Otherwise it will rollback as "NOT_ACTIVE" below
-                // leaving the sale active even though it should have ended here.
-                return;
+            if (canLive0_) {
+                if (saleStatus == SaleStatus.Pending) {
+                    _start();
+                }
+            } else {
+                if (saleStatus == SaleStatus.Active) {
+                    _end();
+                    // Return early so that the state change of active to ended can
+                    // take effect. Otherwise it will rollback as "NOT_ACTIVE" below
+                    // leaving the sale active even though it should have ended here.
+                    return;
+                }
             }
-        }
 
-        // Check the status AFTER possibly modifying it to ensure the potential
-        // modification is respected.
-        require(saleStatus == SaleStatus.Active, "NOT_ACTIVE");
+            // Check the status AFTER possibly modifying it to ensure the potential
+            // modification is respected.
+            require(saleStatus == SaleStatus.Active, "NOT_ACTIVE");
+        }
 
         uint256 targetUnits_ = config_.desiredUnits.min(
             remainingTokenInventory
         );
 
-        uint maxUnits_;
-        uint price_;
-        uint[][] memory context_;
+        uint256 maxUnits_;
+        uint256 price_;
+        uint256[][] memory context_;
         {
-            uint[] memory stateChangesCalculateBuy_;
+            uint256[] memory calculateBuyKVs_;
+            IInterpreterStoreV1 calculateBuyStore_;
             (
                 maxUnits_,
                 price_,
                 context_,
-                stateChangesCalculateBuy_
+                calculateBuyStore_,
+                calculateBuyKVs_
             ) = _previewCalculateBuy(targetUnits_);
-            if (stateChangesCalculateBuy_.length > 0) {
-                interpreter_.stateChanges(stateChangesCalculateBuy_);
+            if (calculateBuyKVs_.length > 0) {
+                calculateBuyStore_.set(
+                    DEFAULT_STATE_NAMESPACE,
+                    calculateBuyKVs_
+                );
             }
         }
 
@@ -623,12 +663,17 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
             EncodedDispatch dispatchHandleBuy_ = dispatchHandleBuy;
             if (EncodedDispatch.unwrap(dispatchHandleBuy_) > 0) {
-                (, uint[] memory stateChangesHandleBuy_) = interpreter_.eval(
-                    dispatchHandleBuy_,
-                    context_
-                );
-                if (stateChangesHandleBuy_.length > 0) {
-                    interpreter_.stateChanges(stateChangesHandleBuy_);
+                (
+                    ,
+                    IInterpreterStoreV1 handleBuyStore_,
+                    uint256[] memory handleBuyKVs_
+                ) = interpreter_.eval(
+                        DEFAULT_STATE_NAMESPACE,
+                        dispatchHandleBuy_,
+                        context_
+                    );
+                if (handleBuyKVs_.length > 0) {
+                    handleBuyStore_.set(DEFAULT_STATE_NAMESPACE, handleBuyKVs_);
                 }
             }
         }
@@ -652,10 +697,11 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
         // it simply prevents further purchases.
         (
             bool canLive1_,
-            uint[] memory stateChangesCanLive1_
+            IInterpreterStoreV1 canLive1Store_,
+            uint256[] memory canLive1KVs_
         ) = _previewCanLive();
-        if (stateChangesCanLive1_.length > 0) {
-            interpreter_.stateChanges(stateChangesCanLive1_);
+        if (canLive1KVs_.length > 0) {
+            canLive1Store_.set(DEFAULT_STATE_NAMESPACE, canLive1KVs_);
         }
         if (canLive1_) {
             // This prevents the sale from being left with so little stock that

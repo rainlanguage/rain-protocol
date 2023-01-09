@@ -5,10 +5,10 @@ import { Rainterpreter } from "../../../../typechain/contracts/interpreter/share
 import { ValidInterpreterEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
 import { assertError, getEventArgs } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 describe("RainterpreterExpressionDeployer integrityCheck tests", async function () {
-  it("should revert if interpreter bytecode is unexpected", async () => {
+  it("should revert if interpreter bytecode is undefined", async () => {
     const fakeInterpreter: FakeContract<Rainterpreter> = await smock.fake(
       "Rainterpreter"
     ); // should not contain same bytecode as real contract
@@ -16,10 +16,10 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     await assertError(
       async () =>
-        await rainterpreterExpressionDeployer(
+        await rainterpreterExpressionDeployerDeploy(
           fakeInterpreter as unknown as Rainterpreter
         ),
-      "BAD_POINTERS",
+      'UnexpectedPointers(\\"0x00\\")',
       "did not revert when bytecode hash was unexpected"
     );
   });
@@ -34,10 +34,10 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     await assertError(
       async () =>
-        await rainterpreterExpressionDeployer(
+        await rainterpreterExpressionDeployerDeploy(
           fakeInterpreter as unknown as Rainterpreter
         ),
-      "BAD_INTERPRETER_HASH",
+      "UnexpectedPointers",
       "did not revert when bytecode hash was unexpected"
     );
   });
@@ -47,7 +47,7 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     const rainterpreter = await rainterpreterDeploy();
 
-    const expressionDeployer = await rainterpreterExpressionDeployer(
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       rainterpreter
     );
 

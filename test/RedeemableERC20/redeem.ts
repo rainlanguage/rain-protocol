@@ -169,7 +169,7 @@ describe("RedeemableERC20 redeem test", async function () {
     // Redemption not allowed yet.
     await Util.assertError(
       async () => await redeemableERC20.redeem([reserve.address], 100),
-      "BAD_PHASE",
+      "BadPhase()",
       "redeem did not error"
     );
 
@@ -843,7 +843,7 @@ describe("RedeemableERC20 redeem test", async function () {
     // Redemption not allowed yet.
     await Util.assertError(
       async () => await redeemableERC20.redeem([reserve.address], 100),
-      "BAD_PHASE",
+      "BadPhase()",
       "redeem did not error"
     );
 

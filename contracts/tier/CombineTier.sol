@@ -6,7 +6,7 @@ import {ITierV2} from "./ITierV2.sol";
 import {TierV2} from "./TierV2.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibStackTop.sol";
+import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/run/LibContext.sol";
 
@@ -16,10 +16,10 @@ SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
 
 uint256 constant REPORT_MIN_OUTPUTS = 1;
-uint constant REPORT_MAX_OUTPUTS = 1;
+uint256 constant REPORT_MAX_OUTPUTS = 1;
 
-uint constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
-uint constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
+uint256 constant REPORT_FOR_TIER_MIN_OUTPUTS = 1;
+uint256 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the
@@ -41,8 +41,8 @@ struct CombineTierConfig {
 /// The value at the top of the stack after executing the Rain expression will be
 /// used as the return of all `ITierV2` functions exposed by `CombineTier`.
 contract CombineTier is TierV2 {
-    using LibStackTop for StackTop;
-    using LibStackTop for uint256[];
+    using LibStackPointer for StackPointer;
+    using LibStackPointer for uint256[];
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
@@ -61,16 +61,14 @@ contract CombineTier is TierV2 {
     ) external initializer {
         __TierV2_init();
         interpreter = IInterpreterV1(config_.interpreter);
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(
                     REPORT_MIN_OUTPUTS,
                     REPORT_FOR_TIER_MIN_OUTPUTS
                 )
             );
-        expression = expression_;
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
@@ -91,19 +89,22 @@ contract CombineTier is TierV2 {
         address account_,
         uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
-        (uint[] memory stack_, ) = interpreter.eval(
-            LibEncodedDispatch.encode(
-                expression,
-                REPORT_ENTRYPOINT,
-                REPORT_MAX_OUTPUTS
-            ),
-            LibContext.build(
-                uint256(uint160(account_)).arrayFrom().matrixFrom(),
-                callerContext_,
-                new SignedContext[](0)
-            )
-        );
-        return stack_.asStackTopAfter().peek();
+        unchecked {
+            (uint256[] memory stack_, , ) = interpreter.eval(
+                DEFAULT_STATE_NAMESPACE,
+                LibEncodedDispatch.encode(
+                    expression,
+                    REPORT_ENTRYPOINT,
+                    REPORT_MAX_OUTPUTS
+                ),
+                LibContext.build(
+                    uint256(uint160(account_)).arrayFrom().matrixFrom(),
+                    callerContext_,
+                    new SignedContext[](0)
+                )
+            );
+            return stack_[stack_.length - 1];
+        }
     }
 
     /// @inheritdoc ITierV2
@@ -112,20 +113,23 @@ contract CombineTier is TierV2 {
         uint256 tier_,
         uint256[] memory callerContext_
     ) external view returns (uint256) {
-        (uint[] memory stack_, ) = interpreter.eval(
-            LibEncodedDispatch.encode(
-                expression,
-                REPORT_FOR_TIER_ENTRYPOINT,
-                REPORT_FOR_TIER_MAX_OUTPUTS
-            ),
-            LibContext.build(
-                LibUint256Array
-                    .arrayFrom(uint256(uint160(account_)), tier_)
-                    .matrixFrom(),
-                callerContext_,
-                new SignedContext[](0)
-            )
-        );
-        return stack_.asStackTopAfter().peek();
+        unchecked {
+            (uint256[] memory stack_, , ) = interpreter.eval(
+                DEFAULT_STATE_NAMESPACE,
+                LibEncodedDispatch.encode(
+                    expression,
+                    REPORT_FOR_TIER_ENTRYPOINT,
+                    REPORT_FOR_TIER_MAX_OUTPUTS
+                ),
+                LibContext.build(
+                    LibUint256Array
+                        .arrayFrom(uint256(uint160(account_)), tier_)
+                        .matrixFrom(),
+                    callerContext_,
+                    new SignedContext[](0)
+                )
+            );
+            return stack_[stack_.length - 1];
+        }
     }
 }

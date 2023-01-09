@@ -6,6 +6,7 @@ export enum AllStandardOps {
   DEBUG,
   DO_WHILE,
   FOLD_CONTEXT,
+  GET,
   LOOP_N,
   READ_MEMORY,
   SET,
@@ -62,7 +63,4 @@ export enum AllStandardOps {
 
 export const Opcode = AllStandardOps;
 
-export const RainterpreterOps = {
-  ...AllStandardOps,
-  GET: 0 + AllStandardOps.length,
-};
+export const RainterpreterOps = AllStandardOps

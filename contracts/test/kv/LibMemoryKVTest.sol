@@ -18,7 +18,7 @@ contract LibMemoryKVTest {
         MemoryKV kv_,
         MemoryKVKey k_,
         MemoryKVVal v_
-    ) external pure returns (uint[] memory array_) {
+    ) external pure returns (uint256[] memory array_) {
         kv_ = kv_.setVal(k_, v_);
         array_ = kv_.toUint256Array();
     }
@@ -70,7 +70,7 @@ contract LibMemoryKVTest {
         MemoryKVVal v0_,
         MemoryKVKey k1_,
         MemoryKVVal v1_
-    ) external pure returns (uint[] memory array_) {
+    ) external pure returns (uint256[] memory array_) {
         kv_ = kv_.setVal(k0_, v0_);
         kv_ = kv_.setVal(k1_, v1_);
         array_ = kv_.toUint256Array();
@@ -98,7 +98,7 @@ contract LibMemoryKVTest {
     function scenario7(
         MemoryKV kv_,
         uint256[] memory kvPair_
-    ) external pure returns (uint[] memory array_) {
+    ) external pure returns (uint256[] memory array_) {
         uint256 j = 0;
         for (uint256 i = 0; i < kvPair_.length - 1; i += 2) {
             j++;
@@ -146,7 +146,7 @@ contract LibMemoryKVTest {
     /// Wraps `LibMemoryKV.toUint256Array`.
     function toUint256Array(
         MemoryKV kv_
-    ) public returns (uint[] memory array_) {
+    ) public returns (uint256[] memory array_) {
         LibDebug.dumpMemory();
         array_ = kv_.toUint256Array();
         LibDebug.dumpMemory();

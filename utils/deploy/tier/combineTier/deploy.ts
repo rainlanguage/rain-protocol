@@ -7,7 +7,7 @@ import { ImplementationEvent as ImplementationEventCombineTierFactory } from "..
 import { zeroAddress } from "../../../constants";
 import { getEventArgs } from "../../../events";
 import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
 export const combineTierDeploy = async (
   deployer: SignerWithAddress,
@@ -18,8 +18,9 @@ export const combineTierDeploy = async (
   if (interpreter === "" || expressionDeployer === "") {
     const rainterpreter = await rainterpreterDeploy();
     interpreter = rainterpreter.address;
-    expressionDeployer = (await rainterpreterExpressionDeployer(rainterpreter))
-      .address;
+    expressionDeployer = (
+      await rainterpreterExpressionDeployerDeploy(rainterpreter)
+    ).address;
   }
 
   config = {

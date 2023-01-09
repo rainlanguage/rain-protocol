@@ -14,7 +14,7 @@ import {
   op,
 } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { SaleStatus } from "../../../../utils/types/saleEscrow";
 
 const Opcode = AllStandardOps;
@@ -49,12 +49,13 @@ describe("ISaleV2 SaleStatus tests", async function () {
     ])];
     const constants = [fakeSale.address];
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources,
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const saleStatus0 = SaleStatus.Pending;

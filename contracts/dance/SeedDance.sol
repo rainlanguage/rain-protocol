@@ -30,7 +30,7 @@ library LibSeed {
     /// deterministic for any given inputs. In this context "unpredictable"
     /// means, "unpredictable provided you don't know both seed and val".
     /// @param seed_ An existing seed.
-    /// @param val_ Can be literally any uint as the hashing will ensure the
+    /// @param val_ Can be literally any uint256 as the hashing will ensure the
     /// returned seed is unpredictable.
     /// @return newSeed_ The result of applying `val_` to `seed_`.
     function with(Seed seed_, uint256 val_) internal pure returns (Seed) {

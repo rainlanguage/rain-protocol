@@ -1,6 +1,6 @@
-import { BigNumberish, BytesLike } from "ethers"
+import { BigNumberish, BytesLike } from "ethers";
 
 export type StateConfig = {
   sources: BytesLike[];
-  constants: BigNumberish[]
-} 
+  constants: BigNumberish[];
+};

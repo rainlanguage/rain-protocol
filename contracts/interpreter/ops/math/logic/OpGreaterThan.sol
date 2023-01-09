@@ -1,37 +1,36 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
-import "../../../run/LibStackTop.sol";
+import "../../../run/LibStackPointer.sol";
 import "../../../../type/LibCast.sol";
 import "../../../run/LibInterpreterState.sol";
-import "../../../deploy/LibIntegrityState.sol";
+import "../../../deploy/LibIntegrityCheck.sol";
 
 /// @title OpGreaterThan
 /// @notice Opcode to compare the top two stack values.
 library OpGreaterThan {
     using LibCast for bool;
-    using LibStackTop for StackTop;
-    using LibIntegrityState for IntegrityState;
+    using LibStackPointer for StackPointer;
+    using LibIntegrityCheck for IntegrityCheckState;
 
-    function _greaterThan(
-        uint256 a_,
-        uint256 b_
-    ) internal pure returns (uint256) {
-        return (a_ > b_).asUint256();
+    function f(uint256 a_, uint256 b_) internal pure returns (uint256 c_) {
+        assembly ("memory-safe") {
+            c_ := gt(a_, b_)
+        }
     }
 
     function integrity(
-        IntegrityState memory integrityState_,
+        IntegrityCheckState memory integrityCheckState_,
         Operand,
-        StackTop stackTop_
-    ) internal pure returns (StackTop) {
-        return integrityState_.applyFn(stackTop_, _greaterThan);
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
+        return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    function greaterThan(
+    function run(
         InterpreterState memory,
         Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        return stackTop_.applyFn(_greaterThan);
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
+        return stackTop_.applyFn(f);
     }
 }

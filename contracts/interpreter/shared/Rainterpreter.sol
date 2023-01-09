@@ -1,194 +1,110 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../run/RainInterpreter.sol";
 import "../ops/AllStandardOps.sol";
 import "../run/LibEncodedDispatch.sol";
 import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
+import "../../sstore2/SSTORE2.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import "../store/IInterpreterStoreV1.sol";
 
-contract Rainterpreter is IInterpreterV1, RainInterpreter {
-    using LibStackTop for StackTop;
+error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
+
+bytes32 constant STORE_BYTECODE_HASH = bytes32(
+    0xfe00b419e2ae9d3b8993922df8565334fc2a3d0ed4e28cbafdb04517dcf6050a
+);
+
+/// @title Rainterpreter
+/// @notice Minimal binding of the `IIinterpreterV1` interface to the
+/// `LibInterpreterState` library, including every opcode in `AllStandardOps`.
+/// This is the default implementation of "an interpreter" but is designed such
+/// that other interpreters can easily be developed alongside. Alterpreters can
+/// either be built by inheriting and overriding the functions on this contract,
+/// or using the relevant libraries to construct an alternative binding to the
+/// same interface.
+contract Rainterpreter is IInterpreterV1 {
+    using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
-    using LibCast for function(InterpreterState memory, Operand, StackTop)
+    using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
-        returns (StackTop)[];
+        returns (StackPointer)[];
     using LibConvert for uint256[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
+    using LibInterpreterState for StateNamespace;
 
-    // state is several tiers of sandbox
-    //
-    // 0. address is msg.sender so that callers cannot attack each other
-    // 1. StateNamespace is caller-provided namespace so that expressions cannot attack each other
-    // 2. uint is expression-provided key
-    // 3. uint is expression-provided value
-    //
-    // tiers 0 and 1 are both embodied in the FullyQualifiedNamespace.
-    mapping(FullyQualifiedNamespace => mapping(uint => uint)) internal state;
+    IInterpreterStoreV1 internal immutable store;
 
-    function _qualifyNamespace(
-        StateNamespace stateNamespace_
-    ) internal view returns (FullyQualifiedNamespace) {
-        return
-            FullyQualifiedNamespace.wrap(
-                uint256(
-                    keccak256(
-                        abi.encodePacked(
-                            msg.sender,
-                            StateNamespace.unwrap(stateNamespace_)
-                        )
-                    )
-                )
-            );
+    event ValidStore(address sender, address store);
+
+    /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
+    /// MISTAKES.
+    constructor(address store_) {
+        // Guard against an store with unknown bytecode.
+        bytes32 storeHash_;
+        assembly ("memory-safe") {
+            storeHash_ := extcodehash(store_)
+        }
+        if (storeHash_ != STORE_BYTECODE_HASH) {
+            revert UnexpectedStoreBytecodeHash(storeHash_);
+        }
+
+        emit ValidStore(msg.sender, store_);
+        store = IInterpreterStoreV1(store_);
     }
 
-    function staticEval(
-        FullyQualifiedNamespace namespace_,
+    /// @inheritdoc IInterpreterV1
+    function eval(
+        StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    ) external view returns (uint256[] memory, uint256[] memory) {
-        require(msg.sender == address(this), "NOT_THIS");
+    )
+        external
+        view
+        returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory)
+    {
+        // Decode the dispatch.
         (
             address expression_,
             SourceIndex sourceIndex_,
-            uint maxOutputs_
+            uint256 maxOutputs_
         ) = LibEncodedDispatch.decode(dispatch_);
+
+        // Build the interpreter state from the onchain expression.
         InterpreterState memory state_ = SSTORE2
             .read(expression_)
             .deserialize();
-        state_.namespace = namespace_;
+        state_.stateKV = MemoryKV.wrap(0);
+        state_.namespace = namespace_.qualifyNamespace();
+        state_.store = store;
         state_.context = context_;
-        StackTop stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
+
+        // Eval the expression and return up to maxOutputs_ from the final stack.
+        StackPointer stackTop_ = state_.eval(sourceIndex_, state_.stackBottom);
         uint256 stackLength_ = state_.stackBottom.toIndex(stackTop_);
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, state_.stateKV.toUint256Array());
+        return (tail_, store, state_.stateKV.toUint256Array());
     }
 
-    function evalWithNamespace(
-        StateNamespace namespace_,
-        EncodedDispatch dispatch_,
-        uint256[][] calldata context_
-    ) public view returns (uint256[] memory, uint256[] memory) {
-        return
-            this.staticEval(_qualifyNamespace(namespace_), dispatch_, context_);
-    }
-
-    function eval(
-        EncodedDispatch dispatch_,
-        uint256[][] calldata context_
-    ) external view returns (uint256[] memory, uint256[] memory) {
-        return evalWithNamespace(StateNamespace.wrap(0), dispatch_, context_);
-    }
-
-    function stateChangesWithNamespace(
-        StateNamespace stateNamespace_,
-        uint256[] calldata stateChanges_
-    ) public {
-        FullyQualifiedNamespace fullyQualifiedNamespace_ = _qualifyNamespace(
-            stateNamespace_
-        );
-        unchecked {
-            for (uint256 i_ = 0; i_ < stateChanges_.length; i_ += 2) {
-                state[fullyQualifiedNamespace_][
-                    stateChanges_[i_]
-                ] = stateChanges_[i_ + 1];
-            }
-        }
-    }
-
-    function stateChanges(uint[] calldata stateChanges_) external {
-        stateChangesWithNamespace(StateNamespace.wrap(0), stateChanges_);
-    }
-
-    function functionPointers() external view returns (bytes memory) {
-        return opcodeFunctionPointers().asUint256Array().unsafeTo16BitBytes();
-    }
-
-    function opGet(
-        InterpreterState memory interpreterState_,
-        Operand,
-        StackTop stackTop_
-    ) internal view returns (StackTop) {
-        uint k_;
-        (stackTop_, k_) = stackTop_.pop();
-        MemoryKVPtr kvPtr_ = interpreterState_.stateKV.getPtr(
-            MemoryKVKey.wrap(k_)
-        );
-        uint v_ = 0;
-        if (MemoryKVPtr.unwrap(kvPtr_) > 0) {
-            v_ = MemoryKVVal.unwrap(kvPtr_.readPtrVal());
-        } else {
-            v_ = state[interpreterState_.namespace][k_];
-        }
-        return stackTop_.push(v_);
-    }
-
-    function localIntegrityFunctionPointers()
-        internal
-        pure
-        virtual
-        returns (
-            function(IntegrityState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory
-        )
-    {
-        function(IntegrityState memory, Operand, StackTop)
+    /// @inheritdoc IInterpreterV1
+    function functionPointers() external view virtual returns (bytes memory) {
+        function(InterpreterState memory, Operand, StackPointer)
             view
-            returns (StackTop)[]
-            memory localPtrs_ = new function(
-                IntegrityState memory,
-                Operand,
-                StackTop
-            ) view returns (StackTop)[](1);
-        localPtrs_[0] = OpGet.integrity;
-        return localPtrs_;
-    }
-
-    function localEvalFunctionPointers()
-        internal
-        pure
-        virtual
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory
-        )
-    {
-        function(InterpreterState memory, Operand, StackTop)
-            view
-            returns (StackTop)[]
+            returns (StackPointer)[]
             memory localPtrs_ = new function(
                 InterpreterState memory,
                 Operand,
-                StackTop
-            ) view returns (StackTop)[](1);
-        localPtrs_[0] = opGet;
-        return localPtrs_;
-    }
-
-    /// @inheritdoc RainInterpreter
-    function opcodeFunctionPointers()
-        internal
-        view
-        virtual
-        override
-        returns (
-            function(InterpreterState memory, Operand, StackTop)
-                view
-                returns (StackTop)[]
-                memory
-        )
-    {
+                StackPointer
+            ) view returns (StackPointer)[](0);
         return
-            AllStandardOps.opcodeFunctionPointers(localEvalFunctionPointers());
+            AllStandardOps
+                .opcodeFunctionPointers(localPtrs_)
+                .asUint256Array()
+                .unsafeTo16BitBytes();
     }
 }

@@ -26,7 +26,7 @@ import {
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
   memoryOperand,
@@ -65,7 +65,9 @@ describe("OrderBook many-to-many", async function () {
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
     interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
   });
 
   it("should support a 'slosh' many-to-many orders setup", async function () {
@@ -319,7 +321,7 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { stateChange: clearStateChange0 } = (await getEventArgs(
+    const { clearStateChange: clearStateChange0 } = (await getEventArgs(
       txClearOrder0,
       "AfterClear",
       orderBook
@@ -372,7 +374,7 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { stateChange: clearStateChange1 } = (await getEventArgs(
+    const { clearStateChange: clearStateChange1 } = (await getEventArgs(
       txClearOrder1,
       "AfterClear",
       orderBook

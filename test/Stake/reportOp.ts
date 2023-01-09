@@ -13,10 +13,10 @@ import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
-import { expressionDeployConsumer } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
   memoryOperand,
@@ -60,7 +60,9 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
     await logic.deployed();
     interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
   });
 
   beforeEach(async () => {
@@ -107,12 +109,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       op(Opcode.ITIERV2_REPORT)
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants: [stake.address],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -162,12 +165,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     await token.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -226,12 +230,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp = await getBlockTimestamp();
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -299,12 +304,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp0 = await getBlockTimestamp();
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -402,12 +408,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp = await getBlockTimestamp();
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -475,12 +482,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -608,12 +616,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime0_ = await getBlockTimestamp();
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source],
         constants: [stake.address, ...THRESHOLDS],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -756,12 +765,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       op(Opcode.ITIERV2_REPORT, thresholds0.length),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [source0],
         constants: [stake.address, ...thresholds0],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, [
@@ -785,12 +795,13 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       op(Opcode.ITIERV2_REPORT, thresholds1.length),
     ]);
 
-    const expression1 = await expressionDeployConsumer(
+    const expression1 = await expressionConsumerDeploy(
       {
         sources: [source1],
         constants: [stake.address, ...thresholds1],
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await logic.eval(rainInterpreter.address, expression1.dispatch, [

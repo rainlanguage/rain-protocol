@@ -35,7 +35,7 @@ import {
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -290,7 +290,7 @@ describe("FactoryCurator createChild", async function () {
     await reserve18.initialize();
 
     const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployer(
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       interpreter
     );
 
@@ -418,7 +418,7 @@ describe("FactoryCurator createChild", async function () {
     const deployer = signers[3];
 
     const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployer(
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       interpreter
     );
 

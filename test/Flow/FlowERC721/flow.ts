@@ -180,7 +180,7 @@ describe("FlowERC721 flow tests", async function () {
         await flowCannotTransfer
           .connect(you)
           .transferFrom(you.address, signerReceiver.address, tokenId),
-      "INVALID_TRANSFER",
+      "InvalidTransfer()",
       "transferred when it should not"
     );
   });

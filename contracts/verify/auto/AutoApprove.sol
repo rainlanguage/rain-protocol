@@ -7,11 +7,11 @@ import "../../array/LibUint256Array.sol";
 import {AllStandardOps} from "../../interpreter/ops/AllStandardOps.sol";
 import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
-import "../../interpreter/run/LibStackTop.sol";
+import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 
-uint constant CAN_APPROVE_MIN_OUTPUTS = 1;
-uint constant CAN_APPROVE_MAX_OUTPUTS = 1;
+uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
+uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
 
 struct AutoApproveConfig {
@@ -21,12 +21,12 @@ struct AutoApproveConfig {
 }
 
 contract AutoApprove is VerifyCallback {
-    using LibStackTop for StackTop;
+    using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
-    using LibStackTop for uint256[];
-    using LibStackTop for StackTop;
+    using LibStackPointer for uint256[];
+    using LibStackPointer for StackPointer;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -45,13 +45,11 @@ contract AutoApprove is VerifyCallback {
     ) external initializer {
         __VerifyCallback_init();
 
-        (address expression_, ) = IExpressionDeployerV1(
-            config_.expressionDeployer
-        ).deployExpression(
+        expression = IExpressionDeployerV1(config_.expressionDeployer)
+            .deployExpression(
                 config_.stateConfig,
                 LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
             );
-        expression = expression_;
         interpreter = IInterpreterV1(config_.interpreter);
 
         _transferOwnership(msg.sender);
@@ -68,7 +66,7 @@ contract AutoApprove is VerifyCallback {
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[][] memory context_ = new uint256[][](1);
-            context_[0] = new uint[](2);
+            context_[0] = new uint256[](2);
             EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
                 expression,
                 CAN_APPROVE_ENTRYPOINT,
@@ -80,10 +78,15 @@ contract AutoApprove is VerifyCallback {
                     context_[0][0] = uint256(uint160(evidences_[i_].account));
                     context_[0][1] = uint256(bytes32(evidences_[i_].data));
                     (
-                        uint[] memory stack_,
-                        uint[] memory stateChanges_
-                    ) = interpreter_.eval(dispatch_, context_);
-                    if (stack_.asStackTopAfter().peek() > 0) {
+                        uint256[] memory stack_,
+                        IInterpreterStoreV1 store_,
+                        uint256[] memory kvs_
+                    ) = interpreter_.eval(
+                            DEFAULT_STATE_NAMESPACE,
+                            dispatch_,
+                            context_
+                        );
+                    if (stack_[stack_.length - 1] > 0) {
                         LibEvidence._updateEvidenceRef(
                             approvedRefs_,
                             evidences_[i_],
@@ -91,8 +94,8 @@ contract AutoApprove is VerifyCallback {
                         );
                         approvals_++;
                     }
-                    if (stateChanges_.length > 0) {
-                        interpreter_.stateChanges(stateChanges_);
+                    if (kvs_.length > 0) {
+                        store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
                     }
                 }
             }

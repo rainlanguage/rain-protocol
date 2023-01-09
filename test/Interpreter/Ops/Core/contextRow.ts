@@ -23,10 +23,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
@@ -46,10 +49,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const row: number[] = new Array<number>(MAX_ROWS).fill(1, 0, MAX_ROWS);
     const context = [row];
@@ -68,33 +74,20 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     // OOB check for row is being made at runtime
     await assertError(
-      async () => await consumerLogic.eval(interpreter.address, dispatch, [[]]),
+      async () => await consumerLogic.eval(interpreter.address, dispatch, []),
       "Array accessed at an out-of-bounds or negative index",
       "did not error when accessing OOB ROW"
     );
-  });
-
-  it("should error if accessing OOB COLUMN", async () => {
-    const constants = [];
-    const sources = [concat([op(Opcode.CONTEXT_ROW, 0x0100)])];
-
-    await assertError(
-      async () =>
-        await iinterpreterV1ConsumerDeploy({
-          sources,
-          constants,
-        }),
-      "OOB_COLUMN",
-      "did not error when accessing OOB COLUMN"
-    );
-    // OOB ROW is checked at runtime
   });
 
   it("should return correct context value when specifying CONTEXT_ROW operand for 2D context", async () => {
@@ -125,10 +118,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        20
+      );
 
     const context = [
       [0, 1, 2, 3],
@@ -168,10 +164,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        8
+      );
 
     const context = [[10, 20, 30, 40]];
 
@@ -199,10 +198,13 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
     ];
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources,
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources,
+          constants,
+        },
+        1
+      );
 
     const data = [
       [422, 213, 123, 413],

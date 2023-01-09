@@ -23,12 +23,25 @@ import {
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployer } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import { getDeposits } from "../../utils/stake/deposits";
+import { ReserveToken } from "../../typechain/ReserveToken";
+import { StakeConfigStruct } from "../../typechain/Stake";
+import { StakeFactory } from "../../typechain/StakeFactory";
+import { getDeposits, op, Opcode } from "../../utils";
+import {
+  max_uint256,
+  ONE,
+  sixZeros,
+  eighteenZeros,
+} from "../../utils/constants/bigNumber";
+import { basicDeploy } from "../../utils/deploy/basic";
+import { stakeDeploy } from "../../utils/deploy/stake";
 import { assertError } from "../../utils/test/assertError";
+import { getBlockTimestamp, timewarp } from "../../utils/hardhat/index";
 
 describe("Stake withdraw", async function () {
   let stakeFactory: StakeFactory;
@@ -39,7 +52,9 @@ describe("Stake withdraw", async function () {
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
     interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployer(interpreter);
+    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
   });
 
   beforeEach(async () => {
@@ -55,9 +70,9 @@ describe("Stake withdraw", async function () {
     const constants = [max_uint256, max_uint256, 0, 1, 2, 3];
 
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const _v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
-    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const _v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -73,13 +88,13 @@ describe("Stake withdraw", async function () {
     // prettier-ignore
     //expression will fail
     const withdrawSource =  concat([
-                      v0,
-                      v2,
-                      v0,
-                  op(Opcode.EAGER_IF),
-                    op(Opcode.ENSURE, 1),
-                    max_withdraw
-                  ])
+          v0,
+          v2,
+          v0,
+        op(Opcode.EAGER_IF),
+      op(Opcode.ENSURE, 1),
+      max_withdraw
+    ])
 
     const source = [depositSource, withdrawSource];
 
@@ -113,7 +128,7 @@ describe("Stake withdraw", async function () {
 
     const constants = [max_uint256, TEN, 0, 1, 2, 3];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const _v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
     const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
@@ -165,7 +180,7 @@ describe("Stake withdraw", async function () {
       ethers.BigNumber.from("1000" + eighteenZeros)
     );
 
-    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    const _tokenBalanceAlice0 = await token.balanceOf(alice.address);
     const stTokenSupply0 = await stake.totalSupply();
 
     assert(stTokenSupply0.isZero(), "initial stToken supply was not 0");
@@ -234,7 +249,7 @@ describe("Stake withdraw", async function () {
 
     await timewarp(86400);
 
-    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
+    const _stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
     const tokenPool0 = await token.balanceOf(stake.address);
 
     await timewarp(86400);
@@ -739,5 +754,153 @@ describe("Stake withdraw", async function () {
     // Alice withdraws all stake tokens
     const depositsAlice2_ = await getDeposits(stake, alice.address);
     assert(depositsAlice2_.length === 0);
+  });
+
+  it("should monitor user deposit on multiple deposits and withdraws", async () => {
+    /**
+     * all tokens and calculations are in 18 decimals
+     * 1. Alice deposits 10 tokens
+     * 2. Alice deposits 10 tokens
+     * 3. Alice withdraws 10 tokens
+     * 4. Alice withdraws 1 token
+     * 5. Alice withdraws 10 tokens => revert
+     * 6. Alice deposits 1 token
+     * 7. Alice withdraws 1 token
+     * 8. Alice withdraws 1 token
+     * 9. Alice withdraws 10 token => revert
+     */
+    token = (await basicDeploy("ReserveToken18", {})) as ReserveToken;
+    await token.initialize();
+
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const constants = [max_uint256];
+    const source = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: [source, source],
+        constants: constants,
+      },
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("10" + eighteenZeros)
+    );
+
+    // Deposits 10 tokens
+    const tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
+    await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
+
+    await timewarp(86400);
+
+    //Deposits 10 more tokens
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("10" + eighteenZeros)
+    );
+    const tokenBalanceAlice1 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice1);
+    await stake.connect(alice).deposit(tokenBalanceAlice1, alice.address);
+
+    const depositsAlice2_ = await getDeposits(stake, alice.address);
+    const time2_ = await getBlockTimestamp();
+    assert(depositsAlice2_[1].timestamp === time2_);
+
+    // because on last deposit, there will be accure amount of 2 consecutive deposits
+    assert(
+      depositsAlice2_[1].amount.eq(tokenBalanceAlice1.add(tokenBalanceAlice0))
+    );
+
+    await timewarp(86400);
+
+    // withdraw 10 tokens
+    await stake
+      .connect(alice)
+      .withdraw(tokenBalanceAlice1, alice.address, alice.address);
+    const withdrawsAlice0_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice0_[0].timestamp === time1_);
+    assert(withdrawsAlice0_[0].amount.eq(tokenBalanceAlice0));
+
+    // withdraw 1 token
+    await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+    const withdrawsAlice1_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice1_[0].timestamp === time1_);
+    assert(withdrawsAlice1_[0].amount.eq(tokenBalanceAlice0.sub(ONE)));
+
+    // withdraw 10 tokens, this should REVERT
+    await assertError(
+      async () =>
+        await stake
+          .connect(alice)
+          .withdraw(tokenBalanceAlice0, alice.address, alice.address),
+      "ERC4626: withdraw more than max",
+      "overdrew when performing withdraw"
+    );
+
+    // deposit 1 token process deposit
+    await token.transfer(
+      alice.address,
+      ethers.BigNumber.from("1" + eighteenZeros)
+    );
+    const tokenBalanceAlice3 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice3);
+    await stake.connect(alice).deposit(ONE, alice.address);
+
+    const time3_ = await getBlockTimestamp();
+    const depositsAlice3_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice3_[1].timestamp === time3_);
+    assert(depositsAlice3_[1].amount.eq(tokenBalanceAlice0));
+
+    // withdraw 1 token
+    await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+    const withdrawsAlice3_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice3_[0].timestamp === time1_);
+    assert(withdrawsAlice3_[0].amount.eq(tokenBalanceAlice0.sub(ONE)));
+
+    // withdraw 1 token
+    await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+    const withdrawsAlice4_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice4_[0].timestamp === time1_);
+    assert(withdrawsAlice4_[0].amount.eq(tokenBalanceAlice0.sub(ONE).sub(ONE)));
+
+    // withdraw 10 tokens, this should REVERT
+    await assertError(
+      async () => {
+        await stake
+          .connect(alice)
+          .withdraw(tokenBalanceAlice0, alice.address, alice.address); // withdrawAmount > max_withdraw
+      },
+      "ERC4626: withdraw more than max",
+      "wrongly withdrew amount greater than MAX_WITHDRAW"
+    );
+
+    // get deposits
+    const depositsAlice_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice_[0].timestamp === time1_);
+    assert(depositsAlice_[0].amount.eq(tokenBalanceAlice0.sub(ONE).sub(ONE)));
   });
 });

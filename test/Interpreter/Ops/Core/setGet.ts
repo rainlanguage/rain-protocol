@@ -14,13 +14,13 @@ import {
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import {
   iinterpreterV1ConsumerDeploy,
-  expressionDeployConsumer,
+  expressionConsumerDeploy,
 } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = RainterpreterOps;
 
 describe("SET/GET Opcode tests", async function () {
-  it("should update the key in stateChange array when same key is set more than once", async () => {
+  it("should update the key in kvs array when same key is set more than once", async () => {
     const key1 = 100;
     const val1 = ethers.constants.MaxUint256;
     const val2 = 555;
@@ -50,19 +50,22 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source],
+          constants,
+        },
+        2
+      );
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
-    // Asserting StateChanges array
-    const stateChanges = await consumerLogic["stateChanges()"]();
-    assert(stateChanges.length == 2, "Invalid stateChanges length");
-    assert(stateChanges[0].eq(key1), "Invalid Key set in stateChange");
-    assert(stateChanges[1].eq(val2), "Invalid Value set in stateChange");
+    // Asserting KVs array
+    const kvs = await consumerLogic["kvs()"]();
+    assert(kvs.length == 2, "Invalid kvs length");
+    assert(kvs[0].eq(key1), "Invalid Key set in kvs");
+    assert(kvs[1].eq(val2), "Invalid Value set in kvs");
 
     // Asserting stack
     const stack = await consumerLogic.stack();
@@ -101,13 +104,16 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source],
+          constants,
+        },
+        2
+      );
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 2, "Invalid stack length");
@@ -156,13 +162,16 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source],
+          constants,
+        },
+        3
+      );
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 3, "Invalid stack length");
@@ -190,17 +199,20 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     let { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source1],
-        constants: constants1,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source1],
+          constants: constants1,
+        },
+        1
+      );
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
     const stack1 = await consumerLogic.stack();
 
-    // StackTop
+    // StackPointer
     const val1_ = stack1[stack1.length - 1];
 
     assert(val1_.eq(val), "Invalid value was SET / GET");
@@ -222,19 +234,22 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     ({ consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source2],
-        constants: constants2,
-      }));
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source2],
+          constants: constants2,
+        },
+        1
+      ));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
     const stack2 = await consumerLogic.stack();
 
     const val2_ = stack2[stack2.length - 1];
 
-    // StackTop
+    // StackPointer
     assert(
       val2_.eq(hashedValue),
       "Invalid value was SET / GET for hashed bytes"
@@ -257,19 +272,22 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     ({ consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source3],
-        constants: constants3,
-      }));
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source3],
+          constants: constants3,
+        },
+        1
+      ));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
     const stack3 = await consumerLogic.stack();
 
     const val3_ = stack3[stack3.length - 1];
 
-    // StackTop
+    // StackPointer
     assert(
       val3_.eq(maxValue),
       "Invalid value was SET / GET for max key value pair"
@@ -292,19 +310,22 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     ({ consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source4],
-        constants: constants4,
-      }));
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source4],
+          constants: constants4,
+        },
+        1
+      ));
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
     const stack4 = await consumerLogic.stack();
 
     const val4_ = stack4[stack4.length - 1];
 
-    // StackTop
+    // StackPointer
     assert(
       val4_.eq(addressValue),
       "Invalid value was SET / GET for string key value pair"
@@ -325,19 +346,22 @@ describe("SET/GET Opcode tests", async function () {
     ]);
 
     const { consumerLogic, interpreter, dispatch } =
-      await iinterpreterV1ConsumerDeploy({
-        sources: [source],
-        constants,
-      });
+      await iinterpreterV1ConsumerDeploy(
+        {
+          sources: [source],
+          constants,
+        },
+        1
+      );
 
     // Eval
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
 
-    const stateChanges = await consumerLogic["stateChanges()"]();
+    const kvs = await consumerLogic["kvs()"]();
 
-    // StackTop
-    const key_ = stateChanges[0];
-    const val_ = stateChanges[1];
+    // StackPointer
+    const key_ = kvs[0];
+    const val_ = kvs[1];
 
     assert(key_.eq(key), "Invalid key");
     assert(val_.eq(val), "Invalid value");
@@ -375,12 +399,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.eval(
@@ -389,18 +414,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       []
     );
 
-    const stateChanges_ = await consumerLogicA["stateChanges()"]();
-    await consumerLogicA["stateChanges(address,uint256[])"](
-      rainInterpreter.address,
-      stateChanges_
+    const kvs_ = await consumerLogicA["kvs()"]();
+    await consumerLogicA["set(address,uint256[])"](
+      await consumerLogicA.store(),
+      kvs_
     );
 
-    // Asserting StateChanges array
-    const stateChanges = await consumerLogicA["stateChanges()"]();
+    // Asserting kvs array
+    const kvs = await consumerLogicA["kvs()"]();
 
-    assert(stateChanges.length == 2, "Invalid stateChanges length");
-    assert(stateChanges[0].eq(key), "Invalid Key set in stateChange");
-    assert(stateChanges[1].eq(val), "Invalid Value set in stateChange");
+    assert(kvs.length == 2, "Invalid kvs length");
+    assert(kvs[0].eq(key), "Invalid Key set in kv");
+    assert(kvs[1].eq(val), "Invalid Value set in kv");
   });
 
   it("should share set/get values across all expressions from the calling contract if namespace is not set", async () => {
@@ -423,12 +448,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constantsA,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.eval(
@@ -438,20 +464,20 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     // Saving state changes in interpreter storage
-    const stateChanges_ = await consumerLogicA["stateChanges()"]();
-    await consumerLogicA["stateChanges(address,uint256[])"](
-      rainInterpreter.address,
-      stateChanges_
+    const kvs_ = await consumerLogicA["kvs()"]();
+    await consumerLogicA["set(address,uint256[])"](
+      await consumerLogicA.store(),
+      kvs_
     );
 
     // Asserting StateChanges array
-    const stateChanges = await consumerLogicA["stateChanges()"]();
+    const kvs = await consumerLogicA["kvs()"]();
 
-    assert(stateChanges.length == 4, "Invalid stateChanges length");
-    assert(stateChanges[0].eq(key2), "Invalid Key set in stateChange");
-    assert(stateChanges[1].eq(val2), "Invalid Value set in stateChange");
-    assert(stateChanges[2].eq(key1), "Invalid Key set in stateChange");
-    assert(stateChanges[3].eq(val1), "Invalid Value set in stateChange");
+    assert(kvs.length == 4, "Invalid kvs length");
+    assert(kvs[0].eq(key2), "Invalid Key set in kv");
+    assert(kvs[1].eq(val2), "Invalid Value set in kv");
+    assert(kvs[2].eq(key1), "Invalid Key set in kv");
+    assert(kvs[3].eq(val1), "Invalid Value set in kv");
 
     // prettier-ignore
     const sourceB = concat([
@@ -465,12 +491,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionB = await expressionDeployConsumer(
+    const expressionB = await expressionConsumerDeploy(
       {
         sources: [sourceB],
         constants: constantsB,
       },
-      rainInterpreter
+      rainInterpreter,
+      2
     );
 
     await consumerLogicA.eval(
@@ -499,12 +526,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       op(Opcode.SET)
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.eval(
@@ -513,18 +541,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       []
     );
 
-    const stateChanges_ = await consumerLogicA["stateChanges()"]();
-    await consumerLogicA["stateChanges(address,uint256[])"](
-      rainInterpreter.address,
-      stateChanges_
+    const kvs_ = await consumerLogicA["kvs()"]();
+    await consumerLogicA["set(address,uint256[])"](
+      consumerLogicA.store(),
+      kvs_
     );
 
     // Asserting StateChanges array
-    const stateChanges = await consumerLogicA["stateChanges()"]();
+    const kvs = await consumerLogicA["kvs()"]();
 
-    assert(stateChanges.length == 2, "Invalid stateChanges length");
-    assert(stateChanges[0].eq(key), "Invalid Key set in stateChange");
-    assert(stateChanges[1].eq(val), "Invalid Value set in stateChange");
+    assert(kvs.length == 2, "Invalid kvs length");
+    assert(kvs[0].eq(key), "Invalid Key set in kv");
+    assert(kvs[1].eq(val), "Invalid Value set in kv");
 
     // prettier-ignore
     const sourceB = concat([
@@ -534,12 +562,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionB = await expressionDeployConsumer(
+    const expressionB = await expressionConsumerDeploy(
       {
         sources: [sourceB],
         constants: constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicB.eval(
@@ -571,12 +600,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.evalWithNamespace(
@@ -587,17 +617,17 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     // Saving interpreter state
-    const stateChanges_ = await consumerLogicA["stateChanges()"]();
+    const kvs_ = await consumerLogicA["kvs()"]();
     await consumerLogicA[
-      "stateChangesWithNamespace(address,uint256,uint256[])"
-    ](rainInterpreter.address, namespaceA, stateChanges_);
+      "set(address,uint256,uint256[])"
+    ](await consumerLogicA.store(), namespaceA, kvs_);
 
-    // Asserting StateChanges array
-    const stateChanges = await consumerLogicA["stateChanges()"]();
+    // Asserting kvs array
+    const kvs = await consumerLogicA["kvs()"]();
 
-    assert(stateChanges.length == 2, "Invalid stateChanges length");
-    assert(stateChanges[0].eq(key), "Invalid Key set in stateChange");
-    assert(stateChanges[1].eq(val), "Invalid Value set in stateChange");
+    assert(kvs.length == 2, "Invalid kvs length");
+    assert(kvs[0].eq(key), "Invalid Key set in kv");
+    assert(kvs[1].eq(val), "Invalid Value set in kv");
 
     // B evals on different namespace
     // prettier-ignore
@@ -608,12 +638,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionB = await expressionDeployConsumer(
+    const expressionB = await expressionConsumerDeploy(
       {
         sources: [sourceB],
         constants: constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.evalWithNamespace(
@@ -638,12 +669,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionC = await expressionDeployConsumer(
+    const expressionC = await expressionConsumerDeploy(
       {
         sources: [sourceC],
         constants: constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.evalWithNamespace(
@@ -677,12 +709,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constantsA,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.evalWithNamespace(
@@ -692,10 +725,10 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       []
     );
 
-    const _stateChangesA = await consumerLogicA["stateChanges()"]();
+    const _KVsA = await consumerLogicA["kvs()"]();
     await consumerLogicA[
-      "stateChangesWithNamespace(address,uint256,uint256[])"
-    ](rainInterpreter.address, namespaceA, _stateChangesA);
+      "set(address,uint256,uint256[])"
+    ](await consumerLogicA.store(), namespaceA, _KVsA);
 
     // prettier-ignore
     const sourceB = concat([
@@ -705,12 +738,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
   ]);
 
-    const expressionB = await expressionDeployConsumer(
+    const expressionB = await expressionConsumerDeploy(
       {
         sources: [sourceB],
         constants: constantsB,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicB.evalWithNamespace(
@@ -720,22 +754,22 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       []
     );
 
-    const _stateChangesB = await consumerLogicB["stateChanges()"]();
+    const _KVsB = await consumerLogicB["kvs()"]();
     await consumerLogicB[
-      "stateChangesWithNamespace(address,uint256,uint256[])"
-    ](rainInterpreter.address, namespaceA, _stateChangesB);
+      "set(address,uint256,uint256[])"
+    ](consumerLogicB.store(), namespaceA, _KVsB);
 
-    // Asserting StateChanges array
-    const stateChangesA = await consumerLogicA["stateChanges()"]();
-    const stateChangesB = await consumerLogicB["stateChanges()"]();
+    // Asserting KVs array
+    const KVsA = await consumerLogicA["kvs()"]();
+    const KVsB = await consumerLogicB["kvs()"]();
 
-    assert(stateChangesA.length == 2, "Invalid stateChangesA length");
-    assert(stateChangesA[0].eq(key), "Invalid Key set in stateChangesA");
-    assert(stateChangesA[1].eq(val1), "Invalid Value set in stateChangesA");
+    assert(KVsA.length == 2, "Invalid KVsA length");
+    assert(KVsA[0].eq(key), "Invalid Key set in KVsA");
+    assert(KVsA[1].eq(val1), "Invalid Value set in KVsA");
 
-    assert(stateChangesB.length == 2, "Invalid stateChangesB length");
-    assert(stateChangesB[0].eq(key), "Invalid Key set in stateChangesB");
-    assert(stateChangesB[1].eq(val2), "Invalid Value set in stateChangesB");
+    assert(KVsB.length == 2, "Invalid KVsB length");
+    assert(KVsB[0].eq(key), "Invalid Key set in KVsB");
+    assert(KVsB[1].eq(val2), "Invalid Value set in KVsB");
   });
 
   it("ensure that calling get on an unset key falls back to 0", async () => {
@@ -754,24 +788,25 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constantsA,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
-    await consumerLogicA.eval(
+    await consumerLogicA['eval(address,uint256,uint256[][])'](
       rainInterpreter.address,
       expressionA.dispatch,
       []
     );
 
-    const _stateChangesA = await consumerLogicA["stateChanges()"]();
-    await consumerLogicA["stateChanges(address,uint256[])"](
-      rainInterpreter.address,
-      _stateChangesA
+    const _KVsA = await consumerLogicA["kvs()"]();
+    await consumerLogicA["set(address,uint256[])"](
+      await consumerLogicA.store(),
+      _KVsA
     );
 
     // prettier-ignore
@@ -779,18 +814,18 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
         // GET KEY 2
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // key
         op(Opcode.GET),
-
     ]);
 
-    const expressionB = await expressionDeployConsumer(
+    const expressionB = await expressionConsumerDeploy(
       {
         sources: [sourceB],
         constants: constantsB,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
-    await consumerLogicA.eval(
+    await consumerLogicA['eval(address,uint256,uint256[][])'](
       rainInterpreter.address,
       expressionB.dispatch,
       []
@@ -826,12 +861,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     ]);
 
-    const expressionA = await expressionDeployConsumer(
+    const expressionA = await expressionConsumerDeploy(
       {
         sources: [sourceA],
         constants: constantsA,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.eval(
@@ -840,15 +876,15 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       []
     );
 
-    const _stateChangesA = await consumerLogicA["stateChanges()"]();
+    const _KVsA = await consumerLogicA["kvs()"]();
     // Assert State Change
-    assert(_stateChangesA.length == 2, "Invalid stateChanges length");
-    assert(_stateChangesA[0].eq(key), "Invalid Key set in stateChange");
-    assert(_stateChangesA[1].eq(val2), "Invalid Value set in stateChange");
+    assert(_KVsA.length == 2, "Invalid kvs length");
+    assert(_KVsA[0].eq(key), "Invalid Key set in kvs");
+    assert(_KVsA[1].eq(val2), "Invalid Value set in kvs");
 
-    await consumerLogicA["stateChanges(address,uint256[])"](
-      rainInterpreter.address,
-      _stateChangesA
+    await consumerLogicA["set(address,uint256[])"](
+      await consumerLogicA.store(),
+      _KVsA
     );
 
     // prettier-ignore
@@ -860,12 +896,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
   ]);
 
-    const expressionB = await expressionDeployConsumer(
+    const expressionB = await expressionConsumerDeploy(
       {
         sources: [sourceB],
         constants: constantsB,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.eval(
@@ -874,16 +911,16 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       []
     );
 
-    const _stateChangesB = await consumerLogicA["stateChanges()"]();
+    const _KVsB = await consumerLogicA["kvs()"]();
 
     //assert state change
-    assert(_stateChangesB.length == 2, "Invalid stateChanges length");
-    assert(_stateChangesB[0].eq(key), "Invalid Key set in stateChange");
-    assert(_stateChangesB[1].eq(val3), "Invalid Value set in stateChange");
+    assert(_KVsB.length == 2, "Invalid kvs length");
+    assert(_KVsB[0].eq(key), "Invalid Key set in kv");
+    assert(_KVsB[1].eq(val3), "Invalid Value set in kv");
 
-    await consumerLogicA["stateChanges(address,uint256[])"](
-      rainInterpreter.address,
-      _stateChangesB
+    await consumerLogicA["set(address,uint256[])"](
+      await consumerLogicA.store(),
+      _KVsB
     );
 
     // prettier-ignore
@@ -893,12 +930,13 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       op(Opcode.GET)
     ]);
 
-    const expressionC = await expressionDeployConsumer(
+    const expressionC = await expressionConsumerDeploy(
       {
         sources: [sourceC],
         constants: constantsC,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     await consumerLogicA.eval(

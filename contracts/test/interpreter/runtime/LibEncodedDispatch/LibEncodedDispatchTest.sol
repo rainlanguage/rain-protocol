@@ -8,8 +8,8 @@ import "../../../../interpreter/run/LibEncodedDispatch.sol";
 contract LibEncodedDispatchTest {
     function encode(
         address expressionPointer_,
-        uint sourceIndex_,
-        uint maxOutputs_
+        uint256 sourceIndex_,
+        uint256 maxOutputs_
     ) external pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
@@ -21,7 +21,7 @@ contract LibEncodedDispatchTest {
 
     function decode(
         EncodedDispatch dispatch_
-    ) external pure returns (address, SourceIndex, uint) {
+    ) external pure returns (address, SourceIndex, uint256) {
         return LibEncodedDispatch.decode(dispatch_);
     }
 }

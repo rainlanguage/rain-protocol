@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
 import { assertError } from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { expressionDeployConsumer } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   callOperand,
   Debug,
@@ -46,14 +46,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       ),
     ]);
 
-    const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
+    const sourceAdd = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.ADD, width + inputSize),
+    ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [
@@ -108,12 +116,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.ADD, 5),
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceCount],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [
@@ -153,14 +162,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       ),
     ]);
 
-    const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
+    const sourceAdd = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.ADD, width + inputSize),
+    ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context = [
@@ -197,16 +214,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       ),
     ]);
 
-    const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
+    const sourceAdd = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.ADD, width + inputSize),
+    ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
+    // The context column does need to exist even if it is zero length so it is
+    // still a 2 dimensional array here.
     const context = [[]];
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, context);
@@ -233,14 +256,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       ),
     ]);
 
-    const sourceAdd = concat([op(Opcode.ADD, width + inputSize)]);
+    const sourceAdd = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+      op(Opcode.ADD, width + inputSize),
+    ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceAdd],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      1
     );
 
     const context1 = [
@@ -309,16 +340,22 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     ]);
 
     // prettier-ignore
+    // even odd a b c d => even odd
     const sourceCalculate = concat([
         // counting EVEN numbers
-        op(Opcode.CALL, callOperand(width, 1, 2)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // Duplicating the returned value from call [i.e EVEN count]
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 3)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 4)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 5)),
+      op(Opcode.CALL, callOperand(width, 1, 2)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 6)), // Duplicating the returned value from call [i.e EVEN count]
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
       op(Opcode.ADD, 2),
+      op(Opcode.DEBUG),
 
           // counting ODD numbers [Total elements - EVEN number count = ODD number count]
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // Total width
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 2)), // number of even numbers in this context iteration
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 6)), // number of even numbers in this context iteration
         op(Opcode.SUB, 2),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
       op(Opcode.ADD, 2),
@@ -348,12 +385,13 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       op(Opcode.ADD, 4), // Adding all the mod values
     ]);
 
-    const expression0 = await expressionDeployConsumer(
+    const expression0 = await expressionConsumerDeploy(
       {
         sources: [sourceMain, sourceCalculate, sourceCountEven],
         constants,
       },
-      rainInterpreter
+      rainInterpreter,
+      2
     );
 
     const context = [
