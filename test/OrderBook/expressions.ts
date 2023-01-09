@@ -1105,11 +1105,16 @@ describe("OrderBook expression checks", async () => {
     // ASK ORDERS
 
     const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
-    const key1 = 100;
+    const key1 = ethers.BigNumber.from(randomUint256());
+    const key2 = ethers.BigNumber.from(randomUint256());
+    const key3 = ethers.BigNumber.from(randomUint256());
+
     const askConstants = [
       max_uint256,
       askRatio,
       key1,
+      key2,
+      key3,
       tokenADecimals,
       tokenBDecimals,
     ];
@@ -1122,22 +1127,45 @@ describe("OrderBook expression checks", async () => {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const key = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const inputTokenDecimals = op(
+    const compareKey = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const inputTokenKey = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 3)
     );
-    const outputTokenDecimals = op(
+    const outputTokenKey = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 4)
     );
 
+    const vExpectedInputTokenDecimals = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 5)
+    );
+    const vExpectedOutputTokenDecimals = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 6)
+    );
+
+    const INPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0201);
+    const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
+
     // prettier-ignore
     const askSource = concat([     
-        key ,
-            inputTokenDecimals ,
-            outputTokenDecimals ,
-            op(Opcode.GREATER_THAN),  
+        compareKey ,
+           INPUT_TOKEN_DECIMALS() ,
+           OUTPUT_TOKEN_DECIMALS() ,
+          op(Opcode.GREATER_THAN),  
+        op(Opcode.SET),  
+
+        inputTokenKey ,
+          INPUT_TOKEN_DECIMALS(), 
+        op(Opcode.SET), 
+
+        outputTokenKey ,
+          OUTPUT_TOKEN_DECIMALS(), 
         op(Opcode.SET), 
         vAskOutputMax,
         vAskRatio, 
@@ -1145,8 +1173,20 @@ describe("OrderBook expression checks", async () => {
 
     // prettier-ignore
     const handleIOSource = concat([   
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
+          compareKey,
         op(Opcode.GET), 
+        op(Opcode.ENSURE, 1)  ,
+        
+          inputTokenKey,
+        op(Opcode.GET), 
+        vExpectedInputTokenDecimals , 
+        op(Opcode.EQUAL_TO), 
+        op(Opcode.ENSURE, 1) , 
+
+          outputTokenKey,
+        op(Opcode.GET), 
+        vExpectedOutputTokenDecimals , 
+        op(Opcode.EQUAL_TO), 
         op(Opcode.ENSURE, 1) 
 
     ]);
