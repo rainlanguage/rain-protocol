@@ -324,7 +324,7 @@ describe("Stake withdraw", async function () {
     await assertError(
       async () =>
         await stake.connect(alice).withdraw(0, zeroAddress, alice.address),
-      "0_WITHDRAW_RECEIVER",
+      "ZeroWithdrawReceiver()",
       "wrongly processed withdraw to zeroAddress"
     );
 
@@ -332,7 +332,7 @@ describe("Stake withdraw", async function () {
     await assertError(
       async () =>
         await stake.connect(alice).withdraw(0, alice.address, zeroAddress),
-      "0_WITHDRAW_OWNER",
+      "ZeroWithdrawOwner()",
       "wrongly processed withdraw from zeroAddress"
     );
   });
@@ -651,7 +651,7 @@ describe("Stake withdraw", async function () {
     await assertError(
       async () =>
         await stake.connect(alice).withdraw(0, alice.address, alice.address),
-      "0_WITHDRAW_ASSETS",
+      "ZeroWithdrawAssets()",
       "wrongly processed withdraw of 0 stTokens"
     );
   });

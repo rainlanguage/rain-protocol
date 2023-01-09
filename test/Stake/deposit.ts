@@ -299,7 +299,7 @@ describe("Stake deposit", async function () {
 
     await assertError(
       async () => await stake.connect(alice).deposit(1, zeroAddress),
-      "0_DEPOSIT_RECEIVER",
+      "ZeroDepositReceiver()",
       "wrongly processed deposit to zeroAddress"
     );
 
@@ -426,7 +426,7 @@ describe("Stake deposit", async function () {
     await token.connect(bob).approve(stake.address, 3);
     await assertError(
       async () => await stake.connect(bob).deposit(3, bob.address),
-      "0_DEPOSIT_SHARES",
+      "ZeroDepositShares()",
       "did not protect bob from a deposit which would give him back 0 stTokens"
     );
   });
@@ -466,7 +466,7 @@ describe("Stake deposit", async function () {
     await token.connect(alice).approve(stake.address, 0);
     await assertError(
       async () => await stake.connect(alice).deposit(0, alice.address),
-      "0_DEPOSIT_ASSETS",
+      "ZeroDepositAssets()",
       "wrongly processed deposit of 0 tokens"
     );
 

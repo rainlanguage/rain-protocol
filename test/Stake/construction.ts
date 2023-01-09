@@ -78,7 +78,7 @@ describe("Stake construction", async function () {
     await assertError(
       async () =>
         await stakeDeploy(deployer, stakeFactory, stakeConfigStructZeroToken),
-      "0_ASSET",
+      "ZeroAsset()",
       "wrongly initialised Stake with token configured as 0 address"
     );
   });
