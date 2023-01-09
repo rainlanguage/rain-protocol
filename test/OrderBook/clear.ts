@@ -3472,7 +3472,7 @@ describe("OrderBook clear order", async function () {
       validInputs: [
         {
           token: tokenA06.address,
-          decimals: tokenADecimals ,
+          decimals: tokenADecimals,
           vaultId: aliceInputVault,
         },
       ],
@@ -3487,7 +3487,7 @@ describe("OrderBook clear order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data: []
+      data: [],
     };
     const txAskAddOrderAlice = await orderBook
       .connect(alice)
@@ -3538,11 +3538,9 @@ describe("OrderBook clear order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data: []
+      data: [],
     };
-    const txBidAddOrder = await orderBook
-      .connect(bob)
-      .addOrder(bidOrderConfig);
+    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
     const { order: bidOrder } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
@@ -3556,13 +3554,15 @@ describe("OrderBook clear order", async function () {
     // Deposit amount calculated with incorrect decimals
     const depositAmountA = fixedPointMul(
       depositAmountB,
-      ethers.BigNumber.from(10).pow(18 + incorrectTokenADecimals - tokenBDecimals )
+      ethers.BigNumber.from(10).pow(
+        18 + incorrectTokenADecimals - tokenBDecimals
+      )
     );
-    console.log("depositAmountA : " , depositAmountA ) //20000000000
+    console.log("depositAmountA : ", depositAmountA); //20000000000
 
     const expectedAliceInputVaultAmount = fixedPointMul(
       depositAmountB,
-      ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals )
+      ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
     const depositConfigStructAlice: DepositConfigStruct = {
@@ -3587,9 +3587,6 @@ describe("OrderBook clear order", async function () {
     await orderBook.connect(alice).deposit(depositConfigStructAlice);
     // Bob deposits tokenA00 into his output vault
     await orderBook.connect(bob).deposit(depositConfigStructBob);
-
-
-
 
     // BOUNTY BOT CLEARS THE ORDER
 
@@ -3634,14 +3631,9 @@ describe("OrderBook clear order", async function () {
       bountyBotVaultA
     );
 
-    const bountyBotVaultB_ = await orderBook.vaultBalance(
-      bountyBot.address,
-      tokenA06.address,
-      bountyBotVaultB
+    assert(
+      aliceInputVaultBalance.add(bobOutputVaultBalance).eq(depositAmountA)
     );
-
-
-    assert(aliceInputVaultBalance.add(bobOutputVaultBalance).eq(depositAmountA));
     assert(bobInputVaultBalance.add(bountyBotVaultA_).eq(depositAmountB));
 
     assert(aliceInputVaultBalance.eq(expectedAliceInputVaultAmount));

@@ -544,8 +544,10 @@ contract OrderBook is
         {
             // At least one of these will overflow due to negative bounties if
             // there is a spread between the orders.
-            uint256 aBounty_ = clearStateChange_.aOutput - clearStateChange_.bInput;
-            uint256 bBounty_ = clearStateChange_.bOutput - clearStateChange_.aInput;
+            uint256 aBounty_ = clearStateChange_.aOutput -
+                clearStateChange_.bInput;
+            uint256 bBounty_ = clearStateChange_.bOutput -
+                clearStateChange_.aInput;
             if (aBounty_ > 0) {
                 vaultBalance[msg.sender][
                     a_.validOutputs[clearConfig_.aOutputIOIndex].token

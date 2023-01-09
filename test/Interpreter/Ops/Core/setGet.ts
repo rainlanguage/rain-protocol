@@ -59,7 +59,11 @@ describe("SET/GET Opcode tests", async function () {
       );
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     // Asserting KVs array
     const kvs = await consumerLogic["kvs()"]();
@@ -113,7 +117,11 @@ describe("SET/GET Opcode tests", async function () {
       );
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 2, "Invalid stack length");
@@ -171,7 +179,11 @@ describe("SET/GET Opcode tests", async function () {
       );
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const stack = await consumerLogic.stack();
     assert(stack.length == 3, "Invalid stack length");
@@ -208,7 +220,11 @@ describe("SET/GET Opcode tests", async function () {
       );
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const stack1 = await consumerLogic.stack();
 
@@ -243,7 +259,11 @@ describe("SET/GET Opcode tests", async function () {
       ));
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const stack2 = await consumerLogic.stack();
 
@@ -281,7 +301,11 @@ describe("SET/GET Opcode tests", async function () {
       ));
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const stack3 = await consumerLogic.stack();
 
@@ -319,7 +343,11 @@ describe("SET/GET Opcode tests", async function () {
       ));
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const stack4 = await consumerLogic.stack();
 
@@ -355,7 +383,11 @@ describe("SET/GET Opcode tests", async function () {
       );
 
     // Eval
-    await consumerLogic['eval(address,uint256,uint256[][])'](interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const kvs = await consumerLogic["kvs()"]();
 
@@ -618,9 +650,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     // Saving interpreter state
     const kvs_ = await consumerLogicA["kvs()"]();
-    await consumerLogicA[
-      "set(address,uint256,uint256[])"
-    ](await consumerLogicA.store(), namespaceA, kvs_);
+    await consumerLogicA["set(address,uint256,uint256[])"](
+      await consumerLogicA.store(),
+      namespaceA,
+      kvs_
+    );
 
     // Asserting kvs array
     const kvs = await consumerLogicA["kvs()"]();
@@ -726,9 +760,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     const _KVsA = await consumerLogicA["kvs()"]();
-    await consumerLogicA[
-      "set(address,uint256,uint256[])"
-    ](await consumerLogicA.store(), namespaceA, _KVsA);
+    await consumerLogicA["set(address,uint256,uint256[])"](
+      await consumerLogicA.store(),
+      namespaceA,
+      _KVsA
+    );
 
     // prettier-ignore
     const sourceB = concat([
@@ -755,9 +791,11 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
     );
 
     const _KVsB = await consumerLogicB["kvs()"]();
-    await consumerLogicB[
-      "set(address,uint256,uint256[])"
-    ](consumerLogicB.store(), namespaceA, _KVsB);
+    await consumerLogicB["set(address,uint256,uint256[])"](
+      consumerLogicB.store(),
+      namespaceA,
+      _KVsB
+    );
 
     // Asserting KVs array
     const KVsA = await consumerLogicA["kvs()"]();
@@ -797,7 +835,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA['eval(address,uint256,uint256[][])'](
+    await consumerLogicA["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
       expressionA.dispatch,
       []
@@ -825,7 +863,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA['eval(address,uint256,uint256[][])'](
+    await consumerLogicA["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,
       expressionB.dispatch,
       []
