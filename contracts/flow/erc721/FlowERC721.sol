@@ -16,6 +16,9 @@ import "../../interpreter/run/LibEncodedDispatch.sol";
 /// Thrown when eval of the transfer entrypoint returns 0.
 error InvalidTransfer();
 
+/// Thrown when burner of tokens is not the owner of tokens.
+error BurnerNotOwner();
+
 uint256 constant RAIN_FLOW_ERC721_SENTINEL = uint256(
     keccak256(bytes("RAIN_FLOW_ERC721_SENTINEL")) | SENTINEL_HIGH_BITS
 );
@@ -194,10 +197,9 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             }
             for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
                 uint256 burnId_ = flowIO_.burns[i_].id;
-                require(
-                    ERC721.ownerOf(burnId_) == flowIO_.burns[i_].account,
-                    "NOT_OWNER"
-                );
+                if (ERC721.ownerOf(burnId_) != flowIO_.burns[i_].account) {
+                    revert BurnerNotOwner();
+                }
                 _burn(burnId_);
             }
             LibFlow.flow(flowIO_.flow, store_, kvs_);
