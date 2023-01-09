@@ -20,6 +20,30 @@ import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeab
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
+/// @dev Thrown when the asset being initialized is zero address.
+error ZeroAsset();
+
+/// @dev Thrown when the receiver of shares upon deposit is zero address.
+error ZeroDepositReceiver();
+
+/// @dev Thrown when the amount of assets being deposited is zero.
+error ZeroDepositAssets();
+
+/// @dev Thrown when the amount of shares being minted upon deposit is zero.
+error ZeroDepositShares();
+
+/// @dev Thrown when the receiver of assets is zero address on withdrawal.
+error ZeroWithdrawReceiver();
+
+/// @dev Thrown when the owner of assets is zero address on withdrawal.
+error ZeroWithdrawOwner();
+
+/// @dev Thrown when the amount of assets being withdrawn is zero.
+error ZeroWithdrawAssets();
+
+/// @dev Thrown when the amount of shares being burned on withdrawal is zero.
+error ZeroWithdrawShares();
+
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
 /// @dev Entrypoint for calculating the max withdraw as per ERC4626.
@@ -145,7 +169,9 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// cloning many staking contracts from a single onchain factory.
     /// @param config_ All the initialization config.
     function initialize(StakeConfig calldata config_) external initializer {
-        require(address(config_.asset) != address(0), "0_ASSET");
+        if (address(config_.asset) == address(0)) {
+            revert ZeroAsset();
+        }
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
@@ -312,9 +338,16 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         uint256 assets_,
         uint256 shares_
     ) internal virtual override nonReentrant {
-        require(receiver_ != address(0), "0_DEPOSIT_RECEIVER");
-        require(assets_ > 0, "0_DEPOSIT_ASSETS");
-        require(shares_ > 0, "0_DEPOSIT_SHARES");
+        if (receiver_ == address(0)) {
+            revert ZeroDepositReceiver();
+        }
+        if (assets_ == 0) {
+            revert ZeroDepositAssets();
+        }
+        if (shares_ == 0) {
+            revert ZeroDepositShares();
+        }
+
         // Deposit first then upgrade ledger.
         super._deposit(caller_, receiver_, assets_, shares_);
         _addSharesToStakingLedger(receiver_, shares_);
@@ -328,10 +361,19 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         uint256 assets_,
         uint256 shares_
     ) internal virtual override nonReentrant {
-        require(receiver_ != address(0), "0_WITHDRAW_RECEIVER");
-        require(owner_ != address(0), "0_WITHDRAW_OWNER");
-        require(assets_ > 0, "0_WITHDRAW_ASSETS");
-        require(shares_ > 0, "0_WITHDRAW_SHARES");
+        if (receiver_ == address(0)) {
+            revert ZeroWithdrawReceiver();
+        }
+        if (owner_ == address(0)) {
+            revert ZeroWithdrawOwner();
+        }
+        if (assets_ == 0) {
+            revert ZeroWithdrawAssets();
+        }
+        if (shares_ == 0) {
+            revert ZeroWithdrawShares();
+        }
+
         // Downgrade ledger first then send assets.
         _removeSharesFromStakingLedger(owner_, shares_);
         super._withdraw(caller_, receiver_, owner_, assets_, shares_);
