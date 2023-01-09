@@ -889,12 +889,12 @@ describe("Stake deposit", async function () {
 
     let maxDeposit = await stake.maxDeposit(alice.address);
     maxDeposit = await stake.maxDeposit(alice.address);
-    maxDeposit = await stake.maxDeposit(alice.address);
-    maxDeposit = await stake.maxDeposit(alice.address);
-    maxDeposit = await stake.maxDeposit(alice.address);
-    maxDeposit = await stake.maxDeposit(alice.address);
-    
     assert(maxDeposit.eq(FIVE), "maxDeposit is not equal to FIVE");
+    
+    // Exceeds max deposit count i.e 2
+    maxDeposit = await stake.maxDeposit(alice.address);
+    assert(maxDeposit.eq(TEN), "maxDeposit is not equal to TEN");
+    
   });
 
 
