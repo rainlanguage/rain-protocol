@@ -822,36 +822,44 @@ describe("Stake deposit", async function () {
       "alice has not received correct token units after withdrawing"
     );
   });
-  
-  it.only("should set and get a value in MAX_DEPOSIT_ENTRYPOINT source", async function () {
 
+  it("should set and get a value in MAX_DEPOSIT_ENTRYPOINT source", async function () {
     // This test changes the maxDeposit once 2 successful deposits are completed
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[2];
 
+    const TWENTY_FIVE = ethers.BigNumber.from("25" + eighteenZeros);
     const FIVE = ethers.BigNumber.from("5" + eighteenZeros);
     const TEN = ethers.BigNumber.from("10" + eighteenZeros);
     const depositCount = 2;
 
     const constants = [FIVE, TEN, max_uint256, depositCount, 1];
 
-    const max_deposit_initial = op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0));
-    
-    const max_deposit_later = op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1));
-    
-    const aliceAddress = op(Opcode.CONTEXT, 0x0100);
-    
-    const max_withdraw = op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2));
+    const max_deposit_initial = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
 
+    const max_deposit_later = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+
+    const aliceAddress = op(Opcode.CONTEXT, 0x0100);
+
+    const max_withdraw = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+
+    // (UserDepositCount > DepositCount) ? FIVE : TEN
     // prettier-ignore
     const depositSource = concat([
 
-       
             aliceAddress,
             op(Opcode.GET), // Deposit count set for alice
-            op(Opcode.DEBUG, Debug.StatePacked),
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)), // Max Deposit Count
+            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)),  
           op(Opcode.GREATER_THAN),  // Condition
           max_deposit_later, // true
           max_deposit_initial, // false
@@ -882,20 +890,58 @@ describe("Stake deposit", async function () {
       },
     };
 
-    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+    const stake = await stakeDeploy(alice, stakeFactory, stakeConfigStruct);
 
-    const depositsAlice0_ = await getDeposits(stake, alice.address);
-    assert(depositsAlice0_.length === 0);
+    // Transfer tokens from the deployer to the alice with the instances
+    await token.connect(deployer).approve(deployer.address, TWENTY_FIVE);
 
-    let maxDeposit = await stake.maxDeposit(alice.address);
-    maxDeposit = await stake.maxDeposit(alice.address);
-    assert(maxDeposit.eq(FIVE), "maxDeposit is not equal to FIVE");
-    
-    // Exceeds max deposit count i.e 2
-    maxDeposit = await stake.maxDeposit(alice.address);
-    assert(maxDeposit.eq(TEN), "maxDeposit is not equal to TEN");
-    
+    //await token.connect(alice);
+    await token.transferFrom(deployer.address, alice.address, TWENTY_FIVE);
+
+    await token
+      .connect(alice)
+      .approve(stake.address, ethers.constants.MaxUint256);
+
+    // Initial Deposit
+    let amountToDeposit = FIVE;
+    let depositedAmount = ethers.BigNumber.from("0");
+
+    // alice depositing
+    for (let i = 0; i <= depositCount; i++) {
+      await stake.deposit(amountToDeposit, alice.address);
+      depositedAmount = depositedAmount.add(amountToDeposit);
+
+      const tokenBalanceStake1 = await token.balanceOf(stake.address);
+      const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
+
+      assert(
+        tokenBalanceStake1.eq(depositedAmount),
+        "stake contract token balance is not equal to deposited amount"
+      );
+      assert(
+        stTokenBalanceAlice0.eq(depositedAmount),
+        "Alice has not received correct share units"
+      );
+    }
+
+    // Post 3 successful deposits, alice should be able to deposit TEN at max
+    // Initial Deposit
+    amountToDeposit = TEN;
+
+    // alice depositing
+    await stake.deposit(amountToDeposit, alice.address);
+    depositedAmount = depositedAmount.add(amountToDeposit);
+
+    const tokenBalanceStake1 = await token.balanceOf(stake.address);
+    const stTokenBalanceAlice0 = await stake.balanceOf(alice.address);
+
+    assert(
+      tokenBalanceStake1.eq(depositedAmount),
+      "stake contract token balance is not equal to deposited amount"
+    );
+    assert(
+      stTokenBalanceAlice0.eq(depositedAmount),
+      "Alice has not received correct share units"
+    );
   });
-
-
 });

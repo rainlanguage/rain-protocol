@@ -903,4 +903,111 @@ describe("Stake withdraw", async function () {
     assert(depositsAlice_[0].timestamp === time1_);
     assert(depositsAlice_[0].amount.eq(tokenBalanceAlice0.sub(ONE).sub(ONE)));
   });
+
+  
+  it("should set and get a value in MAX_WITHDRAW_ENTRYPOINT source", async function () {
+    // This test changes the maxDeposit once 2 successful deposits are completed
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const alice = signers[2];
+
+    const TWENTY_FIVE = ethers.BigNumber.from("25" + eighteenZeros);
+    const TWO = ethers.BigNumber.from("2" + eighteenZeros);
+    const withdrawCount = 2;
+
+    const constants = [TWENTY_FIVE, ONE, max_uint256, withdrawCount, 1, TWO];
+
+    const max_deposit = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    
+    const max_withdraw_initial = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    
+    const max_withdraw_later = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 5)
+    );
+
+    const aliceAddress = op(Opcode.CONTEXT, 0x0100);
+ 
+    const depositSource = concat([
+      max_deposit
+    ]);
+
+    // (UserWithdrawCount > WithdrawCount) ? FIVE : TEN
+    // prettier-ignore
+    const withdrawSource = concat([
+      
+          aliceAddress,
+          op(Opcode.GET), // Deposit count set for alice
+          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)),  
+        op(Opcode.GREATER_THAN),  // Condition
+        max_withdraw_later, // true
+        max_withdraw_initial, // false
+      op(Opcode.EAGER_IF),
+      
+            // Setting value
+            aliceAddress, // key
+            aliceAddress,
+          op(Opcode.GET), // Deposit count set for alice
+          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)),
+        op(Opcode.ADD, 2), // Value
+      op(Opcode.SET),
+    ]);
+
+    const source = [depositSource, withdrawSource]; // max_deposit set to 10
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      stateConfig: {
+        sources: source,
+        constants: constants,
+      },
+    };
+
+    const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
+
+    const depositsAlice0_ = await getDeposits(stake, alice.address);
+    assert(depositsAlice0_.length === 0);
+
+    // Give Alice some reserve tokens and deposit them
+    await token.transfer(
+      alice.address,
+      TWENTY_FIVE
+    );
+
+    // Deposits 10 tokens
+    let tokenBalanceAlice0 = await token.balanceOf(alice.address);
+    await token.connect(alice).approve(stake.address, tokenBalanceAlice0);
+    await stake.connect(alice).deposit(tokenBalanceAlice0, alice.address);
+
+    const depositsAlice1_ = await getDeposits(stake, alice.address);
+    const time1_ = await getBlockTimestamp();
+    assert(depositsAlice1_[0].timestamp === time1_);
+    assert(depositsAlice1_[0].amount.eq(tokenBalanceAlice0));
+
+
+    // Initial Withdraw 
+    for(let i = 0; i<=withdrawCount; i++){
+      await stake.connect(alice).withdraw(ONE, alice.address, alice.address);
+      const withdrawsAlice0_ = await getDeposits(stake, alice.address);
+      tokenBalanceAlice0 = tokenBalanceAlice0.sub(ONE);
+      assert(withdrawsAlice0_[0].amount.eq(tokenBalanceAlice0));
+
+    }
+    
+    // Later withdraw [ if user has withdrawn more than depositCount, increase the withdraw limit]
+    await stake.connect(alice).withdraw(TWO, alice.address, alice.address);
+    tokenBalanceAlice0 = tokenBalanceAlice0.sub(TWO);
+    const withdrawsAlice0_ = await getDeposits(stake, alice.address);
+    assert(withdrawsAlice0_[0].amount.eq(tokenBalanceAlice0));
+  });
 });
