@@ -160,8 +160,7 @@ describe("OrderBook add order", async function () {
 
     assert(bidSender === bob.address, "wrong sender");
     compareStructs(bidOrder, bidOrderConfig);
-  });  
-
+  });
 
   it("should add orders", async function () {
     const signers = await ethers.getSigners();
@@ -176,7 +175,7 @@ describe("OrderBook add order", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder")
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
     // ASK ORDER
 
@@ -194,8 +193,8 @@ describe("OrderBook add order", async function () {
     const askSource = concat([
       vAskOutputMax,
       vAskRatio,
-    ]); 
-    
+    ]);
+
     const askOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
@@ -209,7 +208,7 @@ describe("OrderBook add order", async function () {
         sources: [askSource, []],
         constants: askConstants,
       },
-      data : aliceAskOrder
+      data: aliceAskOrder,
     };
 
     const txAskAddOrder = await orderBook
@@ -243,7 +242,7 @@ describe("OrderBook add order", async function () {
       vBidRatio,
     ]);
 
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder")
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
     const bidOrderConfig: OrderConfigStruct = {
       interpreter: interpreter.address,
@@ -258,7 +257,7 @@ describe("OrderBook add order", async function () {
         sources: [bidSource, []],
         constants: bidConstants,
       },
-      data : bobBidOrder
+      data: bobBidOrder,
     };
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -270,10 +269,6 @@ describe("OrderBook add order", async function () {
     )) as AddOrderEvent["args"];
 
     assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidOrder, bidOrderConfig); 
-
-
-  }); 
-
-
+    compareStructs(bidOrder, bidOrderConfig);
+  });
 });

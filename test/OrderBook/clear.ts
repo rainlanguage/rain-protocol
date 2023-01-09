@@ -3637,11 +3637,6 @@ describe("OrderBook clear order", async function () {
     assert(bobInputVaultBalance.add(bountyBotVaultA_).eq(depositAmountB));
 
     assert(aliceInputVaultBalance.eq(expectedAliceInputVaultAmount));
-    assert(aliceOutputVaultBalance.isZero() );  
-
-
-
-  });   
-  
-
+    assert(aliceOutputVaultBalance.isZero());
+  });
 });
