@@ -22,7 +22,7 @@ import {
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
 import {
-  AllStandardOps,
+  RainterpreterOps,
   assertError,
   fixedPointMul,
   randomUint256,
@@ -47,7 +47,7 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { compareStructs } from "../../utils/test/compareStructs";
 
-const Opcode = AllStandardOps;
+const Opcode = RainterpreterOps;
 
 describe("OrderBook take orders", async function () {
   let orderBookFactory: ContractFactory;
