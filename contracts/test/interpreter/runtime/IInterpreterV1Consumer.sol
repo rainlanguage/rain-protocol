@@ -16,7 +16,12 @@ contract IInterpreterV1Consumer {
         EncodedDispatch dispatch_,
         uint256[][] memory context_
     ) external {
-        evalWithNamespace(interpreter_, DEFAULT_STATE_NAMESPACE, dispatch_, context_);
+        evalWithNamespace(
+            interpreter_,
+            DEFAULT_STATE_NAMESPACE,
+            dispatch_,
+            context_
+        );
     }
 
     function evalWithNamespace(

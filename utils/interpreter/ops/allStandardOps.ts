@@ -63,4 +63,4 @@ export enum AllStandardOps {
 
 export const Opcode = AllStandardOps;
 
-export const RainterpreterOps = AllStandardOps
+export const RainterpreterOps = AllStandardOps;
