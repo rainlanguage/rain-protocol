@@ -137,8 +137,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     function _previewFlow(
         EncodedDispatch dispatch_,
-        uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        uint256[][] memory context_
     )
         internal
         view
@@ -151,7 +150,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
             StackPointer stackTop_,
             IInterpreterStoreV1 store_,
             uint256[] memory kvs_
-        ) = flowStack(dispatch_, callerContext_, signedContexts_);
+        ) = flowStack(dispatch_, context_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC1155_SENTINEL,
@@ -178,11 +177,17 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC1155IO memory) {
         unchecked {
+            uint256[][] memory context_ = LibContext.build(
+                new uint256[][](0),
+                callerContext_,
+                signedContexts_
+            );
+            emit LibContext.NewContext(msg.sender, context_);
             (
                 FlowERC1155IO memory flowIO_,
                 IInterpreterStoreV1 store_,
                 uint256[] memory kvs_
-            ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
+            ) = _previewFlow(dispatch_, context_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 // @todo support data somehow.
                 _mint(
@@ -209,10 +214,14 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC1155IO memory) {
-        (FlowERC1155IO memory flowERC1155IO_, , ) = _previewFlow(
-            dispatch_,
+        uint256[][] memory context_ = LibContext.build(
+            new uint256[][](0),
             callerContext_,
             signedContexts_
+        );
+        (FlowERC1155IO memory flowERC1155IO_, , ) = _previewFlow(
+            dispatch_,
+            context_
         );
         return flowERC1155IO_;
     }

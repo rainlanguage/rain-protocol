@@ -136,8 +136,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     function _previewFlow(
         EncodedDispatch dispatch_,
-        uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        uint256[][] memory context_
     )
         internal
         view
@@ -150,7 +149,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
             StackPointer stackTop_,
             IInterpreterStoreV1 store_,
             uint256[] memory kvs_
-        ) = flowStack(dispatch_, callerContext_, signedContexts_);
+        ) = flowStack(dispatch_, context_);
         // mints
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
@@ -179,11 +178,17 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC721IO memory) {
         unchecked {
+            uint256[][] memory context_ = LibContext.build(
+                new uint256[][](0),
+                callerContext_,
+                signedContexts_
+            );
+            emit LibContext.NewContext(msg.sender, context_);
             (
                 FlowERC721IO memory flowIO_,
                 IInterpreterStoreV1 store_,
                 uint256[] memory kvs_
-            ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
+            ) = _previewFlow(dispatch_, context_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }
@@ -205,10 +210,14 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC721IO memory) {
-        (FlowERC721IO memory flowERC721IO_, , ) = _previewFlow(
-            dispatch_,
+        uint256[][] memory context_ = LibContext.build(
+            new uint256[][](0),
             callerContext_,
             signedContexts_
+        );
+        (FlowERC721IO memory flowERC721IO_, , ) = _previewFlow(
+            dispatch_,
+            context_
         );
         return flowERC721IO_;
     }
