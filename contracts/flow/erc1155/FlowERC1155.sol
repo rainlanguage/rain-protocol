@@ -182,7 +182,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
                 callerContext_,
                 signedContexts_
             );
-            emit LibContext.NewContext(msg.sender, context_);
+            emit LibContext.Context(msg.sender, context_);
             (
                 FlowERC1155IO memory flowIO_,
                 IInterpreterStoreV1 store_,

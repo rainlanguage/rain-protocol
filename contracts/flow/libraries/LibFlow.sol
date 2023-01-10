@@ -189,7 +189,10 @@ library LibFlow {
             ERC721Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc721.length; i_++) {
                 transfer_ = flowTransfer_.erc721[i_];
-                if (transfer_.from != msg.sender && transfer_.from != address(this)) {
+                if (
+                    transfer_.from != msg.sender &&
+                    transfer_.from != address(this)
+                ) {
                     revert UnsupportedERC721Flow();
                 }
                 IERC721(transfer_.token).safeTransferFrom(
@@ -206,7 +209,10 @@ library LibFlow {
             ERC1155Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc1155.length; i_++) {
                 transfer_ = flowTransfer_.erc1155[i_];
-                if (transfer_.from != msg.sender && transfer_.from != address(this)) {
+                if (
+                    transfer_.from != msg.sender &&
+                    transfer_.from != address(this)
+                ) {
                     revert UnsupportedERC1155Flow();
                 }
                 // @todo safeBatchTransferFrom support.

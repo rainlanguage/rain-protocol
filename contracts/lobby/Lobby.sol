@@ -290,6 +290,12 @@ contract Lobby is Phased, ReentrancyGuard {
     {
         unchecked {
             IInterpreterV1 interpreter_ = interpreter;
+            uint256[][] memory context_ = LibContext.build(
+                new uint256[][](0),
+                callerContext_,
+                signedContexts_
+            );
+            emit LibContext.Context(msg.sender, context_);
             (
                 uint256[] memory stack_,
                 IInterpreterStoreV1 store_,
@@ -297,11 +303,7 @@ contract Lobby is Phased, ReentrancyGuard {
             ) = interpreter_.eval(
                     DEFAULT_STATE_NAMESPACE,
                     _joinEncodedDispatch(),
-                    LibContext.build(
-                        new uint256[][](0),
-                        callerContext_,
-                        signedContexts_
-                    )
+                    context_
                 );
             uint256 playersFinalised_ = stack_[stack_.length - 2];
             uint256 amount_ = stack_[stack_.length - 1];
@@ -327,6 +329,12 @@ contract Lobby is Phased, ReentrancyGuard {
         players[msg.sender] = 0;
         uint256 deposit_ = deposits[msg.sender];
 
+        uint256[][] memory context_ = LibContext.build(
+            new uint256[][](0),
+            callerContext_,
+            signedContext_
+        );
+        emit LibContext.Context(msg.sender, context_);
         (
             uint256[] memory stack_,
             IInterpreterStoreV1 store_,
@@ -334,11 +342,7 @@ contract Lobby is Phased, ReentrancyGuard {
         ) = IInterpreterV1(interpreter).eval(
                 DEFAULT_STATE_NAMESPACE,
                 _leaveEncodedDispatch(),
-                LibContext.build(
-                    new uint256[][](0),
-                    callerContext_,
-                    signedContext_
-                )
+                context_
             );
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
@@ -382,6 +386,12 @@ contract Lobby is Phased, ReentrancyGuard {
         // supported, the expression MUST ensure that each user has a stable share
         // and that all shares add up to 1 across all claimants.
         if (shares[msg.sender] == 0) {
+            uint256[][] memory context_ = LibContext.build(
+                new uint256[][](0),
+                callerContext_,
+                signedContexts_
+            );
+            emit LibContext.Context(msg.sender, context_);
             (
                 uint256[] memory stack_,
                 IInterpreterStoreV1 store_,
@@ -389,11 +399,7 @@ contract Lobby is Phased, ReentrancyGuard {
             ) = interpreter.eval(
                     DEFAULT_STATE_NAMESPACE,
                     _claimEncodedDispatch(),
-                    LibContext.build(
-                        new uint256[][](0),
-                        callerContext_,
-                        signedContexts_
-                    )
+                    context_
                 );
             // Share for this claimant is the smaller of the calculated share and
             // 1 - shares already claimed.
@@ -439,6 +445,12 @@ contract Lobby is Phased, ReentrancyGuard {
         }
 
         IInterpreterV1 interpreter_ = interpreter;
+        uint256[][] memory context_ = LibContext.build(
+            new uint256[][](0),
+            callerContext_,
+            signedContexts_
+        );
+        emit LibContext.Context(msg.sender, context_);
         (
             uint256[] memory stack_,
             IInterpreterStoreV1 store_,
@@ -446,11 +458,7 @@ contract Lobby is Phased, ReentrancyGuard {
         ) = interpreter_.eval(
                 DEFAULT_STATE_NAMESPACE,
                 _invalidEncodedDispatch(),
-                LibContext.build(
-                    new uint256[][](0),
-                    callerContext_,
-                    signedContexts_
-                )
+                context_
             );
 
         if (kvs_.length > 0) {

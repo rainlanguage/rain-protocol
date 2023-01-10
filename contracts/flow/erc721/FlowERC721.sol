@@ -186,7 +186,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 callerContext_,
                 signedContexts_
             );
-            emit LibContext.NewContext(msg.sender, context_);
+            emit LibContext.Context(msg.sender, context_);
             (
                 FlowERC721IO memory flowIO_,
                 IInterpreterStoreV1 store_,

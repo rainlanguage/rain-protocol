@@ -56,12 +56,12 @@ struct SignedContext {
 library LibContext {
     using LibUint256Array for uint256[];
 
-    /// Calling contracts SHOULD emit `NewContext` before calling `eval` if they
+    /// Calling contracts SHOULD emit `Context` before calling `eval` if they
     /// are able. Notably `eval` MAY be called within a static call which means
     /// that events cannot be emitted, in which case this does not apply.
     /// @param sender `msg.sender` building the context.
     /// @param context The context that was built.
-    event NewContext(address sender, uint256[][] context);
+    event Context(address sender, uint256[][] context);
 
     /// The base context is the `msg.sender` and address of the calling contract.
     /// As the interpreter itself is called via an external interface and may be

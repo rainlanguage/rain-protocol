@@ -67,7 +67,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
             callerContext_,
             signedContexts_
         );
-        emit LibContext.NewContext(msg.sender, context_);
+        emit LibContext.Context(msg.sender, context_);
         (
             FlowTransfer memory flowTransfer_,
             IInterpreterStoreV1 store_,
