@@ -663,6 +663,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
             EncodedDispatch dispatchHandleBuy_ = dispatchHandleBuy;
             if (EncodedDispatch.unwrap(dispatchHandleBuy_) > 0) {
+                emit LibContext.Context(msg.sender, context_);
                 (
                     ,
                     IInterpreterStoreV1 handleBuyStore_,
