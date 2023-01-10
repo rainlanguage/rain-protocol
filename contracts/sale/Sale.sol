@@ -378,7 +378,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             ) = interpreter.eval(
                     DEFAULT_STATE_NAMESPACE,
                     dispatchCanLive,
-                    LibContext.base().matrixFrom()
+                    LibContext.build(new uint256[][](0), new uint256[](0), new SignedContext[](0))
                 );
             return (stack_[stack_.length - 1] > 0, store_, kvs_);
         }

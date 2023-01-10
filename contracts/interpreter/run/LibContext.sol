@@ -58,7 +58,9 @@ library LibContext {
 
     /// Calling contracts SHOULD emit `Context` before calling `eval` if they
     /// are able. Notably `eval` MAY be called within a static call which means
-    /// that events cannot be emitted, in which case this does not apply.
+    /// that events cannot be emitted, in which case this does not apply. It MAY
+    /// NOT be useful to emit this multiple times for several eval calls if they
+    /// all share a common context, in which case a single emit is sufficient.
     /// @param sender `msg.sender` building the context.
     /// @param context The context that was built.
     event Context(address sender, uint256[][] context);
