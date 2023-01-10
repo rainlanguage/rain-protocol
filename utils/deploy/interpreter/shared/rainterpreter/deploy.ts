@@ -1,5 +1,4 @@
 import { Rainterpreter, RainterpreterStore } from "../../../../../typechain";
-import { bytes } from "../../../../../typechain/contracts/test";
 import { basicDeploy } from "../../../basicDeploy";
 
 export const rainterpreterDeploy = async () => {
@@ -9,16 +8,12 @@ export const rainterpreterDeploy = async () => {
   )) as RainterpreterStore;
   return (await basicDeploy("Rainterpreter", {}, [
     {
-      "store": store.address,
-      "opMeta": [],
-    }
+      store: store.address,
+      opMeta: [],
+    },
   ])) as Rainterpreter;
-}; 
+};
 
 export const rainterpreterStoreDeploy = async () => {
-  return (await basicDeploy(
-    "RainterpreterStore",
-    {}
-  )) as RainterpreterStore;
-  
+  return (await basicDeploy("RainterpreterStore", {})) as RainterpreterStore;
 };

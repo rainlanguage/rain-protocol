@@ -2,7 +2,12 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { RainterpreterStore } from "../../../../typechain";
-import { OpMetaEvent, Rainterpreter, RainterpreterConfigStruct, ValidStoreEvent } from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
+import {
+  OpMetaEvent,
+  Rainterpreter,
+  RainterpreterConfigStruct,
+  ValidStoreEvent,
+} from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
 import {
   AllStandardOps,
   areEqualStateConfigs,
@@ -12,11 +17,11 @@ import {
   MemoryType,
   op,
 } from "../../../../utils";
-import { rainterpreterDeploy, rainterpreterStoreDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-
-
-
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
   it("DeployExpression event should emit original StateConfig", async () => {
@@ -109,46 +114,48 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       expected  ${expectedMathResult}
       got       ${mathResult}`
     );
-  }); 
+  });
 
-  it("should emit correct opMeta on interpreter construction", async () => { 
-    
+  it("should emit correct opMeta on interpreter construction", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter"); 
-    const interpreterStore: RainterpreterStore = await rainterpreterStoreDeploy(); 
-    
-    const interpreterConfig: RainterpreterConfigStruct = {
-      store : interpreterStore.address ,
-      opMeta : opMeta
-    } 
+    const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter");
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
 
-    const interpreter = (await basicDeploy("Rainterpreter", {}, [interpreterConfig])) as Rainterpreter;
+    const interpreterConfig: RainterpreterConfigStruct = {
+      store: interpreterStore.address,
+      opMeta: opMeta,
+    };
+
+    const interpreter = (await basicDeploy("Rainterpreter", {}, [
+      interpreterConfig,
+    ])) as Rainterpreter;
 
     // Checking OpMeta Event
     const OpMetaEvent = (await getEventArgs(
       interpreter.deployTransaction,
       "OpMeta",
       interpreter
-    )) as OpMetaEvent["args"];  
+    )) as OpMetaEvent["args"];
 
-    const expectedString = ethers.utils.hexlify(opMeta)
+    const expectedString = ethers.utils.hexlify(opMeta);
 
     assert(OpMetaEvent.sender === deployer.address, "wrong sender");
-    assert(OpMetaEvent.opMeta === expectedString, "incorrect bytes"); 
-    
+    assert(OpMetaEvent.opMeta === expectedString, "incorrect bytes");
+
     // Checking ValidStore Event
     const ValidStoreEvent = (await getEventArgs(
       interpreter.deployTransaction,
       "ValidStore",
       interpreter
-    )) as ValidStoreEvent["args"];  
+    )) as ValidStoreEvent["args"];
 
     assert(ValidStoreEvent.sender === deployer.address, "wrong sender");
-    assert(ValidStoreEvent.store === interpreterStore.address, "incorrect store");
-
-    
-  }); 
-
+    assert(
+      ValidStoreEvent.store === interpreterStore.address,
+      "incorrect store"
+    );
+  });
 });
