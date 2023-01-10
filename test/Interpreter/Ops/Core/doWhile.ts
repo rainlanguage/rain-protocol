@@ -32,7 +32,7 @@ describe("DO_WHILE Opcode test", async function () {
 
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
-      op(Opcode.DO_WHILE, doWhileOperand(2, 0, 1)), // Source is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(2, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
@@ -79,7 +79,7 @@ describe("DO_WHILE Opcode test", async function () {
     const sourceMAIN = concat([
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)), // Since is non-zero value, the DO_WHILE op will start anyway
-      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(1, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
@@ -129,7 +129,7 @@ describe("DO_WHILE Opcode test", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(1, 1)), // Source is on index 1
     ]);
 
     // prettier-ignore
@@ -174,7 +174,7 @@ describe("DO_WHILE Opcode test", async function () {
 
     const constants = [loopCounter, initAcc, addCounter, addAcc, minValue];
 
-    const whileOP = op(Opcode.DO_WHILE, doWhileOperand(2, 0, 1));
+    const whileOP = op(Opcode.DO_WHILE, doWhileOperand(2, 1));
     const callCheckAcc = op(Opcode.CALL, callOperand(1, 2, 2));
     const callIncrease = op(Opcode.CALL, callOperand(2, 2, 3));
 

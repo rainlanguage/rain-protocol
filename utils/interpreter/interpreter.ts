@@ -103,10 +103,9 @@ export function loopNOperand(
  */
 export function doWhileOperand(
   inputSize: number,
-  reserved: number,
   sourceIndex: number
 ): number {
-  const operand = (sourceIndex << 8) + (reserved << 4) + inputSize;
+  const operand = (sourceIndex << 8) + ((inputSize + 1) << 4) + inputSize;
   return operand;
 }
 

@@ -106,7 +106,7 @@ describe("RainInterpreter debug op", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
         op(Opcode.LESS_THAN),
-      op(Opcode.DO_WHILE, doWhileOperand(1, 0, 1)), // Source to run is on index 1
+      op(Opcode.DO_WHILE, doWhileOperand(1, 1)), // Source to run is on index 1
     ]);
 
     // prettier-ignore
