@@ -7,9 +7,8 @@ import "../../run/LibInterpreterState.sol";
 import "../../deploy/LibIntegrityCheck.sol";
 import "./OpCall.sol";
 
-/// More inputs were encoded in the operand than can be dispatched internally by
-/// a do-while loop.
-error DoWhileMaxInputs(uint256 inputs);
+/// Thrown when the outputs are not 1 more than the inputs.
+error DoWhileInputsOutputsMismatch(uint256 inputs, uint256 outputs);
 
 /// @title OpDoWhile
 /// @notice Opcode for looping while the stack top is nonzero. As we pre-allocate
@@ -38,17 +37,12 @@ library OpDoWhile {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            /// We need outputs to be _larger than_ inputs so inputs must be
-            /// _strictly less than_ the max value possible in 4 bits or outputs
-            /// will overflow.
-            if (inputs_ >= MASK_4BIT) {
-                revert DoWhileMaxInputs(inputs_);
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_4BIT;
+            uint256 outputs_ = (Operand.unwrap(operand_) >> 4) & MASK_4BIT;
+            if (outputs_ != inputs_ + 1) {
+                revert DoWhileInputsOutputsMismatch(inputs_, outputs_);
             }
-            uint256 outputs_ = inputs_ + 1;
-            Operand callOperand_ = Operand.wrap(
-                Operand.unwrap(operand_) | (outputs_ << 4)
-            );
+
             // Stack height changes are deterministic so if we call once we've
             // called a thousand times. Also we pop one output off the result of
             // the call to check the while condition.
@@ -61,7 +55,7 @@ library OpDoWhile {
                 integrityCheckState_.popIgnoreHighwater(
                     OpCall.integrity(
                         integrityCheckState_,
-                        callOperand_,
+                        operand_,
                         stackTop_
                     ),
                     1
@@ -76,15 +70,10 @@ library OpDoWhile {
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
         unchecked {
-            uint256 inputs_ = Operand.unwrap(operand_) & MASK_8BIT;
-            uint256 outputs_ = inputs_ + 1;
-            Operand callOperand_ = Operand.wrap(
-                Operand.unwrap(operand_) | (outputs_ << 4)
-            );
             uint256 do_;
             (stackTop_, do_) = stackTop_.pop();
             while (do_ > 0) {
-                stackTop_ = OpCall.run(state_, callOperand_, stackTop_);
+                stackTop_ = OpCall.run(state_, operand_, stackTop_);
                 (stackTop_, do_) = stackTop_.pop();
             }
             return stackTop_;
