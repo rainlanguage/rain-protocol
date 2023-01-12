@@ -3,8 +3,7 @@
  * 
  */
 export type DerivedIO = {
-    startBit: number;
-    endBit: number;
+    bits: [number, number];
     computation?: string;
 }
 
