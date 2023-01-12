@@ -8,6 +8,7 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/IInterpreterCallerV1.sol";
 import "../math/SaturatingMath.sol";
 import "../math/FixedPointMath.sol";
 
@@ -101,7 +102,7 @@ uint256 constant PHASE_INVALID = 4;
 
 // Phased is a contract in the rain repo that allows contracts to move sequentially
 // through phases and restrict logic by phase.
-contract Lobby is Phased, ReentrancyGuard {
+contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -295,7 +296,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 callerContext_,
                 signedContexts_
             );
-            emit LibContext.Context(msg.sender, context_);
+            emit Context(msg.sender, context_);
             (
                 uint256[] memory stack_,
                 IInterpreterStoreV1 store_,
@@ -334,7 +335,7 @@ contract Lobby is Phased, ReentrancyGuard {
             callerContext_,
             signedContext_
         );
-        emit LibContext.Context(msg.sender, context_);
+        emit Context(msg.sender, context_);
         (
             uint256[] memory stack_,
             IInterpreterStoreV1 store_,
@@ -391,7 +392,7 @@ contract Lobby is Phased, ReentrancyGuard {
                 callerContext_,
                 signedContexts_
             );
-            emit LibContext.Context(msg.sender, context_);
+            emit Context(msg.sender, context_);
             (
                 uint256[] memory stack_,
                 IInterpreterStoreV1 store_,
@@ -450,7 +451,7 @@ contract Lobby is Phased, ReentrancyGuard {
             callerContext_,
             signedContexts_
         );
-        emit LibContext.Context(msg.sender, context_);
+        emit Context(msg.sender, context_);
         (
             uint256[] memory stack_,
             IInterpreterStoreV1 store_,

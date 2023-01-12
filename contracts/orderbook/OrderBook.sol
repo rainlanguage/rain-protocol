@@ -8,6 +8,7 @@ import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/IInterpreterCallerV1.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -65,7 +66,8 @@ contract OrderBook is
     IOrderBookV1,
     ReentrancyGuard,
     Multicall,
-    OrderBookFlashLender
+    OrderBookFlashLender,
+    IInterpreterCallerV1
 {
     using LibInterpreterState for bytes;
     using LibStackPointer for StackPointer;
@@ -351,7 +353,7 @@ contract OrderBook is
             calculateStore_.set(namespace_, calculateKVs_);
         }
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
-            emit LibContext.Context(msg.sender, context_);
+            emit Context(msg.sender, context_);
             (
                 ,
                 IInterpreterStoreV1 handleIOStore_,

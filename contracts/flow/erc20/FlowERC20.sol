@@ -180,7 +180,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                 callerContext_,
                 signedContexts_
             );
-            emit LibContext.Context(msg.sender, context_);
+            emit Context(msg.sender, context_);
             (
                 FlowERC20IO memory flowIO_,
                 IInterpreterStoreV1 store_,

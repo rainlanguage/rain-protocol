@@ -7,6 +7,7 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
+import "../interpreter/run/IInterpreterCallerV1.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -29,7 +30,12 @@ struct FlowCommonConfig {
     StateConfig[] flows;
 }
 
-contract FlowCommon is ERC721Holder, ERC1155Holder, Multicall {
+contract FlowCommon is
+    ERC721Holder,
+    ERC1155Holder,
+    Multicall,
+    IInterpreterCallerV1
+{
     using LibInterpreterState for InterpreterState;
     using LibStackPointer for StackPointer;
     using LibStackPointer for uint256[];
