@@ -2,7 +2,10 @@ import { assert } from "chai";
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { ContextEvent, StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import {
+  ContextEvent,
+  StateConfigStruct,
+} from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
   autoApproveDeploy,
@@ -327,7 +330,7 @@ describe("AutoApprove afterAdd", async function () {
     assert(sender === autoApprove.address, "wrong approve sender");
     assert(evidence.account === signer1.address, "wrong evidence account");
     assert(evidence.data === evidenceAdd, "wrong evidence data");
-  }); 
+  });
 
   it("should validate Context emitted in Context event", async () => {
     const signers = await ethers.getSigners();
@@ -355,7 +358,7 @@ describe("AutoApprove afterAdd", async function () {
 
     await autoApprove.connect(deployer).transferOwnership(verify.address);
 
-    const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32); 
+    const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 
     // make AutoApprove an approver
     await verify
@@ -369,7 +372,7 @@ describe("AutoApprove afterAdd", async function () {
       .grantRole(await verify.APPROVER(), autoApprove.address);
 
     // now signer1 can get their account automatically approved
-    const addTx = await verify.connect(signer1).add(evidenceAdd); 
+    const addTx = await verify.connect(signer1).add(evidenceAdd);
 
     const { sender, evidence } = (await getEventArgs(
       addTx,
@@ -379,37 +382,34 @@ describe("AutoApprove afterAdd", async function () {
 
     assert(sender === autoApprove.address, "wrong approve sender");
     assert(evidence.account === signer1.address, "wrong evidence account");
-    assert(evidence.data === evidenceAdd, "wrong evidence data");  
+    assert(evidence.data === evidenceAdd, "wrong evidence data");
 
-    //Check Context  
+    //Check Context
 
     const expectedContext0 = [
       [
-        ethers.BigNumber.from(signer1.address) , 
-        ethers.BigNumber.from(evidenceAdd) 
-      ] 
-    ]
+        ethers.BigNumber.from(signer1.address),
+        ethers.BigNumber.from(evidenceAdd),
+      ],
+    ];
 
-    const {sender: sender0 ,context: context0_ } = (await getEventArgs(
+    const { sender: sender0, context: context0_ } = (await getEventArgs(
       addTx,
-        "Context",
-        autoApprove
-      )) as ContextEvent["args"]   
+      "Context",
+      autoApprove
+    )) as ContextEvent["args"];
 
-    assert(sender0 === verify.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext0.length ; i++){
-      let rowArray = expectedContext0[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context0_[i][j].eq(colElement)){
-              assert.fail(`mismatch at position (${i},${j}),
+    assert(sender0 === verify.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context0_[i][j]}`)
-          }
-          
+                       got       ${context0_[i][j]}`);
+        }
       }
-  }
-
-  }); 
-
+    }
+  });
 });

@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { FlowERC721Factory } from "../../../typechain";
 import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { ContextEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
-import {  FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import {
   RAIN_FLOW_ERC721_SENTINEL,
   RAIN_FLOW_SENTINEL,
@@ -18,7 +18,6 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { assertError } from "../../../utils/test/assertError";
 import { FlowERC721Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
@@ -104,52 +103,46 @@ describe("FlowERC721 expressions tests", async function () {
       .connect(alice)
       .flow(flowInitialized[0].dispatch, [1234], signedContexts0);
 
-      const expectedContext0 = [
-        [
-            ethers.BigNumber.from(alice.address) , 
-            ethers.BigNumber.from(flow.address) 
-        ] , 
-        [
-            ethers.BigNumber.from(1234) 
-        ] , 
-        [
-            ethers.BigNumber.from(alice.address) , 
-            ethers.BigNumber.from(bob.address) 
-        ],
-        [
-            ethers.BigNumber.from(1) ,
-            ethers.BigNumber.from(2) ,
-            ethers.BigNumber.from(3) 
-        ],
-        [
-            ethers.BigNumber.from(4) ,
-            ethers.BigNumber.from(5) ,
-            ethers.BigNumber.from(6) 
-        ]
-        ]
-    
-        const {sender: sender0 ,context: context0_ } = (await getEventArgs(
-        _txFlow0,
-            "Context",
-            flow
-        )) as ContextEvent["args"]   
-    
-        assert(sender0 === alice.address , "wrong sender")   
-        
-        for(let i = 0 ; i < expectedContext0.length ; i++){
-            let rowArray = expectedContext0[i] 
-            for(let j = 0 ; j < rowArray.length ; j++){
-                let colElement = rowArray[j] 
-                if(!context0_[i][j].eq(colElement)){
-                  assert.fail(`mismatch at position (${i},${j}),
-                             expected  ${colElement}
-                             got       ${context0_[i][j]}`)
-                }
-                
-            }
-        }
-   
-  });
+    const expectedContext0 = [
+      [
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(flow.address),
+      ],
+      [ethers.BigNumber.from(1234)],
+      [
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(bob.address),
+      ],
+      [
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
+      ],
+      [
+        ethers.BigNumber.from(4),
+        ethers.BigNumber.from(5),
+        ethers.BigNumber.from(6),
+      ],
+    ];
 
-  
+    const { sender: sender0, context: context0_ } = (await getEventArgs(
+      _txFlow0,
+      "Context",
+      flow
+    )) as ContextEvent["args"];
+
+    assert(sender0 === alice.address, "wrong sender");
+
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
+                             expected  ${colElement}
+                             got       ${context0_[i][j]}`);
+        }
+      }
+    }
+  });
 });

@@ -351,7 +351,7 @@ describe("Lobby Tests join", async function () {
 
     const currentPhase = await Lobby.currentPhase();
     assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
-  });  
+  });
 
   it("should validate context emitted in Context Event", async function () {
     const signers = await ethers.getSigners();
@@ -446,55 +446,47 @@ describe("Lobby Tests join", async function () {
     assert(sender === alice.address, "wrong sender");
 
     const currentPhase = await Lobby.currentPhase();
-    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase"); 
-    
+    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
+
     const expectedContext0 = [
       [
-        ethers.BigNumber.from(alice.address) , 
-        ethers.BigNumber.from(Lobby.address) 
-      ] , 
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(Lobby.address),
+      ],
+      [ethers.BigNumber.from(1234)],
       [
-        ethers.BigNumber.from(1234) 
-      ] , 
-      [
-        ethers.BigNumber.from(alice.address) , 
-        ethers.BigNumber.from(bob.address) 
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(bob.address),
       ],
       [
-        ethers.BigNumber.from(1) ,
-        ethers.BigNumber.from(2) ,
-        ethers.BigNumber.from(3) 
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
       ],
       [
-        ethers.BigNumber.from(4) ,
-        ethers.BigNumber.from(5) ,
-        ethers.BigNumber.from(6) 
-      ]
-    ]
+        ethers.BigNumber.from(4),
+        ethers.BigNumber.from(5),
+        ethers.BigNumber.from(6),
+      ],
+    ];
 
-    const {sender: sender0 ,context: context0_ } = (await getEventArgs(
+    const { sender: sender0, context: context0_ } = (await getEventArgs(
       joinTx,
-        "Context",
-        Lobby
-      )) as ContextEvent["args"]   
+      "Context",
+      Lobby
+    )) as ContextEvent["args"];
 
-    assert(sender0 === alice.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext0.length ; i++){
-      let rowArray = expectedContext0[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context0_[i][j].eq(colElement)){
-              assert.fail(`mismatch at position (${i},${j}),
+    assert(sender0 === alice.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context0_[i][j]}`)
-          }
-          
+                       got       ${context0_[i][j]}`);
+        }
       }
-  }
-
-
-
-  }); 
-
-
+    }
+  });
 });

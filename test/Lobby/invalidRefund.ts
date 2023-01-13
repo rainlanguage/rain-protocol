@@ -409,7 +409,7 @@ describe("Lobby Invalid Refund", async function () {
       "VM Exception while processing transaction: reverted with custom error 'BadPhase()",
       "did not revert when player refund after PHASE_COMPLATE phase"
     );
-  }); 
+  });
 
   it("should validate Context emitted in Context event", async function () {
     const timeoutDuration = 15000000;
@@ -566,45 +566,34 @@ describe("Lobby Invalid Refund", async function () {
 
     assert(invalidEventSender === bot.address, "wrong 'invalid' sender");
 
-    // Checking Context  
+    // Checking Context
     const expectedContext0 = [
       [
-        ethers.BigNumber.from(bot.address) , 
-        ethers.BigNumber.from(Lobby.address) 
-      ] , 
-      [
-        ethers.BigNumber.from(1234) 
-      ] , 
-      [
-        ethers.BigNumber.from(bot.address)  
+        ethers.BigNumber.from(bot.address),
+        ethers.BigNumber.from(Lobby.address),
       ],
-      [
-        ethers.BigNumber.from(1) 
-      ]
-    ]
+      [ethers.BigNumber.from(1234)],
+      [ethers.BigNumber.from(bot.address)],
+      [ethers.BigNumber.from(1)],
+    ];
 
-    const {sender: sender0_ ,context: context0_ } = (await getEventArgs(
+    const { sender: sender0_, context: context0_ } = (await getEventArgs(
       aliceInvalidTx,
-        "Context",
-        Lobby
-      )) as ContextEvent["args"]   
-      
-    assert(sender0_ === bot.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext0.length ; i++){
-      let rowArray = expectedContext0[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context0_[i][j].eq(colElement)){
-              assert.fail(`mismatch at position (${i},${j}),
+      "Context",
+      Lobby
+    )) as ContextEvent["args"];
+
+    assert(sender0_ === bot.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context0_[i][j]}`)
-          }
-          
+                       got       ${context0_[i][j]}`);
+        }
       }
-  }
-
-
-  }); 
-
-
+    }
+  });
 });

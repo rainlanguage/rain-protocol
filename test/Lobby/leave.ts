@@ -485,7 +485,7 @@ describe("Lobby Tests leave", async function () {
     assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
     assert(leaveAmount0.eq(depositAmount), "wrong leave amount");
-  }); 
+  });
 
   it("should validate context emitted in Context event", async function () {
     const signers = await ethers.getSigners();
@@ -582,49 +582,40 @@ describe("Lobby Tests leave", async function () {
     assert(leaveSender === alice.address, "wrong deposit sender");
     assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
-    assert(leaveAmount0.eq(depositAmount), "wrong leave amount");  
+    assert(leaveAmount0.eq(depositAmount), "wrong leave amount");
 
-    // Checking Context  
+    // Checking Context
     const expectedContext0 = [
       [
-        ethers.BigNumber.from(alice.address) , 
-        ethers.BigNumber.from(Lobby.address) 
-      ] , 
-      [
-        ethers.BigNumber.from(1234) 
-      ] , 
-      [
-        ethers.BigNumber.from(alice.address)  
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(Lobby.address),
       ],
+      [ethers.BigNumber.from(1234)],
+      [ethers.BigNumber.from(alice.address)],
       [
-        ethers.BigNumber.from(1) ,
-        ethers.BigNumber.from(2) ,
-        ethers.BigNumber.from(3) 
-      ]
-    ]
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
+      ],
+    ];
 
-    const {sender: sender0_ ,context: context0_ } = (await getEventArgs(
+    const { sender: sender0_, context: context0_ } = (await getEventArgs(
       leaveTx,
-        "Context",
-        Lobby
-      )) as ContextEvent["args"]   
-      
-    assert(sender0_ === alice.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext0.length ; i++){
-      let rowArray = expectedContext0[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context0_[i][j].eq(colElement)){
-            assert.fail(`mismatch at position (${i},${j}),
+      "Context",
+      Lobby
+    )) as ContextEvent["args"];
+
+    assert(sender0_ === alice.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context0_[i][j]}`)
-          }
-          
+                       got       ${context0_[i][j]}`);
+        }
       }
-  }
-
-
-  }); 
-
-
+    }
+  });
 });

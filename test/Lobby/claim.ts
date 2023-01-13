@@ -802,7 +802,7 @@ describe("Lobby Tests claim", async function () {
     assert(bobClaimEvent1.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent1.share.eq(bobShares), "wrong shares");
     assert(bobClaimEvent1.amount.eq(expectedClaimBob1), "wrong claim amount");
-  });  
+  });
 
   it("should validate context emitted in Context Event", async function () {
     const signers = await ethers.getSigners();
@@ -950,45 +950,37 @@ describe("Lobby Tests claim", async function () {
 
     // Checking Phase
     const currentPhase1 = await Lobby.currentPhase();
-    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase"); 
+    assert(currentPhase1.eq(PHASE_COMPLETE), "Bad Phase");
 
-    // Checking Context for Claim made by Alice 
+    // Checking Context for Claim made by Alice
     const expectedContext0 = [
       [
-        ethers.BigNumber.from(alice.address) , 
-        ethers.BigNumber.from(Lobby.address) 
-      ] , 
-      [
-        aliceShares
-      ] , 
-      [
-        ethers.BigNumber.from(bot.address)  
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(Lobby.address),
       ],
-      [
-        aliceShares,
-        bobShares
-      ]
-    ]
+      [aliceShares],
+      [ethers.BigNumber.from(bot.address)],
+      [aliceShares, bobShares],
+    ];
 
-    const {sender: sender0_ ,context: context0_ } = (await getEventArgs(
+    const { sender: sender0_, context: context0_ } = (await getEventArgs(
       aliceClaimTx,
-        "Context",
-        Lobby
-      )) as ContextEvent["args"]   
-      
-    assert(sender0_ === alice.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext0.length ; i++){
-      let rowArray = expectedContext0[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context0_[i][j].eq(colElement)){
-              throw new Error(`Assertion Error : mismatch at position (${i},${j}),
+      "Context",
+      Lobby
+    )) as ContextEvent["args"];
+
+    assert(sender0_ === alice.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          throw new Error(`Assertion Error : mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context0_[i][j]}`)
-          }
-          
+                       got       ${context0_[i][j]}`);
+        }
       }
-  }
+    }
 
     // Bob Claims Amount
     const bobClaimTx = await Lobby.connect(bob).claim(
@@ -1006,46 +998,36 @@ describe("Lobby Tests claim", async function () {
 
     assert(bobClaimEvent.sender === bob.address, "wrong deposit sender");
     assert(bobClaimEvent.share.eq(bobShares), "wrong shares");
-    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount"); 
+    assert(bobClaimEvent.amount.eq(expectedClaimBob), "wrong claim amount");
 
-    // Checking Context for Claim made by Bob 
+    // Checking Context for Claim made by Bob
     const expectedContext1 = [
       [
-        ethers.BigNumber.from(bob.address) , 
-        ethers.BigNumber.from(Lobby.address) 
-      ] , 
-      [
-        bobShares
-      ] , 
-      [
-        ethers.BigNumber.from(bot.address)  
+        ethers.BigNumber.from(bob.address),
+        ethers.BigNumber.from(Lobby.address),
       ],
-      [
-        aliceShares,
-        bobShares
-      ]
-    ]
+      [bobShares],
+      [ethers.BigNumber.from(bot.address)],
+      [aliceShares, bobShares],
+    ];
 
-    const {sender: sender1_ ,context: context1_ } = (await getEventArgs(
+    const { sender: sender1_, context: context1_ } = (await getEventArgs(
       bobClaimTx,
-        "Context",
-        Lobby
-      )) as ContextEvent["args"]   
-      
-    assert(sender1_ === bob.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext1.length ; i++){
-      let rowArray = expectedContext1[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context1_[i][j].eq(colElement)){
-            assert.fail(`mismatch at position (${i},${j}),
+      "Context",
+      Lobby
+    )) as ContextEvent["args"];
+
+    assert(sender1_ === bob.address, "wrong sender");
+    for (let i = 0; i < expectedContext1.length; i++) {
+      const rowArray = expectedContext1[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context1_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context1_[i][j]}`)
-          }
+                       got       ${context1_[i][j]}`);
+        }
       }
-  }
+    }
   });
-
-  
-
 });

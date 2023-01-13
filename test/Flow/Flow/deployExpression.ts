@@ -50,14 +50,13 @@ describe("Flow deployExpression tests", async function () {
     };
 
     const _flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
-  }); 
+  });
 
   it("should validate context from the context event", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[1];
     const bob = signers[1];
-
 
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
@@ -109,52 +108,47 @@ describe("Flow deployExpression tests", async function () {
 
     const _txFlow0 = await flow
       .connect(alice)
-      .flow(flowInitialized[0].dispatch, [1234], signedContexts0);  
+      .flow(flowInitialized[0].dispatch, [1234], signedContexts0);
 
     const expectedContext0 = [
       [
-        ethers.BigNumber.from(alice.address) , 
-        ethers.BigNumber.from(flow.address) 
-      ] , 
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(flow.address),
+      ],
+      [ethers.BigNumber.from(1234)],
       [
-        ethers.BigNumber.from(1234) 
-      ] , 
-      [
-        ethers.BigNumber.from(alice.address) , 
-        ethers.BigNumber.from(bob.address) 
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(bob.address),
       ],
       [
-        ethers.BigNumber.from(1) ,
-        ethers.BigNumber.from(2) ,
-        ethers.BigNumber.from(3) 
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
       ],
       [
-        ethers.BigNumber.from(4) ,
-        ethers.BigNumber.from(5) ,
-        ethers.BigNumber.from(6) 
-      ]
-    ]
+        ethers.BigNumber.from(4),
+        ethers.BigNumber.from(5),
+        ethers.BigNumber.from(6),
+      ],
+    ];
 
-    const {sender: sender0 ,context: context0_ } = (await getEventArgs(
+    const { sender: sender0, context: context0_ } = (await getEventArgs(
       _txFlow0,
-        "Context",
-        flow
-      )) as ContextEvent["args"]   
+      "Context",
+      flow
+    )) as ContextEvent["args"];
 
-    assert(sender0 === alice.address , "wrong sender")  
-    for(let i = 0 ; i < expectedContext0.length ; i++){
-      let rowArray = expectedContext0[i] 
-      for(let j = 0 ; j < rowArray.length ; j++){
-          let colElement = rowArray[j] 
-          if(!context0_[i][j].eq(colElement)){
-            assert.fail(`mismatch at position (${i},${j}),
+    assert(sender0 === alice.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
                        expected  ${colElement}
-                       got       ${context0_[i][j]}`)
-          }
-          
+                       got       ${context0_[i][j]}`);
+        }
       }
-  }
-
+    }
   });
-
 });
