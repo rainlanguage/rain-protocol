@@ -14,7 +14,7 @@ error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x873c646d9c16e7f0db19840a6306b190e1f2f98ae87b423609825ee0501df881
+    0x75078c6276f4758f2e52b3d4a8ef5a7e2b6a8892e30c0d79515ddf9545737093
 );
 
 /// All config required to construct a `Rainterpreter`.
