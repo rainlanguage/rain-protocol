@@ -203,8 +203,9 @@ library LibIntegrityCheck {
                     operand_ := and(op_, 0xFFFF)
                     opcode_ := and(shr(16, op_), 0xFFFF)
                 }
-                // We index into the function pointers here to ensure that any
-                // opcodes that we don't have a pointer for will error.
+                // We index into the function pointers here rather than using raw
+                // assembly to ensure that any opcodes that we don't have a
+                // pointer for will error as a standard Solidity OOB read.
                 stackTop_ = integrityCheckState_.integrityFunctionPointers[
                     opcode_
                 ](integrityCheckState_, operand_, stackTop_);
@@ -260,7 +261,9 @@ library LibIntegrityCheck {
     }
 
     /// As push for 0+ values. Does NOT move the highwater. This may be useful if
-    /// the highwater is already calculated somehow by the caller.
+    /// the highwater is already calculated somehow by the caller. This is also
+    /// dangerous if used incorrectly as it could allow uncaught underflows to
+    /// creep in.
     function pushIgnoreHighwater(
         IntegrityCheckState memory integrityCheckState_,
         StackPointer stackTop_,

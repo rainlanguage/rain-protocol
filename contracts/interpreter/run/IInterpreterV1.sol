@@ -53,14 +53,15 @@ StateNamespace constant DEFAULT_STATE_NAMESPACE = StateNamespace.wrap(0);
 /// ones to trust to get the job done.
 ///
 /// The state changes for an interpreter are expected to be produces by an `eval`
-/// and passed back to the interpreter as-is by the caller, after the caller has
-/// had an opportunity to apply their own intermediate logic such as reentrancy
-/// defenses against malicious interpreters. The interpreter is free to structure
-/// the state changes however it wants but MUST guard against the calling
-/// contract corrupting the changes between `eval` and `set`. For example an
-/// interpreter could sandbox storage writes per-caller so that a malicious
-/// caller can only damage their own state changes, while honest callers respect,
-/// benefit from and are protected by the interpreter's state change handling.
+/// and passed to the `IInterpreterStoreV1` returned by the eval, as-is by the
+/// caller, after the caller has had an opportunity to apply their own
+/// intermediate logic such as reentrancy defenses against malicious
+/// interpreters. The interpreter is free to structure the state changes however
+/// it wants but MUST guard against the calling contract corrupting the changes
+/// between `eval` and `set`. For example a store could sandbox storage writes
+/// per-caller so that a malicious caller can only damage their own state
+/// changes, while honest callers respect, benefit from and are protected by the
+/// interpreter store's state change handling.
 ///
 /// The two step eval-state model allows eval to be read-only which provides
 /// security guarantees for the caller such as no stateful reentrancy, either
@@ -130,10 +131,6 @@ interface IInterpreterV1 {
     /// collision resistance of the hashing algorithms employed by the blockchain
     /// itself, such as the design of `mapping` in Solidity that hashes each
     /// nested key to produce a collision resistant compound key.
-    ///
-    /// Calls to `eval` without a namespace are implied to be under namespace `0`
-    /// so an interpreter MAY implement `eval` in terms of `evalWithNamespace` if
-    /// this simplifies the implementation.
     /// @return stack The list of values produced by evaluating the expression.
     /// MUST NOT be longer than the maximum length specified by `dispatch`, if
     /// applicable.
