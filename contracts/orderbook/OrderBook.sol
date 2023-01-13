@@ -3,15 +3,18 @@ pragma solidity =0.8.17;
 
 import "./IOrderBookV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../math/FixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
-import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
+import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/IInterpreterCallerV1.sol";
+
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
+import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant HANDLE_IO_ENTRYPOINT = SourceIndex.wrap(1);
@@ -63,7 +66,8 @@ contract OrderBook is
     IOrderBookV1,
     ReentrancyGuard,
     Multicall,
-    OrderBookFlashLender
+    OrderBookFlashLender,
+    IInterpreterCallerV1
 {
     using LibInterpreterState for bytes;
     using LibStackPointer for StackPointer;
@@ -349,6 +353,7 @@ contract OrderBook is
             calculateStore_.set(namespace_, calculateKVs_);
         }
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
+            emit Context(msg.sender, context_);
             (
                 ,
                 IInterpreterStoreV1 handleIOStore_,

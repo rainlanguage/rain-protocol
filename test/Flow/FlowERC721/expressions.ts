@@ -1,83 +1,76 @@
 import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { FlowFactory } from "../../../typechain";
-import { ContextEvent } from "../../../typechain/contracts/flow/basic/Flow";
+import { FlowERC721Factory } from "../../../typechain";
+import { SignedContextStruct } from "../../../typechain/contracts/flow/basic/Flow";
+import { ContextEvent } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
-import { SignedContextStruct } from "../../../typechain/contracts/lobby/Lobby";
-import { getEventArgs, getEvents } from "../../../utils";
-import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
-import { flowDeploy } from "../../../utils/deploy/flow/basic/deploy";
-import { flowFactoryDeploy } from "../../../utils/deploy/flow/basic/flowFactory/deploy";
+import {
+  RAIN_FLOW_ERC721_SENTINEL,
+  RAIN_FLOW_SENTINEL,
+} from "../../../utils/constants/sentinel";
+import { flowERC721Deploy } from "../../../utils/deploy/flow/flowERC721/deploy";
+import { flowERC721FactoryDeploy } from "../../../utils/deploy/flow/flowERC721/flowERC721Factory/deploy";
+import { getEventArgs, getEvents } from "../../../utils/events";
 import {
   memoryOperand,
   MemoryType,
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { FlowConfig } from "../../../utils/types/flow";
+import { FlowERC721Config } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
 
-describe("Flow deployExpression tests", async function () {
-  let flowFactory: FlowFactory;
+describe("FlowERC721 expressions tests", async function () {
+  let flowERC721Factory: FlowERC721Factory;
 
   before(async () => {
-    flowFactory = await flowFactoryDeploy();
+    flowERC721Factory = await flowERC721FactoryDeploy();
   });
 
-  it("should deploy expression", async function () {
-    const signers = await ethers.getSigners();
-    const deployer = signers[0];
-
-    const constants = [RAIN_FLOW_SENTINEL, 1];
-
-    const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-
-    const sourceFlowIO = concat([
-      SENTINEL(), // ERC1155 SKIP
-      SENTINEL(), // ERC721 SKIP
-      SENTINEL(), // ERC20 SKIP
-      SENTINEL(), // NATIVE END
-    ]);
-
-    const sources = [];
-
-    const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
-      flows: [{ sources: [sourceFlowIO], constants }],
-    };
-
-    const _flow = await flowDeploy(deployer, flowFactory, flowConfigStruct);
-  });
-
-  it("should validate context from the context event", async () => {
+  it("should validate context emitted in context event", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const alice = signers[1];
-    const bob = signers[1];
+    const bob = signers[2];
 
-    const constants = [RAIN_FLOW_SENTINEL, 1];
+    const constants = [RAIN_FLOW_SENTINEL, RAIN_FLOW_ERC721_SENTINEL, 1];
 
     const SENTINEL = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const SENTINEL_ERC721 = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+
+    const CAN_TRANSFER = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
       SENTINEL(), // ERC20 SKIP
       SENTINEL(), // NATIVE END
+      SENTINEL_ERC721(), // BURN END
+      SENTINEL_ERC721(), // MINT END
     ]);
 
-    const sources = [];
+    const sources = [CAN_TRANSFER()];
 
-    const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+    const flowConfigStruct: FlowERC721Config = {
+      name: "Flow ERC721",
+      symbol: "F721",
+      stateConfig: {
+        sources,
+        constants,
+      },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
-    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+    const { flow } = await flowERC721Deploy(
+      deployer,
+      flowERC721Factory,
+      flowConfigStruct
+    );
 
     const flowInitialized = (await getEvents(
       flow.deployTransaction,
@@ -100,7 +93,7 @@ describe("Flow deployExpression tests", async function () {
         context: context0,
       },
       {
-        signer: alice.address,
+        signer: bob.address,
         signature: goodSignature1,
         context: context1,
       },
@@ -139,14 +132,15 @@ describe("Flow deployExpression tests", async function () {
     )) as ContextEvent["args"];
 
     assert(sender0 === alice.address, "wrong sender");
+
     for (let i = 0; i < expectedContext0.length; i++) {
       const rowArray = expectedContext0[i];
       for (let j = 0; j < rowArray.length; j++) {
         const colElement = rowArray[j];
         if (!context0_[i][j].eq(colElement)) {
           assert.fail(`mismatch at position (${i},${j}),
-                       expected  ${colElement}
-                       got       ${context0_[i][j]}`);
+                             expected  ${colElement}
+                             got       ${context0_[i][j]}`);
         }
       }
     }

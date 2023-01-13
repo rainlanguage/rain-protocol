@@ -12,6 +12,18 @@ import {IERC1155Upgradeable as IERC1155} from "@openzeppelin/contracts-upgradeab
 import {AddressUpgradeable as Address} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
+/// @dev Thrown for unsupported native transfers.
+error UnsupportedNativeFlow();
+
+/// @dev Thrown for unsupported erc20 transfers.
+error UnsupportedERC20Flow();
+
+/// @dev Thrown for unsupported erc721 transfers.
+error UnsupportedERC721Flow();
+
+/// @dev Thrown for unsupported erc1155 transfers.
+error UnsupportedERC1155Flow();
+
 /// @dev We want a sentinel with the following properties:
 /// - Won't collide with token amounts (| with very large number)
 /// - Won't collide with token addresses
@@ -120,16 +132,14 @@ library LibFlow {
             for (uint256 i_ = 0; i_ < flowTransfer_.native.length; i_++) {
                 transfer_ = flowTransfer_.native[i_];
                 if (transfer_.from == msg.sender) {
-                    require(
-                        transfer_.to == address(this),
-                        "UNSUPPORTED_NATIVE_FLOW"
-                    );
+                    if (transfer_.to != address(this)) {
+                        revert UnsupportedNativeFlow();
+                    }
                     youToMe_ += transfer_.amount;
                 } else {
-                    require(
-                        transfer_.from == address(this),
-                        "UNSUPPORTED_NATIVE_FLOW"
-                    );
+                    if (transfer_.from != address(this)) {
+                        revert UnsupportedNativeFlow();
+                    }
                     if (transfer_.to == msg.sender) {
                         meToYou_ += transfer_.amount;
                     } else {
@@ -168,7 +178,7 @@ library LibFlow {
                 } else {
                     // We don't support `from` as anyone other than `you` or `me`
                     // as this would allow for all kinds of issues re: approvals.
-                    revert("UNSUPPORTED_ERC20_FLOW");
+                    revert UnsupportedERC20Flow();
                 }
             }
         }
@@ -179,11 +189,12 @@ library LibFlow {
             ERC721Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc721.length; i_++) {
                 transfer_ = flowTransfer_.erc721[i_];
-                require(
-                    transfer_.from == msg.sender ||
-                        transfer_.from == address(this),
-                    "UNSUPPORTED_ERC721_FLOW"
-                );
+                if (
+                    transfer_.from != msg.sender &&
+                    transfer_.from != address(this)
+                ) {
+                    revert UnsupportedERC721Flow();
+                }
                 IERC721(transfer_.token).safeTransferFrom(
                     transfer_.from,
                     transfer_.to,
@@ -198,11 +209,12 @@ library LibFlow {
             ERC1155Transfer memory transfer_;
             for (uint256 i_ = 0; i_ < flowTransfer_.erc1155.length; i_++) {
                 transfer_ = flowTransfer_.erc1155[i_];
-                require(
-                    transfer_.from == msg.sender ||
-                        transfer_.from == address(this),
-                    "UNSUPPORTED_ERC1155_FLOW"
-                );
+                if (
+                    transfer_.from != msg.sender &&
+                    transfer_.from != address(this)
+                ) {
+                    revert UnsupportedERC1155Flow();
+                }
                 // @todo safeBatchTransferFrom support.
                 // @todo data support.
                 IERC1155(transfer_.token).safeTransferFrom(

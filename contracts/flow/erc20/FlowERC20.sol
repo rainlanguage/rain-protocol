@@ -133,8 +133,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     function _previewFlow(
         EncodedDispatch dispatch_,
-        uint256[] memory callerContext_,
-        SignedContext[] memory signedContexts_
+        uint256[][] memory context_
     )
         internal
         view
@@ -148,7 +147,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             StackPointer stackTop_,
             IInterpreterStoreV1 store_,
             uint256[] memory kvs_
-        ) = flowStack(dispatch_, callerContext_, signedContexts_);
+        ) = flowStack(dispatch_, context_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC20_SENTINEL,
@@ -175,19 +174,27 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
-        (
-            FlowERC20IO memory flowIO_,
-            IInterpreterStoreV1 store_,
-            uint256[] memory kvs_
-        ) = _previewFlow(dispatch_, callerContext_, signedContexts_);
-        for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
-            _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
+        unchecked {
+            uint256[][] memory context_ = LibContext.build(
+                new uint256[][](0),
+                callerContext_,
+                signedContexts_
+            );
+            emit Context(msg.sender, context_);
+            (
+                FlowERC20IO memory flowIO_,
+                IInterpreterStoreV1 store_,
+                uint256[] memory kvs_
+            ) = _previewFlow(dispatch_, context_);
+            for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
+                _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
+            }
+            for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
+                _burn(flowIO_.burns[i_].account, flowIO_.burns[i_].amount);
+            }
+            LibFlow.flow(flowIO_.flow, store_, kvs_);
+            return flowIO_;
         }
-        for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
-            _burn(flowIO_.burns[i_].account, flowIO_.burns[i_].amount);
-        }
-        LibFlow.flow(flowIO_.flow, store_, kvs_);
-        return flowIO_;
     }
 
     function previewFlow(
@@ -195,10 +202,14 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC20IO memory) {
-        (FlowERC20IO memory flowERC20IO_, , ) = _previewFlow(
-            dispatch_,
+        uint256[][] memory context_ = LibContext.build(
+            new uint256[][](0),
             callerContext_,
             signedContexts_
+        );
+        (FlowERC20IO memory flowERC20IO_, , ) = _previewFlow(
+            dispatch_,
+            context_
         );
         return flowERC20IO_;
     }

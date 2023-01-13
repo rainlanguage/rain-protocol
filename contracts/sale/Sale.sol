@@ -20,6 +20,7 @@ import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/IInterpreterCallerV1.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -158,7 +159,7 @@ uint256 constant CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW = 6;
 uint256 constant CONTEXT_BUY_ROWS = 7;
 
 // solhint-disable-next-line max-states-count
-contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
+contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     using Math for uint256;
     using FixedPointMath for uint256;
     using SafeERC20 for IERC20;
@@ -378,7 +379,11 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
             ) = interpreter.eval(
                     DEFAULT_STATE_NAMESPACE,
                     dispatchCanLive,
-                    LibContext.base().matrixFrom()
+                    LibContext.build(
+                        new uint256[][](0),
+                        new uint256[](0),
+                        new SignedContext[](0)
+                    )
                 );
             return (stack_[stack_.length - 1] > 0, store_, kvs_);
         }
@@ -663,6 +668,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard {
 
             EncodedDispatch dispatchHandleBuy_ = dispatchHandleBuy;
             if (EncodedDispatch.unwrap(dispatchHandleBuy_) > 0) {
+                emit Context(msg.sender, context_);
                 (
                     ,
                     IInterpreterStoreV1 handleBuyStore_,

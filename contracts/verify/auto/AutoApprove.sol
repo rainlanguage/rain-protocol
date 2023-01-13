@@ -9,6 +9,8 @@ import "../../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../../interpreter/run/IInterpreterV1.sol";
 import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
+import "../../interpreter/run/LibContext.sol";
+import "../../interpreter/run/IInterpreterCallerV1.sol";
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
@@ -20,7 +22,7 @@ struct AutoApproveConfig {
     StateConfig stateConfig;
 }
 
-contract AutoApprove is VerifyCallback {
+contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
@@ -77,6 +79,7 @@ contract AutoApprove is VerifyCallback {
                 if (evidences_[i_].data.length == 0x20) {
                     context_[0][0] = uint256(uint160(evidences_[i_].account));
                     context_[0][1] = uint256(bytes32(evidences_[i_].data));
+                    emit Context(msg.sender, context_);
                     (
                         uint256[] memory stack_,
                         IInterpreterStoreV1 store_,

@@ -7,6 +7,7 @@ import type {
   ReserveToken18,
 } from "../../typechain";
 import {
+  ContextEvent,
   DepositEvent,
   JoinEvent,
   LeaveEvent,
@@ -484,5 +485,137 @@ describe("Lobby Tests leave", async function () {
     assert(leaveToken === tokenA.address, "wrong leave token");
     assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
     assert(leaveAmount0.eq(depositAmount), "wrong leave amount");
+  });
+
+  it("should validate context emitted in Context event", async function () {
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+
+    await tokenA.connect(signers[0]).transfer(alice.address, ONE.mul(100));
+    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
+
+    const truthyValue = 0;
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+
+    const constants = [truthyValue, depositAmount, leaveAmount, claimAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+        ]);
+
+    const leaveSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+    ]);
+    const claimSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+    ]);
+    const invalidSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    const lobbyStateConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      token: tokenA.address,
+      stateConfig: lobbyStateConfig,
+      description: [],
+      timeoutDuration: 15000000,
+    };
+
+    await Lobby.initialize(initialConfig);
+    await tokenA.connect(alice).approve(Lobby.address, ONE.mul(100));
+
+    const context0 = [1, 2, 3];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+    ];
+
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+
+    const { sender: joinSender } = (await getEventArgs(
+      joinTx,
+      "Join",
+      Lobby
+    )) as JoinEvent["args"];
+
+    const {
+      sender: depositSender,
+      token: depositToken,
+      amount: depositAmount0,
+    } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
+
+    assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
+    assert(depositAmount0.eq(ONE), "wrong deposit amount");
+    assert(joinSender === alice.address, "wrong sender");
+
+    const currentPhase = await Lobby.currentPhase();
+    assert(currentPhase.eq(PHASE_PLAYERS_PENDING), "Bad Phase");
+
+    const leaveTx = await Lobby.connect(alice).leave([1234], signedContexts0);
+
+    const {
+      sender: leaveSender,
+      token: leaveToken,
+      deposit: leaveDeposit,
+      amount: leaveAmount0,
+    } = (await getEventArgs(leaveTx, "Leave", Lobby)) as LeaveEvent["args"];
+
+    assert(leaveSender === alice.address, "wrong deposit sender");
+    assert(leaveToken === tokenA.address, "wrong leave token");
+    assert(leaveDeposit.eq(depositAmount), "wrong deposit amount");
+    assert(leaveAmount0.eq(depositAmount), "wrong leave amount");
+
+    // Checking Context
+    const expectedContext0 = [
+      [
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(Lobby.address),
+      ],
+      [ethers.BigNumber.from(1234)],
+      [ethers.BigNumber.from(alice.address)],
+      [
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
+      ],
+    ];
+
+    const { sender: sender0_, context: context0_ } = (await getEventArgs(
+      leaveTx,
+      "Context",
+      Lobby
+    )) as ContextEvent["args"];
+
+    assert(sender0_ === alice.address, "wrong sender");
+    for (let i = 0; i < expectedContext0.length; i++) {
+      const rowArray = expectedContext0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
+                       expected  ${colElement}
+                       got       ${context0_[i][j]}`);
+        }
+      }
+    }
   });
 });
