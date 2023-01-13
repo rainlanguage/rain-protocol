@@ -15,6 +15,7 @@ import {
   ClearConfigStruct,
   ClearEvent,
   ClearStateChangeStruct,
+  ContextEvent,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
@@ -30,7 +31,7 @@ import {
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { getEventArgs } from "../../utils/events";
+import { getEventArgs, getEvents } from "../../utils/events";
 import {
   memoryOperand,
   MemoryType,
@@ -3638,5 +3639,319 @@ describe("OrderBook clear order", async function () {
 
     assert(aliceInputVaultBalance.eq(expectedAliceInputVaultAmount));
     assert(aliceOutputVaultBalance.isZero());
-  });
+  }); 
+
+  it("should validate context emitted in context event", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
+
+    // ASK ORDER
+
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
+    const vAskOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskRatio = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskRatio,
+    ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, askSource],
+        constants: askConstants,
+      },
+      data: aliceAskOrder,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { sender: askSender, order: askOrder,orderHash: askOrderHash } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    assert(askSender === alice.address, "wrong sender");
+    compareStructs(askOrder, askOrderConfig);
+
+    // BID ORDER
+
+    const bidRatio = fixedPointDiv(ONE, askRatio);
+    const bidConstants = [max_uint256, bidRatio];
+    const vBidOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vBidRatio = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    // prettier-ignore
+    const bidSource = concat([
+      vBidOutputMax,
+      vBidRatio,
+    ]);
+    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
+
+    const bidOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
+      ],
+      validOutputs: [
+        { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [bidSource, bidSource],
+        constants: bidConstants,
+      },
+      data: bobBidOrder,
+    };
+
+    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
+
+    const { sender: bidSender, order: bidOrder, orderHash: bidOrderHash } = (await getEventArgs(
+      txBidAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    assert(bidSender === bob.address, "wrong sender");
+    compareStructs(bidOrder, bidOrderConfig);
+
+    // DEPOSITS
+
+    const amountB = ethers.BigNumber.from("1000" + eighteenZeros);
+    const amountA = ethers.BigNumber.from("1000" + eighteenZeros);
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenA.transfer(bob.address, amountA);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+    const depositConfigStructBob: DepositConfigStruct = {
+      token: tokenA.address,
+      vaultId: bobOutputVault,
+      amount: amountA,
+    };
+
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+    await tokenA
+      .connect(bob)
+      .approve(orderBook.address, depositConfigStructBob.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+    // Bob deposits tokenA into his output vault
+    const txDepositOrderBob = await orderBook
+      .connect(bob)
+      .deposit(depositConfigStructBob);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+    const { sender: depositBobSender, config: depositBobConfig } =
+      (await getEventArgs(
+        txDepositOrderBob,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+    assert(depositBobSender === bob.address);
+    compareStructs(depositBobConfig, depositConfigStructBob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const clearConfig: ClearConfigStruct = {
+      aInputIOIndex: 0,
+      aOutputIOIndex: 0,
+      bInputIOIndex: 0,
+      bOutputIOIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
+    };
+
+    const txClearOrder = await orderBook
+      .connect(bountyBot)
+      .clear(askOrder, bidOrder, clearConfig);
+
+    const {
+      sender: clearSender,
+      a: clearA_,
+      b: clearB_,
+      clearConfig: clearBountyConfig,
+    } = (await getEventArgs(
+      txClearOrder,
+      "Clear",
+      orderBook
+    )) as ClearEvent["args"];
+    const { clearStateChange: clearStateChange } = (await getEventArgs(
+      txClearOrder,
+      "AfterClear",
+      orderBook
+    )) as AfterClearEvent["args"];
+
+    const aOutputMaxExpected = amountA;
+    const bOutputMaxExpected = amountB;
+
+    const aOutputExpected = minBN(
+      aOutputMaxExpected,
+      fixedPointMul(bidRatio, amountA)
+    );
+    const bOutputExpected = minBN(
+      bOutputMaxExpected,
+      fixedPointMul(askRatio, amountB)
+    );
+
+    const expectedClearStateChange: ClearStateChangeStruct = {
+      aOutput: aOutputExpected,
+      bOutput: bOutputExpected,
+      aInput: fixedPointMul(askRatio, aOutputExpected),
+      bInput: fixedPointMul(bidRatio, bOutputExpected),
+    };
+
+    assert(clearSender === bountyBot.address);
+    compareSolStructs(clearA_, askOrder);
+    compareSolStructs(clearB_, bidOrder);
+    compareStructs(clearBountyConfig, clearConfig);
+    compareStructs(clearStateChange, expectedClearStateChange);   
+
+    // Asserting Context Events
+    const contextEvents = (await getEvents(
+      txClearOrder,
+      "Context",
+      orderBook
+    )) as ContextEvent["args"][];
+
+    const { sender: sender0, context: context0_ } = contextEvents[0]
+    const { sender: sender1, context: context1_ } = contextEvents[1]  
+
+    assert(sender0 === bountyBot.address);
+    assert(sender1 === bountyBot.address);
+
+    const aop = minBN(amountB,fixedPointMul(amountB,bidRatio))
+    const bop = minBN(amountA,fixedPointMul(amountA,askRatio))
+    const aip = fixedPointMul(aop,askRatio)
+    const bip = fixedPointMul(bop,bidRatio) 
+
+    const expectedEvent0 = [
+      [
+        askOrderHash ,
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(bob.address),
+      ] , 
+      [
+        max_uint256 ,
+        askRatio
+      ] , 
+      [
+        ethers.BigNumber.from(tokenA.address),
+        ethers.BigNumber.from(18),
+        aliceInputVault ,
+        0,
+        aip
+      ] ,
+      [
+        ethers.BigNumber.from(tokenB.address),
+        ethers.BigNumber.from(18),
+        aliceOutputVault ,
+        amountB,
+        aop
+      ]
+    ]  
+    
+    for (let i = 0; i < expectedEvent0.length; i++) {
+      const rowArray = expectedEvent0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
+                         expected  ${colElement}
+                         got       ${context0_[i][j]}`);
+        }
+      }
+    } 
+
+    const expectedEvent1 = [
+      [
+        bidOrderHash ,
+        ethers.BigNumber.from(bob.address),
+        ethers.BigNumber.from(alice.address),
+      ] , 
+      [
+        max_uint256 ,
+        bidRatio
+      ] , 
+      [
+        ethers.BigNumber.from(tokenB.address),
+        ethers.BigNumber.from(18),
+        bobInputVault ,
+        0,
+        bip
+      ] ,
+      [
+        ethers.BigNumber.from(tokenA.address),
+        ethers.BigNumber.from(18),
+        bobOutputVault ,
+        amountA,
+        bop
+      ]
+    ] 
+
+    for (let i = 0; i < expectedEvent1.length; i++) {
+      const rowArray = expectedEvent1[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context1_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
+                         expected  ${colElement}
+                         got       ${context1_[i][j]}`);
+        }
+      }
+    } 
+  }); 
 });
