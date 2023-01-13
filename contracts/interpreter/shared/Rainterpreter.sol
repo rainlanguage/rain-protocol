@@ -15,6 +15,11 @@ bytes32 constant STORE_BYTECODE_HASH = bytes32(
     0x873c646d9c16e7f0db19840a6306b190e1f2f98ae87b423609825ee0501df881
 );
 
+struct RainterpreterConfig {
+    address store;
+    bytes opMeta;
+}
+
 /// @title Rainterpreter
 /// @notice Minimal binding of the `IIinterpreterV1` interface to the
 /// `LibInterpreterState` library, including every opcode in `AllStandardOps`.
@@ -38,22 +43,32 @@ contract Rainterpreter is IInterpreterV1 {
 
     IInterpreterStoreV1 internal immutable store;
 
+    /// The store is valid (has exact expected bytecode).
     event ValidStore(address sender, address store);
 
-    /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT HONEST
-    /// MISTAKES.
-    constructor(address store_) {
+    /// This is the literal OpMeta bytes to be used offchain to make sense of the
+    /// opcodes in this interpreter deployment, as a human. For formats like json
+    /// that make heavy use of boilerplate, repetition and whitespace, some kind
+    /// of compressino such as gzip is recommended.
+    event OpMeta(address sender, bytes opMeta);
+
+    constructor(RainterpreterConfig memory config_) {
         // Guard against an store with unknown bytecode.
         bytes32 storeHash_;
+        address store_ = config_.store;
         assembly ("memory-safe") {
             storeHash_ := extcodehash(store_)
         }
         if (storeHash_ != STORE_BYTECODE_HASH) {
+            /// THIS IS NOT A SECURITY CHECK. IT IS AN INTEGRITY CHECK TO PREVENT
+            /// HONEST MISTAKES.
             revert UnexpectedStoreBytecodeHash(storeHash_);
         }
 
         emit ValidStore(msg.sender, store_);
         store = IInterpreterStoreV1(store_);
+
+        emit OpMeta(msg.sender, config_.opMeta);
     }
 
     /// @inheritdoc IInterpreterV1

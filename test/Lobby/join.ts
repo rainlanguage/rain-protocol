@@ -7,6 +7,7 @@ import type {
   ReserveToken18,
 } from "../../typechain";
 import {
+  ContextEvent,
   DepositEvent,
   JoinEvent,
   LobbyConfigStruct,
@@ -350,5 +351,150 @@ describe("Lobby Tests join", async function () {
 
     const currentPhase = await Lobby.currentPhase();
     assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase");
-  });
+  });  
+
+  it("should validate context emitted in Context Event", async function () {
+    const signers = await ethers.getSigners();
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const depositAmount = ONE;
+    const leaveAmount = ONE;
+    const claimAmount = ONE;
+    const timeoutDuration = 15000000;
+
+    await tokenA.connect(signers[0]).transfer(alice.address, depositAmount);
+
+    const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
+
+    const constants = [1, depositAmount, leaveAmount, claimAmount];
+
+    // prettier-ignore
+    const joinSource = concat([
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+      ]);
+
+    const leaveSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+    ]);
+    const claimSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+    ]);
+    const invalidSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+    ]);
+
+    const lobbyStateConfig = {
+      sources: [joinSource, leaveSource, claimSource, invalidSource],
+      constants: constants,
+    };
+
+    const initialConfig: LobbyConfigStruct = {
+      refMustAgree: false,
+      ref: signers[0].address,
+      expressionDeployer: expressionDeployer.address,
+      interpreter: interpreter.address,
+      token: tokenA.address,
+      stateConfig: lobbyStateConfig,
+      description: [],
+      timeoutDuration: timeoutDuration,
+    };
+
+    await Lobby.initialize(initialConfig);
+
+    await tokenA.connect(alice).approve(Lobby.address, depositAmount);
+
+    const context0 = [1, 2, 3];
+    const hash0 = solidityKeccak256(["uint256[]"], [context0]);
+    const goodSignature0 = await alice.signMessage(arrayify(hash0));
+
+    const context1 = [4, 5, 6];
+    const hash1 = solidityKeccak256(["uint256[]"], [context1]);
+    const goodSignature1 = await bob.signMessage(arrayify(hash1));
+
+    const signedContexts0: SignedContextStruct[] = [
+      {
+        signer: alice.address,
+        signature: goodSignature0,
+        context: context0,
+      },
+      {
+        signer: bob.address,
+        signature: goodSignature1,
+        context: context1,
+      },
+    ];
+
+    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+
+    const { sender } = (await getEventArgs(
+      joinTx,
+      "Join",
+      Lobby
+    )) as JoinEvent["args"];
+
+    const {
+      sender: depositSender,
+      token: depositToken,
+      amount,
+    } = (await getEventArgs(joinTx, "Deposit", Lobby)) as DepositEvent["args"];
+
+    assert(depositSender === alice.address, "wrong deposit sender");
+    assert(depositToken === tokenA.address, "wrong deposit token");
+    assert(amount.eq(depositAmount), "wrong deposit amount");
+    assert(sender === alice.address, "wrong sender");
+
+    const currentPhase = await Lobby.currentPhase();
+    assert(currentPhase.eq(PHASE_RESULT_PENDING), "Bad Phase"); 
+    
+    const expectedContext0 = [
+      [
+        ethers.BigNumber.from(alice.address) , 
+        ethers.BigNumber.from(Lobby.address) 
+      ] , 
+      [
+        ethers.BigNumber.from(1234) 
+      ] , 
+      [
+        ethers.BigNumber.from(alice.address) , 
+        ethers.BigNumber.from(bob.address) 
+      ],
+      [
+        ethers.BigNumber.from(1) ,
+        ethers.BigNumber.from(2) ,
+        ethers.BigNumber.from(3) 
+      ],
+      [
+        ethers.BigNumber.from(4) ,
+        ethers.BigNumber.from(5) ,
+        ethers.BigNumber.from(6) 
+      ]
+    ]
+
+    const {sender: sender0 ,context: context0_ } = (await getEventArgs(
+      joinTx,
+        "Context",
+        Lobby
+      )) as ContextEvent["args"]   
+
+    assert(sender0 === alice.address , "wrong sender")  
+    for(let i = 0 ; i < expectedContext0.length ; i++){
+      let rowArray = expectedContext0[i] 
+      for(let j = 0 ; j < rowArray.length ; j++){
+          let colElement = rowArray[j] 
+          if(!context0_[i][j].eq(colElement)){
+              assert.fail(`mismatch at position (${i},${j}),
+                       expected  ${colElement}
+                       got       ${context0_[i][j]}`)
+          }
+          
+      }
+  }
+
+
+
+  }); 
+
+
 });

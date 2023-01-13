@@ -41,7 +41,7 @@ gas per opcode, meaning that VM contracts are only ~5-10% more expensive than
 hand-written and optimised equivalent solidity code.
 
 We believe the power of allowing your USERS to read and write their own
-contracts, without needing soliditiy developers or auditors, is well worth a
+contracts, without needing solidity developers or auditors, is well worth a
 few thousand gas overhead, even on L1.
 
 ## How can Rain claim to bypass developers and auditors securely?
@@ -52,7 +52,7 @@ At a high level the Rain security model is:
 - There are NO admin keys outside the KYC verification process which sadly
   still requires some kind of offchain review
 - Rain scripts MUST be both readable and writeable by the "average" spreadsheet
-  user, so that ALL scriptable functionaly is _self auditable_ by end users
+  user, so that ALL scriptable functionality is _self auditable_ by end users
 - Rain scripts MUST be read only so that state changes are mediated by the
   wrapping contract at all times, and reentrancy mistakes are impossible
 - Rain deployments are mediated by factories with known bytecode that deploy
@@ -145,7 +145,7 @@ automated security scanner.
 
 ### Run echidna tests
 
-Echidna is a powerful tool designed for fuzzing/property-based testing of Ethereum smarts contracts.
+Echidna is a powerful tool designed for fuzzing/property-based testing of Ethereum smart contracts.
 Read more about Echidna [here](https://github.com/crytic/echidna).
 
 Use `run-echidna` from inside the nix shell. Echidna will start fuzzing the contracts as declared in `echidna` folder.
