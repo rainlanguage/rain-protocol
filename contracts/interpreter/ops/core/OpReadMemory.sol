@@ -14,8 +14,10 @@ error OutOfBoundsStackRead(uint256 stackTopIndex, uint256 stackRead);
 /// Thrown when a constant read index is outside the constants array.
 error OutOfBoundsConstantsRead(uint256 constantsLength, uint256 constantsRead);
 
-uint256 constant OPCODE_MEMORY_TYPE_STACK = 0;
-uint256 constant OPCODE_MEMORY_TYPE_CONSTANT = 1;
+/// @dev Read a value from the stack.
+uint256 constant OPERAND_MEMORY_TYPE_STACK = 0;
+/// @dev Read a value from the constants.
+uint256 constant OPERAND_MEMORY_TYPE_CONSTANT = 1;
 
 /// @title OpReadMemory
 /// @notice Opcode for stacking from the interpreter state in memory. This can
@@ -34,7 +36,7 @@ library OpReadMemory {
     ) internal pure returns (StackPointer) {
         uint256 type_ = Operand.unwrap(operand_) & MASK_1BIT;
         uint256 offset_ = Operand.unwrap(operand_) >> 1;
-        if (type_ == OPCODE_MEMORY_TYPE_STACK) {
+        if (type_ == OPERAND_MEMORY_TYPE_STACK) {
             uint256 stackTopIndex_ = integrityCheckState_.stackBottom.toIndex(
                 stackTop_
             );

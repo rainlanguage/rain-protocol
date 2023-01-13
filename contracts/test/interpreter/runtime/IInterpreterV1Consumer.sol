@@ -8,7 +8,7 @@ import "hardhat/console.sol";
 
 contract IInterpreterV1Consumer {
     uint256[] private _stack;
-    IInterpreterStoreV1 _store;
+    IInterpreterStoreV1 private _store;
     uint256[] private _kvs;
 
     function eval(
