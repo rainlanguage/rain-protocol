@@ -54,7 +54,7 @@ export const getOpmetaJsonFile = (
 ) => {
   if (!path) path = __dirname
   if (!path.endsWith("/")) path = path + "/"
-  if (!fileName) fileName = "RainterpreterOpmeta"
+  if (!fileName) fileName = "Opmeta"
   const OpMeta = getOpmetaJsonData(opmeta, indent)
   try {
     fs.writeFileSync(
