@@ -5081,9 +5081,9 @@ describe("OrderBook take orders", async function () {
       "Error: VM Exception while processing transaction: reverted with reason string 'MIN_INPUT'",
       "Take Orders with incorrect decimals executed"
     );
-  });  
+  });
 
-  it.only("should validate context emitted in Context event", async function () {
+  it("should validate context emitted in Context event", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -5224,7 +5224,7 @@ describe("OrderBook take orders", async function () {
     });
 
     const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
-    assert(tokenAAliceBalanceWithdrawn.eq(amountA)); 
+    assert(tokenAAliceBalanceWithdrawn.eq(amountA));
 
     // Asserting Context Events
     const contextEvents = (await getEvents(
@@ -5233,39 +5233,36 @@ describe("OrderBook take orders", async function () {
       orderBook
     )) as ContextEvent["args"][];
 
-    const { sender: sender0, context: context0_ } = contextEvents[0]
+    const { sender: sender0, context: context0_ } = contextEvents[0];
 
     assert(sender0 === bob.address);
- 
-    const aip = minBN(amountB,minBN(max_uint256,amountB)) // minimum of remainingInput and outputMax
-    const aop = fixedPointMul(aip,askRatio) 
+
+    const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
+    const aop = fixedPointMul(aip, askRatio);
 
     const expectedEvent0 = [
       [
-        askOrderHash ,
+        askOrderHash,
         ethers.BigNumber.from(alice.address),
         ethers.BigNumber.from(bob.address),
-      ] , 
-      [
-        max_uint256 ,
-        askRatio
-      ] , 
+      ],
+      [max_uint256, askRatio],
       [
         ethers.BigNumber.from(tokenA.address),
         ethers.BigNumber.from(18),
-        aliceInputVault ,
+        aliceInputVault,
         0,
-        aop
-      ] ,
+        aop,
+      ],
       [
         ethers.BigNumber.from(tokenB.address),
         ethers.BigNumber.from(18),
-        aliceOutputVault ,
+        aliceOutputVault,
         amountB,
-        aip
-      ]
-    ]  
-    
+        aip,
+      ],
+    ];
+
     for (let i = 0; i < expectedEvent0.length; i++) {
       const rowArray = expectedEvent0[i];
       for (let j = 0; j < rowArray.length; j++) {
@@ -5277,9 +5274,5 @@ describe("OrderBook take orders", async function () {
         }
       }
     }
-
-
   });
-
-
 });

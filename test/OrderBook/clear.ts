@@ -3559,7 +3559,7 @@ describe("OrderBook clear order", async function () {
         18 + incorrectTokenADecimals - tokenBDecimals
       )
     );
-  
+
     const expectedAliceInputVaultAmount = fixedPointMul(
       depositAmountB,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
@@ -3638,7 +3638,7 @@ describe("OrderBook clear order", async function () {
 
     assert(aliceInputVaultBalance.eq(expectedAliceInputVaultAmount));
     assert(aliceOutputVaultBalance.isZero());
-  }); 
+  });
 
   it("should validate context emitted in context event", async function () {
     const signers = await ethers.getSigners();
@@ -3695,7 +3695,11 @@ describe("OrderBook clear order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askOrder,orderHash: askOrderHash } = (await getEventArgs(
+    const {
+      sender: askSender,
+      order: askOrder,
+      orderHash: askOrderHash,
+    } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
@@ -3741,7 +3745,11 @@ describe("OrderBook clear order", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidOrder, orderHash: bidOrderHash } = (await getEventArgs(
+    const {
+      sender: bidSender,
+      order: bidOrder,
+      orderHash: bidOrderHash,
+    } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
@@ -3857,7 +3865,7 @@ describe("OrderBook clear order", async function () {
     compareSolStructs(clearA_, askOrder);
     compareSolStructs(clearB_, bidOrder);
     compareStructs(clearBountyConfig, clearConfig);
-    compareStructs(clearStateChange, expectedClearStateChange);   
+    compareStructs(clearStateChange, expectedClearStateChange);
 
     // Asserting Context Events
     const contextEvents = (await getEvents(
@@ -3866,43 +3874,40 @@ describe("OrderBook clear order", async function () {
       orderBook
     )) as ContextEvent["args"][];
 
-    const { sender: sender0, context: context0_ } = contextEvents[0]
-    const { sender: sender1, context: context1_ } = contextEvents[1]  
+    const { sender: sender0, context: context0_ } = contextEvents[0];
+    const { sender: sender1, context: context1_ } = contextEvents[1];
 
     assert(sender0 === bountyBot.address);
     assert(sender1 === bountyBot.address);
 
-    const aop = minBN(amountB,fixedPointMul(amountB,bidRatio))
-    const bop = minBN(amountA,fixedPointMul(amountA,askRatio))
-    const aip = fixedPointMul(aop,askRatio)
-    const bip = fixedPointMul(bop,bidRatio) 
+    const aop = minBN(amountB, fixedPointMul(amountB, bidRatio));
+    const bop = minBN(amountA, fixedPointMul(amountA, askRatio));
+    const aip = fixedPointMul(aop, askRatio);
+    const bip = fixedPointMul(bop, bidRatio);
 
     const expectedEvent0 = [
       [
-        askOrderHash ,
+        askOrderHash,
         ethers.BigNumber.from(alice.address),
         ethers.BigNumber.from(bob.address),
-      ] , 
-      [
-        max_uint256 ,
-        askRatio
-      ] , 
+      ],
+      [max_uint256, askRatio],
       [
         ethers.BigNumber.from(tokenA.address),
         ethers.BigNumber.from(18),
-        aliceInputVault ,
+        aliceInputVault,
         0,
-        aip
-      ] ,
+        aip,
+      ],
       [
         ethers.BigNumber.from(tokenB.address),
         ethers.BigNumber.from(18),
-        aliceOutputVault ,
+        aliceOutputVault,
         amountB,
-        aop
-      ]
-    ]  
-    
+        aop,
+      ],
+    ];
+
     for (let i = 0; i < expectedEvent0.length; i++) {
       const rowArray = expectedEvent0[i];
       for (let j = 0; j < rowArray.length; j++) {
@@ -3913,33 +3918,30 @@ describe("OrderBook clear order", async function () {
                          got       ${context0_[i][j]}`);
         }
       }
-    } 
+    }
 
     const expectedEvent1 = [
       [
-        bidOrderHash ,
+        bidOrderHash,
         ethers.BigNumber.from(bob.address),
         ethers.BigNumber.from(alice.address),
-      ] , 
-      [
-        max_uint256 ,
-        bidRatio
-      ] , 
+      ],
+      [max_uint256, bidRatio],
       [
         ethers.BigNumber.from(tokenB.address),
         ethers.BigNumber.from(18),
-        bobInputVault ,
+        bobInputVault,
         0,
-        bip
-      ] ,
+        bip,
+      ],
       [
         ethers.BigNumber.from(tokenA.address),
         ethers.BigNumber.from(18),
-        bobOutputVault ,
+        bobOutputVault,
         amountA,
-        bop
-      ]
-    ] 
+        bop,
+      ],
+    ];
 
     for (let i = 0; i < expectedEvent1.length; i++) {
       const rowArray = expectedEvent1[i];
@@ -3951,6 +3953,6 @@ describe("OrderBook clear order", async function () {
                          got       ${context1_[i][j]}`);
         }
       }
-    } 
-  }); 
+    }
+  });
 });
