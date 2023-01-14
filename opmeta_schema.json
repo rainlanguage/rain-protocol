@@ -1,0 +1,231 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/OpMeta",
+    "definitions": {
+        "OpMeta": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "title": "Opcode Name",
+                    "description": "The primary word used to identify the opcode"
+                },
+                "desc": {
+                    "type": "string",
+                    "title": "Opcode Description",
+                    "description": "Describes what the opcode does briefly"
+                },
+                "operand": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/OperandArg"
+                    },
+                    "title": "Opcode Operand",
+                    "description": "Data required in order to calculate and format the operand"
+                },
+                "inputs": {
+                    "$ref": "#/definitions/InputMeta",
+                    "title": "Opcode Inputs",
+                    "description": "Data required to specify the inputs the opcode"
+                },
+                "outputs": {
+                    "$ref": "#/definitions/OutputMeta",
+                    "title": "Opcode Outputs",
+                    "description": "Data required to specify the outputs the opcode"
+                },
+                "aliases": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Opcode Aliases",
+                    "description": "Extra word used to identify the opcode"
+                }
+            },
+            "required": [
+                "name",
+                "desc",
+                "operand",
+                "inputs",
+                "outputs"
+            ],
+            "additionalProperties": false,
+            "title": "Opcode Metadata",
+            "description": "Schema for opcodes metadata used by Rainlang parser and formatter"
+        },
+        "OperandArg": {
+            "type": "object",
+            "properties": {
+                "bits": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "title": "Allocated Operand Bits",
+                    "description": "Specifies the bits to allocate to this operand argument"
+                },
+                "name": {
+                    "type": "string",
+                    "title": "Operand Argument Name",
+                    "description": "Name of the operand argument. Argument with the name of \"inputs\" is reserved as it will not be typed when writing expressions but will be in operand construction"
+                },
+                "desc": {
+                    "type": "string",
+                    "title": "Operand Argument Description",
+                    "description": "Description of the operand argument"
+                },
+                "computation": {
+                    "type": "string",
+                    "title": "Allocated Operand Bits Computation",
+                    "description": "Specifies any arithmetical operation that needs to be applied on the value of this operand argument. The \"this\" keyword is reserved for accessing the value of this operand argument, example: \"(this + 1) * 2\""
+                },
+                "validRange": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "minItems": 1,
+                                "maxItems": 1
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2
+                            }
+                        ]
+                    },
+                    "title": "Operand Argument Range",
+                    "description": "Determines the valid range of the operand argument. For example an operand argument can be any range between 1 - 10: [[1, 10]] or an operand argument can only be certain exact number: [[2], [3], [9]], meaning it can only be 2 or 3 or 9"
+                }
+            },
+            "required": [
+                "bits",
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "InputMeta": {
+            "anyOf": [
+                {
+                    "type": "integer",
+                    "const": 0
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "parameters": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "title": "Input Parameter Name",
+                                        "description": "Name of the input parameter"
+                                    },
+                                    "desc": {
+                                        "type": "string",
+                                        "title": "Input Parameter Description",
+                                        "description": "Description of the input parameter"
+                                    },
+                                    "validLength": {
+                                        "type": "array",
+                                        "items": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "minItems": 1,
+                                                    "maxItems": 1
+                                                },
+                                                {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "minItems": 2,
+                                                    "maxItems": 2
+                                                }
+                                            ]
+                                        },
+                                        "title": "Input Parameter Valid Length",
+                                        "description": "Only used for dynamic-length arguments of a same type and determines the valid length of them, for example an opcode can have any number between 1 - 10 of same arguments: [[1, 10]] or an opcode can only have certain exact number of this type of inputs: [[2], [3], [9]], meaning it can only have 2 or 3 or 9 arguments of this type"
+                                    },
+                                    "length": {
+                                        "type": "string",
+                                        "title": "Input Parameter Length",
+                                        "description": "An arithmetical script that specifies the length of a dynamic argument. The \"this\" keyword is reserved for accessing the exctraced value from operand bits, example: \"(this + 1) * 2\". Only used for opcodes with multiple dynamic input arguments."
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ],
+                                "additionalProperties": false
+                            },
+                            "title": "Parameters",
+                            "description": "Data type for opcode's inputs parameters, the length determines the number of inputs for constant (non-computed) inputs."
+                        },
+                        "bits": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "title": "Inputs-Allocated Operand Bits",
+                            "description": "Specifies bits of the operand allocated for number of inputs. Determines the number of inputs for a computed opcode inputs. Required only for computed (non-constant) inputs"
+                        },
+                        "computation": {
+                            "type": "string",
+                            "title": "Inputs-Allocated Operand Bits Computation",
+                            "description": "Specifies any arithmetical operation that needs to be applied on value of the extracted operand bits. The \"this\" keyword is reserved for accessing the exctraced value, example: \"(this + 1) * 2\". Required only for computed (non-constant) inputs"
+                        }
+                    },
+                    "required": [
+                        "parameters"
+                    ],
+                    "additionalProperties": false
+                }
+            ]
+        },
+        "OutputMeta": {
+            "anyOf": [
+                {
+                    "type": "integer"
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "bits": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "title": "Outputs-Allocated Operand Bits",
+                            "description": "Specifies bits of the operand allocated for number of outputs. Determines the number of outputs for a computed opcode outputs. Required only for computed (non-constant) outputs"
+                        },
+                        "computation": {
+                            "type": "string",
+                            "title": "Outputs-Allocated Operand Bits Computation",
+                            "description": "Specifies any arithmetical operation that needs to be applied on value of the extracted operand bits. The \"this\" keyword is reserved for accessing the exctraced value, example: \"(this + 1) * 2\". Required only for computed (non-constant) outputs"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            ]
+        }
+    }
+}

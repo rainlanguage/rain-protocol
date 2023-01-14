@@ -1,0 +1,17 @@
+{
+    "name": "SATURATING_DIFF",
+    "desc": "Inserts the saturating difference of 2 reports taken from the stack into the stack and prevents reverts if the result below zero",
+    "operand": [],
+    "inputs": {
+        "parameters": [
+            {
+                "name": "1st Value"
+            },
+            {
+                "name": "2nd Value2"
+            }
+        ]
+    },
+    "outputs": 1,
+    "aliases": ["SAT_DIFF", "SATDIFF", "SATURATINGDIFF"]
+}

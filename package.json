@@ -17,7 +17,8 @@
     "build": "hardhat compile",
     "test": "hardhat test",
     "lint": "eslint . --ext .ts",
-    "lint-and-fix": "eslint . --ext .ts --fix"
+    "lint-and-fix": "eslint . --ext .ts --fix",
+    "genOpmeta": "ts-node ./scripts/generateOpmeta.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "=2.3.4",
@@ -48,7 +49,9 @@
   },
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
-    "@openzeppelin/contracts-upgradeable": "=4.8.0"
+    "@openzeppelin/contracts-upgradeable": "=4.8.0",
+    "@types/js-yaml": "^4.0.5",
+    "js-yaml": "^4.1.0"
   },
   "overrides": {
     "solhint": {

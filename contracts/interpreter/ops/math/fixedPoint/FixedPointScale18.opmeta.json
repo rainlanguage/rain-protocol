@@ -1,0 +1,21 @@
+{
+    "name": "SCALE18",
+    "desc": "Rescale some fixed point number to 18 OOMs in situ.",
+    "operand": [
+        {
+            "name": "Decimals",
+            "desc": "decimals of the value to scale to 18",
+            "bits": [0, 7],
+            "validRange": [[1, 255]]
+        }
+    ],
+    "inputs": {
+        "parameters": [
+            {
+                "name": "Value"
+            }
+        ]
+    },
+    "outputs": 1,
+    "aliases": ["SCALE_18"]
+}

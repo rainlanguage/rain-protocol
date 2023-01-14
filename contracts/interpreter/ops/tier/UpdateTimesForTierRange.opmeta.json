@@ -1,0 +1,40 @@
+{
+    "name": "UPDATE_TIMES_FOR_TIER_RANGE",
+    "desc": "Inserts the result of updating the range of tiers of a report taken from stack by a value taken from the stack into the stack",
+    "operand": [
+        {
+            "name": "Start Tier",
+            "desc": "the starting tier to update",
+            "bits": [0, 3],
+            "validRange": [[0, 8]]
+        },
+        {
+            "name": "End Tier",
+            "desc": "the ending tier to update",
+            "bits": [4, 7],
+            "validRange": [[0, 8]]
+        }
+    ],
+    "inputs": {
+        "parameters": [
+            {
+                "name": "Update Timestamp",
+                "desc": "the timestamp to update tier range to"
+            },
+            {
+                "name": "Report",
+                "desc": "the report to update its tier range"
+            }
+        ]
+    },
+    "outputs": 1,
+    "aliases": [
+        "UPDATETIMESFORTIERRANGE",
+        "UPDATE_TIER_RANGE",
+        "UPDATETIERRANGE",
+        "UPDATE_TIERS",
+        "UPDATETIERS",
+        "UPDATE_REPORT",
+        "UPDATEREPORT"
+    ]
+}

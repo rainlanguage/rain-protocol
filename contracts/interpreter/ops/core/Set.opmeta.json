@@ -1,0 +1,17 @@
+{
+    "name": "SET",
+    "desc": "Write a key/value pair taken from stack and write into contract storage",
+    "operand": [],
+    "inputs": {
+        "parameters": [
+            {
+                "name": "Key"
+            },
+            {
+                "name": "Value"
+            }
+        ]
+    },
+    "outputs": 0,
+    "aliases": ["WRITE"]
+}

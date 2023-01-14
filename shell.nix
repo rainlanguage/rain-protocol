@@ -155,6 +155,10 @@ let
 
     EOF
   '';
+
+  rainterpreter-opmeta = pkgs.writeShellScriptBin "rainterpreter-opmeta" ''
+    npm run genOpmeta
+  '';
 in
 pkgs.stdenv.mkDerivation {
   name = "shell";
@@ -183,6 +187,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.python39Packages.solc-select
     pkgs.python39Packages.crytic-compile
     pkgs.echidna
+    rainterpreter-opmeta
   ];
 
   shellHook = ''

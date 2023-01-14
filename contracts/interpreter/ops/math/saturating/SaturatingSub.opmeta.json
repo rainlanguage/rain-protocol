@@ -1,0 +1,30 @@
+{
+    "name": "SATURATING_SUB",
+    "desc": "Inserts subtraction of the specified items from the stack and if prevernts reverts if the result goes blow zero",
+    "operand": [
+        {
+            "name": "Inputs",
+            "bits": [0, 7],
+            "validRange": [[2, 255]]
+        }
+    ],
+    "inputs": {
+        "bits": [0, 7],
+        "parameters": [
+            {
+                "name": "Input",
+                "validLength": [[2, 255]]
+            }
+        ]
+    },
+    "outputs": 1,
+    "aliases": [
+        "SATURATINGSUB",
+        "SAT_SUB",
+        "SATSUB",
+        "SATURATING_MINUS",
+        "SATURATINGMINUS",
+        "SATMINUS",
+        "SAT_MINUS"
+    ]
+}
