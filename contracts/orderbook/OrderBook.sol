@@ -17,12 +17,31 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-/// Thrown when the `msg.sender` taking action on an order is not its owner.
+/// Thrown when the `msg.sender` modifying an order is not its owner.
+/// @param sender `msg.sender` attempting to modify the order.
+/// @param owner The owner of the order.
 error NotOrderOwner(address sender, address owner);
+
+/// Thrown when the input and output tokens don't match, in either direction.
+/// @param a The input or output of one order.
+/// @param b The input or output of the other order that doesn't match a.
+error TokenMismatch(address a, address b);
+
+/// Thrown when the minimum input is not met.
+/// @param minimumInput The minimum input required.
+/// @param input The input that was achieved.
+error MinimumInput(uint256 minimumInput, uint256 input);
+
+/// Thrown when two orders have the same owner during clear.
+/// @param owner The owner of both orders.
+error SameOwner(address owner);
 
 /// @dev Value that signifies that an order is live in the internal mapping.
 /// Anything nonzero is equally useful.
 uint256 constant LIVE_ORDER = 1;
+
+/// @dev Value that signifies that an order is dead in the internal mapping.
+uint256 constant DEAD_ORDER = 0;
 
 /// @dev Entrypoint to a calculate the amount and ratio of an order.
 SourceIndex constant CALCULATE_ORDER_ENTRYPOINT = SourceIndex.wrap(0);
@@ -589,19 +608,26 @@ contract OrderBook is
         }
     }
 
+    /// Given an order, final input and output amounts and the IO calculation
+    /// verbatim from `_calculateOrderIO`, dispatch the handle IO entrypoint if
+    /// it exists and update the order owner's vault balances.
+    /// @param order_ The order that is being cleared.
+    /// @param input_ The exact token input amount to move into the owner's
+    /// vault.
+    /// @param output_ The exact token output amount to move out of the owner's
+    /// vault.
+    /// @param orderIOCalculation_ The verbatim order IO calculation returned by
+    /// `_calculateOrderIO`.
     function _recordVaultIO(
         Order memory order_,
         uint256 input_,
         uint256 output_,
-        uint256[][] memory context_,
-        IInterpreterStoreV1 calculateStore_,
-        StateNamespace namespace_,
-        uint256[] memory calculateKVs_
+        OrderIOCalculation memory orderIOCalculation_
     ) internal {
-        context_[CONTEXT_VAULT_INPUTS_COLUMN][
+        orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN][
             CONTEXT_VAULT_IO_BALANCE_DIFF
         ] = input_;
-        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+        orderIOCalculation_.context[CONTEXT_VAULT_OUTPUTS_COLUMN][
             CONTEXT_VAULT_IO_BALANCE_DIFF
         ] = output_;
 
@@ -610,13 +636,15 @@ contract OrderBook is
             vaultBalance[order_.owner][
                 address(
                     uint160(
-                        context_[CONTEXT_VAULT_INPUTS_COLUMN][
-                            CONTEXT_VAULT_IO_TOKEN
-                        ]
+                        orderIOCalculation_.context[
+                            CONTEXT_VAULT_INPUTS_COLUMN
+                        ][CONTEXT_VAULT_IO_TOKEN]
                     )
                 )
             ][
-                context_[CONTEXT_VAULT_INPUTS_COLUMN][CONTEXT_VAULT_IO_VAULT_ID]
+                orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN][
+                    CONTEXT_VAULT_IO_VAULT_ID
+                ]
             ] += input_;
         }
         if (output_ > 0) {
@@ -624,34 +652,50 @@ contract OrderBook is
             vaultBalance[order_.owner][
                 address(
                     uint160(
-                        context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
-                            CONTEXT_VAULT_IO_TOKEN
-                        ]
+                        orderIOCalculation_.context[
+                            CONTEXT_VAULT_OUTPUTS_COLUMN
+                        ][CONTEXT_VAULT_IO_TOKEN]
                     )
                 )
             ][
-                context_[CONTEXT_VAULT_OUTPUTS_COLUMN][
+                orderIOCalculation_.context[CONTEXT_VAULT_OUTPUTS_COLUMN][
                     CONTEXT_VAULT_IO_VAULT_ID
                 ]
             ] -= output_;
         }
 
-        if (calculateKVs_.length > 0) {
-            calculateStore_.set(namespace_, calculateKVs_);
+        // Emit the context only once in its fully populated form rather than two
+        // nearly identical emissions of a partial and full context.
+        emit Context(msg.sender, orderIOCalculation_.context);
+
+        // Apply state changes to the interpreter store after the vault balances
+        // are updated, but before we call handle IO. We want handle IO to see
+        // a consistent view on sets from calculate IO.
+        if (orderIOCalculation_.kvs.length > 0) {
+            orderIOCalculation_.store.set(
+                orderIOCalculation_.namespace,
+                orderIOCalculation_.kvs
+            );
         }
+
+        // Only dispatch handle IO entrypoint if it is defined, otherwise it is
+        // a waste of gas to hit the interpreter a second time.
         if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
-            emit Context(msg.sender, context_);
+            // The handle IO eval is run under the same namespace as the
+            // calculate order entrypoint.
             (
                 ,
                 IInterpreterStoreV1 handleIOStore_,
                 uint256[] memory handleIOKVs_
             ) = IInterpreterV1(order_.interpreter).eval(
-                    namespace_,
+                    orderIOCalculation_.namespace,
                     order_.handleIODispatch,
-                    context_
+                    orderIOCalculation_.context
                 );
+            // Apply state changes to the interpreter store from the handle IO
+            // entrypoint.
             if (handleIOKVs_.length > 0) {
-                handleIOStore_.set(namespace_, handleIOKVs_);
+                handleIOStore_.set(orderIOCalculation_.namespace, handleIOKVs_);
             }
         }
     }
@@ -674,16 +718,24 @@ contract OrderBook is
             if (orders[orderHash_] == 0) {
                 emit OrderNotFound(msg.sender, order_.owner, orderHash_);
             } else {
-                require(
-                    order_.validInputs[takeOrder_.inputIOIndex].token ==
-                        takeOrders_.output,
-                    "TOKEN_MISMATCH"
-                );
-                require(
-                    order_.validOutputs[takeOrder_.outputIOIndex].token ==
-                        takeOrders_.input,
-                    "TOKEN_MISMATCH"
-                );
+                if (
+                    order_.validInputs[takeOrder_.inputIOIndex].token !=
+                    takeOrders_.output
+                ) {
+                    revert TokenMismatch(
+                        order_.validInputs[takeOrder_.inputIOIndex].token,
+                        takeOrders_.output
+                    );
+                }
+                if (
+                    order_.validOutputs[takeOrder_.outputIOIndex].token !=
+                    takeOrders_.input
+                ) {
+                    revert TokenMismatch(
+                        order_.validOutputs[takeOrder_.outputIOIndex].token,
+                        takeOrders_.input
+                    );
+                }
 
                 OrderIOCalculation
                     memory orderIOCalculation_ = _calculateOrderIO(
@@ -720,10 +772,7 @@ contract OrderBook is
                         order_,
                         output_,
                         input_,
-                        orderIOCalculation_.context,
-                        orderIOCalculation_.store,
-                        orderIOCalculation_.namespace,
-                        orderIOCalculation_.kvs
+                        orderIOCalculation_
                     );
                     emit TakeOrder(msg.sender, takeOrder_, input_, output_);
                 }
@@ -735,7 +784,9 @@ contract OrderBook is
         }
         totalInput_ = takeOrders_.maximumInput - remainingInput_;
 
-        require(totalInput_ >= takeOrders_.minimumInput, "MIN_INPUT");
+        if (totalInput_ < takeOrders_.minimumInput) {
+            revert MinimumInput(takeOrders_.minimumInput, totalInput_);
+        }
 
         IERC20(takeOrders_.output).safeTransferFrom(
             msg.sender,
@@ -755,22 +806,42 @@ contract OrderBook is
         ClearConfig calldata clearConfig_
     ) external nonReentrant {
         {
-            require(a_.owner != b_.owner, "SAME_OWNER");
-            require(
-                a_.validOutputs[clearConfig_.aOutputIOIndex].token ==
-                    b_.validInputs[clearConfig_.bInputIOIndex].token,
-                "TOKEN_MISMATCH"
-            );
-            require(
-                b_.validOutputs[clearConfig_.bOutputIOIndex].token ==
-                    a_.validInputs[clearConfig_.aInputIOIndex].token,
-                "TOKEN_MISMATCH"
-            );
-            require(orders[a_.hash()] > 0, "A_NOT_LIVE");
-            require(orders[b_.hash()] > 0, "B_NOT_LIVE");
+            if (a_.owner == b_.owner) {
+                revert SameOwner(a_.owner);
+            }
+            if (
+                a_.validOutputs[clearConfig_.aOutputIOIndex].token !=
+                b_.validInputs[clearConfig_.bInputIOIndex].token
+            ) {
+                revert TokenMismatch(
+                    a_.validOutputs[clearConfig_.aOutputIOIndex].token,
+                    b_.validInputs[clearConfig_.bInputIOIndex].token
+                );
+            }
 
-            // emit the Clear event before `a_` and `b_` are mutated due to the
-            // Interpreter execution in eval.
+            if (
+                b_.validOutputs[clearConfig_.bOutputIOIndex].token !=
+                a_.validInputs[clearConfig_.aInputIOIndex].token
+            ) {
+                revert TokenMismatch(
+                    b_.validOutputs[clearConfig_.bOutputIOIndex].token,
+                    a_.validInputs[clearConfig_.aInputIOIndex].token
+                );
+            }
+
+            // If either order is dead the clear is a no-op other than emitting
+            // `OrderNotFound`. Returning rather than erroring makes it easier to
+            // bulk clear using `Multicall`.
+            if (orders[a_.hash()] == DEAD_ORDER) {
+                emit OrderNotFound(msg.sender, a_.owner, a_.hash());
+                return;
+            }
+            if (orders[b_.hash()] == DEAD_ORDER) {
+                emit OrderNotFound(msg.sender, b_.owner, b_.hash());
+                return;
+            }
+
+            // Emit the Clear event before `eval`.
             emit Clear(msg.sender, a_, b_, clearConfig_);
         }
         OrderIOCalculation memory aOrderIOCalculation_;
@@ -818,19 +889,13 @@ contract OrderBook is
             a_,
             clearStateChange_.aInput,
             clearStateChange_.aOutput,
-            aOrderIOCalculation_.context,
-            aOrderIOCalculation_.store,
-            aOrderIOCalculation_.namespace,
-            aOrderIOCalculation_.kvs
+            aOrderIOCalculation_
         );
         _recordVaultIO(
             b_,
             clearStateChange_.bInput,
             clearStateChange_.bOutput,
-            bOrderIOCalculation_.context,
-            bOrderIOCalculation_.store,
-            bOrderIOCalculation_.namespace,
-            bOrderIOCalculation_.kvs
+            bOrderIOCalculation_
         );
 
         {

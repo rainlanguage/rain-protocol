@@ -5076,8 +5076,8 @@ describe("OrderBook take orders", async function () {
     await assertError(
       async () =>
         await orderBook.connect(bob).takeOrders(takeOrdersConfigStruct),
-      "Error: VM Exception while processing transaction: reverted with reason string 'MIN_INPUT'",
-      "Take Orders with incorrect decimals executed"
+      `MinimumInput(${depositAmountB}, 0)`,
+      "Take Orders without hitting minimum input executed"
     );
   });
 });
