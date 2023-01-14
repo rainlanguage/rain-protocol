@@ -132,8 +132,6 @@ export const rainterpreterOpmeta = [
  */
 export const getRainterpreterOpmetaBytes = (): Uint8Array => {
   return deflateSync(
-    Buffer.from(
       JSON.stringify(rainterpreterOpmeta, null, 4)
-    )
   )
 }
