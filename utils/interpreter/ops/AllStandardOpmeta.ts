@@ -58,6 +58,7 @@ import saturatingDiffMeta from "../../../contracts/interpreter/ops/tier/Saturati
 import selectLteMeta from "../../../contracts/interpreter/ops/tier/SelectLte.opmeta.json";
 import updateTimesForTierRangeMeta from "../../../contracts/interpreter/ops/tier/UpdateTimesForTierRange.opmeta.json";
 import { deflateSync } from "zlib";
+import fs from "fs";
 
 /**
  * @public
@@ -143,6 +144,33 @@ export const getRainterpreterOpmetaBytes = (): Uint8Array => {
  * 
  * @returns Rainterpreter opmeta 
  */
-export const getRainterpreterOpmetaJson = (): string => {
+export const getRainterpreterOpmetaJsonData = (): string => {
   return JSON.stringify(rainterpreterOpmeta, null, 4)
 }
+
+/**
+ * @public
+ * Generate the JSON file of Rainterpreter opmeta 
+ * 
+ * @param path - The path to write the file on, default will be the current path
+ * @param fileName - The name of the file, default is "RainterpreterOpmeta"
+ * @returns Rainterpreter opmeta json 
+ */
+export const getRainterpreterOpmetaJsonFile = (
+  path?: string,
+  fileName?: string
+) => {
+  if (!path) path = __dirname
+  if (!path.endsWith("/")) path = path + "/"
+  if (!fileName) fileName = "RainterpreterOpmeta"
+  try {
+    fs.writeFileSync(
+      path + fileName + ".json",
+      JSON.stringify(rainterpreterOpmeta, null, 4)
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
