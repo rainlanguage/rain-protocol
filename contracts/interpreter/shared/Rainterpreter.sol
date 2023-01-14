@@ -6,15 +6,21 @@ import "../run/LibEncodedDispatch.sol";
 import "../ops/core/OpGet.sol";
 import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
-import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "../store/IInterpreterStoreV1.sol";
+import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
+/// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
 error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 
+/// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x873c646d9c16e7f0db19840a6306b190e1f2f98ae87b423609825ee0501df881
+    0x99d0f2d5f5d71a2d4a8db29d920f86fdb4e7688d01799f6cfe9242fb314f3354
 );
 
+/// All config required to construct a `Rainterpreter`.
+/// @param store The `IInterpreterStoreV1`. MUST match known bytecode.
+/// @param opMeta All opmeta as binary data. MAY be compressed bytes etc. The
+/// opMeta describes the opcodes for this interpreter to offchain tooling.
 struct RainterpreterConfig {
     address store;
     bytes opMeta;
@@ -41,6 +47,8 @@ contract Rainterpreter is IInterpreterV1 {
     using LibMemoryKV for MemoryKVPtr;
     using LibInterpreterState for StateNamespace;
 
+    /// The store that state changes MUST be passed to by the calling contract
+    /// if possible. MAY NOT be possible in a static call on the caller side.
     IInterpreterStoreV1 internal immutable store;
 
     /// The store is valid (has exact expected bytecode).
@@ -49,9 +57,13 @@ contract Rainterpreter is IInterpreterV1 {
     /// This is the literal OpMeta bytes to be used offchain to make sense of the
     /// opcodes in this interpreter deployment, as a human. For formats like json
     /// that make heavy use of boilerplate, repetition and whitespace, some kind
-    /// of compressino such as gzip is recommended.
+    /// of compression such as gzip is recommended.
+    /// @param sender The `msg.sender` providing the op meta.
+    /// @param opMeta The raw binary data of the op meta. Maybe compressed data
+    /// etc. and is intended for offchain consumption.
     event OpMeta(address sender, bytes opMeta);
 
+    /// Ensures the correct store bytecode and emits all opmeta.
     constructor(RainterpreterConfig memory config_) {
         // Guard against an store with unknown bytecode.
         bytes32 storeHash_;

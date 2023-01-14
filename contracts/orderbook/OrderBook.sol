@@ -49,6 +49,7 @@ struct OrderIOCalculation {
     // `a_` and `b_` can both set a maximum output from the Interpreter.
     uint256 outputMax;
     // `IORatio` is input per output
+    //solhint-disable-next-line var-name-mixedcase
     uint256 IORatio;
     uint256[][] context;
     IInterpreterStoreV1 store;

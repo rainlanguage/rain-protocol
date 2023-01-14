@@ -41,7 +41,7 @@ library OpLoopN {
             );
             StackPointer highwater_ = integrityCheckState_.stackHighwater;
             for (uint256 i_ = 0; i_ < n_; i_++) {
-                // ignore intermediate highwaters because call will set it past
+                // Ignore intermediate highwaters because call will set it past
                 // the inputs and then the outputs each time.
                 integrityCheckState_.stackHighwater = highwater_;
                 stackTop_ = OpCall.integrity(

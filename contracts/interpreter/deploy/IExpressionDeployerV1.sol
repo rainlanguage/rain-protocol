@@ -51,43 +51,46 @@ interface IExpressionDeployerV1 {
     /// Expressions are expected to be deployed onchain as immutable contract
     /// code with a first class address like any other contract or account.
     /// Technically this is optional in the sense that all the tools required to
-    /// eval some expression and define all its opcodes are available as libraries.
+    /// eval some expression and define all its opcodes are available as
+    /// libraries.
     ///
     /// In practise there are enough advantages to deploying the sources directly
-    /// onchain as contract data and loading them from the interpreter at eval time:
+    /// onchain as contract data and loading them from the interpreter at eval:
     ///
-    /// - Loading and storing binary data is gas efficient as immutable contract data
-    /// - Expressions need to be immutable between their deploy time integrity check
-    ///   and runtime evaluation
-    /// - Passing the address of an expression through calldata to an interpreter is
-    ///   cheaper than passing an entire expression through calldata
-    /// - Conceptually a very simple approach, even if implementations like SSTORE2
-    ///   are subtle under the hood
+    /// - Loading and storing binary data is gas efficient as immutable contract
+    ///   data
+    /// - Expressions need to be immutable between their deploy time integrity
+    ///   check and runtime evaluation
+    /// - Passing the address of an expression through calldata to an interpreter
+    ///   is cheaper than passing an entire expression through calldata
+    /// - Conceptually a very simple approach, even if implementations like
+    ///   SSTORE2 are subtle under the hood
     ///
-    /// The expression deployer MUST perform an integrity check of the source code
-    /// before it puts the expression onchain at a known address. The integrity check
-    /// MUST at a minimum (it is free to do additional static analysis) calculate the
-    /// memory required to be allocated for the stack in total, and that no out of
-    /// bounds memory reads/writes occur within this stack. A simple example of an
-    /// invalid source would be one that pushes one value to the stack then attempts
-    /// to pops two values, clearly we cannot remove more values than we added. The
-    /// `IExpressionDeployerV1` MUST revert in the case of any integrity failure, all
-    /// integrity checks MUST pass in order for the deployment to complete.
+    /// The expression deployer MUST perform an integrity check of the source
+    /// code before it puts the expression onchain at a known address. The
+    /// integrity check MUST at a minimum (it is free to do additional static
+    /// analysis) calculate the memory required to be allocated for the stack in
+    /// total, and that no out of bounds memory reads/writes occur within this
+    /// stack. A simple example of an invalid source would be one that pushes one
+    /// value to the stack then attempts to pops two values, clearly we cannot
+    /// remove more values than we added. The `IExpressionDeployerV1` MUST revert
+    /// in the case of any integrity failure, all integrity checks MUST pass in
+    /// order for the deployment to complete.
     ///
-    /// Once the integrity check is complete the `IExpressionDeployerV1` MUST do any
-    /// additional processing required by its paired interpreter. For example, the
-    /// `IExpressionDeployerV1` MAY NEED to replace the indexed opcodes in the
-    /// `StateConfig` sources with real function pointers from the corresponding
-    /// interpreter.
+    /// Once the integrity check is complete the `IExpressionDeployerV1` MUST do
+    /// any additional processing required by its paired interpreter.
+    /// For example, the `IExpressionDeployerV1` MAY NEED to replace the indexed
+    /// opcodes in the `StateConfig` sources with real function pointers from the
+    /// corresponding interpreter.
     ///
     /// @param config All the state config associated with an expression.
-    /// @param minOutputs The first N sources on the state config are entrypoints to
-    /// the expression where N is the length of the `minOutputs` array. Each item in
-    /// the `minOutputs` array specifies the number of outputs that MUST be present
-    /// on the final stack for an evaluation of each entrypoint. The minimum output
-    /// for some entrypoint MAY be zero if the expectation is that the expression
-    /// only applies checks and error logic. Non-entrypoint sources MUST NOT have a
-    /// minimum outputs length specified.
+    /// @param minOutputs The first N sources on the state config are entrypoints
+    /// to the expression where N is the length of the `minOutputs` array. Each
+    /// item in the `minOutputs` array specifies the number of outputs that MUST
+    /// be present on the final stack for an evaluation of each entrypoint. The
+    /// minimum output for some entrypoint MAY be zero if the expectation is that
+    /// the expression only applies checks and error logic. Non-entrypoint
+    /// sources MUST NOT have a minimum outputs length specified.
     /// @return expression The onchain address of the deployed expression.
     function deployExpression(
         StateConfig memory config,

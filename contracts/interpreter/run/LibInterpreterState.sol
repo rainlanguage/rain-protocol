@@ -62,6 +62,8 @@ enum DebugStyle {
 /// evaluation.
 /// @param namespace The fully qualified namespace that all state reads and
 /// writes MUST be performed under.
+/// @param store The store to reference ostensibly for gets but perhaps other
+/// things.
 /// @param context A 2-dimensional array of per-eval data provided by the calling
 /// contract. Opaque to the interpreter but presumably meaningful to the
 /// expression.
@@ -122,11 +124,13 @@ library LibInterpreterState {
     /// and logs each value delimited by `DEBUG_DELIMITER`.
     /// @param array_ The array to debug.
     function debugArray(uint256[] memory array_) internal view {
-        console.log(DEBUG_DELIMETER);
-        for (uint256 i_ = 0; i_ < array_.length; i_++) {
-            console.log(i_, array_[i_]);
+        unchecked {
+            console.log(DEBUG_DELIMETER);
+            for (uint256 i_ = 0; i_ < array_.length; i_++) {
+                console.log(i_, array_[i_]);
+            }
+            console.log(DEBUG_DELIMETER);
         }
-        console.log(DEBUG_DELIMETER);
     }
 
     /// Copies the stack to a new array then debugs it. Definitely NOT gas
@@ -159,22 +163,24 @@ library LibInterpreterState {
         StackPointer stackTop_,
         DebugStyle debugStyle_
     ) internal view returns (StackPointer) {
-        if (debugStyle_ == DebugStyle.Source) {
-            for (uint256 i_ = 0; i_ < state_.compiledSources.length; i_++) {
-                console.logBytes(state_.compiledSources[i_]);
-            }
-        } else {
-            if (debugStyle_ == DebugStyle.Stack) {
-                state_.stackBottom.debugStack(stackTop_);
-            } else if (debugStyle_ == DebugStyle.Constant) {
-                debugArray(state_.constantsBottom.down().asUint256Array());
+        unchecked {
+            if (debugStyle_ == DebugStyle.Source) {
+                for (uint256 i_ = 0; i_ < state_.compiledSources.length; i_++) {
+                    console.logBytes(state_.compiledSources[i_]);
+                }
             } else {
-                for (uint256 i_ = 0; i_ < state_.context.length; i_++) {
-                    debugArray(state_.context[i_]);
+                if (debugStyle_ == DebugStyle.Stack) {
+                    state_.stackBottom.debugStack(stackTop_);
+                } else if (debugStyle_ == DebugStyle.Constant) {
+                    debugArray(state_.constantsBottom.down().asUint256Array());
+                } else {
+                    for (uint256 i_ = 0; i_ < state_.context.length; i_++) {
+                        debugArray(state_.context[i_]);
+                    }
                 }
             }
+            return stackTop_;
         }
-        return stackTop_;
     }
 
     /// Efficiently serializes some `IInterpreterV1` state config into bytes that
