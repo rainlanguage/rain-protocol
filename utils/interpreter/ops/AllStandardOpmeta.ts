@@ -135,3 +135,14 @@ export const getRainterpreterOpmetaBytes = (): Uint8Array => {
       JSON.stringify(rainterpreterOpmeta, null, 4)
   )
 }
+
+/**
+ * @public
+ * Get the JSON content of Rainterpreter opmeta 
+ * ready to be written in a .json file
+ * 
+ * @returns Rainterpreter opmeta 
+ */
+export const getRainterpreterOpmetaJson = (): string => {
+  return JSON.stringify(rainterpreterOpmeta, null, 4)
+}
