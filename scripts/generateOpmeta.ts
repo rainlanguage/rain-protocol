@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { execSync } from "child_process";
-import { rainterpreterOpmeta } from "../utils/interpreter/ops/AllStandardOpmeta";
+import { rainterpreterOpmeta } from "../utils/interpreter/ops/allStandardOpmeta";
 
 const exec = (cmd: string) => {
     try {
