@@ -16,28 +16,74 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
-SourceIndex constant ORDER_ENTRYPOINT = SourceIndex.wrap(0);
+/// @dev Entrypoint to a calculate the amount and ratio of an order.
+SourceIndex constant CALCULATE_ORDER_ENTRYPOINT = SourceIndex.wrap(0);
+/// @dev Entrypoint to handle the final internal vault movements resulting from
+/// matching multiple calculated orders.
 SourceIndex constant HANDLE_IO_ENTRYPOINT = SourceIndex.wrap(1);
 
-uint256 constant ORDER_MIN_OUTPUTS = 2;
-uint256 constant ORDER_MAX_OUTPUTS = 2;
+/// @dev Minimum outputs for calculate order are the amount and ratio.
+uint256 constant CALCULATE_ORDER_MIN_OUTPUTS = 2;
+/// @dev Maximum outputs for calculate order are the amount and ratio.
+uint256 constant CALCULATE_ORDER_MAX_OUTPUTS = 2;
 
+/// @dev Handle IO has no outputs as it only responds to vault movements.
 uint256 constant HANDLE_IO_MIN_OUTPUTS = 0;
-uint256 constant HANDLE_IO_MAX_OUTPUTS = type(uint16).max;
+/// @dev Handle IO has no outputs as it only response to vault movements.
+uint256 constant HANDLE_IO_MAX_OUTPUTS = 0;
 
+/// @dev Orderbook context is actually fairly complex. The calling context column
+/// is populated before calculate order, but the remaining columns are only
+/// available to handle IO as they depend on the full evaluation of calculuate
+/// order, and cross referencing against the same from the counterparty, as well
+/// as accounting limits such as current vault balances, etc.
 uint256 constant CONTEXT_COLUMNS = 4;
-uint256 constant CONTEXT_BASE_COLUMN = 0;
+/// @dev Contextual data available to both calculate order and handle IO. The
+/// order hash, order owner and order counterparty. IMPORTANT NOTE that the
+/// typical base context of an order with the caller will often be an unrelated
+/// clearer of the order rather than the owner or counterparty.
+uint256 constant CONTEXT_CALLING_CONTEXT_COLUMN = 0;
+/// @dev Calculations column contains the DECIMAL RESCALED calculations but
+/// otherwise provided as-is according to calculate order entrypoint
 uint256 constant CONTEXT_CALCULATIONS_COLUMN = 1;
+/// @dev Vault inputs are the literal token amounts and vault balances before and
+/// after for the input token from the perspective of the order. MAY be
+/// significantly different to the calculated amount due to insufficient vault
+/// balances from either the owner or counterparty, etc.
 uint256 constant CONTEXT_VAULT_INPUTS_COLUMN = 2;
+/// @dev Vault outputs are the same as vault inputs but for the output token from
+/// the perspective of the order.
 uint256 constant CONTEXT_VAULT_OUTPUTS_COLUMN = 3;
 
+/// @dev Row of the token address for vault inputs and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_TOKEN = 0;
+/// @dev Row of the token decimals for vault inputs and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_TOKEN_DECIMALS = 1;
+/// @dev Row of the vault ID for vault inputs and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_VAULT_ID = 2;
+/// @dev Row of the vault balance before the order was cleared for vault inputs
+/// and outputs columns.
 uint256 constant CONTEXT_VAULT_IO_BALANCE_BEFORE = 3;
+/// @dev Row of the vault balance difference after the order was cleared for
+/// vault inputs and outputs columns. The diff is ALWAYS POSITIVE as it is a
+/// `uint256` so it must be added to input balances and subtraced from output
+/// balances.
 uint256 constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
+/// @dev Length of a vault IO column.
 uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 
+/// Summary of the vault state changes due to clearing an order. NOT the state
+/// changes sent to the interpreter store, these are the LOCAL CHANGES in vault
+/// balances. Note that the difference in inputs/outputs overall between the
+/// counterparties is the bounty paid to the entity that cleared the order.
+/// @param aOutput Amount of counterparty A's output token that moved out of
+/// their vault.
+/// @param bOutput Amount of counterparty B's output token that moved out of
+/// their vault.
+/// @param aInput Amount of counterparty A's input token that moved into their
+/// vault.
+/// @param bInput Amount of counterparty B's input token that moved into their
+/// vault.
 struct ClearStateChange {
     uint256 aOutput;
     uint256 bOutput;
@@ -45,10 +91,38 @@ struct ClearStateChange {
     uint256 bInput;
 }
 
+/// All information resulting from an order calculation that allows for vault IO
+/// to be calculated and applied, then the handle IO entrypoint to be dispatched.
+/// @param outputMax The UNSCALED maximum output calculated by the order
+/// expression. WILL BE RESCALED ACCORDING TO TOKEN DECIMALS to an 18 fixed
+/// point decimal number for the purpose of calculating actual vault movements.
+/// The order is guaranteed that the total output of this single clearance cannot
+/// exceed this (subject to rescaling). It is up to the order expression to track
+/// values over time if the output max is to impose a global limit across many
+/// transactions and counterparties.
+/// @param IORatio The UNSCALED order ratio as input/output from the perspective
+/// of the order. As each counterparty's input is the other's output, the IORatio
+/// calculated by each order is inverse of its counterparty. IORatio is SCALED
+/// ACCORDING TO TOKEN DECIMALS to allow 18 decimal fixed point math over the
+/// vault balances. I.e. `1e18` returned from the expression is ALWAYS "one" as
+/// ECONOMIC EQUIVALENCE between two tokens, but this will be rescaled according
+/// to the decimals of the token. For example, if DAI and USDT have a ratio of
+/// `1e18` then in reality `1e12` DAI will move in the vault for every `1` USDT
+/// that moves, because DAI has `1e18` decimals per $1 peg and USDT has `1e6`
+/// decimals per $1 peg. THE ORDER DEFINES THE DECIMALS for each token, NOT the
+/// token itself, because the token MAY NOT report its decimals as per it being
+/// optional in the ERC20 specification.
+/// @param context The entire 2D context array, initialized from the context
+/// passed into the order calculations and then populated with the order
+/// calculations and vault IO before being passed back to handle IO entrypoint.
+/// @param store The `IInterpreterStoreV1` returned from the calculate order
+/// entrypoint. Used to update the store before the handle IO entrypoint runs.
+/// @param namespace The `StateNamespace` to be passed to the store for calculate
+/// IO state changes.
+/// @param kvs KVs returned from calculate order entrypoint to pass to the store
+/// before calling handle IO entrypoint.
 struct OrderIOCalculation {
-    // `a_` and `b_` can both set a maximum output from the Interpreter.
     uint256 outputMax;
-    // `IORatio` is input per output
     //solhint-disable-next-line var-name-mixedcase
     uint256 IORatio;
     uint256[][] context;
@@ -153,7 +227,7 @@ contract OrderBook is
             .deployExpression(
                 config_.interpreterStateConfig,
                 LibUint256Array.arrayFrom(
-                    ORDER_MIN_OUTPUTS,
+                    CALCULATE_ORDER_MIN_OUTPUTS,
                     HANDLE_IO_MIN_OUTPUTS
                 )
             );
@@ -162,8 +236,8 @@ contract OrderBook is
             config_.interpreter,
             LibEncodedDispatch.encode(
                 expression_,
-                ORDER_ENTRYPOINT,
-                ORDER_MAX_OUTPUTS
+                CALCULATE_ORDER_ENTRYPOINT,
+                CALCULATE_ORDER_MAX_OUTPUTS
             ),
             config_
                 .interpreterStateConfig
@@ -201,7 +275,7 @@ contract OrderBook is
         uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
 
         {
-            context_[CONTEXT_BASE_COLUMN] = LibUint256Array.arrayFrom(
+            context_[CONTEXT_CALLING_CONTEXT_COLUMN] = LibUint256Array.arrayFrom(
                 orderHash_,
                 uint256(uint160(order_.owner)),
                 uint256(uint160(counterparty_))
