@@ -1,23 +1,38 @@
 {
-    "name": "ERC1155_BALANCE_OF",
-    "desc": "Get the balance of an ERC1155 token of an account and insert it into the stack",
-    "operand": [],
+    "name": "ERC1155_BALANCE_OF_BATCH",
+    "desc": "Get the balances of an ERC1155 token for batches of accounts and token ids and insert it into the stack",
+    "operand": [
+        {
+            "name": "Inputs",
+            "bits": [0, 7],
+            "validRange": [[3, 255]],
+            "computation": "(arg - 1) / 2"
+        }
+    ],
+    "outputs": {
+        "bits": [0, 7]
+    },
     "inputs": {
+        "bits": [0, 7],
+        "computation": "(bits * 2) + 1",
         "parameters": [
             {
                 "name": "Token Address"
             },
             {
-                "name": "Account"
+                "name": "Account",
+                "validLength": [[1, 127]],
+                "length": "(inputs - 1) / 4"
             },
             {
-                "name": "Token Id"
+                "name": "Token Id",
+                "validLength": [[1, 127]],
+                "length": "(inputs - 1) / 4"
             }
         ]
     },
-    "outputs": 1,
     "aliases": [
-        "ERC1155BALANCEOF",
-        "IERC1155BALANCEOF"
+        "ERC1155BALANCEOFBATCH",
+        "IERC1155BALANCEOFBATCH"
     ]
 }

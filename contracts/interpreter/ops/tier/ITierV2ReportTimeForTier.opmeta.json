@@ -6,7 +6,7 @@
             "name": "Inputs",
             "bits": [0, 7],
             "validRange": [[3], [4], [11]],
-            "computation": "this - 3"
+            "computation": "arg - 3"
         }
     ],
     "inputs": {
