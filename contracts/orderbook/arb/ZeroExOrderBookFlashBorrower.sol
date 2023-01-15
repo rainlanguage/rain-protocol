@@ -8,6 +8,7 @@ import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgrade
 import "../../ierc3156/IERC3156FlashLender.sol";
 import "../../ierc3156/IERC3156FlashBorrower.sol";
 import "../IOrderBookV1.sol";
+import "../OrderBookFlashLender.sol";
 
 // input = USDT
 // output = DAI
@@ -71,7 +72,7 @@ contract ZeroExOrderBookFlashBorrower is IERC3156FlashBorrower {
 
         IOrderBookV1(orderBook).takeOrders(takeOrders_);
 
-        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+        return ON_FLASH_LOAN_CALLBACK_SUCCESS;
     }
 
     function arb(

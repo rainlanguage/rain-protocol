@@ -101,25 +101,6 @@ uint256 constant CONTEXT_VAULT_IO_BALANCE_DIFF = 4;
 /// @dev Length of a vault IO column.
 uint256 constant CONTEXT_VAULT_IO_ROWS = 5;
 
-/// Summary of the vault state changes due to clearing an order. NOT the state
-/// changes sent to the interpreter store, these are the LOCAL CHANGES in vault
-/// balances. Note that the difference in inputs/outputs overall between the
-/// counterparties is the bounty paid to the entity that cleared the order.
-/// @param aOutput Amount of counterparty A's output token that moved out of
-/// their vault.
-/// @param bOutput Amount of counterparty B's output token that moved out of
-/// their vault.
-/// @param aInput Amount of counterparty A's input token that moved into their
-/// vault.
-/// @param bInput Amount of counterparty B's input token that moved into their
-/// vault.
-struct ClearStateChange {
-    uint256 aOutput;
-    uint256 bOutput;
-    uint256 aInput;
-    uint256 bInput;
-}
-
 /// All information resulting from an order calculation that allows for vault IO
 /// to be calculated and applied, then the handle IO entrypoint to be dispatched.
 /// @param outputMax The UNSCALED maximum output calculated by the order
@@ -162,7 +143,7 @@ struct OrderIOCalculation {
 }
 
 /// @title OrderBook
-/// @see IOrderBookV1
+/// See `IOrderBookV1` for more documentation.
 contract OrderBook is
     IOrderBookV1,
     ReentrancyGuard,
@@ -180,98 +161,6 @@ contract OrderBook is
     using LibOrder for Order;
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256;
-
-    /// Some tokens have been deposited to a vault.
-    /// @param sender `msg.sender` depositing tokens. Delegated deposits are NOT
-    /// supported.
-    /// @param config All config sent to the `deposit` call.
-    event Deposit(address sender, DepositConfig config);
-
-    /// Some tokens have been withdrawn from a vault.
-    /// @param sender `msg.sender` withdrawing tokens. Delegated withdrawals are
-    /// NOT supported.
-    /// @param config All config sent to the `withdraw` call.
-    /// @param amount The amount of tokens withdrawn, can be less than the
-    /// config amount if the vault does not have the funds available to cover
-    /// the config amount. For example an active order might move tokens before
-    /// the withdraw completes.
-    event Withdraw(address sender, WithdrawConfig config, uint256 amount);
-
-    /// An order has been added to the orderbook. The order is permanently and
-    /// always active according to its expression until/unless it is removed.
-    /// @param sender `msg.sender` adding the order and is owner of the order.
-    /// @param order The newly added order. MUST be handed back as-is when
-    /// clearing orders and contains derived information in addition to the order
-    /// config that was provided by the order owner.
-    /// @param orderHash The hash of the order as it is recorded onchain. Only
-    /// the hash is stored in Orderbook storage to avoid paying gas to store the
-    /// entire order.
-    event AddOrder(address sender, Order order, uint256 orderHash);
-
-    /// An order has been removed from the orderbook. This effectively
-    /// deactivates it. Orders can be added again after removal.
-    /// @param sender `msg.sender` removing the order and is owner of the order.
-    /// @param order The removed order.
-    /// @param orderHash The hash of the removed order.
-    event RemoveOrder(address sender, Order order, uint256 orderHash);
-
-    /// Some order has been taken by `msg.sender`. This is the same as them
-    /// placing inverse orders then immediately clearing them all, but costs less
-    /// gas and is more convenient and reliable. Analogous to a market buy
-    /// against the specified orders. Each order that is matched within a the
-    /// `takeOrders` loop emits its own individual event.
-    /// @param sender `msg.sender` taking the orders.
-    /// @param takeOrder All config defining the orders to attempt to take.
-    /// @param input The input amount from the perspective of sender.
-    /// @param output The output amount from the perspective of sender.
-    event TakeOrder(
-        address sender,
-        TakeOrderConfig takeOrder,
-        uint256 input,
-        uint256 output
-    );
-
-    /// Emitted when attempting to match an order that either never existed or
-    /// was removed. An event rather than an error so that we allow attempting
-    /// many orders in a loop and NOT rollback on "best effort" basis to clear.
-    /// @param sender `msg.sender` clearing the order that wasn't found.
-    /// @param owner Owner of the order that was not found.
-    /// @param orderHash Hash of the order that was not found.
-    event OrderNotFound(address sender, address owner, uint256 orderHash);
-
-    /// Emitted when an order evaluates to a zero amount. An event rather than an
-    /// error so that we allow attempting many orders in a loop and NOT rollback
-    /// on a "best effort" basis to clear.
-    /// @param sender `msg.sender` clearing the order that had a 0 amount.
-    /// @param owner Owner of the order that evaluated to a 0 amount.
-    /// @param orderHash Hash of the order that evaluated to a 0 amount.
-    event OrderZeroAmount(address sender, address owner, uint256 orderHash);
-
-    /// Emitted when an order evaluates to a ratio exceeding the counterparty's
-    /// maximum limit. An error rather than an error so that we allow attempting
-    /// many orders in a loop and NOT rollback on a "best effort" basis to clear.
-    /// @param sender `msg.sender` clearing the order that had an excess ratio.
-    /// @param owner Owner of the order that had an excess ratio.
-    /// @param orderHash Hash of the order that had an excess ratio.
-    event OrderExceedsMaxRatio(
-        address sender,
-        address owner,
-        uint256 orderHash
-    );
-
-    /// Emitted before two orders clear. Covers both orders and includes all the
-    /// state before anything is calculated.
-    /// @param sender `msg.sender` clearing both orders.
-    /// @param a One of the orders.
-    /// @param b The other order.
-    /// @param clearConfig Additional config required to process the clearance.
-    event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
-
-    /// Emitted after two orders clear. Includes all final state changes in the
-    /// vault balances, including the clearer's vaults.
-    /// @param sender `msg.sender` clearing the order.
-    /// @param clearStateChange The final vault state changes from the clearance.
-    event AfterClear(address sender, ClearStateChange clearStateChange);
 
     /// All hashes of all active orders. There's nothing interesting in the value
     /// it's just nonzero if the order is live. The key is the hash of the order.
@@ -332,14 +221,16 @@ contract OrderBook is
 
     /// @inheritdoc IOrderBookV1
     function addOrder(OrderConfig calldata config_) external nonReentrant {
-        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
-            .deployExpression(
-                config_.interpreterStateConfig,
-                LibUint256Array.arrayFrom(
-                    CALCULATE_ORDER_MIN_OUTPUTS,
-                    HANDLE_IO_MIN_OUTPUTS
-                )
-            );
+        IExpressionDeployerV1 expressionDeployer_ = IExpressionDeployerV1(
+            config_.expressionDeployer
+        );
+        address expression_ = expressionDeployer_.deployExpression(
+            config_.interpreterStateConfig,
+            LibUint256Array.arrayFrom(
+                CALCULATE_ORDER_MIN_OUTPUTS,
+                HANDLE_IO_MIN_OUTPUTS
+            )
+        );
         Order memory order_ = Order(
             msg.sender,
             config_.interpreter,
@@ -364,7 +255,7 @@ contract OrderBook is
         );
         uint256 orderHash_ = order_.hash();
         orders[orderHash_] = LIVE_ORDER;
-        emit AddOrder(msg.sender, order_, orderHash_);
+        emit AddOrder(msg.sender, expressionDeployer_, order_, orderHash_);
     }
 
     /// @inheritdoc IOrderBookV1
@@ -827,7 +718,6 @@ contract OrderBook is
                 )
             );
 
-
             // A's input is A's output * their IO ratio.
             // Always round IO calculations up.
             clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
@@ -843,6 +733,4 @@ contract OrderBook is
         }
         return clearStateChange_;
     }
-
-
 }

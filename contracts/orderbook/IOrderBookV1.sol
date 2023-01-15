@@ -4,24 +4,72 @@ pragma solidity ^0.8.15;
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 
+/// Configuration for a deposit. All deposits are processed by and for
+/// `msg.sender` so the vaults are unambiguous here.
+/// @param token The token to deposit.
+/// @param vaultId The vault ID for the token to deposit.
+/// @param amount The amount of the token to deposit.
 struct DepositConfig {
     address token;
     uint256 vaultId;
     uint256 amount;
 }
 
+/// Configuration for a withdrawal. All withdrawals are processed by and for
+/// `msg.sender` so the vaults are unambiguous here.
+/// @param token The token to withdraw.
+/// @param vaultId The vault ID for the token to withdraw.
+/// @param amount The amount of the token to withdraw.
 struct WithdrawConfig {
     address token;
     uint256 vaultId;
     uint256 amount;
 }
 
+/// Configuration for a single input or output on an `Order`.
+/// @param token The token to either send from the owner as an output or receive
+/// from the counterparty to the owner as an input. The tokens are not moved
+/// during an order, only internal vault balances are updated, until a separate
+/// withdraw step.
+/// @param decimals The decimals to use for internal scaling calculations for
+/// `token`. This is provided directly in IO to save gas on external lookups and
+/// to respect the ERC20 spec that mandates NOT assuming or using the `decimals`
+/// method for onchain calculations. Ostensibly the decimals exists so that all
+/// calculate order entrypoints can treat amounts and ratios as 18 decimal fixed
+/// point values. Order max amounts MUST be rounded down and IO ratios rounded up
+/// to compensate for any loss of precision during decimal rescaling.
+/// @param vaultId The vault ID that tokens will move into if this is an input
+/// or move out from if this is an output.
 struct IO {
     address token;
     uint8 decimals;
     uint256 vaultId;
 }
 
+/// Config the order owner may provide to define their order. The `msg.sender`
+/// that adds an order cannot modify the owner nor bypass the integrity check of
+/// the expression deployer that they specify.
+/// @param expressionDeployer Runs the integrity check for the interpreter as an
+/// `IExpressionDeployerV1`. As the `msg.sender` has direct control over this
+/// they MAY select a malicious/buggy deployer that DOES NOT apply the correct
+/// integrity check for the associated interpreter. The `expressionDeployer`
+/// appears in the `AddOrder` event so that anyone taking or clearing orders
+/// MUST ignore this order if the deployer/interpreter pairing is untrusted.
+/// @param interpreter The interpreter to execute the associated `StateConfig`
+/// once deployed. As the `msg.sender` has direct control over this they MAY
+/// select a malicious/buggy interpreter that produces garbage results. The
+/// interpreter is included in the `Order` so it appears in the `addOrder` event.
+/// Anyone taking or clearing orders MUST ignore this order if the
+/// deployer/interpreter pairing is untrusted.
+/// @param interpreterStateConfig The `StateConfig` for the expression deployer
+/// that will be deployed then evaluated by the interpreter as `IInterpreterV1`
+/// under the encoded dispatches on the `Order`. Source 0 is the calculate order
+/// entrypoint and source 1 is the handle IO entrypoint. Handle IO MAY be zero
+/// length in which case it won't be evaluated at all which saves gas when it is
+/// not used.
+/// @param validInputs As per `validInputs` on the `Order`.
+/// @param validOutputs As per `validOutputs` on the `Order`.
+/// @param data As per `data` on the `Order`.
 struct OrderConfig {
     address expressionDeployer;
     address interpreter;
@@ -31,6 +79,22 @@ struct OrderConfig {
     bytes data;
 }
 
+/// Defines a fully deployed order ready to evaluate by Orderbook.
+/// @param owner The owner of the order is the `msg.sender` that added the order.
+/// @param interpreter The interpreter is selected by the owner as part of config
+/// and can be any `IInterpreterV1` compatible interpreter.
+/// @param dispatch The encoded dispatch for calculate order.
+/// @param handleIODispatch The encoded dispatch for handle IO OR `0` if the
+/// handle IO entrypoint was an empty source.
+/// @param validInputs A list of input tokens that are economically equivalent
+/// for the purpose of processing this order. Inputs are relative to the order
+/// so these tokens will be sent to the owners vault.
+/// @param validOutputs A list of output tokens that are economically equivalent
+/// for the purpose of processing this order. Outputs are relative to the order
+/// so these tokens will be sent from the owners vault.
+/// @param data Arbitrary bytes that will NOT be used in the order evaluation
+/// but WILL be in the event emitted when the order is placed so can be used by
+/// offchain processes.
 struct Order {
     address owner;
     address interpreter;
@@ -41,32 +105,51 @@ struct Order {
     bytes data;
 }
 
+/// Config for a list of orders to take sequentially as part of a `takeOrders`
+/// call.
+/// @param output Output token from the perspective of the order taker.
+/// @param input Input token from the perspective of the order taker.
+/// @param minimumInput Minimum input from the perspective of the order taker.
+/// @param maximumInput Maximum input from the perspective of the order taker.
+/// @param maximumIORatio Maximum IO ratio as calculated by the order being
+/// taken. The input is from the perspective of the order so higher ratio means
+/// worse deal for the order taker.
+/// @param orders Ordered list of orders that will be taken until the limit is
+/// hit. Takers are expected to prioritise orders that appear to be offering
+/// better deals i.e. lower IO ratios. This prioritisation and sorting MUST
+/// happen offchain, e.g. via. some simulator.
 struct TakeOrdersConfig {
-    /// Output token from the perspective of the order taker.
     address output;
-    /// Input token from the perspective of the order taker.
     address input;
-    /// Minimum input from the perspective of the order taker.
     uint256 minimumInput;
-    /// Maximum input from the perspective of the order taker.
     uint256 maximumInput;
-    /// Maximum IO ratio as calculated by the order being taken. The input is
-    /// from the perspective of the order so higher ratio means worse deal for
-    /// the order taker.
     uint256 maximumIORatio;
-    /// Ordered list of orders that will be taken until the limit is hit. Takers
-    /// are expected to prioritise orders that appear to be offering better
-    /// deals i.e. lower IO ratios. This prioritisation and sorting MUST happen
-    /// offchain, e.g. via. some simulator.
     TakeOrderConfig[] orders;
 }
 
+/// Config for an individual take order from the overall list of orders in a
+/// call to `takeOrders`.
+/// @param order The order being taken this iteration.
+/// @param inputIOIndex The index of the input token in `order` to match with the
+/// take order output.
+/// @param outputIOIndex The index of the output token in `order` to match with
+/// the take order input.
 struct TakeOrderConfig {
     Order order;
     uint256 inputIOIndex;
     uint256 outputIOIndex;
 }
 
+/// Additional config to a `clear` that allows two orders to be fully matched to
+/// a specific token moment. Also defines the bounty for the clearer.
+/// @param aInputIOIndex The index of the input token in order A.
+/// @param aOutputIOIndex The index of the output token in order A.
+/// @param bInputIOIndex The index of the input token in order B.
+/// @param bOutputIOIndex The index of the output token in order B.
+/// @param aBountyVaultId The vault ID that the bounty from order A should move
+/// to for the clearer.
+/// @param bBountyVaultId The vault ID that the bounty from order B should move
+/// to for the clearer.
 struct ClearConfig {
     uint256 aInputIOIndex;
     uint256 aOutputIOIndex;
@@ -74,6 +157,25 @@ struct ClearConfig {
     uint256 bOutputIOIndex;
     uint256 aBountyVaultId;
     uint256 bBountyVaultId;
+}
+
+/// Summary of the vault state changes due to clearing an order. NOT the state
+/// changes sent to the interpreter store, these are the LOCAL CHANGES in vault
+/// balances. Note that the difference in inputs/outputs overall between the
+/// counterparties is the bounty paid to the entity that cleared the order.
+/// @param aOutput Amount of counterparty A's output token that moved out of
+/// their vault.
+/// @param bOutput Amount of counterparty B's output token that moved out of
+/// their vault.
+/// @param aInput Amount of counterparty A's input token that moved into their
+/// vault.
+/// @param bInput Amount of counterparty B's input token that moved into their
+/// vault.
+struct ClearStateChange {
+    uint256 aOutput;
+    uint256 bOutput;
+    uint256 aInput;
+    uint256 bInput;
 }
 
 /// @title IOrderBookV1
@@ -198,7 +300,112 @@ struct ClearConfig {
 /// counterparties are available to the order, order strategies are free to
 /// implement KYC/membership, tracking, distributions, stock, buybacks, etc. etc.
 interface IOrderBookV1 {
-    /// depositor => token => vault id => token amount.
+    /// Some tokens have been deposited to a vault.
+    /// @param sender `msg.sender` depositing tokens. Delegated deposits are NOT
+    /// supported.
+    /// @param config All config sent to the `deposit` call.
+    event Deposit(address sender, DepositConfig config);
+
+    /// Some tokens have been withdrawn from a vault.
+    /// @param sender `msg.sender` withdrawing tokens. Delegated withdrawals are
+    /// NOT supported.
+    /// @param config All config sent to the `withdraw` call.
+    /// @param amount The amount of tokens withdrawn, can be less than the
+    /// config amount if the vault does not have the funds available to cover
+    /// the config amount. For example an active order might move tokens before
+    /// the withdraw completes.
+    event Withdraw(address sender, WithdrawConfig config, uint256 amount);
+
+    /// An order has been added to the orderbook. The order is permanently and
+    /// always active according to its expression until/unless it is removed.
+    /// @param sender `msg.sender` adding the order and is owner of the order.
+    /// @param expressionDeployer The expression deployer that ran the integrity
+    /// check for this order. This is NOT included in the `Order` itself but is
+    /// important for offchain processes to ignore untrusted deployers before
+    /// interacting with them.
+    /// @param order The newly added order. MUST be handed back as-is when
+    /// clearing orders and contains derived information in addition to the order
+    /// config that was provided by the order owner.
+    /// @param orderHash The hash of the order as it is recorded onchain. Only
+    /// the hash is stored in Orderbook storage to avoid paying gas to store the
+    /// entire order.
+    event AddOrder(
+        address sender,
+        IExpressionDeployerV1 expressionDeployer,
+        Order order,
+        uint256 orderHash
+    );
+
+    /// An order has been removed from the orderbook. This effectively
+    /// deactivates it. Orders can be added again after removal.
+    /// @param sender `msg.sender` removing the order and is owner of the order.
+    /// @param order The removed order.
+    /// @param orderHash The hash of the removed order.
+    event RemoveOrder(address sender, Order order, uint256 orderHash);
+
+    /// Some order has been taken by `msg.sender`. This is the same as them
+    /// placing inverse orders then immediately clearing them all, but costs less
+    /// gas and is more convenient and reliable. Analogous to a market buy
+    /// against the specified orders. Each order that is matched within a the
+    /// `takeOrders` loop emits its own individual event.
+    /// @param sender `msg.sender` taking the orders.
+    /// @param takeOrder All config defining the orders to attempt to take.
+    /// @param input The input amount from the perspective of sender.
+    /// @param output The output amount from the perspective of sender.
+    event TakeOrder(
+        address sender,
+        TakeOrderConfig takeOrder,
+        uint256 input,
+        uint256 output
+    );
+
+    /// Emitted when attempting to match an order that either never existed or
+    /// was removed. An event rather than an error so that we allow attempting
+    /// many orders in a loop and NOT rollback on "best effort" basis to clear.
+    /// @param sender `msg.sender` clearing the order that wasn't found.
+    /// @param owner Owner of the order that was not found.
+    /// @param orderHash Hash of the order that was not found.
+    event OrderNotFound(address sender, address owner, uint256 orderHash);
+
+    /// Emitted when an order evaluates to a zero amount. An event rather than an
+    /// error so that we allow attempting many orders in a loop and NOT rollback
+    /// on a "best effort" basis to clear.
+    /// @param sender `msg.sender` clearing the order that had a 0 amount.
+    /// @param owner Owner of the order that evaluated to a 0 amount.
+    /// @param orderHash Hash of the order that evaluated to a 0 amount.
+    event OrderZeroAmount(address sender, address owner, uint256 orderHash);
+
+    /// Emitted when an order evaluates to a ratio exceeding the counterparty's
+    /// maximum limit. An error rather than an error so that we allow attempting
+    /// many orders in a loop and NOT rollback on a "best effort" basis to clear.
+    /// @param sender `msg.sender` clearing the order that had an excess ratio.
+    /// @param owner Owner of the order that had an excess ratio.
+    /// @param orderHash Hash of the order that had an excess ratio.
+    event OrderExceedsMaxRatio(
+        address sender,
+        address owner,
+        uint256 orderHash
+    );
+
+    /// Emitted before two orders clear. Covers both orders and includes all the
+    /// state before anything is calculated.
+    /// @param sender `msg.sender` clearing both orders.
+    /// @param a One of the orders.
+    /// @param b The other order.
+    /// @param clearConfig Additional config required to process the clearance.
+    event Clear(address sender, Order a, Order b, ClearConfig clearConfig);
+
+    /// Emitted after two orders clear. Includes all final state changes in the
+    /// vault balances, including the clearer's vaults.
+    /// @param sender `msg.sender` clearing the order.
+    /// @param clearStateChange The final vault state changes from the clearance.
+    event AfterClear(address sender, ClearStateChange clearStateChange);
+
+    /// Get the current balance of a vault for a given owner, token and vault ID.
+    /// @param owner The owner of the vault.
+    /// @param token The token the vault is for.
+    /// @param id The vault ID to read.
+    /// @return balance The current balance of the vault.
     function vaultBalance(
         address owner,
         address token,
