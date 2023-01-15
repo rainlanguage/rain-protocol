@@ -18,7 +18,7 @@
     "test": "hardhat test",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix",
-    "genOpmeta": "ts-node ./scripts/generateOpmeta.ts"
+    "gen-rainterpreter-opmeta": "ts-node ./scripts/generateOpmeta.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "=2.3.4",
