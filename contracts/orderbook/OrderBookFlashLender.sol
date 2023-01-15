@@ -39,7 +39,7 @@ contract OrderBookFlashLender is IERC3156FlashLender {
     using SafeERC20 for IERC20;
 
     /// Tracks all active flash debts
-    // token => receiver => active debt
+    /// token => receiver => active debt
     mapping(address => mapping(address => uint256)) internal activeFlashDebts;
 
     /// Always increase the active debts before sending tokens to avoid potential

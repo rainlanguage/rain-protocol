@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
+import "../ierc3156/IERC3156FlashLender.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 
@@ -299,7 +300,7 @@ struct ClearStateChange {
 /// As Orderbook supports any expression that can run on any `IInterpreterV1` and
 /// counterparties are available to the order, order strategies are free to
 /// implement KYC/membership, tracking, distributions, stock, buybacks, etc. etc.
-interface IOrderBookV1 {
+interface IOrderBookV1 is IERC3156FlashLender {
     /// Some tokens have been deposited to a vault.
     /// @param sender `msg.sender` depositing tokens. Delegated deposits are NOT
     /// supported.
