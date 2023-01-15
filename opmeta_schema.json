@@ -62,7 +62,7 @@
             "title": "Opcode Metadata",
             "description": "Schema for opcodes metadata used by Rainlang parser and formatter"
         },
-        "OperandArg": {   
+        "OperandArg": {
             "type": "object",
             "properties": {
                 "bits": {
