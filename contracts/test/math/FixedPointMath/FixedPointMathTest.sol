@@ -56,15 +56,8 @@ contract FixedPointMathTest {
     /// Fixed point multiplication in native scale decimals.
     /// @param a_ First term.
     /// @param b_ Second term.
+    /// @param rounding_ Rounding direction as per Open Zeppelin Math.
     /// @return `a_` multiplied by `b_` to `DECIMALS` fixed point decimals.
-    function fixedPointMul(
-        uint256 a_,
-        uint256 b_
-    ) external pure returns (uint256) {
-        return a_.fixedPointMul(b_);
-    }
-
-    /// Overloaded `fixedPointMul` that exposes underlying `mulDiv` rounding.
     function fixedPointMul(
         uint256 a_,
         uint256 b_,
@@ -78,15 +71,8 @@ contract FixedPointMathTest {
     /// Both `a_` and `b_` MUST be `DECIMALS` fixed point decimals.
     /// @param a_ First term.
     /// @param b_ Second term.
+    /// @param rounding_ Rounding direction as per Open Zeppelin Math.
     /// @return `a_` divided by `b_` to `DECIMALS` fixed point decimals.
-    function fixedPointDiv(
-        uint256 a_,
-        uint256 b_
-    ) external pure returns (uint256) {
-        return a_.fixedPointDiv(b_);
-    }
-
-    /// Overloaded `fixedPointDiv` that exposes underlying `mulDiv` rounding.
     function fixedPointDiv(
         uint256 a_,
         uint256 b_,

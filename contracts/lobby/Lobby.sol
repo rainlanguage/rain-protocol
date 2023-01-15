@@ -422,7 +422,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // deposits.
         if (shares[msg.sender] > 0) {
             uint256 amount_ = (totalDeposited - withdrawals[msg.sender])
-                .fixedPointMul(shares[msg.sender])
+                .fixedPointMul(shares[msg.sender], Math.Rounding.Down)
                 .min(
                     // Guard against rounding issues locking funds.
                     token.balanceOf(address(this))

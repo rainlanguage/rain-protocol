@@ -198,6 +198,18 @@ struct OrderIOCalculation {
 /// management, dealing with front-running, MEV, etc. for zero-gas and
 /// exact-ratio clearance.
 ///
+/// The general invariant for clearing and take orders is:
+///
+/// ```
+/// ratioA = InputA / OutputA
+/// ratioB = InputB / OutputB
+/// ratioA * ratioB = ( InputA * InputB ) / ( OutputA * OutputB )
+/// OutputA >= InputB
+/// OutputB >= InputA
+///
+/// ∴ ratioA * ratioB <= 1
+/// ```
+///
 /// Orderbook is `IERC3156FlashLender` compliant with a 0 fee flash loan
 /// implementation to allow external liquidity from other onchain DEXes to match
 /// against orderbook expressions. All deposited tokens across all vaults are
@@ -237,6 +249,13 @@ struct OrderIOCalculation {
 /// Orderbook ONLY WORKS IF TOKEN BALANCES ARE 1:1 WITH ADDITION/SUBTRACTION PER
 /// VAULT MOVEMENT.
 ///
+/// Dust due to rounding errors always favours the order. Output max is rounded
+/// down and IO ratios are rounded up. Input and output amounts are always
+/// converted to absolute values before applying to vault balances such that
+/// orderbook always retains fully collateralised inventory of underlying token
+/// balances to support withdrawals, with the caveat that dynamic token balanes
+/// are not supported.
+///
 /// When an order clears it is NOT removed. Orders remain active until the owner
 /// deactivates them. This is gas efficient as order owners MAY deposit more
 /// tokens in a vault with an order against it many times and the order strategy
@@ -253,6 +272,16 @@ struct OrderIOCalculation {
 /// gives maximum flexibility for shared state across orders without allowing
 /// order owners to attack and overwrite values stored by orders placed by their
 /// counterparty.
+///
+/// Note that each order specifies its own interpreter and deployer so the
+/// owner is responsible for not corrupting their own calculations with bad
+/// interpreters. This also means the Orderbook MUST assume the interpreter, and
+/// notably the interpreter's store, is malicious and guard against reentrancy
+/// etc.
+///
+/// As Orderbook supports any expression that can run on any `IInterpreterV1` and
+/// counterparties are available to the order, order strategies are free to
+/// implement KYC/membership, tracking, distributions, stock, buybacks, etc. etc.
 contract OrderBook is
     IOrderBookV1,
     ReentrancyGuard,
@@ -570,15 +599,15 @@ contract OrderBook is
             uint256 orderIORatio_ = stack_[stack_.length - 1];
 
             // Rescale order output max from 18 FP to whatever decimals the
-            // output token is using. Outputs are rounded down to favour the
-            // order.
+            // output token is using.
+            // Always round order output down.
             orderOutputMax_ = orderOutputMax_.scaleN(
                 order_.validOutputs[outputIOIndex_].decimals,
                 Math.Rounding.Down
             );
             // Rescale the ratio from 18 FP according to the difference in
-            // decimals between input and output. Inputs are rounded up to favour
-            // the order.
+            // decimals between input and output.
+            // Always round IO ratio up.
             orderIORatio_ = orderIORatio_.scaleRatio(
                 order_.validOutputs[outputIOIndex_].decimals,
                 order_.validInputs[inputIOIndex_].decimals,
@@ -704,6 +733,14 @@ contract OrderBook is
         }
     }
 
+    /// Calculates the clear state change given both order calculations for order
+    /// a and order b. The input of each is their output multiplied by their IO
+    /// ratio and the output of each is the smaller of their maximum output and
+    /// the counterparty IO * max output.
+    /// @param aOrderIOCalculation_ Order calculation A.
+    /// @param bOrderIOCalculation_ Order calculation B.
+    /// @return The clear state change with absolute inputs and outputs for A and
+    /// B.
     function _clearStateChange(
         OrderIOCalculation memory aOrderIOCalculation_,
         OrderIOCalculation memory bOrderIOCalculation_
@@ -711,22 +748,35 @@ contract OrderBook is
         ClearStateChange memory clearStateChange_;
         {
             clearStateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
+                // B's input is A's output.
+                // A cannot output more than their max.
+                // B wants input of their IO ratio * their output.
+                // Always round IO calculations up.
                 bOrderIOCalculation_.outputMax.fixedPointMul(
                     bOrderIOCalculation_.IORatio,
-                    Math.Rounding.Down
+                    Math.Rounding.Up
                 )
             );
             clearStateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
+                // A's input is B's output.
+                // B cannot output more than their max.
+                // A wants input of their IO ratio * their output.
+                // Always round IO calculations up.
                 aOrderIOCalculation_.outputMax.fixedPointMul(
                     aOrderIOCalculation_.IORatio,
-                    Math.Rounding.Down
+                    Math.Rounding.Up
                 )
             );
 
+
+            // A's input is A's output * their IO ratio.
+            // Always round IO calculations up.
             clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
                 aOrderIOCalculation_.IORatio,
                 Math.Rounding.Up
             );
+            // B's input is B's output * their IO ratio.
+            // Always round IO calculations up.
             clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
                 bOrderIOCalculation_.IORatio,
                 Math.Rounding.Up
@@ -735,6 +785,44 @@ contract OrderBook is
         return clearStateChange_;
     }
 
+    /// Allows `msg.sender` to attempt to fill a list of orders in sequence
+    /// without needing to place their own order and clear them. This works like
+    /// a market buy but against a specific set of orders. Every order will
+    /// looped over and calculated individually then filled maximally until the
+    /// request input is reached for the `msg.sender`. The `msg.sender` is
+    /// responsible for selecting the best orders at the time according to their
+    /// criteria and MAY specify a maximum IO ratio to guard against an order
+    /// spiking the ratio beyond what the `msg.sender` expected and is
+    /// comfortable with. As orders may be removed and calculate their ratios
+    /// dynamically, all issues fulfilling an order other than misconfiguration
+    /// by the `msg.sender` are no-ops and DO NOT revert the transaction. This
+    /// allows the `msg.sender` to optimistically provide a list of orders that
+    /// they aren't sure will completely fill at a good price, and fallback to
+    /// more reliable orders further down their list. Misconfiguration such as
+    /// token mismatches are errors that revert as this is known and static at
+    /// all times to the `msg.sender` so MUST be provided correctly. `msg.sender`
+    /// MAY specify a minimum input that MUST be reached across all orders in the
+    /// list, otherwise the transaction will revert, this MAY be set to zero.
+    ///
+    /// Exactly like withdraw, if there is an active flash loan for `msg.sender`
+    /// they will have their outstanding loan reduced by the final input amount
+    /// preferentially before sending any tokens. Notably this allows arb bots
+    /// implemented as flash loan borrowers to connect orders against external
+    /// liquidity directly by paying back the loan with a `takeOrders` call and
+    /// outputting the result of the external trade.
+    ///
+    /// Rounding errors always favour the order never the `msg.sender`.
+    ///
+    /// @param takeOrders_ The constraints and list of orders to take, orders are
+    /// processed sequentially in order as provided, there is NO ATTEMPT onchain
+    /// to predict/filter/sort these orders other than evaluating them as
+    /// provided. Inputs and outputs are from the perspective of `msg.sender`
+    /// except for values specified by the orders themselves which are the from
+    /// the perspective of that order.
+    /// @return totalInput_ Total tokens sent to `msg.sender`, taken from order
+    /// vaults processed.
+    /// @return totalOutput_ Total tokens taken from `msg.sender` and distributed
+    /// between vaults.
     function takeOrders(
         TakeOrdersConfig calldata takeOrders_
     )
@@ -750,7 +838,7 @@ contract OrderBook is
             takeOrder_ = takeOrders_.orders[i_];
             order_ = takeOrder_.order;
             uint256 orderHash_ = order_.hash();
-            if (orders[orderHash_] == 0) {
+            if (orders[orderHash_] == DEAD_ORDER) {
                 emit OrderNotFound(msg.sender, order_.owner, orderHash_);
             } else {
                 if (
@@ -793,10 +881,11 @@ contract OrderBook is
                 } else if (orderIOCalculation_.outputMax == 0) {
                     emit OrderZeroAmount(msg.sender, order_.owner, orderHash_);
                 } else {
+                    // Don't exceed the maximum total input.
                     uint256 input_ = remainingInput_.min(
                         orderIOCalculation_.outputMax
                     );
-                    // Favour the order for rounding.
+                    // Always round IO calculations up.
                     uint256 output_ = input_.fixedPointMul(
                         orderIOCalculation_.IORatio,
                         Math.Rounding.Up
@@ -825,11 +914,16 @@ contract OrderBook is
             revert MinimumInput(takeOrders_.minimumInput, totalInput_);
         }
 
+        // We already updated vault balances before we took tokens from
+        // `msg.sender` which is usually NOT the correct order of operations for
+        // depositing to a vault. We rely on reentrancy guards to make this safe.
         IERC20(takeOrders_.output).safeTransferFrom(
             msg.sender,
             address(this),
             totalOutput_
         );
+        // Prioritise paying down any active flash loans before sending any
+        // tokens to `msg.sender`.
         _decreaseFlashDebtThenSendToken(
             takeOrders_.input,
             msg.sender,
@@ -837,6 +931,51 @@ contract OrderBook is
         );
     }
 
+    /// Allows `msg.sender` to match two live orders placed earlier by
+    /// non-interactive parties and claim a bounty in the process. The clearer is
+    /// free to select any two live orders on the order book for matching and as
+    /// long as they have compatible tokens, ratios and amounts, the orders will
+    /// clear. Clearing the orders DOES NOT remove them from the orderbook, they
+    /// remain live until explicitly removed by their owner. Even if the input
+    /// vault balances are completely emptied, the orders remain live until
+    /// removed. This allows order owners to deploy a strategy over a long period
+    /// of time and periodically top up the input vaults. Clearing two orders
+    /// from the same owner is disallowed.
+    ///
+    /// Any mismatch in the ratios between the two orders will cause either more
+    /// inputs than there are available outputs (transaction will revert) or less
+    /// inputs than there are available outputs. In the latter case the excess
+    /// outputs are given to the `msg.sender` of clear, to the vaults they
+    /// specify in the clear config. This not only incentivises "automatic" clear
+    /// calls for both a_ and b_, but incentivises _prioritising greater ratio
+    /// differences_ with a larger bounty. The second point is important because
+    /// it implicitly prioritises orders that are further from the current
+    /// market price, thus putting constant increasing pressure on the entire
+    /// system the further it drifts from the norm, no matter how esoteric the
+    /// individual order expressions and sizings might be.
+    ///
+    /// All else equal there are several factors that would impact how reliably
+    /// some order clears relative to the wider market, such as:
+    ///
+    /// - Bounties are effectively percentages of cleared amounts so larger
+    ///   orders have larger bounties and cover gas costs more easily
+    /// - High gas on the network means that orders are harder to clear
+    ///   profitably so the negative spread of the ratios will need to be larger
+    /// - Complex and stateful expressions cost more gas to evalulate so the
+    ///   negative spread will need to be larger
+    /// - Erratic behavior of the order owner could reduce the willingness of
+    ///   third parties to interact if it could result in wasted gas due to
+    ///   orders suddently being removed before clearance etc.
+    /// - Dynamic and highly volatile words used in the expression could be
+    ///   ignored or low priority by clearers who want to be sure that they can
+    ///   accurately predict the ratios that they include in their clearance
+    /// - Geopolitical issues such as sanctions and regulatory restrictions could
+    ///   cause issues for certain owners and clearers
+    ///
+    /// @param a_ Some order to clear.
+    /// @param b_ Another order to clear.
+    /// @param clearConfig_ Additional configuration for the clearance such as
+    /// how to handle the bounty payment for the `msg.sender`.
     function clear(
         Order memory a_,
         Order memory b_,

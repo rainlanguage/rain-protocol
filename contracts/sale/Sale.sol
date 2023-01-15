@@ -610,7 +610,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         require(units_ >= config_.minimumUnits, "INSUFFICIENT_STOCK");
 
         require(price_ <= config_.maximumPrice, "MAXIMUM_PRICE");
-        uint256 cost_ = price_.fixedPointMul(units_);
+        uint256 cost_ = price_.fixedPointMul(units_, Math.Rounding.Up);
 
         Receipt memory receipt_ = Receipt(
             nextReceiptId,
@@ -742,7 +742,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         // exist or was already refunded as it will underflow.
         receipts[msg.sender][keccak256(abi.encode(receipt_))]--;
 
-        uint256 cost_ = receipt_.price.fixedPointMul(receipt_.units);
+        uint256 cost_ = receipt_.price.fixedPointMul(
+            receipt_.units,
+            Math.Rounding.Up
+        );
 
         totalReserveReceived -= cost_;
         remainingTokenInventory += receipt_.units;

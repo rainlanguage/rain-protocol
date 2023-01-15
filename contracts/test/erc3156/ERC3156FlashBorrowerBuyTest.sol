@@ -33,7 +33,10 @@ contract ERC3156FlashBorrowerBuyTest is IERC3156FlashBorrower {
         // 'receives' tokenB from market.
         // make sure this contract has at least a balance of `receiveAmountB`
         // before triggering `onFlashLoan` callback.
-        uint256 receiveAmountB = amount_.fixedPointMul(1020000000000000000);
+        uint256 receiveAmountB = amount_.fixedPointMul(
+            1020000000000000000,
+            Math.Rounding.Down
+        );
         require(
             IERC20(takeOrdersConfig.output).balanceOf(address(this)) ==
                 receiveAmountB,
