@@ -2996,17 +2996,17 @@ describe("OrderBook clear order", async function () {
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askOrder, bigConfigInvalid0, clearConfig),
-      "TOKEN_MISMATCH",
-      "did not validate output token"
+          .clear(askOrder, bigConfigInvalid1, clearConfig),
+          `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
+          "did not validate input token"
     );
     await assertError(
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askOrder, bigConfigInvalid1, clearConfig),
-      "TOKEN_MISMATCH",
-      "did not validate input token"
+          .clear(askOrder, bigConfigInvalid0, clearConfig),
+          `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
+          "did not validate output token"
     );
   });
 
@@ -3192,7 +3192,7 @@ describe("OrderBook clear order", async function () {
 
     await assertError(
       async () => await txClearOrder,
-      "SAME_OWNER",
+      `SameOwner("${alice2.address}")`,
       "did not revert with same owner for ask and bid orders"
     );
   });

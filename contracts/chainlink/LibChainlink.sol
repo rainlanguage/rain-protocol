@@ -50,7 +50,8 @@ library LibChainlink {
         // Safely cast the answer to uint256 and scale it to 18 decimal FP.
         return
             answer_.toUint256().scale18(
-                AggregatorV3Interface(feed_).decimals()
+                AggregatorV3Interface(feed_).decimals(),
+                Math.Rounding.Down
             );
     }
 }

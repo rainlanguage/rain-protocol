@@ -56,7 +56,8 @@ library FixedPointMath {
     /// @return `a_` scaled to match `DECIMALS`.
     function scale18(
         uint256 a_,
-        uint256 aDecimals_
+        uint256 aDecimals_,
+        Math.Rounding rounding_
     ) internal pure returns (uint256) {
         uint256 decimals_;
         if (FP_DECIMALS == aDecimals_) {
@@ -70,7 +71,7 @@ library FixedPointMath {
             unchecked {
                 decimals_ = aDecimals_ - FP_DECIMALS;
             }
-            return a_ / 10 ** decimals_;
+            return scaleDown(a_, decimals_, rounding_);
         }
     }
 
@@ -80,7 +81,8 @@ library FixedPointMath {
     /// @return `a_` rescaled from `DECIMALS` to `targetDecimals_`.
     function scaleN(
         uint256 a_,
-        uint256 targetDecimals_
+        uint256 targetDecimals_,
+        Math.Rounding rounding_
     ) internal pure returns (uint256) {
         uint256 decimals_;
         if (targetDecimals_ == FP_DECIMALS) {
@@ -89,7 +91,7 @@ library FixedPointMath {
             unchecked {
                 decimals_ = FP_DECIMALS - targetDecimals_;
             }
-            return a_ / 10 ** decimals_;
+            return scaleDown(a_, decimals_, rounding_);
         } else {
             unchecked {
                 decimals_ = targetDecimals_ - FP_DECIMALS;
@@ -105,14 +107,16 @@ library FixedPointMath {
     /// hadn't rescaled the ratio.
     function scaleRatio(
         uint256 ratio_,
-        uint8 aDecimals_,
-        uint8 bDecimals_
+        uint256 aDecimals_,
+        uint256 bDecimals_,
+        Math.Rounding rounding_
     ) internal pure returns (uint256) {
         return
             scaleBy(
                 ratio_,
-                (int256(uint(bDecimals_)) - int256(uint256(aDecimals_)))
-                    .toInt8()
+                (int256(bDecimals_) - int256(aDecimals_))
+                    .toInt8(),
+                rounding_
             );
     }
 
@@ -126,19 +130,33 @@ library FixedPointMath {
     /// @return `a_` rescaled according to `scaleBy_`.
     function scaleBy(
         uint256 a_,
-        int8 scaleBy_
+        int256 scaleBy_,
+        Math.Rounding rounding_
     ) internal pure returns (uint256) {
         if (scaleBy_ == 0) {
             return a_;
         } else if (scaleBy_ > 0) {
-            return a_.saturatingMul(10 ** uint8(scaleBy_));
+            return a_.saturatingMul(10 ** uint256(scaleBy_));
         } else {
-            uint256 posScaleDownBy_;
+            uint256 scaleDownBy_;
             unchecked {
-                posScaleDownBy_ = uint8(-1 * scaleBy_);
+                scaleDownBy_ = uint256(-1 * scaleBy_);
             }
-            return a_ / 10 ** posScaleDownBy_;
+            return scaleDown(a_, scaleDownBy_, rounding_);
         }
+    }
+
+    function scaleDown(
+        uint256 a_,
+        uint256 scaleDownBy_,
+        Math.Rounding rounding_
+    ) internal pure returns (uint256) {
+        uint256 b_ = 10 ** scaleDownBy_;
+        uint256 scaled_ = a_ / b_;
+        if (rounding_ == Math.Rounding.Up && a_ != scaled_ * b_) {
+            scaled_ += 1;
+        }
+        return scaled_;
     }
 
     /// Fixed point multiplication in native scale decimals.

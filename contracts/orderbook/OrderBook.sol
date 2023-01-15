@@ -509,7 +509,7 @@ contract OrderBook is
         uint256 inputIOIndex_,
         uint256 outputIOIndex_,
         address counterparty_
-    ) internal view returns (OrderIOCalculation memory) {
+    ) internal view virtual returns (OrderIOCalculation memory) {
         unchecked {
             uint256 orderHash_ = order_.hash();
             uint256[][] memory context_ = new uint256[][](CONTEXT_COLUMNS);
@@ -570,15 +570,19 @@ contract OrderBook is
             uint256 orderIORatio_ = stack_[stack_.length - 1];
 
             // Rescale order output max from 18 FP to whatever decimals the
-            // output token is using.
+            // output token is using. Outputs are rounded down to favour the
+            // order.
             orderOutputMax_ = orderOutputMax_.scaleN(
-                order_.validOutputs[outputIOIndex_].decimals
+                order_.validOutputs[outputIOIndex_].decimals,
+                Math.Rounding.Down
             );
             // Rescale the ratio from 18 FP according to the difference in
-            // decimals between input and output.
+            // decimals between input and output. Inputs are rounded up to favour
+            // the order.
             orderIORatio_ = orderIORatio_.scaleRatio(
                 order_.validOutputs[outputIOIndex_].decimals,
-                order_.validInputs[inputIOIndex_].decimals
+                order_.validInputs[inputIOIndex_].decimals,
+                Math.Rounding.Up
             );
 
             // The order owner can't send more than the smaller of their vault
@@ -623,7 +627,7 @@ contract OrderBook is
         uint256 input_,
         uint256 output_,
         OrderIOCalculation memory orderIOCalculation_
-    ) internal {
+    ) internal virtual {
         orderIOCalculation_.context[CONTEXT_VAULT_INPUTS_COLUMN][
             CONTEXT_VAULT_IO_BALANCE_DIFF
         ] = input_;
@@ -700,6 +704,37 @@ contract OrderBook is
         }
     }
 
+    function _clearStateChange(
+        OrderIOCalculation memory aOrderIOCalculation_,
+        OrderIOCalculation memory bOrderIOCalculation_
+    ) internal pure returns (ClearStateChange memory) {
+        ClearStateChange memory clearStateChange_;
+        {
+            clearStateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
+                bOrderIOCalculation_.outputMax.fixedPointMul(
+                    bOrderIOCalculation_.IORatio,
+                    Math.Rounding.Down
+                )
+            );
+            clearStateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
+                aOrderIOCalculation_.outputMax.fixedPointMul(
+                    aOrderIOCalculation_.IORatio,
+                    Math.Rounding.Down
+                )
+            );
+
+            clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
+                aOrderIOCalculation_.IORatio,
+                Math.Rounding.Up
+            );
+            clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
+                bOrderIOCalculation_.IORatio,
+                Math.Rounding.Up
+            );
+        }
+        return clearStateChange_;
+    }
+
     function takeOrders(
         TakeOrdersConfig calldata takeOrders_
     )
@@ -761,8 +796,10 @@ contract OrderBook is
                     uint256 input_ = remainingInput_.min(
                         orderIOCalculation_.outputMax
                     );
+                    // Favour the order for rounding.
                     uint256 output_ = input_.fixedPointMul(
-                        orderIOCalculation_.IORatio
+                        orderIOCalculation_.IORatio,
+                        Math.Rounding.Up
                     );
 
                     remainingInput_ -= input_;
@@ -844,46 +881,22 @@ contract OrderBook is
             // Emit the Clear event before `eval`.
             emit Clear(msg.sender, a_, b_, clearConfig_);
         }
-        OrderIOCalculation memory aOrderIOCalculation_;
-        OrderIOCalculation memory bOrderIOCalculation_;
-        ClearStateChange memory clearStateChange_;
-        {
-            aOrderIOCalculation_ = _calculateOrderIO(
-                a_,
-                clearConfig_.aInputIOIndex,
-                clearConfig_.aOutputIOIndex,
-                b_.owner
-            );
-            bOrderIOCalculation_ = _calculateOrderIO(
-                b_,
-                clearConfig_.bInputIOIndex,
-                clearConfig_.bOutputIOIndex,
-                a_.owner
-            );
-
-            clearStateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
-                bOrderIOCalculation_.outputMax.fixedPointMul(
-                    bOrderIOCalculation_.IORatio
-                )
-            );
-            clearStateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
-                aOrderIOCalculation_.outputMax.fixedPointMul(
-                    aOrderIOCalculation_.IORatio
-                )
-            );
-
-            require(
-                clearStateChange_.aOutput > 0 || clearStateChange_.bOutput > 0,
-                "0_CLEAR"
-            );
-
-            clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
-                aOrderIOCalculation_.IORatio
-            );
-            clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
-                bOrderIOCalculation_.IORatio
-            );
-        }
+        OrderIOCalculation memory aOrderIOCalculation_ = _calculateOrderIO(
+            a_,
+            clearConfig_.aInputIOIndex,
+            clearConfig_.aOutputIOIndex,
+            b_.owner
+        );
+        OrderIOCalculation memory bOrderIOCalculation_ = _calculateOrderIO(
+            b_,
+            clearConfig_.bInputIOIndex,
+            clearConfig_.bOutputIOIndex,
+            a_.owner
+        );
+        ClearStateChange memory clearStateChange_ = _clearStateChange(
+            aOrderIOCalculation_,
+            bOrderIOCalculation_
+        );
 
         _recordVaultIO(
             a_,
