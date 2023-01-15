@@ -1,7 +1,7 @@
 {
     "name": "ISALEV2_RESERVE",
     "desc": "The reserve token address",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

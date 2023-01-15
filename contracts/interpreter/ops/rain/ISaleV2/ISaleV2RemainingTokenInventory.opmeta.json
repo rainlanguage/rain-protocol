@@ -1,7 +1,7 @@
 {
     "name": "ISALEV2_REMAINING_TOKEN_INVENTORY",
     "desc": "The remaining rTKNs left to to be sold",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

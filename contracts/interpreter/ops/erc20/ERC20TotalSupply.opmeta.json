@@ -1,7 +1,7 @@
 {
     "name": "ERC20_TOTAL_SUPPLY",
     "desc": "Get the supply of an ERC20 token and insert it into the stack",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

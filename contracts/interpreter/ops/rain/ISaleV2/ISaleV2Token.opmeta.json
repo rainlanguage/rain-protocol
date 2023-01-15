@@ -1,7 +1,7 @@
 {
     "name": "ISALEV2_TOKEN",
     "desc": "The rTKN address",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

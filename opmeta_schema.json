@@ -16,10 +16,19 @@
                     "description": "Describes what the opcode does briefly"
                 },
                 "operand": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/OperandArg"
-                    },
+                    "anyOf": [
+                        {
+                            "type": "number",
+                            "const": 0
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/OperandArg"
+                            },
+                            "minItems": 1
+                        }
+                    ],
                     "title": "Opcode Operand",
                     "description": "Data required in order to calculate and format the operand"
                 },
@@ -53,7 +62,7 @@
             "title": "Opcode Metadata",
             "description": "Schema for opcodes metadata used by Rainlang parser and formatter"
         },
-        "OperandArg": {
+        "OperandArg": {   
             "type": "object",
             "properties": {
                 "bits": {

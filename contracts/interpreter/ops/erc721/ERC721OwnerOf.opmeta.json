@@ -1,7 +1,7 @@
 {
     "name": "ERC721_OWNER_OF",
     "desc": "Get the owner of an ERC20 token of an account and insert it into the stack",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

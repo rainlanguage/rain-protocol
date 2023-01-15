@@ -1,7 +1,7 @@
 {
     "name": "IORDERBOOKV1_VAULT_BALANCE",
     "desc": "The balance of an orderbook vault",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

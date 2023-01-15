@@ -1,7 +1,7 @@
 {
     "name": "CHAINLIN_PRICE",
     "desc": "Takes 2 items from constants array and calls the Chainlink Oracle to get price and stack it",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

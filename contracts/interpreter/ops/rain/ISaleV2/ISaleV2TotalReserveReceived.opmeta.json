@@ -1,7 +1,7 @@
 {
     "name": "ISALEV2_TOTAL_RESERVE_RECEIVED",
     "desc": "The total amount of reserve tokens received by the sale",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

@@ -1,7 +1,7 @@
 {
     "name": "ISALEV2_SALE_STATUS",
     "desc": "Insert the status of a Sale contract into the stack by taking its address from the stack",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {

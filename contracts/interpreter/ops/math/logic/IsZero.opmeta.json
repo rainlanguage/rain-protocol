@@ -1,7 +1,7 @@
 {
     "name": "ISZERO",
     "desc": "Checks if the value is zero and inserts true/1 into the stack if it is, else inserts false/0",
-    "operand": [],
+    "operand": 0,
     "inputs": {
         "parameters": [
             {
