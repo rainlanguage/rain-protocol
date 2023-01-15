@@ -19,7 +19,7 @@
         "parameters": [
             {
                 "name": "Input",
-                "validLength": [[0, 14]]
+                "spread": true
             },
             {
                 "name": "Condition",

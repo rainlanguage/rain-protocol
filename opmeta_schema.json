@@ -137,35 +137,10 @@
                                         "title": "Input Parameter Description",
                                         "description": "Description of the input parameter"
                                     },
-                                    "validLength": {
-                                        "type": "array",
-                                        "items": {
-                                            "anyOf": [
-                                                {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "minItems": 1,
-                                                    "maxItems": 1
-                                                },
-                                                {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "minItems": 2,
-                                                    "maxItems": 2
-                                                }
-                                            ]
-                                        },
-                                        "title": "Input Parameter Valid Length",
-                                        "description": "Only used for dynamic-length arguments of a same type and determines the valid length of them, for example an opcode can have any number between 1 - 10 of same arguments: [[1, 10]] or an opcode can only have certain exact number of this type of inputs: [[2], [3], [9]], meaning it can only have 2 or 3 or 9 arguments of this type"
-                                    },
-                                    "length": {
-                                        "type": "string",
-                                        "title": "Input Parameter Length",
-                                        "description": "An arithmetical script that specifies the length of a dynamic argument. The \"inputs\" keyword is reserved for accessing the exctraced value from operand bits, example: \"(inputs + 1) * 2\". Only used for opcodes with multiple dynamic input arguments."
+                                    "spread": {
+                                        "type": "boolean",
+                                        "title": "Parameter Spread",
+                                        "description": "Specifies if an argument is dynamic in length, default is false, so only needs to be defined if an argument is spread."
                                     }
                                 },
                                 "required": [

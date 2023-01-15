@@ -29,7 +29,7 @@
             {
                 "name": "Report",
                 "desc": "The report to selectLte from",
-                "validLength": [[1, 254]]
+                "spread": true
             }
         ]
     },

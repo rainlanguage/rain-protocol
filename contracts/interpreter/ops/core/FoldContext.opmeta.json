@@ -31,7 +31,7 @@
         "parameters": [
             {
                 "name": "Input",
-                "validLength": [[0, 15]]
+                "spread": true
             }
         ]
     },

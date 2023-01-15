@@ -24,8 +24,8 @@
         "bits": [0, 3],
         "parameters": [
             {
-                "name": "input",
-                "validLength": [[0, 15]]
+                "name": "Input",
+                "spread": true
             }
         ]
     },

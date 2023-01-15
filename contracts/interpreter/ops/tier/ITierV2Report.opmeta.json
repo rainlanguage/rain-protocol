@@ -21,7 +21,7 @@
             {
                 "name": "Context",
                 "desc": "The contextual values",
-                "validLength": [[0], [1], [8]]
+                "spread": true
             }
         ]
     },
