@@ -6,20 +6,23 @@ import type {
   OrderBook,
   Rainterpreter,
   RainterpreterExpressionDeployer,
+  ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
 import {
   AddOrderEvent,
   DepositConfigStruct,
+  DepositEvent,
   OrderConfigStruct,
   TakeOrderConfigStruct,
   TakeOrderEvent,
   TakeOrdersConfigStruct,
 } from "../../typechain/contracts/orderbook/OrderBook";
-import { fixedPointMul, RainterpreterOps, randomUint256 } from "../../utils";
+import { assertError, fixedPointMul, minBN, RainterpreterOps, randomUint256 } from "../../utils";
 import {
   eighteenZeros,
   max_uint256,
+  ONE,
   sixZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -27,6 +30,7 @@ import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/raint
 import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  Debug,
   memoryOperand,
   MemoryType,
   op,
@@ -37,8 +41,17 @@ const Opcode = RainterpreterOps;
 
 describe("OrderBook expression checks", async () => {
   let orderBookFactory: ContractFactory;
+  let tokenA: ReserveToken18;
+  let tokenB: ReserveToken18;
   let interpreter: Rainterpreter;
   let expressionDeployer: RainterpreterExpressionDeployer;
+
+  beforeEach(async () => {
+    tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    tokenB = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await tokenA.initialize();
+    await tokenB.initialize();
+  }); 
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
@@ -1297,5 +1310,318 @@ describe("OrderBook expression checks", async () => {
 
     const tokenAAliceBalanceWithdrawn = await tokenA18.balanceOf(alice.address);
     assert(tokenAAliceBalanceWithdrawn.eq(depositAmountA));
-  });
+  }); 
+
+  it("should ensure balance diff is zero in calculateIO and actual value in handleIO", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256()); 
+
+    const INPUT_BALANCE_DIFF = () => op(Opcode.CONTEXT, 0x0204);
+    const OUTPUT_BALANCE_DIFF = () => op(Opcode.CONTEXT, 0x0304);
+
+    // ASK ORDER 
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
+
+    const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
+    const aop = fixedPointMul(aip, askRatio);  
+    
+    const askConstants = [max_uint256, askRatio,aip,aop];
+    const vAskOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskRatio = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+    const vExpectedInputDiff= op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 2)
+    );
+    const vExpectedOutputDiff= op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 3)
+    );
+    const zero= op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 4)
+    );
+
+    // prettier-ignore
+    const askSource = concat([ 
+       INPUT_BALANCE_DIFF()  , 
+      op(Opcode.ENSURE, 0) , 
+       OUTPUT_BALANCE_DIFF()  , 
+      op(Opcode.ENSURE, 0) ,
+      vAskOutputMax,
+      vAskRatio,
+
+    ]); 
+
+    // prettier-ignore
+    const handleSource = concat([ 
+        INPUT_BALANCE_DIFF()  , 
+        vExpectedOutputDiff , 
+       op(Opcode.EQUAL_TO),
+      op(Opcode.ENSURE, 1) ,  
+        OUTPUT_BALANCE_DIFF()  , 
+        vExpectedInputDiff , 
+       op(Opcode.EQUAL_TO),
+      op(Opcode.ENSURE, 1) 
+   ]); 
+
+  
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, handleSource],
+        constants: askConstants,
+      },
+      data: aliceAskOrder,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askOrder, orderHash: askOrderHash } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    // TAKE ORDER
+
+    // Bob takes order with direct wallet transfer
+    const takeOrderConfigStruct: TakeOrderConfigStruct = {
+      order: askOrder,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askRatio,
+      orders: [takeOrderConfigStruct],
+    };
+
+    const amountA = amountB.mul(askRatio).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const { sender, takeOrder, input, output } = (await getEventArgs(
+      txTakeOrders,
+      "TakeOrder",
+      orderBook
+    )) as TakeOrderEvent["args"];
+
+    assert(sender === bob.address, "wrong sender");
+    assert(input.eq(amountB), "wrong input");
+    assert(output.eq(amountA), "wrong output");
+
+    compareStructs(takeOrder, takeOrderConfigStruct);
+
+    const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
+    const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
+    const tokenABobBalance = await tokenA.balanceOf(bob.address);
+    const tokenBBobBalance = await tokenB.balanceOf(bob.address);
+
+    assert(tokenAAliceBalance.isZero()); // Alice has not yet withdrawn
+    assert(tokenBAliceBalance.isZero());
+    assert(tokenABobBalance.isZero());
+    assert(tokenBBobBalance.eq(amountB));
+
+    await orderBook.connect(alice).withdraw({
+      token: tokenA.address,
+      vaultId: aliceInputVault,
+      amount: amountA,
+    });
+
+    const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
+    assert(tokenAAliceBalanceWithdrawn.eq(amountA));
+
+    
+  });  
+
+  it("should ensure accessing calcualtions context during calculation reverts", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256()); 
+
+    
+
+    // ASK ORDER 
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
+    
+    const askConstants = [max_uint256, askRatio,amountB];
+    const vAskOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskRatio = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    ); 
+
+    const OUTPUT_MAX = () => op(Opcode.CONTEXT, 0x0100);
+    const ASK_RATIO = () => op(Opcode.CONTEXT, 0x0101);
+    
+    // prettier-ignore
+    const askSource = concat([  
+      OUTPUT_MAX() ,
+      ASK_RATIO() ,
+      vAskOutputMax,
+      vAskRatio
+    ]); 
+
+  
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, []],
+        constants: askConstants,
+      },
+      data: aliceAskOrder,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askOrder, orderHash: askOrderHash } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    // TAKE ORDER
+
+    // Bob takes order with direct wallet transfer
+    const takeOrderConfigStruct: TakeOrderConfigStruct = {
+      order: askOrder,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askRatio,
+      orders: [takeOrderConfigStruct],
+    };
+
+    const amountA = amountB.mul(askRatio).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    await assertError(
+      async () => await orderBook.connect(bob).takeOrders(takeOrdersConfigStruct),
+      "VM Exception while processing transaction: reverted with panic code 0x32 (Array accessed at an out-of-bounds or negative index)",
+      "Accessed Calculations Context in Calculations"
+    );
+     
+
+    
+  }); 
+
+
 });

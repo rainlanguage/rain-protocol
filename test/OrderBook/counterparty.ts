@@ -67,7 +67,7 @@ describe("OrderBook counterparty in context", async function () {
     );
   });
 
-  it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will trigger revert if bid order counterparty does not match Carol's address)", async function () {
+  it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will noop if bid order counterparty does not match Carol's address)", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -336,15 +336,45 @@ describe("OrderBook counterparty in context", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await assertError(
-      async () =>
-        await orderBook
+    
+    const badClearOrder =   await orderBook
           .connect(bountyBot)
-          .clear(askOrder, bidOrder, clearConfig),
-      "0_CLEAR",
-      "should revert with 0 amount since bob does not match expected counterparty"
-    );
+          .clear(askOrder, bidOrder, clearConfig) 
 
+    const {
+      sender: badClearSender,
+      a: badClearA_,
+      b: badClearB_,
+      clearConfig: badClearBountyConfig,
+    } = (await getEventArgs(
+      badClearOrder,
+      "Clear",
+      orderBook
+    )) as ClearEvent["args"]; 
+
+    const { sender: badAfterClearSender , clearStateChange: badClearStateChange } = (await getEventArgs(
+      badClearOrder,
+      "AfterClear",
+      orderBook
+    )) as AfterClearEvent["args"];
+
+
+
+    const expectedBadClearStateChange: ClearStateChangeStruct = {
+      aOutput: 0 ,
+      bOutput: 0 ,
+      aInput: 0 ,
+      bInput: 0
+    };
+
+    assert(badAfterClearSender === bountyBot.address);
+    assert(badClearSender === bountyBot.address);
+    compareSolStructs(badClearA_, askOrder);
+    compareSolStructs(badClearB_, bidOrder);
+    compareStructs(badClearBountyConfig, clearConfig);
+    compareStructs(badClearStateChange, expectedBadClearStateChange);
+
+      
     // BOUNTY BOT CLEARS THE ORDER - GOOD MATCH
 
     const txClearOrder = await orderBook
@@ -361,7 +391,7 @@ describe("OrderBook counterparty in context", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { clearStateChange: clearStateChange } = (await getEventArgs(
+    const { sender: afterClearSender , clearStateChange: clearStateChange } = (await getEventArgs(
       txClearOrder,
       "AfterClear",
       orderBook
@@ -386,6 +416,7 @@ describe("OrderBook counterparty in context", async function () {
       bInput: fixedPointMul(bidRatio, bOutputExpected),
     };
 
+    assert(afterClearSender === bountyBot.address);
     assert(clearSender === bountyBot.address);
     compareSolStructs(clearA_, askOrder);
     compareSolStructs(clearB_, bidOrderCarol);

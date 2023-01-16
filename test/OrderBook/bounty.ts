@@ -258,7 +258,7 @@ describe("OrderBook bounty", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { clearStateChange: _clearStateChange } = (await getEventArgs(
+    const { sender : _afterClearSender , clearStateChange: _clearStateChange } = (await getEventArgs(
       txClearOrder,
       "AfterClear",
       orderBook
@@ -283,6 +283,7 @@ describe("OrderBook bounty", async function () {
       bInput: fixedPointMul(bidRatio, bOutputExpected),
     };
 
+    assert(_afterClearSender === bountyBot.address);
     assert(_clearSender === bountyBot.address);
     compareSolStructs(clearA_, askOrder);
     compareSolStructs(clearB_, bidOrder);

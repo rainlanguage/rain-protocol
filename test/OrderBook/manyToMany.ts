@@ -321,7 +321,7 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { clearStateChange: clearStateChange0 } = (await getEventArgs(
+    const { sender: afterClearSender0, clearStateChange: clearStateChange0 } = (await getEventArgs(
       txClearOrder0,
       "AfterClear",
       orderBook
@@ -346,6 +346,7 @@ describe("OrderBook many-to-many", async function () {
       bInput: fixedPointMul(bidRatio, bOutputExpected0),
     };
 
+    assert(afterClearSender0 === bountyBot.address);
     assert(clearSender0 === bountyBot.address);
     compareSolStructs(clearA_, askOrder);
     compareSolStructs(clearB_, bidOrder);
@@ -374,7 +375,7 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { clearStateChange: clearStateChange1 } = (await getEventArgs(
+    const { sender: afterClearSender1 ,clearStateChange: clearStateChange1 } = (await getEventArgs(
       txClearOrder1,
       "AfterClear",
       orderBook
@@ -399,6 +400,7 @@ describe("OrderBook many-to-many", async function () {
       bInput: fixedPointMul(bidRatio, dOutputExpected1),
     };
 
+    assert(afterClearSender1 === bountyBot.address);
     assert(clearSender1 === bountyBot.address);
     compareSolStructs(clearC_, askOrder);
     compareSolStructs(clearD_, bidOrder);
