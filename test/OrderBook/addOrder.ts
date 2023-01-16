@@ -105,14 +105,20 @@ describe("OrderBook add order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender,expressionDeployer : askOrderExpressionDeployer, order: askOrder } = (await getEventArgs(
+    const {
+      sender: askSender,
+      expressionDeployer: askOrderExpressionDeployer,
+      order: askOrder,
+    } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
-    )) as AddOrderEvent["args"]; 
+    )) as AddOrderEvent["args"];
 
-
-    assert(askOrderExpressionDeployer === expressionDeployer.address, "wrong expression deployer");
+    assert(
+      askOrderExpressionDeployer === expressionDeployer.address,
+      "wrong expression deployer"
+    );
     assert(askSender === alice.address, "wrong sender");
     compareStructs(askOrder, askOrderConfig);
 
@@ -163,6 +169,4 @@ describe("OrderBook add order", async function () {
     assert(bidSender === bob.address, "wrong sender");
     compareStructs(bidOrder, bidOrderConfig);
   });
-
-  
 });

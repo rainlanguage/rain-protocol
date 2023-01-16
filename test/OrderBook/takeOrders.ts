@@ -11,6 +11,7 @@ import type {
 } from "../../typechain";
 import {
   AddOrderEvent,
+  ContextEvent,
   DepositConfigStruct,
   DepositEvent,
   OrderConfigStruct,
@@ -26,6 +27,7 @@ import {
   assertError,
   fixedPointMul,
   randomUint256,
+  minBN,
 } from "../../utils";
 import {
   eighteenZeros,
@@ -5079,5 +5081,199 @@ describe("OrderBook take orders", async function () {
       `MinimumInput(${depositAmountB}, 0)`,
       "Take Orders without hitting minimum input executed"
     );
+  });
+
+  it("should validate context emitted in context event when handleIO dispatch is zero", async function () {
+    const signers = await ethers.getSigners();
+
+    const alice = signers[1];
+    const bob = signers[2];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+
+    // ASK ORDER
+
+    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    const askConstants = [max_uint256, askRatio];
+    const vAskOutputMax = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 0)
+    );
+    const vAskRatio = op(
+      Opcode.READ_MEMORY,
+      memoryOperand(MemoryType.Constant, 1)
+    );
+    // prettier-ignore
+    const askSource = concat([
+      vAskOutputMax,
+      vAskRatio,
+    ]);
+    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+
+    const askOrderConfig: OrderConfigStruct = {
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
+      validInputs: [
+        { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
+      ],
+      validOutputs: [
+        { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
+      ],
+      interpreterStateConfig: {
+        sources: [askSource, []],
+        constants: askConstants,
+      },
+      data: aliceAskOrder,
+    };
+
+    const txAskAddOrder = await orderBook
+      .connect(alice)
+      .addOrder(askOrderConfig);
+
+    const { order: askOrder, orderHash: askOrderHash } = (await getEventArgs(
+      txAskAddOrder,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+
+    // DEPOSIT
+
+    const amountB = ethers.BigNumber.from("2" + eighteenZeros);
+
+    const depositConfigStructAlice: DepositConfigStruct = {
+      token: tokenB.address,
+      vaultId: aliceOutputVault,
+      amount: amountB,
+    };
+
+    await tokenB.transfer(alice.address, amountB);
+    await tokenB
+      .connect(alice)
+      .approve(orderBook.address, depositConfigStructAlice.amount);
+
+    // Alice deposits tokenB into her output vault
+    const txDepositOrderAlice = await orderBook
+      .connect(alice)
+      .deposit(depositConfigStructAlice);
+
+    const { sender: depositAliceSender, config: depositAliceConfig } =
+      (await getEventArgs(
+        txDepositOrderAlice,
+        "Deposit",
+        orderBook
+      )) as DepositEvent["args"];
+
+    assert(depositAliceSender === alice.address);
+    compareStructs(depositAliceConfig, depositConfigStructAlice);
+
+    // TAKE ORDER
+
+    // Bob takes order with direct wallet transfer
+    const takeOrderConfigStruct: TakeOrderConfigStruct = {
+      order: askOrder,
+      inputIOIndex: 0,
+      outputIOIndex: 0,
+    };
+
+    const takeOrdersConfigStruct: TakeOrdersConfigStruct = {
+      output: tokenA.address,
+      input: tokenB.address,
+      minimumInput: amountB,
+      maximumInput: amountB,
+      maximumIORatio: askRatio,
+      orders: [takeOrderConfigStruct],
+    };
+
+    const amountA = amountB.mul(askRatio).div(ONE);
+    await tokenA.transfer(bob.address, amountA);
+    await tokenA.connect(bob).approve(orderBook.address, amountA);
+
+    const txTakeOrders = await orderBook
+      .connect(bob)
+      .takeOrders(takeOrdersConfigStruct);
+
+    const { sender, takeOrder, input, output } = (await getEventArgs(
+      txTakeOrders,
+      "TakeOrder",
+      orderBook
+    )) as TakeOrderEvent["args"];
+
+    assert(sender === bob.address, "wrong sender");
+    assert(input.eq(amountB), "wrong input");
+    assert(output.eq(amountA), "wrong output");
+
+    compareStructs(takeOrder, takeOrderConfigStruct);
+
+    const tokenAAliceBalance = await tokenA.balanceOf(alice.address);
+    const tokenBAliceBalance = await tokenB.balanceOf(alice.address);
+    const tokenABobBalance = await tokenA.balanceOf(bob.address);
+    const tokenBBobBalance = await tokenB.balanceOf(bob.address);
+
+    assert(tokenAAliceBalance.isZero()); // Alice has not yet withdrawn
+    assert(tokenBAliceBalance.isZero());
+    assert(tokenABobBalance.isZero());
+    assert(tokenBBobBalance.eq(amountB));
+
+    await orderBook.connect(alice).withdraw({
+      token: tokenA.address,
+      vaultId: aliceInputVault,
+      amount: amountA,
+    });
+
+    const tokenAAliceBalanceWithdrawn = await tokenA.balanceOf(alice.address);
+    assert(tokenAAliceBalanceWithdrawn.eq(amountA));
+
+    // Asserting Context Events
+    const contextEvents = (await getEvents(
+      txTakeOrders,
+      "Context",
+      orderBook
+    )) as ContextEvent["args"][];
+
+    const { sender: sender0, context: context0_ } = contextEvents[0];
+
+    assert(sender0 === bob.address);
+
+    const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
+    const aop = fixedPointMul(aip, askRatio);
+    const opMax = minBN(max_uint256, amountB);
+
+    const expectedEvent0 = [
+      [
+        askOrderHash,
+        ethers.BigNumber.from(alice.address),
+        ethers.BigNumber.from(bob.address),
+      ],
+      [opMax, askRatio],
+      [
+        ethers.BigNumber.from(tokenA.address),
+        ethers.BigNumber.from(18),
+        aliceInputVault,
+        0,
+        aop,
+      ],
+      [
+        ethers.BigNumber.from(tokenB.address),
+        ethers.BigNumber.from(18),
+        aliceOutputVault,
+        amountB,
+        aip,
+      ],
+    ];
+
+    for (let i = 0; i < expectedEvent0.length; i++) {
+      const rowArray = expectedEvent0[i];
+      for (let j = 0; j < rowArray.length; j++) {
+        const colElement = rowArray[j];
+        if (!context0_[i][j].eq(colElement)) {
+          assert.fail(`mismatch at position (${i},${j}),
+                         expected  ${colElement}
+                         got       ${context0_[i][j]}`);
+        }
+      }
+    }
   });
 });

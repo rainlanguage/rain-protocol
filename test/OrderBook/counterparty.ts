@@ -35,7 +35,6 @@ import {
 } from "../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
-import { assertError } from "../../utils/test/assertError";
 import {
   compareSolStructs,
   compareStructs,
@@ -336,10 +335,9 @@ describe("OrderBook counterparty in context", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    
-    const badClearOrder =   await orderBook
-          .connect(bountyBot)
-          .clear(askOrder, bidOrder, clearConfig) 
+    const badClearOrder = await orderBook
+      .connect(bountyBot)
+      .clear(askOrder, bidOrder, clearConfig);
 
     const {
       sender: badClearSender,
@@ -350,21 +348,22 @@ describe("OrderBook counterparty in context", async function () {
       badClearOrder,
       "Clear",
       orderBook
-    )) as ClearEvent["args"]; 
+    )) as ClearEvent["args"];
 
-    const { sender: badAfterClearSender , clearStateChange: badClearStateChange } = (await getEventArgs(
+    const {
+      sender: badAfterClearSender,
+      clearStateChange: badClearStateChange,
+    } = (await getEventArgs(
       badClearOrder,
       "AfterClear",
       orderBook
     )) as AfterClearEvent["args"];
 
-
-
     const expectedBadClearStateChange: ClearStateChangeStruct = {
-      aOutput: 0 ,
-      bOutput: 0 ,
-      aInput: 0 ,
-      bInput: 0
+      aOutput: 0,
+      bOutput: 0,
+      aInput: 0,
+      bInput: 0,
     };
 
     assert(badAfterClearSender === bountyBot.address);
@@ -374,7 +373,6 @@ describe("OrderBook counterparty in context", async function () {
     compareStructs(badClearBountyConfig, clearConfig);
     compareStructs(badClearStateChange, expectedBadClearStateChange);
 
-      
     // BOUNTY BOT CLEARS THE ORDER - GOOD MATCH
 
     const txClearOrder = await orderBook
@@ -391,11 +389,12 @@ describe("OrderBook counterparty in context", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { sender: afterClearSender , clearStateChange: clearStateChange } = (await getEventArgs(
-      txClearOrder,
-      "AfterClear",
-      orderBook
-    )) as AfterClearEvent["args"];
+    const { sender: afterClearSender, clearStateChange: clearStateChange } =
+      (await getEventArgs(
+        txClearOrder,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
 
     const aOutputMaxExpected = amountA;
     const bOutputMaxExpected = amountB;

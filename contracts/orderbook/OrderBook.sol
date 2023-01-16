@@ -410,13 +410,11 @@ contract OrderBook is
             // If either order is dead the clear is a no-op other than emitting
             // `OrderNotFound`. Returning rather than erroring makes it easier to
             // bulk clear using `Multicall`.
-            if (orders[a_.hash()] == DEAD_ORDER) { 
-                console.log("order dead a") ;
+            if (orders[a_.hash()] == DEAD_ORDER) {
                 emit OrderNotFound(msg.sender, a_.owner, a_.hash());
                 return;
             }
             if (orders[b_.hash()] == DEAD_ORDER) {
-                console.log("order dead b") ;
                 emit OrderNotFound(msg.sender, b_.owner, b_.hash());
                 return;
             }
@@ -564,9 +562,7 @@ contract OrderBook is
                 order_.validOutputs[outputIOIndex_].decimals,
                 order_.validInputs[inputIOIndex_].decimals,
                 Math.Rounding.Up
-            ); 
-            console.log("orderIORatio_ : " , orderIORatio_ ) ; 
-
+            );
 
             // The order owner can't send more than the smaller of their vault
             // balance or their per-order limit.
@@ -574,9 +570,7 @@ contract OrderBook is
                 vaultBalance[order_.owner][
                     order_.validOutputs[outputIOIndex_].token
                 ][order_.validOutputs[outputIOIndex_].vaultId]
-            ); 
-
-            console.log("orderOutputMax_ : " , orderOutputMax_ ) ; 
+            );
 
             // Populate the context with the output max rescaled and vault capped
             // and the rescaled ratio.
@@ -700,7 +694,7 @@ contract OrderBook is
     function _clearStateChange(
         OrderIOCalculation memory aOrderIOCalculation_,
         OrderIOCalculation memory bOrderIOCalculation_
-    ) internal view returns (ClearStateChange memory) {
+    ) internal pure returns (ClearStateChange memory) {
         ClearStateChange memory clearStateChange_;
         {
             clearStateChange_.aOutput = aOrderIOCalculation_.outputMax.min(
@@ -712,8 +706,7 @@ contract OrderBook is
                     bOrderIOCalculation_.IORatio,
                     Math.Rounding.Up
                 )
-            ); 
-            console.log("clearStateChange_.aOutput : " , clearStateChange_.aOutput ) ;  
+            );
             clearStateChange_.bOutput = bOrderIOCalculation_.outputMax.min(
                 // A's input is B's output.
                 // B cannot output more than their max.
@@ -724,24 +717,19 @@ contract OrderBook is
                     Math.Rounding.Up
                 )
             );
-            console.log("clearStateChange_.bOutput : " , clearStateChange_.bOutput ) ;  
 
             // A's input is A's output * their IO ratio.
             // Always round IO calculations up.
             clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
                 aOrderIOCalculation_.IORatio,
                 Math.Rounding.Up
-            ); 
-            console.log("clearStateChange_.aInput : " , clearStateChange_.aInput ) ;  
-
+            );
             // B's input is B's output * their IO ratio.
             // Always round IO calculations up.
             clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
                 bOrderIOCalculation_.IORatio,
                 Math.Rounding.Up
-            ); 
-            console.log("clearStateChange_.bInput : " , clearStateChange_.bInput ) ;  
-            
+            );
         }
         return clearStateChange_;
     }

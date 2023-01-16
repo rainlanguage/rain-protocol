@@ -321,11 +321,12 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { sender: afterClearSender0, clearStateChange: clearStateChange0 } = (await getEventArgs(
-      txClearOrder0,
-      "AfterClear",
-      orderBook
-    )) as AfterClearEvent["args"];
+    const { sender: afterClearSender0, clearStateChange: clearStateChange0 } =
+      (await getEventArgs(
+        txClearOrder0,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
 
     const aOutputMaxExpected0 = amount;
     const bOutputMaxExpected0 = amount;
@@ -375,11 +376,12 @@ describe("OrderBook many-to-many", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { sender: afterClearSender1 ,clearStateChange: clearStateChange1 } = (await getEventArgs(
-      txClearOrder1,
-      "AfterClear",
-      orderBook
-    )) as AfterClearEvent["args"];
+    const { sender: afterClearSender1, clearStateChange: clearStateChange1 } =
+      (await getEventArgs(
+        txClearOrder1,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
 
     const cOutputMaxExpected1 = amount;
     const dOutputMaxExpected1 = amount;

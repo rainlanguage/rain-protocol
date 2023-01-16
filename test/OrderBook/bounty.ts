@@ -258,11 +258,12 @@ describe("OrderBook bounty", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { sender : _afterClearSender , clearStateChange: _clearStateChange } = (await getEventArgs(
-      txClearOrder,
-      "AfterClear",
-      orderBook
-    )) as AfterClearEvent["args"];
+    const { sender: _afterClearSender, clearStateChange: _clearStateChange } =
+      (await getEventArgs(
+        txClearOrder,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
 
     const aOutputMaxExpected = amountA;
     const bOutputMaxExpected = amountB;
