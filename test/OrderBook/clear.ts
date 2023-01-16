@@ -3588,7 +3588,6 @@ describe("OrderBook clear order", async function () {
         18 + incorrectTokenADecimals - tokenBDecimals
       )
     );
-    console.log("depositAmountA : ", depositAmountA); //20000000000
 
     const expectedAliceInputVaultAmount = fixedPointMul(
       depositAmountB,
