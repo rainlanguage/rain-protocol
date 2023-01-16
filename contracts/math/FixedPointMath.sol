@@ -144,22 +144,24 @@ library FixedPointMath {
     /// Notably `scaleBy` is a SIGNED integer so scaling down by negative OOMS
     /// is supported.
     /// @param a_ Some integer of any scale.
-    /// @param scaleBy_ OOMs to scale `a_` up or down by.
+    /// @param scaleBy_ OOMs to scale `a_` up or down by. This is a SIGNED int8
+    /// which means it can be negative, and also means that sign extension MUST
+    /// be considered if changing it to another type.
     /// @param rounding_ Rounding direction as per Open Zeppelin Math.
     /// @return `a_` rescaled according to `scaleBy_`.
     function scaleBy(
         uint256 a_,
-        int256 scaleBy_,
+        int8 scaleBy_,
         Math.Rounding rounding_
     ) internal pure returns (uint256) {
         if (scaleBy_ == 0) {
             return a_;
         } else if (scaleBy_ > 0) {
-            return a_.saturatingMul(10 ** uint256(scaleBy_));
+            return a_.saturatingMul(10 ** uint8(scaleBy_));
         } else {
             uint256 scaleDownBy_;
             unchecked {
-                scaleDownBy_ = uint256(-1 * scaleBy_);
+                scaleDownBy_ = uint8(-1 * scaleBy_);
             }
             return scaleDown(a_, scaleDownBy_, rounding_);
         }

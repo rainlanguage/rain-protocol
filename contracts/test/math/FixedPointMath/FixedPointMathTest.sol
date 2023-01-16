@@ -46,7 +46,7 @@ contract FixedPointMathTest {
     /// @return `a_` rescaled according to `scaleBy_`.
     function scaleBy(
         uint256 a_,
-        int256 scaleBy_,
+        int8 scaleBy_,
         Math.Rounding rounding_
     ) external pure returns (uint256) {
         return a_.scaleBy(scaleBy_, rounding_);
