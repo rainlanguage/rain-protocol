@@ -102,9 +102,10 @@ describe("OrderBookFlashLender flashLoan test", async function () {
           amount,
           []
         ),
-      "FlashLender: Callback failed",
+      `FlashLenderCallbackFailed`,
       "did not roll back transaction"
-    );
+    ); 
+
   });
 
   it("should roll back flash loan transaction if callback does not return correct hash", async function () {
@@ -123,7 +124,7 @@ describe("OrderBookFlashLender flashLoan test", async function () {
           amount,
           []
         ),
-      "FlashLender: Callback failed",
+      `FlashLenderCallbackFailed`,
       "did not roll back transaction"
     );
   });
