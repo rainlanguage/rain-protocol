@@ -50,6 +50,38 @@ contract FixedPointMathTest {
         Math.Rounding rounding_
     ) external pure returns (uint256) {
         return a_.scaleBy(scaleBy_, rounding_);
+    } 
+
+    /// Wraps `FixedPointMath.scaleRatio`.
+    /// Scale a fixed point decimals of `DECIMALS` that represents a ratio of
+    /// a_:b_ according to the decimals of a and b that MAY NOT be `DECIMALS`.
+    /// @param ratio_ The ratio to be scaled.
+    /// @param aDecimals_ The decimals of the ratio numerator.
+    /// @param bDecimals_ The decimals of the ratio denominator.
+    /// @param rounding_ Rounding direction as per Open Zeppelin Math.
+    function scaleRatio(
+        uint256 ratio_,
+        uint256 aDecimals_,
+        uint256 bDecimals_,
+        Math.Rounding rounding_
+    ) external pure returns (uint256) {
+        return ratio_.scaleRatio(aDecimals_,bDecimals_,rounding_);
+    } 
+
+    /// Wraps `FixedPointMath.scaleDown`.
+    /// Scales `a_` down by a specified number of decimals, rounding in the
+    /// specified direction. Used internally by several other functions in this
+    /// lib.
+    /// @param a_ The number to scale down.
+    /// @param scaleDownBy_ Number of orders of magnitude to scale `a_` down by.
+    /// @param rounding_ Rounding direction as per Open Zeppelin Math.
+    /// @return `a_` scaled down by `scaleDownBy_` and rounded.
+    function scaleDown(
+        uint256 a_,
+        uint256 scaleDownBy_,
+        Math.Rounding rounding_
+    ) external pure returns (uint256) {
+        return a_.scaleDown(scaleDownBy_,rounding_) ;
     }
 
     /// Wraps `FixedPointMath.fixedPointMul`.

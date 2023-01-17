@@ -23,7 +23,7 @@ contract FixedPointMathEchidna {
 
     // Fuzz test to Scale a fixed point decimal of some scale factor to match the decimals.
     function Scale18(uint256 a_, uint256 aDecimals_) external view {
-        try _fixedPointMathTest.scale18(a_, aDecimals_) returns (
+        try _fixedPointMathTest.scale18(a_, aDecimals_,Math.Rounding.Up) returns (
             uint256 valueScaled
         ) {
             if (FP_DECIMALS == aDecimals_) {
@@ -50,7 +50,7 @@ contract FixedPointMathEchidna {
 
     // Fuzz test to Scale a fixed point decimals of decimals to some other scale.
     function ScaleN(uint256 a_, uint256 targetDecimals_) external view {
-        try _fixedPointMathTest.scaleN(a_, targetDecimals_) returns (
+        try _fixedPointMathTest.scaleN(a_, targetDecimals_,Math.Rounding.Up) returns (
             uint256 valueScaled
         ) {
             if (FP_DECIMALS == targetDecimals_) {
@@ -77,7 +77,7 @@ contract FixedPointMathEchidna {
 
     // Fuzz test to Scale a fixed point up or down by scaleBy orders of magnitude.
     function ScaleBy(uint256 a_, int8 scaleBy_) external view {
-        try _fixedPointMathTest.scaleBy(a_, scaleBy_) returns (
+        try _fixedPointMathTest.scaleBy(a_, scaleBy_,Math.Rounding.Up) returns (
             uint256 valueScaled
         ) {
             if (scaleBy_ == 0) {
@@ -100,7 +100,7 @@ contract FixedPointMathEchidna {
 
     // Fuzz test to Fixed point multiplication in native scale decimals.
     function FixedPointMul(uint256 a_, uint256 b_) external view {
-        uint256 valueCalculated = _fixedPointMathTest.fixedPointMul(a_, b_);
+        uint256 valueCalculated = _fixedPointMathTest.fixedPointMul(a_, b_,Math.Rounding.Up);
 
         // FixedPointMul call is using library from OZ contracts
         uint256 valueExpected = Math.mulDiv(a_, b_, FP_ONE);
@@ -110,7 +110,7 @@ contract FixedPointMathEchidna {
 
     // Fuzz test to Fixed point division in native scale decimals.
     function FixedPointDiv(uint256 a_, uint256 b_) external view {
-        uint256 valueCalculated = _fixedPointMathTest.fixedPointDiv(a_, b_);
+        uint256 valueCalculated = _fixedPointMathTest.fixedPointDiv(a_, b_,Math.Rounding.Up);
 
         // FixedPointDiv call is using library from OZ contracts
         uint256 valueExpected = Math.mulDiv(a_, FP_ONE, b_);
