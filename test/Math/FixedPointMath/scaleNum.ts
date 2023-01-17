@@ -6,7 +6,6 @@ import { fixedPointMathDeploy } from "../../../utils/deploy/math/fixedPointMath/
 
 describe("FixedPointMathTest scaling a number", async function () {
   let fixedPointMathTest: FixedPointMathTest; 
-  let fuzz 
 
   const ROUND_DOWN = 0;
   const ROUND_UP = 1;
@@ -14,12 +13,9 @@ describe("FixedPointMathTest scaling a number", async function () {
 
   before(async () => {
     fixedPointMathTest = await fixedPointMathDeploy(); 
-    fuzz = await basicDeploy('FixedPointMathEchidna')
   }); 
 
-  it.only("fuzz", async () => {
-     await fuzz.Scale18()
-  })
+  
 
   // Scale 18
   it("should scale a fixed point decimal UP to scale 18", async () => {
