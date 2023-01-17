@@ -14,7 +14,7 @@ library OpFixedPointScale18 {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(Operand operand_, uint256 a_) internal pure returns (uint256) {
-        return a_.scale18(Operand.unwrap(operand_));
+        return a_.scale18(Operand.unwrap(operand_), Math.Rounding.Down);
     }
 
     function integrity(

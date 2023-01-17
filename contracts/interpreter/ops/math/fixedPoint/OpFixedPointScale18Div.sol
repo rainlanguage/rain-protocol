@@ -18,7 +18,10 @@ library OpFixedPointScale18Div {
         uint256 a_,
         uint256 b_
     ) internal pure returns (uint256) {
-        return a_.scale18(Operand.unwrap(operand_)).fixedPointDiv(b_);
+        return
+            a_
+                .scale18(Operand.unwrap(operand_), Math.Rounding.Down)
+                .fixedPointDiv(b_, Math.Rounding.Down);
     }
 
     function integrity(

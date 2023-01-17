@@ -217,7 +217,7 @@ describe("OrderBook take orders", async function () {
     await assertError(
       async () =>
         await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct),
-      "MIN_INPUT",
+      `MinimumInput(${amountB.mul(2)}, ${amountB.mul(2).sub(2)})`,
       "did not respect order output max"
     );
   });
@@ -381,19 +381,19 @@ describe("OrderBook take orders", async function () {
     await assertError(
       async () =>
         await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct0),
-      "MIN_INPUT",
+      `MinimumInput(${amountB.mul(2).add(1)}, ${amountB.mul(2)})`,
       "did not validate minimum input gt maximum input"
     );
     await assertError(
       async () =>
         await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct1),
-      "MIN_INPUT",
+      `MinimumInput(${amountB.mul(2).add(1)}, ${amountB.mul(2)})`,
       "did not validate minimum input gt total deposits"
     );
     await assertError(
       async () =>
         await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct2),
-      "MIN_INPUT",
+      `MinimumInput(${amountB.mul(2)}, 0)`,
       "did not validate maximumIORatio"
     );
   });
@@ -3878,13 +3878,13 @@ describe("OrderBook take orders", async function () {
     await assertError(
       async () =>
         await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct0),
-      "TOKEN_MISMATCH",
+      `TokenMismatch("${tokenA.address}", "${tokenB.address}")`,
       "did not validate output token"
     );
     await assertError(
       async () =>
         await orderBook.connect(carol).takeOrders(takeOrdersConfigStruct1),
-      "TOKEN_MISMATCH",
+      `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
       "did not validate input token"
     );
   });
@@ -5078,12 +5078,12 @@ describe("OrderBook take orders", async function () {
     await assertError(
       async () =>
         await orderBook.connect(bob).takeOrders(takeOrdersConfigStruct),
-      "Error: VM Exception while processing transaction: reverted with reason string 'MIN_INPUT'",
-      "Take Orders with incorrect decimals executed"
+      `MinimumInput(${depositAmountB}, 0)`,
+      "Take Orders without hitting minimum input executed"
     );
   });
 
-  it("should validate context emitted in Context event", async function () {
+  it("should validate context emitted in context event when handleIO dispatch is zero", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -5123,7 +5123,7 @@ describe("OrderBook take orders", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
       interpreterStateConfig: {
-        sources: [askSource, askSource],
+        sources: [askSource, []],
         constants: askConstants,
       },
       data: aliceAskOrder,
@@ -5239,6 +5239,7 @@ describe("OrderBook take orders", async function () {
 
     const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
     const aop = fixedPointMul(aip, askRatio);
+    const opMax = minBN(max_uint256, amountB);
 
     const expectedEvent0 = [
       [
@@ -5246,7 +5247,7 @@ describe("OrderBook take orders", async function () {
         ethers.BigNumber.from(alice.address),
         ethers.BigNumber.from(bob.address),
       ],
-      [max_uint256, askRatio],
+      [opMax, askRatio],
       [
         ethers.BigNumber.from(tokenA.address),
         ethers.BigNumber.from(18),

@@ -91,6 +91,9 @@ library LibContext {
     function hash(
         SignedContext[] memory signedContexts_
     ) internal pure returns (bytes32) {
+        // Note the use of abi.encode rather than abi.encodePacked here to guard
+        // against potential issues due to multiple different inputs colliding
+        // on a common encoded output.
         return keccak256(abi.encode(signedContexts_));
     }
 
@@ -174,6 +177,12 @@ library LibContext {
                                 // Unlike `LibContext.hash` we can only hash over
                                 // the context as it's impossible for a signature
                                 // to sign itself.
+                                // Note the use of encodePacked here over a
+                                // single array, not including the length. This
+                                // would be a security issue if multiple dynamic
+                                // length values were hashed over together as
+                                // then many possible inputs could collide with
+                                // a single encoded output.
                                 keccak256(
                                     abi.encodePacked(
                                         signedContexts_[i_].context

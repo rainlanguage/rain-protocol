@@ -9,6 +9,7 @@ import type {
   ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
+import { OrderNotFoundEvent } from "../../typechain/contracts/orderbook/IOrderBookV1";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -2526,7 +2527,11 @@ describe("OrderBook clear order", async function () {
 
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
 
-    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
+    const {
+      sender: bidSender,
+      order: bidOrder,
+      orderHash: bidOrderHash,
+    } = (await getEventArgs(
       txBidAddOrder,
       "AddOrder",
       orderBook
@@ -2602,14 +2607,23 @@ describe("OrderBook clear order", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await assertError(
-      async () =>
-        await orderBook
-          .connect(bountyBot)
-          .clear(askOrder, bidOrder, clearConfig),
-      "B_NOT_LIVE",
-      "did not correctly remove order"
-    );
+    const txClearOrder = await orderBook
+      .connect(bountyBot)
+      .clear(askOrder, bidOrder, clearConfig);
+
+    const {
+      sender: clearSender,
+      owner: cancelOrderOwner,
+      orderHash: cancelOrderHash,
+    } = (await getEventArgs(
+      txClearOrder,
+      "OrderNotFound",
+      orderBook
+    )) as OrderNotFoundEvent["args"];
+
+    assert(clearSender === bountyBot.address);
+    assert(cancelOrderOwner === bob.address);
+    assert(cancelOrderHash.eq(bidOrderHash));
   });
 
   it("orders must be live to clear (order A)", async function () {
@@ -2667,7 +2681,11 @@ describe("OrderBook clear order", async function () {
       .connect(alice)
       .addOrder(askOrderConfig);
 
-    const { sender: askSender, order: askOrder } = (await getEventArgs(
+    const {
+      sender: askSender,
+      order: askOrder,
+      orderHash: askOrderHash,
+    } = (await getEventArgs(
       txAskAddOrder,
       "AddOrder",
       orderBook
@@ -2789,14 +2807,23 @@ describe("OrderBook clear order", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await assertError(
-      async () =>
-        await orderBook
-          .connect(bountyBot)
-          .clear(askOrder, bidOrder, clearConfig),
-      "A_NOT_LIVE",
-      "did not correctly remove order"
-    );
+    const txClearOrder = await orderBook
+      .connect(bountyBot)
+      .clear(askOrder, bidOrder, clearConfig);
+
+    const {
+      sender: clearSender,
+      owner: cancelOrderOwner,
+      orderHash: cancelOrderHash,
+    } = (await getEventArgs(
+      txClearOrder,
+      "OrderNotFound",
+      orderBook
+    )) as OrderNotFoundEvent["args"];
+
+    assert(clearSender === bountyBot.address);
+    assert(cancelOrderOwner === alice.address);
+    assert(cancelOrderHash.eq(askOrderHash));
   });
 
   it("should validate input/output tokens", async function () {
@@ -2997,17 +3024,17 @@ describe("OrderBook clear order", async function () {
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askOrder, bigConfigInvalid0, clearConfig),
-      "TOKEN_MISMATCH",
-      "did not validate output token"
+          .clear(askOrder, bigConfigInvalid1, clearConfig),
+      `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
+      "did not validate input token"
     );
     await assertError(
       async () =>
         await orderBook
           .connect(bountyBot)
-          .clear(askOrder, bigConfigInvalid1, clearConfig),
-      "TOKEN_MISMATCH",
-      "did not validate input token"
+          .clear(askOrder, bigConfigInvalid0, clearConfig),
+      `TokenMismatch("${tokenB.address}", "${tokenA.address}")`,
+      "did not validate output token"
     );
   });
 
@@ -3193,7 +3220,7 @@ describe("OrderBook clear order", async function () {
 
     await assertError(
       async () => await txClearOrder,
-      "SAME_OWNER",
+      `SameOwner("${alice2.address}")`,
       "did not revert with same owner for ask and bid orders"
     );
   });
@@ -3386,11 +3413,12 @@ describe("OrderBook clear order", async function () {
       "Clear",
       orderBook
     )) as ClearEvent["args"];
-    const { clearStateChange: clearStateChange } = (await getEventArgs(
-      txClearOrder,
-      "AfterClear",
-      orderBook
-    )) as AfterClearEvent["args"];
+    const { sender: afterClearSender, clearStateChange: clearStateChange } =
+      (await getEventArgs(
+        txClearOrder,
+        "AfterClear",
+        orderBook
+      )) as AfterClearEvent["args"];
 
     const aOutputMaxExpected = amountA;
     const bOutputMaxExpected = amountB;
@@ -3411,6 +3439,7 @@ describe("OrderBook clear order", async function () {
       bInput: fixedPointMul(bidRatio, bOutputExpected),
     };
 
+    assert(afterClearSender === bountyBot.address);
     assert(clearSender === bountyBot.address);
     compareSolStructs(clearA_, askOrder);
     compareSolStructs(clearB_, bidOrder);
@@ -3640,7 +3669,7 @@ describe("OrderBook clear order", async function () {
     assert(aliceOutputVaultBalance.isZero());
   });
 
-  it("should validate context emitted in context event", async function () {
+  it("should validate context emitted in context event when handleIO dispatch is zero", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -3891,7 +3920,7 @@ describe("OrderBook clear order", async function () {
         ethers.BigNumber.from(alice.address),
         ethers.BigNumber.from(bob.address),
       ],
-      [max_uint256, askRatio],
+      [amountB, askRatio],
       [
         ethers.BigNumber.from(tokenA.address),
         ethers.BigNumber.from(18),
@@ -3926,7 +3955,7 @@ describe("OrderBook clear order", async function () {
         ethers.BigNumber.from(bob.address),
         ethers.BigNumber.from(alice.address),
       ],
-      [max_uint256, bidRatio],
+      [amountA, bidRatio],
       [
         ethers.BigNumber.from(tokenB.address),
         ethers.BigNumber.from(18),

@@ -112,7 +112,7 @@ describe("OrderBook remove order", async function () {
 
     await assertError(
       async () => await orderBook.connect(bob).removeOrder(askLiveOrder),
-      "OWNER",
+      `NotOrderOwner("${bob.address}", "${alice.address}")`,
       "bob wrongly removed alice's order"
     );
 
