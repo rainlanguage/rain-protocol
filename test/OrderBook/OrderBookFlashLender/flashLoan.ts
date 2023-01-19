@@ -104,8 +104,7 @@ describe("OrderBookFlashLender flashLoan test", async function () {
         ),
       `FlashLenderCallbackFailed`,
       "did not roll back transaction"
-    ); 
-
+    );
   });
 
   it("should roll back flash loan transaction if callback does not return correct hash", async function () {

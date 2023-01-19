@@ -14,7 +14,11 @@ library OpFixedPointScaleBy {
     using LibIntegrityCheck for IntegrityCheckState;
 
     function f(Operand operand_, uint256 a_) internal pure returns (uint256) {
-        return a_.scaleBy(int8(uint8(Operand.unwrap(operand_))), Math.Rounding.Down);
+        return
+            a_.scaleBy(
+                int8(uint8(Operand.unwrap(operand_))),
+                Math.Rounding.Down
+            );
     }
 
     function integrity(
