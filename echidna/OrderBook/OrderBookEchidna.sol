@@ -3,7 +3,7 @@ pragma solidity =0.8.17;
 
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import {OrderBook ,ClearStateChange,OrderIOCalculation} from "../../contracts/orderbook/OrderBook.sol" ; 
+import {OrderBook, ClearStateChange, OrderIOCalculation} from "../../contracts/orderbook/OrderBook.sol";
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
 import {FixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/FixedPointMath.sol";
 
@@ -15,14 +15,11 @@ contract OrderBookEchidna {
     using SaturatingMath for uint256;
     using FixedPointMath for uint256;
 
-    
     OrderBook private OB;
-
 
     constructor() {
         OB = new OrderBook();
     }
-
 
     OrderIOCalculation private aOrderIOCalculation_;
     OrderIOCalculation private bOrderIOCalculation_;
@@ -81,7 +78,7 @@ contract OrderBookEchidna {
     }
 
     // Echidna Fuzz for all
-    function echidnaClearState() external view returns (bool) { 
+    function echidnaClearState() external view returns (bool) {
         // OB._clearStateChange()
         ClearStateChange memory result_ = OB._clearStateChange(
             aOrderIOCalculation_,

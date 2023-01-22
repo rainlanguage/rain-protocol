@@ -394,10 +394,8 @@ contract OrderBook is
             clearConfig_.bOutputIOIndex,
             a_.owner
         );
-        ClearStateChange memory clearStateChange_ = LibOrderBook._clearStateChange(
-            aOrderIOCalculation_,
-            bOrderIOCalculation_
-        );
+        ClearStateChange memory clearStateChange_ = LibOrderBook
+            ._clearStateChange(aOrderIOCalculation_, bOrderIOCalculation_);
 
         _recordVaultIO(
             a_,
