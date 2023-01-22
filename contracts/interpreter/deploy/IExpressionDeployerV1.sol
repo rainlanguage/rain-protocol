@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity ^0.8.17;
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim. These sources MUST be provided in their

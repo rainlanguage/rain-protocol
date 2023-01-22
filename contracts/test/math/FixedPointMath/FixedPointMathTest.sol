@@ -50,7 +50,7 @@ contract FixedPointMathTest {
         Math.Rounding rounding_
     ) external pure returns (uint256) {
         return a_.scaleBy(scaleBy_, rounding_);
-    } 
+    }
 
     /// Wraps `FixedPointMath.scaleRatio`.
     /// Scale a fixed point decimals of `DECIMALS` that represents a ratio of
@@ -65,8 +65,8 @@ contract FixedPointMathTest {
         uint256 bDecimals_,
         Math.Rounding rounding_
     ) external pure returns (uint256) {
-        return ratio_.scaleRatio(aDecimals_,bDecimals_,rounding_);
-    } 
+        return ratio_.scaleRatio(aDecimals_, bDecimals_, rounding_);
+    }
 
     /// Wraps `FixedPointMath.scaleDown`.
     /// Scales `a_` down by a specified number of decimals, rounding in the
@@ -81,7 +81,7 @@ contract FixedPointMathTest {
         uint256 scaleDownBy_,
         Math.Rounding rounding_
     ) external pure returns (uint256) {
-        return a_.scaleDown(scaleDownBy_,rounding_) ;
+        return a_.scaleDown(scaleDownBy_, rounding_);
     }
 
     /// Wraps `FixedPointMath.fixedPointMul`.

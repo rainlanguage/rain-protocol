@@ -5275,12 +5275,5 @@ describe("OrderBook take orders", async function () {
         }
       }
     }
-  }); 
-
-  
-
-    
-
-
-  
+  });
 });
