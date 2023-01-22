@@ -19,11 +19,9 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
   it("should scale a number by 18 order of magnitude while multiplying", async () => {
     const a_ = 5;
     const b_ = ethers.BigNumber.from("1000000000000000000").mul(2);
-    const result = await fixedPointMathTest["fixedPointMul(uint256,uint256,uint8)"](
-      a_,
-      b_,
-      ROUND_UP
-    );
+    const result = await fixedPointMathTest[
+      "fixedPointMul(uint256,uint256,uint8)"
+    ](a_, b_, ROUND_UP);
 
     const expectedResult = ethers.BigNumber.from(a_).mul(b_).div(ONE);
     assert(result.eq(expectedResult));
@@ -89,11 +87,9 @@ describe("FixedPointMathTest scaling during arithmetic op", async function () {
     const a_ = 60;
     const b_ = ethers.BigNumber.from("2" + eighteenZeros);
 
-    const result = await fixedPointMathTest["fixedPointDiv(uint256,uint256,uint8)"](
-      a_,
-      b_,
-      ROUND_UP
-    );
+    const result = await fixedPointMathTest[
+      "fixedPointDiv(uint256,uint256,uint8)"
+    ](a_, b_, ROUND_UP);
     const expectedResult = ethers.BigNumber.from(a_).mul(ONE).div(b_);
 
     assert(result.eq(expectedResult));

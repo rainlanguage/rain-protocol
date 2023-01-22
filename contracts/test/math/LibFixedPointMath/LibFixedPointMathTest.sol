@@ -65,7 +65,7 @@ contract LibFixedPointMathTest {
         uint256 bDecimals_,
         Math.Rounding rounding_
     ) external pure returns (uint256) {
-        return ratio_.scaleRatio(aDecimals_,bDecimals_,rounding_);
+        return ratio_.scaleRatio(aDecimals_, bDecimals_, rounding_);
     }
 
     /// Wraps `FixedPointMath.scaleDown`.
@@ -81,7 +81,7 @@ contract LibFixedPointMathTest {
         uint256 scaleDownBy_,
         Math.Rounding rounding_
     ) external pure returns (uint256) {
-        return a_.scaleDown(scaleDownBy_,rounding_) ;
+        return a_.scaleDown(scaleDownBy_, rounding_);
     }
 
     /// Wraps `FixedPointMath.fixedPointMul`.
