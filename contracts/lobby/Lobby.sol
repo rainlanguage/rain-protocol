@@ -10,7 +10,7 @@ import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibContext.sol";
 import "../interpreter/run/IInterpreterCallerV1.sol";
 import "../math/SaturatingMath.sol";
-import "../math/FixedPointMath.sol";
+import "../math/LibFixedPointMath.sol";
 
 import "../phased/Phased.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -110,7 +110,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     using LibStackPointer for StackPointer;
     using Math for uint256;
     using SaturatingMath for uint256;
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
 
     event Initialize(address sender, LobbyConfig config);
 

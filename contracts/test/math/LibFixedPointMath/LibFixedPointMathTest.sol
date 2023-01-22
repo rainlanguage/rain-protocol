@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {FixedPointMath} from "../../../math/FixedPointMath.sol";
+import {LibFixedPointMath} from "../../../math/LibFixedPointMath.sol";
 
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
-/// @title FixedPointMathTest
-/// Thin wrapper around the `SaturatingMath` library for hardhat unit testing.
-contract FixedPointMathTest {
-    using FixedPointMath for uint256;
+/// @title LibFixedPointMathTest
+/// Thin wrapper around the `LibFixedPointMath` library for hardhat unit testing.
+contract LibFixedPointMathTest {
+    using LibFixedPointMath for uint256;
 
     /// Wraps `FixedPointMath.scale18`.
     /// Scale a fixed point decimal of some scale factor to match `DECIMALS`.
@@ -50,7 +50,7 @@ contract FixedPointMathTest {
         Math.Rounding rounding_
     ) external pure returns (uint256) {
         return a_.scaleBy(scaleBy_, rounding_);
-    } 
+    }
 
     /// Wraps `FixedPointMath.scaleRatio`.
     /// Scale a fixed point decimals of `DECIMALS` that represents a ratio of
@@ -66,7 +66,7 @@ contract FixedPointMathTest {
         Math.Rounding rounding_
     ) external pure returns (uint256) {
         return ratio_.scaleRatio(aDecimals_,bDecimals_,rounding_);
-    } 
+    }
 
     /// Wraps `FixedPointMath.scaleDown`.
     /// Scales `a_` down by a specified number of decimals, rounding in the

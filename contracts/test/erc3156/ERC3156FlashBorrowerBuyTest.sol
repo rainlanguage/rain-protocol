@@ -5,12 +5,12 @@ import "../../ierc3156/IERC3156FlashBorrower.sol";
 import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "../../math/FixedPointMath.sol";
+import "../../math/LibFixedPointMath.sol";
 import {OrderBook, TakeOrderConfig, TakeOrdersConfig} from "../../orderbook/OrderBook.sol";
 
 /// @title ERC3156FlashBorrowerBuyTest
 contract ERC3156FlashBorrowerBuyTest is IERC3156FlashBorrower {
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
 
     function onFlashLoan(
