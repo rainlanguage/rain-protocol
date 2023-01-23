@@ -75,27 +75,27 @@ describe("OrderBook take orders", async function () {
     );
   });
 
-  it("precision check for clear set1", async function () {
+  it.only("precision check for clear set1", async function () {
     const signers = await ethers.getSigners();
 
     const tokenADecimals = 18
-    const tokenBDecimals = 13; 
+    const tokenBDecimals = 13;
 
     const aOpMax  = ethers.BigNumber.from("17585051");
     const bOpMax  = ethers.BigNumber.from("1");
-    const askRatio = ethers.BigNumber.from("1000000000000000000"); 
+    const askRatio = ethers.BigNumber.from("1000000000000000000");
     const bidRatio = (fixedPointDiv(ONE, askRatio))
     const depositAmountA = ethers.BigNumber.from("1");
-    const depositAmountB = ethers.BigNumber.from("14667003501636060"); 
+    const depositAmountB = ethers.BigNumber.from("14667003501636060");
 
     const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
       tokenADecimals,
     ])) as ReserveTokenDecimals;
-    const tokenB06 = (await basicDeploy("ReserveTokenDecimals", {}, [
+    const tokenB13 = (await basicDeploy("ReserveTokenDecimals", {}, [
       tokenBDecimals,
     ])) as ReserveTokenDecimals;
     await tokenA18.initialize();
-    await tokenB06.initialize();
+    await tokenB13.initialize();
 
     const alice = signers[1];
     const bob = signers[2];
@@ -112,7 +112,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askConstants = [aOpMax, askRatio];      
+    const askConstants = [aOpMax, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -148,7 +148,7 @@ describe("OrderBook take orders", async function () {
         constants: askConstants,
       },
       data: [],
-    }; 
+    };
 
     const txAskAddOrderAlice = await orderBook
       .connect(alice)
@@ -158,7 +158,7 @@ describe("OrderBook take orders", async function () {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
- 
+
 
     // BID ORDER
 
@@ -241,26 +241,26 @@ describe("OrderBook take orders", async function () {
       bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
-    }; 
+    };
 
 
     const clearOrder = await orderBook.connect(bountyBot).clear(askOrder, bidOrder, clearConfig);
     assert(clearOrder)
-  
-  });  
+
+  });
 
   it("precision check for clear set2", async function () {
     const signers = await ethers.getSigners();
 
     const tokenADecimals = 29
-    const tokenBDecimals = 1; 
+    const tokenBDecimals = 1;
 
     const aOpMax  = ethers.BigNumber.from("4591230885962751121505035506311926492009552198803386111640697963211189819");
     const bOpMax  = ethers.BigNumber.from("470270942975533370416921295702772956228611933235887488170598738804685019");
-    const askRatio = ethers.BigNumber.from("1175177649833617774368545097050886942400156334429750465420241703156423155585"); 
+    const askRatio = ethers.BigNumber.from("1175177649833617774368545097050886942400156334429750465420241703156423155585");
     const bidRatio = (fixedPointDiv(ONE, askRatio))
     const depositAmountA = ethers.BigNumber.from("1");
-    const depositAmountB = ethers.BigNumber.from("63960615973362915565203616228777850002511732201605807624885181844784932"); 
+    const depositAmountB = ethers.BigNumber.from("63960615973362915565203616228777850002511732201605807624885181844784932");
 
     const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
       tokenADecimals,
@@ -286,7 +286,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askConstants = [aOpMax, askRatio];      
+    const askConstants = [aOpMax, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -322,7 +322,7 @@ describe("OrderBook take orders", async function () {
         constants: askConstants,
       },
       data: [],
-    }; 
+    };
 
     const txAskAddOrderAlice = await orderBook
       .connect(alice)
@@ -332,7 +332,7 @@ describe("OrderBook take orders", async function () {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
- 
+
 
     // BID ORDER
 
@@ -415,26 +415,26 @@ describe("OrderBook take orders", async function () {
       bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
-    }; 
+    };
 
 
     const clearOrder = await orderBook.connect(bountyBot).clear(askOrder, bidOrder, clearConfig);
     assert(clearOrder)
-  
-  }); 
+
+  });
 
   it("precision check for clear set3", async function () {
     const signers = await ethers.getSigners();
 
     const tokenADecimals = 26
-    const tokenBDecimals = 1; 
+    const tokenBDecimals = 1;
 
     const aOpMax  = ethers.BigNumber.from("26463885895328345577211921813695381690127259970605975505916846452453755");
     const bOpMax  = ethers.BigNumber.from("431192408550959312672645692694710218368782522445737767612048740285893401");
-    const askRatio = ethers.BigNumber.from("249087209243637393807293408550361061689511538399682265326027092758904"); 
+    const askRatio = ethers.BigNumber.from("249087209243637393807293408550361061689511538399682265326027092758904");
     const bidRatio = (fixedPointDiv(ONE, askRatio))
     const depositAmountA = ethers.BigNumber.from("1");
-    const depositAmountB = ethers.BigNumber.from("66917336752889936941066703153277788474150611831121217389925613487639"); 
+    const depositAmountB = ethers.BigNumber.from("66917336752889936941066703153277788474150611831121217389925613487639");
 
     const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
       tokenADecimals,
@@ -460,7 +460,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askConstants = [aOpMax, askRatio];      
+    const askConstants = [aOpMax, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -496,7 +496,7 @@ describe("OrderBook take orders", async function () {
         constants: askConstants,
       },
       data: [],
-    }; 
+    };
 
     const txAskAddOrderAlice = await orderBook
       .connect(alice)
@@ -506,7 +506,7 @@ describe("OrderBook take orders", async function () {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
- 
+
 
     // BID ORDER
 
@@ -589,26 +589,26 @@ describe("OrderBook take orders", async function () {
       bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
-    }; 
+    };
 
 
     const clearOrder = await orderBook.connect(bountyBot).clear(askOrder, bidOrder, clearConfig);
     assert(clearOrder)
-  
+
   });
 
   it("precision check for clear set4", async function () {
     const signers = await ethers.getSigners();
 
     const tokenADecimals = 26
-    const tokenBDecimals = 1; 
+    const tokenBDecimals = 1;
 
     const aOpMax  = ethers.BigNumber.from("129685438594462622193294594929799955253604058343889380565356228649641104695");
     const bOpMax  = ethers.BigNumber.from("31808355997366964249578456795948801761029869974262843889913067983472873067");
-    const askRatio = ethers.BigNumber.from("333972095574532672828591181617962405"); 
+    const askRatio = ethers.BigNumber.from("333972095574532672828591181617962405");
     const bidRatio = (fixedPointDiv(ONE, askRatio))
     const depositAmountA = ethers.BigNumber.from("323052743423174644339519283108387159");
-    const depositAmountB = ethers.BigNumber.from("25471188245690491407809063357893053"); 
+    const depositAmountB = ethers.BigNumber.from("25471188245690491407809063357893053");
 
     const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
       tokenADecimals,
@@ -634,7 +634,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askConstants = [aOpMax, askRatio];      
+    const askConstants = [aOpMax, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -670,7 +670,7 @@ describe("OrderBook take orders", async function () {
         constants: askConstants,
       },
       data: [],
-    }; 
+    };
 
     const txAskAddOrderAlice = await orderBook
       .connect(alice)
@@ -680,7 +680,7 @@ describe("OrderBook take orders", async function () {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
- 
+
 
     // BID ORDER
 
@@ -763,26 +763,26 @@ describe("OrderBook take orders", async function () {
       bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
-    }; 
+    };
 
 
     const clearOrder = await orderBook.connect(bountyBot).clear(askOrder, bidOrder, clearConfig);
     assert(clearOrder)
-  
+
   });
 
   it("precision check for clear set5", async function () {
     const signers = await ethers.getSigners();
 
     const tokenADecimals = 30
-    const tokenBDecimals = 0; 
+    const tokenBDecimals = 0;
 
     const aOpMax  = ethers.BigNumber.from("186318059882168061450623632507706992163669353895");
     const bOpMax  = ethers.BigNumber.from("791137610405993382165500946567631785709293026093923");
-    const askRatio = ethers.BigNumber.from("697910990625929612238030319682222854"); 
+    const askRatio = ethers.BigNumber.from("697910990625929612238030319682222854");
     const bidRatio = (fixedPointDiv(ONE, askRatio))
     const depositAmountA = ethers.BigNumber.from("44079388953244442112453587119084001");
-    const depositAmountB = ethers.BigNumber.from("337867147626607664800830233957704231"); 
+    const depositAmountB = ethers.BigNumber.from("337867147626607664800830233957704231");
 
     const tokenA18 = (await basicDeploy("ReserveTokenDecimals", {}, [
       tokenADecimals,
@@ -808,7 +808,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const askConstants = [aOpMax, askRatio];      
+    const askConstants = [aOpMax, askRatio];
     const vAskOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -844,7 +844,7 @@ describe("OrderBook take orders", async function () {
         constants: askConstants,
       },
       data: [],
-    }; 
+    };
 
     const txAskAddOrderAlice = await orderBook
       .connect(alice)
@@ -854,7 +854,7 @@ describe("OrderBook take orders", async function () {
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
- 
+
 
     // BID ORDER
 
@@ -937,13 +937,13 @@ describe("OrderBook take orders", async function () {
       bOutputIOIndex: 0,
       aBountyVaultId: bountyBotVaultA,
       bBountyVaultId: bountyBotVaultB,
-    }; 
+    };
 
 
     const clearOrder = await orderBook.connect(bountyBot).clear(askOrder, bidOrder, clearConfig);
     assert(clearOrder)
-  
+
   });
 
-  
+
 });
