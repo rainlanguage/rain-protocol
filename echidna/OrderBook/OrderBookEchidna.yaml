@@ -1,4 +1,5 @@
 testMode: "property"
-cryticArgs: ["--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/"]
+cryticArgs: ["--solc-remaps", "@openzeppelin/=node_modules/@openzeppelin/ @chainlink/=node_modules/@chainlink/ hardhat/=node_modules/hardhat/"]
 prefix: "echidna"
 testLimit: 25000
+

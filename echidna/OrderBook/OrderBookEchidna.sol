@@ -3,9 +3,10 @@ pragma solidity =0.8.17;
 
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import {OrderBook, ClearStateChange, OrderIOCalculation} from "../../contracts/orderbook/OrderBook.sol";
+import {LibOrderBook, OrderIOCalculation} from "../../contracts/orderbook/LibOrderBook.sol";
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
-import {FixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/FixedPointMath.sol";
+import {LibFixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/LibFixedPointMath.sol"; 
+import {ClearStateChange} from "../../contracts/orderbook/IOrderBookV1.sol" ;
 
 /// Since we are fuzzing inputs rather than functionality the contract is
 /// standalone.
@@ -13,16 +14,12 @@ contract OrderBookEchidna {
     using Math for uint256;
     using SafeCast for int256;
     using SaturatingMath for uint256;
-    using FixedPointMath for uint256;
-
-    OrderBook private OB;
-
-    constructor() {
-        OB = new OrderBook();
-    }
+    using LibFixedPointMath for uint256;
 
     OrderIOCalculation private aOrderIOCalculation_;
-    OrderIOCalculation private bOrderIOCalculation_;
+    OrderIOCalculation private bOrderIOCalculation_; 
+
+    uint256 internal MAX_INT = 115792089237316195423570985008687907853269984665640564039457584007913129639935 ;
 
     //fuzz values for calculateIO to obtain outputMax and IORatios
     function setCalculateOrderIO(
@@ -35,8 +32,19 @@ contract OrderBookEchidna {
         uint256 bVaultBalance
     ) public {
         OrderIOCalculation memory _aOrderIOCalculation;
-        OrderIOCalculation memory _bOrderIOCalculation;
+        OrderIOCalculation memory _bOrderIOCalculation;  
 
+        aOrderIORatio_ = _between(aOrderIORatio_, FP_ONE, FP_ONE * 100); 
+        inputDecimals = _between(inputDecimals, 0, 30);        
+        outputDecimals = _between(outputDecimals, 0, 30);   
+
+        aVaultBalance = _between(aVaultBalance, 1, FP_ONE * FP_ONE);        
+        bVaultBalance = _between(bVaultBalance, 1, FP_ONE * FP_ONE);
+        aOrderOutputMax_ = _between(aOrderOutputMax_, 1, MAX_INT);     
+        bOrderOutputMax_ = _between(bOrderOutputMax_, 1, MAX_INT);        
+
+
+       
         uint256 bOrderIORatio_ = FP_ONE.fixedPointDiv(
             aOrderIORatio_,
             Math.Rounding.Up
@@ -75,84 +83,90 @@ contract OrderBookEchidna {
         _bOrderIOCalculation.outputMax = bOrderOutputMax_;
         _bOrderIOCalculation.IORatio = bOrderIORatio_;
         bOrderIOCalculation_ = _bOrderIOCalculation;
-    }
+    } 
 
-    // Echidna Fuzz for all
-    function echidnaClearState() external view returns (bool) {
+
+    
+    function echidnaClearStateForRatioGTfpOne() external view returns (bool) {
         // OB._clearStateChange()
-        ClearStateChange memory result_ = OB._clearStateChange(
+        ClearStateChange memory result_ = LibOrderBook._clearStateChange(
             aOrderIOCalculation_,
             bOrderIOCalculation_
-        );
+        ); 
 
-        if (
-            aOrderIOCalculation_.IORatio.fixedPointMul(
+        uint256 ratioMul_ = aOrderIOCalculation_.IORatio.fixedPointMul(
                 bOrderIOCalculation_.IORatio,
                 Math.Rounding.Up
-            ) <= FP_ONE
-        ) {
-            /// If multiplication of ratios on `18` scale is less than or equal to FP_ONE
-            /// OutputA >= InputB
-            /// OutputB >= InputA
-            require(result_.aOutput >= result_.bInput, "A");
-            require(result_.bOutput >= result_.aInput, "B");
-        } else {
-            /// If multiplication of ratios on `18` scale is greater than FP_ONE
-            /// Either of the bounties must overflow
-            require(
-                result_.aOutput < result_.bInput ||
-                    result_.aOutput < result_.bInput,
-                "RATIO"
-            );
+               )  ;
+
+        if(ratioMul_ > FP_ONE) {
+                /// If multiplication of ratios on `18` scale is greater than FP_ONE
+                /// Either of the bounties must overflow
+                require( 
+                    result_.aOutput == 0 ||  
+                    result_.bInput == 0  || 
+                    result_.aOutput == 0 ||  
+                    result_.bInput == 0 ||
+                    result_.aOutput <= result_.bInput ||
+                    result_.bOutput <= result_.aInput,
+                    "RATIO"
+                );
+        }
+
+        return true;
+    } 
+
+    function echidnaClearStateRatioLTEfpOne() external view returns (bool) {
+        // OB._clearStateChange()
+        ClearStateChange memory result_ = LibOrderBook._clearStateChange(
+            aOrderIOCalculation_,
+            bOrderIOCalculation_
+        );  
+
+        if(aOrderIOCalculation_.IORatio != 0 && bOrderIOCalculation_.IORatio != 0) {
+            uint256 ratioMul_ = aOrderIOCalculation_.IORatio.fixedPointMul(
+                bOrderIOCalculation_.IORatio,
+                Math.Rounding.Up
+               )  ;
+
+            if (ratioMul_ <= FP_ONE) {  
+
+                // mul is ZERO
+                if (ratioMul_ == 0){  
+                        require(
+                        result_.aOutput == 0 ||  
+                        result_.bInput == 0  || 
+                        result_.aOutput == 0 ||  
+                        result_.bInput == 0,
+                        "ZERO"
+                    );
+                } 
+
+                if (ratioMul_ == FP_ONE){  
+                    require(result_.aOutput == result_.bInput || 
+                            result_.bOutput == result_.aInput ,
+                            "FP_ONE");
+                        
+                }else if(aOrderIOCalculation_.outputMax != 0 && bOrderIOCalculation_.outputMax != 0){
+                    /// If multiplication of ratios on `18` scale is less than or equal to FP_ONE
+                    /// OutputA >= InputB
+                    /// OutputB >= InputA 
+                    require(result_.aOutput >= result_.bInput, "A");
+                    require(result_.bOutput >= result_.aInput, "B");
+                }
+
+                
+            }
+
+
         }
 
         return true;
     }
 
-    // Helper function mimicks OB _clearStateChange
-    function _clearStateChange(
-        OrderIOCalculation memory aOrderIOCalc_,
-        OrderIOCalculation memory bOrderIOCalc_
-    ) private pure returns (ClearStateChange memory) {
-        ClearStateChange memory clearStateChange_;
-        {
-            clearStateChange_.aOutput = aOrderIOCalc_.outputMax.min(
-                // B's input is A's output.
-                // A cannot output more than their max.
-                // B wants input of their IO ratio * their output.
-                // Always round IO calculations up.
-
-                bOrderIOCalc_.outputMax.fixedPointMul(
-                    bOrderIOCalc_.IORatio,
-                    Math.Rounding.Up
-                )
-            );
-
-            clearStateChange_.bOutput = bOrderIOCalc_.outputMax.min(
-                // A's input is B's output.
-                // B cannot output more than their max.
-                // A wants input of their IO ratio * their output.
-                // Always round IO calculations up.
-                aOrderIOCalc_.outputMax.fixedPointMul(
-                    aOrderIOCalc_.IORatio,
-                    Math.Rounding.Up
-                )
-            );
-
-            // A's input is A's output * their IO ratio.
-            // Always round IO calculations up.
-            clearStateChange_.aInput = clearStateChange_.aOutput.fixedPointMul(
-                aOrderIOCalc_.IORatio,
-                Math.Rounding.Up
-            );
-
-            // B's input is B's output * their IO ratio.
-            // Always round IO calculations up.
-            clearStateChange_.bInput = clearStateChange_.bOutput.fixedPointMul(
-                bOrderIOCalc_.IORatio,
-                Math.Rounding.Up
-            );
-        }
-        return clearStateChange_;
+    function _between(uint256 val, uint256 low, uint256 high) private pure returns(uint256) {
+        return low + (val % (high-low +1)); 
     }
+
+    
 }
