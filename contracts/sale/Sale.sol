@@ -3,7 +3,7 @@ pragma solidity =0.8.17;
 
 import {Cooldown} from "../cooldown/Cooldown.sol";
 
-import "../math/FixedPointMath.sol";
+import "../math/LibFixedPointMath.sol";
 import {AllStandardOps} from "../interpreter/ops/AllStandardOps.sol";
 import {ERC20Config} from "../erc20/ERC20Config.sol";
 import "./ISaleV2.sol";
@@ -161,7 +161,7 @@ uint256 constant CONTEXT_BUY_ROWS = 7;
 // solhint-disable-next-line max-states-count
 contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     using Math for uint256;
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
     using SafeERC20 for IERC20;
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;

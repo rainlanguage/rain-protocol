@@ -7,7 +7,7 @@ import {ERC20Upgradeable as ERC20} from "@openzeppelin/contracts-upgradeable/tok
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../libraries/LibFlow.sol";
-import "../../math/FixedPointMath.sol";
+import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 
@@ -64,7 +64,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
