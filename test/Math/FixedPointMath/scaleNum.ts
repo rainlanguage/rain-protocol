@@ -2,7 +2,6 @@ import { assert } from "chai";
 import { ethers } from "hardhat";
 import { LibFixedPointMathTest } from "../../../typechain/contracts/test/math/LibFixedPointMath/LibFixedPointMathTest";
 import {
-  basicDeploy,
   eighteenZeros,
   sixteenZeros,
   sixZeros,

@@ -9,7 +9,6 @@ import type {
   ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
-import { ClearConfigStruct } from "../../typechain/contracts/orderbook/IOrderBookV1";
 import {
   AddOrderEvent,
   ContextEvent,
@@ -29,7 +28,6 @@ import {
   fixedPointMul,
   randomUint256,
   minBN,
-  fixedPointDiv,
 } from "../../utils";
 import {
   eighteenZeros,

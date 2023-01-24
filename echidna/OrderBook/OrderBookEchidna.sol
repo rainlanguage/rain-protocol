@@ -85,12 +85,11 @@ contract OrderBookEchidna {
     }
 
     //Echidna fuzz for all where IORatio * IORatio > FP_ONE
-    function echidnaClearStateForRatioGTfpOne() external view returns (bool) {  
-
-        if(
-            _checkForMathOverflow(bOrderIOCalculation_,aOrderIOCalculation_) && 
+    function echidnaClearStateForRatioGTfpOne() external view returns (bool) {
+        if (
+            _checkForMathOverflow(bOrderIOCalculation_, aOrderIOCalculation_) &&
             _checkForValidRatio(bOrderIOCalculation_, aOrderIOCalculation_)
-        ){ 
+        ) {
             ClearStateChange memory result_ = LibOrderBook._clearStateChange(
                 aOrderIOCalculation_,
                 bOrderIOCalculation_
@@ -106,11 +105,11 @@ contract OrderBookEchidna {
                 /// Either of the bounties must overflow
                 require(
                     result_.aOutput == 0 ||
-                    result_.bInput == 0 ||
-                    result_.aOutput == 0 ||
-                    result_.bInput == 0 ||
-                    result_.aOutput <= result_.bInput ||
-                    result_.bOutput <= result_.aInput,
+                        result_.bInput == 0 ||
+                        result_.aOutput == 0 ||
+                        result_.bInput == 0 ||
+                        result_.aOutput <= result_.bInput ||
+                        result_.bOutput <= result_.aInput,
                     "RATIO"
                 );
             }
@@ -120,16 +119,14 @@ contract OrderBookEchidna {
     }
 
     //Echidna fuzz for all where IORatio * IORatio <= FP_ONE
-    function echidnaClearStateRatioLTEfpOne() external view returns (bool) {  
-
-        if(
-            _checkForMathOverflow(bOrderIOCalculation_,aOrderIOCalculation_) && 
+    function echidnaClearStateRatioLTEfpOne() external view returns (bool) {
+        if (
+            _checkForMathOverflow(bOrderIOCalculation_, aOrderIOCalculation_) &&
             _checkForValidRatio(bOrderIOCalculation_, aOrderIOCalculation_)
-        ){ 
-
+        ) {
             ClearStateChange memory result_ = LibOrderBook._clearStateChange(
-                    aOrderIOCalculation_,
-                    bOrderIOCalculation_
+                aOrderIOCalculation_,
+                bOrderIOCalculation_
             );
 
             if (
@@ -142,14 +139,13 @@ contract OrderBookEchidna {
                 );
 
                 if (ratioMul_ <= FP_ONE) {
-
                     // If IORatio * IORatio is zero check for no spread
                     if (ratioMul_ == 0) {
                         require(
                             result_.aOutput == 0 ||
-                            result_.bInput == 0 ||
-                            result_.aOutput == 0 ||
-                            result_.bInput == 0,
+                                result_.bInput == 0 ||
+                                result_.aOutput == 0 ||
+                                result_.bInput == 0,
                             "ZERO"
                         );
                     }
@@ -158,7 +154,7 @@ contract OrderBookEchidna {
                         // If IORatio * IORatio is FP_ONE check for an exact match on spread
                         require(
                             result_.aOutput == result_.bInput ||
-                            result_.bOutput == result_.aInput,
+                                result_.bOutput == result_.aInput,
                             "FP_ONE"
                         );
                     } else if (
@@ -173,39 +169,36 @@ contract OrderBookEchidna {
                     }
                 }
             }
-
         }
         return true;
-    } 
+    }
 
     function _checkForMathOverflow(
-        OrderIOCalculation memory bOrder_ ,
-        OrderIOCalculation memory aOrder_ 
-    ) private pure returns(bool){
-        return (
-            mulDivNotOverflow(bOrder_.outputMax ,bOrder_.IORatio, FP_ONE) && 
-            mulDivNotOverflow(aOrder_.outputMax ,aOrder_.IORatio, FP_ONE)  
-        ) ;
-    } 
+        OrderIOCalculation memory bOrder_,
+        OrderIOCalculation memory aOrder_
+    ) private pure returns (bool) {
+        return (mulDivNotOverflow(bOrder_.outputMax, bOrder_.IORatio, FP_ONE) &&
+            mulDivNotOverflow(aOrder_.outputMax, aOrder_.IORatio, FP_ONE));
+    }
 
     // Check for valid ratio
     // If output * IORatio < 1 , IORatio is increased which may eat into bounty
     function _checkForValidRatio(
-        OrderIOCalculation memory bOrder_ ,
-        OrderIOCalculation memory aOrder_ 
-    ) private pure returns(bool){
+        OrderIOCalculation memory bOrder_,
+        OrderIOCalculation memory aOrder_
+    ) private pure returns (bool) {
         uint256 checkValidRatioA_ = bOrder_.outputMax.fixedPointMul(
-                        bOrder_.IORatio,
-                        Math.Rounding.Up
-        ) ;  
+            bOrder_.IORatio,
+            Math.Rounding.Up
+        );
 
         uint256 checkValidRatioB_ = aOrder_.outputMax.fixedPointMul(
-                    aOrder_.IORatio,
-                    Math.Rounding.Up
-        ) ;   
+            aOrder_.IORatio,
+            Math.Rounding.Up
+        );
 
-        return !(checkValidRatioA_ < 1 || checkValidRatioB_ < 1) ; 
-    }  
+        return !(checkValidRatioA_ < 1 || checkValidRatioB_ < 1);
+    }
 
     // Check for overflow in LibFixedPointMath.fixedPointMul
     function mulDivNotOverflow(
