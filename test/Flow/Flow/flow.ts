@@ -1644,7 +1644,7 @@ describe("Flow flow tests", async function () {
     );
   });
 
-  it.only("should error if ERC1155 flow (from) is other than the source contract or msg.sender", async () => {
+  it("should error if ERC1155 flow (from) is other than the source contract or msg.sender", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
