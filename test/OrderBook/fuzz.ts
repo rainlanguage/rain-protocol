@@ -620,7 +620,103 @@ describe("OrderBook take orders", async function () {
       .connect(bountyBot)
       .clear(Order_A, Order_B, clearConfig);
     assert(clearOrder);
-  });
+  }); 
 
+  it("precision check for clear set6", async function () {
+    const signers = await ethers.getSigners();
+
+    const tokenADecimals = 30;
+    const tokenBDecimals = 0;
+
+    const aOpMax = ethers.BigNumber.from(
+      "246487766678802707191321038764076276757293207148"
+    );
+    const bOpMax = ethers.BigNumber.from(
+      "75451180054003223084498607591795744215977377"
+    );
+    const aRatio = ethers.BigNumber.from(
+      "950610197942869080605564992733574069"
+    );
+    const bRatio = fixedPointDiv(ONE, aRatio);
+    const depositAmountA = ethers.BigNumber.from(
+      "57455560544194283819536923068784775"
+    );
+    const depositAmountB = ethers.BigNumber.from(
+      "353943369138734637913010548764147629"
+    );
+
+    const tokenA = (await basicDeploy("ReserveTokenDecimals", {}, [
+      tokenADecimals,
+    ])) as ReserveTokenDecimals;
+    const tokenB = (await basicDeploy("ReserveTokenDecimals", {}, [
+      tokenBDecimals,
+    ])) as ReserveTokenDecimals;
+    await tokenA.initialize();
+    await tokenB.initialize();
+
+    const alice = signers[1];
+    const bob = signers[2];
+    const bountyBot = signers[3];
+
+    const orderBook = (await orderBookFactory.deploy()) as OrderBook;
+
+    const aliceInputVault = ethers.BigNumber.from(randomUint256());
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
+    const bobInputVault = ethers.BigNumber.from(randomUint256());
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
+    const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
+
+    //  ORDER A
+    const Order_A = await placeOrder(
+      orderBook,
+      tokenA,
+      tokenB,
+      tokenADecimals,
+      tokenBDecimals,
+      aliceInputVault,
+      aliceOutputVault,
+      aOpMax,
+      aRatio,
+      alice
+    );
+
+    //  ORDER B
+
+    const Order_B = await placeOrder(
+      orderBook,
+      tokenB,
+      tokenA,
+      tokenBDecimals,
+      tokenADecimals,
+      bobInputVault,
+      bobOutputVault,
+      bOpMax,
+      bRatio,
+      bob
+    );
+
+    // DEPOSITS
+
+    await deposit(orderBook, tokenB, aliceOutputVault, depositAmountB, alice);
+
+    await deposit(orderBook, tokenA, bobOutputVault, depositAmountA, bob);
+
+    // BOUNTY BOT CLEARS THE ORDER
+
+    const clearConfig: ClearConfigStruct = {
+      aInputIOIndex: 0,
+      aOutputIOIndex: 0,
+      bInputIOIndex: 0,
+      bOutputIOIndex: 0,
+      aBountyVaultId: bountyBotVaultA,
+      bBountyVaultId: bountyBotVaultB,
+    };
+
+    const clearOrder = await orderBook
+      .connect(bountyBot)
+      .clear(Order_A, Order_B, clearConfig);
+    assert(clearOrder);
+  });
   
 });
