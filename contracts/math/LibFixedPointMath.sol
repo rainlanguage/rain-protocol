@@ -58,7 +58,7 @@ uint256 constant FP_ONE = 1e18;
 /// because we assume that an active participant, e.g. `msg.sender`, knowns
 /// something we don't and is carefully crafting an attack, so we are most
 /// conservative and suspicious of their inputs and actions.
-library FixedPointMath {
+library LibFixedPointMath {
     using Math for uint256;
     using SafeCast for int256;
     using SaturatingMath for uint256;

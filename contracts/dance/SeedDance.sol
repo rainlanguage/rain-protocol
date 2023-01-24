@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.0;
 
-import "../math/FixedPointMath.sol";
+import "../math/LibFixedPointMath.sol";
 
 /// Represents a minimum and maximum duration for the dance in a structure that
 /// can fit in a single slot. uint32 representation for timestamps is inline
@@ -187,7 +187,7 @@ library LibCommitment {
 /// would be very likely to be hashed into something else that the miner cannot
 /// control or predict.
 contract SeedDance {
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
     using LibCommitment for Commitment;
 
     /// The dance has started.

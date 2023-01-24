@@ -279,8 +279,11 @@ describe("Sale buy", async function () {
 
     // Rounding up the cost by adding 1
     // Internally Cost is calculated using fixedPointMul with Rounding Up
-    // Check FixedPointMath for refrence 
-    const expectedCost0 = expectedPrice0.mul(maxUnits).div(ONE).add(ethers.BigNumber.from(1))
+    // Check FixedPointMath for refrence
+    const expectedCost0 = expectedPrice0
+      .mul(maxUnits)
+      .div(ONE)
+      .add(ethers.BigNumber.from(1));
 
     // give signer1 reserve to cover cost + fee
     await reserve.transfer(signer1.address, expectedCost0.add(fee));
