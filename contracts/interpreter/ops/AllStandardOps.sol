@@ -70,7 +70,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 60;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -196,6 +196,7 @@ library AllStandardOps {
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
+                    OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
                     OpContext.integrity,
                     OpContextRow.integrity,
@@ -283,6 +284,7 @@ library AllStandardOps {
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
+                    OpChainlinkOraclePrice.run,
                     OpCall.run,
                     OpContext.run,
                     OpContextRow.run,

@@ -63,10 +63,9 @@ library OpExtern {
                 )
             }
 
-            (
-                interpreterExtern_,
-                externDispatch_
-            ) = LibExtern.decode(encodedDispatch_);
+            (interpreterExtern_, externDispatch_) = LibExtern.decode(
+                encodedDispatch_
+            );
             (head_, tail_) = stackTop_.list(inputs_);
             stackTop_ = stackTop_.down(inputs_).down().push(head_);
         }

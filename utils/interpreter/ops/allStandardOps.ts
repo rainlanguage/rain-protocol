@@ -1,4 +1,5 @@
 export enum AllStandardOps {
+  CHAINLINK_PRICE,
   CALL,
   CONTEXT,
   CONTEXT_ROW,
