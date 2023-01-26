@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "../math/FixedPointMath.sol";
+import "../math/LibFixedPointMath.sol";
 
 /// Thrown if a price is zero or negative as this is probably not anticipated or
 /// useful for most users of a price feed. Of course there are use cases where
@@ -26,7 +26,7 @@ error StalePrice(uint256 updatedAt, uint256 staleAfter);
 
 library LibChainlink {
     using SafeCast for int256;
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
 
     function price(
         address feed_,

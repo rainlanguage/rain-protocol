@@ -7,7 +7,7 @@ import {ERC721Upgradeable as ERC721} from "@openzeppelin/contracts-upgradeable/t
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "../libraries/LibFlow.sol";
-import "../../math/FixedPointMath.sol";
+import "../../math/LibFixedPointMath.sol";
 import "../FlowCommon.sol";
 import "../../sentinel/LibSentinel.sol";
 import {ERC1155ReceiverUpgradeable as ERC1155Receiver} from "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
@@ -57,7 +57,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibInterpreterState for InterpreterState;
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).

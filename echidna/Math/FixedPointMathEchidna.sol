@@ -4,8 +4,8 @@ pragma solidity =0.8.17;
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import {SafeCastUpgradeable as SafeCast} from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
-import {FixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/FixedPointMath.sol";
-import {FixedPointMathTest} from "../../contracts/test/math/FixedPointMath/FixedPointMathTest.sol";
+import {LibFixedPointMath, FP_DECIMALS, FP_ONE} from "../../contracts/math/LibFixedPointMath.sol";
+import {LibFixedPointMathTest} from "../../contracts/test/math/LibFixedPointMath/LibFixedPointMathTest.sol";
 import {SaturatingMath} from "../../contracts/math/SaturatingMath.sol";
 
 /// @title FixedPointMathEchidna
@@ -20,12 +20,12 @@ contract FixedPointMathEchidna {
     bytes1 private errorCodeUFOF = 0x11; // Error code bytes on the data reason that represent Overflow or Underflow
     bytes1 private errorCodeByZero = 0x12; // Error code bytes on the data reason that represent division or modulo by zero
 
-    FixedPointMathTest private _fixedPointMathTest;
+    LibFixedPointMathTest private _fixedPointMathTest;
 
     event AssertionFailed();
 
     constructor() {
-        _fixedPointMathTest = new FixedPointMathTest();
+        _fixedPointMathTest = new LibFixedPointMathTest();
     }
 
     // Fuzz test to scale a fixed point decimals of `DECIMALS` that represents a ratio

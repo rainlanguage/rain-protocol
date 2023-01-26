@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.15;
 
-import "../../../../math/FixedPointMath.sol";
+import "../../../../math/LibFixedPointMath.sol";
 import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
@@ -9,7 +9,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 /// @title OpFixedPointScale18Div
 /// @notice Opcode for performing scale 18 fixed point division.
 library OpFixedPointScale18Div {
-    using FixedPointMath for uint256;
+    using LibFixedPointMath for uint256;
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 

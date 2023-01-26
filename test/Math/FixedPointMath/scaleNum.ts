@@ -1,8 +1,7 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import { FixedPointMathTest } from "../../../typechain/contracts/test/math/FixedPointMath/FixedPointMathTest";
+import { LibFixedPointMathTest } from "../../../typechain/contracts/test/math/LibFixedPointMath/LibFixedPointMathTest";
 import {
-  basicDeploy,
   eighteenZeros,
   sixteenZeros,
   sixZeros,
@@ -10,8 +9,8 @@ import {
 } from "../../../utils";
 import { fixedPointMathDeploy } from "../../../utils/deploy/math/fixedPointMath/deploy";
 
-describe("FixedPointMathTest scaling a number", async function () {
-  let fixedPointMathTest: FixedPointMathTest;
+describe("LibFixedPointMathTest scaling a number", async function () {
+  let fixedPointMathTest: LibFixedPointMathTest;
 
   const ROUND_DOWN = 0;
   const ROUND_UP = 1;
