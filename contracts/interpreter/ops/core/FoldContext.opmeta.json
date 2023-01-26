@@ -4,26 +4,22 @@
     "operand": [
         {
             "name": "Inputs",
-            "bits": [12, 15],
-            "validRange": [[0, 15]]
+            "bits": [12, 15]
         },
         {
             "name": "Width",
             "desc": "number of columns to loop over",
-            "bits": [8, 11],
-            "validRange": [[0, 15]]
+            "bits": [8, 11]
         },
         {
             "name": "Fold Column",
             "desc": "column to base the loop on",
-            "bits": [4, 7],
-            "validRange": [[0, 15]]
+            "bits": [4, 7]
         },
         {
             "name": "Source Index",
             "desc": "index of the source to run",
-            "bits": [0, 3],
-            "validRange": [[0, 15]]
+            "bits": [0, 3]
         }
     ],
     "inputs": {

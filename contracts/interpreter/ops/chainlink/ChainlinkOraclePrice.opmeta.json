@@ -1,6 +1,6 @@
 {
-    "name": "CHAINLIN_PRICE",
-    "desc": "Takes 2 items from constants array and calls the Chainlink Oracle to get price and stack it",
+    "name": "CHAINLINK_PRICE",
+    "desc": "Takes Feed and StaleAfter values from stack and gets the Chainlink Oracle Feed's price and stack the result based on StaleAfter",
     "operand": 0,
     "inputs": {
         "parameters": [
@@ -10,7 +10,7 @@
             },
             {
                 "name": "Stale After",
-                "desc": "amount of time that price will be valid"
+                "desc": "duration of time that price will be valid"
             }
         ]
     },

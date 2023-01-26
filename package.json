@@ -13,6 +13,9 @@
     "url": "https://github.com/rainprotocol/rain-protocol/issues"
   },
   "homepage": "http://rainprotocol.github.io/rain-protocol/",
+  "bin": {
+    "gen": "./scripts/genRainterpreterOpmeta.ts"
+  },
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
@@ -50,8 +53,7 @@
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
     "@openzeppelin/contracts-upgradeable": "=4.8.0",
-    "@types/js-yaml": "^4.0.5",
-    "js-yaml": "^4.1.0"
+    "ajv": "^8.12.0"
   },
   "overrides": {
     "solhint": {

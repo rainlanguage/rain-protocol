@@ -4,20 +4,17 @@
     "operand": [
         {
             "name": "Inputs",
-            "bits": [0, 3],
-            "validRange": [[0, 15]]
+            "bits": [0, 3]
         },
         {
             "name": "Output Size",
             "desc": "number of outputs",
-            "bits": [4, 7],
-            "validRange": [[0, 15]]
+            "bits": [4, 7]
         },
         {
             "name": "Source Index",
             "desc": "index of the source to run",
-            "bits": [8, 11],
-            "validRange": [[0, 15]]
+            "bits": [8, 11]
         }
     ],
     "inputs": {

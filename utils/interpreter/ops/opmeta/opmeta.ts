@@ -1,67 +1,107 @@
+import Ajv from "ajv";
 import fs from "fs";
 import { deflateSync } from "zlib";
+import OpmetaSchema from "../../../../opmeta_schema.json";
 
-/**
- * @public
- * Compress and convert opmetas to bytes
- * 
- * @param opmeta - opmeta of type string or object
- * @param indent - indentation of opmeta to make it human readable 
- * @returns bytes
- */
-export const getOpmetaBytes = (
-  opmeta: string | object,
-  indent?: number
-): Uint8Array => {
-  if (!indent) indent = 4
-  if (typeof opmeta === "string") opmeta = JSON.parse(opmeta)
-  return deflateSync(
-      JSON.stringify(opmeta, null, indent)
-  )
-}
+const readFile = (path: string) => {
+  try {
+    return fs.readFileSync(path).toString();
+  } catch (error) {
+    return "";
+  }
+};
 
 /**
  * @public
  * Get the JSON content of provided opmeta object
  * 
- * @param opmeta - opmeta of type string or object
- * @param indent - indentation of opmeta to make it human readable 
- * @returns Rainterpreter opmeta 
+ * @param opmeta - array of opmeta directories or objects
+ * @param schema - (optional) schema directory ot object to validate opmetas 
+ * against, uses default opmeta_schema.json in root folder if not provided
+ * @returns Rainterpreter opmeta as string
  */
 export const getOpmetaJsonData = (
-  opmeta: object,
-  indent?: number
+  opmeta: string[] | object[],
+  schema?: string | object
 ): string => {
-  if (!indent) indent = 4
-  return JSON.stringify(opmeta, null, indent)
+  let _schema: object
+  if (schema) {
+    if (typeof schema === "string") {
+      const _fetched = readFile(schema)
+      if (_fetched.length) _schema = JSON.parse(_fetched)
+      else throw new Error("invalid schema")
+    }
+    else _schema = schema
+  }
+  else _schema = OpmetaSchema
+  const ajv = new Ajv()
+  const validate = ajv.compile(_schema)
+  const _opmeta = []
+  if (opmeta.length) {
+    if (typeof opmeta[0] === "string") {
+      for (let i = 0; i < opmeta.length; i++) {
+        const _item = readFile(opmeta[i] as string)
+        if (_item.length) {
+          opmeta[i] = JSON.parse(_item)
+        }
+        else throw new Error(`invalid directory or file at index ${i}`)
+      }
+    }
+    for (let i = 0; i < opmeta.length; i++) {
+      if (validate(opmeta[i])) {
+        _opmeta.push(opmeta[i])
+      }
+      else throw new Error(`invalid opmeta at index ${i}`)
+    }
+  }
+  return JSON.stringify(_opmeta, null, 4)
+}
+
+/**
+ * @public
+ * Compress and convert opmetas to bytes
+ * 
+ * @param opmeta - array of opmeta directories or objects
+ * @param schema - (optional) schema directory ot object to validate opmetas 
+ * against, uses default opmeta_schema.json in root folder if not provided
+ * @returns bytes
+ */
+export const getOpmetaBytes = (
+  opmeta: string[] | object[],
+  schema?: string | object
+): Uint8Array => {
+  const data = getOpmetaJsonData(opmeta, schema)
+  return deflateSync(data)
 }
 
 /**
  * @public
  * Generate the JSON file of an opmeta object
  * 
- * @param opmeta - opmeta of type string or object
+ * @param opmeta - array of opmeta directories or objects
+ * @param schema - (optional) schema directory ot object to validate opmetas 
+ * against, uses default opmeta_schema.json in root folder if not provided
  * @param path - The path to write the file on, default will be the current path
  * @param fileName - The name of the file, default is "RainterpreterOpmeta"
- * @param indent - indentation of opmeta to make it human readable 
  * @returns Rainterpreter opmeta json 
  */
 export const getOpmetaJsonFile = (
-  opmeta: object,
+  opmeta: string[] | object[],
+  schema?: string | object,
   path?: string,
-  fileName?: string,
-  indent?: number
+  fileName?: string
 ) => {
   if (!path) path = __dirname
   if (!path.endsWith("/")) path = path + "/"
   if (!fileName) fileName = "Opmeta"
-  const OpMeta = getOpmetaJsonData(opmeta, indent)
+  const _opmeta = getOpmetaJsonData(opmeta, schema)
   try {
     fs.writeFileSync(
       path + fileName + ".json",
-      OpMeta
+      _opmeta
     );
   } catch (error) {
     console.log(error);
   }
 }
+console.log(OpmetaSchema)
