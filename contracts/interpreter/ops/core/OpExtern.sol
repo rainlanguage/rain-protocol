@@ -46,34 +46,46 @@ library OpExtern {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        uint256 inputs_ = Operand.unwrap(operand_) & MASK_5BIT;
-        uint256 outputs_ = (Operand.unwrap(operand_) >> 5) & MASK_5BIT;
-        uint256 offset_ = (Operand.unwrap(operand_) >> 10);
+        IInterpreterExternV1 interpreterExtern_;
+        ExternDispatch externDispatch_;
+        uint256 head_;
+        uint256[] memory tail_;
+        {
+            uint256 inputs_ = Operand.unwrap(operand_) & MASK_5BIT;
+            uint256 offset_ = (Operand.unwrap(operand_) >> 10);
 
-        // Mirrors constant opcode.
-        EncodedExternDispatch encodedDispatch_;
-        assembly ("memory-safe") {
-            encodedDispatch_ := add(
-                mload(add(interpreterState_, 0x20)),
-                mul(0x20, offset_)
-            )
+            // Mirrors constant opcode.
+            EncodedExternDispatch encodedDispatch_;
+            assembly ("memory-safe") {
+                encodedDispatch_ := add(
+                    mload(add(interpreterState_, 0x20)),
+                    mul(0x20, offset_)
+                )
+            }
+
+            (
+                interpreterExtern_,
+                externDispatch_
+            ) = LibExtern.decode(encodedDispatch_);
+            (head_, tail_) = stackTop_.list(inputs_);
+            stackTop_ = stackTop_.down(inputs_).down().push(head_);
         }
 
-        (
-            IInterpreterExternV1 interpreterExtern_,
-            ExternDispatch externDispatch_
-        ) = LibExtern.decode(encodedDispatch_);
-        (uint256 head_, uint256[] memory tail_) = stackTop_.list(inputs_);
+        {
+            uint256 outputs_ = (Operand.unwrap(operand_) >> 5) & MASK_5BIT;
 
-        uint256[] memory results_ = interpreterExtern_.extern(
-            externDispatch_,
-            tail_
-        );
+            uint256[] memory results_ = interpreterExtern_.extern(
+                externDispatch_,
+                tail_
+            );
 
-        if (results_.length != outputs_) {
-            revert BadExternResultsLength(outputs_, results_.length);
+            if (results_.length != outputs_) {
+                revert BadExternResultsLength(outputs_, results_.length);
+            }
+
+            stackTop_ = stackTop_.push(results_);
         }
 
-        return stackTop_.down(inputs_).down().push(head_).push(results_);
+        return stackTop_;
     }
 }

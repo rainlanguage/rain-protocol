@@ -1,10 +1,10 @@
 export enum AllStandardOps {
-  CHAINLINK_PRICE,
   CALL,
   CONTEXT,
   CONTEXT_ROW,
   DEBUG,
   DO_WHILE,
+  EXTERN,
   FOLD_CONTEXT,
   GET,
   LOOP_N,

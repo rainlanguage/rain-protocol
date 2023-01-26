@@ -11,6 +11,7 @@ import "./core/OpContext.sol";
 import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
+import "./core/OpExtern.sol";
 import "./core/OpFoldContext.sol";
 import "./core/OpGet.sol";
 import "./core/OpLoopN.sol";
@@ -195,12 +196,12 @@ library AllStandardOps {
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asIntegrityFunctionPointer(),
-                    OpChainlinkOraclePrice.integrity,
                     OpCall.integrity,
                     OpContext.integrity,
                     OpContextRow.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
+                    OpExtern.integrity,
                     OpFoldContext.integrity,
                     OpGet.integrity,
                     OpLoopN.integrity,
@@ -282,12 +283,12 @@ library AllStandardOps {
                 returns (StackPointer)[ALL_STANDARD_OPS_LENGTH + 1]
                 memory pointersFixed_ = [
                     ALL_STANDARD_OPS_LENGTH.asOpFunctionPointer(),
-                    OpChainlinkOraclePrice.run,
                     OpCall.run,
                     OpContext.run,
                     OpContextRow.run,
                     OpDebug.run,
                     OpDoWhile.run,
+                    OpExtern.intern,
                     OpFoldContext.run,
                     OpGet.run,
                     OpLoopN.run,
