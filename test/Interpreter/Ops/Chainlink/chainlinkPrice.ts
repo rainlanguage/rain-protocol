@@ -1,4 +1,4 @@
-import type { AggregatorV3Interface } from "../../../../typechain";
+import type { AggregatorV3Interface, RainterpreterExtern } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -14,14 +14,17 @@ import { FakeContract, smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
 import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainterpreterExtern } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 
 const Opcode = AllStandardOps;
 
 describe("CHAINLINK_PRICE Opcode tests", async function () {
-  let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
+  let rainInterpreterExtern: RainterpreterExtern;
+  let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>; 
 
   beforeEach(async () => {
-    fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+    fakeChainlinkOracle = await smock.fake("AggregatorV3Interface"); 
+    rainInterpreterExtern = await rainterpreterExtern()
   });
 
   it("should revert if price is stale", async () => {
@@ -187,5 +190,29 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const price_ = await consumerLogic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));
+  });  
+
+  it.only("extern test", async () => {
+    const chainlinkPriceData = {
+      roundId: 1,
+      answer: 123 + eighteenZeros,
+      startedAt: 2,
+      updatedAt: 3,
+      answeredInRound: 4,
+    };
+
+    fakeChainlinkOracle.latestRoundData.returns(chainlinkPriceData);
+    fakeChainlinkOracle.decimals.returns(18);
+
+    const feed = fakeChainlinkOracle.address;
+    const staleAfter = (await getBlockTimestamp()) + 10000; 
+
+    const inputs = [feed,staleAfter] 
+
+    let priceData = await rainInterpreterExtern.extern(0,inputs) 
+
+    assert(priceData)
+    
+    
   });
 });

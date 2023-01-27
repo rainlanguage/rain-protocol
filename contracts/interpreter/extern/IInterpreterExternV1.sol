@@ -21,5 +21,5 @@ interface IInterpreterExternV1 {
     function extern(
         ExternDispatch dispatch_,
         uint256[] calldata inputs_
-    ) external view returns (uint256[] calldata outputs);
+    ) external view returns (uint256[] calldata outputs_);
 }
