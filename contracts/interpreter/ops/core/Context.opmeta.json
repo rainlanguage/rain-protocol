@@ -1,0 +1,16 @@
+{
+    "name": "CONTEXT",
+    "desc": "Inserts an context cell into the stack by reading column and row from operand",
+    "operand": [
+        {
+            "name": "Column",
+            "bits": [0, 7]
+        },
+        {
+            "name": "Row",
+            "bits": [8, 15]
+        }
+    ],
+    "inputs": 0,
+    "outputs": 1
+}
