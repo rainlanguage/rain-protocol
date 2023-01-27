@@ -1,4 +1,5 @@
 import { assert } from "chai";
+import { BigNumber } from "ethers";
 import { concat } from "ethers/lib/utils";
 import type { LibIntegrityCheckTest } from "../../../../typechain";
 import { INITIAL_STACK_BOTTOM } from "../../../../utils/constants/interpreter";
@@ -31,7 +32,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 0;
 
-    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
       {
         sources,
         constants: [],
@@ -57,7 +58,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
-    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
       {
         sources,
         constants: [],
@@ -96,7 +97,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
-    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
       {
         sources,
         constants: [1, 2],
@@ -136,7 +137,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 1;
 
     const _stackTop_ =
-      await libIntegrityCheckState.callStatic.ensureIntegrityTest(
+      await libIntegrityCheckState.callStatic["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
         {
           sources,
           constants: [1, 2, 3],
@@ -146,7 +147,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
         minimumFinalStackIndex
       );
 
-    const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
+    const tx_ = await libIntegrityCheckState["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
       {
         sources,
         constants: [1, 2, 3],
@@ -173,7 +174,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 1;
 
-    const ensureIntegrity_ = libIntegrityCheckState.ensureIntegrityTest(
+    const ensureIntegrity_ = libIntegrityCheckState["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
       {
         sources,
         constants: [],
@@ -201,7 +202,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const minimumFinalStackIndex = 0;
 
     const stackTop_ =
-      await libIntegrityCheckState.callStatic.ensureIntegrityTest(
+      await libIntegrityCheckState.callStatic["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
         {
           sources,
           constants: [],
@@ -211,7 +212,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
         minimumFinalStackIndex
       );
 
-    const tx_ = await libIntegrityCheckState.ensureIntegrityTest(
+    const tx_ = await libIntegrityCheckState["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256)"](
       {
         sources,
         constants: [],
@@ -230,5 +231,29 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     );
 
     assert(stackTop_.eq(stackTop), "stackTop should remain unchanged");
+  });
+  
+  it("should ensure integrity of very basic IntegrityCheckState", async function () {
+    const source0 = Uint8Array.from([]);
+    const sources = [source0];
+
+    const sourceIndex = 0;
+    const stackTop = INITIAL_STACK_BOTTOM;
+    const minimumFinalStackIndex = 0;
+
+    assertError(
+      async () => await libIntegrityCheckState.callStatic["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256,uint256)"](
+        {
+          sources,
+          constants: [],
+        },
+        sourceIndex,
+        stackTop,
+        minimumFinalStackIndex,
+        INITIAL_STACK_BOTTOM.sub(10)
+      ),
+      "MinStackBottom()",
+      "Invalid StackBottom"
+    );
   });
 });
