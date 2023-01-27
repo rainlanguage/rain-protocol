@@ -1,21 +1,31 @@
 {
-    "name": "SCALE18",
-    "desc": "Rescale some fixed point number to 18 OOMs in situ.",
-    "operand": [
-        {
-            "name": "Decimals",
-            "desc": "decimals of the value to scale to 18",
-            "bits": [0, 7],
-            "validRange": [[1, 255]]
-        }
-    ],
-    "inputs": {
-        "parameters": [
-            {
-                "name": "Value"
-            }
-        ]
+  "name": "fp-scale18",
+  "desc": "Rescale a fixed point number of N decimals to 18 decimals.",
+  "operand": [
+    {
+      "name": "Inputs",
+      "bits": [0, 2],
+      "validRange": [[1, 2]]
     },
-    "outputs": 1,
-    "aliases": ["SCALE_18"]
+    {
+      "name": "Rounding",
+      "desc": "Direction to round truncation errors when scaling down. 0 = Down, 1 = Up.",
+      "bits": [2, 3],
+      "validRange": [[0, 1]]
+    },
+    {
+      "name": "Current decimals",
+      "desc": "Current decimals of the value being rescaled. Only used if inputs = 1.",
+      "bits": [3, 15],
+      "validRange": [[0, 77]]
+    }
+  ],
+  "inputs": {
+    "parameters": [
+      {
+        "name": "Value"
+      }
+    ]
+  },
+  "outputs": 1
 }

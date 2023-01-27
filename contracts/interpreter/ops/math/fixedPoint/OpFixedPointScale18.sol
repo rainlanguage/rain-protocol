@@ -6,6 +6,10 @@ import "../../../run/LibStackPointer.sol";
 import "../../../run/LibInterpreterState.sol";
 import "../../../deploy/LibIntegrityCheck.sol";
 
+/// Thrown when the number of inputs aren't supported.
+/// @param inputs The number of inputs that were provided.
+error UnsupportedInputsFixedPointScale18(uint256 inputs);
+
 /// @title OpFixedPointScale18
 /// @notice Opcode for scaling a number to 18 fixed point.
 library OpFixedPointScale18 {
@@ -13,8 +17,27 @@ library OpFixedPointScale18 {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function f(Operand operand_, uint256 a_) internal pure returns (uint256) {
-        return a_.scale18(Operand.unwrap(operand_), Math.Rounding.Down);
+    function fStaticScale(
+        Operand operand_,
+        uint256 a_
+    ) internal pure returns (uint256) {
+        return
+            a_.scale18(
+                Operand.unwrap(operand_) >> 3,
+                Math.Rounding((Operand.unwrap(operand_) >> 2) & MASK_1BIT)
+            );
+    }
+
+    function fDynamicScale(
+        Operand operand_,
+        uint256 scale_,
+        uint256 a_
+    ) internal pure returns (uint256) {
+        return
+            a_.scale18(
+                scale_,
+                Math.Rounding((Operand.unwrap(operand_) >> 2) & MASK_1BIT)
+            );
     }
 
     function integrity(
@@ -22,7 +45,14 @@ library OpFixedPointScale18 {
         Operand,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
-        return integrityCheckState_.applyFn(stackTop_, f);
+        uint256 inputs_ = Operand.unwrap(operand_) & MASK_2BIT;
+        if (inputs_ == 1) {
+            return integrityCheckState_.applyFn(stackTop_, fStaticScale);
+        } else if (inputs_ == 2) {
+            return integrityCheckState_.applyFn(stackTop_, fDynamicScale);
+        } else {
+            revert UnsupportedInputsFixedPointScale18(inputs_);
+        }
     }
 
     function run(
@@ -30,6 +60,11 @@ library OpFixedPointScale18 {
         Operand operand_,
         StackPointer stackTop_
     ) internal view returns (StackPointer) {
-        return stackTop_.applyFn(f, operand_);
+        uint256 inputs_ = Operand.unwrap(operand_) & MASK_2BIT;
+        if (inputs_ == 1) {
+            return stackTop_.applyFn(fStaticScale, operand_);
+        } else {
+            return stackTop_.applyFn(fDynamicScale, operand_);
+        }
     }
 }

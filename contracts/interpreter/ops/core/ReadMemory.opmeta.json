@@ -1,19 +1,19 @@
 {
-    "name": "READ_MEMORY",
-    "desc": "Takes an item from constants array or from stack items and insert it into the stack",
-    "operand": [
-        {
-            "name": "Type",
-            "desc": "type of the read, from constants or stack",
-            "bits": [0, 0]
-        },
-        {
-            "name": "Index",
-            "desc": "index of the item to read",
-            "bits": [1, 15]
-        }
-    ],
-    "inputs": 0,
-    "outputs": 1,
-    "aliases": ["READ"]
+  "name": "READ_MEMORY",
+  "desc": "Takes an item from constants array or from stack items and insert it into the stack",
+  "operand": [
+    {
+      "name": "Type",
+      "desc": "type of the read, from constants or stack",
+      "bits": [0, 0]
+    },
+    {
+      "name": "Index",
+      "desc": "index of the item to read",
+      "bits": [1, 15]
+    }
+  ],
+  "inputs": 0,
+  "outputs": 1,
+  "aliases": ["READ"]
 }

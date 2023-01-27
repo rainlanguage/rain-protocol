@@ -1,17 +1,17 @@
 {
-    "name": "LESS_THAN",
-    "desc": "Takes last 2 values from stack and puts true/1 into the stack if the first value is less than the second value and false/0 if not.",
-    "operand": 0,
-    "outputs": 1,
-    "inputs": {
-        "parameters": [
-            {
-                "name": "1st Value"
-            },
-            {
-                "name": "2nd Value"
-            }
-        ]
-    },
-    "aliases": ["LT", "LESSTHAN", "LITTLETHAN", "LITTLE_THAN", "<"]
+  "name": "LESS_THAN",
+  "desc": "Takes last 2 values from stack and puts true/1 into the stack if the first value is less than the second value and false/0 if not.",
+  "operand": 0,
+  "outputs": 1,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "1st Value"
+      },
+      {
+        "name": "2nd Value"
+      }
+    ]
+  },
+  "aliases": ["LT", "LESSTHAN", "LITTLETHAN", "LITTLE_THAN", "<"]
 }
