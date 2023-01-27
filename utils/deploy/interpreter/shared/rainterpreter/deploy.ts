@@ -9,6 +9,7 @@ export const rainterpreterDeploy = async () => {
   return (await basicDeploy("Rainterpreter", {}, [
     {
       store: store.address,
+      // @todo real opMeta
       opMeta: [],
     },
   ])) as Rainterpreter;
