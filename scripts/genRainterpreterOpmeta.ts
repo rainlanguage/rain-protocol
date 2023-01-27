@@ -54,6 +54,7 @@ const main = async() => {
     if (args.length === 1) {
         dir = path.resolve(root, args[0])
     }
+    else throw new Error("invalid number of arguments")
     if (!dir.endsWith(".json")) dir = dir + "/RainterpreterOpmeta.json"
 
     writeFile(dir, JSON.stringify(fileData, null, 4))
