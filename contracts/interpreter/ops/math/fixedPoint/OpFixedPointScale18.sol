@@ -42,7 +42,7 @@ library OpFixedPointScale18 {
 
     function integrity(
         IntegrityCheckState memory integrityCheckState_,
-        Operand,
+        Operand operand_,
         StackPointer stackTop_
     ) internal pure returns (StackPointer) {
         uint256 inputs_ = Operand.unwrap(operand_) & MASK_2BIT;
