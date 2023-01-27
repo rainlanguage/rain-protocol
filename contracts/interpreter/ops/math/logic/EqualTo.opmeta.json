@@ -1,0 +1,17 @@
+{
+    "name": "EQUAL_TO",
+    "desc": "Comapres the last 2 items of the stack together and inserts true/1 into stack if they are euqal, else inserts false/0",
+    "operand": 0,
+    "inputs": {
+        "parameters": [
+            {
+                "name": "1st Value"
+            },
+            {
+                "name": "2nd Value"
+            }
+        ]
+    },
+    "outputs": 1,
+    "aliases": ["EQ", "EQUALTO", "=="]
+}

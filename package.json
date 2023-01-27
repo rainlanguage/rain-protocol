@@ -13,11 +13,17 @@
     "url": "https://github.com/rainprotocol/rain-protocol/issues"
   },
   "homepage": "http://rainprotocol.github.io/rain-protocol/",
+  "bin": {
+    "gen-opmeta": "scripts/genOpmeta.ts",
+    "gen-rainterpreter-opmeta": "scripts/genRainterpreterOpmeta.ts"
+  },
   "scripts": {
     "build": "hardhat compile",
     "test": "hardhat test",
     "lint": "eslint . --ext .ts",
-    "lint-and-fix": "eslint . --ext .ts --fix"
+    "lint-and-fix": "eslint . --ext .ts --fix",
+    "gen-opmeta": "ts-node ./scripts/genOpmeta.ts",
+    "gen-rainterpreter-opmeta": "ts-node ./scripts/genRainterpreterOpmeta.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "=2.3.4",
@@ -41,14 +47,15 @@
     "solc": "=0.8.17",
     "solhint": "=3.3.7",
     "ts-generator": "=0.1.1",
-    "ts-node": "=10.9.1",
     "tslib": "=2.4.1",
     "typechain": "=8.1.1",
     "web3-utils": "=1.8.1"
   },
   "dependencies": {
     "@chainlink/contracts": "=0.5.1",
-    "@openzeppelin/contracts-upgradeable": "=4.8.0"
+    "@openzeppelin/contracts-upgradeable": "=4.8.0",
+    "ajv": "^8.12.0",
+    "ts-node": "^10.9.1"
   },
   "overrides": {
     "solhint": {
