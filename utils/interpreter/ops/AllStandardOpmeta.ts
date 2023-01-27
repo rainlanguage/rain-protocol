@@ -59,6 +59,8 @@ import selectLteMeta from "../../../contracts/interpreter/ops/tier/SelectLte.opm
 import updateTimesForTierRangeMeta from "../../../contracts/interpreter/ops/tier/UpdateTimesForTierRange.opmeta.json";
 import { deflateSync } from "zlib";
 import fs from "fs";
+import { resolve } from "path";
+
 
 /**
  * @public
@@ -129,49 +131,41 @@ export const rainterpreterOpmeta = [
 /**
  * @public
  * Compress and convert Rainterpreter opmetas to bytes
- * 
- * @returns bytes
+ * @returns hex string
  */
-export const getRainterpreterOpmetaBytes = (): Uint8Array => {
-  return deflateSync(
-      JSON.stringify(rainterpreterOpmeta, null, 4)
-  )
-}
-
-/**
- * @public
- * Get the JSON content of Rainterpreter opmeta 
- * ready to be written in a .json file
- * 
- * @returns Rainterpreter opmeta 
- */
-export const getRainterpreterOpmetaJsonData = (): string => {
-  return JSON.stringify(rainterpreterOpmeta, null, 4)
+export const getRainterpreterOpmetaBytes = (): string => {
+  const opmetaBytes = Uint8Array.from(deflateSync(
+    JSON.stringify(rainterpreterOpmeta, null, 4)
+  ))
+  let opmetaHexString = "0x"
+  for (let i = 0; i < opmetaBytes.length; i++) {
+      opmetaHexString = 
+          opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0")
+  }
+  return opmetaHexString
 }
 
 /**
  * @public
  * Generate the JSON file of Rainterpreter opmeta 
  * 
- * @param path - The path to write the file on, default will be the current path
+ * @param path - The path to write the file on, default is the current path
  * @param fileName - The name of the file, default is "RainterpreterOpmeta"
  * @returns Rainterpreter opmeta json 
  */
-export const getRainterpreterOpmetaJsonFile = (
+export const getRainterpreterOpmetaJson = (
   path?: string,
   fileName?: string
 ) => {
   if (!path) path = __dirname
-  if (!path.endsWith("/")) path = path + "/"
+  path = resolve(path)
   if (!fileName) fileName = "RainterpreterOpmeta"
   try {
     fs.writeFileSync(
-      path + fileName + ".json",
+      path + "/" + fileName + ".json",
       JSON.stringify(rainterpreterOpmeta, null, 4)
     );
   } catch (error) {
     console.log(error);
   }
 }
-
-
