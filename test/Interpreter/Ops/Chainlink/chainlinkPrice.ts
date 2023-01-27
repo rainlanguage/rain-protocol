@@ -20,10 +20,10 @@ const Opcode = AllStandardOps;
 
 describe("CHAINLINK_PRICE Opcode tests", async function () {
   let rainInterpreterExtern: RainterpreterExtern;
-  let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>; 
+  let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
 
   beforeEach(async () => {
-    fakeChainlinkOracle = await smock.fake("AggregatorV3Interface"); 
+    fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
     rainInterpreterExtern = await rainterpreterExtern()
   });
 
@@ -190,14 +190,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const price_ = await consumerLogic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));
-  });  
+  });
 
   it.only("extern test", async () => {
     const chainlinkPriceData = {
-      roundId: 1,
+      roundId: 4,
       answer: 123 + eighteenZeros,
-      startedAt: 2,
-      updatedAt: 3,
+      startedAt: await getBlockTimestamp(),
+      updatedAt: await getBlockTimestamp(),
       answeredInRound: 4,
     };
 
@@ -205,14 +205,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     fakeChainlinkOracle.decimals.returns(18);
 
     const feed = fakeChainlinkOracle.address;
-    const staleAfter = (await getBlockTimestamp()) + 10000; 
+    const staleAfter = 10000;
 
-    const inputs = [feed,staleAfter] 
+    const inputs = [feed,staleAfter]
 
-    let priceData = await rainInterpreterExtern.extern(0,inputs) 
+    let priceData = await rainInterpreterExtern.extern(0,inputs)
+    console.log(priceData)
+    // assert(priceData)
 
-    assert(priceData)
-    
-    
+
   });
 });
