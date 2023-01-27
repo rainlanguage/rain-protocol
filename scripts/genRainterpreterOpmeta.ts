@@ -8,14 +8,6 @@ import { format } from "prettier";
 import OpmetaSchema from "../opmeta_schema.json";
 import { rainterpreterOpmeta } from "../utils/interpreter/ops/allStandardOpmeta";
 
-// const exec = (cmd: string) => {
-//     try {
-//         return execSync(cmd, { stdio: 'inherit' });
-//     } catch (e) {
-//         throw new Error(`Failed to run command \`${cmd}\``);
-//     }
-// };
-
 const writeFile = (_path: string, file: string) => {
   try {
     fs.writeFileSync(_path, file);
@@ -27,7 +19,10 @@ const writeFile = (_path: string, file: string) => {
 const main = async () => {
   let opmetaHexString = "0x";
   const opmetaBytes = Uint8Array.from(
-    deflateSync(JSON.stringify(rainterpreterOpmeta, null, 4))
+    deflateSync(format(
+      JSON.stringify(rainterpreterOpmeta, null, 4), 
+      {parser: "json"})
+    )
   );
   for (let i = 0; i < opmetaBytes.length; i++) {
     opmetaHexString =
@@ -36,7 +31,10 @@ const main = async () => {
 
   let schemaHexString = "0x";
   const schemaBytes = Uint8Array.from(
-    deflateSync(JSON.stringify(OpmetaSchema, null, 4))
+    deflateSync(format(
+      JSON.stringify(OpmetaSchema, null, 4),
+      {parser: "json"}
+    ))
   );
   for (let i = 0; i < schemaBytes.length; i++) {
     schemaHexString =
