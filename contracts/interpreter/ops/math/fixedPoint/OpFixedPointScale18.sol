@@ -11,7 +11,7 @@ import "../../../deploy/LibIntegrityCheck.sol";
 error UnsupportedInputsFixedPointScale18(uint256 inputs);
 
 /// @title OpFixedPointScale18
-/// @notice Opcode for scaling a number to 18 fixed point.
+/// @notice Opcode for scaling a number to 18 decimal fixed point.
 library OpFixedPointScale18 {
     using LibFixedPointMath for uint256;
     using LibStackPointer for StackPointer;
