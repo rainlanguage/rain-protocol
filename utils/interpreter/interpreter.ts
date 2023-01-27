@@ -108,6 +108,28 @@ export function doWhileOperand(
 ): number {
   const operand = (sourceIndex << 8) + (reserved << 4) + inputSize;
   return operand;
+} 
+
+/**
+ * Builds the operand for RainInterpreter's `SCALE18` opcode
+ *
+ * @param decimals - deciamls by which the value is to be scaled
+ * @param rounding - rounding direction
+ * @param inputSize - inputSize
+ */
+export function fp_scale18(
+  decimals: number,
+  rounding: number,
+  inputSize: number
+): number { 
+  let operand
+  if(inputSize == 1){
+    operand = (decimals << 3) + (rounding << 2) + inputSize;
+  }else if(inputSize == 2){
+    operand = (rounding << 2) + inputSize;
+  }
+  
+  return operand;
 }
 
 /**
