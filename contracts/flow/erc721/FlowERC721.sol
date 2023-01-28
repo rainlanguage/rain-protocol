@@ -148,11 +148,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    )
-        internal
-        view
-        returns (FlowERC721IO memory, uint256[] memory)
-    {
+    ) internal view returns (FlowERC721IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC721IO memory flowIO_;
         (
@@ -194,10 +190,10 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (
-                FlowERC721IO memory flowIO_,
-                uint256[] memory kvs_
-            ) = _previewFlow(evaluable_, context_);
+            (FlowERC721IO memory flowIO_, uint256[] memory kvs_) = _previewFlow(
+                evaluable_,
+                context_
+            );
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _safeMint(flowIO_.mints[i_].account, flowIO_.mints[i_].id);
             }

@@ -142,12 +142,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    )
-        internal
-        view
-        virtual
-        returns (FlowERC20IO memory, uint256[] memory)
-    {
+    ) internal view virtual returns (FlowERC20IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         (
@@ -188,10 +183,10 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (
-                FlowERC20IO memory flowIO_,
-                uint256[] memory kvs_
-            ) = _previewFlow(evaluable_, context_);
+            (FlowERC20IO memory flowIO_, uint256[] memory kvs_) = _previewFlow(
+                evaluable_,
+                context_
+            );
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
             }

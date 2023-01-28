@@ -56,11 +56,14 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC1155_init(config_.uri);
-        // Ignoring context scratch here as we never use it, all context is
-        // provided unconditionally.
-        address expression_ = config_.evaluableConfig.deployer.deployExpression(
-            config_.evaluableConfig.expressionConfig,
-            LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
+
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
+                LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
+            )
         );
 
         __FlowCommon_init(config_.flowConfig, FLOW_ERC1155_MIN_OUTPUTS);
@@ -142,11 +145,7 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    )
-        internal
-        view
-        returns (FlowERC1155IO memory, uint256[] memory)
-    {
+    ) internal view returns (FlowERC1155IO memory, uint256[] memory) {
         uint256[] memory refs_;
         FlowERC1155IO memory flowIO_;
         (

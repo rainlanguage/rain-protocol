@@ -21,11 +21,7 @@ contract Flow is ReentrancyGuard, FlowCommon {
     function _previewFlow(
         Evaluable memory evaluable_,
         uint256[][] memory context_
-    )
-        internal
-        view
-        returns (FlowTransfer memory, uint256[] memory)
-    {
+    ) internal view returns (FlowTransfer memory, uint256[] memory) {
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,

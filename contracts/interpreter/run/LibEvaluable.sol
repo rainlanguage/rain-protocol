@@ -19,6 +19,6 @@ struct Evaluable {
 
 library LibEvaluable {
     function hash(Evaluable memory evaluable_) internal pure returns (bytes32) {
-        bytes32(keccak256(abi.encode(evaluable_)));
+        return keccak256(abi.encode(evaluable_));
     }
 }

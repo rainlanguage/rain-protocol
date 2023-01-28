@@ -45,10 +45,7 @@ contract FlowCommon is
     /// Evaluable hash => is registered
     mapping(bytes32 => uint256) internal _flows;
 
-    event FlowInitialized(
-        address sender,
-        Evaluable evaluable
-    );
+    event FlowInitialized(address sender, Evaluable evaluable);
 
     constructor() {
         _disableInitializers();
@@ -80,8 +77,11 @@ contract FlowCommon is
         }
     }
 
-    function _flowDispatch(address expression_) internal pure returns (EncodedDispatch) {
-        return LibEncodedDispatch.encode(
+    function _flowDispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
                 expression_,
                 FLOW_ENTRYPOINT,
                 FLOW_MAX_OUTPUTS
@@ -103,21 +103,17 @@ contract FlowCommon is
         internal
         view
         onlyRegisteredEvaluable(evaluable_)
-        returns (
-            StackPointer,
-            StackPointer,
-            uint256[] memory
-        )
+        returns (StackPointer, StackPointer, uint256[] memory)
     {
-        (
-            uint256[] memory stack_,
-            uint256[] memory kvs_
-        ) = evaluable_.interpreter.eval(evaluable_.store, DEFAULT_STATE_NAMESPACE, _flowDispatch(evaluable_.expression), context_);
-        return (
-            stack_.asStackPointerUp(),
-            stack_.asStackPointerAfter(),
-            kvs_
-        );
+        (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+            .interpreter
+            .eval(
+                evaluable_.store,
+                DEFAULT_STATE_NAMESPACE,
+                _flowDispatch(evaluable_.expression),
+                context_
+            );
+        return (stack_.asStackPointerUp(), stack_.asStackPointerAfter(), kvs_);
     }
 
     receive() external payable virtual {}

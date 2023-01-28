@@ -99,11 +99,7 @@ contract Rainterpreter is IInterpreterV1 {
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    )
-        external
-        view
-        returns (uint256[] memory, uint256[] memory)
-    {
+    ) external view returns (uint256[] memory, uint256[] memory) {
         // Decode the dispatch.
         (
             address expression_,

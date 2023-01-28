@@ -212,7 +212,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
 
     function _joinEncodedDispatch(
         address expression_
-    ) internal view returns (EncodedDispatch) {
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
                 expression_,
@@ -223,7 +223,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
 
     function _leaveEncodedDispatch(
         address expression_
-    ) internal view returns (EncodedDispatch) {
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
                 expression_,
@@ -234,7 +234,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
 
     function _claimEncodedDispatch(
         address expression_
-    ) internal view returns (EncodedDispatch) {
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
                 expression_,
@@ -245,7 +245,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
 
     function _invalidEncodedDispatch(
         address expression_
-    ) internal view returns (EncodedDispatch) {
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
                 expression_,
