@@ -93,7 +93,7 @@ describe("Sale redeemableERC20 token", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -212,7 +212,7 @@ describe("Sale redeemableERC20 token", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -319,7 +319,7 @@ describe("Sale redeemableERC20 token", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },

@@ -69,7 +69,7 @@ describe("Stake construction", async function () {
       asset: zeroAddress,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -106,7 +106,7 @@ describe("Stake construction", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },

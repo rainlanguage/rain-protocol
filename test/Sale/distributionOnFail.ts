@@ -91,7 +91,7 @@ describe("Sale distribution on failed sale", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -267,7 +267,7 @@ describe("Sale distribution on failed sale", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },

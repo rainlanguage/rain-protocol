@@ -129,7 +129,7 @@ describe("FlowERC1155 flowTime tests", async function () {
     const sources = [ONE()]; // can transfer
 
     const flowConfigStruct: FlowERC1155Config = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
       uri: "FlowERC1155",
     };

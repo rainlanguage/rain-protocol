@@ -11,7 +11,7 @@ import {
 import {
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -96,9 +96,9 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStructCanTransfer: FlowERC1155Config = {
+    const expressionConfigStructCanTransfer: FlowERC1155Config = {
       uri: "F1155",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants: constantsCanTransfer,
       },
@@ -109,9 +109,9 @@ describe("FlowERC1155 flow tests", async function () {
         },
       ],
     };
-    const stateConfigStructCannotTransfer: FlowERC1155Config = {
+    const expressionConfigStructCannotTransfer: FlowERC1155Config = {
       uri: "F1155",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants: constantsCannotTransfer,
       },
@@ -126,12 +126,12 @@ describe("FlowERC1155 flow tests", async function () {
     const { flow: flowCanTransfer } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
-      stateConfigStructCanTransfer
+      expressionConfigStructCanTransfer
     );
     const { flow: flowCannotTransfer } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
-      stateConfigStructCannotTransfer
+      expressionConfigStructCannotTransfer
     );
 
     const flowExpressionsCanTransfer = (await getEvents(
@@ -343,9 +343,9 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC1155Config = {
+    const expressionConfigStruct: FlowERC1155Config = {
       uri: "F1155",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants: constantsMint,
       },
@@ -364,7 +364,7 @@ describe("FlowERC1155 flow tests", async function () {
     const { flow } = await flowERC1155Deploy(
       deployer,
       flowERC1155Factory,
-      stateConfigStruct
+      expressionConfigStruct
     );
 
     const flowInitialized = (await getEvents(
@@ -570,14 +570,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -760,14 +760,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -932,14 +932,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1082,14 +1082,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1264,14 +1264,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1446,14 +1446,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1620,14 +1620,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1765,14 +1765,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1871,14 +1871,14 @@ describe("FlowERC1155 flow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [{ sources: [sourceFlowIO], constants }],
     });
 

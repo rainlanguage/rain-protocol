@@ -20,7 +20,7 @@ export const flowDeploy = async (
   );
 
   const flowConfigStruct: FlowConfigStruct = {
-    stateConfig: flowConfig.stateConfig,
+    expressionConfig: flowConfig.expressionConfig,
     flowConfig: {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,

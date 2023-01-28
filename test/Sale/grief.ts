@@ -95,7 +95,7 @@ describe("Sale griefer", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },

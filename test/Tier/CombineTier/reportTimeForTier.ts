@@ -80,7 +80,7 @@ describe("CombineTier report time for tier tests", async function () {
   it("should support returning report time for tier using Interpreter script (e.g. constant timestamp value)", async () => {
     const combineTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
@@ -126,7 +126,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
@@ -172,7 +172,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const tierContractAlice = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceTierContractAlice],
         constants: [alice.address, tokenERC20.address],
       },
@@ -190,7 +190,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const tierContractBob = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceTierContractBob],
         constants: [bob.address, tokenERC20.address],
       },
@@ -224,7 +224,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
@@ -306,7 +306,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
@@ -388,7 +388,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants,
       },
@@ -438,7 +438,7 @@ describe("CombineTier report time for tier tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -511,7 +511,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake.address],
       },
@@ -546,7 +546,7 @@ describe("CombineTier report time for tier tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -615,7 +615,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake0.address, stake1.address, max_uint32],
       },
@@ -672,7 +672,7 @@ describe("CombineTier report time for tier tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -740,7 +740,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: stakeContracts.length,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [...constants, max_uint32],
       },
@@ -801,7 +801,7 @@ describe("CombineTier report time for tier tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -870,7 +870,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceCombineTierContract],
         constants: [stake0.address, stake1.address, max_uint32],
       },

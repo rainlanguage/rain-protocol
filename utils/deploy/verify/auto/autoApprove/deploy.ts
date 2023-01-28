@@ -5,7 +5,7 @@ import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
 import {
   AutoApproveConfigStruct,
   ImplementationEvent as ImplementationEventAutoApproveFactory,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
@@ -34,7 +34,7 @@ export const autoApproveFactoryDeploy = async () => {
 export const autoApproveDeploy = async (
   deployer: SignerWithAddress,
   autoApproveFactory: AutoApproveFactory,
-  stateConfig: StateConfigStruct
+  expressionConfig: ExpressionConfigStruct
 ) => {
   const { implementation } = (await getEventArgs(
     autoApproveFactory.deployTransaction,
@@ -54,7 +54,7 @@ export const autoApproveDeploy = async (
   const autoApproveConfig: AutoApproveConfigStruct = {
     expressionDeployer: expressionDeployer.address,
     interpreter: interpreter.address,
-    stateConfig,
+    expressionConfig,
   };
 
   const tx = await autoApproveFactory

@@ -83,7 +83,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -94,7 +94,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -250,7 +250,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -261,7 +261,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -425,7 +425,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -436,7 +436,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -616,7 +616,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -627,7 +627,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -835,7 +835,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -846,7 +846,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };

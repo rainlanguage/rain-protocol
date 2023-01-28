@@ -88,7 +88,7 @@ describe("Lobby Invalid Refund", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -99,7 +99,7 @@ describe("Lobby Invalid Refund", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -246,7 +246,7 @@ describe("Lobby Invalid Refund", async function () {
     // prettier-ignore
     const joinSource = concat([
         op(Opcode.CONTEXT, 0x0300) ,
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,  
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
       ]);
 
     const leaveSource = concat([
@@ -259,7 +259,7 @@ describe("Lobby Invalid Refund", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -270,7 +270,7 @@ describe("Lobby Invalid Refund", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -447,7 +447,7 @@ describe("Lobby Invalid Refund", async function () {
       op(Opcode.EQUAL_TO),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -458,7 +458,7 @@ describe("Lobby Invalid Refund", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };

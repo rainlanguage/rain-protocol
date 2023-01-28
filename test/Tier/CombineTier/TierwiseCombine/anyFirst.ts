@@ -44,7 +44,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const futureTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -67,7 +67,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     })) as CombineTier;
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -79,7 +79,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -129,7 +129,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
@@ -162,7 +162,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -174,7 +174,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -207,7 +207,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
@@ -257,7 +257,7 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },

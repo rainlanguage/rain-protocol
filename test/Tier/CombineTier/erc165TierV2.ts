@@ -49,7 +49,7 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -76,7 +76,7 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      stateConfig: combineTierSourceConfig,
+      expressionConfig: combineTierSourceConfig,
       expressionDeployer: "",
       interpreter: "",
     })) as CombineTier;
@@ -107,7 +107,7 @@ describe("CombineTier ERC165 tests", async function () {
       asset: token.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -134,7 +134,7 @@ describe("CombineTier ERC165 tests", async function () {
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      stateConfig: combineTierSourceConfig,
+      expressionConfig: combineTierSourceConfig,
       expressionDeployer: "",
       interpreter: "",
     })) as CombineTier;

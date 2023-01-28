@@ -86,7 +86,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -97,7 +97,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: 15000000,
     };
@@ -174,7 +174,7 @@ describe("Lobby Tests claim", async function () {
     const constants = [0, depositAmount, key, totalPlayers];
 
     // prettier-ignore
-    const joinSource = concat([ 
+    const joinSource = concat([
          // SET key
          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
@@ -199,7 +199,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -210,7 +210,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -367,7 +367,7 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.GET),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -378,7 +378,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -507,10 +507,10 @@ describe("Lobby Tests claim", async function () {
         // SET key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // <-- val
-          op(Opcode.GET), 
+          op(Opcode.GET),
           op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
          op(Opcode.ADD,2),
-        op(Opcode.SET), 
+        op(Opcode.SET),
 
         op(Opcode.CONTEXT, 0x0000), // key
          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , //val
@@ -520,47 +520,47 @@ describe("Lobby Tests claim", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
         op(Opcode.GET),
        op(Opcode.EQUAL_TO) ,
-       op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) 
+       op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2))
     ]);
 
     // prettier-ignore
-    const leaveSource = concat([ 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),  
+    const leaveSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     // Winner gets 50 percent of shares.Rest is divided among others.
-    const claimSource = concat([ 
+    const claimSource = concat([
       // condition
         op(Opcode.CONTEXT, 0x0000),
         op(Opcode.GET),
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) , 
-        op(Opcode.GREATER_THAN), 
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+        op(Opcode.GREATER_THAN),
       // truthy
             op(Opcode.CONTEXT, 0x0000),
             op(Opcode.CONTEXT, 0x0300),
-            op(Opcode.EQUAL_TO) ,  
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , 
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) , 
-              op(Opcode.DIV,2) ,  
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , 
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) , 
-                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) , 
-                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) , 
+            op(Opcode.EQUAL_TO) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) ,
+              op(Opcode.DIV,2) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) ,
+                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
+                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
                 op(Opcode.SUB,2),
               op(Opcode.DIV,3) ,
           op(Opcode.EAGER_IF) ,
       // falsy
-          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) , 
+          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
       op(Opcode.EAGER_IF) ,
     ]);
 
     // prettier-ignore
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), 
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -571,7 +571,7 @@ describe("Lobby Tests claim", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };

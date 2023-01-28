@@ -118,7 +118,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -135,7 +135,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -264,7 +264,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -281,7 +281,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -453,7 +453,7 @@ describe("OrderBook take orders", async function () {
         { token: tokenX.address, decimals: XDec, vaultId },
         { token: tokenY.address, decimals: YDec, vaultId },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [source, []],
         constants,
       },
@@ -623,7 +623,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -646,7 +646,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -911,7 +911,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -934,7 +934,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -1199,7 +1199,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -1222,7 +1222,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -1487,7 +1487,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -1510,7 +1510,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -1775,7 +1775,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -1798,7 +1798,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2063,7 +2063,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2086,7 +2086,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2349,7 +2349,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2372,7 +2372,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2589,7 +2589,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2612,7 +2612,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2829,7 +2829,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -2852,7 +2852,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3069,7 +3069,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3092,7 +3092,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3309,7 +3309,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3332,7 +3332,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3549,7 +3549,7 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3572,7 +3572,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources: [askSource, []],
           constants: askConstants,
         },
@@ -3768,7 +3768,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -3786,7 +3786,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -3928,7 +3928,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants0,
       },
@@ -3959,7 +3959,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants1,
       },
@@ -4087,7 +4087,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants0,
       },
@@ -4102,7 +4102,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants1,
       },
@@ -4236,7 +4236,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -4368,7 +4368,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -4383,7 +4383,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -4563,7 +4563,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -4754,7 +4754,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -5010,7 +5010,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -5122,7 +5122,7 @@ describe("OrderBook take orders", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -5339,7 +5339,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -5503,7 +5503,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },

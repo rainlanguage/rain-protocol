@@ -18,6 +18,7 @@ contract IInterpreterV1Consumer {
     ) external {
         evalWithNamespace(
             interpreter_,
+            NO_STORE,
             DEFAULT_STATE_NAMESPACE,
             dispatch_,
             context_
@@ -26,16 +27,18 @@ contract IInterpreterV1Consumer {
 
     function evalWithNamespace(
         IInterpreterV1 interpreter_,
+        IInterpreterStoreV1 store_,
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
     ) public {
         uint256 a_ = gasleft();
-        (
-            uint256[] memory stack_,
-            IInterpreterStoreV1 store_,
-            uint256[] memory kvs_
-        ) = interpreter_.eval(namespace_, dispatch_, context_);
+        (uint256[] memory stack_, uint256[] memory kvs_) = interpreter_.eval(
+            store_,
+            namespace_,
+            dispatch_,
+            context_
+        );
         uint256 b_ = gasleft();
         console.log("eval gas", a_ - b_);
         _stack = stack_;

@@ -13,7 +13,7 @@ import "hardhat/console.sol";
 contract LibInterpreterStateTest {
     using LibInterpreterState for InterpreterState;
     using LibInterpreterState for bytes;
-    using LibInterpreterState for StateConfig;
+    using LibInterpreterState for ExpressionConfig;
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
@@ -25,7 +25,7 @@ contract LibInterpreterStateTest {
     constructor() {}
 
     function debug(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         uint256 stackLength_,
         uint256[][] memory context_,
         DebugStyle debugStyle_,
@@ -48,7 +48,7 @@ contract LibInterpreterStateTest {
     }
 
     function serDeserialize(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         uint256 stackLength_,
         uint256[][] memory context_,
         IInterpreterV1 interpreter_
@@ -69,101 +69,13 @@ contract LibInterpreterStateTest {
 
     function serialize(
         IInterpreterV1 interpreter_,
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         uint256 stackLength_
-    )
-        public
-        view
-        returns (
-            // uint256[] memory minStackOutputs_
-            bytes memory serialized_
-        )
-    {
-        // (, uint256 stackLength_) = IRainInterpreterIntegrity(
-        //     interpreterIntegrity
-        // ).ensureIntegrity(
-        //         config_.sources,
-        //         config_.constants.length,
-        //         minStackOutputs_
-        //     );
-
-        serialized_ = config_.serialize(
+    ) public view returns (bytes memory) {
+        bytes memory serialized_ = config_.serialize(
             stackLength_,
             interpreter_.functionPointers()
         );
+        return serialized_;
     }
-
-    // function eval(
-    //     StateConfig memory config_,
-    //     uint256[] memory minStackOutputs_
-    // )
-    //     external
-    //     view
-    //     returns (StackPointer stackTopAfter_, uint256 stackBottom_)
-    // {
-    //     InterpreterState memory state_ = serDeserialize(
-    //         config_,
-    //         new uint256[][](0), // context,
-    //         minStackOutputs_
-    //     );
-
-    //     stackBottom_ = StackPointer.unwrap(state_.stackBottom);
-    //     stackTopAfter_ = state_.eval(SourceIndex.wrap(0), state_.stackBottom);
-    // }
-
-    // function eval(
-    //     StateConfig memory config_,
-    //     SourceIndex sourceIndex_,
-    //     uint256[] memory minStackOutputs_
-    // )
-    //     external
-    //     view
-    //     returns (StackPointer stackTopAfter_, uint256 stackBottom_)
-    // {
-    //     InterpreterState memory state_ = serDeserialize(
-    //         config_,
-    //         new uint256[][](0), // context
-    //         minStackOutputs_
-    //     );
-
-    //     stackBottom_ = StackPointer.unwrap(state_.stackBottom);
-    //     stackTopAfter_ = state_.eval(sourceIndex_, state_.stackBottom);
-    // }
-
-    // function evalStackPointer(
-    //     StateConfig memory config_,
-    //     uint256[] memory minStackOutputs_
-    // )
-    //     external
-    //     view
-    //     returns (StackPointer stackTopAfter_, uint256 stackBottom_)
-    // {
-    //     InterpreterState memory state_ = serDeserialize(
-    //         config_,
-    //         new uint256[][](0), // context
-    //         minStackOutputs_
-    //     );
-
-    //     stackBottom_ = StackPointer.unwrap(state_.stackBottom);
-    //     stackTopAfter_ = state_.eval(SourceIndex.wrap(0), state_.stackBottom); // just use normal stackBottom for testing
-    // }
-
-    // function evalStackPointer(
-    //     StateConfig memory config_,
-    //     SourceIndex sourceIndex_,
-    //     uint256[] memory minStackOutputs_
-    // )
-    //     external
-    //     view
-    //     returns (StackPointer stackTopAfter_, uint256 stackBottom_)
-    // {
-    //     InterpreterState memory state_ = serDeserialize(
-    //         config_,
-    //         new uint256[][](0), // context
-    //         minStackOutputs_
-    //     );
-
-    //     stackBottom_ = StackPointer.unwrap(state_.stackBottom);
-    //     stackTopAfter_ = state_.eval(sourceIndex_, state_.stackBottom); // just use normal stackBottom for testing
-    // }
 }

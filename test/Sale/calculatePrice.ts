@@ -118,7 +118,7 @@ describe("Sale calculate price", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -271,7 +271,7 @@ describe("Sale calculate price", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -392,7 +392,7 @@ describe("Sale calculate price", async function () {
           {
             interpreter: interpreter.address,
             expressionDeployer: expressionDeployer.address,
-            interpreterStateConfig: {
+            interpreterExpressionConfig: {
               sources,
               constants,
             },
@@ -475,7 +475,7 @@ describe("Sale calculate price", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -617,7 +617,7 @@ describe("Sale calculate price", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -762,7 +762,7 @@ describe("Sale calculate price", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -868,7 +868,7 @@ describe("Sale calculate price", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },

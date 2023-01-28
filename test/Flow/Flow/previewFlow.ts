@@ -90,7 +90,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -241,7 +241,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -371,7 +371,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -519,7 +519,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -621,7 +621,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -713,7 +713,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -827,7 +827,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -908,7 +908,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -957,7 +957,7 @@ describe("Flow previewFlow tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 

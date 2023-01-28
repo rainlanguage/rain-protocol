@@ -65,7 +65,7 @@ describe("Lobby Tests Intialize", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -76,7 +76,7 @@ describe("Lobby Tests Intialize", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: "0x00",
       timeoutDuration: timeoutDuration,
     };

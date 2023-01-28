@@ -63,7 +63,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -74,7 +74,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -82,9 +82,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
+      expressionConfig: {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
       },
     };
 
@@ -325,7 +325,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -336,7 +336,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -344,9 +344,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
+      expressionConfig: {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
       },
     };
 
@@ -383,7 +383,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -394,7 +394,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -402,9 +402,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
+      expressionConfig: {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
       },
     };
 
@@ -461,7 +461,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -472,7 +472,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -480,9 +480,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
+      expressionConfig: {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
       },
     };
 
@@ -589,7 +589,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -600,7 +600,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -608,9 +608,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
+      expressionConfig: {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
       },
     };
 
@@ -705,7 +705,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
     const deployer = signers[0];
     const alice = signers[1];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -716,7 +716,7 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
@@ -724,9 +724,9 @@ describe("Stake ITIERV2_REPORT_TIME_FOR_TIER Op", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
+      expressionConfig: {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
       },
     };
 

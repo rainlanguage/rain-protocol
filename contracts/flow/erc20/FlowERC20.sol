@@ -26,8 +26,8 @@ uint256 constant RAIN_FLOW_ERC20_SENTINEL = uint256(
 struct FlowERC20Config {
     string name;
     string symbol;
-    StateConfig stateConfig;
-    FlowCommonConfig flowConfig;
+    EvaluableConfig evaluableConfig;
+    EvaluableConfig[] flowConfig;
 }
 
 struct ERC20SupplyChange {
@@ -71,25 +71,34 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
     /// @param config All initialized config.
     event Initialize(address sender, FlowERC20Config config);
 
-    EncodedDispatch internal _dispatch;
+    Evaluable internal evaluable;
 
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(FlowERC20Config memory config_) external initializer {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
-        address expression_ = IExpressionDeployerV1(
-            config_.flowConfig.expressionDeployer
-        ).deployExpression(
-                config_.stateConfig,
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
                 LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
-            );
-        _dispatch = LibEncodedDispatch.encode(
-            expression_,
-            CAN_TRANSFER_ENTRYPOINT,
-            CAN_TRANSFER_MAX_OUTPUTS
+            )
         );
+
         __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
+    }
+
+    function _dispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                CAN_TRANSFER_ENTRYPOINT,
+                CAN_TRANSFER_MAX_OUTPUTS
+            );
     }
 
     /// @inheritdoc ERC20
@@ -103,6 +112,7 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             // Mint and burn access MUST be handled by flow.
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
+                Evaluable memory evaluable_ = evaluable;
                 uint256[][] memory context_ = LibUint256Array
                     .arrayFrom(
                         uint(uint160(msg.sender)),
@@ -111,43 +121,40 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
                         amount_
                     )
                     .matrixFrom();
-                EncodedDispatch dispatch_ = _dispatch;
-                (
-                    uint256[] memory stack_,
-                    IInterpreterStoreV1 store_,
-                    uint256[] memory kvs_
-                ) = _interpreter.eval(
+                (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+                    .interpreter
+                    .eval(
+                        evaluable_.store,
                         DEFAULT_STATE_NAMESPACE,
-                        dispatch_,
+                        _dispatch(evaluable_.expression),
                         context_
                     );
                 if (stack_[stack_.length - 1] == 0) {
                     revert InvalidTransfer();
                 }
                 if (kvs_.length > 0) {
-                    store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
+                    evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
                 }
             }
         }
     }
 
     function _previewFlow(
-        EncodedDispatch dispatch_,
+        Evaluable memory evaluable_,
         uint256[][] memory context_
     )
         internal
         view
         virtual
-        returns (FlowERC20IO memory, IInterpreterStoreV1, uint256[] memory)
+        returns (FlowERC20IO memory, uint256[] memory)
     {
         uint256[] memory refs_;
         FlowERC20IO memory flowIO_;
         (
             StackPointer stackBottom_,
             StackPointer stackTop_,
-            IInterpreterStoreV1 store_,
             uint256[] memory kvs_
-        ) = flowStack(dispatch_, context_);
+        ) = flowStack(evaluable_, context_);
         (stackTop_, refs_) = stackTop_.consumeStructs(
             stackBottom_,
             RAIN_FLOW_ERC20_SENTINEL,
@@ -166,11 +173,11 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
         }
         flowIO_.flow = LibFlow.stackToFlow(stackBottom_, stackTop_);
 
-        return (flowIO_, store_, kvs_);
+        return (flowIO_, kvs_);
     }
 
     function _flow(
-        EncodedDispatch dispatch_,
+        Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal virtual nonReentrant returns (FlowERC20IO memory) {
@@ -183,22 +190,21 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             emit Context(msg.sender, context_);
             (
                 FlowERC20IO memory flowIO_,
-                IInterpreterStoreV1 store_,
                 uint256[] memory kvs_
-            ) = _previewFlow(dispatch_, context_);
+            ) = _previewFlow(evaluable_, context_);
             for (uint256 i_ = 0; i_ < flowIO_.mints.length; i_++) {
                 _mint(flowIO_.mints[i_].account, flowIO_.mints[i_].amount);
             }
             for (uint256 i_ = 0; i_ < flowIO_.burns.length; i_++) {
                 _burn(flowIO_.burns[i_].account, flowIO_.burns[i_].amount);
             }
-            LibFlow.flow(flowIO_.flow, store_, kvs_);
+            LibFlow.flow(flowIO_.flow, evaluable_.store, kvs_);
             return flowIO_;
         }
     }
 
     function previewFlow(
-        EncodedDispatch dispatch_,
+        Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external view virtual returns (FlowERC20IO memory) {
@@ -207,18 +213,18 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             callerContext_,
             signedContexts_
         );
-        (FlowERC20IO memory flowERC20IO_, , ) = _previewFlow(
-            dispatch_,
+        (FlowERC20IO memory flowERC20IO_, ) = _previewFlow(
+            evaluable_,
             context_
         );
         return flowERC20IO_;
     }
 
     function flow(
-        EncodedDispatch dispatch_,
+        Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) external payable virtual returns (FlowERC20IO memory) {
-        return _flow(dispatch_, callerContext_, signedContexts_);
+        return _flow(evaluable_, callerContext_, signedContexts_);
     }
 }

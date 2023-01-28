@@ -67,7 +67,7 @@ describe("Lobby Tests join", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-        op(Opcode.CONTEXT, 0x0300),  
+        op(Opcode.CONTEXT, 0x0300),
         op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
       ]);
 
@@ -81,7 +81,7 @@ describe("Lobby Tests join", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -92,7 +92,7 @@ describe("Lobby Tests join", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -178,7 +178,7 @@ describe("Lobby Tests join", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -189,7 +189,7 @@ describe("Lobby Tests join", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -289,7 +289,7 @@ describe("Lobby Tests join", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -300,7 +300,7 @@ describe("Lobby Tests join", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -385,7 +385,7 @@ describe("Lobby Tests join", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
@@ -396,7 +396,7 @@ describe("Lobby Tests join", async function () {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
+      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };

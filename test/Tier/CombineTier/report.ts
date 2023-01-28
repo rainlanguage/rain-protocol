@@ -79,7 +79,7 @@ describe("CombineTier report tests", async function () {
   it("should support a program which returns the default report", async () => {
     const alwaysTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -91,7 +91,7 @@ describe("CombineTier report tests", async function () {
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -123,7 +123,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierAlways = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
         constants,
       },
@@ -146,7 +146,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierNever = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceNeverReport, sourceReportTimeForTierDefault],
         constants,
       },
@@ -190,7 +190,7 @@ describe("CombineTier report tests", async function () {
 
     const tierContractAlice = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceTierContractAlice, sourceReportTimeForTierDefault],
         constants: [alice.address, tokenERC20.address],
       },
@@ -208,7 +208,7 @@ describe("CombineTier report tests", async function () {
 
     const tierContractBob = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceTierContractBob, sourceReportTimeForTierDefault],
         constants: [bob.address, tokenERC20.address],
       },
@@ -239,7 +239,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants,
       },
@@ -310,7 +310,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants,
       },
@@ -382,7 +382,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants,
       },
@@ -432,7 +432,7 @@ describe("CombineTier report tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -525,7 +525,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [stake.address],
       },
@@ -561,7 +561,7 @@ describe("CombineTier report tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -639,7 +639,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [stake0.address, stake1.address, max_uint256],
       },
@@ -692,7 +692,7 @@ describe("CombineTier report tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -758,7 +758,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: stakeContracts.length,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceMain, sourceReportTimeForTierDefault],
         constants: [...constants, max_uint256],
       },
@@ -815,7 +815,7 @@ describe("CombineTier report tests", async function () {
       asset: tokenERC20.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -893,7 +893,7 @@ describe("CombineTier report tests", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceCombineTierContract, sourceReportTimeForTierDefault],
         constants: [stake0.address, stake1.address, max_uint256],
       },

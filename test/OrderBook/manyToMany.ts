@@ -114,7 +114,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenC.address, decimals: 18, vaultId: vaultAlice },
         { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [source, []],
         constants: constants,
       },
@@ -170,7 +170,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
         { token: tokenD.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -220,7 +220,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
         { token: tokenC.address, decimals: 18, vaultId: bobInputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },
@@ -453,7 +453,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
         { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -503,7 +503,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
         { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },

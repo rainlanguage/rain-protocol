@@ -109,7 +109,7 @@ describe("OrderBook bounty", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -162,7 +162,7 @@ describe("OrderBook bounty", async function () {
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },

@@ -10,7 +10,7 @@ import {
 } from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
 import {
   AllStandardOps,
-  areEqualStateConfigs,
+  areEqualExpressionConfigs,
   basicDeploy,
   getEventArgs,
   memoryOperand,
@@ -25,7 +25,7 @@ import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/
 import { getRainterpreterOpmetaBytes } from "../../../../utils/interpreter/ops/allStandardOpmeta";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
-  it("DeployExpression event should emit original StateConfig", async () => {
+  it("DeployExpression event should emit original ExpressionConfig", async () => {
     const interpreter = await rainterpreterDeploy();
     const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       interpreter
@@ -103,14 +103,14 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     };
 
     assert(
-      areEqualStateConfigs(expected, result),
+      areEqualExpressionConfigs(expected, result),
       `wrong state config
       expected  ${expected}
       got       ${result}`
     );
 
     assert(
-      areEqualStateConfigs(expectedMathResult, mathResult),
+      areEqualExpressionConfigs(expectedMathResult, mathResult),
       `wrong state config
       expected  ${expectedMathResult}
       got       ${mathResult}`

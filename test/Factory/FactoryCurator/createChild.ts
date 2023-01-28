@@ -301,7 +301,7 @@ describe("FactoryCurator createChild", async function () {
       asset: reserve18.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -429,7 +429,7 @@ describe("FactoryCurator createChild", async function () {
       asset: reserve.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
@@ -504,7 +504,7 @@ describe("FactoryCurator createChild", async function () {
 
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
+      expressionConfig: {
         sources: [sourceReportDefault, sourceMain],
         constants: [stake0.address, stake1.address, max_uint32],
       },

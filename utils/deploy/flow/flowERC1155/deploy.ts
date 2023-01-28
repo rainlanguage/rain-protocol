@@ -23,7 +23,7 @@ export const flowERC1155Deploy = async (
   );
 
   const flowERC1155ConfigStruct: FlowERC1155ConfigStruct = {
-    stateConfig: flowERC1155Config.stateConfig,
+    expressionConfig: flowERC1155Config.expressionConfig,
     flowConfig: {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,

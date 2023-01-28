@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
 import {
   ContextEvent,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
@@ -43,7 +43,7 @@ describe("AutoApprove afterAdd", async function () {
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
@@ -58,7 +58,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -105,7 +105,7 @@ describe("AutoApprove afterAdd", async function () {
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
     const badID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
@@ -120,7 +120,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -170,7 +170,7 @@ describe("AutoApprove afterAdd", async function () {
 
     const correctID = hexZeroPad(ethers.utils.randomBytes(32), 32);
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
@@ -185,7 +185,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -230,7 +230,7 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
@@ -238,7 +238,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -278,7 +278,7 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
@@ -286,7 +286,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -340,7 +340,7 @@ describe("AutoApprove afterAdd", async function () {
     const signer1 = signers[3];
     const aprAdmin = signers[4];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
@@ -348,7 +348,7 @@ describe("AutoApprove afterAdd", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {

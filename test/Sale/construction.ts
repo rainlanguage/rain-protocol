@@ -87,7 +87,7 @@ describe("Sale construction", async function () {
           {
             interpreter: interpreter.address,
             expressionDeployer: expressionDeployer.address,
-            interpreterStateConfig: {
+            interpreterExpressionConfig: {
               sources,
               constants,
             },
@@ -156,7 +156,7 @@ describe("Sale construction", async function () {
           {
             interpreter: interpreter.address,
             expressionDeployer: expressionDeployer.address,
-            interpreterStateConfig: {
+            interpreterExpressionConfig: {
               sources,
               constants,
             },

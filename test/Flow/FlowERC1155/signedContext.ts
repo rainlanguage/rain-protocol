@@ -57,7 +57,7 @@ describe("FlowERC1155 signed context tests", async function () {
 
     const flowConfigStruct: FlowERC1155Config = {
       uri: "F1155",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants,
       },
@@ -155,7 +155,7 @@ describe("FlowERC1155 signed context tests", async function () {
 
     const flowConfigStruct: FlowERC1155Config = {
       uri: "F1155",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants,
       },

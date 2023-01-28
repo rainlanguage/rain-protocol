@@ -91,7 +91,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -151,7 +151,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -193,7 +193,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -287,7 +287,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -331,7 +331,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -405,7 +405,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -455,7 +455,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -498,7 +498,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -556,7 +556,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -614,7 +614,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -746,7 +746,7 @@ describe("Stake deposit", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },

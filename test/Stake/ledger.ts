@@ -67,7 +67,7 @@ describe("Stake direct ledger analysis", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -162,7 +162,7 @@ describe("Stake direct ledger analysis", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -284,7 +284,7 @@ describe("Stake direct ledger analysis", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },
@@ -359,7 +359,7 @@ describe("Stake direct ledger analysis", async function () {
       asset: token.address,
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,
-      stateConfig: {
+      expressionConfig: {
         sources: source,
         constants: constants,
       },

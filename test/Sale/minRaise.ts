@@ -105,7 +105,7 @@ describe("Sale minimum raise", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -336,7 +336,7 @@ describe("Sale minimum raise", async function () {
     const saleConfig = {
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources,
         constants,
       },

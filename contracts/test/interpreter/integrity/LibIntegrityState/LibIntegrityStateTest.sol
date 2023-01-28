@@ -37,7 +37,7 @@ contract LibIntegrityCheckTest {
     }
 
     function syncStackMaxTop(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackMaxTop_,
         StackPointer stackTop_
     ) external returns (StackPointer) {
@@ -51,7 +51,7 @@ contract LibIntegrityCheckTest {
     }
 
     function ensureIntegrityTest(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         SourceIndex sourceIndex_,
         StackPointer stackTop_,
         uint256 minStackOutputs_
@@ -69,7 +69,7 @@ contract LibIntegrityCheckTest {
     }
 
     function push(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackMaxTop_,
         StackPointer stackTop_
     )
@@ -86,7 +86,7 @@ contract LibIntegrityCheckTest {
     }
 
     function push(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackMaxTop_,
         StackPointer stackTop_,
         uint256 n_
@@ -104,7 +104,7 @@ contract LibIntegrityCheckTest {
     }
 
     function pushIgnoreHighwater(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackMaxTop_,
         StackPointer stackTop_
     )
@@ -121,7 +121,7 @@ contract LibIntegrityCheckTest {
     }
 
     function popUnderflowCheck(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackBottom_,
         StackPointer stackHighwater_,
         StackPointer stackMaxTop_,
@@ -137,7 +137,7 @@ contract LibIntegrityCheckTest {
     }
 
     function pop(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackBottom_,
         StackPointer stackHighwater_,
         StackPointer stackMaxTop_,
@@ -152,7 +152,7 @@ contract LibIntegrityCheckTest {
     }
 
     function pop(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         StackPointer stackBottom_,
         StackPointer stackHighwater_,
         StackPointer stackMaxTop_,
@@ -223,7 +223,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -236,7 +236,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -249,7 +249,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -262,7 +262,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -275,7 +275,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -288,7 +288,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -302,7 +302,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -316,7 +316,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -330,7 +330,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;
@@ -344,7 +344,7 @@ contract LibIntegrityCheckTest {
     ) external view returns (StackPointer) {
         IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
             .newState(
-                StateConfig(new bytes[](0), new uint256[](0)),
+                ExpressionConfig(new bytes[](0), new uint256[](0)),
                 integrityFunctionPointers()
             );
         integrityCheckState_.stackMaxTop = stackTop_;

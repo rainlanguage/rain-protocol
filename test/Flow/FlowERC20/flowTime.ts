@@ -130,7 +130,7 @@ describe("FlowERC20 flowTime tests", async function () {
     const sources = [ONE()]; // can transfer
 
     const flowConfigStruct: FlowERC20Config = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
       name: "FlowERC20",
       symbol: "FWIN20",

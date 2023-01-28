@@ -52,7 +52,7 @@ describe("Flow construction tests", async function () {
     const sources = [];
 
     const flowConfig: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [
         {
           sources: [sourceFlowIO],

@@ -109,7 +109,7 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -135,7 +135,7 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -240,7 +240,7 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -292,7 +292,7 @@ describe("OrderBook decimals", async function () {
           vaultId: bobOutputVault,
         },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },

@@ -102,7 +102,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [source, []],
         constants: constants,
       },
@@ -293,7 +293,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [source, []],
         constants: constants,
       },

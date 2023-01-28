@@ -92,7 +92,7 @@ describe("Sale buy", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -247,7 +247,7 @@ describe("Sale buy", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -368,7 +368,7 @@ describe("Sale buy", async function () {
           {
             interpreter: interpreter.address,
             expressionDeployer: expressionDeployer.address,
-            interpreterStateConfig: {
+            interpreterExpressionConfig: {
               sources,
               constants,
             },
@@ -396,7 +396,7 @@ describe("Sale buy", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -505,7 +505,7 @@ describe("Sale buy", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -617,7 +617,7 @@ describe("Sale buy", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },
@@ -713,7 +713,7 @@ describe("Sale buy", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },

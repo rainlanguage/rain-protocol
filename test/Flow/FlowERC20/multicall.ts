@@ -251,10 +251,10 @@ describe("FlowERC20 multicall tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: FlowERC20Config = {
+    const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants: constants_A,
       },
@@ -267,7 +267,7 @@ describe("FlowERC20 multicall tests", async function () {
     const { flow } = await flowERC20Deploy(
       deployer,
       flowERC20Factory,
-      stateConfigStruct
+      expressionConfigStruct
     );
 
     const flowInitialized = (await getEvents(

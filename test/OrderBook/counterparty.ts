@@ -135,7 +135,7 @@ describe("OrderBook counterparty in context", async function () {
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [askSource, []],
         constants: askConstants,
       },
@@ -183,7 +183,7 @@ describe("OrderBook counterparty in context", async function () {
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [bidSource, []],
         constants: bidConstants,
       },
@@ -229,7 +229,7 @@ describe("OrderBook counterparty in context", async function () {
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: carolOutputVault },
       ],
-      interpreterStateConfig: {
+      interpreterExpressionConfig: {
         sources: [bidSourceCarol, []],
         constants: bidConstantsCarol,
       },

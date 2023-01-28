@@ -9,7 +9,7 @@ import {
 import {
   FlowERC721IOStruct,
   FlowTransferStruct,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc721/FlowERC721";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { sixZeros } from "../../../utils/constants/bigNumber";
@@ -112,7 +112,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -120,7 +120,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -285,7 +285,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -293,7 +293,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -439,7 +439,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -447,7 +447,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -610,7 +610,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -618,7 +618,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -737,7 +737,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -745,7 +745,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -852,7 +852,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -860,7 +860,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -989,7 +989,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -997,7 +997,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1051,7 +1051,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -1059,7 +1059,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1120,7 +1120,7 @@ describe("FlowERC721 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -1128,7 +1128,7 @@ describe("FlowERC721 previewFlow tests", async function () {
     const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],

@@ -193,7 +193,7 @@ describe("Flow multiCall tests", async function () {
     const sources = [];
 
     const flowConfigStruct_A: FlowConfig = {
-      stateConfig: { sources, constants: constants_A },
+      expressionConfig: { sources, constants: constants_A },
       flows: [
         { sources: [sourceFlowIO_A], constants: constants_A },
         { sources: [sourceFlowIO_B], constants: constants_B },

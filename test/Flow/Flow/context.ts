@@ -160,7 +160,7 @@ describe("Flow context tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [
         {
           sources: [sourceFlowIO],
@@ -460,7 +460,7 @@ describe("Flow context tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [
         {
           sources: [sourceFlowIO],

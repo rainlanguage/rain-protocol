@@ -95,7 +95,7 @@ describe("Sale timeout", async function () {
           {
             interpreter: interpreter.address,
             expressionDeployer: expressionDeployer.address,
-            interpreterStateConfig: {
+            interpreterExpressionConfig: {
               sources,
               constants,
             },
@@ -123,7 +123,7 @@ describe("Sale timeout", async function () {
       {
         interpreter: interpreter.address,
         expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
+        interpreterExpressionConfig: {
           sources,
           constants,
         },

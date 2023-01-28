@@ -4,6 +4,7 @@ pragma solidity ^0.8.15;
 import "../ierc3156/IERC3156FlashLender.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
+import "../interpreter/run/LibEvaluable.sol";
 
 /// Configuration for a deposit. All deposits are processed by and for
 /// `msg.sender` so the vaults are unambiguous here.
@@ -56,13 +57,13 @@ struct IO {
 /// integrity check for the associated interpreter. The `expressionDeployer`
 /// appears in the `AddOrder` event so that anyone taking or clearing orders
 /// MUST ignore this order if the deployer/interpreter pairing is untrusted.
-/// @param interpreter The interpreter to execute the associated `StateConfig`
-/// once deployed. As the `msg.sender` has direct control over this they MAY
-/// select a malicious/buggy interpreter that produces garbage results. The
-/// interpreter is included in the `Order` so it appears in the `addOrder` event.
-/// Anyone taking or clearing orders MUST ignore this order if the
-/// deployer/interpreter pairing is untrusted.
-/// @param interpreterStateConfig The `StateConfig` for the expression deployer
+/// @param interpreter The interpreter to execute the associated
+/// `ExpressionConfig` once deployed. As the `msg.sender` has direct control over
+/// this they MAY select a malicious/buggy interpreter that produces garbage
+/// results. The interpreter is included in the `Order` so it appears in the
+/// `addOrder` event. Anyone taking or clearing orders MUST ignore this order if
+/// the deployer/interpreter pairing is untrusted.
+/// @param interpreterExpressionConfig The `ExpressionConfig` for the expression deployer
 /// that will be deployed then evaluated by the interpreter as `IInterpreterV1`
 /// under the encoded dispatches on the `Order`. Source 0 is the calculate order
 /// entrypoint and source 1 is the handle IO entrypoint. Handle IO MAY be zero
@@ -72,11 +73,9 @@ struct IO {
 /// @param validOutputs As per `validOutputs` on the `Order`.
 /// @param data As per `data` on the `Order`.
 struct OrderConfig {
-    address expressionDeployer;
-    address interpreter;
-    StateConfig interpreterStateConfig;
     IO[] validInputs;
     IO[] validOutputs;
+    EvaluableConfig evaluableConfig;
     bytes data;
 }
 
@@ -98,9 +97,8 @@ struct OrderConfig {
 /// offchain processes.
 struct Order {
     address owner;
-    address interpreter;
-    EncodedDispatch dispatch;
-    EncodedDispatch handleIODispatch;
+    bool handleIO;
+    Evaluable evaluable;
     IO[] validInputs;
     IO[] validOutputs;
     bytes data;

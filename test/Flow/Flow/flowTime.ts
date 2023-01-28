@@ -119,7 +119,7 @@ describe("Flow flowTime tests", async function () {
     const sources = [];
 
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
+      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 

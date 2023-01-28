@@ -23,7 +23,7 @@ export const flowERC721Deploy = async (
   );
 
   const flowERC20ConfigStruct: FlowERC721ConfigStruct = {
-    stateConfig: flowERC721Config.stateConfig,
+    expressionConfig: flowERC721Config.expressionConfig,
     flowConfig: {
       expressionDeployer: expressionDeployer.address,
       interpreter: interpreter.address,

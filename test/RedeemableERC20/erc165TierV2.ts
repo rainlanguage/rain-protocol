@@ -69,7 +69,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
 
     const tier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           sourceReportTimeForTierDefault,
@@ -121,7 +121,7 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       asset: reserveToken.address,
       interpreter: interpreter.address,
       expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+      expressionConfig: {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
