@@ -27,6 +27,7 @@ const writeFile = (_path: string, file: string) => {
 const main = async () => {
   const root = path.resolve();
   const args = argv.slice(2);
+
   if (!args.length || args.includes("--help") || args.includes("-h") || args.includes("-H")){
     console.log(
       `
@@ -47,6 +48,11 @@ const main = async () => {
         
         --schema, -s, -S <path/to/schema.json>
           (optional) Path to the opmeta schema, uses the default schema if not provided.
+
+
+      *** Path can be relative or absolute ***
+          - relative path must start with letters or 1 or 2 dots ".", example: relative/path ./relative/path ../../relative/path
+          - absolute path must start with slash "/", example: /absolute/path
       `
     )
   }
