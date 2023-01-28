@@ -16,7 +16,7 @@ solt
 tenderly.yaml
 test-template.ts
 dumpfile
-AllStandardOpmeta.json
+.DS_Store
 
 # Echidna
 crytic-export

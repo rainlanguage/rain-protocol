@@ -1,4 +1,5 @@
 import { Rainterpreter, RainterpreterStore } from "../../../../../typechain";
+import { getRainterpreterOpmetaBytes } from "../../../../interpreter/ops/allStandardOpmeta";
 import { basicDeploy } from "../../../basicDeploy";
 
 export const rainterpreterDeploy = async () => {
@@ -9,7 +10,7 @@ export const rainterpreterDeploy = async () => {
   return (await basicDeploy("Rainterpreter", {}, [
     {
       store: store.address,
-      opMeta: [],
+      opMeta: getRainterpreterOpmetaBytes(),
     },
   ])) as Rainterpreter;
 };

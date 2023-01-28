@@ -60,7 +60,7 @@ import updateTimesForTierRangeMeta from "../../../contracts/interpreter/ops/tier
 import { deflateSync } from "zlib";
 import fs from "fs";
 import { resolve } from "path";
-
+import { format } from "prettier";
 
 /**
  * @public
@@ -125,8 +125,8 @@ export const rainterpreterOpmeta = [
   iTierV2ReportTimeForTierMeta,
   saturatingDiffMeta,
   selectLteMeta,
-  updateTimesForTierRangeMeta
-]
+  updateTimesForTierRangeMeta,
+];
 
 /**
  * @public
@@ -134,38 +134,40 @@ export const rainterpreterOpmeta = [
  * @returns hex string
  */
 export const getRainterpreterOpmetaBytes = (): string => {
-  const opmetaBytes = Uint8Array.from(deflateSync(
-    JSON.stringify(rainterpreterOpmeta, null, 4)
-  ))
-  let opmetaHexString = "0x"
+  const opmetaBytes = Uint8Array.from(
+    deflateSync(
+      format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
+    )
+  );
+  let opmetaHexString = "0x";
   for (let i = 0; i < opmetaBytes.length; i++) {
-      opmetaHexString = 
-          opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0")
+    opmetaHexString =
+      opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0");
   }
-  return opmetaHexString
-}
+  return opmetaHexString;
+};
 
 /**
  * @public
- * Generate the JSON file of Rainterpreter opmeta 
- * 
+ * Generate the JSON file of Rainterpreter opmeta
+ *
  * @param path - The path to write the file on, default is the current path
  * @param fileName - The name of the file, default is "RainterpreterOpmeta"
- * @returns Rainterpreter opmeta json 
+ * @returns Rainterpreter opmeta json
  */
 export const getRainterpreterOpmetaJson = (
   path?: string,
   fileName?: string
 ) => {
-  if (!path) path = __dirname
-  path = resolve(path)
-  if (!fileName) fileName = "RainterpreterOpmeta"
+  if (!path) path = __dirname;
+  path = resolve(path);
+  if (!fileName) fileName = "RainterpreterOpmeta";
   try {
     fs.writeFileSync(
       path + "/" + fileName + ".json",
-      JSON.stringify(rainterpreterOpmeta, null, 4)
+      format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
     );
   } catch (error) {
     console.log(error);
   }
-}
+};
