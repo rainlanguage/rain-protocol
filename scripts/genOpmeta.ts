@@ -58,6 +58,7 @@ const main = async () => {
         ? args.indexOf("-p")
         : args.indexOf("-P")
       const _tmp = args.splice(_i, _i + 2);
+      if (_tmp.length != 2) throw new Error("expected destination path to write")
       dir = path.resolve(root, _tmp[1]);
     }
 
@@ -68,9 +69,10 @@ const main = async () => {
         ? args.indexOf("-s")
         : args.indexOf("-S")
       const _tmp = args.splice(_i, _i + 2);
+      if (_tmp.length != 2) throw new Error("expected path to the schema")
       if (_tmp[1].endsWith(".json")) {
         schemaPath = path.resolve(root, _tmp[1]);
-      } else throw new Error("invalid schema path");
+      } else throw new Error("invalid schema, must be a valid json");
     }
 
     const schema = schemaPath.length
@@ -79,13 +81,13 @@ const main = async () => {
     const validate = new Ajv().compile(schema);
 
     const opmetas = [];
-    if (!args.length) throw new Error("expected opmeta files")
+    if (!args.length) throw new Error("expected path to opmeta files")
     for (let i = 0; i < args.length; i++) {
       if (args[i].endsWith(".json")) {
         const tmp = JSON.parse(readFile(path.resolve(root, args[i])));
         if (validate(tmp)) opmetas.push(tmp);
         else throw new Error(`invalid opmeta content at index ${i}`);
-      } else throw new Error(`invalid opmeta path at index ${i}`);
+      } else throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
     }
 
     let opmetaHexString = "0x";
