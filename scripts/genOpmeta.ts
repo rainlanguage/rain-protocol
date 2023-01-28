@@ -27,38 +27,40 @@ const writeFile = (_path: string, file: string) => {
 const main = async () => {
   const root = path.resolve();
   const args = argv.slice(2);
-
   if (!args.length || args.includes("--help") || args.includes("-h") || args.includes("-H")){
     console.log(
       `
       usage:
-        gen-opmeta [options] <args> ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json ...
+        gen-opmeta [--opmeta] <path/to/files.json> [option1] <arg1> [option2] <arg2>
 
       example:
-        gen-opmeta --path dest/path/name.json --schema path/to/schema.json ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
+        gen-opmeta --dest dest/path/name.json --schema path/to/schema.json --opmeta ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
       
 
       options:
 
-        --path, -p, -P <destination/path/name.json>
-          Destination of the output file. Writes to root of the current working directory if not provided.
+        --opmeta, -o, -O <path/to/1st.opmeta.json> <path/to/2nd.opmeta.json> ...
+          Path to individual opmeta files.
+
+        --dest, -d, -D <destination/path/name.json>
+          (optional) Destination of the output file. Writes to root of the current working directory if not provided.
         
         --schema, -s, -S <path/to/schema.json>
-          Path to the opmeta schema, uses the default schema if not provided.
+          (optional) Path to the opmeta schema, uses the default schema if not provided.
       `
     )
   }
   else {
     let dir = root;
     let schemaPath = "";
-    if (args.includes("--path") || args.includes("-p") || args.includes("-P")) {
-      const _i = args.indexOf("--path") > -1
-        ? args.indexOf("--path")
-        : args.indexOf("-p") > -1
-        ? args.indexOf("-p")
-        : args.indexOf("-P")
+    if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
+      const _i = args.indexOf("--dest") > -1
+        ? args.indexOf("--dest")
+        : args.indexOf("-d") > -1
+        ? args.indexOf("-d")
+        : args.indexOf("-D")
       const _tmp = args.splice(_i, _i + 2);
-      if (_tmp.length != 2) throw new Error("expected destination path to write")
+      if (_tmp.length != 2) throw new Error("expected destination path")
       dir = path.resolve(root, _tmp[1]);
     }
 
@@ -81,43 +83,56 @@ const main = async () => {
     const validate = new Ajv().compile(schema);
 
     const opmetas = [];
-    if (!args.length) throw new Error("expected path to opmeta files")
-    for (let i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".json")) {
-        const tmp = JSON.parse(readFile(path.resolve(root, args[i])));
-        if (validate(tmp)) opmetas.push(tmp);
-        else throw new Error(`invalid opmeta content at index ${i}`);
-      } else throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
+    if (args.includes("--opmeta") || args.includes("-o") || args.includes("-O")) {
+      const _i = args.indexOf("--opmeta") > -1
+        ? args.indexOf("--opmeta")
+        : args.indexOf("-o") > -1
+        ? args.indexOf("-o")
+        : args.indexOf("-O")
+      const _tmp = args.splice(_i + 1);
+      if (!_tmp.length) throw new Error("expected path to opmeta files")
+      for (let i = 0; i < _tmp.length; i++) {
+        if (_tmp[i].endsWith(".json")) {
+          const tmp = JSON.parse(readFile(path.resolve(root, _tmp[i])));
+          if (validate(tmp)) opmetas.push(tmp);
+          else throw new Error(`invalid opmeta content at index ${i}`);
+        } else throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
+      }
+
+      let opmetaHexString = "0x";
+      const opmetaBytes = Uint8Array.from(
+        deflateSync(format(JSON.stringify(opmetas, null, 4), { parser: "json" }))
+      );
+      for (let i = 0; i < opmetaBytes.length; i++) {
+        opmetaHexString =
+          opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0");
+      }
+
+      let schemaHexString = "0x";
+      const schemaBytes = Uint8Array.from(
+        deflateSync(format(JSON.stringify(schema, null, 4), { parser: "json" }))
+      );
+      for (let i = 0; i < schemaBytes.length; i++) {
+        schemaHexString =
+          schemaHexString + schemaBytes[i].toString(16).padStart(2, "0");
+      }
+
+      const data = {
+        opmeta: opmetas,
+        deployableOpmetaBytes: opmetaHexString,
+        deployableSchemaBytes: schemaHexString,
+      };
+      const fileData = format(JSON.stringify(data, null, 4), { parser: "json" });
+
+      if (!dir.endsWith(".json")) dir = dir + "/Opmeta.json";
+
+      writeFile(dir, fileData);
     }
-
-    let opmetaHexString = "0x";
-    const opmetaBytes = Uint8Array.from(
-      deflateSync(format(JSON.stringify(opmetas, null, 4), { parser: "json" }))
-    );
-    for (let i = 0; i < opmetaBytes.length; i++) {
-      opmetaHexString =
-        opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0");
-    }
-
-    let schemaHexString = "0x";
-    const schemaBytes = Uint8Array.from(
-      deflateSync(format(JSON.stringify(schema, null, 4), { parser: "json" }))
-    );
-    for (let i = 0; i < schemaBytes.length; i++) {
-      schemaHexString =
-        schemaHexString + schemaBytes[i].toString(16).padStart(2, "0");
-    }
-
-    const data = {
-      opmeta: opmetas,
-      deployableOpmetaBytes: opmetaHexString,
-      deployableSchemaBytes: schemaHexString,
-    };
-    const fileData = format(JSON.stringify(data, null, 4), { parser: "json" });
-
-    if (!dir.endsWith(".json")) dir = dir + "/Opmeta.json";
-
-    writeFile(dir, fileData);
+    else console.log(
+  `
+  Expected Opmeta Files!
+  `
+    )
   }
 };
 
