@@ -36,7 +36,7 @@ const config: HardhatUserConfig = {
             },
           },
           evmVersion: "london",
-          viaIR: true,
+          // viaIR: true,
           metadata: {
             useLiteralContent: true,
           },

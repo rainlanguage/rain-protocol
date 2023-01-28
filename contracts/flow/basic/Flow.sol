@@ -6,6 +6,12 @@ import "../libraries/LibFlow.sol";
 import "../../array/LibUint256Array.sol";
 import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
+struct FlowConfig {
+    // https://github.com/ethereum/solidity/issues/13597
+    EvaluableConfig dummyConfig;
+    EvaluableConfig[] config;
+}
+
 contract Flow is ReentrancyGuard, FlowCommon {
     using LibInterpreterState for InterpreterState;
     using LibUint256Array for uint256[];
@@ -13,9 +19,9 @@ contract Flow is ReentrancyGuard, FlowCommon {
     event Initialize(address sender, EvaluableConfig[] config);
 
     /// @param config_ allowed flows set at initialization.
-    function initialize(EvaluableConfig[] memory config_) external initializer {
-        __FlowCommon_init(config_, MIN_FLOW_SENTINELS);
-        emit Initialize(msg.sender, config_);
+    function initialize(FlowConfig memory config_) external initializer {
+        __FlowCommon_init(config_.config, MIN_FLOW_SENTINELS);
+        emit Initialize(msg.sender, config_.config);
     }
 
     function _previewFlow(

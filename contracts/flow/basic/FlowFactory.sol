@@ -2,7 +2,7 @@
 pragma solidity =0.8.17;
 
 import {Factory} from "../../factory/Factory.sol";
-import {Flow} from "./Flow.sol";
+import {Flow, FlowConfig} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import {LibInterpreterState} from "../../interpreter/run/LibInterpreterState.sol";
 import {EvaluableConfig} from "../../interpreter/run/LibEvaluable.sol";
@@ -25,9 +25,9 @@ contract FlowFactory is Factory {
     function _createChild(
         bytes memory data_
     ) internal virtual override returns (address) {
-        EvaluableConfig[] memory config_ = abi.decode(
+        FlowConfig memory config_ = abi.decode(
             data_,
-            (EvaluableConfig[])
+            (FlowConfig)
         );
         address clone_ = Clones.clone(implementation);
         Flow(payable(clone_)).initialize(config_);
