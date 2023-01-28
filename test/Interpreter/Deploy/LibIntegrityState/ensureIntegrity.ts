@@ -233,7 +233,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     assert(stackTop_.eq(stackTop), "stackTop should remain unchanged");
   });
   
-  it("should ensure integrity of very basic IntegrityCheckState", async function () {
+  it("should fail if the stackBottom is invalid", async function () {
     const source0 = Uint8Array.from([]);
     const sources = [source0];
 
@@ -253,7 +253,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
         INITIAL_STACK_BOTTOM.sub(10)
       ),
       "MinStackBottom()",
-      "Invalid StackBottom"
+      "Did not fail for an invalid StackBottom"
     );
   });
 });
