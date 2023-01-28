@@ -157,11 +157,11 @@ let
   '';
 
   gen-rainterpreter-opmeta = pkgs.writeShellScriptBin "gen-rainterpreter-opmeta" ''
-    npm run gen-rainterpreter-opmeta ''$@
+    ts-node ./scripts/genRainterpreterOpmeta.ts ''$@
   '';
 
   gen-opmeta = pkgs.writeShellScriptBin "gen-opmeta" ''
-    npm run gen-opmeta ''$@
+    ts-node ./scripts/genOpmeta.ts ''$@
   '';
 
 in
