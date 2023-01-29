@@ -1,12 +1,6 @@
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReadWriteTier,
-  ReserveToken,
-  SaleFactory,
-} from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { zeroAddress } from "../../utils/constants/address";
 import { ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
@@ -15,6 +9,7 @@ import {
   saleDeploy,
 } from "../../utils/deploy/sale/deploy";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -29,13 +24,9 @@ const Opcode = AllStandardOps;
 describe("Sale construction", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    interpreter: Rainterpreter,
-    expressionDeployer: RainterpreterExpressionDeployer;
-
+    saleFactory: SaleFactory;
   before(async () => {
-    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -78,6 +69,10 @@ describe("Sale construction", async function () {
       concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     await assertError(
       async () =>
         await saleDeploy(
@@ -85,12 +80,7 @@ describe("Sale construction", async function () {
           deployer,
           saleFactory,
           {
-            interpreter: interpreter.address,
-            expressionDeployer: expressionDeployer.address,
-            interpreterExpressionConfig: {
-              sources,
-              constants,
-            },
+            evaluableConfig,
             recipient: recipient.address,
             reserve: reserve.address,
             cooldownDuration: 1,
@@ -147,6 +137,10 @@ describe("Sale construction", async function () {
       concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     await assertError(
       async () =>
         await saleDeploy(
@@ -154,12 +148,7 @@ describe("Sale construction", async function () {
           deployer,
           saleFactory,
           {
-            interpreter: interpreter.address,
-            expressionDeployer: expressionDeployer.address,
-            interpreterExpressionConfig: {
-              sources,
-              constants,
-            },
+            evaluableConfig,
             recipient: recipient.address,
             reserve: reserve.address,
             cooldownDuration: 1,

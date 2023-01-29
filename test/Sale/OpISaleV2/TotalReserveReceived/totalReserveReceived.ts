@@ -62,7 +62,7 @@ describe("ISaleV2 TotalReserveReceived tests", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
 
     const _totalReserveReceived = await logic.stackTop();
 

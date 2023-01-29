@@ -2,8 +2,6 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReadWriteTier,
   RedeemableERC20Factory,
   ReserveToken,
@@ -25,6 +23,7 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -42,18 +41,10 @@ describe("Sale minimum raise", async function () {
   let reserve: ReserveToken,
     redeemableERC20Factory: RedeemableERC20Factory,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    interpreter: Rainterpreter,
-    expressionDeployer: RainterpreterExpressionDeployer;
-
+    saleFactory: SaleFactory;
   before(async () => {
-    ({
-      redeemableERC20Factory,
-      readWriteTier,
-      saleFactory,
-      interpreter,
-      expressionDeployer,
-    } = await saleDependenciesDeploy());
+    ({ redeemableERC20Factory, readWriteTier, saleFactory } =
+      await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -98,17 +89,16 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -332,14 +322,12 @@ describe("Sale minimum raise", async function () {
       concat([]),
     ];
     const saleTimeout = 100;
-
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const saleConfig = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreterExpressionConfig: {
-        sources,
-        constants,
-      },
+      evaluableConfig,
       recipient: recipient.address,
       reserve: reserve.address,
       cooldownDuration: 1,

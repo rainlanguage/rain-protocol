@@ -1,13 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReadWriteTier,
-  ReserveToken,
-  SaleFactory,
-} from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { PhaseScheduledEvent } from "../../typechain/contracts/phased/Phased";
 import { TimeoutEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
@@ -20,6 +14,7 @@ import {
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock, getBlockTimestamp } from "../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -36,13 +31,9 @@ const Opcode = AllStandardOps;
 describe("Sale timeout", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    interpreter: Rainterpreter,
-    expressionDeployer: RainterpreterExpressionDeployer;
-
+    saleFactory: SaleFactory;
   before(async () => {
-    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -86,6 +77,10 @@ describe("Sale timeout", async function () {
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     await assertError(
       async () =>
         await saleDeploy(
@@ -93,12 +88,7 @@ describe("Sale timeout", async function () {
           deployer,
           saleFactory,
           {
-            interpreter: interpreter.address,
-            expressionDeployer: expressionDeployer.address,
-            interpreterExpressionConfig: {
-              sources,
-              constants,
-            },
+            evaluableConfig,
             recipient: recipient.address,
             reserve: reserve.address,
             cooldownDuration: 1,
@@ -121,12 +111,7 @@ describe("Sale timeout", async function () {
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,

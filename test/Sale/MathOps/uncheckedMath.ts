@@ -1,13 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReadWriteTier,
-  ReserveToken,
-  SaleFactory,
-} from "../../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../../typechain";
 import { zeroAddress } from "../../../utils/constants/address";
 import {
   max_uint256,
@@ -21,6 +15,7 @@ import {
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { createEmptyBlock } from "../../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -36,13 +31,9 @@ describe("Sale unchecked math", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory,
-    signers: SignerWithAddress[],
-    interpreter: Rainterpreter,
-    expressionDeployer: RainterpreterExpressionDeployer;
-
+    signers: SignerWithAddress[];
   before(async () => {
-    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -100,17 +91,17 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -194,17 +185,17 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -277,17 +268,17 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -368,17 +359,17 @@ describe("Sale unchecked math", async function () {
       concat([]),
     ];
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
+
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
