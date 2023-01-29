@@ -199,21 +199,15 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
 
     const timestamp = (await getBlockTimestamp()) - 1;
-    console.log(timestamp)
-    const chainlinkPriceData2 = [
-      // roundID
-      4,
-      // answer
-      "123" + eighteenZeros,
-      // startedAt
-      timestamp,
-      // updatedAt
-      timestamp,
-      // answeredInRound
-      4,
-    ];
+    const chainlinkPriceData = {
+      roundId: 4,
+      answer: "123" + eighteenZeros,
+      startedAt: timestamp,
+      updatedAt: timestamp,
+      answeredInRound: 4,
+    };
 
-    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData2);
+    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
     fakeChainlinkOracle2.decimals.returns(18);
 
     const feed = fakeChainlinkOracle2.address;

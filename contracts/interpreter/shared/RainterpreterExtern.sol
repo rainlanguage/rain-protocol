@@ -27,8 +27,11 @@ contract RainterpreterExtern is IInterpreterExternV1 {
         if (inputs_.length != 2) {
             revert BadInputs(2, inputs_.length);
         }
-        return inputs_.asStackPointerAfter()
+        return
+            inputs_
+                .asStackPointerAfter()
                 .applyFn(OpChainlinkOraclePrice.f)
-                .peek().arrayFrom();
+                .peek()
+                .arrayFrom();
     }
 }
