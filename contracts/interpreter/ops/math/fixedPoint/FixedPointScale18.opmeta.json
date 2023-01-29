@@ -1,22 +1,17 @@
 {
-  "name": "fp-scale18",
-  "desc": "Rescale a fixed point number of N decimals to 18 decimals.",
+  "name": "scale18",
+  "desc": "Rescale a fixed point number of N decimals to 18 decimals where N is in the operand.",
   "operand": [
-    {
-      "name": "Inputs",
-      "bits": [0, 2],
-      "validRange": [[1, 2]]
-    },
     {
       "name": "Rounding",
       "desc": "Direction to round truncation errors when scaling down. 0 = Down, 1 = Up.",
-      "bits": [2, 3],
+      "bits": [0, 0],
       "validRange": [[0, 1]]
     },
     {
       "name": "Current decimals",
-      "desc": "Current decimals of the value being rescaled. Only used if inputs = 1.",
-      "bits": [3, 15],
+      "desc": "Current decimals of the value being rescaled.",
+      "bits": [1, 15],
       "validRange": [[0, 77]]
     }
   ],

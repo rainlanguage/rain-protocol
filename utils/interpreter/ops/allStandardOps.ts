@@ -25,6 +25,7 @@ export enum AllStandardOps {
   EXPLODE32,
   SCALE18,
   SCALE18_DIV,
+  SCALE18_DYNAMIC,
   SCALE18_MUL,
   SCALE_BY,
   SCALEN,
