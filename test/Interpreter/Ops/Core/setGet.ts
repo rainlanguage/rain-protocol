@@ -7,7 +7,6 @@ import {
   Rainterpreter,
   RainterpreterStore,
 } from "../../../../typechain";
-import { interpreter } from "../../../../typechain/contracts";
 
 import {
   memoryOperand,
@@ -26,7 +25,6 @@ import {
 } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 
 const Opcode = RainterpreterOps;
-const DEFAULT_NAMESPACE = 1111;
 
 describe("SET/GET Opcode tests", async function () {
   it("should update the key in kvs array when same key is set more than once", async () => {

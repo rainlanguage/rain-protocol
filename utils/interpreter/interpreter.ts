@@ -5,6 +5,7 @@ import {
   EvaluableConfigStruct,
   ExpressionConfigStruct,
 } from "../../typechain/contracts/flow/basic/Flow";
+import { zeroAddress } from "../constants";
 import {
   rainterpreterDeploy,
   rainterpreterStoreDeploy,
@@ -173,23 +174,27 @@ export function foldContextOperand(
 }
 
 /**
- * Builds the operand for RainInterpreter's `FOLD_CONTEXT` opcode by packing 4 numbers into 2 bytes.
+ * Builds the EvaluableConfig struct with expressionConfig and a store.
  *
  * @param expressionConfig - index of function source
  */
 export async function generateEvaluableConfig(
-  expressionConfig: ExpressionConfigStruct
+  expressionConfig: ExpressionConfigStruct,
+  isStore = true
 ): Promise<EvaluableConfigStruct> {
   const interpreter = await rainterpreterDeploy();
   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
     interpreter
   );
-  const interpreterStore: RainterpreterStore = await rainterpreterStoreDeploy();
+
+  let interpreterStore: RainterpreterStore = null;
+
+  interpreterStore = await rainterpreterStoreDeploy();
 
   return {
     deployer: expressionDeployer.address,
     interpreter: interpreter.address,
-    store: interpreterStore.address,
+    store: isStore ? interpreterStore.address : zeroAddress,
     expressionConfig: expressionConfig,
   };
 }

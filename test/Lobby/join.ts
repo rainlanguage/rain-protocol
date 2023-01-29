@@ -1,9 +1,7 @@
 import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  ReserveToken18,
-} from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   ContextEvent,
   DepositEvent,
@@ -73,8 +71,10 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
-    
-    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
@@ -170,8 +170,10 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
-    
-    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
@@ -281,8 +283,10 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
-    
-    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
@@ -377,8 +381,10 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
-    
-    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
+
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,

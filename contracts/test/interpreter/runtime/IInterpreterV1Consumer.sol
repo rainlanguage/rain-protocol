@@ -24,7 +24,7 @@ contract IInterpreterV1Consumer {
             context_
         );
     }
-    
+
     function eval(
         IInterpreterV1 interpreter_,
         IInterpreterStoreV1 store_,

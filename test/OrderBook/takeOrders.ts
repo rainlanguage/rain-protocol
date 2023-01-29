@@ -5099,7 +5099,10 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
-    const askEvaluableConfig = await generateEvaluableConfig({sources: [askSource, []],constants: askConstants});
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     const askOrderConfig: OrderConfigStruct = {
       validInputs: [
