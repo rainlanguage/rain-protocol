@@ -44,8 +44,6 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
         ],
         constants: [ALWAYS],
       },
-      expressionDeployer: "",
-      interpreter: "",
     })) as CombineTier;
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
@@ -56,8 +54,6 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
         ],
         constants: [NEVER],
       },
-      expressionDeployer: "",
-      interpreter: "",
     })) as CombineTier;
 
     const constants = [
@@ -86,8 +82,6 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
-      expressionDeployer: "",
-      interpreter: "",
     })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -136,8 +130,6 @@ describe("CombineTier tierwise combine report with 'any' logic and 'max' mode", 
         sources: [sourceReport, sourceReportTimeForTierDefault],
         constants,
       },
-      expressionDeployer: "",
-      interpreter: "",
     })) as CombineTier;
 
     const startTimestamp = await getBlockTimestamp();

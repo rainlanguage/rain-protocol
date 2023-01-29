@@ -18,6 +18,7 @@ import {
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -81,17 +82,16 @@ describe("Sale noticeboard", async function () {
       concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const [sale] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterExpressionConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig: evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,

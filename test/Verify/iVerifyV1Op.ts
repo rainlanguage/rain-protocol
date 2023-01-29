@@ -87,9 +87,11 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     let timestamp = await getBlockTimestamp();
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_NIL),
       "Incorrect status when no action is performed [STATUS_NIL]"
@@ -104,9 +106,11 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     timestamp = await getBlockTimestamp();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp - ONE_SECOND],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp - ONE_SECOND]]
+    );
 
     // Checking status before 'add'
     assertError(
@@ -116,9 +120,11 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     // Checking status after 'add'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_ADDED),
       "Incorrect status after adding an evidence [STATUS_ADDED]"
@@ -132,18 +138,22 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     timestamp = await getBlockTimestamp();
 
     // Checking status before 'approve'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp - ONE_SECOND],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp - ONE_SECOND]]
+    );
     assertError(
       (await logic.stackTop()).eq(Util.STATUS_APPROVED),
       "Incorrect status before adding an evidence",
       "[STATUS_ADDED] expected"
     );
     // Checking status after 'approve'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_APPROVED),
       "Incorrect status after approving an evidence [STATUS_APPROVED]"
@@ -157,9 +167,11 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     timestamp = await getBlockTimestamp();
 
     // Checking status before 'ban'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp - ONE_SECOND],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp - ONE_SECOND]]
+    );
     assertError(
       (await logic.stackTop()).eq(Util.STATUS_BANNED),
       "Incorrect status before adding an evidence",
@@ -167,9 +179,11 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     // Checking status after 'ban'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_BANNED),
       "Incorrect status after banning an address [STATUS_BANNED]"

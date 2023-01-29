@@ -1,11 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  ReadWriteTier,
-  ReserveToken,
-  SaleFactory,
-} from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import {
@@ -39,8 +35,7 @@ describe("Sale calculate price", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
-    ({ readWriteTier, saleFactory } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {

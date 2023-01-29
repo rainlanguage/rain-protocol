@@ -52,7 +52,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(100);
@@ -89,7 +93,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros + "0000");
@@ -125,7 +133,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + eighteenZeros + "00");
@@ -162,7 +174,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixZeros);
@@ -201,7 +217,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
@@ -241,7 +261,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value1 + eighteenZeros)
@@ -278,7 +302,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(value + eighteenZeros);

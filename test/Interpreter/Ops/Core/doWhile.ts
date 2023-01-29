@@ -54,7 +54,11 @@ describe("DO_WHILE Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
@@ -100,7 +104,11 @@ describe("DO_WHILE Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stackTop();
 
     console.log("Result: ", result.toString());
@@ -151,7 +159,11 @@ describe("DO_WHILE Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
@@ -233,7 +245,11 @@ describe("DO_WHILE Opcode test", async function () {
         2
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stack();
 
     // Calculating the expected result

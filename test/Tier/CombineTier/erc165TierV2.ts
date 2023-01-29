@@ -12,11 +12,10 @@ import {
   max_uint256,
   stakeDeploy,
 } from "../../../utils";
-import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -46,18 +45,16 @@ describe("CombineTier ERC165 tests", async function () {
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
-
+    const evaluableConfig0 = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [ALWAYS],
+    });
     const combineTierContract = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      expressionConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [ALWAYS],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig0,
     })) as CombineTier;
 
     const constants = [ethers.BigNumber.from(combineTierContract.address)];
@@ -73,12 +70,12 @@ describe("CombineTier ERC165 tests", async function () {
       sources: [sourceReport, sourceReportTimeForTierDefault],
       constants,
     };
-
+    const evaluableConfig1 = await generateEvaluableConfig(
+      combineTierSourceConfig
+    );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      expressionConfig: combineTierSourceConfig,
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig1,
     })) as CombineTier;
 
     const { config } = (await getEventArgs(
@@ -96,24 +93,22 @@ describe("CombineTier ERC165 tests", async function () {
     const deployer = signers[0];
     const token = (await basicDeploy("ReserveToken", {})) as ReserveToken;
 
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: token.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      expressionConfig: {
+    const evaluableConfig0 = await generateEvaluableConfig(
+      {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
+      false
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: token.address,
+      evaluableConfig: evaluableConfig0,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -132,11 +127,12 @@ describe("CombineTier ERC165 tests", async function () {
       constants,
     };
 
+    const evaluableConfig1 = await generateEvaluableConfig(
+      combineTierSourceConfig
+    );
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 1,
-      expressionConfig: combineTierSourceConfig,
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig1,
     })) as CombineTier;
 
     const { config } = (await getEventArgs(

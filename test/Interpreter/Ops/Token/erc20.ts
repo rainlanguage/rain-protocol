@@ -70,7 +70,11 @@ describe("RainInterpreter ERC20 ops", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20.totalSupply();
     assert(
@@ -107,13 +111,21 @@ describe("RainInterpreter ERC20 ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(result0.isZero(), `expected 0, got ${result0}`);
 
     await tokenERC20.transfer(signer1.address, 100);
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

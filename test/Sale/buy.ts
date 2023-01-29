@@ -36,8 +36,7 @@ describe("Sale buy", async function () {
     readWriteTier: ReadWriteTier,
     saleFactory: SaleFactory;
   before(async () => {
-    ({ readWriteTier, saleFactory } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {

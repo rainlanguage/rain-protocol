@@ -45,7 +45,11 @@ describe("READ_MEMORY Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     console.log(await logic.stack());
     const expectedResult0 = ethers.BigNumber.from(constants[0]);
@@ -74,7 +78,11 @@ describe("READ_MEMORY Opcode test", async function () {
       4
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const expectedTimeStamp = await getBlockTimestamp();
 
     const result0 = await logic.stack();
@@ -213,7 +221,11 @@ describe("READ_MEMORY Opcode test", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result = await logic.stackTop();
     const expected = constants[2] + constants[3] + constants[0];
@@ -245,7 +257,11 @@ describe("READ_MEMORY Opcode test", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result = await logic.stackTop();
 
@@ -274,7 +290,11 @@ describe("READ_MEMORY Opcode test", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result = await logic.stackTop();
 
