@@ -387,9 +387,6 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     {
         bytes32 signedContextsHash_ = LibContext.hash(signedContexts_);
         bytes32 resultHash_ = resultHash;
-        if (resultHash_ != signedContextsHash_) {
-            revert BadHash(resultHash_, signedContextsHash_);
-        }
 
         // The first time claim is called we move to complete and register the
         // hash of the signed context used to phase shift.
@@ -403,6 +400,13 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
 
         if (currentPhase() != PHASE_COMPLETE) {
             revert BadPhase();
+        }
+
+        // Check the result hash after processing potential phase shifts that may
+        // have changed it.
+        resultHash_ = resultHash;
+        if (resultHash != signedContextsHash_) {
+            revert BadHash(resultHash_, signedContextsHash_);
         }
 
         Evaluable memory evaluable_ = evaluable;
