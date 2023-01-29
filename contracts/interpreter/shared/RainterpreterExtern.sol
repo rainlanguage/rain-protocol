@@ -31,10 +31,12 @@ contract RainterpreterExtern is IInterpreterExternV1 {
             revert BadInputs(2, inputs_.length);
         }
         StackPointer stackPointer_ = inputs_.asStackPointerAfter();
-        return
-            stackPointer_
+        uint256 result_ = stackPointer_
                 .applyFn(OpChainlinkOraclePrice.f)
-                .peek()
-                .arrayFrom();
+                .peek();
+                console.log("r", result_);
+        return
+
+                result_.arrayFrom();
     }
 }

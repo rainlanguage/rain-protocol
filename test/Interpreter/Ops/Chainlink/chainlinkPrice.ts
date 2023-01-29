@@ -26,7 +26,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
 
   beforeEach(async () => {
-    fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+    // fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
     rainInterpreterExtern = await rainterpreterExtern();
   });
 
@@ -196,20 +196,27 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it.only("extern test", async () => {
-    const timestamp =await getBlockTimestamp();
+    const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+
+    const timestamp = (await getBlockTimestamp()) - 1;
     console.log(timestamp)
-    const chainlinkPriceData = {
-      roundId: 4,
-      answer: 123 + eighteenZeros,
-      startedAt: timestamp,
-      updatedAt: timestamp,
-      answeredInRound: 4,
-    };
+    const chainlinkPriceData2 = [
+      // roundID
+      4,
+      // answer
+      "123" + eighteenZeros,
+      // startedAt
+      timestamp,
+      // updatedAt
+      timestamp,
+      // answeredInRound
+      4,
+    ];
 
-    fakeChainlinkOracle.latestRoundData.returns(chainlinkPriceData);
-    fakeChainlinkOracle.decimals.returns(18);
+    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData2);
+    fakeChainlinkOracle2.decimals.returns(18);
 
-    const feed = fakeChainlinkOracle.address;
+    const feed = fakeChainlinkOracle2.address;
     const staleAfter = 10000;
 
     const inputs = [feed, staleAfter];

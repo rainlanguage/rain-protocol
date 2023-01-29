@@ -4,6 +4,8 @@ pragma solidity ^0.8.15;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "../math/LibFixedPointMath.sol";
 
+import "hardhat/console.sol";
+
 /// Thrown if a price is zero or negative as this is probably not anticipated or
 /// useful for most users of a price feed. Of course there are use cases where
 /// zero or negative _oracle values_ in general are useful, such as negative
@@ -32,11 +34,15 @@ library LibChainlink {
         address feed_,
         uint256 staleAfter_
     ) internal view returns (uint256) {
+        console.log("aa", feed_);
         (, int256 answer_, , uint256 updatedAt_, ) = AggregatorV3Interface(
             feed_
         ).latestRoundData();
 
+        console.log("zz");
+
         if (answer_ <= 0) {
+            console.log("not pos");
             revert NotPosIntPrice(answer_);
         }
 
@@ -44,14 +50,18 @@ library LibChainlink {
         // would overflow, and no stale prices.
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp - updatedAt_ > staleAfter_) {
+            console.log("stale");
             revert StalePrice(updatedAt_, staleAfter_);
         }
 
         // Safely cast the answer to uint256 and scale it to 18 decimal FP.
+        // We round up because reporting a non-zero price as zero can cause
+        // issues downstream. This rounding up only happens if the values are
+        // being scaled down.
         return
             answer_.toUint256().scale18(
                 AggregatorV3Interface(feed_).decimals(),
-                Math.Rounding.Down
+                Math.Rounding.Up
             );
     }
 }
