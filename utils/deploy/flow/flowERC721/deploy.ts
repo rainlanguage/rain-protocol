@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { FlowERC721Factory, RainterpreterStore } from "../../../../typechain";
+import { FlowERC721Factory } from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowERC721,
@@ -9,11 +9,8 @@ import {
 } from "../../../../typechain/contracts/flow/erc721/FlowERC721";
 import { getEventArgs } from "../../../events";
 import { FlowERC721Config } from "../../../types/flow";
-import { rainterpreterExpressionDeployerDeploy } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import {
-  rainterpreterDeploy,
-  rainterpreterStoreDeploy,
-} from "../../interpreter/shared/rainterpreter/deploy";
+
+import { generateEvaluableConfig } from "../../../interpreter";
 
 export const flowERC721Deploy = async (
   deployer: SignerWithAddress,
@@ -21,36 +18,18 @@ export const flowERC721Deploy = async (
   flowERC721Config: FlowERC721Config,
   ...args: Overrides[]
 ) => {
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
-  );
-  const interpreterStore: RainterpreterStore = await rainterpreterStoreDeploy();
-
   // Building evaluableConfig
-  const evaluableConfig: EvaluableConfigStruct = {
-    deployer: expressionDeployer.address,
-    interpreter: interpreter.address,
-    store: interpreterStore.address,
-    expressionConfig: flowERC721Config.expressionConfig,
-  };
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    flowERC721Config.expressionConfig
+  );
 
   // Building flowConfig
   const flowConfig: EvaluableConfigStruct[] = [];
   for (let i = 0; i < flowERC721Config.flows.length; i++) {
-    const interpreter_ = await rainterpreterDeploy();
-    const expressionDeployer_ = await rainterpreterExpressionDeployerDeploy(
-      interpreter_
+    const evaluableConfig = await generateEvaluableConfig(
+      flowERC721Config.flows[i]
     );
-    const interpreterStore_: RainterpreterStore =
-      await rainterpreterStoreDeploy();
-
-    flowConfig.push({
-      deployer: expressionDeployer_.address,
-      interpreter: interpreter_.address,
-      store: interpreterStore_.address,
-      expressionConfig: flowERC721Config.flows[i],
-    });
+    flowConfig.push(evaluableConfig);
   }
 
   const flowERC721ConfigStruct: FlowERC721ConfigStruct = {
@@ -82,5 +61,5 @@ export const flowERC721Deploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return { flow, interpreter, expressionDeployer };
+  return { flow };
 };

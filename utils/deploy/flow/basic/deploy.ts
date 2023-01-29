@@ -1,18 +1,15 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
-import { Flow, FlowFactory, RainterpreterStore } from "../../../../typechain";
+import { Flow, FlowFactory } from "../../../../typechain";
 import {
   EvaluableConfigStruct,
   FlowConfigStruct,
 } from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
-import { rainterpreterExpressionDeployerDeploy } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import {
-  rainterpreterDeploy,
-  rainterpreterStoreDeploy,
-} from "../../interpreter/shared/rainterpreter/deploy";
+
+import { generateEvaluableConfig } from "../../../interpreter";
 
 export const flowDeploy = async (
   deployer: SignerWithAddress,
@@ -24,19 +21,8 @@ export const flowDeploy = async (
 
   // Building config
   for (let i = 0; i < flowConfig.flows.length; i++) {
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-    const interpreterStore: RainterpreterStore =
-      await rainterpreterStoreDeploy();
-
-    evaluableConfigs.push({
-      deployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      store: interpreterStore.address,
-      expressionConfig: flowConfig.flows[i],
-    });
+    const evaluableConfig = await generateEvaluableConfig(flowConfig.flows[i]);
+    evaluableConfigs.push(evaluableConfig);
   }
 
   const flowConfigStruct: FlowConfigStruct = {

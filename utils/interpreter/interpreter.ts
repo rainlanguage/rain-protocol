@@ -1,5 +1,10 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { RainterpreterStore } from "../../typechain";
+import { EvaluableConfigStruct, ExpressionConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
+import { rainterpreterDeploy, rainterpreterStoreDeploy } from "../deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { ExpressionConfig } from "../types";
 import { AllStandardOps } from "./ops/allStandardOps";
 
 export enum MemoryType {
@@ -160,4 +165,27 @@ export function foldContextOperand(
 ): number {
   const operand = (inputs << 12) + (width << 8) + (column << 4) + sourceIndex;
   return operand;
+}
+
+/**
+ * Builds the operand for RainInterpreter's `FOLD_CONTEXT` opcode by packing 4 numbers into 2 bytes.
+ *
+ * @param expressionConfig - index of function source
+ */
+export async function generateEvaluableConfig(
+  expressionConfig: ExpressionConfigStruct
+): Promise<EvaluableConfigStruct> {
+  const interpreter = await rainterpreterDeploy();
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter
+  );
+  const interpreterStore: RainterpreterStore =
+    await rainterpreterStoreDeploy();
+
+  return {
+    deployer: expressionDeployer.address,
+    interpreter: interpreter.address,
+    store: interpreterStore.address,
+    expressionConfig: expressionConfig,
+  };
 }
