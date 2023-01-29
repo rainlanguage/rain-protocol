@@ -1,18 +1,16 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReportOMeter,
-  ReserveToken18,
-  StakeFactory,
-} from "../../typechain";
+import { ReportOMeter, ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
-import { memoryOperand, MemoryType, op, Opcode } from "../../utils";
+import {
+  generateEvaluableConfig,
+  memoryOperand,
+  MemoryType,
+  op,
+  Opcode,
+} from "../../utils";
 import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { reportOMeterDeploy } from "../../utils/deploy/test/tier/ITierV2/ReportOMeter/deploy";
@@ -21,16 +19,10 @@ describe("Stake many successive deposits and withdraws", async function () {
   let stakeFactory: StakeFactory;
   let reportOMeter: ReportOMeter;
   let token: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
     reportOMeter = await reportOMeterDeploy();
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   beforeEach(async () => {
@@ -59,16 +51,19 @@ describe("Stake many successive deposits and withdraws", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -166,16 +161,19 @@ describe("Stake many successive deposits and withdraws", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -236,16 +234,19 @@ describe("Stake many successive deposits and withdraws", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

@@ -1,14 +1,10 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-  StakeFactory,
-} from "../../typechain";
+import { ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -22,8 +18,6 @@ import {
   sixZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
@@ -46,15 +40,9 @@ import { getBlockTimestamp, timewarp } from "../../utils/hardhat/index";
 describe("Stake withdraw", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   beforeEach(async () => {
@@ -98,16 +86,19 @@ describe("Stake withdraw", async function () {
 
     const source = [depositSource, withdrawSource];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: source,
+        constants: constants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: source,
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -157,16 +148,19 @@ describe("Stake withdraw", async function () {
 
     const source = [depositSource, withdrawSource]; // max_withdraw set to 10
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: source,
+        constants: constants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: source,
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -215,16 +209,19 @@ describe("Stake withdraw", async function () {
 
     const source = [max_deposit, max_withdraw]; // max_withdraw set to 10
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: source,
+        constants: constants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: source,
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -306,16 +303,19 @@ describe("Stake withdraw", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -355,16 +355,19 @@ describe("Stake withdraw", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -413,16 +416,19 @@ describe("Stake withdraw", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -476,16 +482,19 @@ describe("Stake withdraw", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -540,16 +549,19 @@ describe("Stake withdraw", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -634,16 +646,19 @@ describe("Stake withdraw", async function () {
 
     const stakeExpressionConfigSources = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: stakeExpressionConfigSources,
-        constants: stakeExpressionConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -675,16 +690,19 @@ describe("Stake withdraw", async function () {
 
     const source = [max_deposit, max_withdraw];
 
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: source,
+        constants: constants,
+      },
+      false
+    );
+
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: source,
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -781,17 +799,19 @@ describe("Stake withdraw", async function () {
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: [source, source],
+        constants: constants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      expressionConfig: {
-        sources: [source, source],
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
