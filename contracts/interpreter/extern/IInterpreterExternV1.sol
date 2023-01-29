@@ -20,6 +20,6 @@ interface IInterpreterExternV1 {
     /// @return outputs_ The result of the dispatched logic.
     function extern(
         ExternDispatch dispatch_,
-        uint256[] calldata inputs_
-    ) external view returns (uint256[] calldata outputs_);
+        uint256[] memory inputs_
+    ) external view returns (uint256[] memory outputs_);
 }
