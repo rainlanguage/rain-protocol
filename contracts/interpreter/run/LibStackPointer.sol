@@ -476,9 +476,9 @@ library LibStackPointer {
             a_ := mload(location_)
             b_ := mload(stackTop_)
         }
-        a_ = fn_(a_, b_);
+        uint256 c_ = fn_(a_, b_);
         assembly ("memory-safe") {
-            mstore(location_, a_)
+            mstore(location_, c_)
         }
         return stackTop_;
     }
