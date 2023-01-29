@@ -20,5 +20,5 @@ export const rainterpreterStoreDeploy = async () => {
 };
 
 export const rainterpreterExtern = async () => {
-  return (await basicDeploy("RainterpreterExtern", {})) as RainterpreterExtern
-}
+  return (await basicDeploy("RainterpreterExtern", {})) as RainterpreterExtern;
+};

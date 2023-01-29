@@ -6,6 +6,8 @@ import "../ops/chainlink/OpChainlinkOraclePrice.sol";
 import "../run/LibStackPointer.sol";
 import "../../array/LibUint256Array.sol";
 
+import "hardhat/console.sol";
+
 /// Thrown when the inputs don't match the expected inputs.
 error BadInputs(uint256 expected, uint256 actual);
 
@@ -24,12 +26,15 @@ contract RainterpreterExtern is IInterpreterExternV1 {
         ExternDispatch,
         uint256[] memory inputs_
     ) external view returns (uint256[] memory) {
+        console.log(block.timestamp);
         if (inputs_.length != 2) {
             revert BadInputs(2, inputs_.length);
         }
-        return inputs_
-                .asStackPointerAfter()
+        StackPointer stackPointer_ = inputs_.asStackPointerAfter();
+        return
+            stackPointer_
                 .applyFn(OpChainlinkOraclePrice.f)
-                .peek().arrayFrom();
+                .peek()
+                .arrayFrom();
     }
 }

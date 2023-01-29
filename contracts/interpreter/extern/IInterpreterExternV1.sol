@@ -12,7 +12,6 @@ type ExternDispatch is uint256;
 /// terms of code size. Effectively allows unlimited words to exist as externs
 /// alongside interpreters.
 interface IInterpreterExternV1 {
-
     /// Handles a single dispatch.
     /// @param dispatch_ Encoded information about the extern to dispatch.
     /// Analogous to the opcode/operand in the interpreter.

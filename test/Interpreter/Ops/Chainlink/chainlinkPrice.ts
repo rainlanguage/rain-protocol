@@ -1,4 +1,7 @@
-import type { AggregatorV3Interface, RainterpreterExtern } from "../../../../typechain";
+import type {
+  AggregatorV3Interface,
+  RainterpreterExtern,
+} from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
@@ -24,7 +27,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
   beforeEach(async () => {
     fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
-    rainInterpreterExtern = await rainterpreterExtern()
+    rainInterpreterExtern = await rainterpreterExtern();
   });
 
   it("should revert if price is stale", async () => {
@@ -193,11 +196,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it.only("extern test", async () => {
+    const timestamp =await getBlockTimestamp();
+    console.log(timestamp)
     const chainlinkPriceData = {
       roundId: 4,
       answer: 123 + eighteenZeros,
-      startedAt: await getBlockTimestamp(),
-      updatedAt: await getBlockTimestamp(),
+      startedAt: timestamp,
+      updatedAt: timestamp,
       answeredInRound: 4,
     };
 
@@ -207,12 +212,10 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle.address;
     const staleAfter = 10000;
 
-    const inputs = [feed,staleAfter]
+    const inputs = [feed, staleAfter];
 
-    let priceData = await rainInterpreterExtern.extern(0,inputs)
-    console.log(priceData)
+    const priceData = await rainInterpreterExtern.extern(0, inputs);
+    console.log(priceData);
     // assert(priceData)
-
-
   });
 });
