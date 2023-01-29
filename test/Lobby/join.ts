@@ -2,8 +2,6 @@ import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../typechain";
 import {
@@ -16,10 +14,9 @@ import {
 import { assertError } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -30,18 +27,9 @@ describe("Lobby Tests join", async function () {
   const Opcode = RainterpreterOps;
 
   let tokenA: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
-
-  before(async () => {
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -85,14 +73,14 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
+    
+    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -182,14 +170,14 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
+    
+    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -293,14 +281,14 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
+    
+    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -389,14 +377,14 @@ describe("Lobby Tests join", async function () {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
+    
+    const evaluableConfig = await generateEvaluableConfig(lobbyExpressionConfig);
 
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      expressionConfig: lobbyExpressionConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
