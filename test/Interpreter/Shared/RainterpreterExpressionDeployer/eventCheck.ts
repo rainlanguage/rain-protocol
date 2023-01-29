@@ -22,6 +22,7 @@ import {
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { getRainterpreterOpmetaBytes } from "../../../../utils/interpreter/ops/allStandardOpmeta";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
   it("DeployExpression event should emit original StateConfig", async () => {
@@ -120,7 +121,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
-    const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter");
+    const opMeta = getRainterpreterOpmetaBytes();
     const interpreterStore: RainterpreterStore =
       await rainterpreterStoreDeploy();
 

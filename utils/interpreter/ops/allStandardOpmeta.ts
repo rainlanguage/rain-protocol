@@ -60,6 +60,7 @@ import updateTimesForTierRangeMeta from "../../../contracts/interpreter/ops/tier
 import { deflateSync } from "zlib";
 import fs from "fs";
 import { resolve } from "path";
+import { format } from "prettier";
 
 /**
  * @public
@@ -134,7 +135,9 @@ export const rainterpreterOpmeta = [
  */
 export const getRainterpreterOpmetaBytes = (): string => {
   const opmetaBytes = Uint8Array.from(
-    deflateSync(JSON.stringify(rainterpreterOpmeta, null, 4))
+    deflateSync(
+      format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
+    )
   );
   let opmetaHexString = "0x";
   for (let i = 0; i < opmetaBytes.length; i++) {
@@ -162,7 +165,7 @@ export const getRainterpreterOpmetaJson = (
   try {
     fs.writeFileSync(
       path + "/" + fileName + ".json",
-      JSON.stringify(rainterpreterOpmeta, null, 4)
+      format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
     );
   } catch (error) {
     console.log(error);

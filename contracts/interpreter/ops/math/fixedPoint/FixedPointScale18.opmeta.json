@@ -9,8 +9,8 @@
       "validRange": [[0, 1]]
     },
     {
-      "name": "Current decimals",
-      "desc": "Current decimals of the value being rescaled.",
+      "name": "Decimals",
+      "desc": "Decimals of the value being rescaled.",
       "bits": [1, 15],
       "validRange": [[0, 77]]
     }
@@ -22,5 +22,6 @@
       }
     ]
   },
-  "outputs": 1
+  "outputs": 1,
+  "aliases": ["scale-18"]
 }

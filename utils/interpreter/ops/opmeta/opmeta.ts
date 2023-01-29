@@ -1,6 +1,7 @@
 import Ajv from "ajv";
 import fs from "fs";
 import { resolve } from "path";
+import { format } from "prettier";
 import { deflateSync } from "zlib";
 import OpmetaSchema from "../../../../opmeta_schema.json";
 
@@ -30,7 +31,7 @@ export const getOpmetaJsonContent = (
       } else throw new Error(`invalid opmeta at index ${i}`);
     }
   }
-  return JSON.stringify(_opmeta, null, 4);
+  return format(JSON.stringify(_opmeta, null, 4), { parser: "json" });
 };
 
 /**
@@ -91,7 +92,9 @@ export const getOpmetaSchemaBytes = (schema?: object): string => {
   let _schema;
   if (schema) _schema = schema;
   else _schema = OpmetaSchema;
-  const schemaJson = JSON.stringify(_schema, null, 4);
+  const schemaJson = format(JSON.stringify(_schema, null, 4), {
+    parser: "json",
+  });
   const schemaBytes = Uint8Array.from(deflateSync(schemaJson));
   let schemaHexString = "0x";
   for (let i = 0; i < schemaBytes.length; i++) {
