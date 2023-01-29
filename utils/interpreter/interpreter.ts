@@ -1,10 +1,15 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
 import { RainterpreterStore } from "../../typechain";
-import { EvaluableConfigStruct, ExpressionConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
-import { rainterpreterDeploy, rainterpreterStoreDeploy } from "../deploy/interpreter/shared/rainterpreter/deploy";
+import {
+  EvaluableConfigStruct,
+  ExpressionConfigStruct,
+} from "../../typechain/contracts/flow/basic/Flow";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { ExpressionConfig } from "../types";
 import { AllStandardOps } from "./ops/allStandardOps";
 
 export enum MemoryType {
@@ -179,8 +184,7 @@ export async function generateEvaluableConfig(
   const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
     interpreter
   );
-  const interpreterStore: RainterpreterStore =
-    await rainterpreterStoreDeploy();
+  const interpreterStore: RainterpreterStore = await rainterpreterStoreDeploy();
 
   return {
     deployer: expressionDeployer.address,

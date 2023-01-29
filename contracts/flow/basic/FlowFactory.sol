@@ -25,10 +25,7 @@ contract FlowFactory is Factory {
     function _createChild(
         bytes memory data_
     ) internal virtual override returns (address) {
-        FlowConfig memory config_ = abi.decode(
-            data_,
-            (FlowConfig)
-        );
+        FlowConfig memory config_ = abi.decode(data_, (FlowConfig));
         address clone_ = Clones.clone(implementation);
         Flow(payable(clone_)).initialize(config_);
         return clone_;

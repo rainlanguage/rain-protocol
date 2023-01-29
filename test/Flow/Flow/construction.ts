@@ -13,7 +13,7 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { compareStructs, compareSolStructs, compareEvaluableConfigs } from "../../../utils/test/compareStructs";
+import { compareEvaluableConfigs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
@@ -66,7 +66,11 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const { flow, evaluableConfigs } = await flowDeploy(deployer, flowFactory, flowConfig);
+    const { flow, evaluableConfigs } = await flowDeploy(
+      deployer,
+      flowFactory,
+      flowConfig
+    );
 
     const { sender, config } = (await getEventArgs(
       flow.deployTransaction,

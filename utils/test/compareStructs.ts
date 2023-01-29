@@ -1,7 +1,10 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-import { EvaluableConfigStruct, EvaluableConfigStructOutput } from "../../typechain/contracts/flow/basic/Flow";
+import {
+  EvaluableConfigStruct,
+  EvaluableConfigStructOutput,
+} from "../../typechain/contracts/flow/basic/Flow";
 import { ExpressionConfig } from "../types";
 
 /**
@@ -222,15 +225,16 @@ export const areEqualExpressionConfigs = (
  */
 export const compareEvaluableConfigs = (
   actualEvaluableConfig: EvaluableConfigStructOutput[],
-  expectedEvaluableConfig: EvaluableConfigStruct[],
+  expectedEvaluableConfig: EvaluableConfigStruct[]
 ) => {
+  if (actualEvaluableConfig.length != expectedEvaluableConfig.length)
+    assert(
+      false,
+      `Config Struct length mixmatch, actual : ${actualEvaluableConfig.length} expected: ${expectedEvaluableConfig.length}`
+    );
 
-    if(actualEvaluableConfig.length != expectedEvaluableConfig.length)
-      assert(false, `Config Struct length mixmatch, actual : ${actualEvaluableConfig.length} expected: ${expectedEvaluableConfig.length}`);
-
-    for(let i = 0; i < actualEvaluableConfig.length; i++ )
-      compareStructs(actualEvaluableConfig[i], expectedEvaluableConfig[i]);
-  
-}
+  for (let i = 0; i < actualEvaluableConfig.length; i++)
+    compareStructs(actualEvaluableConfig[i], expectedEvaluableConfig[i]);
+};
 
 export const compareObjects = testStructs;
