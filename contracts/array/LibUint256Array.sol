@@ -18,9 +18,10 @@ library LibUint256Array {
     /// @return the newly allocated array including a_ as a single item.
     function arrayFrom(uint256 a_) internal pure returns (uint256[] memory) {
         uint256[] memory array_ = new uint256[](1);
-        assembly ("memory-safe") {
-            mstore(add(array_, 0x20), a_)
-        }
+        array_[0] = a_;
+        // assembly ("memory-safe") {
+        //     mstore(add(array_, 0x20), a_)
+        // }
         return array_;
     }
 
