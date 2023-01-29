@@ -1,12 +1,7 @@
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveTokenDecimals,
-} from "../../typechain";
+import type { OrderBook, ReserveTokenDecimals } from "../../typechain";
 import {
   AddOrderEvent,
   ClearConfigStruct,
@@ -21,10 +16,9 @@ import {
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -37,15 +31,9 @@ const Opcode = AllStandardOps;
 
 describe("OrderBook decimals", async function () {
   let orderBookFactory: ContractFactory;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should not be able to provide OOB decimals beyond uint8", async function () {
@@ -90,11 +78,13 @@ describe("OrderBook decimals", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
+    const askEvaluableConfig0 = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     // IN BOUNDS
     const askOrderConfig0: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA06.address,
@@ -109,18 +99,17 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig0,
       data: [],
     };
     await orderBook.connect(alice).addOrder(askOrderConfig0);
+    const askEvaluableConfig1 = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     // OUT OF BOUNDS
     const askOrderConfig1: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA06.address,
@@ -135,10 +124,7 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig1,
       data: [],
     };
     await assertError(
@@ -223,9 +209,13 @@ describe("OrderBook decimals", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
+
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA06.address,
@@ -240,10 +230,7 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: [],
     };
 
@@ -275,9 +262,11 @@ describe("OrderBook decimals", async function () {
       vBidOutputMax,
       vBidRatio,
     ]);
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenB18.address,
@@ -292,10 +281,7 @@ describe("OrderBook decimals", async function () {
           vaultId: bobOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: [],
     };
 

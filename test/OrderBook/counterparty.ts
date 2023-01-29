@@ -2,12 +2,7 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-} from "../../typechain";
+import type { OrderBook, ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -25,10 +20,9 @@ import {
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -48,8 +42,6 @@ describe("OrderBook counterparty in context", async function () {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -60,10 +52,6 @@ describe("OrderBook counterparty in context", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will noop if bid order counterparty does not match Carol's address)", async function () {
@@ -126,19 +114,19 @@ describe("OrderBook counterparty in context", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -173,20 +161,18 @@ describe("OrderBook counterparty in context", async function () {
       vBidRatio,
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
-
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -219,20 +205,18 @@ describe("OrderBook counterparty in context", async function () {
       vBidRatioCarol,
     ]);
     const carolBidOrder = ethers.utils.toUtf8Bytes("carolBidOrder");
-
+    const bidEvaluableConfigCarol = await generateEvaluableConfig({
+      sources: [bidSourceCarol, []],
+      constants: bidConstantsCarol,
+    });
     const bidOrderConfigCarol: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: carolInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: carolOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [bidSourceCarol, []],
-        constants: bidConstantsCarol,
-      },
+      evaluableConfig: bidEvaluableConfigCarol,
       data: carolBidOrder,
     };
 

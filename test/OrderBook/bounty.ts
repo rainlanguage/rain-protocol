@@ -2,12 +2,7 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-} from "../../typechain";
+import type { OrderBook, ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -26,10 +21,9 @@ import {
   ONE,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -47,8 +41,6 @@ describe("OrderBook bounty", async function () {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -59,10 +51,6 @@ describe("OrderBook bounty", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("order clearer should receive correct bounty amounts in their vaults, and can withdraw their vault balance for each token", async function () {
@@ -100,19 +88,20 @@ describe("OrderBook bounty", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
+
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -153,19 +142,19 @@ describe("OrderBook bounty", async function () {
 
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
+
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 

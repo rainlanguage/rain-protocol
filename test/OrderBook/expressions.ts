@@ -4,8 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
@@ -32,10 +30,9 @@ import {
   sixZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -48,8 +45,6 @@ describe("OrderBook expression checks", async () => {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -60,10 +55,6 @@ describe("OrderBook expression checks", async () => {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should ensure OWNER and COUNTERPARTY are visible in calculateIO and handleIO", async function () {
@@ -140,9 +131,12 @@ describe("OrderBook expression checks", async () => {
                 op(Opcode.ENSURE, 1)
         ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -167,10 +161,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -373,9 +364,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -400,10 +394,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -567,9 +558,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -594,10 +588,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -770,9 +761,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -797,10 +791,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -973,9 +964,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -1000,10 +994,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -1209,9 +1200,12 @@ describe("OrderBook expression checks", async () => {
 
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -1236,10 +1230,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -1381,19 +1372,19 @@ describe("OrderBook expression checks", async () => {
 
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, handleSource],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -1530,20 +1521,19 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -1675,9 +1665,12 @@ describe("OrderBook expression checks", async () => {
       op(Opcode.ENSURE,1)
     ]);
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, handleSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -1692,10 +1685,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, handleSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: [],
     };
 

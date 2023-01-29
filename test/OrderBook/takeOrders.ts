@@ -4,8 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
@@ -39,10 +37,9 @@ import {
   twentyZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs, getEvents } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -55,8 +52,6 @@ describe("OrderBook take orders", async function () {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -67,10 +62,6 @@ describe("OrderBook take orders", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should respect output maximum of a given order", async function () {
@@ -109,36 +100,36 @@ describe("OrderBook take orders", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: aliceAskOrder,
     };
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const askEvaluableConfigBob = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigBob: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigBob,
       data: bobBidOrder,
     };
 
@@ -255,36 +246,36 @@ describe("OrderBook take orders", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: aliceAskOrder,
     };
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const askEvaluableConfigBob = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigBob: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigBob,
       data: bobBidOrder,
     };
 
@@ -442,9 +433,12 @@ describe("OrderBook take orders", async function () {
       vRatio,
     ]);
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [source, []],
+      constants,
+    });
+
     const orderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenX.address, decimals: XDec, vaultId },
         { token: tokenY.address, decimals: YDec, vaultId },
@@ -453,10 +447,7 @@ describe("OrderBook take orders", async function () {
         { token: tokenX.address, decimals: XDec, vaultId },
         { token: tokenY.address, decimals: YDec, vaultId },
       ],
-      interpreterExpressionConfig: {
-        sources: [source, []],
-        constants,
-      },
+      evaluableConfig: evaluableConfig,
       data: [],
     };
 
@@ -606,9 +597,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -623,15 +617,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -646,10 +640,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -894,9 +885,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA20.address,
@@ -911,15 +905,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA20.address,
@@ -934,10 +928,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -1182,9 +1173,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA18.address,
@@ -1199,15 +1193,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA18.address,
@@ -1222,10 +1216,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -1470,9 +1461,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -1487,15 +1481,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -1510,10 +1504,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -1758,9 +1749,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -1775,15 +1769,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -1798,10 +1792,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -2046,9 +2037,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA00.address,
@@ -2063,15 +2057,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA00.address,
@@ -2086,10 +2080,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -2332,9 +2323,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -2349,15 +2343,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -2372,10 +2366,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -2572,9 +2563,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA20.address,
@@ -2589,15 +2583,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA20.address,
@@ -2612,10 +2606,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -2812,9 +2803,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA18.address,
@@ -2829,15 +2823,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA18.address,
@@ -2852,10 +2846,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -3052,9 +3043,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -3069,15 +3063,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -3092,10 +3086,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -3292,9 +3283,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -3309,15 +3303,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -3332,10 +3326,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -3532,9 +3523,12 @@ describe("OrderBook take orders", async function () {
         vAskRatio,
       ]);
 
+      const askEvaluableConfigAlice = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigAlice: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA00.address,
@@ -3549,15 +3543,15 @@ describe("OrderBook take orders", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigAlice,
         data: [],
       };
+      const askEvaluableConfigBob = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
+
       const askOrderConfigBob: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA00.address,
@@ -3572,10 +3566,7 @@ describe("OrderBook take orders", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterExpressionConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfigBob,
         data: [],
       };
 
@@ -3759,37 +3750,37 @@ describe("OrderBook take orders", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: aliceAskOrder,
     };
 
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const askEvaluableConfigBob = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigBob: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigBob,
       data: bobBidOrder,
     };
 
@@ -3919,19 +3910,19 @@ describe("OrderBook take orders", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig0 = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants0,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants0,
-      },
+      evaluableConfig: askEvaluableConfig0,
       data: aliceAskOrder,
     };
 
@@ -3949,20 +3940,19 @@ describe("OrderBook take orders", async function () {
 
     const askConstants1 = [max_uint256, askRatio];
     const aliceAskOrder1 = ethers.utils.toUtf8Bytes("aliceAskOrder1");
+    const askEvaluableConfig1 = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants1,
+    });
 
     const askOrderConfig1: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants1,
-      },
+      evaluableConfig: askEvaluableConfig1,
       data: aliceAskOrder1,
     };
 
@@ -4077,35 +4067,34 @@ describe("OrderBook take orders", async function () {
     ]);
     const aliceAskOrder0 = ethers.utils.toUtf8Bytes("aliceAskOrder0");
     const aliceAskOrder1 = ethers.utils.toUtf8Bytes("aliceAskOrder1");
+    const askEvaluableConfig0 = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants0,
+    });
 
     const askOrderConfig0: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants0,
-      },
+      evaluableConfig: askEvaluableConfig0,
       data: aliceAskOrder0,
     };
+
+    const askEvaluableConfig1 = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants1,
+    });
     const askOrderConfig1: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants1,
-      },
+      evaluableConfig: askEvaluableConfig1,
       data: aliceAskOrder1,
     };
 
@@ -4226,20 +4215,19 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -4359,34 +4347,34 @@ describe("OrderBook take orders", async function () {
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: aliceAskOrder,
     };
+    const askEvaluableConfigBob = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigBob: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigBob,
       data: bobBidOrder,
     };
 
@@ -4553,20 +4541,19 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -4717,9 +4704,12 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -4754,10 +4744,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -4973,9 +4960,12 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -5010,10 +5000,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -5112,20 +5099,16 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const askEvaluableConfig = await generateEvaluableConfig({sources: [askSource, []],constants: askConstants});
 
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -5322,9 +5305,12 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -5339,10 +5325,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -5486,9 +5469,12 @@ describe("OrderBook take orders", async function () {
       vAskRatio,
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA06.address,
@@ -5503,10 +5489,7 @@ describe("OrderBook take orders", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterExpressionConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
