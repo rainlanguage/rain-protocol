@@ -6,8 +6,6 @@ import "../ops/chainlink/OpChainlinkOraclePrice.sol";
 import "../run/LibStackPointer.sol";
 import "../../array/LibUint256Array.sol";
 
-import "hardhat/console.sol";
-
 /// Thrown when the inputs don't match the expected inputs.
 error BadInputs(uint256 expected, uint256 actual);
 

@@ -3,5 +3,11 @@
   "solidity.compileUsingRemoteVersion": "v0.8.17+commit.8df45f5",
   "solidity.compileUsingLocalVersion": "v0.8.17+commit.8df45f5",
   "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix",
-  "editor.rulers": [80]
+  "editor.rulers": [80],
+  "json.schemas": [
+    {
+      "fileMatch": ["*.opmeta.json"],
+      "url": "./opmeta_schema.json"
+    }
+  ]
 }

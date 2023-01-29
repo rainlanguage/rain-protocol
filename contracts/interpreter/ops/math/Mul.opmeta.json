@@ -1,0 +1,22 @@
+{
+  "name": "MUL",
+  "desc": "Inserts the multiplication of N values taken from the stack into the stack",
+  "operand": [
+    {
+      "name": "Inputs",
+      "bits": [0, 7],
+      "validRange": [[2, 255]]
+    }
+  ],
+  "inputs": {
+    "bits": [0, 7],
+    "parameters": [
+      {
+        "name": "Input",
+        "spread": true
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["*", "X"]
+}

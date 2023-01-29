@@ -12,9 +12,17 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 /// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
 error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 
+/// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
+error UnexpectedOpMetaHash(bytes32 actualOpMeta);
+
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
     0x99d0f2d5f5d71a2d4a8db29d920f86fdb4e7688d01799f6cfe9242fb314f3354
+);
+
+/// @dev Hash of the known op meta.
+bytes32 constant OP_META_HASH = bytes32(
+    0xae2440a9d11377b2276f64ac03df8a9693610fdb0c60af68da0c9f34d8675846
 );
 
 /// All config required to construct a `Rainterpreter`.
@@ -80,6 +88,13 @@ contract Rainterpreter is IInterpreterV1 {
         emit ValidStore(msg.sender, store_);
         store = IInterpreterStoreV1(store_);
 
+        /// This IS a security check. This prevents someone making an exact
+        /// bytecode copy of the interpreter and shipping different opmeta for
+        /// the copy to lie about what each op does.
+        bytes32 opMetaHash_ = keccak256(config_.opMeta);
+        if (opMetaHash_ != OP_META_HASH) {
+            revert UnexpectedOpMetaHash(opMetaHash_);
+        }
         emit OpMeta(msg.sender, config_.opMeta);
     }
 

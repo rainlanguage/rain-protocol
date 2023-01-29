@@ -16,6 +16,7 @@ solt
 tenderly.yaml
 test-template.ts
 dumpfile
+.DS_Store
 
 # Echidna
 crytic-export
