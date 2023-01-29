@@ -41,7 +41,7 @@ contract FlowFactory is Factory {
     /// @param config_ `Flow` constructor configuration.
     /// @return New `Flow` child contract address.
     function createChildTyped(
-        EvaluableConfig[] memory config_
+        FlowConfig memory config_
     ) external returns (Flow) {
         return Flow(payable(createChild(abi.encode(config_))));
     }
