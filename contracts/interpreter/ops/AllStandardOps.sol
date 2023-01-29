@@ -24,6 +24,7 @@ import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
 import "./erc1155/OpERC1155BalanceOf.sol";
 import "./erc1155/OpERC1155BalanceOfBatch.sol";
+import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
@@ -69,7 +70,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 60;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -215,6 +216,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
+                    OpERC5313Owner.integrity,
                     OpEnsure.integrity,
                     OpBlockNumber.integrity,
                     OpTimestamp.integrity,
@@ -302,6 +304,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.run,
                     OpERC1155BalanceOf.run,
                     OpERC1155BalanceOfBatch.run,
+                    OpERC5313Owner.run,
                     OpEnsure.run,
                     OpBlockNumber.run,
                     OpTimestamp.run,
