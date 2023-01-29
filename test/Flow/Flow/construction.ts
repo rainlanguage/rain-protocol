@@ -13,7 +13,7 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { compareStructs } from "../../../utils/test/compareStructs";
+import { compareStructs, compareSolStructs, compareEvaluableConfigs } from "../../../utils/test/compareStructs";
 import { FlowConfig } from "../../../utils/types/flow";
 
 const Opcode = AllStandardOps;
@@ -49,11 +49,16 @@ describe("Flow construction tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // native you->me amount
     ]);
 
-    const sources = [];
-
     const flowConfig: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
+        {
+          sources: [sourceFlowIO],
+          constants,
+        },
         {
           sources: [sourceFlowIO],
           constants,
@@ -61,7 +66,7 @@ describe("Flow construction tests", async function () {
       ],
     };
 
-    const { flow } = await flowDeploy(deployer, flowFactory, flowConfig);
+    const { flow, evaluableConfigs } = await flowDeploy(deployer, flowFactory, flowConfig);
 
     const { sender, config } = (await getEventArgs(
       flow.deployTransaction,
@@ -71,6 +76,6 @@ describe("Flow construction tests", async function () {
 
     assert(sender === flowFactory.address, "wrong sender in Initialize event");
 
-    compareStructs(config, flowConfig);
+    compareEvaluableConfigs(config, evaluableConfigs);
   });
 });

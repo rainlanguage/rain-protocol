@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
+import { EvaluableConfigStruct, EvaluableConfigStructOutput } from "../../typechain/contracts/flow/basic/Flow";
 import { ExpressionConfig } from "../types";
 
 /**
@@ -210,5 +211,26 @@ export const areEqualExpressionConfigs = (
 
   return true;
 };
+
+/**
+ * @public
+ * Checks 2 EvaluableConfigs objects to see if they are equal or not
+ *
+ * @param actualEvaluableConfig - first EvaluableConfigs from the event
+ * @param expectedEvaluableConfig - second EvaluableConfigs returned by thhe deploy function
+ * @returns boolean
+ */
+export const compareEvaluableConfigs = (
+  actualEvaluableConfig: EvaluableConfigStructOutput[],
+  expectedEvaluableConfig: EvaluableConfigStruct[],
+) => {
+
+    if(actualEvaluableConfig.length != expectedEvaluableConfig.length)
+      assert(false, `Config Struct length mixmatch, actual : ${actualEvaluableConfig.length} expected: ${expectedEvaluableConfig.length}`);
+
+    for(let i = 0; i < actualEvaluableConfig.length; i++ )
+      compareStructs(actualEvaluableConfig[i], expectedEvaluableConfig[i]);
+  
+}
 
 export const compareObjects = testStructs;

@@ -1,7 +1,6 @@
-import { ExpressionConfigStruct } from "../../typechain/contracts/interpreter/run/StandardInterpreter";
+import { ExpressionConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 
 export type FlowConfig = {
-  expressionConfig: ExpressionConfigStruct;
   flows: ExpressionConfigStruct[];
 };
 

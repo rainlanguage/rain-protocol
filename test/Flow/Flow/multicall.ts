@@ -190,10 +190,7 @@ describe("Flow multiCall tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct_A: FlowConfig = {
-      expressionConfig: { sources, constants: constants_A },
       flows: [
         { sources: [sourceFlowIO_A], constants: constants_A },
         { sources: [sourceFlowIO_B], constants: constants_B },
@@ -233,11 +230,11 @@ describe("Flow multiCall tests", async function () {
 
     const flowStruct = await flow_A
       .connect(you)
-      .previewFlow(flowInitialized_A[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized_A[0].evaluable, [1234], []);
 
     await flow_A
       .connect(you)
-      .callStatic.flow(flowInitialized_A[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized_A[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -274,11 +271,11 @@ describe("Flow multiCall tests", async function () {
 
     const flowStruct_B = await flow_A
       .connect(you)
-      .previewFlow(flowInitialized_A[1].dispatch, [1234], []);
+      .previewFlow(flowInitialized_A[1].evaluable, [1234], []);
 
     await flow_A
       .connect(you)
-      .callStatic.flow(flowInitialized_A[1].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized_A[1].evaluable, [1234], []);
 
     compareStructs(
       flowStruct_B,
@@ -287,12 +284,12 @@ describe("Flow multiCall tests", async function () {
 
     const iFlow = new ethers.utils.Interface(flowABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowInitialized_A[0].dispatch,
+      flowInitialized_A[0].evaluable,
       [1234],
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowInitialized_A[1].dispatch,
+      flowInitialized_A[1].evaluable,
       [1234],
       [],
     ]);

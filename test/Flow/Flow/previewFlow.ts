@@ -87,10 +87,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -104,7 +101,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -238,10 +235,7 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -255,7 +249,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -368,10 +362,7 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -385,7 +376,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -516,10 +507,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -533,7 +521,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -618,10 +606,7 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -635,7 +620,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -710,10 +695,7 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -727,7 +709,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -824,10 +806,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -841,7 +820,7 @@ describe("Flow previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -905,10 +884,7 @@ describe("Flow previewFlow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -924,7 +900,7 @@ describe("Flow previewFlow tests", async function () {
       async () =>
         await flow
           .connect(you)
-          .previewFlow(flowInitialized[0].dispatch, [1234], []),
+          .previewFlow(flowInitialized[0].evaluable, [1234], []),
       "",
       "flowed when it should not"
     );
@@ -954,10 +930,7 @@ describe("Flow previewFlow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      expressionConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -970,7 +943,7 @@ describe("Flow previewFlow tests", async function () {
     )) as FlowInitializedEvent["args"][];
 
     const flowTransferPreview = await flow.previewFlow(
-      flowInitialized[0].dispatch,
+      flowInitialized[0].evaluable,
       [1234],
       []
     );

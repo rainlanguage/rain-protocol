@@ -275,7 +275,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct_A,
@@ -299,7 +299,7 @@ describe("FlowERC721 multicall tests", async function () {
 
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[1].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[1].evaluable, [1234], []);
 
     compareStructs(
       flowStruct_B,
@@ -309,12 +309,12 @@ describe("FlowERC721 multicall tests", async function () {
     // MultiCall
     const iFlow = new ethers.utils.Interface(flowERC721ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowInitialized[0].dispatch,
+      flowInitialized[0].evaluable,
       [1234],
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowInitialized[1].dispatch,
+      flowInitialized[1].evaluable,
       [1234],
       [],
     ]);

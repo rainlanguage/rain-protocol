@@ -101,7 +101,7 @@ describe("FlowERC721 expressions tests", async function () {
 
     const _txFlow0 = await flow
       .connect(alice)
-      .flow(flowInitialized[0].dispatch, [1234], signedContexts0);
+      .flow(flowInitialized[0].evaluable, [1234], signedContexts0);
 
     const expectedContext0 = [
       [

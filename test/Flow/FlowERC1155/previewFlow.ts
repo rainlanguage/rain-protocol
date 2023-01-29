@@ -132,7 +132,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -303,7 +303,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -456,7 +456,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -627,7 +627,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -752,7 +752,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -866,7 +866,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -1001,7 +1001,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,
@@ -1062,7 +1062,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     await assertError(
       async () =>
-        await flow.previewFlow(flowInitialized[0].dispatch, [1234], []),
+        await flow.previewFlow(flowInitialized[0].evaluable, [1234], []),
       "",
       "flowed when it should not"
     );
@@ -1131,7 +1131,7 @@ describe("FlowERC1155 previewFlow tests", async function () {
 
     const flowTransferPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowTransferPreview,

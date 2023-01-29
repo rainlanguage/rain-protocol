@@ -92,7 +92,7 @@ describe("FlowERC20 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowInitialized[0].dispatch, [1234], signedContexts0);
+      .flow(flowInitialized[0].evaluable, [1234], signedContexts0);
 
     // with bad signature
     const badSignature = await badSigner.signMessage(arrayify(hash));
@@ -108,7 +108,7 @@ describe("FlowERC20 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowInitialized[0].dispatch, [1234], signedContexts1, {}),
+          .flow(flowInitialized[0].evaluable, [1234], signedContexts1, {}),
       "InvalidSignature(0)",
       "did not error with signature from incorrect signer"
     );
@@ -186,7 +186,7 @@ describe("FlowERC20 signed context tests", async function () {
 
     await flow
       .connect(goodSigner)
-      .flow(flowInitialized[0].dispatch, [1234], signedContexts0);
+      .flow(flowInitialized[0].evaluable, [1234], signedContexts0);
 
     // with bad signature in second signed context
     const badSignature = await badSigner.signMessage(arrayify(hash1));
@@ -207,7 +207,7 @@ describe("FlowERC20 signed context tests", async function () {
       async () =>
         await flow
           .connect(goodSigner)
-          .flow(flowInitialized[0].dispatch, [1234], signedContexts1, {}),
+          .flow(flowInitialized[0].evaluable, [1234], signedContexts1, {}),
       "InvalidSignature(1)",
       "did not error with signature from incorrect signer"
     );

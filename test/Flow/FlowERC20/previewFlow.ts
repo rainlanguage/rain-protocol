@@ -155,7 +155,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -348,7 +348,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -522,7 +522,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -715,7 +715,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -862,7 +862,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -999,7 +999,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1157,7 +1157,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1219,7 +1219,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     await assertError(
       async () =>
-        await flow.previewFlow(flowInitialized[0].dispatch, [1234], []),
+        await flow.previewFlow(flowInitialized[0].evaluable, [1234], []),
       "",
       "flowed when it should not"
     );
@@ -1315,7 +1315,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address)

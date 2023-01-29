@@ -174,11 +174,11 @@ describe("FlowERC20 flow tests", async function () {
     const signerReceiver = signers[2];
     const _txFlowCanTransfer = await flowCanTransfer
       .connect(you)
-      .flow(flowInitializedCanTransfer[0].dispatch, [1234], []);
+      .flow(flowInitializedCanTransfer[0].evaluable, [1234], []);
 
     const _txFlowCannotTransfer = await flowCannotTransfer
       .connect(you)
-      .flow(flowExpressionsCannotTransfer[0].dispatch, [1234], []);
+      .flow(flowExpressionsCannotTransfer[0].evaluable, [1234], []);
 
     await flowCanTransfer.connect(you).transfer(signerReceiver.address, mint);
 
@@ -361,8 +361,8 @@ describe("FlowERC20 flow tests", async function () {
       flow
     )) as FlowInitializedEvent["args"][];
 
-    const mintFlowId = flowInitialized[0].dispatch;
-    const burnFlowId = flowInitialized[1].dispatch;
+    const mintFlowId = flowInitialized[0].evaluable;
+    const burnFlowId = flowInitialized[1].evaluable;
 
     const me = flow;
 
@@ -650,7 +650,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -659,7 +659,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     // check input ERC1155 affected balances correctly
 
@@ -861,7 +861,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -870,7 +870,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     // check input ERC721 affected balances correctly
 
@@ -1049,7 +1049,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct,
@@ -1058,7 +1058,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -1209,7 +1209,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], [], {
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1217,7 +1217,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], [], {
+      .flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1426,13 +1426,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -1621,13 +1621,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1805,13 +1805,13 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddressERC20(flowERC20IO, me.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1972,7 +1972,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], [], {
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1980,7 +1980,7 @@ describe("FlowERC20 flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], [], {
+      .flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
