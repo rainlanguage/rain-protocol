@@ -1,17 +1,17 @@
 {
-    "name": "ERC721_OWNER_OF",
-    "desc": "Get the owner of an ERC20 token of an account and insert it into the stack",
-    "operand": 0,
-    "inputs": {
-        "parameters": [
-            {
-                "name": "Token Address"
-            },
-            {
-                "name": "Token Id"
-            }
-        ]
-    },
-    "outputs": 1,
-    "aliases": ["ERC721OWNEROF", "IERC721OWNEROF"]
+  "name": "ERC721_OWNER_OF",
+  "desc": "Get the owner of an ERC20 token of an account and insert it into the stack",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "Token Address"
+      },
+      {
+        "name": "Token Id"
+      }
+    ]
+  },
+  "outputs": 1,
+  "aliases": ["ERC721OWNEROF", "IERC721OWNEROF"]
 }

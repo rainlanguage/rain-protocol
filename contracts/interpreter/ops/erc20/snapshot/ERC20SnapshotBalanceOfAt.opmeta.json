@@ -1,23 +1,20 @@
 {
-    "name": "ERC20_SNAPSHOT_BALANCE_OF_AT",
-    "desc": "Get the snapshot balance of an ERC20 token of an account and insters it into the stack",
-    "operand": 0,
-    "inputs": {
-        "parameters": [
-            {
-                "name": "Token Address"
-            },
-            {
-                "name": "Account"
-            },
-            {
-                "name": "Snapshot Id"
-            }
-        ]
-    },
-    "outputs": 1,
-    "aliases": [
-        "ERC20SNAPSHOTBALANCEOFAT",
-        "IERC20SNAPSHOTBALANCEOFAT"
+  "name": "ERC20_SNAPSHOT_BALANCE_OF_AT",
+  "desc": "Get the snapshot balance of an ERC20 token of an account and insters it into the stack",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "Token Address"
+      },
+      {
+        "name": "Account"
+      },
+      {
+        "name": "Snapshot Id"
+      }
     ]
+  },
+  "outputs": 1,
+  "aliases": ["ERC20SNAPSHOTBALANCEOFAT", "IERC20SNAPSHOTBALANCEOFAT"]
 }
