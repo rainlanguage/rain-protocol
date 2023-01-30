@@ -67,6 +67,26 @@ contract LibIntegrityCheckTest {
         LibDebug.dumpMemory();
         return stackTop_;
     }
+    
+    function ensureIntegrityTest(
+        StateConfig memory config_,
+        SourceIndex sourceIndex_,
+        StackPointer stackTop_,
+        uint256 minStackOutputs_,
+        uint256 stackBottom_
+    ) external returns (StackPointer) {
+        IntegrityCheckState memory integrityCheckState_ = LibIntegrityCheck
+            .newState(config_, integrityFunctionPointers());
+        LibDebug.dumpMemory();
+        integrityCheckState_.stackBottom = StackPointer.wrap(stackBottom_);
+        integrityCheckState_.ensureIntegrity(
+            sourceIndex_,
+            stackTop_,
+            minStackOutputs_
+        );
+        LibDebug.dumpMemory();
+        return stackTop_;
+    }
 
     function push(
         ExpressionConfig memory config_,

@@ -607,4 +607,27 @@ contract LibStackPointerTest {
         );
         LibDebug.dumpMemory();
     }
+    
+    function addHeadToTailsProductWithErrorFn(
+        uint256 a_,
+        uint256[] memory bs_,
+        uint256[] memory cs_
+    ) internal pure returns (uint256[] memory results_) {
+        results_ = new uint256[](bs_.length-1);
+        for (uint256 i_ = 0; i_ < bs_.length-1; i_++) {
+            results_[i_] = bs_[i_] * cs_[i_] + a_;
+        }
+    }
+
+    function applyFn2TailsWithErrorFn(
+        uint256[] memory array_,
+        uint256 length_
+    ) external returns (StackPointer stackTop_) {
+        LibDebug.dumpMemory();
+        stackTop_ = array_.asStackPointer().up(array_.size() / 0x20).applyFn(
+            addHeadToTailsProductWithErrorFn,
+            length_
+        );
+        LibDebug.dumpMemory();
+    }
 }

@@ -11,6 +11,7 @@ import {
 import {
   AllStandardOps,
   areEqualExpressionConfigs,
+  assertError,
   basicDeploy,
   getEventArgs,
   memoryOperand,
@@ -157,6 +158,23 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     assert(
       ValidStoreEvent.store === interpreterStore.address,
       "incorrect store"
+    );
+  });
+ 
+  it("should throw error when the `Rainterpreter` is constructed with unknown store bytecode.", async () => {
+    const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter");
+
+    const interpreterConfig: RainterpreterConfigStruct = {
+      store: ethers.Wallet.createRandom().address, // Invalid store address
+      opMeta: opMeta,
+    };
+
+    assertError(
+        async () => await basicDeploy("Rainterpreter", {}, [
+        interpreterConfig,
+      ]), 
+      "UnexpectedStoreBytecodeHash",
+      "Integrity check failed to validate the expected STORE_BYTECODE_HASH"
     );
   });
 });
