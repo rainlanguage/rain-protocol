@@ -61,12 +61,21 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     await timewarp(1900); // updated 100 sec ago
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     await timewarp(3600); // updated 3700 sec ago (stale)
 
     await assertError(
-      async () => await consumerLogic.eval(interpreter.address, dispatch, []),
+      async () =>
+        await consumerLogic["eval(address,uint256,uint256[][])"](
+          interpreter.address,
+          dispatch,
+          []
+        ),
       "StalePrice(1800, ",
       "did not revert when chainlink price was stale"
     );
@@ -106,7 +115,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
       );
 
     await assertError(
-      async () => await consumerLogic.eval(interpreter.address, dispatch, []),
+      async () =>
+        await consumerLogic["eval(address,uint256,uint256[][])"](
+          interpreter.address,
+          dispatch,
+          []
+        ),
       "NotPosIntPrice(0)",
       "did not revert when chainlink price was 0"
     );
@@ -145,7 +159,11 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const price_ = await consumerLogic.stackTop();
     assert(price_.eq(123 + eighteenZeros));
   });
@@ -183,7 +201,11 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const price_ = await consumerLogic.stackTop();
 
     assert(price_.eq(123 + eighteenZeros));

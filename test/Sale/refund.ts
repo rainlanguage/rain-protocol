@@ -1,13 +1,7 @@
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReadWriteTier,
-  ReserveToken,
-  SaleFactory,
-} from "../../typechain";
+import { ReadWriteTier, ReserveToken, SaleFactory } from "../../typechain";
 import { BuyEvent } from "../../typechain/contracts/sale/Sale";
 import { zeroAddress } from "../../utils/constants/address";
 import { max_uint256, ONE, RESERVE_ONE } from "../../utils/constants/bigNumber";
@@ -19,6 +13,7 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -34,13 +29,9 @@ const Opcode = AllStandardOps;
 describe("Sale refund", async function () {
   let reserve: ReserveToken,
     readWriteTier: ReadWriteTier,
-    saleFactory: SaleFactory,
-    interpreter: Rainterpreter,
-    expressionDeployer: RainterpreterExpressionDeployer;
-
+    saleFactory: SaleFactory;
   before(async () => {
-    ({ readWriteTier, saleFactory, interpreter, expressionDeployer } =
-      await saleDependenciesDeploy());
+    ({ readWriteTier, saleFactory } = await saleDependenciesDeploy());
   });
 
   beforeEach(async () => {
@@ -84,17 +75,16 @@ describe("Sale refund", async function () {
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -210,17 +200,16 @@ describe("Sale refund", async function () {
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -340,17 +329,16 @@ describe("Sale refund", async function () {
       concat([op(Opcode.CONTEXT, 0x0001), vBasePrice]),
       concat([]),
     ];
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration: 1,
@@ -451,17 +439,16 @@ describe("Sale refund", async function () {
       concat([]),
     ];
     const cooldownDuration = 5;
+    const evaluableConfig = await generateEvaluableConfig({
+      sources,
+      constants,
+    });
     const [sale, token] = await saleDeploy(
       signers,
       deployer,
       saleFactory,
       {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
-        interpreterStateConfig: {
-          sources,
-          constants,
-        },
+        evaluableConfig,
         recipient: recipient.address,
         reserve: reserve.address,
         cooldownDuration,

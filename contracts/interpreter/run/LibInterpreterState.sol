@@ -187,17 +187,18 @@ library LibInterpreterState {
     /// can be deserialized to an `InterpreterState` without memory allocation or
     /// copying of data on the return trip. This is achieved by mutating data in
     /// place for both serialization and deserialization so it is much more gas
-    /// efficient than abi encode/decode but is NOT SAFE to use the `StateConfig`
-    /// after it has been serialized. Notably the index based opcodes in the
-    /// sources in `StateConfig` will be replaced by function pointer based
-    /// opcodes in place, so are no longer usable in a portable format.
-    /// @param config_ State config as per `IInterpreterV1`.
+    /// efficient than abi encode/decode but is NOT SAFE to use the
+    /// `ExpressionConfig` after it has been serialized. Notably the index based
+    /// opcodes in the sources in `ExpressionConfig` will be replaced by function
+    /// pointer based opcodes in place, so are no longer usable in a portable
+    /// format.
+    /// @param config_ Expression config as per `IInterpreterV1`.
     /// @param stackLength_ Stack length calculated by `IExpressionDeployerV1`
     /// that will be used to allocate memory for the stack upon deserialization.
     /// @param opcodeFunctionPointers_ As per `IInterpreterV1.functionPointers`,
     /// bytes to be compiled into the final `InterpreterState.compiledSources`.
     function serialize(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         uint256 stackLength_,
         bytes memory opcodeFunctionPointers_
     ) internal pure returns (bytes memory) {
@@ -229,7 +230,7 @@ library LibInterpreterState {
     }
 
     /// Return trip from `serialize` but targets an `InterpreterState` NOT a
-    /// `StateConfig`. Allows serialized bytes to be written directly into
+    /// `ExpressionConfig`. Allows serialized bytes to be written directly into
     /// contract code on the other side of an expression address, then loaded
     /// directly into an eval-able memory layout. The only allocation required
     /// is to initialise the stack for eval, there is no copying in memory from

@@ -1,11 +1,7 @@
 import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-} from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   ClaimEvent,
   DepositEvent,
@@ -17,10 +13,9 @@ import {
 import { randomUint256 } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -31,20 +26,11 @@ describe("Lobby Tests claim", async function () {
   const Opcode = RainterpreterOps;
 
   let tokenA: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
   const PHASE_RESULT_PENDING = ethers.BigNumber.from(2);
   const PHASE_COMPLETE = ethers.BigNumber.from(3);
   const PHASE_INVALID = ethers.BigNumber.from(4);
-
-  before(async () => {
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -86,18 +72,20 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: 15000000,
     };
@@ -174,7 +162,7 @@ describe("Lobby Tests claim", async function () {
     const constants = [0, depositAmount, key, totalPlayers];
 
     // prettier-ignore
-    const joinSource = concat([ 
+    const joinSource = concat([
          // SET key
          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)), // key
          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val
@@ -199,18 +187,20 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // lobby not invalid
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -367,18 +357,20 @@ describe("Lobby Tests claim", async function () {
       op(Opcode.GET),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };
@@ -507,10 +499,10 @@ describe("Lobby Tests claim", async function () {
         // SET key
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // <-- val
-          op(Opcode.GET), 
+          op(Opcode.GET),
           op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
          op(Opcode.ADD,2),
-        op(Opcode.SET), 
+        op(Opcode.SET),
 
         op(Opcode.CONTEXT, 0x0000), // key
          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , //val
@@ -520,58 +512,60 @@ describe("Lobby Tests claim", async function () {
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
         op(Opcode.GET),
        op(Opcode.EQUAL_TO) ,
-       op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) 
+       op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2))
     ]);
 
     // prettier-ignore
-    const leaveSource = concat([ 
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),  
+    const leaveSource = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     // prettier-ignore
     // Winner gets 50 percent of shares.Rest is divided among others.
-    const claimSource = concat([ 
+    const claimSource = concat([
       // condition
         op(Opcode.CONTEXT, 0x0000),
         op(Opcode.GET),
-        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) , 
-        op(Opcode.GREATER_THAN), 
+        op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
+        op(Opcode.GREATER_THAN),
       // truthy
             op(Opcode.CONTEXT, 0x0000),
             op(Opcode.CONTEXT, 0x0300),
-            op(Opcode.EQUAL_TO) ,  
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , 
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) , 
-              op(Opcode.DIV,2) ,  
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , 
-                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) , 
-                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) , 
-                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) , 
+            op(Opcode.EQUAL_TO) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) ,
+              op(Opcode.DIV,2) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
+                op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 5)) ,
+                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
+                  op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1)) ,
                 op(Opcode.SUB,2),
               op(Opcode.DIV,3) ,
           op(Opcode.EAGER_IF) ,
       // falsy
-          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) , 
+          op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
       op(Opcode.EAGER_IF) ,
     ]);
 
     // prettier-ignore
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), 
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: timeoutDuration,
     };

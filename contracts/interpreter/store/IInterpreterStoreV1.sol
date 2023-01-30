@@ -11,6 +11,8 @@ import "../run/IInterpreterV1.sol";
 /// pain of potential key collisions on writes to the interpreter's own storage.
 type FullyQualifiedNamespace is uint256;
 
+IInterpreterStoreV1 constant NO_STORE = IInterpreterStoreV1(address(0));
+
 /// @title IInterpreterStoreV1
 /// @notice Tracks state changes on behalf of an interpreter. A single store can
 /// handle state changes for many calling contracts, many interpreters and many

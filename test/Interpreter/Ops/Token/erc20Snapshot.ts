@@ -83,7 +83,11 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       tokenERC20Snapshot
     )) as SnapshotEvent["args"];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [[id]]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[id]]
+    );
     const result0 = await logic.stackTop();
     const totalTokenSupply = await tokenERC20Snapshot.totalSupply();
     assert(
@@ -131,7 +135,11 @@ describe("RainInterpreter ERC20 Snapshot ops", async function () {
       tokenERC20Snapshot
     )) as SnapshotEvent["args"];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [[id]]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[id]]
+    );
     const result1 = await logic.stackTop();
     assert(result1.eq(100), `expected 100, got ${result1}`);
   });

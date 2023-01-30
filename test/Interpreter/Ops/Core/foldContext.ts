@@ -71,7 +71,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8],
     ];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
     const result = await logic.stackTop();
     const expectedResult = context.flat().reduce((acc, val) => acc + val);
     assert(
@@ -132,7 +136,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 10, 10],
     ];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
     const result = await logic.stackTop();
     let count = 0;
     const expectedResult = context.flat().reduce((acc, val) => {
@@ -189,7 +197,7 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
 
     await assertError(
       async () =>
-        await logic.eval(
+        await logic["eval(address,uint256,uint256[][])"](
           rainInterpreter.address,
           expression0.dispatch,
           context
@@ -232,7 +240,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
     // still a 2 dimensional array here.
     const context = [[]];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
     const result = await logic.stackTop();
     const expectedResult = constants[0]; // Since only accumultor value will be present on the stack
     assert(
@@ -281,7 +293,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8],
     ];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context1);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context1
+    );
     const result1 = await logic.stackTop();
     const expectedResult1 = context1.flat().reduce((acc, val) => acc + val);
     assert(
@@ -297,7 +313,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8, 6, 7, 8, 8],
     ];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context2);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context2
+    );
     const result2 = await logic.stackTop();
     const expectedResult2 = context2.flat().reduce((acc, val) => acc + val);
     assert(
@@ -314,7 +334,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [134]
     ];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context3);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context3
+    );
     const result3 = await logic.stackTop();
     const expectedResult3 = context3.flat().reduce((acc, val) => acc + val);
     assert(
@@ -401,7 +425,11 @@ describe("RainInterpreter FOLD_CONTEXT", async function () {
       [5, 6, 7, 8],
     ];
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
     const [evenCount, oddCount] = await logic.stack();
 
     let expectedOddCount = 0,

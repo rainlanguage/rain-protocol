@@ -67,7 +67,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -109,7 +113,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -151,7 +159,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -204,7 +216,11 @@ describe("LOOP_N Opcode test", async function () {
       }
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -304,7 +320,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult.push(expectedResultTemp);
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stack();
 
     expectedResult = expectedResult.reverse();
@@ -424,7 +444,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult = expectedResult.add(expectedResultTemp);
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
     assert(
@@ -466,7 +490,11 @@ describe("LOOP_N Opcode test", async function () {
     );
 
     const expectedResult = 5;
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -511,7 +539,7 @@ describe("LOOP_N Opcode test", async function () {
       "Integrity check passed even when enough values are not available on the stack"
     );
   });
-  
+
   it("should fail the integrity check if there are fewer outputs than inputs", async () => {
     const n = 1; // Loop will run only once
 
@@ -536,14 +564,15 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     await assertError(
-      async () => await expressionConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        },
-        rainInterpreter,
-        1
-      ),
+      async () =>
+        await expressionConsumerDeploy(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          rainInterpreter,
+          1
+        ),
       "InsufficientLoopOutputs(2, 1)",
       "Integrity check passed even when there were fewer outputs than inputs"
     );

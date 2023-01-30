@@ -1,5 +1,16 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { RainterpreterStore } from "../../typechain";
+import {
+  EvaluableConfigStruct,
+  ExpressionConfigStruct,
+} from "../../typechain/contracts/flow/basic/Flow";
+import { zeroAddress } from "../constants";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
 
 export enum MemoryType {
@@ -160,4 +171,31 @@ export function foldContextOperand(
 ): number {
   const operand = (inputs << 12) + (width << 8) + (column << 4) + sourceIndex;
   return operand;
+}
+
+/**
+ * Builds the EvaluableConfig struct with expressionConfig and a store.
+ *
+ * @param expressionConfig - index of function source
+ * @param isStore - used to toggle NO_STORE
+ */
+export async function generateEvaluableConfig(
+  expressionConfig: ExpressionConfigStruct,
+  isStore = true
+): Promise<EvaluableConfigStruct> {
+  const interpreter = await rainterpreterDeploy();
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter
+  );
+
+  let interpreterStore: RainterpreterStore = null;
+
+  interpreterStore = await rainterpreterStoreDeploy();
+
+  return {
+    deployer: expressionDeployer.address,
+    interpreter: interpreter.address,
+    store: isStore ? interpreterStore.address : zeroAddress,
+    expressionConfig: expressionConfig,
+  };
 }

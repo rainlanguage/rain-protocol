@@ -56,7 +56,11 @@ describe("ENSURE Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from eager if, got ${result0}`);
@@ -81,7 +85,11 @@ describe("ENSURE Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop();
 
     assert(result1.eq(3), `returned wrong value from eager if, got ${result1}`);
@@ -106,7 +114,11 @@ describe("ENSURE Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
     const result2 = await logic.stackTop();
 
     assert(result2.eq(0), `returned wrong value from eager if, got ${result2}`);
@@ -142,7 +154,11 @@ describe("ENSURE Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "",
       "did not revert even after failing the ensure opcode condition"
     );
@@ -167,7 +183,11 @@ describe("ENSURE Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression1.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression1.dispatch,
+          []
+        ),
       "",
       "did not revert even after failing the ensure opcode condition"
     );
@@ -194,7 +214,11 @@ describe("ENSURE Opcode test", async function () {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression2.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression2.dispatch,
+          []
+        ),
       "",
       "did not revert even after failing the ensure opcode condition"
     );

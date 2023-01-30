@@ -64,7 +64,11 @@ describe("CALL Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
 
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("5");
@@ -104,7 +108,11 @@ describe("CALL Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("50");
     assert(
@@ -151,7 +159,11 @@ describe("CALL Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result0 = await consumerLogic.stackTop();
     const expectedResult0 = ethers.BigNumber.from("128");
     assert(
@@ -188,7 +200,11 @@ describe("CALL Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("4");
@@ -228,7 +244,11 @@ describe("CALL Opcode test", async function () {
         maxOutput
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result0 = await consumerLogic.stack();
 
     const expectedResult0 = [
@@ -333,7 +353,11 @@ describe("CALL Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result0 = await consumerLogic.stackTop();
 
     const expectedResult0 = ethers.BigNumber.from("236");
@@ -474,9 +498,11 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 5
     );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [
-      [tierBlockReportAlice, assetPrice],
-    ]);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      [[tierBlockReportAlice, assetPrice]]
+    );
     const resultAlice = await consumerLogic.stackTop();
 
     const expectedPriceAlice = ethers.BigNumber.from("80"); // 100 - 20
@@ -492,9 +518,11 @@ describe("CALL Opcode test", async function () {
       initialTimestamp + 15
     );
 
-    await consumerLogic.eval(interpreter.address, dispatch, [
-      [tierBlockReportBob, assetPrice],
-    ]);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      [[tierBlockReportBob, assetPrice]]
+    );
 
     const resultBob = await consumerLogic.stackTop();
     const expectedPriceBob = ethers.BigNumber.from("60"); // 100 - 40

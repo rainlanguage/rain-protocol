@@ -54,7 +54,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from any, got ${result0}`);
@@ -74,7 +78,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from any, got ${result1}`);
@@ -95,7 +103,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
     const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from any, got ${result2}`);
@@ -125,7 +137,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
     assert(result0.eq(1), `returned wrong value from every, got ${result0}`);
@@ -146,7 +162,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop();
 
     assert(result1.isZero(), `returned wrong value from every, got ${result1}`);
@@ -166,7 +186,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
     const result2 = await logic.stackTop();
 
     assert(result2.isZero(), `returned wrong value from every, got ${result2}`);
@@ -197,7 +221,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
     assert(result0.eq(2), `returned wrong value from eager if, got ${result0}`);
@@ -219,7 +247,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop();
 
     assert(result1.eq(2), `returned wrong value from eager if, got ${result1}`);
@@ -241,7 +273,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression2.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      []
+    );
     const result2 = await logic.stackTop();
 
     assert(result2.eq(3), `returned wrong value from eager if, got ${result2}`);
@@ -265,7 +301,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not gt 1");
@@ -285,7 +325,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is gt 2");
@@ -309,7 +353,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result0), "wrongly says 2 is lt 1");
@@ -329,7 +377,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result1), "wrongly says 1 is not lt 2");
@@ -355,7 +407,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop(); // expect 1
 
     assert(isTruthy(result0), "wrongly says 2 is not equal to 2");
@@ -375,7 +431,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result1 = await logic.stackTop(); // expect 0
 
     assert(!isTruthy(result1), "wrongly says 1 is equal to 2");
@@ -395,7 +455,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression2.dispatch, [[1]]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression2.dispatch,
+      [[1]]
+    );
     const result2 = await logic.stackTop(); // expect 1
 
     assert(
@@ -418,7 +482,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression3.dispatch, [[id]]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression3.dispatch,
+      [[id]]
+    );
     const result3 = await logic.stackTop(); // expect 1
 
     assert(
@@ -444,7 +512,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop(); // expect 1
 
@@ -464,7 +536,11 @@ describe("RainInterpreter logic ops", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
 
     const result1 = await logic.stackTop(); // expect 0
 

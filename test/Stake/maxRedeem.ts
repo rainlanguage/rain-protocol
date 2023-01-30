@@ -1,13 +1,9 @@
 import { assert } from "chai";
 import { ethers } from "hardhat";
-import {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-  StakeFactory,
-} from "../../typechain";
+import { ReserveToken18, StakeFactory } from "../../typechain";
 import { StakeConfigStruct } from "../../typechain/contracts/stake/Stake";
 import {
+  generateEvaluableConfig,
   getEventArgs,
   memoryOperand,
   MemoryType,
@@ -16,23 +12,15 @@ import {
 } from "../../utils";
 import { max_uint256 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 
 describe("Stake maxRedeem", async function () {
   let stakeFactory: StakeFactory;
   let token: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   before(async () => {
     stakeFactory = await stakeFactoryDeploy();
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   beforeEach(async () => {
@@ -72,17 +60,18 @@ describe("Stake maxRedeem", async function () {
     );
 
     const source = [max_deposit, max_withdraw];
-
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: source,
+        constants: constants,
+      },
+      false
+    );
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: source,
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

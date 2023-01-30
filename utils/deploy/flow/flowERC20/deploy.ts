@@ -3,13 +3,13 @@ import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import { FlowERC20Factory } from "../../../../typechain";
 import {
+  EvaluableConfigStruct,
   FlowERC20,
   FlowERC20ConfigStruct,
 } from "../../../../typechain/contracts/flow/erc20/FlowERC20";
 import { getEventArgs } from "../../../events";
 import { FlowERC20Config } from "../../../types/flow";
-import { rainterpreterExpressionDeployerDeploy } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
+import { generateEvaluableConfig } from "../../../interpreter";
 
 export const flowERC20Deploy = async (
   deployer: SignerWithAddress,
@@ -17,18 +17,23 @@ export const flowERC20Deploy = async (
   flowERC20Config: FlowERC20Config,
   ...args: Overrides[]
 ) => {
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
+  // Building evaluableConfig
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    flowERC20Config.expressionConfig
   );
 
+  // Building flowConfig
+  const flowConfig: EvaluableConfigStruct[] = [];
+  for (let i = 0; i < flowERC20Config.flows.length; i++) {
+    const evaluableConfig = await generateEvaluableConfig(
+      flowERC20Config.flows[i]
+    );
+    flowConfig.push(evaluableConfig);
+  }
+
   const flowERC20ConfigStruct: FlowERC20ConfigStruct = {
-    stateConfig: flowERC20Config.stateConfig,
-    flowConfig: {
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      flows: flowERC20Config.flows,
-    },
+    evaluableConfig: evaluableConfig,
+    flowConfig: flowConfig,
     name: flowERC20Config.name,
     symbol: flowERC20Config.symbol,
   };
@@ -55,5 +60,5 @@ export const flowERC20Deploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return { flow, interpreter, expressionDeployer };
+  return { flow };
 };

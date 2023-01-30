@@ -12,7 +12,7 @@ import {
 import {
   FlowERC1155IOStruct,
   FlowTransferStruct,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -216,14 +216,14 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants: constants_A,
     };
 
     const { flow } = await flowERC1155Deploy(deployer, flowERC1155Factory, {
       uri: "F1155",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO_A],
@@ -289,7 +289,7 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const flowStruct_A = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct_A,
@@ -298,7 +298,7 @@ describe("FlowERC1155 multiCall tests", async function () {
 
     const flowStruct_B = await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[1].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[1].evaluable, [1234], []);
 
     compareStructs(
       flowStruct_B,
@@ -308,12 +308,12 @@ describe("FlowERC1155 multiCall tests", async function () {
     // MultiCall
     const iFlow = new ethers.utils.Interface(flowERC1155ABI.abi);
     const encode_flowA = iFlow.encodeFunctionData("flow", [
-      flowInitialized[0].dispatch,
+      flowInitialized[0].evaluable,
       [1234],
       [],
     ]);
     const encode_flowB = iFlow.encodeFunctionData("flow", [
-      flowInitialized[1].dispatch,
+      flowInitialized[1].evaluable,
       [1234],
       [],
     ]);

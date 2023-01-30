@@ -8,6 +8,7 @@ import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/dep
 import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp } from "../../../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -36,29 +37,27 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
   it("should correctly combine Always and Never tier reports with every and min selector", async () => {
     const signers = await ethers.getSigners();
 
+    const evaluableConfigAlways = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [ALWAYS],
+    });
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [ALWAYS],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigAlways,
     })) as CombineTier;
+    const evaluableConfigNever = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [NEVER],
+    });
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [NEVER],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigNever,
     })) as CombineTier;
 
     const constants = [
@@ -81,14 +80,13 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
       ),
     ]);
 
+    const evaluableConfigCombine = await generateEvaluableConfig({
+      sources: [sourceReport, sourceReportTimeForTierDefault],
+      constants,
+    });
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      stateConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigCombine,
     })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -131,14 +129,13 @@ describe("CombineTier tierwise combine report with 'every' logic and 'min' mode"
       ),
     ]);
 
+    const evaluableConfigCombine = await generateEvaluableConfig({
+      sources: [sourceReport, sourceReportTimeForTierDefault],
+      constants,
+    });
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      stateConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigCombine,
     })) as CombineTier;
 
     const startTimestamp = await getBlockTimestamp();

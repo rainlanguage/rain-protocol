@@ -10,7 +10,7 @@ import {
 } from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
 import {
   AllStandardOps,
-  areEqualStateConfigs,
+  areEqualExpressionConfigs,
   assertError,
   basicDeploy,
   getEventArgs,
@@ -26,7 +26,7 @@ import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/
 import { getRainterpreterOpmetaBytes } from "../../../../utils/interpreter/ops/allStandardOpmeta";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
-  it("DeployExpression event should emit original StateConfig", async () => {
+  it("DeployExpression event should emit original NewExpressionConfig", async () => {
     const interpreter = await rainterpreterDeploy();
     const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
       interpreter
@@ -46,7 +46,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     const expected = config;
     const tx = await expressionDeployer.deployExpression(config, [1]);
     const configFromEvent = (
-      await getEventArgs(tx, "ExpressionConfig", expressionDeployer)
+      await getEventArgs(tx, "NewExpressionConfig", expressionDeployer)
     )[1];
 
     const result = {
@@ -93,7 +93,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     const mathConfigFromEvent = (
       await getEventArgs(
         mathExpressionTx,
-        "ExpressionConfig",
+        "NewExpressionConfig",
         expressionDeployer
       )
     )[1];
@@ -104,14 +104,14 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     };
 
     assert(
-      areEqualStateConfigs(expected, result),
+      areEqualExpressionConfigs(expected, result),
       `wrong state config
       expected  ${expected}
       got       ${result}`
     );
 
     assert(
-      areEqualStateConfigs(expectedMathResult, mathResult),
+      areEqualExpressionConfigs(expectedMathResult, mathResult),
       `wrong state config
       expected  ${expectedMathResult}
       got       ${mathResult}`
@@ -160,7 +160,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       "incorrect store"
     );
   });
- 
+
   it("should throw error when the `Rainterpreter` is constructed with unknown store bytecode.", async () => {
     const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter");
 
@@ -169,10 +169,8 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       opMeta: opMeta,
     };
 
-    assertError(
-        async () => await basicDeploy("Rainterpreter", {}, [
-        interpreterConfig,
-      ]), 
+    await assertError(
+      async () => await basicDeploy("Rainterpreter", {}, [interpreterConfig]),
       "UnexpectedStoreBytecodeHash",
       "Integrity check failed to validate the expected STORE_BYTECODE_HASH"
     );

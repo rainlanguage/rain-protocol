@@ -2,15 +2,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { artifacts, ethers } from "hardhat";
 import type { AutoApprove, AutoApproveFactory } from "../../../../../typechain";
+import { EvaluableConfigStruct } from "../../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
-  AutoApproveConfigStruct,
   ImplementationEvent as ImplementationEventAutoApproveFactory,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../../../typechain/contracts/verify/auto/AutoApproveFactory";
 import { zeroAddress } from "../../../../constants";
 import { getEventArgs } from "../../../../events";
-import { rainterpreterDeploy } from "../../../interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { generateEvaluableConfig } from "../../../../interpreter";
 
 export const autoApproveFactoryDeploy = async () => {
   const factoryFactory = await ethers.getContractFactory("AutoApproveFactory");
@@ -34,7 +33,7 @@ export const autoApproveFactoryDeploy = async () => {
 export const autoApproveDeploy = async (
   deployer: SignerWithAddress,
   autoApproveFactory: AutoApproveFactory,
-  stateConfig: StateConfigStruct
+  expressionConfig: ExpressionConfigStruct
 ) => {
   const { implementation } = (await getEventArgs(
     autoApproveFactory.deployTransaction,
@@ -46,20 +45,13 @@ export const autoApproveDeploy = async (
     "implementation autoApprove factory zero address"
   );
 
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    expressionConfig
   );
-
-  const autoApproveConfig: AutoApproveConfigStruct = {
-    expressionDeployer: expressionDeployer.address,
-    interpreter: interpreter.address,
-    stateConfig,
-  };
 
   const tx = await autoApproveFactory
     .connect(deployer)
-    .createChildTyped(autoApproveConfig);
+    .createChildTyped(evaluableConfig);
   const autoApprove = new ethers.Contract(
     ethers.utils.hexZeroPad(
       ethers.utils.hexStripZeros(
