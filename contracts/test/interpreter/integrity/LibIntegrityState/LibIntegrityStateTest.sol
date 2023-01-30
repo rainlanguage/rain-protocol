@@ -69,7 +69,7 @@ contract LibIntegrityCheckTest {
     }
     
     function ensureIntegrityTest(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         SourceIndex sourceIndex_,
         StackPointer stackTop_,
         uint256 minStackOutputs_,
