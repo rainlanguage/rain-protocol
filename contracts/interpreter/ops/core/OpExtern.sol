@@ -57,10 +57,10 @@ library OpExtern {
             // Mirrors constant opcode.
             EncodedExternDispatch encodedDispatch_;
             assembly ("memory-safe") {
-                encodedDispatch_ := add(
+                encodedDispatch_ := mload(add(
                     mload(add(interpreterState_, 0x20)),
                     mul(0x20, offset_)
-                )
+                ))
             }
 
             (interpreterExtern_, externDispatch_) = LibExtern.decode(

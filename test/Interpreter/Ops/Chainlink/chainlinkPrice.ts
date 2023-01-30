@@ -8,7 +8,7 @@ import {
   AllStandardOps,
   assertError,
   eighteenZeros,
-  externOprand,
+  externOperand,
   getBlockTimestamp,
   memoryOperand,
   MemoryType,
@@ -31,11 +31,11 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   let rainInterpreterExtern: RainterpreterExtern;
   let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
 
-  beforeEach(async () => { 
+  beforeEach(async () => {
     rainInterpreter = await rainterpreterDeploy();
 
     // fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
-    rainInterpreterExtern = await rainterpreterExtern(); 
+    rainInterpreterExtern = await rainterpreterExtern();
     const consumerFactory = await ethers.getContractFactory(
       "IInterpreterV1Consumer"
     );
@@ -215,7 +215,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const timestamp = (await getBlockTimestamp()) - 1;
     const chainlinkPriceData = {
-      roundId: 4, 
+      roundId: 4,
       answer: "123" + eighteenZeros,
       startedAt: timestamp,
       updatedAt: timestamp,
@@ -233,16 +233,18 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const priceData = await rainInterpreterExtern.extern(0, inputs);
     console.log(priceData);
     // assert(priceData)
-  });  
+  });
 
-  it.only("extern test 2", async () => { 
+  it.only("extern test 2", async () => {
     const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+
+    const timestamp = await getBlockTimestamp();
 
     const chainlinkPriceData = {
       roundId: 4,
       answer: 123 + eighteenZeros,
-      startedAt: await getBlockTimestamp(),
-      updatedAt: await getBlockTimestamp(),
+      startedAt: timestamp,
+      updatedAt: timestamp,
       answeredInRound: 4,
     };
 
@@ -252,16 +254,16 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle2.address;
     const staleAfter = 10000;
 
-    const constants = [rainInterpreterExtern.address,feed,staleAfter] 
+    const constants = [rainInterpreterExtern.address,feed,staleAfter]
 
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-   
+
     // prettier-ignore
     const source0 = concat([
         v0,
         v1,
-        op(Opcode.EXTERN, externOprand(0, 2 ,1)),
+        op(Opcode.EXTERN, externOperand(0, 2 ,1)),
     ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -275,7 +277,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
     const result0 = await logic.stackTop();
 
-    console.log("result0 : " , result0)  
+    console.log("result0 : " , result0)
 
   });
 
