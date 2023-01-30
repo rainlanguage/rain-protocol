@@ -290,8 +290,8 @@ describe("Sale minimum raise", async function () {
     const recipient = signers[1];
     const signer1 = signers[2];
     const feeRecipient = signers[3];
-    // 5 blocks from now
-    const startBlock = (await ethers.provider.getBlockNumber()) + 5;
+    // 7 blocks from now
+    const startBlock = (await ethers.provider.getBlockNumber()) + 7;
     const saleDuration = 30;
     const minimumRaise = ethers.BigNumber.from("150000").mul(RESERVE_ONE);
     const totalTokenSupply = ethers.BigNumber.from("2000").mul(ONE);
