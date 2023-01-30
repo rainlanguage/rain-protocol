@@ -1,11 +1,14 @@
 import type {
   AggregatorV3Interface,
   RainterpreterExtern,
+  Rainterpreter,
+  IInterpreterV1Consumer
 } from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
   eighteenZeros,
+  externOprand,
   getBlockTimestamp,
   memoryOperand,
   MemoryType,
@@ -16,18 +19,30 @@ import {
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
-import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { rainterpreterExtern } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { expressionConsumerDeploy, iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { rainterpreterDeploy, rainterpreterExtern } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { ethers } from "hardhat";
 
 const Opcode = AllStandardOps;
 
 describe("CHAINLINK_PRICE Opcode tests", async function () {
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
   let rainInterpreterExtern: RainterpreterExtern;
   let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
 
-  beforeEach(async () => {
+  beforeEach(async () => { 
+    rainInterpreter = await rainterpreterDeploy();
+
     // fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
-    rainInterpreterExtern = await rainterpreterExtern();
+    rainInterpreterExtern = await rainterpreterExtern(); 
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
+
+
   });
 
   it("should revert if price is stale", async () => {
@@ -195,12 +210,12 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     assert(price_.eq(123 + eighteenZeros));
   });
 
-  it.only("extern test", async () => {
+  it("extern test", async () => {
     const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
 
     const timestamp = (await getBlockTimestamp()) - 1;
     const chainlinkPriceData = {
-      roundId: 4,
+      roundId: 4, 
       answer: "123" + eighteenZeros,
       startedAt: timestamp,
       updatedAt: timestamp,
@@ -218,5 +233,52 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const priceData = await rainInterpreterExtern.extern(0, inputs);
     console.log(priceData);
     // assert(priceData)
+  });  
+
+  it.only("extern test 2", async () => { 
+    const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+
+    const chainlinkPriceData = {
+      roundId: 4,
+      answer: 123 + eighteenZeros,
+      startedAt: await getBlockTimestamp(),
+      updatedAt: await getBlockTimestamp(),
+      answeredInRound: 4,
+    };
+
+    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
+    fakeChainlinkOracle2.decimals.returns(18);
+
+    const feed = fakeChainlinkOracle2.address;
+    const staleAfter = 10000;
+
+    const constants = [rainInterpreterExtern.address,feed,staleAfter] 
+
+    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+   
+    // prettier-ignore
+    const source0 = concat([
+        v0,
+        v1,
+        op(Opcode.EXTERN, externOprand(0, 2 ,1)),
+    ]);
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources: [source0],
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    const result0 = await logic.stackTop();
+
+    console.log("result0 : " , result0)  
+
   });
+
+
+
 });

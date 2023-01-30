@@ -74,6 +74,15 @@ export function callOperand(
 ): number {
   const operand = (sourceIndex << 8) + (outputSize << 4) + inputSize;
   return operand;
+}  
+
+export function externOprand(
+  offset: number,
+  inputs: number,
+  outputs: number
+): number {
+  const operand = (offset << 10) + (outputs << 5) + inputs;
+  return operand;
 }
 
 /**
@@ -106,7 +115,7 @@ export function doWhileOperand(
   reserved: number,
   sourceIndex: number
 ): number {
-  const operand = (sourceIndex << 8) + (reserved << 4) + inputSize;
+  const operand = (sourceIndex << 8) + (reserved << 4) + inputSize; 
   return operand;
 }
 
