@@ -11,7 +11,6 @@ export const combineTierDeploy = async (
   deployer: SignerWithAddress,
   config: CombineTierConfigStruct
 ) => {
-
   const combineTierFactoryFactory = await ethers.getContractFactory(
     "CombineTierFactory"
   );

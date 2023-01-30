@@ -441,9 +441,7 @@ describe("CombineTier report tests", async function () {
     // Give Alice reserve tokens and deposit them
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
-    await tokenERC20
-      .connect(alice)
-      .approve(stake.address, depositAmount0);
+    await tokenERC20.connect(alice).approve(stake.address, depositAmount0);
     await stake.connect(alice).deposit(depositAmount0, alice.address);
     const blockTimeAlice_ = await getBlockTimestamp();
 
@@ -462,9 +460,7 @@ describe("CombineTier report tests", async function () {
     await timewarp(10000);
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(bob.address, depositAmount1);
-    await tokenERC20
-      .connect(bob)
-      .approve(stake.address, depositAmount1);
+    await tokenERC20.connect(bob).approve(stake.address, depositAmount1);
     await stake.connect(bob).deposit(depositAmount1, bob.address);
     const blockTimeBob_ = await getBlockTimestamp();
 
@@ -573,9 +569,7 @@ describe("CombineTier report tests", async function () {
     // Give Alice reserve tokens and deposit them to stake0
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
-    await tokenERC20
-      .connect(alice)
-      .approve(stake0.address, depositAmount0);
+    await tokenERC20.connect(alice).approve(stake0.address, depositAmount0);
     await stake0.connect(alice).deposit(depositAmount0, alice.address);
     const blockTimeAlice_ = await getBlockTimestamp();
 
@@ -663,9 +657,7 @@ describe("CombineTier report tests", async function () {
     await timewarp(10000);
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
-    await tokenERC20
-      .connect(alice)
-      .approve(stake1.address, depositAmount1);
+    await tokenERC20.connect(alice).approve(stake1.address, depositAmount1);
     await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     const result1 = await combineTierMain.report(alice.address, [
@@ -827,9 +819,7 @@ describe("CombineTier report tests", async function () {
     // Give Alice reserve tokens and deposit them to stake0
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
-    await tokenERC20
-      .connect(alice)
-      .approve(stake0.address, depositAmount0);
+    await tokenERC20.connect(alice).approve(stake0.address, depositAmount0);
     await stake0.connect(alice).deposit(depositAmount0, alice.address);
     const blockTimeAlice_ = await getBlockTimestamp();
 
@@ -944,9 +934,7 @@ describe("CombineTier report tests", async function () {
     await timewarp(10000);
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
-    await tokenERC20
-      .connect(alice)
-      .approve(stake1.address, depositAmount1);
+    await tokenERC20.connect(alice).approve(stake1.address, depositAmount1);
     await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     await logic["eval(address,uint256,uint256[][])"](

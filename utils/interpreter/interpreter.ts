@@ -195,7 +195,7 @@ export async function generateEvaluableConfig(
   return {
     deployer: expressionDeployer.address,
     interpreter: interpreter.address,
-    store: isStore ? interpreterStore.address : zeroAddress, 
+    store: isStore ? interpreterStore.address : zeroAddress,
     expressionConfig: expressionConfig,
   };
 }

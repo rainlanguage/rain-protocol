@@ -20,8 +20,6 @@ import {
   stakeDeploy,
   Tier,
 } from "../../utils";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
@@ -108,11 +106,6 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       "ReserveToken",
       {}
     )) as ReserveToken;
-
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
 
     const evaluableConfig = await generateEvaluableConfig(
       {
