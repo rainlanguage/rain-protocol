@@ -117,7 +117,7 @@ describe("RainInterpreter context", async function () {
       [8, 9], // no value at (2,2)
     ];
 
-    assertError(
+    await assertError(
       async () =>
         await consumerLogic["eval(address,uint256,uint256[][])"](
           interpreter.address,

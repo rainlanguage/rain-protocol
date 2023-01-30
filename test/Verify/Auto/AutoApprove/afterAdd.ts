@@ -299,7 +299,7 @@ describe("AutoApprove afterAdd", async function () {
     const evidenceAdd = hexZeroPad([...Buffer.from("Evidence")], 32);
 
     // Can't approve without permissions
-    assertError(
+    await assertError(
       async () => await verify.connect(signer1).add(evidenceAdd),
       `AccessControl: account ${autoApprove.address.toLowerCase()} is missing role ${(
         await verify.APPROVER()

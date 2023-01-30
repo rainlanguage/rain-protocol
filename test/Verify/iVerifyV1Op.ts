@@ -112,11 +112,12 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       [[verify.address, signer1.address, timestamp - ONE_SECOND]]
     );
 
+    console.log(await logic.stackTop());
+    console.log((await logic.stackTop()).eq(Util.STATUS_ADDED));
     // Checking status before 'add'
-    assertError(
-      (await logic.stackTop()).eq(Util.STATUS_ADDED),
-      "Incorrect status before adding an evidence",
-      "[STATUS_NIL] expected"
+    assert(
+      (await logic.stackTop()).eq(Util.STATUS_NIL),
+      "Incorrect status before adding an evidence, [STATUS_NIL] expected"
     );
 
     // Checking status after 'add'
@@ -143,10 +144,9 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       expression0.dispatch,
       [[verify.address, signer1.address, timestamp - ONE_SECOND]]
     );
-    assertError(
-      (await logic.stackTop()).eq(Util.STATUS_APPROVED),
-      "Incorrect status before adding an evidence",
-      "[STATUS_ADDED] expected"
+    assert(
+      (await logic.stackTop()).eq(Util.STATUS_ADDED),
+      "Incorrect status before adding an evidence [STATUS_ADDED] expected"
     );
     // Checking status after 'approve'
     await logic["eval(address,uint256,uint256[][])"](
@@ -172,10 +172,9 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
       expression0.dispatch,
       [[verify.address, signer1.address, timestamp - ONE_SECOND]]
     );
-    assertError(
-      (await logic.stackTop()).eq(Util.STATUS_BANNED),
-      "Incorrect status before adding an evidence",
-      "[STATUS_APPROVED] expected"
+    assert(
+      (await logic.stackTop()).eq(Util.STATUS_APPROVED),
+      "Incorrect status before adding an evidence [STATUS_APPROVED] expected"
     );
 
     // Checking status after 'ban'

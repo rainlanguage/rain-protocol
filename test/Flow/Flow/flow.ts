@@ -1317,10 +1317,7 @@ describe("Flow flow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [
         { sources: [sourceFlowIOIn], constants },
         { sources: [sourceFlowIOOOut], constants },
@@ -1337,8 +1334,8 @@ describe("Flow flow tests", async function () {
 
     const me = flow;
 
-    const dispatchIN = flowInitialized[0].dispatch;
-    const dispatchOUT = flowInitialized[1].dispatch;
+    const dispatchIN = flowInitialized[0].evaluable;
+    const dispatchOUT = flowInitialized[1].evaluable;
 
     // Ensure Flow contract holds enough Ether
     await signers[0].sendTransaction({
@@ -1346,7 +1343,7 @@ describe("Flow flow tests", async function () {
       value: ethers.BigNumber.from(flowTransfer.native[1].amount),
     });
 
-    assertError(
+    await assertError(
       async () =>
         await flow.connect(you).flow(dispatchIN, [1234], [], {
           value: ethers.BigNumber.from(flowTransfer.native[0].amount),
@@ -1355,7 +1352,7 @@ describe("Flow flow tests", async function () {
       "Flowed an unsupported Native Flow"
     );
 
-    assertError(
+    await assertError(
       async () =>
         await flow.connect(you).flow(dispatchOUT, [1234], [], {
           value: ethers.BigNumber.from(flowTransfer.native[0].amount),
@@ -1453,10 +1450,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [
         { sources: [sourceFlowIOIN], constants },
         { sources: [sourceFlowIOOUT], constants },
@@ -1480,25 +1474,23 @@ describe("Flow flow tests", async function () {
     await erc20In
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
-    
-    const dispatchIN = flowInitialized[0].dispatch;
-    const dispatchOUT = flowInitialized[1].dispatch;
-   
-    assertError(
-      async () =>
-        await flow.connect(you).flow(dispatchIN, [1234], []),
+
+    const dispatchIN = flowInitialized[0].evaluable;
+    const dispatchOUT = flowInitialized[1].evaluable;
+
+    await assertError(
+      async () => await flow.connect(you).flow(dispatchIN, [1234], []),
       "UnsupportedERC20Flow()",
       "Flowed an unsupported ERC20 Flow"
     );
 
-    assertError(
-      async () =>
-        await flow.connect(you).flow(dispatchOUT, [1234], []),
+    await assertError(
+      async () => await flow.connect(you).flow(dispatchOUT, [1234], []),
       "UnsupportedERC20Flow()",
       "Flowed an unsupported ERC20 Flow"
     );
   });
-  
+
   it("should error if ERC721 flow (from) is other than the source contract or msg.sender", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -1575,10 +1567,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -1609,9 +1598,9 @@ describe("Flow flow tests", async function () {
 
     await erc721In.connect(you).approve(me.address, flowTransfer.erc721[0].id);
 
-    assertError(
+    await assertError(
       async () =>
-        await flow.connect(you).flow(flowInitialized[0].dispatch, [1234], []),
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
       "UnsupportedERC721Flow()",
       "Flowed an unsupported ERC721 Flow"
     );
@@ -1703,10 +1692,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -1742,9 +1728,9 @@ describe("Flow flow tests", async function () {
 
     await erc1155In.connect(you).setApprovalForAll(me.address, true);
 
-    assertError(
+    await assertError(
       async () =>
-        await flow.connect(you).flow(flowInitialized[0].dispatch, [1234], []),
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
       "UnsupportedERC1155Flow()",
       "Flowed an unsupported ERC1155 Flow"
     );

@@ -160,7 +160,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       "incorrect store"
     );
   });
- 
+
   it("should throw error when the `Rainterpreter` is constructed with unknown store bytecode.", async () => {
     const opMeta = ethers.utils.toUtf8Bytes("AlphaRainInterpreter");
 
@@ -169,10 +169,8 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       opMeta: opMeta,
     };
 
-    assertError(
-        async () => await basicDeploy("Rainterpreter", {}, [
-        interpreterConfig,
-      ]), 
+    await assertError(
+      async () => await basicDeploy("Rainterpreter", {}, [interpreterConfig]),
       "UnexpectedStoreBytecodeHash",
       "Integrity check failed to validate the expected STORE_BYTECODE_HASH"
     );

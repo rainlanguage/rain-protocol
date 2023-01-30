@@ -302,17 +302,17 @@ describe("DO_WHILE Opcode test", async function () {
       op(Opcode.LESS_THAN),
     ]);
 
-    assertError(
-      async ()=> await iinterpreterV1ConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        },
-        1
-      ),
+    await assertError(
+      async () =>
+        await iinterpreterV1ConsumerDeploy(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          1
+        ),
       "DoWhileMaxInputs(20)",
       "Did not fail for an invalid input encoded in the operand"
     );
-
   });
 });

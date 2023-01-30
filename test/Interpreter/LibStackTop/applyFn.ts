@@ -329,7 +329,7 @@ describe("LibStackPointer applyFn tests", async function () {
     const array0 = [2, 4, 6, 8, 10, 12, 14, 16, 18];
     const tailLength = 4;
 
-    assertError(
+    await assertError(
       async () => await libStackPointer.callStatic.applyFn2TailsWithErrorFn(array0, tailLength),
       "UnexpectedResultLength",
       "Did not error when the length of an array as the result of the applied function did not matched the expectations"

@@ -1977,7 +1977,7 @@ describe("FlowERC721 flow tests", async function () {
     const stateConfigStruct: FlowERC721Config = {
       name: "FlowERC721",
       symbol: "F721",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants: constantsMint, // only needed for CAN_TRANSFER
       },
@@ -2005,8 +2005,8 @@ describe("FlowERC721 flow tests", async function () {
       flow
     )) as FlowInitializedEvent["args"][];
 
-    const mintFlowId = flowInitialized[0].dispatch;
-    const burnFlowId = flowInitialized[1].dispatch;
+    const mintFlowId = flowInitialized[0].evaluable;
+    const burnFlowId = flowInitialized[1].evaluable;
 
     const me = flow;
 

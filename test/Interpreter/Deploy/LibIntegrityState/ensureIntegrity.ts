@@ -241,7 +241,7 @@ describe("LibIntegrityCheck ensureIntegrity tests", async function () {
     const stackTop = INITIAL_STACK_BOTTOM;
     const minimumFinalStackIndex = 0;
 
-    assertError(
+    await assertError(
       async () => await libIntegrityCheckState.callStatic["ensureIntegrityTest((bytes[],uint256[]),uint256,uint256,uint256,uint256)"](
         {
           sources,
