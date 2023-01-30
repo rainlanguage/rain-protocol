@@ -18,11 +18,19 @@ library OpERC5313Owner {
             );
     }
 
-    function integrity(IntegrityCheckState memory integrityCheckState_, Operand, StackPointer stackTop_) internal pure returns (StackPointer) {
+    function integrity(
+        IntegrityCheckState memory integrityCheckState_,
+        Operand,
+        StackPointer stackTop_
+    ) internal pure returns (StackPointer) {
         return integrityCheckState_.applyFn(stackTop_, f);
     }
 
-    function run(InterpreterState memory, Operand, StackPointer stackTop_) internal view returns (StackPointer) {
+    function run(
+        InterpreterState memory,
+        Operand,
+        StackPointer stackTop_
+    ) internal view returns (StackPointer) {
         return stackTop_.applyFn(f);
     }
 }

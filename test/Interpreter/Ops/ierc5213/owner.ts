@@ -1,4 +1,3 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
@@ -36,15 +35,17 @@ describe("RainInterpreter ERC20 ops", async function () {
   });
 
   beforeEach(async () => {
-    tokenERC20 = (await basicDeploy("ReserveTokenOwner", {})) as ReserveTokenOwner;
+    tokenERC20 = (await basicDeploy(
+      "ReserveTokenOwner",
+      {}
+    )) as ReserveTokenOwner;
     await tokenERC20.initialize();
   });
 
-  it("should return owner", async () => { 
-
+  it("should return owner", async () => {
     const signers = await ethers.getSigners();
     const constants = [tokenERC20.address];
-    
+
     // prettier-ignore
     const sources = [
       concat([
@@ -63,21 +64,19 @@ describe("RainInterpreter ERC20 ops", async function () {
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
-    const result0 = await logic.stackTop();  
-    
+    const result0 = await logic.stackTop();
+
     assert(
       result0.toHexString().toLowerCase() == signers[0].address.toLowerCase(),
       `Not Owner`
-    ); 
+    );
+  });
 
-  }); 
-
-  it("should return updated owner", async () => {  
-
+  it("should return updated owner", async () => {
     const signers = await ethers.getSigners();
     const signer2 = signers[2];
     const constants = [tokenERC20.address];
-    
+
     // prettier-ignore
     const sources0 = [
       concat([
@@ -88,7 +87,7 @@ describe("RainInterpreter ERC20 ops", async function () {
 
     const expression0 = await expressionConsumerDeploy(
       {
-        sources : sources0,
+        sources: sources0,
         constants,
       },
       rainInterpreter,
@@ -96,16 +95,15 @@ describe("RainInterpreter ERC20 ops", async function () {
     );
 
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
-    const result0 = await logic.stackTop();  
-    
+    const result0 = await logic.stackTop();
+
     assert(
       result0.toHexString().toLowerCase() == signers[0].address.toLowerCase(),
       `Not Owner`
-    );  
+    );
 
     // Update Owner
-    await tokenERC20.connect(signers[0]).transferOwnerShip(signer2.address) ;  
-
+    await tokenERC20.connect(signers[0]).transferOwnerShip(signer2.address);
 
     // prettier-ignore
     const sources1 = [
@@ -117,7 +115,7 @@ describe("RainInterpreter ERC20 ops", async function () {
 
     const expression1 = await expressionConsumerDeploy(
       {
-        sources : sources1,
+        sources: sources1,
         constants,
       },
       rainInterpreter,
@@ -125,15 +123,11 @@ describe("RainInterpreter ERC20 ops", async function () {
     );
 
     await logic.eval(rainInterpreter.address, expression1.dispatch, []);
-    const result1 = await logic.stackTop();  
+    const result1 = await logic.stackTop();
 
     assert(
       result1.toHexString().toLowerCase() == signer2.address.toLowerCase(),
       `Owner Not Updated`
-    );  
-
-
+    );
   });
-
- 
 });
