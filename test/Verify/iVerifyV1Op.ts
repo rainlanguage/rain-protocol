@@ -10,7 +10,6 @@ import { VerifyFactory } from "../../typechain";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
-  assertError,
   getBlockTimestamp,
   op,
   verifyFactoryDeploy,
@@ -87,9 +86,11 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     );
 
     let timestamp = await getBlockTimestamp();
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_NIL),
       "Incorrect status when no action is performed [STATUS_NIL]"
@@ -104,21 +105,26 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
 
     timestamp = await getBlockTimestamp();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp - ONE_SECOND],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp - ONE_SECOND]]
+    );
 
+    console.log(await logic.stackTop());
+    console.log((await logic.stackTop()).eq(Util.STATUS_ADDED));
     // Checking status before 'add'
-    assertError(
-      (await logic.stackTop()).eq(Util.STATUS_ADDED),
-      "Incorrect status before adding an evidence",
-      "[STATUS_NIL] expected"
+    assert(
+      (await logic.stackTop()).eq(Util.STATUS_NIL),
+      "Incorrect status before adding an evidence, [STATUS_NIL] expected"
     );
 
     // Checking status after 'add'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_ADDED),
       "Incorrect status after adding an evidence [STATUS_ADDED]"
@@ -132,18 +138,21 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     timestamp = await getBlockTimestamp();
 
     // Checking status before 'approve'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp - ONE_SECOND],
-    ]);
-    assertError(
-      (await logic.stackTop()).eq(Util.STATUS_APPROVED),
-      "Incorrect status before adding an evidence",
-      "[STATUS_ADDED] expected"
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp - ONE_SECOND]]
+    );
+    assert(
+      (await logic.stackTop()).eq(Util.STATUS_ADDED),
+      "Incorrect status before adding an evidence [STATUS_ADDED] expected"
     );
     // Checking status after 'approve'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_APPROVED),
       "Incorrect status after approving an evidence [STATUS_APPROVED]"
@@ -157,19 +166,22 @@ describe("IVERIFYV1_ACCOUNT_STATUS_AT_TIME Opcode test", async function () {
     timestamp = await getBlockTimestamp();
 
     // Checking status before 'ban'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp - ONE_SECOND],
-    ]);
-    assertError(
-      (await logic.stackTop()).eq(Util.STATUS_BANNED),
-      "Incorrect status before adding an evidence",
-      "[STATUS_APPROVED] expected"
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp - ONE_SECOND]]
+    );
+    assert(
+      (await logic.stackTop()).eq(Util.STATUS_APPROVED),
+      "Incorrect status before adding an evidence [STATUS_APPROVED] expected"
     );
 
     // Checking status after 'ban'
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [verify.address, signer1.address, timestamp],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[verify.address, signer1.address, timestamp]]
+    );
     assert(
       (await logic.stackTop()).eq(Util.STATUS_BANNED),
       "Incorrect status after banning an address [STATUS_BANNED]"

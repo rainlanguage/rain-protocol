@@ -1,5 +1,6 @@
 import { assert } from "chai";
 import type { LibStackPointerTest } from "../../../typechain";
+import { assertError } from "../../../utils";
 import { readBytes, zeroPad32 } from "../../../utils/bytes";
 import { libStackPointerDeploy } from "../../../utils/deploy/test/libStackTop/deploy";
 
@@ -321,5 +322,20 @@ describe("LibStackPointer applyFn tests", async function () {
         got       ${result_}`
       );
     }
+  });
+
+  it("should throw error when the length of an array as the result of an applied function does not match expectations", async () => {
+    const array0 = [2, 4, 6, 8, 10, 12, 14, 16, 18];
+    const tailLength = 4;
+
+    await assertError(
+      async () =>
+        await libStackPointer.callStatic.applyFn2TailsWithErrorFn(
+          array0,
+          tailLength
+        ),
+      "UnexpectedResultLength",
+      "Did not error when the length of an array as the result of the applied function did not matched the expectations"
+    );
   });
 });

@@ -9,7 +9,7 @@ import {
 import {
   FlowERC20IOStruct,
   FlowTransferStruct,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../typechain/contracts/flow/erc20/FlowERC20";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
@@ -130,7 +130,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -138,7 +138,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -155,7 +155,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -323,7 +323,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -331,7 +331,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -348,7 +348,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -497,7 +497,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -505,7 +505,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -522,7 +522,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -690,7 +690,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -698,7 +698,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -715,7 +715,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address),
@@ -837,7 +837,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -845,7 +845,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -862,7 +862,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -974,7 +974,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -982,7 +982,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -999,7 +999,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1132,7 +1132,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -1140,7 +1140,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1157,7 +1157,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowERC20IOPreview,
@@ -1194,7 +1194,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -1202,7 +1202,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1219,7 +1219,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     await assertError(
       async () =>
-        await flow.previewFlow(flowInitialized[0].dispatch, [1234], []),
+        await flow.previewFlow(flowInitialized[0].evaluable, [1234], []),
       "",
       "flowed when it should not"
     );
@@ -1290,7 +1290,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const sources = [CAN_TRANSFER()];
 
-    const stateConfigStruct: StateConfigStruct = {
+    const expressionConfigStruct: ExpressionConfigStruct = {
       sources,
       constants,
     };
@@ -1298,7 +1298,7 @@ describe("FlowERC20 previewFlow tests", async function () {
     const { flow } = await flowERC20Deploy(deployer, flowERC20Factory, {
       name: "FlowERC20",
       symbol: "F20",
-      stateConfig: stateConfigStruct,
+      expressionConfig: expressionConfigStruct,
       flows: [
         {
           sources: [sourceFlowIO],
@@ -1315,7 +1315,7 @@ describe("FlowERC20 previewFlow tests", async function () {
 
     const flowERC20IOPreview = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     compareStructs(
       flowERC20IOPreview,
       fillEmptyAddressERC20(flowERC20IO, flow.address)

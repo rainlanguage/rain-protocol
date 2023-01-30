@@ -46,7 +46,11 @@ describe("HASH Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -80,7 +84,11 @@ describe("HASH Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, context);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      context
+    );
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],
@@ -110,7 +118,11 @@ describe("HASH Opcode test", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expectedValue = ethers.utils.solidityKeccak256(
       ["uint256[]"],

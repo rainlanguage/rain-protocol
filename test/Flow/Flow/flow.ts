@@ -11,6 +11,7 @@ import {
 import { FlowTransferStruct } from "../../../typechain/contracts/flow/basic/Flow";
 import { FlowTransferStructOutput } from "../../../typechain/contracts/flow/erc1155/FlowERC1155";
 import { FlowInitializedEvent } from "../../../typechain/contracts/flow/FlowCommon";
+import { assertError } from "../../../utils";
 import { eighteenZeros, sixZeros } from "../../../utils/constants/bigNumber";
 import { RAIN_FLOW_SENTINEL } from "../../../utils/constants/sentinel";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
@@ -116,10 +117,7 @@ describe("Flow flow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -158,17 +156,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     // check input ERC1155 affected balances correctly
 
@@ -282,10 +280,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -325,17 +320,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     // check input ERC721 affected balances correctly
 
@@ -432,10 +427,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -468,17 +460,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     // check input ERC20 affected balances correctly
     const me20BalanceIn = await erc20In.balanceOf(me.address);
@@ -570,10 +562,7 @@ describe("Flow flow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -595,11 +584,11 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], [], {
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -607,7 +596,7 @@ describe("Flow flow tests", async function () {
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], [], {
+      .flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -729,10 +718,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -770,17 +756,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct: FlowTransferStructOutput = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn = await erc1155In.balanceOf(me.address, 0);
     const meBalanceOut = await erc1155Out.balanceOf(me.address, 0);
@@ -892,10 +878,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -928,17 +911,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn = await erc721In.balanceOf(me.address);
     const meBalanceOut = await erc721Out.balanceOf(me.address);
@@ -1043,10 +1026,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE SKIP
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -1070,17 +1050,17 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn = await erc20In.balanceOf(me.address);
     const meBalanceOut = await erc20Out.balanceOf(me.address);
@@ -1170,10 +1150,7 @@ describe("Flow flow tests", async function () {
       FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -1200,18 +1177,18 @@ describe("Flow flow tests", async function () {
 
     const flowStruct = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], [], {
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
     compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
 
     const txFlow = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], [], {
+      .flow(flowInitialized[0].evaluable, [1234], [], {
         value: ethers.BigNumber.from(flowTransfer.native[0].amount),
       });
 
@@ -1261,10 +1238,7 @@ describe("Flow flow tests", async function () {
       SENTINEL(), // NATIVE END
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [{ sources: [sourceFlowIO], constants }],
     };
 
@@ -1274,5 +1248,491 @@ describe("Flow flow tests", async function () {
       to: flow.address,
       value: ethers.BigNumber.from(ethers.BigNumber.from(1 + sixZeros)),
     });
+  });
+
+  it("should error if native flow (to & from) is other than the source contract", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+    const bob = signers[2];
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [
+        {
+          from: you.address,
+          to: "", // Contract Address
+          amount: ethers.BigNumber.from(1 + sixZeros),
+        },
+        {
+          from: "", // Contract Address
+          to: you.address,
+          amount: ethers.BigNumber.from(3 + sixZeros),
+        },
+      ],
+      erc20: [],
+      erc721: [],
+      erc1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer.native[0].amount,
+      flowTransfer.native[1].amount,
+      bob.address,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const BOB = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+
+    const sourceFlowIOIn = concat([
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE END
+      YOU(),
+      BOB(), // Invalid transfer
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+    ]);
+
+    const sourceFlowIOOOut = concat([
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE END
+      YOU(),
+      ME(), // Invalid transfer
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      BOB(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+    ]);
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [
+        { sources: [sourceFlowIOIn], constants },
+        { sources: [sourceFlowIOOOut], constants },
+      ],
+    };
+
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    const me = flow;
+
+    const dispatchIN = flowInitialized[0].evaluable;
+    const dispatchOUT = flowInitialized[1].evaluable;
+
+    // Ensure Flow contract holds enough Ether
+    await signers[0].sendTransaction({
+      to: me.address,
+      value: ethers.BigNumber.from(flowTransfer.native[1].amount),
+    });
+
+    await assertError(
+      async () =>
+        await flow.connect(you).flow(dispatchIN, [1234], [], {
+          value: ethers.BigNumber.from(flowTransfer.native[0].amount),
+        }),
+      "UnsupportedNativeFlow()",
+      "Flowed an unsupported Native Flow"
+    );
+
+    await assertError(
+      async () =>
+        await flow.connect(you).flow(dispatchOUT, [1234], [], {
+          value: ethers.BigNumber.from(flowTransfer.native[0].amount),
+        }),
+      "UnsupportedNativeFlow()",
+      "Flowed an unsupported Native Flow"
+    );
+  });
+
+  it("should error if ERC20 flow (from) is other than the source contract or msg.sender", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+    const bob = signers[2];
+
+    const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await erc20In.initialize();
+
+    const erc20Out = (await basicDeploy(
+      "ReserveToken18",
+      {}
+    )) as ReserveToken18;
+    await erc20Out.initialize();
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [],
+      erc20: [
+        {
+          from: you.address,
+          to: "", // Contract address
+          token: erc20In.address,
+          amount: ethers.BigNumber.from(1 + eighteenZeros),
+        },
+        {
+          from: "", // Contract address
+          to: you.address,
+          token: erc20Out.address,
+          amount: ethers.BigNumber.from(2 + eighteenZeros),
+        },
+      ],
+      erc721: [],
+      erc1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer.erc20[0].token,
+      flowTransfer.erc20[0].amount,
+      flowTransfer.erc20[1].token,
+      flowTransfer.erc20[1].amount,
+      bob.address,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const BOB = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
+
+    const sourceFlowIOIN = concat([
+      SENTINEL(), // ERC115 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 END
+      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
+      BOB(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
+      SENTINEL(), // NATIVE SKIP
+    ]);
+
+    const sourceFlowIOOUT = concat([
+      SENTINEL(), // ERC115 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 END
+      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
+      BOB(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
+      SENTINEL(), // NATIVE SKIP
+    ]);
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [
+        { sources: [sourceFlowIOIN], constants },
+        { sources: [sourceFlowIOOUT], constants },
+      ],
+    };
+
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    const me = flow;
+
+    // Ensure parties hold enough ERC20
+    await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
+    await erc20Out.transfer(me.address, flowTransfer.erc20[1].amount);
+
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
+
+    const dispatchIN = flowInitialized[0].evaluable;
+    const dispatchOUT = flowInitialized[1].evaluable;
+
+    await assertError(
+      async () => await flow.connect(you).flow(dispatchIN, [1234], []),
+      "UnsupportedERC20Flow()",
+      "Flowed an unsupported ERC20 Flow"
+    );
+
+    await assertError(
+      async () => await flow.connect(you).flow(dispatchOUT, [1234], []),
+      "UnsupportedERC20Flow()",
+      "Flowed an unsupported ERC20 Flow"
+    );
+  });
+
+  it("should error if ERC721 flow (from) is other than the source contract or msg.sender", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+    const bob = signers[2];
+
+    const erc721In = (await basicDeploy(
+      "ReserveTokenERC721",
+      {}
+    )) as ReserveTokenERC721;
+    await erc721In.initialize();
+
+    const erc721Out = (await basicDeploy(
+      "ReserveTokenERC721",
+      {}
+    )) as ReserveTokenERC721;
+    await erc721Out.initialize();
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [],
+      erc20: [],
+      erc721: [
+        {
+          token: erc721In.address,
+          from: you.address,
+          to: "", // Contract Address
+          id: 0,
+        },
+        {
+          token: erc721Out.address,
+          from: "", // Contract Address
+          to: you.address,
+          id: 0,
+        },
+      ],
+      erc1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer.erc721[0].token,
+      flowTransfer.erc721[0].id,
+      flowTransfer.erc721[1].token,
+      flowTransfer.erc721[1].id,
+      bob.address,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_YOU_TO_ME_ERC721_ID = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const FLOWTRANSFER_ME_TO_YOU_ERC721_ID = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const BOB = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
+
+    const sourceFlowIO = concat([
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 END
+      FLOWTRANSFER_YOU_TO_ME_ERC721_TOKEN(),
+      BOB(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC721_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC721_ID(),
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE SKIP
+    ]);
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [{ sources: [sourceFlowIO], constants }],
+    };
+
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    const me = flow;
+
+    // Ensure parties hold ERC721 tokens
+    await erc721In.mintNewToken();
+    await erc721Out.mintNewToken();
+
+    await erc721In.transferFrom(
+      signers[0].address,
+      you.address,
+      flowTransfer.erc721[0].id
+    );
+    await erc721Out.transferFrom(
+      signers[0].address,
+      me.address,
+      flowTransfer.erc721[1].id
+    );
+
+    await erc721In.connect(you).approve(me.address, flowTransfer.erc721[0].id);
+
+    await assertError(
+      async () =>
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
+      "UnsupportedERC721Flow()",
+      "Flowed an unsupported ERC721 Flow"
+    );
+  });
+
+  it("should error if ERC1155 flow (from) is other than the source contract or msg.sender", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+    const bob = signers[2];
+
+    const erc1155In = (await basicDeploy(
+      "ReserveTokenERC1155",
+      {}
+    )) as ReserveTokenERC1155;
+    await erc1155In.initialize();
+
+    const erc1155Out = (await basicDeploy(
+      "ReserveTokenERC1155",
+      {}
+    )) as ReserveTokenERC1155;
+    await erc1155Out.initialize();
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [],
+      erc20: [],
+      erc721: [],
+      erc1155: [
+        {
+          from: you.address,
+          to: "", // Contract address
+          token: erc1155In.address,
+          id: 0,
+          amount: ethers.BigNumber.from(1 + sixZeros),
+        },
+        {
+          from: "", // Contract address
+          to: you.address,
+          token: erc1155Out.address,
+          id: 0,
+          amount: ethers.BigNumber.from(2 + sixZeros),
+        },
+      ],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer.erc1155[0].token,
+      flowTransfer.erc1155[0].id,
+      flowTransfer.erc1155[0].amount,
+      flowTransfer.erc1155[1].token,
+      flowTransfer.erc1155[1].id,
+      flowTransfer.erc1155[1].amount,
+      bob.address,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_YOU_TO_ME_ERC1155_ID = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const FLOWTRANSFER_ME_TO_YOU_ERC1155_ID = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 6));
+    const FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 7));
+    const BOB = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 8));
+
+    const sourceFlowIO = concat([
+      SENTINEL(), // ERC1155 END
+      FLOWTRANSFER_YOU_TO_ME_ERC1155_TOKEN(),
+      BOB(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC1155_ID(),
+      FLOWTRANSFER_YOU_TO_ME_ERC1155_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_ID(),
+      FLOWTRANSFER_ME_TO_YOU_ERC1155_AMOUNT(),
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE SKIP
+    ]);
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [{ sources: [sourceFlowIO], constants }],
+    };
+
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    const me = flow;
+
+    // Ensure parties hold ERC1155 tokens
+    await erc1155In.mintNewToken();
+    await erc1155Out.mintNewToken();
+
+    await erc1155In.safeTransferFrom(
+      signers[0].address,
+      you.address,
+      flowTransfer.erc1155[0].id,
+      flowTransfer.erc1155[0].amount,
+      new Uint8Array()
+    );
+
+    await erc1155Out.safeTransferFrom(
+      signers[0].address,
+      me.address,
+      flowTransfer.erc1155[1].id,
+      flowTransfer.erc1155[1].amount,
+      new Uint8Array()
+    );
+
+    await erc1155In.connect(you).setApprovalForAll(me.address, true);
+
+    await assertError(
+      async () =>
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
+      "UnsupportedERC1155Flow()",
+      "Flowed an unsupported ERC1155 Flow"
+    );
   });
 });

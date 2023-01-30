@@ -50,9 +50,11 @@ describe("TierV2 report op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [signer1.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[signer1.address]]
+    );
     const result = await logic.stackTop();
 
     const expectedReport = paddedUInt256(

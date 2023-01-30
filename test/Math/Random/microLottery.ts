@@ -212,7 +212,7 @@ describe("Random Micro lottery", async function () {
     const SEED = 1000;
     const invalidMax = 0xff + 1; // 1 full byte plus one === 255 + 1
 
-    assertError(
+    await assertError(
       async () => await random.microLottery(SEED, invalidMax, 0),
       "MAX_MAX",
       "Max not panic with values major to 1 byte"
@@ -221,7 +221,7 @@ describe("Random Micro lottery", async function () {
     const littleMax = 2;
     const n = 2;
 
-    assertError(
+    await assertError(
       async () => await random.microLottery(SEED, littleMax, n),
       "MAX_N",
       "Max not panic when n_ is lower than max_"

@@ -3,7 +3,10 @@ import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../typechain";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
-import { op } from "../../../utils/interpreter/interpreter";
+import {
+  generateEvaluableConfig,
+  op,
+} from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
 
 const Opcode = AllStandardOps;
@@ -24,15 +27,14 @@ describe("CombineTier report context tests", async function () {
     const signers = await ethers.getSigners();
 
     const sourceReport = concat([op(Opcode.CONTEXT, 0x0100)]);
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [sourceReport, sourceReportTimeForTierDefault],
+      constants: [],
+    });
 
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants: [],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig,
     })) as CombineTier;
 
     const result = await combineTier.report(signers[1].address, []);

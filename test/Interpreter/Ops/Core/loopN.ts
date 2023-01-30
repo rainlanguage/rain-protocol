@@ -67,7 +67,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -109,7 +113,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -151,7 +159,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult += incrementValue;
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -204,7 +216,11 @@ describe("LOOP_N Opcode test", async function () {
       }
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -304,7 +320,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult.push(expectedResultTemp);
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stack();
 
     expectedResult = expectedResult.reverse();
@@ -424,7 +444,11 @@ describe("LOOP_N Opcode test", async function () {
       expectedResult = expectedResult.add(expectedResultTemp);
     }
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
     assert(
@@ -466,7 +490,11 @@ describe("LOOP_N Opcode test", async function () {
     );
 
     const expectedResult = 5;
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
     assert(
       result0.eq(expectedResult),
@@ -509,6 +537,44 @@ describe("LOOP_N Opcode test", async function () {
         ),
       "StackPopUnderflow",
       "Integrity check passed even when enough values are not available on the stack"
+    );
+  });
+
+  it("should fail the integrity check if there are fewer outputs than inputs", async () => {
+    const n = 1; // Loop will run only once
+
+    const initialValue = 2;
+    const incrementValue = 1;
+
+    const constants = [initialValue, incrementValue];
+
+    // prettier-ignore
+    const sourceADD = concat([
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)), // val3 --> Will be placed on the stack everytime the LOOP Source will execute
+        op(Opcode.ADD, 3), // ADD REQUIRES 3 VALUES
+      ]);
+
+    // prettier-ignore
+    const sourceMAIN = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val1 --> Available only once in the stack for the LOOP Source
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // val2 --> Available only once in the stack for the LOOP Source
+      op(Opcode.LOOP_N, loopNOperand(n, 2, 1, 1))
+    ]);
+
+    await assertError(
+      async () =>
+        await expressionConsumerDeploy(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          rainInterpreter,
+          1
+        ),
+      "InsufficientLoopOutputs(2, 1)",
+      "Integrity check passed even when there were fewer outputs than inputs"
     );
   });
 });

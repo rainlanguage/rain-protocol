@@ -64,7 +64,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const block0 = await ethers.provider.getBlockNumber();
     const result0 = await logic.stackTop();
     const expected0 = 16 * block0;
@@ -77,7 +81,11 @@ describe("RainInterpreter MathOps standard math", async () => {
 
     await createEmptyBlock();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const block1 = await ethers.provider.getBlockNumber();
 
     const result1 = await logic.stackTop();
@@ -91,7 +99,11 @@ describe("RainInterpreter MathOps standard math", async () => {
 
     await createEmptyBlock();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const block2 = await ethers.provider.getBlockNumber();
     const result2 = await logic.stackTop();
     const expected2 = 16 * block2;
@@ -129,7 +141,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -164,7 +180,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 0;
     assert(
@@ -199,7 +219,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -236,7 +260,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 4096;
     assert(
@@ -271,7 +299,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 16;
     assert(
@@ -306,7 +338,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 33;
     assert(result.eq(expected), `wrong maximum ${expected} ${result}`);
@@ -336,7 +372,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 11;
     assert(result.eq(expected), `wrong minimum ${expected} ${result}`);
@@ -372,7 +412,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 3;
     assert(
@@ -409,7 +453,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 1;
     assert(
@@ -446,7 +494,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 2;
     assert(
@@ -483,7 +535,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 60;
     assert(
@@ -520,7 +576,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 5;
     assert(
@@ -557,7 +617,11 @@ describe("RainInterpreter MathOps standard math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 6;
     assert(result.eq(expected), `wrong summation ${expected} ${result}`);

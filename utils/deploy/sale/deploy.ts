@@ -10,8 +10,6 @@ import {
   SaleRedeemableERC20ConfigStruct,
 } from "../../../typechain/contracts/sale/Sale";
 import { getEventArgs } from "../../events";
-import { rainterpreterExpressionDeployerDeploy } from "../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { rainterpreterDeploy } from "../interpreter/shared/rainterpreter/deploy";
 import { redeemableERC20FactoryDeploy } from "../redeemableERC20/redeemableERC20Factory/deploy";
 import { readWriteTierDeploy } from "../tier/readWriteTier/deploy";
 import { saleFactoryDeploy } from "./saleFactory/deploy";
@@ -99,18 +97,11 @@ export const saleDependenciesDeploy = async () => {
     "wrong redeemableERC20Factory in SaleConstructorConfig"
   );
 
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
-  );
-
   return {
     redeemableERC20Factory,
     readWriteTier,
     saleConstructorConfig,
     saleFactory,
     saleProxy,
-    interpreter,
-    expressionDeployer,
   };
 };

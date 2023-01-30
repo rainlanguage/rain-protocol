@@ -11,16 +11,11 @@ import "../../interpreter/run/LibStackPointer.sol";
 import "../../interpreter/run/LibEncodedDispatch.sol";
 import "../../interpreter/run/LibContext.sol";
 import "../../interpreter/run/IInterpreterCallerV1.sol";
+import "../../interpreter/run/LibEvaluable.sol";
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint256 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
-
-struct AutoApproveConfig {
-    address expressionDeployer;
-    address interpreter;
-    StateConfig stateConfig;
-}
 
 contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
     using LibStackPointer for StackPointer;
@@ -33,26 +28,26 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
-    event Initialize(address sender, AutoApproveConfig config);
+    event Initialize(address sender, EvaluableConfig config);
 
-    IInterpreterV1 internal interpreter;
-    address internal expression;
+    Evaluable internal evaluable;
 
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(
-        AutoApproveConfig calldata config_
-    ) external initializer {
+    function initialize(EvaluableConfig calldata config_) external initializer {
         __VerifyCallback_init();
 
-        expression = IExpressionDeployerV1(config_.expressionDeployer)
-            .deployExpression(
-                config_.stateConfig,
-                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
-            );
-        interpreter = IInterpreterV1(config_.interpreter);
+        address expression_ = config_.deployer.deployExpression(
+            config_.expressionConfig,
+            LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
+        );
+        evaluable = Evaluable(
+            IInterpreterV1(config_.interpreter),
+            IInterpreterStoreV1(config_.store),
+            expression_
+        );
 
         _transferOwnership(msg.sender);
 
@@ -64,16 +59,11 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
         Evidence[] calldata evidences_
     ) external virtual override {
         unchecked {
-            IInterpreterV1 interpreter_ = interpreter;
             uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
             uint256 approvals_ = 0;
             uint256[][] memory context_ = new uint256[][](1);
             context_[0] = new uint256[](2);
-            EncodedDispatch dispatch_ = LibEncodedDispatch.encode(
-                expression,
-                CAN_APPROVE_ENTRYPOINT,
-                CAN_APPROVE_MAX_OUTPUTS
-            );
+            Evaluable memory evaluable_ = evaluable;
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences_[i_].data.length == 0x20) {
@@ -82,11 +72,15 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
                     emit Context(msg.sender, context_);
                     (
                         uint256[] memory stack_,
-                        IInterpreterStoreV1 store_,
                         uint256[] memory kvs_
-                    ) = interpreter_.eval(
+                    ) = evaluable_.interpreter.eval(
+                            evaluable_.store,
                             DEFAULT_STATE_NAMESPACE,
-                            dispatch_,
+                            LibEncodedDispatch.encode(
+                                evaluable_.expression,
+                                CAN_APPROVE_ENTRYPOINT,
+                                CAN_APPROVE_MAX_OUTPUTS
+                            ),
                             context_
                         );
                     if (stack_[stack_.length - 1] > 0) {
@@ -98,7 +92,7 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
                         approvals_++;
                     }
                     if (kvs_.length > 0) {
-                        store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
+                        evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
                     }
                 }
             }

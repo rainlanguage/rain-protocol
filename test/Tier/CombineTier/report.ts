@@ -22,12 +22,12 @@ import {
   timewarp,
 } from "../../../utils";
 import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { expressionConsumerDeploy } from "../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { combineTierDeploy } from "../../../utils/deploy/tier/combineTier/deploy";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -77,29 +77,30 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should support a program which returns the default report", async () => {
+    const evaluableConfigAlwaysTier = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [ALWAYS],
+    });
+
     const alwaysTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [ALWAYS],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigAlwaysTier,
     })) as CombineTier;
+
+    const evaluableConfigNeverTier = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [NEVER],
+    });
+
     const neverTier = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [NEVER],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigNeverTier,
     })) as CombineTier;
 
     const constants = [
@@ -121,14 +122,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.ITIERV2_REPORT, 0),
     ]);
 
+    const evaluableConfigAlways = await generateEvaluableConfig({
+      sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
+      constants,
+    });
+
     const combineTierAlways = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
-        sources: [sourceAlwaysReport, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigAlways,
     })) as CombineTier;
 
     const resultAlwaysReport = await combineTierAlways.report(
@@ -144,14 +145,13 @@ describe("CombineTier report tests", async function () {
       got       ${resultAlwaysReport}`
     );
 
+    const evaluableConfigNever = await generateEvaluableConfig({
+      sources: [sourceNeverReport, sourceReportTimeForTierDefault],
+      constants,
+    });
     const combineTierNever = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
-        sources: [sourceNeverReport, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigNever,
     })) as CombineTier;
 
     const resultNeverReport = await combineTierNever.report(
@@ -188,14 +188,13 @@ describe("CombineTier report tests", async function () {
       op(Opcode.ERC20_BALANCE_OF),
     ]);
 
+    const evaluableConfigAlice = await generateEvaluableConfig({
+      sources: [sourceTierContractAlice, sourceReportTimeForTierDefault],
+      constants: [alice.address, tokenERC20.address],
+    });
     const tierContractAlice = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [sourceTierContractAlice, sourceReportTimeForTierDefault],
-        constants: [alice.address, tokenERC20.address],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigAlice,
     })) as CombineTier;
 
     // BOB
@@ -205,15 +204,13 @@ describe("CombineTier report tests", async function () {
         vAlice,
       op(Opcode.ERC20_BALANCE_OF),
     ]);
-
+    const evaluableConfigBob = await generateEvaluableConfig({
+      sources: [sourceTierContractBob, sourceReportTimeForTierDefault],
+      constants: [bob.address, tokenERC20.address],
+    });
     const tierContractBob = (await combineTierDeploy(deployer, {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [sourceTierContractBob, sourceReportTimeForTierDefault],
-        constants: [bob.address, tokenERC20.address],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigBob,
     })) as CombineTier;
 
     // MAIN
@@ -237,14 +234,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EAGER_IF)
     ]);
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [sourceMain, sourceReportTimeForTierDefault],
+      constants,
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
-        sources: [sourceMain, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(signers[1].address, []);
@@ -308,14 +305,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EAGER_IF)
     ]);
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [sourceMain, sourceReportTimeForTierDefault],
+      constants,
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
-        sources: [sourceMain, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [bob.address]);
@@ -380,14 +377,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EVERY, 2)
     ]);
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [sourceMain, sourceReportTimeForTierDefault],
+      constants,
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
-        sources: [sourceMain, sourceReportTimeForTierDefault],
-        constants,
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfig,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -421,24 +418,22 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should query Stake Contract's report using Combine Tier", async () => {
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: tokenERC20.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+    const evaluableConfig = await generateEvaluableConfig(
+      {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
+      false
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: tokenERC20.address,
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -523,14 +518,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EVERY, 2)
     ]);
 
+    const evaluableConfigMain = await generateEvaluableConfig({
+      sources: [sourceMain, sourceReportTimeForTierDefault],
+      constants: [stake.address],
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 1,
-      stateConfig: {
-        sources: [sourceMain, sourceReportTimeForTierDefault],
-        constants: [stake.address],
-      },
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfigMain,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -550,24 +545,22 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should combine reports of 2 staking contracts", async () => {
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: tokenERC20.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+    const evaluableConfigStakeMain = await generateEvaluableConfig(
+      {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
+      false
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: tokenERC20.address,
+      evaluableConfig: evaluableConfigStakeMain,
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -637,14 +630,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EAGER_IF)
     ]);
 
+    const evaluableConfigCombineTierMain = await generateEvaluableConfig({
+      sources: [sourceMain, sourceReportTimeForTierDefault],
+      constants: [stake0.address, stake1.address, max_uint256],
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
-        sources: [sourceMain, sourceReportTimeForTierDefault],
-        constants: [stake0.address, stake1.address, max_uint256],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigCombineTierMain,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -681,24 +674,22 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should combine reports of N staking contracts", async () => {
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: tokenERC20.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+    const evaluableConfigStake = await generateEvaluableConfig(
+      {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
+      false
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: tokenERC20.address,
+      evaluableConfig: evaluableConfigStake,
     };
 
     const MAX_STAKE_CONTRACTS = 10;
@@ -756,14 +747,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EAGER_IF)
     ]);
 
+    const evaluableConfigCombineTier = await generateEvaluableConfig({
+      sources: [sourceMain, sourceReportTimeForTierDefault],
+      constants: [...constants, max_uint256],
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: stakeContracts.length,
-      stateConfig: {
-        sources: [sourceMain, sourceReportTimeForTierDefault],
-        constants: [...constants, max_uint256],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigCombineTier,
     })) as CombineTier;
 
     const result0 = await combineTierMain.report(alice.address, [
@@ -804,24 +795,22 @@ describe("CombineTier report tests", async function () {
   });
 
   it("should use ITIERV2_REPORT opcode with context data to query the report for a CombineTier contract", async () => {
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: tokenERC20.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+    const evaluableConfigStake = await generateEvaluableConfig(
+      {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
+      false
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: tokenERC20.address,
+      evaluableConfig: evaluableConfigStake,
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -891,14 +880,14 @@ describe("CombineTier report tests", async function () {
       op(Opcode.EAGER_IF)
     ]);
 
+    const evaluableConfigCoombineTier = await generateEvaluableConfig({
+      sources: [sourceCombineTierContract, sourceReportTimeForTierDefault],
+      constants: [stake0.address, stake1.address, max_uint256],
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
-        sources: [sourceCombineTierContract, sourceReportTimeForTierDefault],
-        constants: [stake0.address, stake1.address, max_uint256],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig: evaluableConfigCoombineTier,
     })) as CombineTier;
 
     const sourceMain = concat([
@@ -924,9 +913,11 @@ describe("CombineTier report tests", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address, ...THRESHOLDS],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address, ...THRESHOLDS]]
+    );
 
     const result0 = await logic.stackTop();
 
@@ -946,9 +937,11 @@ describe("CombineTier report tests", async function () {
     await tokenERC20.connect(alice).approve(stake1.address, depositAmount1);
     await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address, ...THRESHOLDS],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address, ...THRESHOLDS]]
+    );
     const result1 = await logic.stackTop();
 
     const expectedResult1 = expectedReportStake0;

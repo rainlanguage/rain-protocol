@@ -104,7 +104,7 @@ library LibIntegrityCheck {
     using Math for uint256;
 
     function newState(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         function(IntegrityCheckState memory, Operand, StackPointer)
             view
             returns (StackPointer)[]

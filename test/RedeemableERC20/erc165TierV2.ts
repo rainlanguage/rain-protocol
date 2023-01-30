@@ -20,12 +20,11 @@ import {
   stakeDeploy,
   Tier,
 } from "../../utils";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { erc20PulleeDeploy } from "../../utils/deploy/test/erc20Pullee/deploy";
 import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -66,18 +65,16 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
 
   it("should pass ERC165 check by passing a CombineTier contract inheriting TierV2", async () => {
     const signers = await ethers.getSigners();
-
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [0],
+    });
     const tier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [0],
-      },
-      expressionDeployer: "",
-      interpreter: "",
+      evaluableConfig,
     })) as CombineTier;
 
     const minimumTier = Tier.FOUR;
@@ -110,24 +107,22 @@ describe("RedeemableERC20 ERC165_TierV2 test", async function () {
       {}
     )) as ReserveToken;
 
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
-    const stakeConfigStruct: StakeConfigStruct = {
-      name: "Stake Token",
-      symbol: "STKN",
-      asset: reserveToken.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
+    const evaluableConfig = await generateEvaluableConfig(
+      {
         sources: [
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
           op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         ],
         constants: [max_uint256],
       },
+      false
+    );
+
+    const stakeConfigStruct: StakeConfigStruct = {
+      name: "Stake Token",
+      symbol: "STKN",
+      asset: reserveToken.address,
+      evaluableConfig,
     };
 
     const tier = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);

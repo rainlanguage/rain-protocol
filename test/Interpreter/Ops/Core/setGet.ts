@@ -2,7 +2,11 @@ import { assert } from "chai";
 import { randomBytes } from "crypto";
 import { concat, keccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
+import {
+  IInterpreterV1Consumer,
+  Rainterpreter,
+  RainterpreterStore,
+} from "../../../../typechain";
 
 import {
   memoryOperand,
@@ -11,7 +15,10 @@ import {
   RainterpreterOps,
   randomUint256,
 } from "../../../../utils";
-import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import {
   iinterpreterV1ConsumerDeploy,
   expressionConsumerDeploy,
@@ -440,8 +447,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionA.dispatch,
       []
     );
@@ -489,8 +500,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionA.dispatch,
       []
     );
@@ -532,8 +547,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       2
     );
 
-    await consumerLogicA.eval(
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionB.dispatch,
       []
     );
@@ -567,8 +583,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionA.dispatch,
       []
     );
@@ -603,8 +623,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicB.eval(
+    await consumerLogicB["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionB.dispatch,
       []
     );
@@ -641,8 +662,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
     await consumerLogicA.evalWithNamespace(
       rainInterpreter.address,
+      interpreterStore.address,
       namespaceA,
       expressionA.dispatch,
       []
@@ -683,6 +708,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     await consumerLogicA.evalWithNamespace(
       rainInterpreter.address,
+      interpreterStore.address,
       namespaceB,
       expressionB.dispatch,
       []
@@ -714,6 +740,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     await consumerLogicA.evalWithNamespace(
       rainInterpreter.address,
+      interpreterStore.address,
       namespaceA,
       expressionC.dispatch,
       []
@@ -752,8 +779,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
     await consumerLogicA.evalWithNamespace(
       rainInterpreter.address,
+      interpreterStore.address,
       namespaceA,
       expressionA.dispatch,
       []
@@ -785,6 +816,7 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
 
     await consumerLogicB.evalWithNamespace(
       rainInterpreter.address,
+      interpreterStore.address,
       namespaceA,
       expressionB.dispatch,
       []
@@ -835,8 +867,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA["eval(address,uint256,uint256[][])"](
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionA.dispatch,
       []
     );
@@ -863,8 +899,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA["eval(address,uint256,uint256[][])"](
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionB.dispatch,
       []
     );
@@ -908,8 +945,12 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    const interpreterStore: RainterpreterStore =
+      await rainterpreterStoreDeploy();
+
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionA.dispatch,
       []
     );
@@ -943,8 +984,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionB.dispatch,
       []
     );
@@ -977,8 +1019,9 @@ describe("SET/GET Opcode tests with eval namespace", async function () {
       1
     );
 
-    await consumerLogicA.eval(
+    await consumerLogicA["eval(address,address,uint256,uint256[][])"](
       rainInterpreter.address,
+      interpreterStore.address,
       expressionC.dispatch,
       []
     );
