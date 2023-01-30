@@ -2,7 +2,7 @@ import type {
   AggregatorV3Interface,
   RainterpreterExtern,
   Rainterpreter,
-  IInterpreterV1Consumer
+  IInterpreterV1Consumer,
 } from "../../../../typechain";
 import {
   AllStandardOps,
@@ -19,8 +19,14 @@ import {
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
-import { expressionConsumerDeploy, iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
-import { rainterpreterDeploy, rainterpreterExtern } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import {
+  expressionConsumerDeploy,
+  iinterpreterV1ConsumerDeploy,
+} from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import {
+  rainterpreterDeploy,
+  rainterpreterExtern,
+} from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { ethers } from "hardhat";
 
 const Opcode = AllStandardOps;
@@ -41,8 +47,6 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     );
     logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
     await logic.deployed();
-
-
   });
 
   it("should revert if price is stale", async () => {
@@ -276,7 +280,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const feed = fakeChainlinkOracle2.address;
     const staleAfter = 10000;
 
-    const constants = [rainInterpreterExtern.address,feed,staleAfter]
+    const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
@@ -296,13 +300,13 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
       rainInterpreter,
       1
     );
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const result0 = await logic.stackTop();
 
-    console.log("result0 : " , result0)
-
+    console.log("result0 : ", result0);
   });
-
-
-
 });
