@@ -2,15 +2,14 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { assertError } from "../../../../utils";
 import { eighteenZeros, ONE, sixteenZeros, sixZeros, tenZeros } from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
-  fp_scale18,
   memoryOperand,
   MemoryType,
   op,
+  scale18Operand,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
@@ -18,7 +17,10 @@ const Opcode = AllStandardOps;
 
 describe("RainInterpreter fixed point math ops", async function () {
   let rainInterpreter: Rainterpreter;
-  let logic: IInterpreterV1Consumer;
+  let logic: IInterpreterV1Consumer; 
+
+  const ROUNDING_UP = 1 
+  const ROUNDING_DOWN = 0 
 
   before(async () => {
     rainInterpreter = await rainterpreterDeploy();
@@ -267,7 +269,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const sources = [
       concat([
           v1,
-        op(Opcode.SCALE18 , fp_scale18(8,1,1)) 
+        op(Opcode.SCALE18 , scale18Operand(8,ROUNDING_UP)) // decimals 8, Rounding Up
       ]),
     ];
 
@@ -303,7 +305,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const sources = [
       concat([
           v1,
-        op(Opcode.SCALE18 , fp_scale18(24,1,1)) 
+        op(Opcode.SCALE18 , scale18Operand(24,ROUNDING_UP)) // decimals 24, Rounding Up 
       ]),
     ];
 
@@ -339,7 +341,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const sources = [
       concat([
           v1,
-        op(Opcode.SCALE18 , fp_scale18(20,1,1)) 
+        op(Opcode.SCALE18 , scale18Operand(20,ROUNDING_UP)) // decimals 20, Rounding Up
       ]),
     ];
 
@@ -377,7 +379,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const sources = [
       concat([
           v1,
-        op(Opcode.SCALE18 , fp_scale18(20,0,1)) 
+        op(Opcode.SCALE18 , scale18Operand(20,ROUNDING_DOWN)) // decimals 20, Rounding Down
       ]),
     ];
 
@@ -403,35 +405,6 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
   }); 
 
-  it("should throw 'UnsupportedInputsFixedPointScale18' error for incorrect inputs", async () => {
-    const value = ethers.BigNumber.from(1 + sixteenZeros + "75345267");
-
-    const constants = [value];
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-
-    // prettier-ignore
-    const sources = [
-      concat([
-          v1,
-        op(Opcode.SCALE18 , fp_scale18(24,0,67)) 
-      ]),
-    ]; 
-
-    await assertError(
-      async () =>
-      expressionConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        rainInterpreter,  
-        1
-      ),
-      `UnsupportedInputsFixedPointScale18`,
-      "Eval for incorrect inputs"
-    )
-
-  }); 
 
   it("should scale a number UP to 18 OOM on a dynamic scale", async () => {
     const decimals = 8 
@@ -447,7 +420,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       concat([
           v1, 
           v2,
-        op(Opcode.SCALE18 , fp_scale18(0,1,2))
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_UP) // Rounding Up
       ]),
     ];
 
@@ -487,7 +460,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       concat([
           v1, 
           v2,
-        op(Opcode.SCALE18 , fp_scale18(24,1,2))
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_UP) // Rounding Up
       ]),
     ];
 
@@ -527,7 +500,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       concat([
           v1, 
           v2,
-        op(Opcode.SCALE18 , fp_scale18(22,1,2))
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_UP) // Rounding Up
       ]),
     ];
 
@@ -568,7 +541,7 @@ describe("RainInterpreter fixed point math ops", async function () {
       concat([
           v1, 
           v2,
-        op(Opcode.SCALE18 , fp_scale18(22,1,2))
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_DOWN) // Rounding Down
       ]),
     ];
 
@@ -584,9 +557,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     await logic.eval(rainInterpreter.address, expression0.dispatch, []);
 
     const result0 = await logic.stackTop(); 
-    const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "72").add(
-      ethers.BigNumber.from(1)
-    )
+    const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "72")
     assert(
       result0.eq(expected0),
       `wrong result
@@ -595,39 +566,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
   });  
 
-  it("should throw 'UnsupportedInputsFixedPointScale18' error for incorrect inputs on a dynamic scale", async () => {
-    const decimals = 22 
-    const value = ethers.BigNumber.from(1 + sixteenZeros + "7268744")
-
-    const constants = [decimals,value];
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-
-
-    // prettier-ignore
-    const sources = [
-      concat([
-          v1, 
-          v2,
-        op(Opcode.SCALE18 , fp_scale18(24,1,3))
-      ]),
-    ];
-    
-    await assertError(
-      async () =>
-      expressionConsumerDeploy(
-        {
-          sources,
-          constants,
-        },
-        rainInterpreter,  
-        1
-      ),
-      `UnsupportedInputsFixedPointScale18`,
-      "Eval for incorrect inputs"
-    )
-
-  }); 
+ 
 
 
 });

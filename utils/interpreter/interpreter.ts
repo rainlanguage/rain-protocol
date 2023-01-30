@@ -111,26 +111,21 @@ export function doWhileOperand(
 } 
 
 /**
- * Builds the operand for RainInterpreter's `SCALE18` opcode
+ * Builds the operand for RainInterpreter's `SCALE18` opcode by packing 2 numbers into a single byte
  *
  * @param decimals - deciamls by which the value is to be scaled
  * @param rounding - rounding direction
- * @param inputSize - inputSize
  */
-export function fp_scale18(
+export function scale18Operand(
   decimals: number,
-  rounding: number,
-  inputSize: number
+  rounding: number
 ): number { 
   let operand
-  if(inputSize == 1){
-    operand = (decimals << 3) + (rounding << 2) + inputSize;
-  }else if(inputSize == 2){
-    operand = (rounding << 2) + inputSize;
-  }
-  
+  operand = (decimals << 1) + rounding ;
   return operand;
-}
+} 
+
+
 
 /**
  * Builds the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.

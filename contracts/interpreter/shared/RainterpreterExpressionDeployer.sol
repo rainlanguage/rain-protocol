@@ -21,7 +21,7 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0a010a0f0a650ab70b350b610bfa0cc40df90e2e0e4c0ed40ee30ef10eff0f0d0ee30f1b0f290f370f460f550f630f710fe9101a1029103810471056109f10b110bf10f110ff110d111b112a113911481157116611751184119311a211b111c011ce11dc11ea11f812061214122212311240124e12c5";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"0a0a0a180a6e0ac00b3e0b6a0c030ccd0e020e370e550edd0eec0efa0f080f160eec0f240f320f400f4f0f5e0f6c0f7a0ff210011010101f102e103d104c109510a710b510e710f5110311111120112f113e114d115c116b117a1189119811a711b611c411d211e011ee11fc120a121812271236124412bb";
 
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
