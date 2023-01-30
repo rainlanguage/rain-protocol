@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
 import {
   InitializeEvent,
-  StateConfigStruct,
+  ExpressionConfigStruct,
 } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import {
   autoApproveDeploy,
@@ -36,7 +36,7 @@ describe("AutoApprove construction", async function () {
 
     const deployer = signers[1];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
@@ -44,7 +44,7 @@ describe("AutoApprove construction", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const { sender, config } = (await getEventArgs(
@@ -53,7 +53,7 @@ describe("AutoApprove construction", async function () {
       autoApprove
     )) as InitializeEvent["args"];
     assert(sender === autoApproveFactory.address, "wrong sender");
-    compareStructs(config, stateConfig);
+    compareStructs(config, expressionConfig);
   });
 
   it("can be configured as verify callback contract", async () => {
@@ -62,7 +62,7 @@ describe("AutoApprove construction", async function () {
     const deployer = signers[1];
     const admin = signers[2];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
       constants: [1],
     };
@@ -70,7 +70,7 @@ describe("AutoApprove construction", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     await verifyDeploy(deployer, verifyFactory, {

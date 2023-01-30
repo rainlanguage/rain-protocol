@@ -4,8 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
@@ -32,10 +30,9 @@ import {
   sixZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -48,8 +45,6 @@ describe("OrderBook expression checks", async () => {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -60,10 +55,6 @@ describe("OrderBook expression checks", async () => {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should ensure OWNER and COUNTERPARTY are visible in calculateIO and handleIO", async function () {
@@ -115,34 +106,37 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const askSource = concat([   
-            OWNER()  , 
-            vExpectedOwner , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) ,  
+    const askSource = concat([
+            OWNER()  ,
+            vExpectedOwner ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1) ,
             COUNTERPARTY() ,
-            vExpectedCounterpart , 
-            op(Opcode.EQUAL_TO), 
+            vExpectedCounterpart ,
+            op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1)  ,
             vAskOutputMax,
-            vAskRatio, 
+            vAskRatio,
         ]);
 
     // prettier-ignore
-    const handleIOSource = concat([   
-                OWNER()  , 
-                vExpectedOwner , 
-                op(Opcode.EQUAL_TO), 
-                op(Opcode.ENSURE, 1) ,  
+    const handleIOSource = concat([
+                OWNER()  ,
+                vExpectedOwner ,
+                op(Opcode.EQUAL_TO),
+                op(Opcode.ENSURE, 1) ,
                 COUNTERPARTY() ,
-                vExpectedCounterpart , 
-                op(Opcode.EQUAL_TO), 
-                op(Opcode.ENSURE, 1)  
+                vExpectedCounterpart ,
+                op(Opcode.EQUAL_TO),
+                op(Opcode.ENSURE, 1)
         ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -167,10 +161,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -348,34 +339,37 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.CONTEXT, 0x0303);
 
     // prettier-ignore
-    const askSource = concat([   
-            INPUT_TOKEN_VAULT_BALANCE()  , 
-            vExpectedInputTokenBalance , 
-        op(Opcode.EQUAL_TO), 
+    const askSource = concat([
+            INPUT_TOKEN_VAULT_BALANCE()  ,
+            vExpectedInputTokenBalance ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN_VAULT_BALANCE()  , 
-                vExpectedOutputTokenBalance , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) ,   
+            OUTPUT_TOKEN_VAULT_BALANCE()  ,
+                vExpectedOutputTokenBalance ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1) ,
         vAskOutputMax,
-        vAskRatio, 
+        vAskRatio,
     ]);
 
     // prettier-ignore
-    const handleIOSource = concat([   
-            INPUT_TOKEN_VAULT_BALANCE()  , 
-            vExpectedInputTokenBalance , 
-        op(Opcode.EQUAL_TO), 
+    const handleIOSource = concat([
+            INPUT_TOKEN_VAULT_BALANCE()  ,
+            vExpectedInputTokenBalance ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN_VAULT_BALANCE()  , 
-            vExpectedOutputTokenBalance , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) 
+            OUTPUT_TOKEN_VAULT_BALANCE()  ,
+            vExpectedOutputTokenBalance ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -400,10 +394,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -542,34 +533,37 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_VAULT_ID = () => op(Opcode.CONTEXT, 0x0302);
 
     // prettier-ignore
-    const askSource = concat([   
-            INPUT_TOKEN_VAULT_ID()  , 
-            vExpectedVaultId , 
-        op(Opcode.EQUAL_TO), 
+    const askSource = concat([
+            INPUT_TOKEN_VAULT_ID()  ,
+            vExpectedVaultId ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN_VAULT_ID()  , 
-            vExpectedVaultId , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) ,   
+            OUTPUT_TOKEN_VAULT_ID()  ,
+            vExpectedVaultId ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1) ,
         vAskOutputMax,
-        vAskRatio, 
+        vAskRatio,
     ]);
 
     // prettier-ignore
-    const handleIOSource = concat([   
-            INPUT_TOKEN_VAULT_ID()  , 
-            vExpectedVaultId , 
-        op(Opcode.EQUAL_TO), 
+    const handleIOSource = concat([
+            INPUT_TOKEN_VAULT_ID()  ,
+            vExpectedVaultId ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN_VAULT_ID()  , 
-            vExpectedVaultId , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) 
+            OUTPUT_TOKEN_VAULT_ID()  ,
+            vExpectedVaultId ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -594,10 +588,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -745,34 +736,37 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN = () => op(Opcode.CONTEXT, 0x0300);
 
     // prettier-ignore
-    const askSource = concat([   
-            INPUT_TOKEN()  , 
-            vExpectedInputToken , 
-        op(Opcode.EQUAL_TO), 
+    const askSource = concat([
+            INPUT_TOKEN()  ,
+            vExpectedInputToken ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN()  , 
-            vExpectedOutputToken , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) ,   
+            OUTPUT_TOKEN()  ,
+            vExpectedOutputToken ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1) ,
         vAskOutputMax,
-        vAskRatio, 
+        vAskRatio,
     ]);
 
     // prettier-ignore
-    const handleIOSource = concat([   
-            INPUT_TOKEN()  , 
-            vExpectedInputToken , 
-        op(Opcode.EQUAL_TO), 
+    const handleIOSource = concat([
+            INPUT_TOKEN()  ,
+            vExpectedInputToken ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN()  , 
-            vExpectedOutputToken , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) 
+            OUTPUT_TOKEN()  ,
+            vExpectedOutputToken ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -797,10 +791,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -948,34 +939,37 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
 
     // prettier-ignore
-    const askSource = concat([   
-            INPUT_TOKEN_DECIMALS()  , 
-            vExpectedInputTokenDecimals , 
-        op(Opcode.EQUAL_TO), 
+    const askSource = concat([
+            INPUT_TOKEN_DECIMALS()  ,
+            vExpectedInputTokenDecimals ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN_DECIMALS()  , 
-            vExpectedOutputTokenDecimals , 
-            op(Opcode.EQUAL_TO), 
-            op(Opcode.ENSURE, 1) ,   
+            OUTPUT_TOKEN_DECIMALS()  ,
+            vExpectedOutputTokenDecimals ,
+            op(Opcode.EQUAL_TO),
+            op(Opcode.ENSURE, 1) ,
         vAskOutputMax,
-        vAskRatio, 
+        vAskRatio,
     ]);
 
     // prettier-ignore
-    const handleIOSource = concat([   
-            INPUT_TOKEN_DECIMALS()  , 
-            vExpectedInputTokenDecimals , 
-        op(Opcode.EQUAL_TO), 
+    const handleIOSource = concat([
+            INPUT_TOKEN_DECIMALS()  ,
+            vExpectedInputTokenDecimals ,
+        op(Opcode.EQUAL_TO),
         op(Opcode.ENSURE, 1) ,
-            OUTPUT_TOKEN_DECIMALS()  , 
-            vExpectedOutputTokenDecimals , 
-            op(Opcode.EQUAL_TO), 
+            OUTPUT_TOKEN_DECIMALS()  ,
+            vExpectedOutputTokenDecimals ,
+            op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1)
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -1000,10 +994,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -1171,47 +1162,50 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
 
     // prettier-ignore
-    const askSource = concat([     
+    const askSource = concat([
         compareKey ,
            INPUT_TOKEN_DECIMALS() ,
            OUTPUT_TOKEN_DECIMALS() ,
-          op(Opcode.GREATER_THAN),  
-        op(Opcode.SET),  
+          op(Opcode.GREATER_THAN),
+        op(Opcode.SET),
 
         inputTokenKey ,
-          INPUT_TOKEN_DECIMALS(), 
-        op(Opcode.SET), 
+          INPUT_TOKEN_DECIMALS(),
+        op(Opcode.SET),
 
         outputTokenKey ,
-          OUTPUT_TOKEN_DECIMALS(), 
-        op(Opcode.SET), 
+          OUTPUT_TOKEN_DECIMALS(),
+        op(Opcode.SET),
         vAskOutputMax,
-        vAskRatio, 
+        vAskRatio,
     ]);
 
     // prettier-ignore
-    const handleIOSource = concat([   
+    const handleIOSource = concat([
           compareKey,
-        op(Opcode.GET), 
+        op(Opcode.GET),
         op(Opcode.ENSURE, 1)  ,
-        
+
           inputTokenKey,
-        op(Opcode.GET), 
-        vExpectedInputTokenDecimals , 
-        op(Opcode.EQUAL_TO), 
-        op(Opcode.ENSURE, 1) , 
+        op(Opcode.GET),
+        vExpectedInputTokenDecimals ,
+        op(Opcode.EQUAL_TO),
+        op(Opcode.ENSURE, 1) ,
 
           outputTokenKey,
-        op(Opcode.GET), 
-        vExpectedOutputTokenDecimals , 
-        op(Opcode.EQUAL_TO), 
-        op(Opcode.ENSURE, 1) 
+        op(Opcode.GET),
+        vExpectedOutputTokenDecimals ,
+        op(Opcode.EQUAL_TO),
+        op(Opcode.ENSURE, 1)
 
     ]);
 
+    const askEvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [askSource, handleIOSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -1236,10 +1230,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleIOSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfigAlice,
       data: [],
     };
 
@@ -1357,10 +1348,10 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const askSource = concat([ 
-       INPUT_BALANCE_DIFF()  , 
-      op(Opcode.ENSURE, 0) , 
-       OUTPUT_BALANCE_DIFF()  , 
+    const askSource = concat([
+       INPUT_BALANCE_DIFF()  ,
+      op(Opcode.ENSURE, 0) ,
+       OUTPUT_BALANCE_DIFF()  ,
       op(Opcode.ENSURE, 0) ,
       vAskOutputMax,
       vAskRatio,
@@ -1368,32 +1359,32 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     // prettier-ignore
-    const handleSource = concat([ 
-        INPUT_BALANCE_DIFF()  , 
-        vExpectedOutputDiff , 
+    const handleSource = concat([
+        INPUT_BALANCE_DIFF()  ,
+        vExpectedOutputDiff ,
        op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1) ,  
-        OUTPUT_BALANCE_DIFF()  , 
-        vExpectedInputDiff , 
+      op(Opcode.ENSURE, 1) ,
+        OUTPUT_BALANCE_DIFF()  ,
+        vExpectedInputDiff ,
        op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1) 
+      op(Opcode.ENSURE, 1)
    ]);
 
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, handleSource],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -1522,7 +1513,7 @@ describe("OrderBook expression checks", async () => {
     const ASK_RATIO = () => op(Opcode.CONTEXT, 0x0101);
 
     // prettier-ignore
-    const askSource = concat([  
+    const askSource = concat([
       OUTPUT_MAX() ,
       ASK_RATIO() ,
       vAskOutputMax,
@@ -1530,20 +1521,19 @@ describe("OrderBook expression checks", async () => {
     ]);
 
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
 
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -1668,16 +1658,19 @@ describe("OrderBook expression checks", async () => {
 
     const OUTPUT_MAX = () => op(Opcode.CONTEXT, 0x0100);
     // prettier-ignore
-    const handleSource = concat([ 
+    const handleSource = concat([
         vExpectedAskOutputMax,
         OUTPUT_MAX(),
        op(Opcode.EQUAL_TO) ,
-      op(Opcode.ENSURE,1) 
+      op(Opcode.ENSURE,1)
     ]);
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, handleSource],
+      constants: askConstants,
+    });
+
     const askOrderConfigAlice: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA18.address,
@@ -1692,10 +1685,7 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, handleSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: [],
     };
 

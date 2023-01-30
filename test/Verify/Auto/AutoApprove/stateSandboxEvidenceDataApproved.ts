@@ -1,7 +1,7 @@
 import { concat, hexZeroPad } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { AutoApproveFactory, VerifyFactory } from "../../../../typechain";
-import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import {
   autoApproveDeploy,
@@ -47,7 +47,7 @@ describe("AutoApprove evidence data approved", async function () {
     const signer2 = signers[5];
     const signer3 = signers[6];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
@@ -80,7 +80,7 @@ describe("AutoApprove evidence data approved", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {
@@ -149,7 +149,7 @@ describe("AutoApprove evidence data approved", async function () {
     const aprAdmin = signers[3];
     const signer1 = signers[4];
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       // prettier-ignore
       sources: [
         // approved ? deny : approve
@@ -174,7 +174,7 @@ describe("AutoApprove evidence data approved", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {

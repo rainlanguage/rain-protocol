@@ -5,6 +5,7 @@ import {Factory} from "../../factory/Factory.sol";
 import {Flow, FlowConfig} from "./Flow.sol";
 import {ClonesUpgradeable as Clones} from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import {LibInterpreterState} from "../../interpreter/run/LibInterpreterState.sol";
+import {EvaluableConfig} from "../../interpreter/run/LibEvaluable.sol";
 
 /// @title FlowFactory
 /// @notice Factory for deploying and registering `Flow` contracts.
@@ -30,7 +31,7 @@ contract FlowFactory is Factory {
         return clone_;
     }
 
-    /// Allows calling `createChild` with `StateConfig` struct.
+    /// Allows calling `createChild` with `FlowConfig` struct.
     /// Use original `Factory` `createChild` function signature if function
     /// parameters are already encoded.
     ///

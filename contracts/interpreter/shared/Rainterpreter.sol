@@ -17,7 +17,7 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x64046a25ba76e42f96b36ef7546e0deaeae1fb84740da14f111591802fcdb3ad
+    0xaa747007d5351b774ad5b5fcea64d2d3b0f43b4dcf5d366bf1a61455a3ecef7c
 );
 
 /// @dev Hash of the known op meta.
@@ -55,10 +55,6 @@ contract Rainterpreter is IInterpreterV1 {
     using LibMemoryKV for MemoryKVPtr;
     using LibInterpreterState for StateNamespace;
 
-    /// The store that state changes MUST be passed to by the calling contract
-    /// if possible. MAY NOT be possible in a static call on the caller side.
-    IInterpreterStoreV1 internal immutable store;
-
     /// The store is valid (has exact expected bytecode).
     event ValidStore(address sender, address store);
 
@@ -74,8 +70,8 @@ contract Rainterpreter is IInterpreterV1 {
     /// Ensures the correct store bytecode and emits all opmeta.
     constructor(RainterpreterConfig memory config_) {
         // Guard against an store with unknown bytecode.
-        bytes32 storeHash_;
         address store_ = config_.store;
+        bytes32 storeHash_;
         assembly ("memory-safe") {
             storeHash_ := extcodehash(store_)
         }
@@ -86,7 +82,6 @@ contract Rainterpreter is IInterpreterV1 {
         }
 
         emit ValidStore(msg.sender, store_);
-        store = IInterpreterStoreV1(store_);
 
         /// This IS a security check. This prevents someone making an exact
         /// bytecode copy of the interpreter and shipping different opmeta for
@@ -100,14 +95,11 @@ contract Rainterpreter is IInterpreterV1 {
 
     /// @inheritdoc IInterpreterV1
     function eval(
+        IInterpreterStoreV1 store_,
         StateNamespace namespace_,
         EncodedDispatch dispatch_,
         uint256[][] memory context_
-    )
-        external
-        view
-        returns (uint256[] memory, IInterpreterStoreV1, uint256[] memory)
-    {
+    ) external view returns (uint256[] memory, uint256[] memory) {
         // Decode the dispatch.
         (
             address expression_,
@@ -121,7 +113,7 @@ contract Rainterpreter is IInterpreterV1 {
             .deserialize();
         state_.stateKV = MemoryKV.wrap(0);
         state_.namespace = namespace_.qualifyNamespace();
-        state_.store = store;
+        state_.store = store_;
         state_.context = context_;
 
         // Eval the expression and return up to maxOutputs_ from the final stack.
@@ -130,7 +122,7 @@ contract Rainterpreter is IInterpreterV1 {
         (, uint256[] memory tail_) = stackTop_.list(
             stackLength_.min(maxOutputs_)
         );
-        return (tail_, store, state_.stateKV.toUint256Array());
+        return (tail_, state_.stateKV.toUint256Array());
     }
 
     /// @inheritdoc IInterpreterV1

@@ -4,7 +4,6 @@ import { ethers } from "hardhat";
 import {
   IInterpreterV1Consumer,
   Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
   StakeFactory,
 } from "../../typechain";
@@ -13,12 +12,12 @@ import { max_uint256, sixZeros } from "../../utils/constants/bigNumber";
 import { THRESHOLDS } from "../../utils/constants/stake";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeDeploy } from "../../utils/deploy/stake/deploy";
 import { stakeFactoryDeploy } from "../../utils/deploy/stake/stakeFactory/deploy";
 import { expressionConsumerDeploy } from "../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { getBlockTimestamp, timewarp } from "../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -31,8 +30,6 @@ describe("Stake ITIERV2_REPORT Op", async function () {
   let token: ReserveToken18;
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   // Passing context data in constants
   // prettier-ignore
@@ -59,10 +56,6 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     );
     logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
     await logic.deployed();
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   beforeEach(async () => {
@@ -75,7 +68,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -86,18 +79,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -118,9 +114,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result = await logic.stackTop();
 
@@ -132,7 +130,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -143,18 +141,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -174,9 +175,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const expected = max_uint256;
 
@@ -195,7 +198,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -206,18 +209,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -239,9 +245,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result = await logic.stackTop();
 
@@ -269,7 +277,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -280,18 +288,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -313,9 +324,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
     const result0 = await logic.stackTop();
 
     const expected0 = numArrayToReport([
@@ -344,9 +357,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const depositTimestamp1 = await getBlockTimestamp();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
     const result1 = await logic.stackTop();
 
     const expected1 = numArrayToReport([
@@ -373,7 +388,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -384,18 +399,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -417,9 +435,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result = await logic.stackTop();
 
@@ -447,7 +467,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -458,18 +478,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -491,9 +514,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result0 = await logic.stackTop();
 
@@ -522,9 +547,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result1 = await logic.stackTop();
 
@@ -551,9 +578,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result2 = await logic.stackTop();
 
@@ -581,7 +610,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -592,18 +621,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -625,9 +657,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result0 = await logic.stackTop();
 
@@ -656,9 +690,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       .connect(alice)
       .withdraw(withdrawAmount, alice.address, alice.address);
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result1 = await logic.stackTop();
 
@@ -679,9 +715,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
 
     const blockTime1_ = await getBlockTimestamp();
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result2 = await logic.stackTop();
 
@@ -709,7 +747,7 @@ describe("Stake ITIERV2_REPORT Op", async function () {
     const deployer = signers[0];
     const alice = signers[2];
 
-    const stakeStateConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
+    const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
       Opcode.READ_MEMORY,
@@ -720,18 +758,21 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       memoryOperand(MemoryType.Constant, 1)
     );
 
-    const stakeStateConfigSources = [max_deposit, max_withdraw];
+    const stakeExpressionConfigSources = [max_deposit, max_withdraw];
+
+    const evaluableConfig = await generateEvaluableConfig(
+      {
+        sources: stakeExpressionConfigSources,
+        constants: stakeExpressionConfigConstants,
+      },
+      false
+    );
 
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: token.address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      stateConfig: {
-        sources: stakeStateConfigSources,
-        constants: stakeStateConfigConstants,
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -774,9 +815,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      [[alice.address]]
+    );
 
     const result0 = await logic.stackTop();
 
@@ -804,9 +847,11 @@ describe("Stake ITIERV2_REPORT Op", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression1.dispatch, [
-      [alice.address],
-    ]);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      [[alice.address]]
+    );
 
     const result1 = await logic.stackTop();
 

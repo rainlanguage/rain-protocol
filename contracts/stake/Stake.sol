@@ -5,6 +5,7 @@ import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 
 import "../tier/TierV2.sol";
@@ -44,6 +45,9 @@ error ZeroWithdrawAssets();
 /// @dev Thrown when the amount of shares being burned on withdrawal is zero.
 error ZeroWithdrawShares();
 
+/// @dev Thrown when a nonzero store is provided.
+error UnexpectedStore(IInterpreterStoreV1 store);
+
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
 /// @dev Entrypoint for calculating the max withdraw as per ERC4626.
@@ -65,14 +69,12 @@ uint256 constant MAX_WITHDRAW_MAX_OUTPUTS = 1;
 /// @param symbol ERC20 symbol of the 4626 share token to be minted.
 /// @param expressionDeployer the address of the `IExpressionDeployerV1`.
 /// @param interpreter the address of the `IInterpreterV1`.
-/// @param stateConfig the expression to calculate max deposits and withdrawals.
+/// @param expressionConfig the expression to calculate max deposits and withdrawals.
 struct StakeConfig {
     IERC20Metadata asset;
     string name;
     string symbol;
-    address expressionDeployer;
-    address interpreter;
-    StateConfig stateConfig;
+    EvaluableConfig evaluableConfig;
 }
 
 /// Similar to OpenZeppelin voting checkpoints. Consists of a timestamp and some
@@ -147,17 +149,8 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// The ledger that records the time and amount of all share mints and burns.
     mapping(address => DepositRecord[]) public depositRecords;
 
-    /// The interpreter that evaluates max deposits and withdrawal limits.
     IInterpreterV1 internal interpreter;
-
-    /// The onchain address of the deployed expression.
     address internal expression;
-
-    /// The encoded dispatch of the max deposit entrypoint.
-    EncodedDispatch internal dispatchMaxDeposit;
-
-    /// The encoded dispatch of the max withdraw entrypoint.
-    EncodedDispatch internal dispatchMaxWithdraw;
 
     /// Constructor does nothing but prevents accidental initialization of an
     /// implementation template intended to be referenced by a cloning factory.
@@ -172,20 +165,23 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         if (address(config_.asset) == address(0)) {
             revert ZeroAsset();
         }
+        if (config_.evaluableConfig.store != NO_STORE) {
+            revert UnexpectedStore(config_.evaluableConfig.store);
+        }
+
         __ReentrancyGuard_init();
         __ERC20_init(config_.name, config_.symbol);
         __ERC4626_init(config_.asset);
         __TierV2_init();
-        interpreter = IInterpreterV1(config_.interpreter);
-        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
-            .deployExpression(
-                config_.stateConfig,
-                LibUint256Array.arrayFrom(
-                    MAX_DEPOSIT_MIN_OUTPUTS,
-                    MAX_WITHDRAW_MIN_OUTPUTS
-                )
-            );
-        expression = expression_;
+
+        interpreter = config_.evaluableConfig.interpreter;
+        expression = config_.evaluableConfig.deployer.deployExpression(
+            config_.evaluableConfig.expressionConfig,
+            LibUint256Array.arrayFrom(
+                MAX_DEPOSIT_MIN_OUTPUTS,
+                MAX_WITHDRAW_MIN_OUTPUTS
+            )
+        );
         emit Initialize(msg.sender, config_);
     }
 
@@ -200,7 +196,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     function _eval(
         EncodedDispatch dispatch_,
         address account_
-    ) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
+    ) internal view returns (uint256, uint256[] memory) {
         // ERC4626 mandates that maxDeposit MUST NOT revert. Any error must be
         // caught and converted to a 0 max deposit. Note that `try` MAY NOT catch
         // every error if the interpreter eval is sufficiently malformed the call
@@ -209,6 +205,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         // `try` and this will perform according to 4626 spec.
         try
             interpreter.eval(
+                NO_STORE,
                 DEFAULT_STATE_NAMESPACE,
                 dispatch_,
                 // Sadly there's no affordance in ERC4626 to allow either signed
@@ -221,23 +218,19 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
                     new SignedContext[](0)
                 )
             )
-        returns (
-            uint256[] memory stack_,
-            IInterpreterStoreV1 store_,
-            uint256[] memory kvs_
-        ) {
+        returns (uint256[] memory stack_, uint256[] memory kvs_) {
             // Guard against a 0 length stack, which well behaved expression
             // deployers and interpreters should never return, but in case we
             // hit this codepath return `0` instead of reverting.
             if (stack_.length == 0) {
-                return (0, IInterpreterStoreV1(address(0)), new uint256[](0));
+                return (0, new uint256[](0));
             } else {
                 unchecked {
-                    return (stack_[stack_.length - 1], store_, kvs_);
+                    return (stack_[stack_.length - 1], kvs_);
                 }
             }
         } catch {
-            return (0, IInterpreterStoreV1(address(0)), new uint256[](0));
+            return (0, new uint256[](0));
         }
     }
 
@@ -267,7 +260,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// @param receiver_ As per `maxDeposit`.
     function _maxDeposit(
         address receiver_
-    ) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
+    ) internal view returns (uint256, uint256[] memory) {
         return _eval(_dispatchMaxDeposit(), receiver_);
     }
 
@@ -277,7 +270,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     /// that case.
     function _maxWithdraw(
         address owner_
-    ) internal view returns (uint256, IInterpreterStoreV1, uint256[] memory) {
+    ) internal view returns (uint256, uint256[] memory) {
         return _eval(_dispatchMaxWithdraw(), owner_);
     }
 
@@ -287,7 +280,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     function maxDeposit(
         address receiver_
     ) public view virtual override returns (uint256) {
-        (uint256 maxDeposit_, , ) = _maxDeposit(receiver_);
+        (uint256 maxDeposit_, ) = _maxDeposit(receiver_);
         return maxDeposit_.min(super.maxDeposit(receiver_));
     }
 
@@ -301,7 +294,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         // > certain amount of the underlying tokens they provide or (2) it’s
         // > determining the amount of the underlying tokens to transfer to them
         // > for returning a certain amount of shares, it should round down.
-        (uint256 maxDeposit_, , ) = _maxDeposit(receiver_);
+        (uint256 maxDeposit_, ) = _maxDeposit(receiver_);
         return
             _convertToShares(maxDeposit_, Math.Rounding.Down).min(
                 super.maxMint(receiver_)
@@ -312,7 +305,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
     function maxWithdraw(
         address owner_
     ) public view virtual override returns (uint256) {
-        (uint256 maxWithdraw_, , ) = _maxWithdraw(owner_);
+        (uint256 maxWithdraw_, ) = _maxWithdraw(owner_);
         return maxWithdraw_.min(super.maxWithdraw(owner_));
     }
 
@@ -324,7 +317,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
         // > to receive a given amount of the underlying tokens or (2) it’s
         // > calculating the amount of underlying tokens a user has to provide
         // > to receive a certain amount of shares, it should round up.
-        (uint256 maxWithdraw_, , ) = _maxWithdraw(owner_);
+        (uint256 maxWithdraw_, ) = _maxWithdraw(owner_);
         return
             _convertToShares(maxWithdraw_, Math.Rounding.Up).min(
                 super.maxRedeem(owner_)

@@ -41,7 +41,11 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const timestamp = await getBlockTimestamp();
     const result = await logic.stackTop();
 
@@ -68,7 +72,11 @@ describe("RainInterpreter EInterpreter constant ops", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
     const block = await ethers.provider.getBlockNumber();
     const result = await logic.stackTop();
     assert(result.eq(block), `expected block ${block} got ${result}`);

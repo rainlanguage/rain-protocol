@@ -1,7 +1,11 @@
 import { assert } from "chai";
 import { BigNumber } from "ethers";
 import { hexlify } from "ethers/lib/utils";
-import { StateConfig } from "../types";
+import {
+  EvaluableConfigStruct,
+  EvaluableConfigStructOutput,
+} from "../../typechain/contracts/flow/basic/Flow";
+import { ExpressionConfig } from "../types";
 
 /**
  * Uses chai `assert` to compare a Solidity struct with a JavaScript object by checking whether the values for each property are equivalent.
@@ -178,15 +182,15 @@ const testSolStructs = (
 
 /**
  * @public
- * Checks 2 StateConfig objects to see if they are equal or not
+ * Checks 2 ExpressionConfig objects to see if they are equal or not
  *
- * @param config1 - first StateConfig
- * @param config2 - second StateConfig
+ * @param config1 - first ExpressionConfig
+ * @param config2 - second ExpressionConfig
  * @returns boolean
  */
-export const areEqualStateConfigs = (
-  config1: StateConfig,
-  config2: StateConfig
+export const areEqualExpressionConfigs = (
+  config1: ExpressionConfig,
+  config2: ExpressionConfig
 ): boolean => {
   if (config1.constants.length !== config2.constants.length) return false;
   if (config1.sources.length !== config2.sources.length) return false;
@@ -209,6 +213,28 @@ export const areEqualStateConfigs = (
   }
 
   return true;
+};
+
+/**
+ * @public
+ * Checks 2 EvaluableConfigs objects to see if they are equal or not
+ *
+ * @param actualEvaluableConfig - first EvaluableConfigs from the event
+ * @param expectedEvaluableConfig - second EvaluableConfigs returned by thhe deploy function
+ * @returns boolean
+ */
+export const compareEvaluableConfigs = (
+  actualEvaluableConfig: EvaluableConfigStructOutput[],
+  expectedEvaluableConfig: EvaluableConfigStruct[]
+) => {
+  if (actualEvaluableConfig.length != expectedEvaluableConfig.length)
+    assert(
+      false,
+      `Config Struct length mixmatch, actual : ${actualEvaluableConfig.length} expected: ${expectedEvaluableConfig.length}`
+    );
+
+  for (let i = 0; i < actualEvaluableConfig.length; i++)
+    compareStructs(actualEvaluableConfig[i], expectedEvaluableConfig[i]);
 };
 
 export const compareObjects = testStructs;

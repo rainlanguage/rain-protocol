@@ -2,12 +2,7 @@ import { assert } from "chai";
 import { ContractFactory } from "ethers";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-} from "../../typechain";
+import type { OrderBook, ReserveToken18 } from "../../typechain";
 import {
   AddOrderEvent,
   AfterClearEvent,
@@ -25,10 +20,9 @@ import {
   sixteenZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -48,8 +42,6 @@ describe("OrderBook many-to-many", async function () {
   let tokenB: ReserveToken18;
   let tokenC: ReserveToken18;
   let tokenD: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -64,10 +56,6 @@ describe("OrderBook many-to-many", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should support a 'slosh' many-to-many orders setup", async function () {
@@ -99,9 +87,12 @@ describe("OrderBook many-to-many", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [source, []],
+      constants: constants,
+    });
+
     const orderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: vaultAlice },
         { token: tokenB.address, decimals: 18, vaultId: vaultAlice },
@@ -114,10 +105,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenC.address, decimals: 18, vaultId: vaultAlice },
         { token: tokenD.address, decimals: 18, vaultId: vaultAlice },
       ],
-      interpreterStateConfig: {
-        sources: [source, []],
-        constants: constants,
-      },
+      evaluableConfig: evaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -159,9 +147,12 @@ describe("OrderBook many-to-many", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
         { token: tokenC.address, decimals: 18, vaultId: aliceInputVault },
@@ -170,10 +161,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
         { token: tokenD.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -209,9 +197,12 @@ describe("OrderBook many-to-many", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
+
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobOutputVault },
         { token: tokenD.address, decimals: 18, vaultId: bobOutputVault },
@@ -220,10 +211,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobInputVault },
         { token: tokenC.address, decimals: 18, vaultId: bobInputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -442,9 +430,12 @@ describe("OrderBook many-to-many", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
+
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
         { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
@@ -453,10 +444,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenB.address, decimals: 18, vaultId: aliceVaultB },
         { token: tokenA.address, decimals: 18, vaultId: aliceVaultA },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -492,9 +480,12 @@ describe("OrderBook many-to-many", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
+
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
         { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
@@ -503,10 +494,7 @@ describe("OrderBook many-to-many", async function () {
         { token: tokenA.address, decimals: 18, vaultId: bobVaultA },
         { token: tokenB.address, decimals: 18, vaultId: bobVaultB },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 

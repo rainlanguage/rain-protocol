@@ -21,6 +21,7 @@ import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibContext.sol";
 import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/run/LibEvaluable.sol";
 
 /// Everything required to construct a Sale (not initialize).
 /// @param maximumSaleTimeout The sale timeout set in initialize cannot exceed
@@ -39,13 +40,13 @@ struct SaleConstructorConfig {
 }
 
 /// Everything required to configure (initialize) a Sale.
-/// @param canStartStateConfig State config for the expression that allows a
-/// `Sale` to start.
-/// @param canEndStateConfig State config for the expression that allows a
-/// `Sale` to end. IMPORTANT: A Sale can always end if/when its rTKN sells out,
-/// regardless of the result of this expression.
-/// @param calculatePriceStateConfig State config for the expression that defines
-/// the current price quoted by a Sale.
+/// @param canStartExpressionConfig Expression config for the expression that
+/// allows a `Sale` to start.
+/// @param canEndExpressionConfig Expression config for the expression that
+/// allows a `Sale` to end. IMPORTANT: A `Sale` can always end if/when its rTKN
+/// sells out, regardless of the result of this expression.
+/// @param calculatePriceExpressionConfig Expression config for the expression
+/// that defines the current price quoted by a `Sale`.
 /// @param recipient The recipient of the proceeds of a Sale, if/when the Sale
 /// is successful.
 /// @param reserve The reserve token the Sale is deonominated in.
@@ -60,15 +61,13 @@ struct SaleConstructorConfig {
 /// contract unless it is all purchased, clearing the raise to 0 stock and thus
 /// ending the raise.
 struct SaleConfig {
-    address expressionDeployer;
-    address interpreter;
-    StateConfig interpreterStateConfig;
     address recipient;
     address reserve;
     uint256 saleTimeout;
     uint256 cooldownDuration;
     uint256 minimumRaise;
     uint256 dustSize;
+    EvaluableConfig evaluableConfig;
 }
 
 /// Forwarded config to RedeemableERC20 initialization.
@@ -202,10 +201,8 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     /// stuck in a pending or active status due to buggy expressions.
     uint256 private immutable maximumSaleTimeout;
 
-    EncodedDispatch internal dispatchCanLive;
-    EncodedDispatch internal dispatchCalculateBuy;
-    EncodedDispatch internal dispatchHandleBuy;
-    IInterpreterV1 private interpreter;
+    Evaluable internal evaluable;
+    bool internal handleBuy;
 
     /// @inheritdoc ISaleV2
     uint256 public remainingTokenInventory;
@@ -280,38 +277,28 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        address expression_ = IExpressionDeployerV1(config_.expressionDeployer)
-            .deployExpression(
-                config_.interpreterStateConfig,
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
                 LibUint256Array.arrayFrom(
                     CAN_LIVE_MIN_OUTPUTS,
                     CALCULATE_BUY_MIN_OUTPUTS,
                     HANDLE_BUY_MIN_OUTPUTS
                 )
-            );
-        dispatchCanLive = LibEncodedDispatch.encode(
-            expression_,
-            CAN_LIVE_ENTRYPOINT,
-            CAN_LIVE_MAX_OUTPUTS
+            )
         );
-        dispatchCalculateBuy = LibEncodedDispatch.encode(
-            expression_,
-            CALCULATE_BUY_ENTRYPOINT,
-            CALCULATE_BUY_MAX_OUTPUTS
-        );
+
         if (
             config_
-                .interpreterStateConfig
+                .evaluableConfig
+                .expressionConfig
                 .sources[SourceIndex.unwrap(HANDLE_BUY_ENTRYPOINT)]
                 .length > 0
         ) {
-            dispatchHandleBuy = LibEncodedDispatch.encode(
-                expression_,
-                HANDLE_BUY_ENTRYPOINT,
-                HANDLE_BUY_MAX_OUTPUTS
-            );
+            handleBuy = true;
         }
-        interpreter = IInterpreterV1(config_.interpreter);
 
         recipient = config_.recipient;
 
@@ -351,6 +338,39 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         emit Initialize(msg.sender, config_, address(token_));
     }
 
+    function _dispatchCanLive(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                CAN_LIVE_ENTRYPOINT,
+                CAN_LIVE_MAX_OUTPUTS
+            );
+    }
+
+    function _dispatchCalculateBuy(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                CALCULATE_BUY_ENTRYPOINT,
+                CALCULATE_BUY_MAX_OUTPUTS
+            );
+    }
+
+    function _dispatchHandleBuy(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                HANDLE_BUY_ENTRYPOINT,
+                HANDLE_BUY_MAX_OUTPUTS
+            );
+    }
+
     /// Can the Sale live?
     /// Evals the "can live" expression.
     /// If a non zero value is returned then the sale can move from pending to
@@ -366,26 +386,23 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     {
         unchecked {
             if (remainingTokenInventory < 1) {
-                return (
-                    false,
-                    IInterpreterStoreV1(address(0)),
-                    new uint256[](0)
-                );
+                return (false, NO_STORE, new uint256[](0));
+            } else {
+                Evaluable memory evaluable_ = evaluable;
+                (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+                    .interpreter
+                    .eval(
+                        evaluable_.store,
+                        DEFAULT_STATE_NAMESPACE,
+                        _dispatchCanLive(evaluable_.expression),
+                        LibContext.build(
+                            new uint256[][](0),
+                            new uint256[](0),
+                            new SignedContext[](0)
+                        )
+                    );
+                return (stack_[stack_.length - 1] > 0, evaluable_.store, kvs_);
             }
-            (
-                uint256[] memory stack_,
-                IInterpreterStoreV1 store_,
-                uint256[] memory kvs_
-            ) = interpreter.eval(
-                    DEFAULT_STATE_NAMESPACE,
-                    dispatchCanLive,
-                    LibContext.build(
-                        new uint256[][](0),
-                        new uint256[](0),
-                        new SignedContext[](0)
-                    )
-                );
-            return (stack_[stack_.length - 1] > 0, store_, kvs_);
         }
     }
 
@@ -437,13 +454,13 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
             targetUnits_.arrayFrom(),
             new SignedContext[](0)
         );
-        (
-            uint256[] memory stack_,
-            IInterpreterStoreV1 store_,
-            uint256[] memory kvs_
-        ) = interpreter.eval(
+        Evaluable memory evaluable_ = evaluable;
+        (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+            .interpreter
+            .eval(
+                evaluable_.store,
                 DEFAULT_STATE_NAMESPACE,
-                dispatchCalculateBuy,
+                _dispatchCalculateBuy(evaluable_.expression),
                 context_
             );
         (uint256 amount_, uint256 ratio_) = stack_
@@ -455,7 +472,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         );
         context_[CONTEXT_CALCULATIONS_COLUMN] = calculationsContext_;
         context_[CONTEXT_BUY_COLUMN] = new uint256[](CONTEXT_BUY_ROWS);
-        return (amount_, ratio_, context_, store_, kvs_);
+        return (amount_, ratio_, context_, evaluable_.store, kvs_);
     }
 
     function previewCalculateBuy(
@@ -542,7 +559,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
             config_.minimumUnits <= config_.desiredUnits,
             "MINIMUM_OVER_DESIRED"
         );
-        IInterpreterV1 interpreter_ = interpreter;
+        Evaluable memory evaluable_ = evaluable;
 
         {
             // Start or end the sale as required.
@@ -666,20 +683,24 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
                 CONTEXT_BUY_RESERVE_BALANCE_AFTER_ROW
             ];
 
-            EncodedDispatch dispatchHandleBuy_ = dispatchHandleBuy;
-            if (EncodedDispatch.unwrap(dispatchHandleBuy_) > 0) {
+            EncodedDispatch dispatchHandleBuy_ = _dispatchHandleBuy(
+                evaluable_.expression
+            );
+            if (handleBuy) {
                 emit Context(msg.sender, context_);
-                (
-                    ,
-                    IInterpreterStoreV1 handleBuyStore_,
-                    uint256[] memory handleBuyKVs_
-                ) = interpreter_.eval(
+                (, uint256[] memory handleBuyKVs_) = evaluable_
+                    .interpreter
+                    .eval(
+                        evaluable_.store,
                         DEFAULT_STATE_NAMESPACE,
                         dispatchHandleBuy_,
                         context_
                     );
                 if (handleBuyKVs_.length > 0) {
-                    handleBuyStore_.set(DEFAULT_STATE_NAMESPACE, handleBuyKVs_);
+                    evaluable_.store.set(
+                        DEFAULT_STATE_NAMESPACE,
+                        handleBuyKVs_
+                    );
                 }
             }
         }

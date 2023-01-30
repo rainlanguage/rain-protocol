@@ -1,9 +1,17 @@
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { assert } from "chai";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { Rainterpreter } from "../../../../typechain/contracts/interpreter/shared/Rainterpreter";
 import { ValidInterpreterEvent } from "../../../../typechain/contracts/interpreter/shared/RainterpreterExpressionDeployer";
-import { assertError, getEventArgs } from "../../../../utils";
+import {
+  AllStandardOps,
+  assertError,
+  getEventArgs,
+  memoryOperand,
+  MemoryType,
+  op,
+} from "../../../../utils";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 
@@ -59,5 +67,29 @@ describe("RainterpreterExpressionDeployer integrityCheck tests", async function 
 
     assert(sender === signers[0].address);
     assert(interpreter === rainterpreter.address);
+  });
+
+  it("should not revert if interpreter bytecode and function pointers are as expected", async () => {
+    const interpreter = await rainterpreterDeploy();
+    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+      interpreter
+    );
+
+    const config = {
+      constants: ["1", "2"],
+      sources: [
+        concat([
+          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+          op(AllStandardOps.ADD, 2),
+        ]),
+      ],
+    };
+
+    await assertError(
+      async () => await expressionDeployer.deployExpression(config, [1, 1]), // Adding an extra minStackOutput element
+      "MissingEntrypoint(2, 1)",
+      "Entrypoint check failed"
+    );
   });
 });

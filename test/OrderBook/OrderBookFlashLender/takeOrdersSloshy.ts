@@ -8,8 +8,6 @@ import { ethers } from "hardhat";
 import type {
   ERC3156FlashBorrowerBuyTest,
   OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
 } from "../../../typechain";
 import {
@@ -27,10 +25,9 @@ import {
   sixteenZeros,
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -44,8 +41,7 @@ describe("OrderBook takeOrders sloshy tests", async function () {
   let orderBookFactory: ContractFactory;
   let USDT: ReserveToken18;
   let DAI: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
+
   let erc3156Bot: ERC3156FlashBorrowerBuyTest;
 
   beforeEach(async () => {
@@ -62,10 +58,6 @@ describe("OrderBook takeOrders sloshy tests", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   it("should complete an e2e slosh with a loan", async function () {
@@ -97,15 +89,15 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     ]);
 
     // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [source, []],
+      constants,
+    });
+
     const orderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
-      interpreterStateConfig: {
-        sources: [source, []],
-        constants: constants,
-      },
+      evaluableConfig,
       data: [],
     };
 
@@ -183,9 +175,16 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                     name: "order",
                     components: [
                       { name: "owner", type: "address" },
-                      { name: "interpreter", type: "address" },
-                      { name: "dispatch", type: "uint256" },
-                      { name: "handleIODispatch", type: "uint256" },
+                      { name: "handleIO", type: "bool" },
+                      {
+                        name: "evaluable",
+                        type: "tuple",
+                        components: [
+                          { name: "interpreter", type: "address" },
+                          { name: "store", type: "address" },
+                          { name: "expression", type: "address" },
+                        ],
+                      },
                       {
                         name: "validInputs",
                         type: "tuple[]",
@@ -287,16 +286,16 @@ describe("OrderBook takeOrders sloshy tests", async function () {
       vThreshold,
     ]);
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [source, []],
+      constants,
+    });
+
     // 1. alice's order says she will give anyone 1 DAI who can give her 1.01 USDT
     const orderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [{ token: USDT.address, decimals: 18, vaultId: vaultAlice }],
       validOutputs: [{ token: DAI.address, decimals: 18, vaultId: vaultAlice }],
-      interpreterStateConfig: {
-        sources: [source, []],
-        constants: constants,
-      },
+      evaluableConfig,
       data: [],
     };
 
