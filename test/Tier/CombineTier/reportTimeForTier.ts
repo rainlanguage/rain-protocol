@@ -321,7 +321,7 @@ describe("CombineTier report time for tier tests", async function () {
 
     // Set Alice's status
     await timewarp(10);
-    await readWriteTier.connect(alice.address).setTier(alice.address, Tier.ONE);
+    await readWriteTier.connect(alice).setTier(alice.address, Tier.ONE);
     const expectedResultAlice = await getBlockTimestamp();
 
     const result1 = await combineTierMain.reportTimeForTier(
@@ -340,11 +340,11 @@ describe("CombineTier report time for tier tests", async function () {
 
   it("should use context to pass extra data to the CombineTier script", async () => {
     // Set Bob's status
-    await readWriteTier.connect(bob.address).setTier(bob.address, Tier.ONE);
+    await readWriteTier.connect(bob).setTier(bob.address, Tier.ONE);
     const expectedResultBob = await getBlockTimestamp();
     await timewarp(10);
     // Set Alice's status
-    await readWriteTier.connect(alice.address).setTier(alice.address, Tier.ONE);
+    await readWriteTier.connect(alice).setTier(alice.address, Tier.ONE);
     const expectedResultAlice = await getBlockTimestamp();
 
     // prettier-ignore
@@ -440,9 +440,9 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake.address, depositAmount0);
-    await stake.connect(alice.address).deposit(depositAmount0, alice.address);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
     const expectedReportAlice = await getBlockTimestamp();
 
     // Give Bob reserve tokens and deposit them
@@ -450,9 +450,9 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(bob.address, depositAmount1);
     await tokenERC20
-      .connect(bob.address)
+      .connect(bob)
       .approve(stake.address, depositAmount1);
-    await stake.connect(bob.address).deposit(depositAmount1, bob.address);
+    await stake.connect(bob).deposit(depositAmount1, bob.address);
     const expectedReportBob = await getBlockTimestamp();
 
     // prettier-ignore
@@ -548,9 +548,9 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake0.address, depositAmount0);
-    await stake0.connect(alice.address).deposit(depositAmount0, alice.address);
+    await stake0.connect(alice).deposit(depositAmount0, alice.address);
     const expectedReportStake0 = await getBlockTimestamp();
 
     // prettier-ignore
@@ -632,9 +632,9 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake1.address, depositAmount1);
-    await stake1.connect(alice.address).deposit(depositAmount1, alice.address);
+    await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     const result1 = await combineTierMain.reportTimeForTier(
       alice.address,
@@ -687,10 +687,10 @@ describe("CombineTier report time for tier tests", async function () {
         const depositAmount0 = THRESHOLDS[7].add(1);
         await tokenERC20.transfer(alice.address, depositAmount0);
         await tokenERC20
-          .connect(alice.address)
+          .connect(alice)
           .approve(stakeContracts[i].address, depositAmount0);
         await stakeContracts[i]
-          .connect(alice.address)
+          .connect(alice)
           .deposit(depositAmount0, alice.address);
       }
 
@@ -755,10 +755,10 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stakeContracts[MAX_STAKE_CONTRACTS - 1].address, depositAmount1);
     await stakeContracts[MAX_STAKE_CONTRACTS - 1]
-      .connect(alice.address)
+      .connect(alice)
       .deposit(depositAmount1, alice.address);
 
     const result1 = await combineTierMain.reportTimeForTier(
@@ -801,9 +801,9 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake0.address, depositAmount0);
-    await stake0.connect(alice.address).deposit(depositAmount0, alice.address);
+    await stake0.connect(alice).deposit(depositAmount0, alice.address);
     const expectedReportStake0 = await getBlockTimestamp();
 
     // prettier-ignore
@@ -911,9 +911,9 @@ describe("CombineTier report time for tier tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake1.address, depositAmount1);
-    await stake1.connect(alice.address).deposit(depositAmount1, alice.address);
+    await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,

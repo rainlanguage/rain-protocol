@@ -33,7 +33,7 @@ import {
   op,
 } from "../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../utils/interpreter/ops/allStandardOps";
-import { ALWAYS, numArrayToReport } from "../../../utils/tier";
+import { ALWAYS, NEVER, numArrayToReport } from "../../../utils/tier";
 
 const Opcode = AllStandardOps;
 
@@ -95,7 +95,7 @@ describe("CombineTier report tests", async function () {
         op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
         sourceReportTimeForTierDefault,
       ],
-      constants: [ALWAYS],
+      constants: [NEVER],
     });
 
     const neverTier = (await combineTierDeploy(deployer, {
@@ -271,7 +271,7 @@ describe("CombineTier report tests", async function () {
 
   it("should query the report of a contract inheriting TierV2", async () => {
     // Set Bob's status
-    await readWriteTier.connect(bob.address).setTier(bob.address, Tier.ONE);
+    await readWriteTier.connect(bob).setTier(bob.address, Tier.ONE);
     const expectedResultBob = await readWriteTier.report(bob.address, []);
 
     // MAIN
@@ -326,7 +326,7 @@ describe("CombineTier report tests", async function () {
 
     // Set Alice's status
     await timewarp(10);
-    await readWriteTier.connect(alice.address).setTier(alice.address, Tier.ONE);
+    await readWriteTier.connect(alice).setTier(alice.address, Tier.ONE);
     const expectedResultAlice = await readWriteTier.report(alice.address, []);
 
     const result1 = await combineTierMain.report(alice.address, [bob.address]);
@@ -341,12 +341,12 @@ describe("CombineTier report tests", async function () {
 
   it("should use context to pass extra data to the CombineTier script", async () => {
     // Set Bob's status
-    await readWriteTier.connect(bob.address).setTier(bob.address, Tier.ONE);
+    await readWriteTier.connect(bob).setTier(bob.address, Tier.ONE);
     const expectedResultBob = await readWriteTier.report(bob.address, []);
 
     await timewarp(10);
     // Set Alice's status
-    await readWriteTier.connect(alice.address).setTier(alice.address, Tier.ONE);
+    await readWriteTier.connect(alice).setTier(alice.address, Tier.ONE);
     const expectedResultAlice = await readWriteTier.report(alice.address, []);
 
     // prettier-ignore
@@ -442,9 +442,9 @@ describe("CombineTier report tests", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake.address, depositAmount0);
-    await stake.connect(alice.address).deposit(depositAmount0, alice.address);
+    await stake.connect(alice).deposit(depositAmount0, alice.address);
     const blockTimeAlice_ = await getBlockTimestamp();
 
     const expectedReportAlice = numArrayToReport([
@@ -463,9 +463,9 @@ describe("CombineTier report tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(bob.address, depositAmount1);
     await tokenERC20
-      .connect(bob.address)
+      .connect(bob)
       .approve(stake.address, depositAmount1);
-    await stake.connect(bob.address).deposit(depositAmount1, bob.address);
+    await stake.connect(bob).deposit(depositAmount1, bob.address);
     const blockTimeBob_ = await getBlockTimestamp();
 
     const expectedReportBob = numArrayToReport([
@@ -574,9 +574,9 @@ describe("CombineTier report tests", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake0.address, depositAmount0);
-    await stake0.connect(alice.address).deposit(depositAmount0, alice.address);
+    await stake0.connect(alice).deposit(depositAmount0, alice.address);
     const blockTimeAlice_ = await getBlockTimestamp();
 
     const expectedReportStake0 = numArrayToReport([
@@ -664,9 +664,9 @@ describe("CombineTier report tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake1.address, depositAmount1);
-    await stake1.connect(alice.address).deposit(depositAmount1, alice.address);
+    await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     const result1 = await combineTierMain.report(alice.address, [
       ...THRESHOLDS,
@@ -716,10 +716,10 @@ describe("CombineTier report tests", async function () {
         const depositAmount0 = THRESHOLDS[7].add(1);
         await tokenERC20.transfer(alice.address, depositAmount0);
         await tokenERC20
-          .connect(alice.address)
+          .connect(alice)
           .approve(stakeContracts[i].address, depositAmount0);
         await stakeContracts[i]
-          .connect(alice.address)
+          .connect(alice)
           .deposit(depositAmount0, alice.address);
       }
 
@@ -783,10 +783,10 @@ describe("CombineTier report tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stakeContracts[MAX_STAKE_CONTRACTS - 1].address, depositAmount1);
     await stakeContracts[MAX_STAKE_CONTRACTS - 1]
-      .connect(alice.address)
+      .connect(alice)
       .deposit(depositAmount1, alice.address);
 
     const result1 = await combineTierMain.report(alice.address, [
@@ -828,9 +828,9 @@ describe("CombineTier report tests", async function () {
     const depositAmount0 = THRESHOLDS[7].add(1);
     await tokenERC20.transfer(alice.address, depositAmount0);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake0.address, depositAmount0);
-    await stake0.connect(alice.address).deposit(depositAmount0, alice.address);
+    await stake0.connect(alice).deposit(depositAmount0, alice.address);
     const blockTimeAlice_ = await getBlockTimestamp();
 
     const expectedReportStake0 = numArrayToReport([
@@ -945,9 +945,9 @@ describe("CombineTier report tests", async function () {
     const depositAmount1 = THRESHOLDS[2].add(1);
     await tokenERC20.transfer(alice.address, depositAmount1);
     await tokenERC20
-      .connect(alice.address)
+      .connect(alice)
       .approve(stake1.address, depositAmount1);
-    await stake1.connect(alice.address).deposit(depositAmount1, alice.address);
+    await stake1.connect(alice).deposit(depositAmount1, alice.address);
 
     await logic["eval(address,uint256,uint256[][])"](
       rainInterpreter.address,

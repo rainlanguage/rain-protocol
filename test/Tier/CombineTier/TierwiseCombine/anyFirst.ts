@@ -7,6 +7,7 @@ import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/dep
 import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
 import { getBlockTimestamp, timewarp } from "../../../../utils/hardhat";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -42,46 +43,51 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
     // timestamp in the future
     const timestamp1 = (await getBlockTimestamp()) + 100;
 
+    const evaluableConfigFuture = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [
+        numArrayToReport([
+          timestamp0,
+          timestamp0,
+          timestamp1,
+          timestamp1,
+          timestamp0,
+          timestamp0,
+          timestamp1,
+          timestamp1,
+        ]),
+      ],
+    });
     const futureTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      expressionConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [
-          numArrayToReport([
-            timestamp0,
-            timestamp0,
-            timestamp1,
-            timestamp1,
-            timestamp0,
-            timestamp0,
-            timestamp1,
-            timestamp1,
-          ]),
-        ],
-      },
+      evaluableConfig: evaluableConfigFuture,
     })) as CombineTier;
+
+    const evaluableConfigAlways = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [ALWAYS],
+    });
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      expressionConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [ALWAYS],
-      },
+      evaluableConfig: evaluableConfigAlways,
     })) as CombineTier;
+
+    const evaluableConfigNever = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [NEVER],
+    });
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      expressionConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [NEVER],
-      },
+      evaluableConfig: evaluableConfigNever,
     })) as CombineTier;
 
     const constants = [
@@ -121,12 +127,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ),
     ]);
 
+    const evaluableConfigCombine = await generateEvaluableConfig({
+      sources: [sourceReport, sourceReportTimeForTierDefault],
+      constants,
+    });
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 3,
-      expressionConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants,
-      },
+      evaluableConfig: evaluableConfigCombine,
     })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -152,25 +159,28 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
   it("should correctly combine Always and Never tier reports with any and first selector", async () => {
     const signers = await ethers.getSigners();
 
+    const evaluableConfigAlways = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [ALWAYS],
+    });
     const alwaysTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      expressionConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [ALWAYS],
-      },
+      evaluableConfig: evaluableConfigAlways,
     })) as CombineTier;
+
+    const evaluableConfigNever = await generateEvaluableConfig({
+      sources: [
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+        sourceReportTimeForTierDefault,
+      ],
+      constants: [NEVER],
+    });
     const neverTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 0,
-      expressionConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          sourceReportTimeForTierDefault,
-        ],
-        constants: [NEVER],
-      },
+      evaluableConfig: evaluableConfigNever,
     })) as CombineTier;
 
     const constants = [
@@ -192,13 +202,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
         selectLte(selectLteLogic.any, selectLteMode.first, 2)
       ),
     ]);
-
+    const evaluableConfigCombine = await generateEvaluableConfig({
+      sources: [sourceReport, sourceReportTimeForTierDefault],
+      constants,
+    });
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      expressionConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants,
-      },
+      evaluableConfig: evaluableConfigCombine,
     })) as CombineTier;
 
     const result = await combineTier.report(signers[0].address, []);
@@ -241,12 +251,13 @@ describe("CombineTier tierwise combine report with 'any' logic and 'first' mode"
       ),
     ]);
 
+    const evaluableConfig = await generateEvaluableConfig({
+      sources: [sourceReport, sourceReportTimeForTierDefault],
+      constants,
+    });
     const combineTier = (await combineTierDeploy(signers[0], {
       combinedTiersLength: 2,
-      expressionConfig: {
-        sources: [sourceReport, sourceReportTimeForTierDefault],
-        constants,
-      },
+      evaluableConfig,
     })) as CombineTier;
 
     const startTimestamp = await getBlockTimestamp();

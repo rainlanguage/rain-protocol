@@ -177,6 +177,7 @@ export function foldContextOperand(
  * Builds the EvaluableConfig struct with expressionConfig and a store.
  *
  * @param expressionConfig - index of function source
+ * @param isStore - used to toggle NO_STORE
  */
 export async function generateEvaluableConfig(
   expressionConfig: ExpressionConfigStruct,
@@ -194,7 +195,7 @@ export async function generateEvaluableConfig(
   return {
     deployer: expressionDeployer.address,
     interpreter: interpreter.address,
-    store: isStore ? interpreterStore.address : zeroAddress,
+    store: isStore ? interpreterStore.address : zeroAddress, 
     expressionConfig: expressionConfig,
   };
 }
