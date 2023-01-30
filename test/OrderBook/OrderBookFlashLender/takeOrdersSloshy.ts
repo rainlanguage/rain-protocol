@@ -175,9 +175,16 @@ describe("OrderBook takeOrders sloshy tests", async function () {
                     name: "order",
                     components: [
                       { name: "owner", type: "address" },
-                      { name: "interpreter", type: "address" },
-                      { name: "dispatch", type: "uint256" },
-                      { name: "handleIODispatch", type: "uint256" },
+                      { name: "handleIO", type: "bool" },
+                      {
+                        name: "evaluable",
+                        type: "tuple",
+                        components: [
+                          { name: "interpreter", type: "address" },
+                          { name: "store", type: "address" },
+                          { name: "expression", type: "address" },
+                        ],
+                      },
                       {
                         name: "validInputs",
                         type: "tuple[]",
