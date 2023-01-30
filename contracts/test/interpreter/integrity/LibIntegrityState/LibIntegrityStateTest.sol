@@ -67,7 +67,7 @@ contract LibIntegrityCheckTest {
         LibDebug.dumpMemory();
         return stackTop_;
     }
-    
+
     function ensureIntegrityTest(
         ExpressionConfig memory config_,
         SourceIndex sourceIndex_,

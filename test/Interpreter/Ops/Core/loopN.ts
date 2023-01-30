@@ -539,7 +539,7 @@ describe("LOOP_N Opcode test", async function () {
       "Integrity check passed even when enough values are not available on the stack"
     );
   });
-  
+
   it("should fail the integrity check if there are fewer outputs than inputs", async () => {
     const n = 1; // Loop will run only once
 
@@ -564,14 +564,15 @@ describe("LOOP_N Opcode test", async function () {
     ]);
 
     await assertError(
-      async () => await expressionConsumerDeploy(
-        {
-          sources: [sourceMAIN, sourceADD],
-          constants,
-        },
-        rainInterpreter,
-        1
-      ),
+      async () =>
+        await expressionConsumerDeploy(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          rainInterpreter,
+          1
+        ),
       "InsufficientLoopOutputs(2, 1)",
       "Integrity check passed even when there were fewer outputs than inputs"
     );

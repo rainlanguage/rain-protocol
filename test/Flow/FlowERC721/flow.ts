@@ -1883,7 +1883,7 @@ describe("FlowERC721 flow tests", async function () {
       value: ethers.BigNumber.from(ethers.BigNumber.from(1 + sixZeros)),
     });
   });
-  
+
   it("should fail when token burner is not the owner", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
@@ -1936,7 +1936,7 @@ describe("FlowERC721 flow tests", async function () {
       RAIN_FLOW_ERC721_SENTINEL,
       1,
       flowERC721IOBurn.burns[0].id,
-      bob.address
+      bob.address,
     ];
 
     const SENTINEL = () =>
@@ -1949,7 +1949,7 @@ describe("FlowERC721 flow tests", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
     const BOB = () =>
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
-  
+
     const sourceFlowIOMint = concat([
       SENTINEL(), // ERC1155 SKIP
       SENTINEL(), // ERC721 SKIP
@@ -2034,11 +2034,9 @@ describe("FlowERC721 flow tests", async function () {
     // -- PERFORM BURN --
 
     await assertError(
-      async () =>  await flow.connect(you).flow(burnFlowId, [1234], []),
+      async () => await flow.connect(you).flow(burnFlowId, [1234], []),
       "BurnerNotOwner()",
       "token should only be burned by the owner"
     );
-
   });
-
 });

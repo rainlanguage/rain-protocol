@@ -10,7 +10,6 @@ import { VerifyFactory } from "../../typechain";
 import * as Util from "../../utils";
 import {
   AllStandardOps,
-  assertError,
   getBlockTimestamp,
   op,
   verifyFactoryDeploy,
