@@ -9,6 +9,7 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibContext.sol";
 import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/run/LibEvaluable.sol";
 import "../math/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
 
@@ -17,6 +18,17 @@ import {ReentrancyGuardUpgradeable as ReentrancyGuard} from "@openzeppelin/contr
 import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable as SafeERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+
+/// Thrown when a result hash already exists but the lobby is attempting to move
+/// to complete from pending.
+error HashSet(bytes32 existingHash);
+
+/// Thrown when the expected hash and the actual hash are different for some
+/// claim result.
+error BadHash(bytes32 expectedHash, bytes32 actualHash);
+
+/// Thrown when `invalid` is called but the lobby is not invalid.
+error NotInvalid();
 
 /// Configuration for a `Lobby` to initialize.
 /// @param refMustAgree If `true` the ref must agree to be the ref before ANY
@@ -30,10 +42,8 @@ import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils
 struct LobbyConfig {
     bool refMustAgree;
     address ref;
-    address expressionDeployer;
-    address interpreter;
     address token;
-    StateConfig stateConfig;
+    EvaluableConfig evaluableConfig;
     // ipfs hash or similar of description and rules etc. that can be in json
     // for GUI.
     bytes description;
@@ -145,9 +155,8 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
 
     address internal ref;
     IERC20 internal token;
-    IInterpreterV1 internal interpreter;
 
-    address internal expression;
+    Evaluable internal evaluable;
 
     mapping(address => uint256) internal players;
     mapping(address => uint256) internal deposits;
@@ -182,54 +191,64 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
-        expression = IExpressionDeployerV1(config_.expressionDeployer)
-            .deployExpression(
-                config_.stateConfig,
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
                 LibUint256Array.arrayFrom(
                     JOIN_MIN_OUTPUTS,
                     LEAVE_MIN_OUTPUTS,
                     CLAIM_MIN_OUTPUTS
                 )
-            );
+            )
+        );
 
         ref = config_.ref;
         token = IERC20(config_.token);
-        interpreter = IInterpreterV1(config_.interpreter);
 
         emit Initialize(msg.sender, config_);
     }
 
-    function _joinEncodedDispatch() internal view returns (EncodedDispatch) {
+    function _joinEncodedDispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
-                expression,
+                expression_,
                 ENTRYPOINT_JOIN,
                 JOIN_MAX_OUTPUTS
             );
     }
 
-    function _leaveEncodedDispatch() internal view returns (EncodedDispatch) {
+    function _leaveEncodedDispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
-                expression,
+                expression_,
                 ENTRYPOINT_LEAVE,
                 LEAVE_MAX_OUTPUTS
             );
     }
 
-    function _claimEncodedDispatch() internal view returns (EncodedDispatch) {
+    function _claimEncodedDispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
-                expression,
+                expression_,
                 ENTRYPOINT_CLAIM,
                 CLAIM_MAX_OUTPUTS
             );
     }
 
-    function _invalidEncodedDispatch() internal view returns (EncodedDispatch) {
+    function _invalidEncodedDispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
         return
             LibEncodedDispatch.encode(
-                expression,
+                expression_,
                 ENTRYPOINT_INVALID,
                 INVALID_MAX_OUTPUTS
             );
@@ -290,27 +309,26 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         nonReentrant
     {
         unchecked {
-            IInterpreterV1 interpreter_ = interpreter;
+            Evaluable memory evaluable_ = evaluable;
             uint256[][] memory context_ = LibContext.build(
                 new uint256[][](0),
                 callerContext_,
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (
-                uint256[] memory stack_,
-                IInterpreterStoreV1 store_,
-                uint256[] memory kvs_
-            ) = interpreter_.eval(
+            (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+                .interpreter
+                .eval(
+                    evaluable_.store,
                     DEFAULT_STATE_NAMESPACE,
-                    _joinEncodedDispatch(),
+                    _joinEncodedDispatch(evaluable_.expression),
                     context_
                 );
             uint256 playersFinalised_ = stack_[stack_.length - 2];
             uint256 amount_ = stack_[stack_.length - 1];
 
             players[msg.sender] = 1;
-            store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
             _deposit(amount_);
 
             emit Join(msg.sender);
@@ -327,6 +345,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         uint256[] memory callerContext_,
         SignedContext[] memory signedContext_
     ) external onlyPhase(PHASE_PLAYERS_PENDING) onlyPlayer nonReentrant {
+        Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
         uint256 deposit_ = deposits[msg.sender];
 
@@ -336,13 +355,12 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
             signedContext_
         );
         emit Context(msg.sender, context_);
-        (
-            uint256[] memory stack_,
-            IInterpreterStoreV1 store_,
-            uint256[] memory kvs_
-        ) = IInterpreterV1(interpreter).eval(
+        (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+            .interpreter
+            .eval(
+                evaluable_.store,
                 DEFAULT_STATE_NAMESPACE,
-                _leaveEncodedDispatch(),
+                _leaveEncodedDispatch(evaluable.expression),
                 context_
             );
         // Use the smaller of the interpreter amount and the player's original
@@ -353,7 +371,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         IERC20(token).safeTransfer(msg.sender, amount_);
         deposits[msg.sender] = 0;
         totalDeposited -= amount_;
-        store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
+        evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
 
         emit Leave(msg.sender, address(token), deposit_, amount_);
     }
@@ -368,11 +386,14 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         nonReentrant
     {
         bytes32 signedContextsHash_ = LibContext.hash(signedContexts_);
+        bytes32 resultHash_ = resultHash;
 
         // The first time claim is called we move to complete and register the
         // hash of the signed context used to phase shift.
         if (currentPhase() == PHASE_RESULT_PENDING) {
-            require(resultHash == 0, "HASH_SET");
+            if (resultHash_ != 0) {
+                revert HashSet(resultHash_);
+            }
             resultHash = signedContextsHash_;
             schedulePhase(PHASE_COMPLETE, block.timestamp);
         }
@@ -381,7 +402,14 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
             revert BadPhase();
         }
 
-        require(resultHash == signedContextsHash_, "BAD_HASH");
+        // Check the result hash after processing potential phase shifts that may
+        // have changed it.
+        resultHash_ = resultHash;
+        if (resultHash != signedContextsHash_) {
+            revert BadHash(resultHash_, signedContextsHash_);
+        }
+
+        Evaluable memory evaluable_ = evaluable;
 
         // Calculating a claimant's share is a 1 time thing. Dynamic shares aren't
         // supported, the expression MUST ensure that each user has a stable share
@@ -393,13 +421,12 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 signedContexts_
             );
             emit Context(msg.sender, context_);
-            (
-                uint256[] memory stack_,
-                IInterpreterStoreV1 store_,
-                uint256[] memory kvs_
-            ) = interpreter.eval(
+            (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+                .interpreter
+                .eval(
+                    evaluable_.store,
                     DEFAULT_STATE_NAMESPACE,
-                    _claimEncodedDispatch(),
+                    _claimEncodedDispatch(evaluable_.expression),
                     context_
                 );
             // Share for this claimant is the smaller of the calculated share and
@@ -412,7 +439,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 shares[msg.sender] = claimantShares_;
             }
             if (kvs_.length > 0) {
-                store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
+                evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
             }
         }
 
@@ -434,6 +461,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     }
 
     function isInvalid(
+        Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
     ) internal returns (bool) {
@@ -445,25 +473,23 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
             return true;
         }
 
-        IInterpreterV1 interpreter_ = interpreter;
         uint256[][] memory context_ = LibContext.build(
             new uint256[][](0),
             callerContext_,
             signedContexts_
         );
         emit Context(msg.sender, context_);
-        (
-            uint256[] memory stack_,
-            IInterpreterStoreV1 store_,
-            uint256[] memory kvs_
-        ) = interpreter_.eval(
+        (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
+            .interpreter
+            .eval(
+                evaluable_.store,
                 DEFAULT_STATE_NAMESPACE,
-                _invalidEncodedDispatch(),
+                _invalidEncodedDispatch(evaluable_.expression),
                 context_
             );
 
         if (kvs_.length > 0) {
-            store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
 
         unchecked {
@@ -483,7 +509,9 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // phase to the invalid phase, but this happens atomically within this
         // function call so there's no way that `claim` can be called before
         // `refund` is enabled.
-        require(isInvalid(callerContext_, signedContexts_), "NOT_INVALID");
+        if (!isInvalid(evaluable, callerContext_, signedContexts_)) {
+            revert NotInvalid();
+        }
 
         // Fast forward all phases to invalid.
         while (currentPhase() < PHASE_INVALID) {

@@ -1,26 +1,25 @@
-import { StateConfigStruct } from "../../typechain/contracts/interpreter/run/StandardInterpreter";
+import { ExpressionConfigStruct } from "../../typechain/contracts/flow/basic/Flow";
 
 export type FlowConfig = {
-  stateConfig: StateConfigStruct;
-  flows: StateConfigStruct[];
+  flows: ExpressionConfigStruct[];
 };
 
 export type FlowERC20Config = {
-  stateConfig: StateConfigStruct;
-  flows: StateConfigStruct[];
+  expressionConfig: ExpressionConfigStruct;
+  flows: ExpressionConfigStruct[];
   name: string;
   symbol: string;
 };
 
 export type FlowERC721Config = {
-  stateConfig: StateConfigStruct;
-  flows: StateConfigStruct[];
+  expressionConfig: ExpressionConfigStruct;
+  flows: ExpressionConfigStruct[];
   name: string;
   symbol: string;
 };
 
 export type FlowERC1155Config = {
-  stateConfig: StateConfigStruct;
-  flows: StateConfigStruct[];
+  expressionConfig: ExpressionConfigStruct;
+  flows: ExpressionConfigStruct[];
   uri: string;
 };

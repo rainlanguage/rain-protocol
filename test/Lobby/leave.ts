@@ -1,11 +1,7 @@
 import { assert } from "chai";
 import { arrayify, concat, solidityKeccak256 } from "ethers/lib/utils";
 import { ethers } from "hardhat";
-import type {
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
-  ReserveToken18,
-} from "../../typechain";
+import type { ReserveToken18 } from "../../typechain";
 import {
   ContextEvent,
   DepositEvent,
@@ -17,10 +13,9 @@ import {
 import { assertError } from "../../utils";
 import { ONE } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -31,17 +26,8 @@ describe("Lobby Tests leave", async function () {
   const Opcode = RainterpreterOps;
 
   let tokenA: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   const PHASE_PLAYERS_PENDING = ethers.BigNumber.from(1);
-
-  before(async () => {
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-  });
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -70,18 +56,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,  
+            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) , 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) , 
-             op(Opcode.ERC20_BALANCE_OF)  , 
-             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , 
-            op(Opcode.DIV, 2),  
+              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
+              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) ,
+             op(Opcode.ERC20_BALANCE_OF)  ,
+             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
+            op(Opcode.DIV, 2),
 
              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // val
-            op(Opcode.SET), 
-            
+            op(Opcode.SET),
+
         ]);
 
     const leaveSource = concat([
@@ -97,18 +83,20 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: 15000000,
     };
@@ -187,18 +175,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,  
+            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) , 
-              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) , 
-             op(Opcode.ERC20_BALANCE_OF)  , 
-             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) , 
-            op(Opcode.DIV, 2),  
+              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 4)) ,
+              op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 3)) ,
+             op(Opcode.ERC20_BALANCE_OF)  ,
+             op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 2)) ,
+            op(Opcode.DIV, 2),
 
              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)), // key
              op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)), // val
-            op(Opcode.SET), 
-            
+            op(Opcode.SET),
+
         ]);
 
     const leaveSource = concat([
@@ -214,18 +202,20 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: 15000000,
     };
@@ -315,18 +305,20 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: 15000000,
     };
@@ -419,18 +411,20 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: 15000000,
     };
@@ -517,18 +511,20 @@ describe("Lobby Tests leave", async function () {
       op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
-    const lobbyStateConfig = {
+    const lobbyExpressionConfig = {
       sources: [joinSource, leaveSource, claimSource, invalidSource],
       constants: constants,
     };
 
+    const evaluableConfig = await generateEvaluableConfig(
+      lobbyExpressionConfig
+    );
+
     const initialConfig: LobbyConfigStruct = {
       refMustAgree: false,
       ref: signers[0].address,
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfig,
       token: tokenA.address,
-      stateConfig: lobbyStateConfig,
       description: [],
       timeoutDuration: 15000000,
     };

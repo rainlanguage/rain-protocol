@@ -3,13 +3,14 @@ import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import { FlowERC721Factory } from "../../../../typechain";
 import {
+  EvaluableConfigStruct,
   FlowERC721,
   FlowERC721ConfigStruct,
 } from "../../../../typechain/contracts/flow/erc721/FlowERC721";
 import { getEventArgs } from "../../../events";
 import { FlowERC721Config } from "../../../types/flow";
-import { rainterpreterExpressionDeployerDeploy } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
+
+import { generateEvaluableConfig } from "../../../interpreter";
 
 export const flowERC721Deploy = async (
   deployer: SignerWithAddress,
@@ -17,24 +18,29 @@ export const flowERC721Deploy = async (
   flowERC721Config: FlowERC721Config,
   ...args: Overrides[]
 ) => {
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
+  // Building evaluableConfig
+  const evaluableConfig: EvaluableConfigStruct = await generateEvaluableConfig(
+    flowERC721Config.expressionConfig
   );
 
-  const flowERC20ConfigStruct: FlowERC721ConfigStruct = {
-    stateConfig: flowERC721Config.stateConfig,
-    flowConfig: {
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      flows: flowERC721Config.flows,
-    },
+  // Building flowConfig
+  const flowConfig: EvaluableConfigStruct[] = [];
+  for (let i = 0; i < flowERC721Config.flows.length; i++) {
+    const evaluableConfig = await generateEvaluableConfig(
+      flowERC721Config.flows[i]
+    );
+    flowConfig.push(evaluableConfig);
+  }
+
+  const flowERC721ConfigStruct: FlowERC721ConfigStruct = {
+    evaluableConfig: evaluableConfig,
+    flowConfig: flowConfig,
     name: flowERC721Config.name,
     symbol: flowERC721Config.symbol,
   };
 
   const txDeploy = await flowERC721Factory.createChildTyped(
-    flowERC20ConfigStruct,
+    flowERC721ConfigStruct,
     ...args
   );
 
@@ -55,5 +61,5 @@ export const flowERC721Deploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return { flow, interpreter, expressionDeployer };
+  return { flow };
 };

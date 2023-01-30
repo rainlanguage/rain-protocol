@@ -60,7 +60,11 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "normal multiplication overflow did not error"
     );
@@ -84,7 +88,11 @@ describe("RainInterpreter MathOps saturating math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = max_uint256;
     assert(
@@ -120,7 +128,11 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "normal subtraction overflow did not error"
     );
@@ -144,7 +156,11 @@ describe("RainInterpreter MathOps saturating math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = 0;
     assert(
@@ -183,7 +199,11 @@ describe("RainInterpreter MathOps saturating math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "normal addition overflow did not error"
     );
@@ -207,7 +227,11 @@ describe("RainInterpreter MathOps saturating math", async () => {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression1.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression1.dispatch,
+      []
+    );
     const result = await logic.stackTop();
     const expected = max_uint256;
     assert(

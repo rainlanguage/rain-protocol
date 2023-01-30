@@ -67,7 +67,7 @@ describe("FlowERC20 construction tests", async function () {
     const configStruct: FlowERC20Config = {
       name: "Flow ERC20",
       symbol: "F20",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants,
       },

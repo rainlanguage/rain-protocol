@@ -15,10 +15,14 @@ import {
   CurationConfigStruct,
   RegisterCurationEvent,
 } from "../../../typechain/contracts/factory/FactoryCurator";
-import { StakeConfigStruct } from "../../../typechain/contracts/stake/Stake";
+import {
+  EvaluableConfigStruct,
+  StakeConfigStruct,
+} from "../../../typechain/contracts/stake/Stake";
 import { InitializeEvent } from "../../../typechain/contracts/test/factory/Factory/FactoryChildTest";
 import {
   combineTierDeploy,
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -34,8 +38,6 @@ import {
   sixZeros,
 } from "../../../utils/constants/bigNumber";
 import { basicDeploy } from "../../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { stakeFactoryDeploy } from "../../../utils/deploy/stake/stakeFactory/deploy";
 import { reserveDeploy } from "../../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../../utils/events";
@@ -289,25 +291,23 @@ describe("FactoryCurator createChild", async function () {
     )) as ReserveToken18;
     await reserve18.initialize();
 
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
-
+    const evaluableConfig: EvaluableConfigStruct =
+      await generateEvaluableConfig(
+        {
+          sources: [
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          ],
+          constants: [max_uint256],
+        },
+        false
+      );
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: reserve18.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
+      evaluableConfig: evaluableConfig,
     };
     const stake = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
 
@@ -417,25 +417,24 @@ describe("FactoryCurator createChild", async function () {
     const alice = signers[2];
     const deployer = signers[3];
 
-    const interpreter = await rainterpreterDeploy();
-    const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
+    const evaluableConfig: EvaluableConfigStruct =
+      await generateEvaluableConfig(
+        {
+          sources: [
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          ],
+          constants: [max_uint256],
+        },
+        false
+      );
 
     // Stake contract
     const stakeConfigStruct: StakeConfigStruct = {
       name: "Stake Token",
       symbol: "STKN",
       asset: reserve.address,
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-      stateConfig: {
-        sources: [
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        ],
-        constants: [max_uint256],
-      },
+      evaluableConfig: evaluableConfig,
     };
 
     const stake0 = await stakeDeploy(deployer, stakeFactory, stakeConfigStruct);
@@ -502,14 +501,14 @@ describe("FactoryCurator createChild", async function () {
       op(Opcode.EAGER_IF)
     ]);
 
+    const evaluableConfigCombineTier = await generateEvaluableConfig({
+      sources: [sourceReportDefault, sourceMain],
+      constants: [stake0.address, stake1.address, max_uint32],
+    });
+
     const combineTierMain = (await combineTierDeploy(deployer, {
       combinedTiersLength: 2,
-      stateConfig: {
-        sources: [sourceReportDefault, sourceMain],
-        constants: [stake0.address, stake1.address, max_uint32],
-      },
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
+      evaluableConfig: evaluableConfigCombineTier,
     })) as CombineTier;
 
     const FEE = 100 + sixZeros;

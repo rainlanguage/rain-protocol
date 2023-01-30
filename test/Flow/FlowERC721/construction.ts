@@ -64,7 +64,7 @@ describe("FlowERC721 construction tests", async function () {
     const configStruct: FlowERC721Config = {
       name: "Flow ERC721",
       symbol: "F721",
-      stateConfig: {
+      expressionConfig: {
         sources,
         constants,
       },

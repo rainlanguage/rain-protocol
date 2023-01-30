@@ -181,11 +181,8 @@ contract OrderBook is
 
     /// @inheritdoc IOrderBookV1
     function addOrder(OrderConfig calldata config_) external nonReentrant {
-        IExpressionDeployerV1 expressionDeployer_ = IExpressionDeployerV1(
-            config_.expressionDeployer
-        );
-        address expression_ = expressionDeployer_.deployExpression(
-            config_.interpreterStateConfig,
+        address expression_ = config_.evaluableConfig.deployer.deployExpression(
+            config_.evaluableConfig.expressionConfig,
             LibUint256Array.arrayFrom(
                 CALCULATE_ORDER_MIN_OUTPUTS,
                 HANDLE_IO_MIN_OUTPUTS
@@ -193,29 +190,50 @@ contract OrderBook is
         );
         Order memory order_ = Order(
             msg.sender,
-            config_.interpreter,
-            LibEncodedDispatch.encode(
-                expression_,
-                CALCULATE_ORDER_ENTRYPOINT,
-                CALCULATE_ORDER_MAX_OUTPUTS
-            ),
             config_
-                .interpreterStateConfig
+                .evaluableConfig
+                .expressionConfig
                 .sources[SourceIndex.unwrap(HANDLE_IO_ENTRYPOINT)]
-                .length > 0
-                ? LibEncodedDispatch.encode(
-                    expression_,
-                    HANDLE_IO_ENTRYPOINT,
-                    HANDLE_IO_MAX_OUTPUTS
-                )
-                : EncodedDispatch.wrap(0),
+                .length > 0,
+            Evaluable(
+                config_.evaluableConfig.interpreter,
+                config_.evaluableConfig.store,
+                expression_
+            ),
             config_.validInputs,
             config_.validOutputs,
             config_.data
         );
         uint256 orderHash_ = order_.hash();
         orders[orderHash_] = LIVE_ORDER;
-        emit AddOrder(msg.sender, expressionDeployer_, order_, orderHash_);
+        emit AddOrder(
+            msg.sender,
+            config_.evaluableConfig.deployer,
+            order_,
+            orderHash_
+        );
+    }
+
+    function _calculateOrderDispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                CALCULATE_ORDER_ENTRYPOINT,
+                CALCULATE_ORDER_MAX_OUTPUTS
+            );
+    }
+
+    function _handleIODispatch(
+        address expression_
+    ) internal pure returns (EncodedDispatch) {
+        return
+            LibEncodedDispatch.encode(
+                expression_,
+                HANDLE_IO_ENTRYPOINT,
+                HANDLE_IO_MAX_OUTPUTS
+            );
     }
 
     /// @inheritdoc IOrderBookV1
@@ -493,13 +511,13 @@ contract OrderBook is
             StateNamespace namespace_ = StateNamespace.wrap(
                 uint(uint160(order_.owner))
             );
-            (
-                uint256[] memory stack_,
-                IInterpreterStoreV1 store_,
-                uint256[] memory kvs_
-            ) = IInterpreterV1(order_.interpreter).eval(
+            (uint256[] memory stack_, uint256[] memory kvs_) = order_
+                .evaluable
+                .interpreter
+                .eval(
+                    order_.evaluable.store,
                     namespace_,
-                    order_.dispatch,
+                    _calculateOrderDispatch(order_.evaluable.expression),
                     context_
                 );
 
@@ -542,7 +560,6 @@ contract OrderBook is
                     orderOutputMax_,
                     orderIORatio_,
                     context_,
-                    store_,
                     namespace_,
                     kvs_
                 );
@@ -613,7 +630,7 @@ contract OrderBook is
         // are updated, but before we call handle IO. We want handle IO to see
         // a consistent view on sets from calculate IO.
         if (orderIOCalculation_.kvs.length > 0) {
-            orderIOCalculation_.store.set(
+            order_.evaluable.store.set(
                 orderIOCalculation_.namespace,
                 orderIOCalculation_.kvs
             );
@@ -621,22 +638,25 @@ contract OrderBook is
 
         // Only dispatch handle IO entrypoint if it is defined, otherwise it is
         // a waste of gas to hit the interpreter a second time.
-        if (EncodedDispatch.unwrap(order_.handleIODispatch) > 0) {
+        if (order_.handleIO) {
             // The handle IO eval is run under the same namespace as the
             // calculate order entrypoint.
-            (
-                ,
-                IInterpreterStoreV1 handleIOStore_,
-                uint256[] memory handleIOKVs_
-            ) = IInterpreterV1(order_.interpreter).eval(
+            (, uint256[] memory handleIOKVs_) = order_
+                .evaluable
+                .interpreter
+                .eval(
+                    order_.evaluable.store,
                     orderIOCalculation_.namespace,
-                    order_.handleIODispatch,
+                    _handleIODispatch(order_.evaluable.expression),
                     orderIOCalculation_.context
                 );
             // Apply state changes to the interpreter store from the handle IO
             // entrypoint.
             if (handleIOKVs_.length > 0) {
-                handleIOStore_.set(orderIOCalculation_.namespace, handleIOKVs_);
+                order_.evaluable.store.set(
+                    orderIOCalculation_.namespace,
+                    handleIOKVs_
+                );
             }
         }
     }

@@ -5,7 +5,7 @@ import {
   ReserveTokenERC721,
   VerifyFactory,
 } from "../../../../typechain";
-import { StateConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
+import { ExpressionConfigStruct } from "../../../../typechain/contracts/verify/auto/AutoApprove";
 import { ApproveEvent } from "../../../../typechain/contracts/verify/Verify";
 import { basicDeploy } from "../../../../utils/deploy/basicDeploy";
 import {
@@ -57,7 +57,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     const cAccount = op(Opcode.CONTEXT, 0x0000);
     const cNftId = op(Opcode.CONTEXT, 0x0001);
 
-    const stateConfig: StateConfigStruct = {
+    const expressionConfig: ExpressionConfigStruct = {
       // prettier-ignore
       sources: [
         concat([
@@ -73,7 +73,7 @@ describe("AutoApprove ERC721 ownership", async function () {
     const autoApprove = await autoApproveDeploy(
       deployer,
       autoApproveFactory,
-      stateConfig
+      expressionConfig
     );
 
     const verify = await verifyDeploy(deployer, verifyFactory, {

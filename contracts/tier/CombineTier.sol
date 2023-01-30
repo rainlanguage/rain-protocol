@@ -9,6 +9,7 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/run/LibContext.sol";
+import "../interpreter/run/LibEvaluable.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 
@@ -23,17 +24,15 @@ uint256 constant REPORT_FOR_TIER_MAX_OUTPUTS = 1;
 
 /// All config used during initialization of a CombineTier.
 /// @param combinedTiersLength The first N values in the constants array of the
-/// stateConfig MUST be all the combined tiers that are known statically. Of
+/// expressionConfig MUST be all the combined tiers that are known statically. Of
 /// course some tier addresses MAY only be known at runtime and so these cannot
 /// be included. For those that are included there will be additional deploy
 /// time checks to ensure compatibility with each other (i.e. reportUnits).
-/// @param stateConfig Source to run for both report and reportForTier as
+/// @param expressionConfig Source to run for both report and reportForTier as
 /// sources 0 and 1 respectively.
 struct CombineTierConfig {
-    address expressionDeployer;
-    address interpreter;
     uint256 combinedTiersLength;
-    StateConfig stateConfig;
+    EvaluableConfig evaluableConfig;
 }
 
 /// @title CombineTier
@@ -49,8 +48,7 @@ contract CombineTier is TierV2 {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    IInterpreterV1 internal interpreter;
-    address internal expression;
+    Evaluable evaluable;
 
     constructor() {
         _disableInitializers();
@@ -60,21 +58,30 @@ contract CombineTier is TierV2 {
         CombineTierConfig calldata config_
     ) external initializer {
         __TierV2_init();
-        interpreter = IInterpreterV1(config_.interpreter);
-        expression = IExpressionDeployerV1(config_.expressionDeployer)
-            .deployExpression(
-                config_.stateConfig,
+
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
                 LibUint256Array.arrayFrom(
                     REPORT_MIN_OUTPUTS,
                     REPORT_FOR_TIER_MIN_OUTPUTS
                 )
-            );
+            )
+        );
 
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
             require(
                 ERC165Checker.supportsInterface(
-                    address(uint160(config_.stateConfig.constants[i_])),
+                    address(
+                        uint160(
+                            config_.evaluableConfig.expressionConfig.constants[
+                                i_
+                            ]
+                        )
+                    ),
                     type(ITierV2).interfaceId
                 ),
                 "ERC165_TIERV2"
@@ -90,10 +97,12 @@ contract CombineTier is TierV2 {
         uint256[] memory callerContext_
     ) external view virtual override returns (uint256) {
         unchecked {
-            (uint256[] memory stack_, , ) = interpreter.eval(
+            Evaluable memory evaluable_ = evaluable;
+            (uint256[] memory stack_, ) = evaluable_.interpreter.eval(
+                evaluable_.store,
                 DEFAULT_STATE_NAMESPACE,
                 LibEncodedDispatch.encode(
-                    expression,
+                    evaluable_.expression,
                     REPORT_ENTRYPOINT,
                     REPORT_MAX_OUTPUTS
                 ),
@@ -114,10 +123,12 @@ contract CombineTier is TierV2 {
         uint256[] memory callerContext_
     ) external view returns (uint256) {
         unchecked {
-            (uint256[] memory stack_, , ) = interpreter.eval(
+            Evaluable memory evaluable_ = evaluable;
+            (uint256[] memory stack_, ) = evaluable_.interpreter.eval(
+                evaluable_.store,
                 DEFAULT_STATE_NAMESPACE,
                 LibEncodedDispatch.encode(
-                    expression,
+                    evaluable_.expression,
                     REPORT_FOR_TIER_ENTRYPOINT,
                     REPORT_FOR_TIER_MAX_OUTPUTS
                 ),
