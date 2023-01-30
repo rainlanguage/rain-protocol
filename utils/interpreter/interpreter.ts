@@ -95,7 +95,7 @@ export function loopNOperand(
 }
 
 /**
- * Builds the operand for RainInterpreter's `DO_WHILE` opcode by packing 3 numbers into a single byte.
+ * Builds the operand for RainInterpreter's `DO_WHILE` opcode by packing 3 numbers into two bytes.
  *
  * @param inputSize - number of inputs being passed to the source
  * @param reserved - reserved bytes
