@@ -13,10 +13,7 @@ library OpFixedPointScale18 {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function f(
-        Operand operand_,
-        uint256 a_
-    ) internal pure returns (uint256) {
+    function f(Operand operand_, uint256 a_) internal pure returns (uint256) {
         return
             a_.scale18(
                 Operand.unwrap(operand_) >> 1,
