@@ -11,4 +11,5 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - run: nix-shell --run ci-deployment
-        env: DEPLOYMENT_KEY_MUMBAI: ${{ secrets.DEPLOYMENT_KEY_MUMBAI }}
+        env:
+          DEPLOYMENT_KEY_MUMBAI: ${{ secrets.DEPLOYMENT_KEY_MUMBAI }}
