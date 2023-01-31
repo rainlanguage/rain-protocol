@@ -188,6 +188,11 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         require(config_.timeoutDuration <= maxTimeoutDuration, "MAX_TIMEOUT");
         timeoutAt = block.timestamp + config_.timeoutDuration;
 
+        ref = config_.ref;
+        token = IERC20(config_.token);
+
+        emit Initialize(msg.sender, config_);
+
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
@@ -203,11 +208,6 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 )
             )
         );
-
-        ref = config_.ref;
-        token = IERC20(config_.token);
-
-        emit Initialize(msg.sender, config_);
     }
 
     function _joinEncodedDispatch(
@@ -348,6 +348,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
         uint256 deposit_ = deposits[msg.sender];
+        deposits[msg.sender] = 0;
 
         uint256[][] memory context_ = LibContext.build(
             new uint256[][](0),
@@ -366,14 +367,13 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
         uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
+        totalDeposited -= amount_;
+        emit Leave(msg.sender, address(token), deposit_, amount_);
+
         // the calculated amount is refunded and their entire deposit forfeited
         // from the internal ledger.
         IERC20(token).safeTransfer(msg.sender, amount_);
-        deposits[msg.sender] = 0;
-        totalDeposited -= amount_;
         evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
-
-        emit Leave(msg.sender, address(token), deposit_, amount_);
     }
 
     function claim(
