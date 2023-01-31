@@ -54,108 +54,108 @@ describe("OrderBook add order", async function () {
     const bobInputVault = ethers.BigNumber.from(randomUint256());
     const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     // ASK ORDER
 
-    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askRatio];
-    const vAskOutputMax = op(
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+    const constants_A = [max_uint256, ratio_A];
+    const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const aRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskRatio,
+    const source_A = concat([
+      aOpMax,
+      aRatio,
     ]);
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const EvaluableConfig_A = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const orderConfig_A: OrderConfigStruct = {
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      evaluableConfig: askEvaluableConfig,
-      data: aliceAskOrder,
+      evaluableConfig: EvaluableConfig_A,
+      data: aliceOrder,
     };
 
-    const txAskAddOrder = await orderBook
+    const txOrder_A = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfig);
+      .addOrder(orderConfig_A);
 
     const {
-      sender: askSender,
-      expressionDeployer: askOrderExpressionDeployer,
-      order: askOrder,
+      sender: sender_A,
+      expressionDeployer: ExpressionDeployer_A,
+      order: order_A,
     } = (await getEventArgs(
-      txAskAddOrder,
+      txOrder_A,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     assert(
-      askOrderExpressionDeployer === askEvaluableConfig.deployer,
+      ExpressionDeployer_A === EvaluableConfig_A.deployer,
       "wrong expression deployer"
     );
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askOrder, askOrderConfig);
+    assert(sender_A === alice.address, "wrong sender");
+    compareStructs(order_A, orderConfig_A);
 
     // BID ORDER
 
-    const bidRatio = fixedPointDiv(ONE, askRatio);
-    const bidConstants = [max_uint256, bidRatio];
-    const vBidOutputMax = op(
+    const ratio_B = fixedPointDiv(ONE, ratio_A);
+    const constants_B = [max_uint256, ratio_B];
+    const bOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidRatio = op(
+    const bRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidRatio,
+    const source_B = concat([
+      bOpMax,
+      bRatio,
     ]);
 
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
+    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-    const bidEvaluableConfig = await generateEvaluableConfig({
-      sources: [bidSource, []],
-      constants: bidConstants,
+    const EvaluableConfig_B = await generateEvaluableConfig({
+      sources: [source_B, []],
+      constants: constants_B,
     });
 
-    const bidOrderConfig: OrderConfigStruct = {
+    const orderConfig_B: OrderConfigStruct = {
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      evaluableConfig: bidEvaluableConfig,
-      data: bobBidOrder,
+      evaluableConfig: EvaluableConfig_B,
+      data: bobOrder,
     };
 
-    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
+    const txOrderB = await orderBook.connect(bob).addOrder(orderConfig_B);
 
-    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
-      txBidAddOrder,
+    const { sender: sender_B, order: order_B } = (await getEventArgs(
+      txOrderB,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidOrder, bidOrderConfig);
+    assert(sender_B === bob.address, "wrong sender");
+    compareStructs(order_B, orderConfig_B);
   });
 });
