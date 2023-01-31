@@ -72,7 +72,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 61;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 62;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
