@@ -35,12 +35,11 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
   let rainInterpreterExtern: RainterpreterExtern;
-  let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
+  
 
   beforeEach(async () => {
     rainInterpreter = await rainterpreterDeploy();
 
-    // fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
     rainInterpreterExtern = await rainterpreterExtern();
     const consumerFactory = await ethers.getContractFactory(
       "IInterpreterV1Consumer"
@@ -49,7 +48,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     await logic.deployed();
   });
 
-  it("should revert if price is stale", async () => {
+  it("should revert if price is stale", async () => { 
+
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
     const chainlinkPriceData = {
       roundId: 1,
       answer: 123 + eighteenZeros,
@@ -106,7 +107,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     );
   });
 
-  it("should revert if price is 0", async () => {
+  it("should revert if price is 0", async () => { 
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+
     const chainlinkPriceData = {
       roundId: 1,
       answer: 0 + eighteenZeros,
@@ -152,6 +155,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it("should correctly scale answer from 6 decimal to 18 decimal FP", async () => {
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+
     const chainlinkPriceData = {
       roundId: 1,
       answer: 123 + sixZeros,
@@ -194,6 +199,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it("should get price from chainlink oracle", async () => {
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+
     const chainlinkPriceData = {
       roundId: 1,
       answer: 123 + eighteenZeros,
@@ -236,77 +243,5 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     assert(price_.eq(123 + eighteenZeros));
   });
 
-  it("extern test", async () => {
-    const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
-
-    const timestamp = (await getBlockTimestamp()) - 1;
-    const chainlinkPriceData = {
-      roundId: 4,
-      answer: "123" + eighteenZeros,
-      startedAt: timestamp,
-      updatedAt: timestamp,
-      answeredInRound: 4,
-    };
-
-    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
-    fakeChainlinkOracle2.decimals.returns(18);
-
-    const feed = fakeChainlinkOracle2.address;
-    const staleAfter = 10000;
-
-    const inputs = [feed, staleAfter];
-
-    const priceData = await rainInterpreterExtern.extern(0, inputs);
-    console.log(priceData);
-    // assert(priceData)
-  });
-
-  it.only("extern test 2", async () => {
-    const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
-
-    const timestamp = await getBlockTimestamp();
-
-    const chainlinkPriceData = {
-      roundId: 4,
-      answer: 123 + eighteenZeros,
-      startedAt: timestamp,
-      updatedAt: timestamp,
-      answeredInRound: 4,
-    };
-
-    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
-    fakeChainlinkOracle2.decimals.returns(18);
-
-    const feed = fakeChainlinkOracle2.address;
-    const staleAfter = 10000;
-
-    const constants = [rainInterpreterExtern.address, feed, staleAfter];
-
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-
-    // prettier-ignore
-    const source0 = concat([
-        v0,
-        v1,
-        op(Opcode.EXTERN, externOperand(0, 2 ,1)),
-    ]);
-
-    const expression0 = await expressionConsumerDeploy(
-      {
-        sources: [source0],
-        constants,
-      },
-      rainInterpreter,
-      1
-    );
-    await logic["eval(address,uint256,uint256[][])"](
-      rainInterpreter.address,
-      expression0.dispatch,
-      []
-    );
-    const result0 = await logic.stackTop();
-
-    console.log("result0 : ", result0);
-  });
+  
 });
