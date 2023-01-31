@@ -59,18 +59,18 @@ const main = async function () {
     },
   };
 
-  const message = `a test message: ${commit} - ${network.name}`;
+  // const message = `a test message: ${commit} - ${network.name}`;
 
-  // const message = JSON.stringify(dataMessage);
+  const message = JSON.stringify(dataMessage);
 
   const notice = {
     subject: signer.address,
     data: ethers.utils.hexlify([...Buffer.from(message)]),
   };
 
-  console.log(notice);
+  // console.log(notice);
 
-  // await noticeboard.createNotices([notice]);
+  await noticeboard.createNotices([notice]);
 
   // // noticeBoard.createNotices()
   // const interpreter = await rainterpreterDeploy();
