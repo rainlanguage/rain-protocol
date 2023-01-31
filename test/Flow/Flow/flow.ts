@@ -1736,7 +1736,7 @@ describe("Flow flow tests", async function () {
     );
   });
 
-  it.only("should error if the flow being evaluated is unregistered", async () => {
+  it("should error if the flow being evaluated is unregistered", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
     const you = signers[1];
