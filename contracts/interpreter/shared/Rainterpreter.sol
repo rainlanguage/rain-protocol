@@ -17,7 +17,7 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0xaa747007d5351b774ad5b5fcea64d2d3b0f43b4dcf5d366bf1a61455a3ecef7c
+    0xbc52db76e944bf5245c516990668f268c9d2f24dc3aa1b06b4f9d128914df383
 );
 
 /// @dev Hash of the known op meta.
