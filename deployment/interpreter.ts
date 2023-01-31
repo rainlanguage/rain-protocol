@@ -1,8 +1,8 @@
 import { ethers, network } from "hardhat";
-// import { rainterpreterDeploy } from "../utils/deploy/interpreter/shared/rainterpreter/deploy";
-// import { rainterpreterExpressionDeployerDeploy } from "../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
+import { rainterpreterDeploy } from "../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 // import { noticeboardDeploy } from "../utils/deploy/noticeboard/deploy";
-// import { hexlify, arrayify } from "ethers/lib/utils";
+import { hexlify } from "ethers/lib/utils";
 import {
   execSync,
   type ExecSyncOptionsWithStringEncoding,
@@ -49,55 +49,32 @@ const main = async function () {
     noticeboardAddress
   )) as NoticeBoard;
 
+  const interpreter = await rainterpreterDeploy();
+
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter
+  );
+
   const dataMessage: DataNotice = {
-    name: `core`,
+    name: "core",
     commit: commit,
     network: network.name,
     addresses: {
-      interpreter: "0xabc",
-      expressionDeployer: "0xdef",
+      interpreter: interpreter.address,
+      expressionDeployer: expressionDeployer.address,
     },
   };
-
-  // const message = `a test message: ${commit} - ${network.name}`;
 
   const message = JSON.stringify(dataMessage);
 
   const notice = {
     subject: signer.address,
-    data: ethers.utils.hexlify([...Buffer.from(message)]),
+    data: hexlify([...Buffer.from(message)]),
   };
-
-  // console.log(notice);
 
   await noticeboard.createNotices([notice]);
 
-  // // noticeBoard.createNotices()
-  // const interpreter = await rainterpreterDeploy();
-  // data.
-  // const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-  //   interpreter
-  // );
-
-  /////////////////////
-
-  // const a = Buffer.from(message);
-  // const b = [...Buffer.from(message)];
-  // // const c = hexlify([...Buffer.from(message)]);
-  // const dataHex = hexlify([...Buffer.from(message)]);
-
-  // console.log("Original: ");
-  // console.log(message);
-
-  // const arraified = arrayify(dataHex);
-  // const buffered = Buffer.from(arraified);
-
-  // console.log("From: ");
-
-  // const aver = buffered.toString();
-
-  // console.log(aver);
-  // console.log(JSON.parse(aver));
+  console.log("Addresses deployed:", JSON.stringify(dataMessage, null, 4));
 };
 
 main()
