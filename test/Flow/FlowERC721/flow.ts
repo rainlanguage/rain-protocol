@@ -2039,4 +2039,207 @@ describe("FlowERC721 flow tests", async function () {
       "token should only be burned by the owner"
     );
   });
+
+  it("should not be able to access values set in a flow across different flows", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [
+        {
+          from: you.address,
+          to: "", // Contract Address
+          amount: ethers.BigNumber.from(1 + sixZeros),
+        },
+        {
+          from: "", // Contract Address
+          to: you.address,
+          amount: ethers.BigNumber.from(2 + sixZeros),
+        },
+      ],
+      erc20: [],
+      erc721: [],
+      erc1155: [],
+    };
+
+    const flowERC721IO: FlowERC721IOStruct = {
+      mints: [],
+      burns: [],
+      flow: flowTransfer,
+    };
+
+    // Sample key
+    const key = 1337;
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      RAIN_FLOW_ERC721_SENTINEL,
+      1,
+      flowTransfer.native[0].amount,
+      flowTransfer.native[1].amount,
+      key,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const SENTINEL_721 = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+    const CAN_TRANSFER = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const KEY = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+
+    const sourceFlowIOA = concat([
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE END
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+      SENTINEL_721(),
+      SENTINEL_721(),
+
+      // Setting a value
+      KEY(), // k_
+      op(Opcode.BLOCK_TIMESTAMP), // v_
+      op(Opcode.SET),
+    ]);
+
+    const sourceFlowIOB = concat([
+      // Getting the value set in flowA
+      KEY(), // k_
+      op(Opcode.GET), // Getting a value with the same key set in flowA
+      op(Opcode.ISZERO),
+      op(Opcode.ENSURE, 1), // Ensures that the value is not set
+
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 SKIP
+      SENTINEL(), // NATIVE END
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_NATIVE_AMOUNT(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_NATIVE_AMOUNT(),
+      SENTINEL_721(),
+      SENTINEL_721(),
+    ]);
+
+    const sources = [CAN_TRANSFER()];
+
+    const expressionConfigStruct: ExpressionConfigStruct = {
+      sources,
+      constants,
+    };
+
+    const { flow } = await flowERC721Deploy(deployer, flowERC721Factory, {
+      name: "FlowERC721",
+      symbol: "F721",
+      expressionConfig: expressionConfigStruct,
+      flows: [
+        { sources: [sourceFlowIOA], constants },
+        { sources: [sourceFlowIOB], constants },
+      ],
+    });
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    const me = flow;
+
+    // Ensure Flow contract holds enough Ether
+    await signers[0].sendTransaction({
+      to: me.address,
+      value: ethers.BigNumber.from(await flowTransfer.native[1].amount),
+    });
+
+    const youBalance0 = await ethers.provider.getBalance(you.address);
+    let meBalance0 = await ethers.provider.getBalance(me.address);
+
+    assert(meBalance0.eq(await flowTransfer.native[1].amount));
+
+    const flowStruct = await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], [], {
+        value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
+      });
+
+    compareStructs(
+      flowStruct,
+      fillEmptyAddressERC721(flowERC721IO, me.address)
+    );
+
+    const txFlow = await flow
+      .connect(you)
+      .flow(flowInitialized[0].evaluable, [1234], [], {
+        value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
+      });
+
+    const { gasUsed } = await txFlow.wait();
+    const { gasPrice } = txFlow;
+
+    const youBalance1 = await ethers.provider.getBalance(you.address);
+    const meBalance1 = await ethers.provider.getBalance(me.address);
+
+    const expectedYouBalance1 = youBalance0
+      .sub(await flowTransfer.native[0].amount)
+      .add(await flowTransfer.native[1].amount)
+      .sub(gasUsed.mul(gasPrice));
+
+    assert(
+      youBalance1.eq(expectedYouBalance1),
+      `wrong balance for you (signer1)
+      expected  ${expectedYouBalance1}
+      got       ${youBalance1}`
+    );
+
+    const expectedMeBalance1 = meBalance0
+      .add(await flowTransfer.native[0].amount)
+      .sub(await flowTransfer.native[1].amount);
+
+    assert(
+      meBalance1.eq(expectedMeBalance1),
+      `wrong balance for me (flow contract)
+      expected  ${expectedMeBalance1}
+      got       ${meBalance1}`
+    );
+
+    // FlowB
+    // Ensure Flow contract holds enough Ether
+    await signers[0].sendTransaction({
+      to: me.address,
+      value: ethers.BigNumber.from(await flowTransfer.native[1].amount),
+    });
+
+    meBalance0 = await ethers.provider.getBalance(me.address);
+
+    await flow.connect(you).flow(flowInitialized[1].evaluable, [1234], [], {
+      value: ethers.BigNumber.from(await flowTransfer.native[0].amount),
+    });
+
+    const meBalance2 = await ethers.provider.getBalance(me.address);
+
+    const expectedMeBalance2 = meBalance0
+      .add(await flowTransfer.native[0].amount)
+      .sub(await flowTransfer.native[1].amount);
+
+    assert(
+      meBalance2.eq(expectedMeBalance2),
+      `wrong balance for me (flow contract)
+      expected  ${expectedMeBalance2}
+      got       ${meBalance2}`
+    );
+  });
 });
