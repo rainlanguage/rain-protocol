@@ -1,24 +1,20 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.17;
 
-import {IERC20Upgradeable as IERC20} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "../../run/LibStackPointer.sol";
-import "../../run/LibInterpreterState.sol";
+import "../../../ierc5313/IERC5313.sol";
 import "../../deploy/LibIntegrityCheck.sol";
+import "../../run/LibInterpreterState.sol";
 
-/// @title OpERC20BalanceOf
-/// @notice Opcode for ERC20 `balanceOf`.
-library OpERC20BalanceOf {
+/// @title OpERC5313Owner
+/// @notice Opcode for ERC5313 `owner`.
+library OpERC5313Owner {
     using LibStackPointer for StackPointer;
     using LibIntegrityCheck for IntegrityCheckState;
 
-    function f(
-        uint256 token_,
-        uint256 account_
-    ) internal view returns (uint256) {
+    function f(uint256 contract_) internal view returns (uint256) {
         return
-            IERC20(address(uint160(token_))).balanceOf(
-                address(uint160(account_))
+            uint256(
+                uint160(address(EIP5313(address(uint160(contract_))).owner()))
             );
     }
 
