@@ -1,4 +1,4 @@
-import { Rainterpreter, RainterpreterStore } from "../../../../../typechain";
+import { Rainterpreter, RainterpreterExtern, RainterpreterStore } from "../../../../../typechain";
 import { getRainterpreterOpmetaBytes } from "../../../../interpreter/ops/allStandardOpmeta";
 import { basicDeploy } from "../../../basicDeploy";
 
@@ -17,4 +17,8 @@ export const rainterpreterDeploy = async () => {
 
 export const rainterpreterStoreDeploy = async () => {
   return (await basicDeploy("RainterpreterStore", {})) as RainterpreterStore;
+};
+
+export const rainterpreterExtern = async () => {
+  return (await basicDeploy("RainterpreterExtern", {})) as RainterpreterExtern;
 };

@@ -5,6 +5,7 @@ export enum AllStandardOps {
   CONTEXT_ROW,
   DEBUG,
   DO_WHILE,
+  EXTERN,
   FOLD_CONTEXT,
   GET,
   LOOP_N,

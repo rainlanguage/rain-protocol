@@ -87,6 +87,15 @@ export function callOperand(
   return operand;
 }
 
+export function externOperand(
+  offset: number,
+  inputs: number,
+  outputs: number
+): number {
+  const operand = (offset << 10) + (outputs << 5) + inputs;
+  return operand;
+}
+
 /**
  * Builds the operand for RainInterpreter's `LOOP_N` opcode by packing 4 numbers into a single byte.
  *

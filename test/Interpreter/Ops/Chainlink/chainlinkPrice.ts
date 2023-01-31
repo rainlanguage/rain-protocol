@@ -1,8 +1,14 @@
-import type { AggregatorV3Interface } from "../../../../typechain";
+import type {
+  AggregatorV3Interface,
+  RainterpreterExtern,
+  Rainterpreter,
+  IInterpreterV1Consumer,
+} from "../../../../typechain";
 import {
   AllStandardOps,
   assertError,
   eighteenZeros,
+  externOperand,
   getBlockTimestamp,
   memoryOperand,
   MemoryType,
@@ -13,18 +19,38 @@ import {
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
-import { iinterpreterV1ConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import {
+  expressionConsumerDeploy,
+  iinterpreterV1ConsumerDeploy,
+} from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import {
+  rainterpreterDeploy,
+  rainterpreterExtern,
+} from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
+import { ethers } from "hardhat";
 
 const Opcode = AllStandardOps;
 
 describe("CHAINLINK_PRICE Opcode tests", async function () {
-  let fakeChainlinkOracle: FakeContract<AggregatorV3Interface>;
+  let rainInterpreter: Rainterpreter;
+  let logic: IInterpreterV1Consumer;
+  let rainInterpreterExtern: RainterpreterExtern;
+  
 
   beforeEach(async () => {
-    fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+    rainInterpreter = await rainterpreterDeploy();
+
+    rainInterpreterExtern = await rainterpreterExtern();
+    const consumerFactory = await ethers.getContractFactory(
+      "IInterpreterV1Consumer"
+    );
+    logic = (await consumerFactory.deploy()) as IInterpreterV1Consumer;
+    await logic.deployed();
   });
 
-  it("should revert if price is stale", async () => {
+  it("should revert if price is stale", async () => { 
+
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
     const chainlinkPriceData = {
       roundId: 1,
       answer: 123 + eighteenZeros,
@@ -81,7 +107,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     );
   });
 
-  it("should revert if price is 0", async () => {
+  it("should revert if price is 0", async () => { 
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+
     const chainlinkPriceData = {
       roundId: 1,
       answer: 0 + eighteenZeros,
@@ -127,6 +155,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it("should correctly scale answer from 6 decimal to 18 decimal FP", async () => {
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+
     const chainlinkPriceData = {
       roundId: 1,
       answer: 123 + sixZeros,
@@ -169,6 +199,8 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it("should get price from chainlink oracle", async () => {
+    const fakeChainlinkOracle = await smock.fake("AggregatorV3Interface");
+
     const chainlinkPriceData = {
       roundId: 1,
       answer: 123 + eighteenZeros,
@@ -210,4 +242,6 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     assert(price_.eq(123 + eighteenZeros));
   });
+
+  
 });
