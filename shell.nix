@@ -87,6 +87,11 @@ let
     hardhat test
   '';
 
+  ci-deployment = pkgs.writeShellScriptBin "ci-deployment" ''
+    # Using mumbai as default
+    npx hardhat run deployment/interpreter.ts --network mumbai
+  '';
+
   run-echidna = pkgs.writeShellScriptBin "run-echidna" ''
     find echidna -name '*.sol' | xargs -i sh -c '
       file="{}";
@@ -182,6 +187,7 @@ pkgs.stdenv.mkDerivation {
     run-echidna
     ci-test
     ci-lint
+    ci-deployment
     cut-dist
     prepack
     prepublish
