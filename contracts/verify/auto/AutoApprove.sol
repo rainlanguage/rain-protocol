@@ -39,6 +39,9 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
     function initialize(EvaluableConfig calldata config_) external initializer {
         __VerifyCallback_init();
 
+        _transferOwnership(msg.sender);
+        emit Initialize(msg.sender, config_);
+
         address expression_ = config_.deployer.deployExpression(
             config_.expressionConfig,
             LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
@@ -48,10 +51,6 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
             IInterpreterStoreV1(config_.store),
             expression_
         );
-
-        _transferOwnership(msg.sender);
-
-        emit Initialize(msg.sender, config_);
     }
 
     function afterAdd(

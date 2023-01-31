@@ -277,19 +277,6 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         require(config_.minimumRaise > 0, "MIN_RAISE_0");
         minimumRaise = config_.minimumRaise;
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
-                LibUint256Array.arrayFrom(
-                    CAN_LIVE_MIN_OUTPUTS,
-                    CALCULATE_BUY_MIN_OUTPUTS,
-                    HANDLE_BUY_MIN_OUTPUTS
-                )
-            )
-        );
-
         if (
             config_
                 .evaluableConfig
@@ -336,6 +323,19 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
         token = token_;
 
         emit Initialize(msg.sender, config_, address(token_));
+
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
+                LibUint256Array.arrayFrom(
+                    CAN_LIVE_MIN_OUTPUTS,
+                    CALCULATE_BUY_MIN_OUTPUTS,
+                    HANDLE_BUY_MIN_OUTPUTS
+                )
+            )
+        );
     }
 
     function _dispatchCanLive(
@@ -496,10 +496,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
             uint256[] memory kvs_
         ) = _previewCanLive();
         require(canLive_, "NOT_LIVE");
+        _start();
         if (kvs_.length > 0) {
             store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
-        _start();
     }
 
     /// End the sale (move from active to success or fail).
