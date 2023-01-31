@@ -62,29 +62,29 @@ describe("OrderBook decimals", async function () {
 
     // ASK ORDER
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
-    const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
-    const askConstants = [askOutputMax, askRatio];
-    const vAskOutputMax = op(
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
+    const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
+    const constants_A = [outputMax_A, ratio_A];
+    const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const aRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskRatio,
+    const source_A = concat([
+      aOpMax,
+      aRatio,
     ]);
-    const askEvaluableConfig0 = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const EvaluableConfig_A0 = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
     // IN BOUNDS
-    const askOrderConfig0: OrderConfigStruct = {
+    const OrderConfig_A0: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA06.address,
@@ -99,17 +99,17 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      evaluableConfig: askEvaluableConfig0,
+      evaluableConfig: EvaluableConfig_A0,
       data: [],
     };
-    await orderBook.connect(alice).addOrder(askOrderConfig0);
-    const askEvaluableConfig1 = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    await orderBook.connect(alice).addOrder(OrderConfig_A0);
+    const EvaluableConfig_A1 = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
     // OUT OF BOUNDS
-    const askOrderConfig1: OrderConfigStruct = {
+    const OrderConfig_A1: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA06.address,
@@ -124,11 +124,11 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      evaluableConfig: askEvaluableConfig1,
+      evaluableConfig: EvaluableConfig_A1,
       data: [],
     };
     await assertError(
-      async () => await orderBook.connect(alice).addOrder(askOrderConfig1),
+      async () => await orderBook.connect(alice).addOrder(OrderConfig_A1),
       "value out-of-bounds",
       "did not revert with OOB error"
     );
@@ -166,23 +166,23 @@ describe("OrderBook decimals", async function () {
 
     // note 18 decimals for ratio
     // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
     // note 18 decimals for outputMax
     // 3e18 means that only 3 units of tokenB can be outputted per order
-    const askOutputMax = ethers.BigNumber.from(3 + eighteenZeros);
+    const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
 
-    const askConstants = [
-      askOutputMax,
-      askRatio,
+    const constants_A = [
+      outputMax_A,
+      ratio_A,
       tokenADecimals,
       tokenBDecimals,
     ];
-    const vAskOutputMax = op(
+    const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const aRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -195,7 +195,7 @@ describe("OrderBook decimals", async function () {
       memoryOperand(MemoryType.Constant, 3)
     );
     // prettier-ignore
-    const askSource = concat([
+    const source_A = concat([
       op(Opcode.CONTEXT, 0x0201), // input decimals
       vTokenADecimals,
       op(Opcode.EQUAL_TO),
@@ -206,16 +206,16 @@ describe("OrderBook decimals", async function () {
       op(Opcode.EQUAL_TO),
       op(Opcode.ENSURE, 1),
 
-      vAskOutputMax,
-      vAskRatio,
+      aOpMax,
+      aRatio,
     ]);
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const EvaluableConfig_A = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA06.address,
@@ -230,43 +230,43 @@ describe("OrderBook decimals", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      evaluableConfig: askEvaluableConfig,
+      evaluableConfig: EvaluableConfig_A,
       data: [],
     };
 
-    const txAskAddOrder = await orderBook
+    const txOrder_A = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfig);
+      .addOrder(OrderConfig_A);
 
-    const { order: askOrder } = (await getEventArgs(
-      txAskAddOrder,
+    const { order: Order_A } = (await getEventArgs(
+      txOrder_A,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
     // BID ORDER
 
-    const bidRatio = fixedPointDiv(ONE, askRatio); // no need to account for decimals difference
+    const ratio_B = fixedPointDiv(ONE, ratio_A); // no need to account for decimals difference
 
-    const bidConstants = [max_uint256, bidRatio];
-    const vBidOutputMax = op(
+    const constants_B = [max_uint256, ratio_B];
+    const bOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidRatio = op(
+    const bRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidRatio,
+    const source_B = concat([
+      bOpMax,
+      bRatio,
     ]);
-    const bidEvaluableConfig = await generateEvaluableConfig({
-      sources: [bidSource, []],
-      constants: bidConstants,
+    const EvaluableConfig_B = await generateEvaluableConfig({
+      sources: [source_B, []],
+      constants: constants_B,
     });
-    const bidOrderConfig: OrderConfigStruct = {
+    const OrderConfig_B: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenB18.address,
@@ -281,14 +281,14 @@ describe("OrderBook decimals", async function () {
           vaultId: bobOutputVault,
         },
       ],
-      evaluableConfig: bidEvaluableConfig,
+      evaluableConfig: EvaluableConfig_B,
       data: [],
     };
 
-    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
+    const txOrder_B = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
-    const { order: bidOrder } = (await getEventArgs(
-      txBidAddOrder,
+    const { order: Order_B } = (await getEventArgs(
+      txOrder_B,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -335,6 +335,6 @@ describe("OrderBook decimals", async function () {
       bBountyVaultId: bountyBotVaultB,
     };
 
-    await orderBook.connect(bountyBot).clear(askOrder, bidOrder, clearConfig);
+    await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
   });
 });
