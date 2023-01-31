@@ -1735,4 +1735,115 @@ describe("Flow flow tests", async function () {
       "Flowed an unsupported ERC1155 Flow"
     );
   });
+
+  it.only("should error if the flow being evaluated is unregistered", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+
+    const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await erc20In.initialize();
+
+    const erc20Out = (await basicDeploy(
+      "ReserveToken18",
+      {}
+    )) as ReserveToken18;
+    await erc20Out.initialize();
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [],
+      erc20: [
+        {
+          from: you.address,
+          to: "", // Contract address
+          token: erc20In.address,
+          amount: ethers.BigNumber.from(1 + eighteenZeros),
+        },
+        {
+          from: "", // Contract address
+          to: you.address,
+          token: erc20Out.address,
+          amount: ethers.BigNumber.from(2 + eighteenZeros),
+        },
+      ],
+      erc721: [],
+      erc1155: [],
+    };
+
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer.erc20[0].token,
+      flowTransfer.erc20[0].amount,
+      flowTransfer.erc20[1].token,
+      flowTransfer.erc20[1].amount,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+    const FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+
+    const sourceFlowIO = concat([
+      SENTINEL(), // ERC115 SKIP
+      SENTINEL(), // ERC721 SKIP
+      SENTINEL(), // ERC20 END
+      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_TOKEN(),
+      ME(),
+      YOU(),
+      FLOWTRANSFER_ME_TO_YOU_ERC20_AMOUNT(),
+      SENTINEL(), // NATIVE SKIP
+    ]);
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [{ sources: [sourceFlowIO], constants }],
+    };
+
+    // Deploying flow 0
+    let { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowInitialized0 = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    // Deploying flow 1
+    ({ flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct));
+
+    await assertError(
+      async () =>
+        await flow
+          .connect(you)
+          .previewFlow(flowInitialized0[0].evaluable, [1234], []),
+      "UnregisteredFlow",
+      "Did not error when an unregistered flow is being evaluated"
+    );
+
+    await assertError(
+      async () =>
+        await flow
+          .connect(you)
+          .callStatic.flow(flowInitialized0[0].evaluable, [1234], []),
+      "UnregisteredFlow",
+      "Did not error when an unregistered flow is being evaluated"
+    );
+
+    await assertError(
+      async () =>
+        await flow.connect(you).flow(flowInitialized0[0].evaluable, [1234], []),
+      "UnregisteredFlow",
+      "Did not error when an unregistered flow is being evaluated"
+    );
+  });
 });
