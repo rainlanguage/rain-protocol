@@ -73,6 +73,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
         emit Initialize(msg.sender, config_);
         __ReentrancyGuard_init();
         __ERC721_init(config_.name, config_.symbol);
+        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
         evaluable = Evaluable(
             config_.evaluableConfig.interpreter,
             config_.evaluableConfig.store,
@@ -81,8 +82,6 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                 LibUint256Array.arrayFrom(CAN_TRANSFER_MIN_OUTPUTS)
             )
         );
-
-        __FlowCommon_init(config_.flowConfig, MIN_FLOW_SENTINELS + 2);
     }
 
     function _dispatch(
