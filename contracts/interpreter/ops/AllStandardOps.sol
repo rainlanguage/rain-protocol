@@ -24,6 +24,7 @@ import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
 import "./erc1155/OpERC1155BalanceOf.sol";
 import "./erc1155/OpERC1155BalanceOfBatch.sol";
+import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
@@ -216,6 +217,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
+                    OpERC5313Owner.integrity,
                     OpEnsure.integrity,
                     OpBlockNumber.integrity,
                     OpTimestamp.integrity,
@@ -304,6 +306,7 @@ library AllStandardOps {
                     OpERC721OwnerOf.run,
                     OpERC1155BalanceOf.run,
                     OpERC1155BalanceOfBatch.run,
+                    OpERC5313Owner.run,
                     OpEnsure.run,
                     OpBlockNumber.run,
                     OpTimestamp.run,
