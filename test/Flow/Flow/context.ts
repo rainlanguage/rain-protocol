@@ -157,10 +157,7 @@ describe("Flow context tests", async function () {
 
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [
         {
           sources: [sourceFlowIO],
@@ -189,17 +186,17 @@ describe("Flow context tests", async function () {
     console.log("FLOW 0");
     const flowStruct0 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowStructFull, flow.address));
 
     const _txFlow0 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -255,10 +252,10 @@ describe("Flow context tests", async function () {
 
     const flowStruct1 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(
       flowStruct1,
@@ -267,7 +264,7 @@ describe("Flow context tests", async function () {
 
     const _txFlow1 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn1 = await erc20In.balanceOf(me.address);
     const meBalanceOut1 = await erc20Out.balanceOf(me.address);
@@ -323,17 +320,17 @@ describe("Flow context tests", async function () {
 
     const flowStruct2 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct2, fillEmptyAddress(flowStructFull, flow.address));
 
     const _txFlow2 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn2 = await erc20In.balanceOf(me.address);
     const meBalanceOut2 = await erc20Out.balanceOf(me.address);
@@ -457,10 +454,7 @@ describe("Flow context tests", async function () {
       op(Opcode.SET),
     ]);
 
-    const sources = [];
-
     const flowConfigStruct: FlowConfig = {
-      stateConfig: { sources, constants },
       flows: [
         {
           sources: [sourceFlowIO],
@@ -488,17 +482,17 @@ describe("Flow context tests", async function () {
 
     const flowStruct0 = await flow
       .connect(you)
-      .previewFlow(flowInitialized[0].dispatch, [1234], []);
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
 
     await flow
       .connect(you)
-      .callStatic.flow(flowInitialized[0].dispatch, [1234], []);
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
 
     compareStructs(flowStruct0, fillEmptyAddress(flowTransfer, flow.address));
 
     const _txFlow0 = await flow
       .connect(you)
-      .flow(flowInitialized[0].dispatch, [1234], []);
+      .flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn0 = await erc20In.balanceOf(me.address);
     const meBalanceOut0 = await erc20Out.balanceOf(me.address);
@@ -539,7 +533,7 @@ describe("Flow context tests", async function () {
 
     await assertError(
       async () =>
-        await flow.connect(you).flow(flowInitialized[0].dispatch, [1234], []),
+        await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []),
       "Transaction reverted without a reason string",
       "did not prevent flow when a flow time already registered"
     );

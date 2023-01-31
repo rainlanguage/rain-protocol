@@ -27,10 +27,7 @@ contract AutoApproveFactory is Factory {
     function _createChild(
         bytes memory data_
     ) internal virtual override returns (address) {
-        AutoApproveConfig memory config_ = abi.decode(
-            data_,
-            (AutoApproveConfig)
-        );
+        EvaluableConfig memory config_ = abi.decode(data_, (EvaluableConfig));
         address clone_ = Clones.clone(implementation);
         AutoApprove(clone_).initialize(config_);
         AutoApprove(clone_).transferOwnership(msg.sender);
@@ -44,7 +41,7 @@ contract AutoApproveFactory is Factory {
     /// @param config_ initialize configuration.
     /// @return New `AutoApprove` child contract.
     function createChildTyped(
-        AutoApproveConfig memory config_
+        EvaluableConfig memory config_
     ) external returns (AutoApprove) {
         return AutoApprove(createChild(abi.encode(config_)));
     }

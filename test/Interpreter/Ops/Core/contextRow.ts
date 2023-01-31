@@ -33,7 +33,11 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
     const col: number[] = [1];
     const context = new Array<number[]>(16).fill(col, 0, 256);
-    await consumerLogic.eval(interpreter.address, dispatch, context);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      context
+    );
     const resultCol_ = await consumerLogic.stack();
     assert(resultCol_, "should read context value at 0xff00");
   });
@@ -59,7 +63,11 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
     const row: number[] = new Array<number>(MAX_ROWS).fill(1, 0, MAX_ROWS);
     const context = [row];
-    await consumerLogic.eval(interpreter.address, dispatch, context);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      context
+    );
     const resultRow_ = await consumerLogic.stack();
     assert(resultRow_, "should read context value at 0x00ff");
   });
@@ -84,7 +92,12 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
     // OOB check for row is being made at runtime
     await assertError(
-      async () => await consumerLogic.eval(interpreter.address, dispatch, []),
+      async () =>
+        await consumerLogic["eval(address,uint256,uint256[][])"](
+          interpreter.address,
+          dispatch,
+          []
+        ),
       "Array accessed at an out-of-bounds or negative index",
       "did not error when accessing OOB ROW"
     );
@@ -132,7 +145,11 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
       [8, 9],
     ];
 
-    await consumerLogic.eval(interpreter.address, dispatch, context);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      context
+    );
 
     const result_ = await consumerLogic.stack();
 
@@ -174,7 +191,11 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
 
     const context = [[10, 20, 30, 40]];
 
-    await consumerLogic.eval(interpreter.address, dispatch, context);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      context
+    );
 
     const result_ = await consumerLogic.stack();
 
@@ -211,7 +232,11 @@ describe("RainInterpreter CONTEXT_ROW", async function () {
       [11, 22],
     ];
 
-    await consumerLogic.eval(interpreter.address, dispatch, data);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      data
+    );
 
     const result = await consumerLogic.stackTop();
     const expected = 11;

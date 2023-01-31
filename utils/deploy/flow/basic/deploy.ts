@@ -2,11 +2,14 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Overrides } from "ethers";
 import { artifacts, ethers } from "hardhat";
 import { Flow, FlowFactory } from "../../../../typechain";
-import { FlowConfigStruct } from "../../../../typechain/contracts/flow/basic/Flow";
+import {
+  EvaluableConfigStruct,
+  FlowConfigStruct,
+} from "../../../../typechain/contracts/flow/basic/Flow";
 import { getEventArgs } from "../../../events";
 import { FlowConfig } from "../../../types/flow";
-import { rainterpreterExpressionDeployerDeploy } from "../../interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { rainterpreterDeploy } from "../../interpreter/shared/rainterpreter/deploy";
+
+import { generateEvaluableConfig } from "../../../interpreter";
 
 export const flowDeploy = async (
   deployer: SignerWithAddress,
@@ -14,18 +17,17 @@ export const flowDeploy = async (
   flowConfig: FlowConfig,
   ...args: Overrides[]
 ) => {
-  const interpreter = await rainterpreterDeploy();
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
-  );
+  const evaluableConfigs: EvaluableConfigStruct[] = [];
+
+  // Building config
+  for (let i = 0; i < flowConfig.flows.length; i++) {
+    const evaluableConfig = await generateEvaluableConfig(flowConfig.flows[i]);
+    evaluableConfigs.push(evaluableConfig);
+  }
 
   const flowConfigStruct: FlowConfigStruct = {
-    stateConfig: flowConfig.stateConfig,
-    flowConfig: {
-      expressionDeployer: expressionDeployer.address,
-      interpreter: interpreter.address,
-      flows: flowConfig.flows,
-    },
+    dummyConfig: evaluableConfigs[0], // this won't be used anywhere https://github.com/ethereum/solidity/issues/13597
+    config: evaluableConfigs,
   };
 
   const txDeploy = await flowFactory.createChildTyped(
@@ -50,5 +52,5 @@ export const flowDeploy = async (
   // @ts-ignore
   flow.deployTransaction = txDeploy;
 
-  return { flow, interpreter, expressionDeployer };
+  return { flow, evaluableConfigs };
 };

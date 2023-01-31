@@ -20,7 +20,7 @@ const main = async () => {
   const root = path.resolve();
   let dir = root;
   const args = argv.slice(2);
-  if (args.includes("--help") || args.includes("-h") || args.includes("-H")){
+  if (args.includes("--help") || args.includes("-h") || args.includes("-H")) {
     console.log(
       `
       usage:
@@ -28,14 +28,12 @@ const main = async () => {
 
       ** Writes to root of the current workiing directory if no destination path provided.
       `
-    )
-  }
-  else {
+    );
+  } else {
     let opmetaHexString = "0x";
     const opmetaBytes = Uint8Array.from(
-      deflateSync(format(
-        JSON.stringify(rainterpreterOpmeta, null, 4), 
-        {parser: "json"})
+      deflateSync(
+        format(JSON.stringify(rainterpreterOpmeta, null, 4), { parser: "json" })
       )
     );
     for (let i = 0; i < opmetaBytes.length; i++) {
@@ -45,10 +43,9 @@ const main = async () => {
 
     let schemaHexString = "0x";
     const schemaBytes = Uint8Array.from(
-      deflateSync(format(
-        JSON.stringify(OpmetaSchema, null, 4),
-        {parser: "json"}
-      ))
+      deflateSync(
+        format(JSON.stringify(OpmetaSchema, null, 4), { parser: "json" })
+      )
     );
     for (let i = 0; i < schemaBytes.length; i++) {
       schemaHexString =

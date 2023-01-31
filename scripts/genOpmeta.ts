@@ -28,7 +28,12 @@ const main = async () => {
   const root = path.resolve();
   const args = argv.slice(2);
 
-  if (!args.length || args.includes("--help") || args.includes("-h") || args.includes("-H")){
+  if (
+    !args.length ||
+    args.includes("--help") ||
+    args.includes("-h") ||
+    args.includes("-H")
+  ) {
     console.log(
       `
       usage:
@@ -36,7 +41,7 @@ const main = async () => {
 
       example:
         gen-opmeta --dest dest/path/name.json --schema path/to/schema.json --opmeta ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
-      
+
 
       options:
 
@@ -45,7 +50,7 @@ const main = async () => {
 
         --dest, -d, -D <destination/path/name.json>
           (optional) Destination of the output file. Writes to root of the current working directory if not provided.
-        
+
         --schema, -s, -S <path/to/schema.json>
           (optional) Path to the opmeta schema, uses the default schema if not provided.
 
@@ -54,30 +59,35 @@ const main = async () => {
           - relative path must start with letters or 1 or 2 dots ".", example: relative/path ./relative/path ../../relative/path
           - absolute path must start with slash "/", example: /absolute/path
       `
-    )
-  }
-  else {
+    );
+  } else {
     let dir = root;
     let schemaPath = "";
     if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
-      const _i = args.indexOf("--dest") > -1
-        ? args.indexOf("--dest")
-        : args.indexOf("-d") > -1
-        ? args.indexOf("-d")
-        : args.indexOf("-D")
+      const _i =
+        args.indexOf("--dest") > -1
+          ? args.indexOf("--dest")
+          : args.indexOf("-d") > -1
+          ? args.indexOf("-d")
+          : args.indexOf("-D");
       const _tmp = args.splice(_i, _i + 2);
-      if (_tmp.length != 2) throw new Error("expected destination path")
+      if (_tmp.length != 2) throw new Error("expected destination path");
       dir = path.resolve(root, _tmp[1]);
     }
 
-    if (args.includes("--schema") || args.includes("-s") || args.includes("-S")) {
-      const _i = args.indexOf("--schema") > -1
-        ? args.indexOf("--schema")
-        : args.indexOf("-s") > -1
-        ? args.indexOf("-s")
-        : args.indexOf("-S")
+    if (
+      args.includes("--schema") ||
+      args.includes("-s") ||
+      args.includes("-S")
+    ) {
+      const _i =
+        args.indexOf("--schema") > -1
+          ? args.indexOf("--schema")
+          : args.indexOf("-s") > -1
+          ? args.indexOf("-s")
+          : args.indexOf("-S");
       const _tmp = args.splice(_i, _i + 2);
-      if (_tmp.length != 2) throw new Error("expected path to the schema")
+      if (_tmp.length != 2) throw new Error("expected path to the schema");
       if (_tmp[1].endsWith(".json")) {
         schemaPath = path.resolve(root, _tmp[1]);
       } else throw new Error("invalid schema, must be a valid json");
@@ -89,25 +99,33 @@ const main = async () => {
     const validate = new Ajv().compile(schema);
 
     const opmetas = [];
-    if (args.includes("--opmeta") || args.includes("-o") || args.includes("-O")) {
-      const _i = args.indexOf("--opmeta") > -1
-        ? args.indexOf("--opmeta")
-        : args.indexOf("-o") > -1
-        ? args.indexOf("-o")
-        : args.indexOf("-O")
+    if (
+      args.includes("--opmeta") ||
+      args.includes("-o") ||
+      args.includes("-O")
+    ) {
+      const _i =
+        args.indexOf("--opmeta") > -1
+          ? args.indexOf("--opmeta")
+          : args.indexOf("-o") > -1
+          ? args.indexOf("-o")
+          : args.indexOf("-O");
       const _tmp = args.splice(_i + 1);
-      if (!_tmp.length) throw new Error("expected path to opmeta files")
+      if (!_tmp.length) throw new Error("expected path to opmeta files");
       for (let i = 0; i < _tmp.length; i++) {
         if (_tmp[i].endsWith(".json")) {
           const tmp = JSON.parse(readFile(path.resolve(root, _tmp[i])));
           if (validate(tmp)) opmetas.push(tmp);
           else throw new Error(`invalid opmeta content at index ${i}`);
-        } else throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
+        } else
+          throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
       }
 
       let opmetaHexString = "0x";
       const opmetaBytes = Uint8Array.from(
-        deflateSync(format(JSON.stringify(opmetas, null, 4), { parser: "json" }))
+        deflateSync(
+          format(JSON.stringify(opmetas, null, 4), { parser: "json" })
+        )
       );
       for (let i = 0; i < opmetaBytes.length; i++) {
         opmetaHexString =
@@ -128,17 +146,19 @@ const main = async () => {
         deployableOpmetaBytes: opmetaHexString,
         deployableSchemaBytes: schemaHexString,
       };
-      const fileData = format(JSON.stringify(data, null, 4), { parser: "json" });
+      const fileData = format(JSON.stringify(data, null, 4), {
+        parser: "json",
+      });
 
       if (!dir.endsWith(".json")) dir = dir + "/Opmeta.json";
 
       writeFile(dir, fileData);
-    }
-    else console.log(
-  `
+    } else
+      console.log(
+        `
   Expected Opmeta Files!
   `
-    )
+      );
   }
 };
 

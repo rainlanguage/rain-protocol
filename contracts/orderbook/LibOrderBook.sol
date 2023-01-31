@@ -42,7 +42,6 @@ struct OrderIOCalculation {
     //solhint-disable-next-line var-name-mixedcase
     uint256 IORatio;
     uint256[][] context;
-    IInterpreterStoreV1 store;
     StateNamespace namespace;
     uint256[] kvs;
 }

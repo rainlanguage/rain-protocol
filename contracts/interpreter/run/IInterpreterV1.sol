@@ -99,6 +99,9 @@ interface IInterpreterV1 {
     /// additional contextual data, produce a stack of results and a set of state
     /// changes that the caller MAY OPTIONALLY pass back to be persisted by a
     /// call to `IInterpreterStoreV1.set`.
+    /// @param store The storage contract that the returned key/value pairs
+    /// MUST be passed to IF the calling contract is in a non-static calling
+    /// context. Static calling contexts MUST pass `address(0)`.
     /// @param namespace The state namespace that will be fully qualified by the
     /// interpreter at runtime in order to perform gets on the underlying store.
     /// MUST be the same namespace passed to the store by the calling contract
@@ -134,20 +137,11 @@ interface IInterpreterV1 {
     /// @return stack The list of values produced by evaluating the expression.
     /// MUST NOT be longer than the maximum length specified by `dispatch`, if
     /// applicable.
-    /// @return store The storage contract that the returned key/value pairs
-    /// MUST be passed to IF the calling contract is in a non-static calling
-    /// context.
     /// @return kvs A list of pairwise key/value items to be saved in the store.
     function eval(
+        IInterpreterStoreV1 store,
         StateNamespace namespace,
         EncodedDispatch dispatch,
         uint256[][] calldata context
-    )
-        external
-        view
-        returns (
-            uint256[] memory stack,
-            IInterpreterStoreV1 store,
-            uint256[] memory kvs
-        );
+    ) external view returns (uint256[] memory stack, uint256[] memory kvs);
 }

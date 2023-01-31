@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CAL
-pragma solidity =0.8.17;
+pragma solidity ^0.8.17;
 
 /// Config required to build a new `State`.
 /// @param sources Sources verbatim. These sources MUST be provided in their
@@ -15,7 +15,7 @@ pragma solidity =0.8.17;
 /// rather than inline as it allows us to avoid variable length opcodes and can
 /// be more memory efficient if the same constant is referenced several times
 /// from the sources.
-struct StateConfig {
+struct ExpressionConfig {
     bytes[] sources;
     uint256[] constants;
 }
@@ -80,10 +80,10 @@ interface IExpressionDeployerV1 {
     /// Once the integrity check is complete the `IExpressionDeployerV1` MUST do
     /// any additional processing required by its paired interpreter.
     /// For example, the `IExpressionDeployerV1` MAY NEED to replace the indexed
-    /// opcodes in the `StateConfig` sources with real function pointers from the
-    /// corresponding interpreter.
+    /// opcodes in the `ExpressionConfig` sources with real function pointers
+    /// from the corresponding interpreter.
     ///
-    /// @param config All the state config associated with an expression.
+    /// @param config All the config associated with an expression.
     /// @param minOutputs The first N sources on the state config are entrypoints
     /// to the expression where N is the length of the `minOutputs` array. Each
     /// item in the `minOutputs` array specifies the number of outputs that MUST
@@ -93,7 +93,7 @@ interface IExpressionDeployerV1 {
     /// sources MUST NOT have a minimum outputs length specified.
     /// @return expression The onchain address of the deployed expression.
     function deployExpression(
-        StateConfig memory config,
+        ExpressionConfig memory config,
         uint256[] memory minOutputs
     ) external returns (address expression);
 }

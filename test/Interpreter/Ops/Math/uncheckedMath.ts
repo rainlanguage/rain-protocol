@@ -55,7 +55,11 @@ describe("RainInterpreter unchecked math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -91,7 +95,11 @@ describe("RainInterpreter unchecked math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "accumulator overflow did not panic"
     );
@@ -121,7 +129,11 @@ describe("RainInterpreter unchecked math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "accumulator underflow did not panic"
     );
@@ -154,7 +166,11 @@ describe("RainInterpreter unchecked math", async () => {
 
     await assertError(
       async () =>
-        await logic.eval(rainInterpreter.address, expression0.dispatch, []),
+        await logic["eval(address,uint256,uint256[][])"](
+          rainInterpreter.address,
+          expression0.dispatch,
+          []
+        ),
       "Error",
       "accumulator overflow did not panic"
     );

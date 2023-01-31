@@ -11,6 +11,7 @@ import "./core/OpContext.sol";
 import "./core/OpContextRow.sol";
 import "./core/OpDebug.sol";
 import "./core/OpDoWhile.sol";
+import "./core/OpExtern.sol";
 import "./core/OpFoldContext.sol";
 import "./core/OpGet.sol";
 import "./core/OpLoopN.sol";
@@ -24,12 +25,14 @@ import "./erc721/OpERC721BalanceOf.sol";
 import "./erc721/OpERC721OwnerOf.sol";
 import "./erc1155/OpERC1155BalanceOf.sol";
 import "./erc1155/OpERC1155BalanceOfBatch.sol";
+import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
 import "./list/OpExplode32.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Div.sol";
+import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
 import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
 import "./math/fixedPoint/OpFixedPointScaleBy.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
@@ -69,7 +72,7 @@ import "./tier/OpUpdateTimesForTierRange.sol";
 error BadDynamicLength(uint256 dynamicLength, uint256 standardOpsLength);
 
 /// @dev Number of ops currently provided by `AllStandardOps`.
-uint256 constant ALL_STANDARD_OPS_LENGTH = 59;
+uint256 constant ALL_STANDARD_OPS_LENGTH = 62;
 
 /// @title AllStandardOps
 /// @notice Every opcode available from the core repository laid out as a single
@@ -201,6 +204,7 @@ library AllStandardOps {
                     OpContextRow.integrity,
                     OpDebug.integrity,
                     OpDoWhile.integrity,
+                    OpExtern.integrity,
                     OpFoldContext.integrity,
                     OpGet.integrity,
                     OpLoopN.integrity,
@@ -215,12 +219,14 @@ library AllStandardOps {
                     OpERC721OwnerOf.integrity,
                     OpERC1155BalanceOf.integrity,
                     OpERC1155BalanceOfBatch.integrity,
+                    OpERC5313Owner.integrity,
                     OpEnsure.integrity,
                     OpBlockNumber.integrity,
                     OpTimestamp.integrity,
                     OpExplode32.integrity,
                     OpFixedPointScale18.integrity,
                     OpFixedPointScale18Div.integrity,
+                    OpFixedPointScale18Dynamic.integrity,
                     OpFixedPointScale18Mul.integrity,
                     OpFixedPointScaleBy.integrity,
                     OpFixedPointScaleN.integrity,
@@ -288,6 +294,7 @@ library AllStandardOps {
                     OpContextRow.run,
                     OpDebug.run,
                     OpDoWhile.run,
+                    OpExtern.intern,
                     OpFoldContext.run,
                     OpGet.run,
                     OpLoopN.run,
@@ -302,12 +309,14 @@ library AllStandardOps {
                     OpERC721OwnerOf.run,
                     OpERC1155BalanceOf.run,
                     OpERC1155BalanceOfBatch.run,
+                    OpERC5313Owner.run,
                     OpEnsure.run,
                     OpBlockNumber.run,
                     OpTimestamp.run,
                     OpExplode32.run,
                     OpFixedPointScale18.run,
                     OpFixedPointScale18Div.run,
+                    OpFixedPointScale18Dynamic.run,
                     OpFixedPointScale18Mul.run,
                     OpFixedPointScaleBy.run,
                     OpFixedPointScaleN.run,

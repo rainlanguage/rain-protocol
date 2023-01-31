@@ -62,7 +62,11 @@ describe("ISaleV2 RemainingTokenInventory tests", async function () {
       1
     );
 
-    await logic.eval(rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const _remainingTokenInventory = await logic.stackTop();
 

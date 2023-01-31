@@ -4,8 +4,6 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type {
   OrderBook,
-  Rainterpreter,
-  RainterpreterExpressionDeployer,
   ReserveToken18,
   ReserveTokenDecimals,
 } from "../../typechain";
@@ -30,10 +28,9 @@ import {
   twentyZeros,
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
-import { rainterpreterDeploy } from "../../utils/deploy/interpreter/shared/rainterpreter/deploy";
-import { rainterpreterExpressionDeployerDeploy } from "../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { getEventArgs, getEvents } from "../../utils/events";
 import {
+  generateEvaluableConfig,
   memoryOperand,
   MemoryType,
   op,
@@ -52,8 +49,6 @@ describe("OrderBook clear order", async function () {
   let orderBookFactory: ContractFactory;
   let tokenA: ReserveToken18;
   let tokenB: ReserveToken18;
-  let interpreter: Rainterpreter;
-  let expressionDeployer: RainterpreterExpressionDeployer;
 
   beforeEach(async () => {
     tokenA = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
@@ -64,10 +59,6 @@ describe("OrderBook clear order", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-    interpreter = await rainterpreterDeploy();
-    expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-      interpreter
-    );
   });
 
   describe("should scale outputMax with decimals", () => {
@@ -121,9 +112,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -138,10 +131,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -170,9 +160,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB06.address,
@@ -187,10 +179,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -326,9 +315,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA20.address,
@@ -343,10 +334,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -375,9 +363,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB06.address,
@@ -392,10 +382,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -531,9 +518,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA18.address,
@@ -548,10 +537,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -580,9 +566,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB06.address,
@@ -597,10 +585,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -736,9 +721,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -753,10 +740,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -785,9 +769,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB20.address,
@@ -802,10 +788,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -941,9 +924,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -958,10 +943,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -990,9 +972,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB18.address,
@@ -1007,10 +991,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -1146,9 +1127,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA00.address,
@@ -1163,10 +1146,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -1195,9 +1175,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB18.address,
@@ -1212,10 +1194,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -1350,9 +1329,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -1367,10 +1348,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -1399,9 +1377,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB06.address,
@@ -1416,10 +1396,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -1537,9 +1514,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA20.address,
@@ -1554,10 +1533,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -1586,9 +1562,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB06.address,
@@ -1603,10 +1581,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -1724,9 +1699,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA18.address,
@@ -1741,10 +1718,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -1773,9 +1747,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB06.address,
@@ -1790,10 +1766,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -1911,9 +1884,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -1928,10 +1903,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -1960,9 +1932,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB20.address,
@@ -1977,10 +1951,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -2098,9 +2069,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA06.address,
@@ -2115,10 +2088,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -2147,9 +2117,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB18.address,
@@ -2164,10 +2136,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -2285,9 +2254,11 @@ describe("OrderBook clear order", async function () {
         vAskOutputMax,
         vAskRatio,
       ]);
+      const askEvaluableConfig = await generateEvaluableConfig({
+        sources: [askSource, []],
+        constants: askConstants,
+      });
       const askOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenA00.address,
@@ -2302,10 +2273,7 @@ describe("OrderBook clear order", async function () {
             vaultId: aliceOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [askSource, []],
-          constants: askConstants,
-        },
+        evaluableConfig: askEvaluableConfig,
         data: [],
       };
       const txAskAddOrderAlice = await orderBook
@@ -2334,9 +2302,11 @@ describe("OrderBook clear order", async function () {
         vBidOutputMax,
         vBidRatio,
       ]);
+      const bidEvaluableConfig = await generateEvaluableConfig({
+        sources: [bidSource, []],
+        constants: bidConstants,
+      });
       const bidOrderConfig: OrderConfigStruct = {
-        interpreter: interpreter.address,
-        expressionDeployer: expressionDeployer.address,
         validInputs: [
           {
             token: tokenB18.address,
@@ -2351,10 +2321,7 @@ describe("OrderBook clear order", async function () {
             vaultId: bobOutputVault,
           },
         ],
-        interpreterStateConfig: {
-          sources: [bidSource, []],
-          constants: bidConstants,
-        },
+        evaluableConfig: bidEvaluableConfig,
         data: [],
       };
       const txBidAddOrder = await orderBook
@@ -2461,19 +2428,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -2509,19 +2475,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -2661,19 +2626,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -2713,19 +2677,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -2861,19 +2824,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -2909,19 +2871,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -3073,19 +3034,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -3121,19 +3081,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -3260,19 +3219,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -3308,19 +3266,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 
@@ -3496,9 +3453,11 @@ describe("OrderBook clear order", async function () {
       vAskOutputMax,
       vAskRatio,
     ]);
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, []],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenA06.address,
@@ -3513,10 +3472,7 @@ describe("OrderBook clear order", async function () {
           vaultId: aliceOutputVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, []],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: [],
     };
     const txAskAddOrderAlice = await orderBook
@@ -3547,9 +3503,11 @@ describe("OrderBook clear order", async function () {
     ]);
 
     // Bids with incorrect decimals
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, []],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         {
           token: tokenB18.address,
@@ -3564,10 +3522,7 @@ describe("OrderBook clear order", async function () {
           vaultId: bobOutputVault,
         },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, []],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: [],
     };
     const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
@@ -3704,19 +3659,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
 
+    const askEvaluableConfig = await generateEvaluableConfig({
+      sources: [askSource, askSource],
+      constants: askConstants,
+    });
     const askOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [askSource, askSource],
-        constants: askConstants,
-      },
+      evaluableConfig: askEvaluableConfig,
       data: aliceAskOrder,
     };
 
@@ -3756,19 +3710,18 @@ describe("OrderBook clear order", async function () {
     ]);
     const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
 
+    const bidEvaluableConfig = await generateEvaluableConfig({
+      sources: [bidSource, bidSource],
+      constants: bidConstants,
+    });
     const bidOrderConfig: OrderConfigStruct = {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      interpreterStateConfig: {
-        sources: [bidSource, bidSource],
-        constants: bidConstants,
-      },
+      evaluableConfig: bidEvaluableConfig,
       data: bobBidOrder,
     };
 

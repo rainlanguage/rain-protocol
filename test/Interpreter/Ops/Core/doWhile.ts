@@ -3,6 +3,7 @@ import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import {
   AllStandardOps,
+  assertError,
   callOperand,
   doWhileOperand,
   memoryOperand,
@@ -54,7 +55,11 @@ describe("DO_WHILE Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
@@ -100,7 +105,11 @@ describe("DO_WHILE Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stackTop();
 
     console.log("Result: ", result.toString());
@@ -151,7 +160,11 @@ describe("DO_WHILE Opcode test", async function () {
         1
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stackTop();
 
     let expectedResult = initValue;
@@ -233,7 +246,11 @@ describe("DO_WHILE Opcode test", async function () {
         2
       );
 
-    await consumerLogic.eval(interpreter.address, dispatch, []);
+    await consumerLogic["eval(address,uint256,uint256[][])"](
+      interpreter.address,
+      dispatch,
+      []
+    );
     const result = await consumerLogic.stack();
 
     // Calculating the expected result
@@ -257,5 +274,45 @@ describe("DO_WHILE Opcode test", async function () {
         "did not iterate correctly using call"
       );
     });
+  });
+
+  it("should fail if more inputs are encoded in the operand than can be dispatched internally by the do-while loop", async () => {
+    const initValue = 3; // An initial value
+    const loopValue = 2; // Value added on every loop
+    const minimumValue = 10; // The minimum value necessary to stop the loop
+
+    const constants = [initValue, loopValue, minimumValue];
+
+    // prettier-ignore
+    const sourceMAIN = concat([
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+          op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+        op(Opcode.LESS_THAN),
+      op(Opcode.DO_WHILE, doWhileOperand(20, 0, 1)), // encoding more inputs. i.e > 15
+    ]);
+
+    // prettier-ignore
+    const sourceADD = concat([
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 0)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
+      op(Opcode.ADD, 2),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Stack, 1)),
+        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.LESS_THAN),
+    ]);
+
+    await assertError(
+      async () =>
+        await iinterpreterV1ConsumerDeploy(
+          {
+            sources: [sourceMAIN, sourceADD],
+            constants,
+          },
+          1
+        ),
+      "DoWhileMaxInputs(20)",
+      "Did not fail for an invalid input encoded in the operand"
+    );
   });
 });

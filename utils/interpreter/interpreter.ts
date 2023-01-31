@@ -1,5 +1,16 @@
 import { BytesLike } from "ethers";
 import { concat, Hexable, hexlify, zeroPad } from "ethers/lib/utils";
+import { RainterpreterStore } from "../../typechain";
+import {
+  EvaluableConfigStruct,
+  ExpressionConfigStruct,
+} from "../../typechain/contracts/flow/basic/Flow";
+import { zeroAddress } from "../constants";
+import {
+  rainterpreterDeploy,
+  rainterpreterStoreDeploy,
+} from "../deploy/interpreter/shared/rainterpreter/deploy";
+import { rainterpreterExpressionDeployerDeploy } from "../deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
 import { AllStandardOps } from "./ops/allStandardOps";
 
 export enum MemoryType {
@@ -76,6 +87,15 @@ export function callOperand(
   return operand;
 }
 
+export function externOperand(
+  offset: number,
+  inputs: number,
+  outputs: number
+): number {
+  const operand = (offset << 10) + (outputs << 5) + inputs;
+  return operand;
+}
+
 /**
  * Builds the operand for RainInterpreter's `LOOP_N` opcode by packing 4 numbers into a single byte.
  *
@@ -95,7 +115,7 @@ export function loopNOperand(
 }
 
 /**
- * Builds the operand for RainInterpreter's `DO_WHILE` opcode by packing 3 numbers into a single byte.
+ * Builds the operand for RainInterpreter's `DO_WHILE` opcode by packing 3 numbers into two bytes.
  *
  * @param inputSize - number of inputs being passed to the source
  * @param reserved - reserved bytes
@@ -107,6 +127,17 @@ export function doWhileOperand(
   sourceIndex: number
 ): number {
   const operand = (sourceIndex << 8) + (reserved << 4) + inputSize;
+  return operand;
+}
+
+/**
+ * Builds the operand for RainInterpreter's `SCALE18` opcode by packing 2 numbers into a single byte
+ *
+ * @param decimals - deciamls by which the value is to be scaled
+ * @param rounding - rounding direction
+ */
+export function scale18Operand(decimals: number, rounding: number): number {
+  const operand = (decimals << 1) + rounding;
   return operand;
 }
 
@@ -160,4 +191,31 @@ export function foldContextOperand(
 ): number {
   const operand = (inputs << 12) + (width << 8) + (column << 4) + sourceIndex;
   return operand;
+}
+
+/**
+ * Builds the EvaluableConfig struct with expressionConfig and a store.
+ *
+ * @param expressionConfig - index of function source
+ * @param isStore - used to toggle NO_STORE
+ */
+export async function generateEvaluableConfig(
+  expressionConfig: ExpressionConfigStruct,
+  isStore = true
+): Promise<EvaluableConfigStruct> {
+  const interpreter = await rainterpreterDeploy();
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter
+  );
+
+  let interpreterStore: RainterpreterStore = null;
+
+  interpreterStore = await rainterpreterStoreDeploy();
+
+  return {
+    deployer: expressionDeployer.address,
+    interpreter: interpreter.address,
+    store: isStore ? interpreterStore.address : zeroAddress,
+    expressionConfig: expressionConfig,
+  };
 }

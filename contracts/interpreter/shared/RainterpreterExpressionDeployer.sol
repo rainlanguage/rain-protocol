@@ -21,13 +21,13 @@ error MissingEntrypoint(uint256 expectedEntrypoints, uint256 actualEntrypoints);
 /// immutable for any given interpreter so once the expression deployer is
 /// constructed and has verified that this matches what the interpreter reports,
 /// it can use this constant value to compile and serialize expressions.
-bytes constant OPCODE_FUNCTION_POINTERS = hex"0a010a0f0a650ab70b350b610bfa0cc40df90e2e0e4c0ed40ee30ef10eff0f0d0ee30f1b0f290f370f460f550f630f710fe90ff81007101610251034107d108f109d10cf10dd10eb10f9110811171126113511441153116211711180118f119e11ac11ba11c811d611e411f21200120f121e122c12a3";
+bytes constant OPCODE_FUNCTION_POINTERS = hex"09d709e50a3b0a8d0b0b0b370bd00d5b0e250f5a0f8f0fad1035104410521060106e1044107c108a109810a710b510c410d210e01158116711761185119411a311b211fb120d121b124d125b126912771286129512a412b312c212d112e012ef12fe130d131c132a13381346135413621370137e138d139c13aa141c";
 
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
 contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
-    using LibInterpreterState for StateConfig;
+    using LibInterpreterState for ExpressionConfig;
     using LibStackPointer for StackPointer;
 
     /// The interpreter passed in construction is valid. ANY interpreter with
@@ -46,7 +46,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
     /// only be emitted after the config passes the integrity check.
     /// @param sender The caller of `deployExpression`.
     /// @param config The config for the deployed expression.
-    event ExpressionConfig(address sender, StateConfig config);
+    event NewExpressionConfig(address sender, ExpressionConfig config);
 
     /// The address of the deployed expression. Will only be emitted once the
     /// expression can be loaded and deserialized into an evaluable interpreter
@@ -106,7 +106,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
 
     /// @inheritdoc IExpressionDeployerV1
     function deployExpression(
-        StateConfig memory config_,
+        ExpressionConfig memory config_,
         uint256[] memory minStackOutputs_
     ) external returns (address) {
         // Ensure that we are not missing any entrypoints expected by the calling
@@ -150,7 +150,7 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
 
         // Emit the config of the expression _before_ we serialize it, as the
         // serialization process itself is destructive of the config in memory.
-        emit ExpressionConfig(msg.sender, config_);
+        emit NewExpressionConfig(msg.sender, config_);
 
         // Serialize the state config into bytes that can be deserialized later
         // by the interpreter. This will compile the sources according to the
