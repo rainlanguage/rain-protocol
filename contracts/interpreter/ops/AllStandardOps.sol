@@ -32,6 +32,7 @@ import "./evm/OpTimestamp.sol";
 import "./list/OpExplode32.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Div.sol";
+import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
 import "./math/fixedPoint/OpFixedPointScale18Mul.sol";
 import "./math/fixedPoint/OpFixedPointScaleBy.sol";
 import "./math/fixedPoint/OpFixedPointScaleN.sol";
@@ -225,6 +226,7 @@ library AllStandardOps {
                     OpExplode32.integrity,
                     OpFixedPointScale18.integrity,
                     OpFixedPointScale18Div.integrity,
+                    OpFixedPointScale18Dynamic.integrity,
                     OpFixedPointScale18Mul.integrity,
                     OpFixedPointScaleBy.integrity,
                     OpFixedPointScaleN.integrity,
@@ -314,6 +316,7 @@ library AllStandardOps {
                     OpExplode32.run,
                     OpFixedPointScale18.run,
                     OpFixedPointScale18Div.run,
+                    OpFixedPointScale18Dynamic.run,
                     OpFixedPointScale18Mul.run,
                     OpFixedPointScaleBy.run,
                     OpFixedPointScaleN.run,

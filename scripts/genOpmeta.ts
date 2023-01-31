@@ -41,7 +41,7 @@ const main = async () => {
 
       example:
         gen-opmeta --dest dest/path/name.json --schema path/to/schema.json --opmeta ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
-      
+
 
       options:
 
@@ -50,7 +50,7 @@ const main = async () => {
 
         --dest, -d, -D <destination/path/name.json>
           (optional) Destination of the output file. Writes to root of the current working directory if not provided.
-        
+
         --schema, -s, -S <path/to/schema.json>
           (optional) Path to the opmeta schema, uses the default schema if not provided.
 

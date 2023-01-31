@@ -131,6 +131,17 @@ export function doWhileOperand(
 }
 
 /**
+ * Builds the operand for RainInterpreter's `SCALE18` opcode by packing 2 numbers into a single byte
+ *
+ * @param decimals - deciamls by which the value is to be scaled
+ * @param rounding - rounding direction
+ */
+export function scale18Operand(decimals: number, rounding: number): number {
+  const operand = (decimals << 1) + rounding;
+  return operand;
+}
+
+/**
  * Builds the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
  * @param sourceIndex - index of function source in `immutableSourceConfig.sources`

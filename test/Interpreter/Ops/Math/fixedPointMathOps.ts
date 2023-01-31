@@ -2,13 +2,20 @@ import { assert } from "chai";
 import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { IInterpreterV1Consumer, Rainterpreter } from "../../../../typechain";
-import { eighteenZeros, ONE, sixZeros } from "../../../../utils/constants";
+import {
+  eighteenZeros,
+  ONE,
+  sixteenZeros,
+  sixZeros,
+  tenZeros,
+} from "../../../../utils/constants";
 import { rainterpreterDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   memoryOperand,
   MemoryType,
   op,
+  scale18Operand,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 
@@ -17,6 +24,9 @@ const Opcode = AllStandardOps;
 describe("RainInterpreter fixed point math ops", async function () {
   let rainInterpreter: Rainterpreter;
   let logic: IInterpreterV1Consumer;
+
+  const ROUNDING_UP = 1;
+  const ROUNDING_DOWN = 0;
 
   before(async () => {
     rainInterpreter = await rainterpreterDeploy();
@@ -279,8 +289,8 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
   });
 
-  it("should scale a number by 18 OOM in situ", async () => {
-    const value = 1;
+  it("should scale a number UP to 18 OOM", async () => {
+    const value = ethers.BigNumber.from("100245700");
 
     const constants = [value];
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
@@ -289,7 +299,7 @@ describe("RainInterpreter fixed point math ops", async function () {
     const sources = [
       concat([
           v1,
-        op(Opcode.SCALE18)
+        op(Opcode.SCALE18 , scale18Operand(8,ROUNDING_UP)) // decimals 8, Rounding Up
       ]),
     ];
 
@@ -309,7 +319,274 @@ describe("RainInterpreter fixed point math ops", async function () {
     );
 
     const result0 = await logic.stackTop();
-    const expected0 = ethers.BigNumber.from(value + eighteenZeros);
+
+    const expected0 = ethers.BigNumber.from("100245700" + tenZeros);
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number DOWN to 18 OOM", async () => {
+    const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
+
+    const constants = [value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1,
+        op(Opcode.SCALE18 , scale18Operand(24,ROUNDING_UP)) // decimals 24, Rounding Up 
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = ethers.BigNumber.from(1 + eighteenZeros);
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number DOWN to 18 OOM with ROUNDING UP", async () => {
+    const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
+
+    const constants = [value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1,
+        op(Opcode.SCALE18 , scale18Operand(20,ROUNDING_UP)) // decimals 20, Rounding Up
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "75345").add(
+      ethers.BigNumber.from(1)
+    );
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number DOWN to 18 OOM with ROUNDING DOWN", async () => {
+    const value = ethers.BigNumber.from(1 + sixteenZeros + "7534567");
+
+    const constants = [value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1,
+        op(Opcode.SCALE18 , scale18Operand(20,ROUNDING_DOWN)) // decimals 20, Rounding Down
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "75345");
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number UP to 18 OOM on a dynamic scale", async () => {
+    const decimals = 8;
+    const value = ethers.BigNumber.from("100245700");
+
+    const constants = [decimals, value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1, 
+          v2,
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_UP) // Rounding Up
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = ethers.BigNumber.from("100245700" + tenZeros);
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number DOWN to 18 OOM on a dynamic scale", async () => {
+    const decimals = 24;
+    const value = ethers.BigNumber.from(1 + eighteenZeros + sixZeros);
+
+    const constants = [decimals, value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1, 
+          v2,
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_UP) // Rounding Up
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+
+    const expected0 = ethers.BigNumber.from(1 + eighteenZeros);
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number DOWN to 18 OOM on a dynamic scale with ROUNDING UP", async () => {
+    const decimals = 22;
+    const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
+
+    const constants = [decimals, value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1, 
+          v2,
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_UP) // Rounding Up
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+    const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "72").add(
+      ethers.BigNumber.from(1)
+    );
+    assert(
+      result0.eq(expected0),
+      `wrong result
+      expected  ${expected0}
+      got       ${result0}`
+    );
+  });
+
+  it("should scale a number DOWN to 18 OOM on a dynamic scale with ROUNDING DOWN", async () => {
+    const decimals = 22;
+    const value = ethers.BigNumber.from(1 + sixteenZeros + "726184");
+
+    const constants = [decimals, value];
+    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+
+    // prettier-ignore
+    const sources = [
+      concat([
+          v1, 
+          v2,
+        op(Opcode.SCALE18_DYNAMIC , ROUNDING_DOWN) // Rounding Down
+      ]),
+    ];
+
+    const expression0 = await expressionConsumerDeploy(
+      {
+        sources,
+        constants,
+      },
+      rainInterpreter,
+      1
+    );
+
+    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+
+    const result0 = await logic.stackTop();
+    const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "72");
     assert(
       result0.eq(expected0),
       `wrong result
