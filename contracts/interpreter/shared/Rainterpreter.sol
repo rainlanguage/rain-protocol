@@ -49,7 +49,6 @@ contract Rainterpreter is IInterpreterV1 {
     using LibCast for function(InterpreterState memory, Operand, StackPointer)
         view
         returns (StackPointer)[];
-    using LibConvert for uint256[];
     using Math for uint256;
     using LibMemoryKV for MemoryKV;
     using LibMemoryKV for MemoryKVPtr;
@@ -136,9 +135,8 @@ contract Rainterpreter is IInterpreterV1 {
                 StackPointer
             ) view returns (StackPointer)[](0);
         return
-            AllStandardOps
+            LibConvert.unsafeTo16BitBytes(AllStandardOps
                 .opcodeFunctionPointers(localPtrs_)
-                .asUint256Array()
-                .unsafeTo16BitBytes();
+                .asUint256Array());
     }
 }

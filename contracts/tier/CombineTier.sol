@@ -59,18 +59,6 @@ contract CombineTier is TierV2 {
     ) external initializer {
         __TierV2_init();
 
-        evaluable = Evaluable(
-            config_.evaluableConfig.interpreter,
-            config_.evaluableConfig.store,
-            config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.expressionConfig,
-                LibUint256Array.arrayFrom(
-                    REPORT_MIN_OUTPUTS,
-                    REPORT_FOR_TIER_MIN_OUTPUTS
-                )
-            )
-        );
-
         // Integrity check for all known combined tiers.
         for (uint256 i_ = 0; i_ < config_.combinedTiersLength; i_++) {
             require(
@@ -89,6 +77,18 @@ contract CombineTier is TierV2 {
         }
 
         emit Initialize(msg.sender, config_);
+
+        evaluable = Evaluable(
+            config_.evaluableConfig.interpreter,
+            config_.evaluableConfig.store,
+            config_.evaluableConfig.deployer.deployExpression(
+                config_.evaluableConfig.expressionConfig,
+                LibUint256Array.arrayFrom(
+                    REPORT_MIN_OUTPUTS,
+                    REPORT_FOR_TIER_MIN_OUTPUTS
+                )
+            )
+        );
     }
 
     /// @inheritdoc ITierV2

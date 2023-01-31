@@ -188,6 +188,11 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         require(config_.timeoutDuration <= maxTimeoutDuration, "MAX_TIMEOUT");
         timeoutAt = block.timestamp + config_.timeoutDuration;
 
+        ref = config_.ref;
+        token = IERC20(config_.token);
+
+        emit Initialize(msg.sender, config_);
+
         // This deploys the expression data, we specify the min return values for
         // each entrypoint by index, the deployer will dry run the expression and
         // confirm at least the number of specified outputs will be returned.
@@ -203,11 +208,6 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 )
             )
         );
-
-        ref = config_.ref;
-        token = IERC20(config_.token);
-
-        emit Initialize(msg.sender, config_);
     }
 
     function _joinEncodedDispatch(
@@ -328,9 +328,6 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
             uint256 amount_ = stack_[stack_.length - 1];
 
             players[msg.sender] = 1;
-            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
-            _deposit(amount_);
-
             emit Join(msg.sender);
 
             // Atomically finalise the player list with the player joining.
@@ -338,6 +335,9 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 schedulePhase(PHASE_RESULT_PENDING, block.timestamp);
                 emit PlayersFinalised(msg.sender);
             }
+
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
+            _deposit(amount_);
         }
     }
 
@@ -348,6 +348,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         Evaluable memory evaluable_ = evaluable;
         players[msg.sender] = 0;
         uint256 deposit_ = deposits[msg.sender];
+        deposits[msg.sender] = 0;
 
         uint256[][] memory context_ = LibContext.build(
             new uint256[][](0),
@@ -366,14 +367,13 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // Use the smaller of the interpreter amount and the player's original
         // deposit as the amount they will be refunded.
         uint256 amount_ = stack_.asStackPointerAfter().peek().min(deposit_);
+        totalDeposited -= amount_;
+        emit Leave(msg.sender, address(token), deposit_, amount_);
+
         // the calculated amount is refunded and their entire deposit forfeited
         // from the internal ledger.
         IERC20(token).safeTransfer(msg.sender, amount_);
-        deposits[msg.sender] = 0;
-        totalDeposited -= amount_;
         evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
-
-        emit Leave(msg.sender, address(token), deposit_, amount_);
     }
 
     function claim(
@@ -460,17 +460,17 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         }
     }
 
-    function isInvalid(
+    function _isInvalid(
         Evaluable memory evaluable_,
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) internal returns (bool) {
+    ) internal returns (bool, uint256[] memory) {
         // Timeouts ALWAYS allow an invalid result, unless the lobby is complete.
         // This guards against the expressions themselves being buggy and/or the
         // ref never signing a usable result. This MUST short circuit the logic
         // below to guard against the invalid entrypoint itself somehow breaking.
         if (block.timestamp > timeoutAt) {
-            return true;
+            return (true, new uint256[](0));
         }
 
         uint256[][] memory context_ = LibContext.build(
@@ -488,19 +488,16 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 context_
             );
 
-        if (kvs_.length > 0) {
-            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
-        }
-
         unchecked {
-            return stack_[stack_.length - 1] > 0;
+            return (stack_[stack_.length - 1] > 0, kvs_);
         }
     }
 
     function invalid(
         uint256[] memory callerContext_,
         SignedContext[] memory signedContexts_
-    ) external onlyNotPhase(PHASE_COMPLETE) {
+    ) external onlyNotPhase(PHASE_COMPLETE) nonReentrant {
+        Evaluable memory evaluable_ = evaluable;
         // It is NOT possible to rollback a prior completion. Complete/invalid
         // are mutually exclusive states because they imply incompatible token
         // allocations for withdrawal, which would lead to a bank run and/or
@@ -509,7 +506,8 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // phase to the invalid phase, but this happens atomically within this
         // function call so there's no way that `claim` can be called before
         // `refund` is enabled.
-        if (!isInvalid(evaluable, callerContext_, signedContexts_)) {
+        (bool isInvalid_, uint256[] memory kvs_) = _isInvalid(evaluable_, callerContext_, signedContexts_);
+        if (!isInvalid_) {
             revert NotInvalid();
         }
 
@@ -518,12 +516,18 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
             schedulePhase(currentPhase() + 1, block.timestamp);
         }
         emit Invalid(msg.sender, callerContext_, signedContexts_);
+
+        if (kvs_.length > 0) {
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
+        }
     }
 
-    function refund() external onlyPhase(PHASE_INVALID) {
+    function refund() external onlyPhase(PHASE_INVALID) nonReentrant {
         uint256 amount_ = deposits[msg.sender];
-        token.safeTransfer(msg.sender, amount_);
         deposits[msg.sender] = 0;
         emit Refund(msg.sender, amount_);
+        // DO NOT refund tokens until the deposits ledger has been zeroed out to
+        // prevent draining via reentrancy.
+        token.safeTransfer(msg.sender, amount_);
     }
 }
