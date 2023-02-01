@@ -1,23 +1,23 @@
 import { ethers, network } from "hardhat";
 import { rainterpreterDeploy } from "../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-// import { noticeboardDeploy } from "../utils/deploy/noticeboard/deploy";
-import { hexlify } from "ethers/lib/utils";
+import { hexlify, keccak256 } from "ethers/lib/utils";
 import {
   execSync,
   type ExecSyncOptionsWithStringEncoding,
 } from "child_process";
 
-import type { NoticeBoard } from "../typechain";
+import type { NoticeBoard, Rainterpreter } from "../typechain";
 
 type DataNotice = {
-  name: string;
+  repo: string;
   commit: string | Buffer;
   network: string;
-  addresses: {
-    interpreter: string;
-    expressionDeployer: string;
-  };
+  contracts: Array<{
+    name: string;
+    address: string;
+    bytecodeHash: string;
+  }>;
 };
 
 /**
@@ -36,6 +36,40 @@ const exec = (
   }
 };
 
+const getRainterpreter = async () => {
+  const interpreter = await rainterpreterDeploy();
+  const interpreterFactory = await ethers.getContractFactory("Rainterpreter");
+
+  const bytecodeHash = keccak256(interpreterFactory.bytecode);
+
+  return {
+    contract: interpreter,
+    name: "Rainterpreter",
+    address: interpreter.address,
+    bytecodeHash,
+  };
+};
+
+const getRainterpreterExpressionDeployer = async (
+  interpreter_: Rainterpreter
+) => {
+  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
+    interpreter_
+  );
+  const deployerFactory = await ethers.getContractFactory(
+    "RainterpreterExpressionDeployer"
+  );
+
+  const bytecodeHash = keccak256(deployerFactory.bytecode);
+
+  return {
+    contract: expressionDeployer,
+    name: "RainterpreterExpressionDeployer",
+    address: expressionDeployer.address,
+    bytecodeHash,
+  };
+};
+
 const main = async function () {
   // Current commit
   const commit = exec("git rev-parse HEAD");
@@ -49,20 +83,27 @@ const main = async function () {
     noticeboardAddress
   )) as NoticeBoard;
 
-  const interpreter = await rainterpreterDeploy();
-
-  const expressionDeployer = await rainterpreterExpressionDeployerDeploy(
-    interpreter
+  const interpreterData = await getRainterpreter();
+  const expressionDeployerData = await getRainterpreterExpressionDeployer(
+    interpreterData.contract
   );
 
   const dataMessage: DataNotice = {
-    name: "core",
+    repo: "rainprotocol/rain-protocol",
     commit: commit,
     network: network.name,
-    addresses: {
-      interpreter: interpreter.address,
-      expressionDeployer: expressionDeployer.address,
-    },
+    contracts: [
+      {
+        name: interpreterData.name,
+        address: interpreterData.address,
+        bytecodeHash: interpreterData.bytecodeHash,
+      },
+      {
+        name: expressionDeployerData.name,
+        address: expressionDeployerData.address,
+        bytecodeHash: expressionDeployerData.bytecodeHash,
+      },
+    ],
   };
 
   const message = JSON.stringify(dataMessage);

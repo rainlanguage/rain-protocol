@@ -21,7 +21,9 @@ const config: HardhatUserConfig = {
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env["DEPLOYMENT_KEY_MUMBAI"]],
+      accounts: process.env["DEPLOYMENT_KEY_MUMBAI"]
+        ? [process.env["DEPLOYMENT_KEY_MUMBAI"]]
+        : [],
     },
   },
   solidity: {
