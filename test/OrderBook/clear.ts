@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ContractFactory } from "ethers";
-import { concat } from "ethers/lib/utils";
+
 import { ethers } from "hardhat";
 import type {
   OrderBook,
@@ -29,13 +29,7 @@ import {
 } from "../../utils/constants/bigNumber";
 import { basicDeploy } from "../../utils/deploy/basicDeploy";
 import { getEventArgs, getEvents } from "../../utils/events";
-import {
-  generateEvaluableConfig,
-  memoryOperand,
-  MemoryType,
-  op,
-} from "../../utils/interpreter/interpreter";
-import { AllStandardOps } from "../../utils/interpreter/ops/allStandardOps";
+
 import { fixedPointDiv, fixedPointMul, minBN } from "../../utils/math";
 import { getOrderConfig } from "../../utils/orderBook/order";
 import { assertError } from "../../utils/test/assertError";
@@ -43,8 +37,6 @@ import {
   compareSolStructs,
   compareStructs,
 } from "../../utils/test/compareStructs";
-
-const Opcode = AllStandardOps;
 
 describe("OrderBook clear order", async function () {
   let orderBookFactory: ContractFactory;
@@ -60,9 +52,8 @@ describe("OrderBook clear order", async function () {
 
   before(async () => {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
-  }); 
+  });
 
- 
   describe("should scale outputMax with decimals", () => {
     it("should scale outputMax based on input/output token decimals (input token has SAME decimals as output: 6 vs 6)", async function () {
       const signers = await ethers.getSigners();
@@ -99,20 +90,20 @@ describe("OrderBook clear order", async function () {
       const ratio_A = ethers.BigNumber.from(10).pow(18);
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
-      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros); 
+      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         outputMax_A,
-        tokenA06.address ,
+        tokenA06.address,
         tokenADecimals,
         aliceInputVault,
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
         ethers.utils.toUtf8Bytes("Order_A")
-      ) 
-  
+      );
+
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -125,18 +116,18 @@ describe("OrderBook clear order", async function () {
       // Order_B
 
       const ratio_B = fixedPointDiv(ONE, ratio_A);
-      
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB06.address ,
+        tokenB06.address,
         tokenBDecimals,
         bobInputVault,
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )
+      );
       const txBobAddOrder = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -258,16 +249,16 @@ describe("OrderBook clear order", async function () {
       const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         outputMax_A,
-        tokenA20.address ,
+        tokenA20.address,
         tokenADecimals,
         aliceInputVault,
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -280,20 +271,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
 
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB06.address ,
+        tokenB06.address,
         tokenBDecimals,
         bobInputVault,
         tokenA20.address,
         tokenADecimals,
         bobOutputVault,
         null
-      ) 
+      );
       const txBobAddOrder = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -413,19 +403,18 @@ describe("OrderBook clear order", async function () {
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
       const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
-       
 
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         outputMax_A,
-        tokenA18.address ,
+        tokenA18.address,
         tokenADecimals,
         aliceInputVault,
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      )  
+      );
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -439,18 +428,18 @@ describe("OrderBook clear order", async function () {
       // Order_B
 
       const ratio_B = fixedPointDiv(ONE, ratio_A);
-      
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB06.address ,
+        tokenB06.address,
         tokenBDecimals,
         bobInputVault,
         tokenA18.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )   
+      );
 
       const txAddOrderBob = await orderBook
         .connect(bob)
@@ -571,18 +560,18 @@ describe("OrderBook clear order", async function () {
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
       const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
-      
+
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         outputMax_A,
-        tokenA06.address ,
+        tokenA06.address,
         tokenADecimals,
         aliceInputVault,
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      )  
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -596,16 +585,16 @@ describe("OrderBook clear order", async function () {
 
       const ratio_B = fixedPointDiv(ONE, ratio_A);
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB20.address ,
+        tokenB20.address,
         tokenBDecimals,
         bobInputVault,
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -725,19 +714,18 @@ describe("OrderBook clear order", async function () {
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
       const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
-      
 
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         outputMax_A,
-        tokenA06.address ,
+        tokenA06.address,
         tokenADecimals,
         aliceInputVault,
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      )   
+      );
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -750,19 +738,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
 
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB18.address ,
+        tokenB18.address,
         tokenBDecimals,
         bobInputVault,
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -882,18 +870,18 @@ describe("OrderBook clear order", async function () {
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
       const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
-  
+
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         outputMax_A,
-        tokenA00.address ,
+        tokenA00.address,
         tokenADecimals,
         aliceInputVault,
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -905,19 +893,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB18.address ,
+        tokenB18.address,
         tokenBDecimals,
         bobInputVault,
         tokenA00.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -1036,18 +1024,18 @@ describe("OrderBook clear order", async function () {
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
       const ratio_A = ethers.BigNumber.from(10).pow(18);
-      
+
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         max_uint256,
-        tokenA06.address ,
+        tokenA06.address,
         tokenADecimals,
         aliceInputVault,
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1059,19 +1047,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB06.address ,
+        tokenB06.address,
         tokenBDecimals,
         bobInputVault,
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -1175,16 +1163,16 @@ describe("OrderBook clear order", async function () {
       const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         max_uint256,
-        tokenA20.address ,
+        tokenA20.address,
         tokenADecimals,
         aliceInputVault,
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1194,23 +1182,21 @@ describe("OrderBook clear order", async function () {
         orderBook
       )) as AddOrderEvent["args"];
 
-      
-
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB06.address ,
+        tokenB06.address,
         tokenBDecimals,
         bobInputVault,
         tokenA20.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -1220,7 +1206,6 @@ describe("OrderBook clear order", async function () {
         orderBook
       )) as AddOrderEvent["args"];
 
-      
       // DEPOSITS
 
       const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
@@ -1264,7 +1249,6 @@ describe("OrderBook clear order", async function () {
       };
 
       await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
-
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1314,18 +1298,18 @@ describe("OrderBook clear order", async function () {
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
       const ratio_A = ethers.BigNumber.from(10).pow(18);
-      
+
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         max_uint256,
-        tokenA18.address ,
+        tokenA18.address,
         tokenADecimals,
         aliceInputVault,
         tokenB06.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1337,19 +1321,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB06.address ,
+        tokenB06.address,
         tokenBDecimals,
         bobInputVault,
         tokenA18.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -1403,7 +1387,6 @@ describe("OrderBook clear order", async function () {
 
       await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
 
-
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
         tokenA18.address,
@@ -1452,18 +1435,18 @@ describe("OrderBook clear order", async function () {
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
       const ratio_A = ethers.BigNumber.from(10).pow(18);
-      
+
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         max_uint256,
-        tokenA06.address ,
+        tokenA06.address,
         tokenADecimals,
         aliceInputVault,
         tokenB20.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1475,19 +1458,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB20.address ,
+        tokenB20.address,
         tokenBDecimals,
         bobInputVault,
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -1496,10 +1479,6 @@ describe("OrderBook clear order", async function () {
         "AddOrder",
         orderBook
       )) as AddOrderEvent["args"];
-
-      
-
-      
 
       // DEPOSITS
 
@@ -1544,7 +1523,6 @@ describe("OrderBook clear order", async function () {
       };
 
       await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
-
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1594,18 +1572,18 @@ describe("OrderBook clear order", async function () {
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
       const ratio_A = ethers.BigNumber.from(10).pow(18);
-    
+
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         max_uint256,
-        tokenA06.address ,
+        tokenA06.address,
         tokenADecimals,
         aliceInputVault,
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1617,19 +1595,19 @@ describe("OrderBook clear order", async function () {
 
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB18.address ,
+        tokenB18.address,
         tokenBDecimals,
         bobInputVault,
         tokenA06.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
@@ -1638,7 +1616,6 @@ describe("OrderBook clear order", async function () {
         "AddOrder",
         orderBook
       )) as AddOrderEvent["args"];
-
 
       // DEPOSITS
 
@@ -1683,7 +1660,6 @@ describe("OrderBook clear order", async function () {
       };
 
       await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
-
 
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
@@ -1735,16 +1711,16 @@ describe("OrderBook clear order", async function () {
       const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A = await getOrderConfig(
-        ratio_A ,
+        ratio_A,
         max_uint256,
-        tokenA00.address ,
+        tokenA00.address,
         tokenADecimals,
         aliceInputVault,
         tokenB18.address,
         tokenBDecimals,
         aliceOutputVault,
         null
-      ) 
+      );
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1754,30 +1730,29 @@ describe("OrderBook clear order", async function () {
         orderBook
       )) as AddOrderEvent["args"];
 
-
       // Order_B
 
-      const ratio_B = fixedPointDiv(ONE, ratio_A); 
-      
+      const ratio_B = fixedPointDiv(ONE, ratio_A);
+
       const OrderConfig_B = await getOrderConfig(
-        ratio_B ,
+        ratio_B,
         max_uint256,
-        tokenB18.address ,
+        tokenB18.address,
         tokenBDecimals,
         bobInputVault,
         tokenA00.address,
         tokenADecimals,
         bobOutputVault,
         null
-      )  
+      );
       const txAddOrderBob = await orderBook
         .connect(bob)
         .addOrder(OrderConfig_B);
-      const { order: Order_B } = (await getEventArgs(
+      const { order: Order_B } = await getEventArgs(
         txAddOrderBob,
         "AddOrder",
         orderBook
-      ))
+      );
       // DEPOSITS
 
       const depositAmountB = ethers.BigNumber.from(2 + eighteenZeros);
@@ -1822,7 +1797,6 @@ describe("OrderBook clear order", async function () {
 
       await orderBook.connect(bountyBot).clear(Order_A, Order_B, clearConfig);
 
-
       const aliceInputVaultBalance = await orderBook.vaultBalance(
         alice.address,
         tokenA00.address,
@@ -1858,24 +1832,24 @@ describe("OrderBook clear order", async function () {
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A"); 
-    
+    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
+
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA.address ,
+      tokenA.address,
       18,
       aliceInputVault,
       tokenB.address,
       18,
       aliceOutputVault,
       aliceOrder
-    ) 
+    );
     const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(OrderConfig_A); 
+      .addOrder(OrderConfig_A);
 
-    const { sender: sender_A , order: Order_A } = (await getEventArgs(
+    const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txAddOrderAlice,
       "AddOrder",
       orderBook
@@ -1887,21 +1861,20 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-    
+
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB.address ,
+      tokenB.address,
       18,
       bobInputVault,
       tokenA.address,
       18,
       bobOutputVault,
       bobOrder
-    ) 
+    );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
@@ -2024,18 +1997,18 @@ describe("OrderBook clear order", async function () {
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
-     
+
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA.address ,
+      tokenA.address,
       18,
       aliceInputVault,
       tokenB.address,
       18,
       aliceOutputVault,
       aliceOrder
-    ) 
+    );
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -2057,21 +2030,20 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-    
+
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
- 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB.address ,
+      tokenB.address,
       18,
       bobInputVault,
       tokenA.address,
       18,
       bobOutputVault,
       bobOrder
-    ) 
+    );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
@@ -2082,10 +2054,7 @@ describe("OrderBook clear order", async function () {
     )) as AddOrderEvent["args"];
 
     assert(sender_B === bob.address, "wrong sender");
-    compareStructs(Order_B, OrderConfig_B); 
-
-
-    
+    compareStructs(Order_B, OrderConfig_B);
 
     // DEPOSITS
 
@@ -2192,20 +2161,20 @@ describe("OrderBook clear order", async function () {
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-  
+
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA.address ,
+      tokenA.address,
       18,
       aliceInputVault,
       tokenB.address,
       18,
       aliceOutputVault,
       aliceOrder
-    ) 
+    );
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -2222,21 +2191,20 @@ describe("OrderBook clear order", async function () {
 
     // Order_B
 
-    const ratio_B = fixedPointDiv(ONE, ratio_A); 
+    const ratio_B = fixedPointDiv(ONE, ratio_A);
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
-    
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB.address ,
+      tokenB.address,
       18,
       bobInputVault,
       tokenA.address,
       18,
       bobOutputVault,
       bobOrder
-    ) 
+    );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
@@ -2373,18 +2341,16 @@ describe("OrderBook clear order", async function () {
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA.address ,
+      tokenA.address,
       18,
       aliceInputVault,
       tokenB.address,
       18,
       aliceOutputVault,
       aliceOrder
-    ) 
-
-    
+    );
 
     const txAddOrderAlice = await orderBook
       .connect(alice1)
@@ -2402,21 +2368,20 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-    
+
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-    
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB.address ,
+      tokenB.address,
       18,
       bobInputVault,
       tokenA.address,
       18,
       bobOutputVault,
       bobOrder
-    ) 
+    );
 
     const txAddOrderBob = await orderBook
       .connect(alice2)
@@ -2528,18 +2493,17 @@ describe("OrderBook clear order", async function () {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-  
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA.address ,
+      tokenA.address,
       18,
       aliceInputVault,
       tokenB.address,
       18,
       aliceOutputVault,
       aliceOrder
-    ) 
+    );
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -2557,20 +2521,20 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-  
+
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB.address ,
+      tokenB.address,
       18,
       bobInputVault,
       tokenA.address,
       18,
       bobOutputVault,
       bobOrder
-    ) 
+    );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
@@ -2730,23 +2694,22 @@ describe("OrderBook clear order", async function () {
     // The ratio is 1:1 from the perspective of the expression.
     // This is a statement of economic equivalence in 18 decimal fixed point.
     const ratio_A = ethers.BigNumber.from(10).pow(18);
-   
+
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA06.address ,
+      tokenA06.address,
       tokenADecimals,
       aliceInputVault,
       tokenB18.address,
       tokenBDecimals,
       aliceOutputVault,
       null
-    )  
+    );
     const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(OrderConfig_A); 
+      .addOrder(OrderConfig_A);
 
-    
     const { order: Order_A } = (await getEventArgs(
       txAddOrderAlice,
       "AddOrder",
@@ -2756,18 +2719,18 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-   
+
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB18.address ,
+      tokenB18.address,
       tokenBDecimals,
       bobInputVault,
       tokenA06.address,
       incorrectTokenADecimals,
       bobOutputVault,
       []
-    ) 
+    );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
     const { order: Order_B } = (await getEventArgs(
@@ -2887,20 +2850,20 @@ describe("OrderBook clear order", async function () {
     // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
-    
+
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
-      ratio_A ,
+      ratio_A,
       max_uint256,
-      tokenA.address ,
+      tokenA.address,
       18,
       aliceInputVault,
       tokenB.address,
       18,
       aliceOutputVault,
       aliceOrder
-    )  
+    );
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -2922,23 +2885,20 @@ describe("OrderBook clear order", async function () {
     // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
-   
+
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-    
-
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
-      ratio_B ,
+      ratio_B,
       max_uint256,
-      tokenB.address ,
+      tokenB.address,
       18,
       bobInputVault,
       tokenA.address,
       18,
       bobOutputVault,
       bobOrder
-    ) 
-
+    );
 
     const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 

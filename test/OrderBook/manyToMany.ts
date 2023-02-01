@@ -165,9 +165,7 @@ describe("OrderBook many-to-many", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -448,9 +446,7 @@ describe("OrderBook many-to-many", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,

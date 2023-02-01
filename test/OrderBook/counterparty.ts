@@ -130,9 +130,7 @@ describe("OrderBook counterparty in context", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -220,16 +218,13 @@ describe("OrderBook counterparty in context", async function () {
       data: carolOrder,
     };
 
-    const txOrder_C = await orderBook
-      .connect(carol)
-      .addOrder(OrderConfig_C);
+    const txOrder_C = await orderBook.connect(carol).addOrder(OrderConfig_C);
 
-    const { sender: sender_C, order: Order_C } =
-      (await getEventArgs(
-        txOrder_C,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
+    const { sender: sender_C, order: Order_C } = (await getEventArgs(
+      txOrder_C,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
 
     assert(sender_C === carol.address, "wrong sender");
     compareStructs(Order_C, OrderConfig_C);

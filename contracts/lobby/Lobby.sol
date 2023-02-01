@@ -506,7 +506,11 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // phase to the invalid phase, but this happens atomically within this
         // function call so there's no way that `claim` can be called before
         // `refund` is enabled.
-        (bool isInvalid_, uint256[] memory kvs_) = _isInvalid(evaluable_, callerContext_, signedContexts_);
+        (bool isInvalid_, uint256[] memory kvs_) = _isInvalid(
+            evaluable_,
+            callerContext_,
+            signedContexts_
+        );
         if (!isInvalid_) {
             revert NotInvalid();
         }

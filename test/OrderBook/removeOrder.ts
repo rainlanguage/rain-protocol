@@ -83,9 +83,7 @@ describe("OrderBook remove order", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: liveSender_A, order: LiveOrder_A } = (await getEventArgs(
       txOrder_A,

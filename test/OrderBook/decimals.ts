@@ -172,12 +172,7 @@ describe("OrderBook decimals", async function () {
     // 3e18 means that only 3 units of tokenB can be outputted per order
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
 
-    const constants_A = [
-      outputMax_A,
-      ratio_A,
-      tokenADecimals,
-      tokenBDecimals,
-    ];
+    const constants_A = [outputMax_A, ratio_A, tokenADecimals, tokenBDecimals];
     const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -234,9 +229,7 @@ describe("OrderBook decimals", async function () {
       data: [],
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { order: Order_A } = (await getEventArgs(
       txOrder_A,

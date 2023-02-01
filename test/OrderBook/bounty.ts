@@ -105,9 +105,7 @@ describe("OrderBook bounty", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(orderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(orderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
