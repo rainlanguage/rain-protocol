@@ -312,12 +312,7 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [
-      max_uint256,
-      ratio_A,
-      depositAmountA,
-      depositAmountB,
-    ];
+    const constants_A = [max_uint256, ratio_A, depositAmountA, depositAmountB];
     const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -912,12 +907,7 @@ describe("OrderBook expression checks", async () => {
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const constants_A = [
-      max_uint256,
-      ratio_A,
-      tokenADecimals,
-      tokenBDecimals,
-    ];
+    const constants_A = [max_uint256, ratio_A, tokenADecimals, tokenBDecimals];
     const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -1388,9 +1378,7 @@ describe("OrderBook expression checks", async () => {
       data: aliceOrder,
     };
 
-    const txAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig);
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrder,
@@ -1537,9 +1525,7 @@ describe("OrderBook expression checks", async () => {
       data: aliceOrder,
     };
 
-    const txAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig);
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrder,
