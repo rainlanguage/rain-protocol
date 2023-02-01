@@ -1846,4 +1846,137 @@ describe("Flow flow tests", async function () {
       "Did not error when an unregistered flow is being evaluated"
     );
   });
+
+  it("should not be able to access values set in a flow across different flows", async () => {
+    const signers = await ethers.getSigners();
+    const deployer = signers[0];
+    const you = signers[1];
+
+    const erc20In = (await basicDeploy("ReserveToken18", {})) as ReserveToken18;
+    await erc20In.initialize();
+
+    const flowTransfer: FlowTransferStruct = {
+      native: [],
+      erc20: [
+        {
+          from: you.address,
+          to: "", // Contract address
+          token: erc20In.address,
+          amount: ethers.BigNumber.from(1 + eighteenZeros),
+        },
+      ],
+      erc721: [],
+      erc1155: [],
+    };
+
+    // Sample key
+    const key = 1337;
+    const constants = [
+      RAIN_FLOW_SENTINEL,
+      1,
+      flowTransfer.erc20[0].token,
+      flowTransfer.erc20[0].amount,
+      key,
+    ];
+
+    const SENTINEL = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+    const FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
+    const KEY = () =>
+      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
+
+    const sourceFlowIOA = concat([
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 END
+      SENTINEL(), // ERC20 END
+      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      SENTINEL(), // NATIVE SKIP
+
+      // Setting a value
+      KEY(), // k_
+      op(Opcode.BLOCK_TIMESTAMP), // v_
+      op(Opcode.SET),
+    ]);
+
+    const sourceFlowIOB = concat([
+      // Getting the value set in flowA
+      KEY(), // k_
+      op(Opcode.GET), // Getting a value with the same key set in flowA
+      op(Opcode.ISZERO),
+      op(Opcode.ENSURE, 1), // Ensures that the value is not set
+
+      SENTINEL(), // ERC1155 SKIP
+      SENTINEL(), // ERC721 END
+      SENTINEL(), // ERC20 END
+      FLOWTRANSFER_YOU_TO_ME_ERC20_TOKEN(),
+      YOU(),
+      ME(),
+      FLOWTRANSFER_YOU_TO_ME_ERC20_AMOUNT(),
+      SENTINEL(), // NATIVE SKIP
+    ]);
+
+    const flowConfigStruct: FlowConfig = {
+      flows: [
+        { sources: [sourceFlowIOA], constants },
+        { sources: [sourceFlowIOB], constants },
+      ],
+    };
+
+    const { flow } = await flowDeploy(deployer, flowFactory, flowConfigStruct);
+
+    const flowInitialized = (await getEvents(
+      flow.deployTransaction,
+      "FlowInitialized",
+      flow
+    )) as FlowInitializedEvent["args"][];
+
+    const me = flow;
+
+    // prepare input ERC20
+    await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
+
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
+
+    const flowStruct = await flow
+      .connect(you)
+      .previewFlow(flowInitialized[0].evaluable, [1234], []);
+
+    await flow
+      .connect(you)
+      .callStatic.flow(flowInitialized[0].evaluable, [1234], []);
+
+    compareStructs(flowStruct, fillEmptyAddress(flowTransfer, flow.address));
+
+    const _txFlow = await flow
+      .connect(you)
+      .flow(flowInitialized[0].evaluable, [1234], []);
+
+    // Transfer flowB
+
+    await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
+
+    await erc20In
+      .connect(you)
+      .approve(me.address, flowTransfer.erc20[0].amount);
+    await flow.connect(you).flow(flowInitialized[1].evaluable, [1234], []);
+
+    // check input ERC20 affected balances correctly
+    const me20BalanceIn = await erc20In.balanceOf(me.address);
+    const you20BalanceIn = await erc20In.balanceOf(you.address);
+
+    assert(
+      me20BalanceIn.eq(
+        ((await flowTransfer.erc20[0].amount) as BigNumber).mul(2)
+      )
+    );
+    assert(you20BalanceIn.isZero());
+  });
 });
