@@ -56,7 +56,7 @@ describe("OrderBook add order", async function () {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
@@ -90,9 +90,7 @@ describe("OrderBook add order", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(orderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(orderConfig_A);
 
     const {
       sender: sender_A,
@@ -111,7 +109,7 @@ describe("OrderBook add order", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(order_A, orderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];

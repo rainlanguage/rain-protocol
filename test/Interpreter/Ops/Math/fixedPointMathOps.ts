@@ -352,7 +352,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
 
@@ -388,7 +392,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
 
@@ -426,7 +434,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
 
@@ -465,7 +477,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
 
@@ -504,7 +520,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
 
@@ -543,7 +563,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "72").add(
@@ -583,7 +607,11 @@ describe("RainInterpreter fixed point math ops", async function () {
       1
     );
 
-    await logic["eval(address,uint256,uint256[][])"](rainInterpreter.address, expression0.dispatch, []);
+    await logic["eval(address,uint256,uint256[][])"](
+      rainInterpreter.address,
+      expression0.dispatch,
+      []
+    );
 
     const result0 = await logic.stackTop();
     const expected0 = ethers.BigNumber.from(1 + sixteenZeros + "72");

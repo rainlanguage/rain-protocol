@@ -83,9 +83,7 @@ describe("OrderBook remove order", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: liveSender_A, order: LiveOrder_A } = (await getEventArgs(
       txOrder_A,
@@ -96,7 +94,7 @@ describe("OrderBook remove order", async function () {
     assert(liveSender_A === alice.address, "wrong sender");
     compareStructs(LiveOrder_A, OrderConfig_A);
 
-    // REMOVE ASK ORDER
+    // REMOVE Order_A
 
     await assertError(
       async () => await orderBook.connect(bob).removeOrder(LiveOrder_A),

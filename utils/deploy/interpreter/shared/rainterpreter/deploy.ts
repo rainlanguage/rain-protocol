@@ -1,4 +1,8 @@
-import { Rainterpreter, RainterpreterExtern, RainterpreterStore } from "../../../../../typechain";
+import {
+  Rainterpreter,
+  RainterpreterExtern,
+  RainterpreterStore,
+} from "../../../../../typechain";
 import { getRainterpreterOpmetaBytes } from "../../../../interpreter/ops/allStandardOpmeta";
 import { basicDeploy } from "../../../basicDeploy";
 

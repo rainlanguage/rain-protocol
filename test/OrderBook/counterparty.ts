@@ -73,7 +73,7 @@ describe("OrderBook counterparty in context", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const outputMax_A = max_uint256;
@@ -130,9 +130,7 @@ describe("OrderBook counterparty in context", async function () {
       data: aliceOrder,
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { sender: sender_A, order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -143,7 +141,7 @@ describe("OrderBook counterparty in context", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER - BAD MATCH
+    // Order_B - BAD MATCH
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
@@ -187,7 +185,7 @@ describe("OrderBook counterparty in context", async function () {
     assert(sender_B === bob.address, "wrong sender");
     compareStructs(Order_B, OrderConfig_B);
 
-    // BID ORDER - GOOD MATCH
+    // Order_B - GOOD MATCH
 
     const ratio_C = fixedPointDiv(ONE, ratio_A);
     const constants_C = [max_uint256, ratio_C];
@@ -220,16 +218,13 @@ describe("OrderBook counterparty in context", async function () {
       data: carolOrder,
     };
 
-    const txOrder_C = await orderBook
-      .connect(carol)
-      .addOrder(OrderConfig_C);
+    const txOrder_C = await orderBook.connect(carol).addOrder(OrderConfig_C);
 
-    const { sender: sender_C, order: Order_C } =
-      (await getEventArgs(
-        txOrder_C,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
+    const { sender: sender_C, order: Order_C } = (await getEventArgs(
+      txOrder_C,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
 
     assert(sender_C === carol.address, "wrong sender");
     compareStructs(Order_C, OrderConfig_C);

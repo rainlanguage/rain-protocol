@@ -60,7 +60,7 @@ describe("OrderBook decimals", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
@@ -162,7 +162,7 @@ describe("OrderBook decimals", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     // note 18 decimals for ratio
     // 1e18 means that 1 unit of tokenA is equivalent to 1 unit of tokenB
@@ -172,12 +172,7 @@ describe("OrderBook decimals", async function () {
     // 3e18 means that only 3 units of tokenB can be outputted per order
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
 
-    const constants_A = [
-      outputMax_A,
-      ratio_A,
-      tokenADecimals,
-      tokenBDecimals,
-    ];
+    const constants_A = [outputMax_A, ratio_A, tokenADecimals, tokenBDecimals];
     const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
@@ -234,9 +229,7 @@ describe("OrderBook decimals", async function () {
       data: [],
     };
 
-    const txOrder_A = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { order: Order_A } = (await getEventArgs(
       txOrder_A,
@@ -244,7 +237,7 @@ describe("OrderBook decimals", async function () {
       orderBook
     )) as AddOrderEvent["args"];
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A); // no need to account for decimals difference
 
