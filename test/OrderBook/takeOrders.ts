@@ -86,7 +86,7 @@ describe("OrderBook take orders", async function () {
     const outputMax_A = amountB.sub(1); // will only sell 999 tokenBs to each buyer
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
-  
+
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
       outputMax_A,
@@ -99,7 +99,6 @@ describe("OrderBook take orders", async function () {
       aliceOrder
     );
 
-    
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
@@ -117,9 +116,7 @@ describe("OrderBook take orders", async function () {
     const txAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(OrderConfig_A);
-    const txAddOrderBob = await orderBook
-      .connect(bob)
-      .addOrder(OrderConfig_B);
+    const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrderAlice,
@@ -210,7 +207,7 @@ describe("OrderBook take orders", async function () {
 
     // ORDERS
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
@@ -224,7 +221,6 @@ describe("OrderBook take orders", async function () {
       aliceOutputVault,
       aliceOrder
     );
- 
 
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
@@ -240,14 +236,10 @@ describe("OrderBook take orders", async function () {
       bobOrder
     );
 
-   
-
     const txAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(OrderConfig_A);
-    const txAddOrderBob = await orderBook
-      .connect(bob)
-      .addOrder(OrderConfig_B);
+    const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrderAlice,
@@ -793,7 +785,7 @@ describe("OrderBook take orders", async function () {
 
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
-      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros); 
+      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -818,7 +810,6 @@ describe("OrderBook take orders", async function () {
         bobOutputVault,
         null
       );
-
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1044,7 +1035,7 @@ describe("OrderBook take orders", async function () {
 
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
-      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros); 
+      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -1070,8 +1061,6 @@ describe("OrderBook take orders", async function () {
         null
       );
 
-      
-
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -1089,7 +1078,6 @@ describe("OrderBook take orders", async function () {
         "AddOrder",
         orderBook
       )) as AddOrderEvent["args"];
-
 
       // DEPOSIT
 
@@ -1297,7 +1285,7 @@ describe("OrderBook take orders", async function () {
 
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
-      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros); 
+      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -1547,7 +1535,7 @@ describe("OrderBook take orders", async function () {
 
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
-      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros); 
+      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -1572,8 +1560,6 @@ describe("OrderBook take orders", async function () {
         bobOutputVault,
         null
       );
-
-     
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -1799,7 +1785,7 @@ describe("OrderBook take orders", async function () {
 
       // note 18 decimals for outputMax
       // 1e18 means that only 1 unit of tokenB can be outputted per order
-      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros); 
+      const outputMax_A = ethers.BigNumber.from(1 + eighteenZeros);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -1824,9 +1810,6 @@ describe("OrderBook take orders", async function () {
         bobOutputVault,
         null
       );
-
-
-    
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -2050,7 +2033,7 @@ describe("OrderBook take orders", async function () {
 
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
-      const ratio_A = ethers.BigNumber.from(10).pow(18); 
+      const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -2076,7 +2059,6 @@ describe("OrderBook take orders", async function () {
         null
       );
 
-      
       const txAddOrderAlice = await orderBook
         .connect(alice)
         .addOrder(OrderConfig_A);
@@ -2253,7 +2235,7 @@ describe("OrderBook take orders", async function () {
 
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
-      const ratio_A = ethers.BigNumber.from(10).pow(18); 
+      const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -2455,7 +2437,7 @@ describe("OrderBook take orders", async function () {
 
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
-      const ratio_A = ethers.BigNumber.from(10).pow(18); 
+      const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -2481,24 +2463,23 @@ describe("OrderBook take orders", async function () {
         null
       );
 
-   
       const txAddOrderAlice = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
-    const txAddOrderBob = await orderBook
-      .connect(bob)
-      .addOrder(OrderConfig_B);
+        .connect(alice)
+        .addOrder(OrderConfig_A);
+      const txAddOrderBob = await orderBook
+        .connect(bob)
+        .addOrder(OrderConfig_B);
 
-    const { order: Order_A } = (await getEventArgs(
-      txAddOrderAlice,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-    const { order: Order_B } = (await getEventArgs(
-      txAddOrderBob,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
+      const { order: Order_A } = (await getEventArgs(
+        txAddOrderAlice,
+        "AddOrder",
+        orderBook
+      )) as AddOrderEvent["args"];
+      const { order: Order_B } = (await getEventArgs(
+        txAddOrderBob,
+        "AddOrder",
+        orderBook
+      )) as AddOrderEvent["args"];
 
       // DEPOSIT
 
@@ -2658,7 +2639,7 @@ describe("OrderBook take orders", async function () {
 
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
-      const ratio_A = ethers.BigNumber.from(10).pow(18); 
+      const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -2684,26 +2665,23 @@ describe("OrderBook take orders", async function () {
         null
       );
 
-      
-
-
       const txAddOrderAlice = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
-    const txAddOrderBob = await orderBook
-      .connect(bob)
-      .addOrder(OrderConfig_B);
+        .connect(alice)
+        .addOrder(OrderConfig_A);
+      const txAddOrderBob = await orderBook
+        .connect(bob)
+        .addOrder(OrderConfig_B);
 
-    const { order: Order_A } = (await getEventArgs(
-      txAddOrderAlice,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
-    const { order: Order_B } = (await getEventArgs(
-      txAddOrderBob,
-      "AddOrder",
-      orderBook
-    )) as AddOrderEvent["args"];
+      const { order: Order_A } = (await getEventArgs(
+        txAddOrderAlice,
+        "AddOrder",
+        orderBook
+      )) as AddOrderEvent["args"];
+      const { order: Order_B } = (await getEventArgs(
+        txAddOrderBob,
+        "AddOrder",
+        orderBook
+      )) as AddOrderEvent["args"];
 
       // DEPOSIT
 
@@ -2863,7 +2841,7 @@ describe("OrderBook take orders", async function () {
 
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
-      const ratio_A = ethers.BigNumber.from(10).pow(18); 
+      const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -2888,7 +2866,6 @@ describe("OrderBook take orders", async function () {
         bobOutputVault,
         null
       );
-
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -3066,7 +3043,7 @@ describe("OrderBook take orders", async function () {
 
       // The ratio is 1:1 from the perspective of the expression.
       // This is a statement of economic equivalence in 18 decimal fixed point.
-      const ratio_A = ethers.BigNumber.from(10).pow(18); 
+      const ratio_A = ethers.BigNumber.from(10).pow(18);
 
       const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
         ratio_A,
@@ -3091,9 +3068,6 @@ describe("OrderBook take orders", async function () {
         bobOutputVault,
         null
       );
-
-
-      
 
       const txAddOrderAlice = await orderBook
         .connect(alice)
@@ -3254,15 +3228,14 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
     const bobInputVault = ethers.BigNumber.from(randomUint256());
-    const bobOutputVault = ethers.BigNumber.from(randomUint256()); 
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-
     // ORDERS
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -3287,25 +3260,22 @@ describe("OrderBook take orders", async function () {
       bobOutputVault,
       bobOrder
     );
-  
 
     const txAddOrderAlice = await orderBook
-        .connect(alice)
-        .addOrder(OrderConfig_A);
-      const txAddOrderBob = await orderBook
-        .connect(bob)
-        .addOrder(OrderConfig_B);
+      .connect(alice)
+      .addOrder(OrderConfig_A);
+    const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
-      const { order: Order_A } = (await getEventArgs(
-        txAddOrderAlice,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
-      const { order: Order_B } = (await getEventArgs(
-        txAddOrderBob,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
+    const { order: Order_B } = (await getEventArgs(
+      txAddOrderBob,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
 
     // DEPOSIT
 
@@ -3400,7 +3370,7 @@ describe("OrderBook take orders", async function () {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
     const OrderConfig_A0: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -3413,8 +3383,6 @@ describe("OrderBook take orders", async function () {
       aliceOutputVault,
       aliceOrder
     );
-
-    
 
     const txAddOrderAlice0 = await orderBook
       .connect(alice)
@@ -3439,9 +3407,6 @@ describe("OrderBook take orders", async function () {
       aliceOutputVault,
       aliceOrder
     );
- 
-
-    
 
     const txAddOrderAlice1 = await orderBook
       .connect(alice)
@@ -3532,14 +3497,14 @@ describe("OrderBook take orders", async function () {
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
-    const aliceOutputVault = ethers.BigNumber.from(randomUint256()); 
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     const aliceOrder0 = ethers.utils.toUtf8Bytes("Order0");
     const aliceOrder1 = ethers.utils.toUtf8Bytes("Order1");
 
     // ASK ORDER 0
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
     const OrderConfig_A0: OrderConfigStruct = await getOrderConfig(
       ratio_A.add(1),
@@ -3551,7 +3516,7 @@ describe("OrderBook take orders", async function () {
       18,
       aliceOutputVault,
       aliceOrder0
-    ); 
+    );
     const OrderConfig_A1: OrderConfigStruct = await getOrderConfig(
       ratio_A,
       max_uint256,
@@ -3562,15 +3527,10 @@ describe("OrderBook take orders", async function () {
       18,
       aliceOutputVault,
       aliceOrder1
-    ); 
+    );
 
-
-    const txAddOrder0 = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A0);
-    const txAddOrder1 = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A1);
+    const txAddOrder0 = await orderBook.connect(alice).addOrder(OrderConfig_A0);
+    const txAddOrder1 = await orderBook.connect(alice).addOrder(OrderConfig_A1);
 
     const { order: Order_A0 } = (await getEventArgs(
       txAddOrder0,
@@ -3662,16 +3622,14 @@ describe("OrderBook take orders", async function () {
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
 
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
-    const aliceOutputVault = ethers.BigNumber.from(randomUint256()); 
+    const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
     const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
 
-
     // ASK ORDER
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
-    
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
       max_uint256,
@@ -3682,11 +3640,9 @@ describe("OrderBook take orders", async function () {
       18,
       aliceOutputVault,
       aliceOrder
-    ); 
-   
-    const txAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    );
+
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrder,
@@ -3778,14 +3734,14 @@ describe("OrderBook take orders", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
     const bobInputVault = ethers.BigNumber.from(randomUint256());
-    const bobOutputVault = ethers.BigNumber.from(randomUint256()); 
+    const bobOutputVault = ethers.BigNumber.from(randomUint256());
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
     const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
     // ORDERS
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -3797,7 +3753,7 @@ describe("OrderBook take orders", async function () {
       18,
       aliceOutputVault,
       aliceOrder
-    );  
+    );
 
     const OrderConfig_B: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -3809,15 +3765,12 @@ describe("OrderBook take orders", async function () {
       18,
       bobOutputVault,
       bobOrder
-    );  
+    );
 
-    
     const txAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(OrderConfig_A);
-    const txAddOrderBob = await orderBook
-      .connect(bob)
-      .addOrder(OrderConfig_B);
+    const txAddOrderBob = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrderAlice,
@@ -3959,10 +3912,9 @@ describe("OrderBook take orders", async function () {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-
     // ASK ORDER
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -3974,13 +3926,9 @@ describe("OrderBook take orders", async function () {
       18,
       aliceOutputVault,
       aliceOrder
-    ); 
+    );
 
-    
-
-    const txAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { order: Order_A } = (await getEventArgs(
       txAddOrder,
@@ -4506,7 +4454,7 @@ describe("OrderBook take orders", async function () {
 
     // ASK ORDER
 
-    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros); 
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -4518,12 +4466,9 @@ describe("OrderBook take orders", async function () {
       18,
       aliceOutputVault,
       aliceOrder
-    );  
+    );
 
-
-    const txAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(OrderConfig_A);
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
     const { order: Order_A, orderHash: hashOrder_A } = (await getEventArgs(
       txAddOrder,
@@ -4696,7 +4641,7 @@ describe("OrderBook take orders", async function () {
 
     // The ratio is 1:1 from the perspective of the expression.
     // This is a statement of economic equivalence in 18 decimal fixed point.
-    const ratio_A = ethers.BigNumber.from("1000000000000034567");  
+    const ratio_A = ethers.BigNumber.from("1000000000000034567");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -4710,9 +4655,6 @@ describe("OrderBook take orders", async function () {
       null
     );
 
-    
-
-   
     const txAddOrderAlice = await orderBook
       .connect(alice)
       .addOrder(OrderConfig_A);
@@ -4832,7 +4774,7 @@ describe("OrderBook take orders", async function () {
 
     // The ratio is 1:1 from the perspective of the expression.
     // This is a statement of economic equivalence in 18 decimal fixed point.
-    const ratio_A = ethers.BigNumber.from("1999765000000034567"); 
+    const ratio_A = ethers.BigNumber.from("1999765000000034567");
 
     const OrderConfig_A: OrderConfigStruct = await getOrderConfig(
       ratio_A,
@@ -4845,8 +4787,6 @@ describe("OrderBook take orders", async function () {
       aliceOutputVault,
       null
     );
-
-    
 
     const txAddOrderAlice = await orderBook
       .connect(alice)
@@ -4900,7 +4840,6 @@ describe("OrderBook take orders", async function () {
 
     // We want Carol to only approve exactly what is necessary to take the orders. We scale the tokenB deposit amount 'up' by the difference between A decimals and B decimals.
     const depositAmountA = fixedPointMul(depositAmountB, maximumIORatio);
-  
 
     await tokenA06.transfer(bob.address, depositAmountA); // 2 orders
     await tokenA06.connect(bob).approve(orderBook.address, depositAmountA); // 2 orders
