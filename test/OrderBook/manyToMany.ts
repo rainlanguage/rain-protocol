@@ -128,7 +128,7 @@ describe("OrderBook many-to-many", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
@@ -178,7 +178,7 @@ describe("OrderBook many-to-many", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];
@@ -411,7 +411,7 @@ describe("OrderBook many-to-many", async function () {
     const bobVaultB = ethers.BigNumber.from(randomUint256());
     const bobVaultA = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
@@ -461,7 +461,7 @@ describe("OrderBook many-to-many", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     const ratio_B = fixedPointDiv(ONE, ratio_A);
     const constants_B = [max_uint256, ratio_B];

@@ -71,7 +71,7 @@ describe("OrderBook bounty", async function () {
 
     const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    // ASK ORDER
+    // Order_A
 
     const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const constants_A = [max_uint256, ratio_A];
@@ -118,7 +118,7 @@ describe("OrderBook bounty", async function () {
     assert(sender_A === alice.address, "wrong sender");
     compareStructs(Order_A, orderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     // bob undervalues his units, offering better value than alice expects
     // order clearer is ultimately rewarded with this difference as a bounty

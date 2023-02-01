@@ -96,7 +96,7 @@ describe("OrderBook remove order", async function () {
     assert(liveSender_A === alice.address, "wrong sender");
     compareStructs(LiveOrder_A, OrderConfig_A);
 
-    // REMOVE ASK ORDER
+    // REMOVE Order_A
 
     await assertError(
       async () => await orderBook.connect(bob).removeOrder(LiveOrder_A),
