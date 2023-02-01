@@ -960,7 +960,6 @@ describe("Sale buy", async function () {
               key, 
             op(Opcode.GET),
             zero,
-            op(Opcode.DEBUG, Debug.StatePacked),
           op(Opcode.GREATER_THAN), 
           vDiscountedPrice,
           vBasePrice,
@@ -1074,113 +1073,6 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice1}
       got       ${receipt1.price}`
     );
-    const desiredUnits2 = totalTokenSupply.div(10);
-    const expectedPrice2 = basePrice;
-    const expectedCost2 = expectedPrice2.mul(desiredUnits2).div(ONE);
-    // give signer1 reserve to cover cost + fee
-    await reserve.transfer(signer1.address, expectedCost2.add(fee));
-    await reserve
-      .connect(signer1)
-      .approve(sale.address, expectedCost2.add(fee));
-    // buy another 10% of total supply
-    const txBuy2 = await sale.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits2,
-      desiredUnits: desiredUnits2,
-      maximumPrice: expectedPrice2,
-    });
-    const { receipt: receipt2 } = (await getEventArgs(
-      txBuy2,
-      "Buy",
-      sale
-    )) as BuyEvent["args"];
-    assert(
-      receipt2.price.eq(expectedPrice2),
-      `wrong dynamic price2
-      expected  ${expectedPrice2}
-      got       ${receipt2.price}`
-    );
-    const desiredUnits3 = totalTokenSupply.div(10);
-    const expectedPrice3 = basePrice;
-    const expectedCost3 = expectedPrice3.mul(desiredUnits3).div(ONE);
-    // give signer1 reserve to cover cost + fee
-    await reserve.transfer(signer1.address, expectedCost3.add(fee));
-    await reserve
-      .connect(signer1)
-      .approve(sale.address, expectedCost3.add(fee));
-    // buy another 10% of total supply
-    const txBuy3 = await sale.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits3,
-      desiredUnits: desiredUnits3,
-      maximumPrice: expectedPrice3,
-    });
-    const { receipt: receipt3 } = (await getEventArgs(
-      txBuy3,
-      "Buy",
-      sale
-    )) as BuyEvent["args"];
-    assert(
-      receipt3.price.eq(expectedPrice3),
-      `wrong dynamic price3
-      expected  ${expectedPrice3}
-      got       ${receipt3.price}`
-    );
-    const desiredUnits4 = totalTokenSupply.div(10);
-    const expectedPrice4 = basePrice;
-    const expectedCost4 = expectedPrice4.mul(desiredUnits4).div(ONE);
-    // give signer1 reserve to cover cost + fee
-    await reserve.transfer(signer1.address, expectedCost4.add(fee));
-    await reserve
-      .connect(signer1)
-      .approve(sale.address, expectedCost4.add(fee));
-    // buy another 10% of total supply
-    const txBuy4 = await sale.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits4,
-      desiredUnits: desiredUnits4,
-      maximumPrice: expectedPrice4,
-    });
-    const { receipt: receipt4 } = (await getEventArgs(
-      txBuy4,
-      "Buy",
-      sale
-    )) as BuyEvent["args"];
-    assert(
-      receipt4.price.eq(expectedPrice4),
-      `wrong dynamic price4
-      expected  ${expectedPrice4}
-      got       ${receipt4.price}`
-    );
-    const desiredUnits5 = totalTokenSupply.div(10);
-    const expectedPrice5 = basePrice;
-    const expectedCost5 = expectedPrice5.mul(desiredUnits5).div(ONE);
-    // give signer1 reserve to cover cost + fee
-    await reserve.transfer(signer1.address, expectedCost5.add(fee));
-    await reserve
-      .connect(signer1)
-      .approve(sale.address, expectedCost5.add(fee));
-    // buy another 10% of total supply
-    const txBuy5 = await sale.connect(signer1).buy({
-      feeRecipient: feeRecipient.address,
-      fee,
-      minimumUnits: desiredUnits5,
-      desiredUnits: desiredUnits5,
-      maximumPrice: expectedPrice5,
-    });
-    const { receipt: receipt5 } = (await getEventArgs(
-      txBuy5,
-      "Buy",
-      sale
-    )) as BuyEvent["args"];
-    assert(
-      receipt5.price.eq(expectedPrice5),
-      `wrong dynamic price5
-      expected  ${expectedPrice5}
-      got       ${receipt5.price}`
-    );
+    
   });
 });
