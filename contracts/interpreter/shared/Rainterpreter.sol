@@ -10,6 +10,8 @@ import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 /// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
+/// @param actualBytecodeHash The bytecode hash that was found at the store
+/// address upon construction.
 error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
 
 /// Thrown when the `Rainterpreter` is constructed with unknown opMeta.
