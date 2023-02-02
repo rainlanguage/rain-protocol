@@ -1,0 +1,50 @@
+{
+  "name": "Lobby Factory",
+  "type": "Factory",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "commit": "891b44d186e9c30d520b056314666b53c5d9ff64",
+  "bytecodeHash": "123",
+  "description": "",
+  "addresses": [
+    {
+      "chainId": 80001,
+      "knownAddresses": ["0xECeD43Ed5AE06b05dac2B6DbfC49affa0B587256"]
+    }
+  ],
+  "inputs": [
+    {
+      "name": "Ref must agree",
+      "path": "[6].inputs[0].components[0]",
+      "description": "If `true` the ref must agree to be the ref before ANY players can join. This guards against the ref being entirely unaware of the lobby and therefore unlikely to sign any data beyond generic results. This MAY be `false` if the outcome of the `Lobby` can be inferred by entirely generic data that the ref is likely to publish regardless of the `Lobby`, such as a winner list that can be produced upon demand from some API."
+    },
+    {
+      "name": "Referee",
+      "path": "[6].inputs[0].components[1]",
+      "description": "The ref is some address that is expected to provide signatures of the results that allow the `Lobby` to complete or move to invalid."
+    },
+    {
+      "name": "Token",
+      "path": "[6].inputs[0].components[2]",
+      "description": "The token that fees and rewards will be denominated in."
+    },
+    {
+      "name": "Description",
+      "path": "[6].inputs[0].components[4]",
+      "description": "IPFS hash or similar of description and rules etc. that can be in JSON for a GUI."
+    },
+    {
+      "name": "Timeout duration",
+      "path": "[6].inputs[0].components[5]",
+      "description": "Timeout the whole lobby after this many seconds."
+    }
+  ],
+  "expressions": [
+    {
+      "name": "Lobby expression",
+      "path": "[6].inputs[0].components[3]",
+      "description": "The expression that defines the rules for this Lobby.",
+      "signedContext": true,
+      "callerContext": true
+    }
+  ]
+}
