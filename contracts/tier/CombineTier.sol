@@ -11,8 +11,11 @@ import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 
 import {ERC165CheckerUpgradeable as ERC165Checker} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
+
+bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
 
 SourceIndex constant REPORT_ENTRYPOINT = SourceIndex.wrap(0);
 SourceIndex constant REPORT_FOR_TIER_ENTRYPOINT = SourceIndex.wrap(1);
@@ -51,8 +54,11 @@ contract CombineTier is TierV2, IInterpreterCallerV1 {
 
     Evaluable evaluable;
 
-    constructor() {
+    constructor(bytes memory callerMeta_) {
         _disableInitializers();
+
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     function initialize(

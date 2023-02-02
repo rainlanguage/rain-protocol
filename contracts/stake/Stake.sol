@@ -6,6 +6,7 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 
@@ -48,6 +49,8 @@ error ZeroWithdrawShares();
 
 /// @dev Thrown when a nonzero store is provided.
 error UnexpectedStore(IInterpreterStoreV1 store);
+
+bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
 
 /// @dev Entrypoint for calculating the max deposit as per ERC4626.
 SourceIndex constant MAX_DEPOSIT_ENTRYPOINT = SourceIndex.wrap(0);
@@ -153,10 +156,11 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard, IInterpreterCallerV1 {
     IInterpreterV1 internal interpreter;
     address internal expression;
 
-    /// Constructor does nothing but prevents accidental initialization of an
-    /// implementation template intended to be referenced by a cloning factory.
-    constructor() {
+    constructor(bytes memory callerMeta_) {
         _disableInitializers();
+
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     /// Initializes the `Stake` contract in a proxy compatible way to support

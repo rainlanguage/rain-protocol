@@ -9,6 +9,7 @@ import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../math/SaturatingMath.sol";
 import "../math/LibFixedPointMath.sol";
@@ -29,6 +30,19 @@ error BadHash(bytes32 expectedHash, bytes32 actualHash);
 
 /// Thrown when `invalid` is called but the lobby is not invalid.
 error NotInvalid();
+
+bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
+
+/// Configuration for the construction of a `Lobby` reference implementation.
+/// All `Lobby` contracts initialized by a factory will share this.
+/// @param maxTimeoutDuration A max timeout is enforced in the constructor so
+/// that all cloned proxies share it, which prevents an initiator from setting a
+/// far future timeout and effectively disabling it to trap funds.
+/// @param callerMeta caller meta as per `IInterpreterCallerV1`.
+struct LobbyConstructorConfig {
+    uint256 maxTimeoutDuration;
+    bytes callerMeta;
+}
 
 /// Configuration for a `Lobby` to initialize.
 /// @param refMustAgree If `true` the ref must agree to be the ref before ANY
@@ -165,11 +179,10 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
     uint256 internal totalShares;
     mapping(address => uint256) internal withdrawals;
 
-    /// A max timeout is enforced in the constructor so that all cloned proxies
-    /// share it, which prevents an initiator from setting a far future timeout
-    /// and effectively disabling it to trap funds.
-    constructor(uint256 maxTimeoutDuration_) {
-        maxTimeoutDuration = maxTimeoutDuration_;
+    constructor(LobbyConstructorConfig memory config_) {
+        maxTimeoutDuration = config_.maxTimeoutDuration;
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, config_.callerMeta);
+        emit InterpreterCallerMeta(msg.sender, config_.callerMeta);
     }
 
     function initialize(LobbyConfig calldata config_) external initializer {

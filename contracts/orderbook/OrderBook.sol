@@ -10,6 +10,7 @@ import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/caller/LibContext.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 import "./LibOrderBook.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -36,6 +37,8 @@ error MinimumInput(uint256 minimumInput, uint256 input);
 /// Thrown when two orders have the same owner during clear.
 /// @param owner The owner of both orders.
 error SameOwner(address owner);
+
+bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
 
 /// @dev Value that signifies that an order is live in the internal mapping.
 /// Anything nonzero is equally useful.
@@ -139,9 +142,12 @@ contract OrderBook is
     /// Open Zeppelin upgradeable contracts. Orderbook itself does NOT support
     /// factory deployments as each order is a unique expression deployment
     /// rather than needing to wrap up expressions with proxies.
-    constructor() initializer {
+    constructor(bytes memory callerMeta_) initializer {
         __ReentrancyGuard_init();
         __Multicall_init();
+
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     /// @inheritdoc IOrderBookV1
