@@ -4,7 +4,8 @@ pragma solidity =0.8.17;
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
 import "../interpreter/run/LibStackPointer.sol";
-import "../interpreter/run/LibContext.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 import "../array/LibUint256Array.sol";
 
@@ -132,7 +133,7 @@ struct DepositRecord {
 /// expressing inflationary tokenomics in the share token itself. Third party
 /// tokens may mint/burn themselves according to the share balances and ledger
 /// reports provided by `Stake`.
-contract Stake is ERC4626, TierV2, ReentrancyGuard {
+contract Stake is ERC4626, TierV2, ReentrancyGuard, IInterpreterCallerV1 {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
     using Math for uint256;

@@ -8,8 +8,8 @@ import "../math/LibFixedPointMath.sol";
 import "../interpreter/ops/AllStandardOps.sol";
 import "./OrderBookFlashLender.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibContext.sol";
-import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/caller/LibContext.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "./LibOrderBook.sol";
 
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";

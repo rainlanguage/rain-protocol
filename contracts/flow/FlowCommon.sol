@@ -5,9 +5,9 @@ import "./libraries/LibFlow.sol";
 import "../interpreter/deploy/IExpressionDeployerV1.sol";
 import "../interpreter/run/IInterpreterV1.sol";
 import "../interpreter/run/LibEncodedDispatch.sol";
-import "../interpreter/run/LibContext.sol";
+import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
-import "../interpreter/run/IInterpreterCallerV1.sol";
+import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
