@@ -57,15 +57,6 @@ contract Rainterpreter is IInterpreterV1 {
     /// The store is valid (has exact expected bytecode).
     event ValidStore(address sender, address store);
 
-    /// This is the literal OpMeta bytes to be used offchain to make sense of the
-    /// opcodes in this interpreter deployment, as a human. For formats like json
-    /// that make heavy use of boilerplate, repetition and whitespace, some kind
-    /// of compression such as gzip is recommended.
-    /// @param sender The `msg.sender` providing the op meta.
-    /// @param opMeta The raw binary data of the op meta. Maybe compressed data
-    /// etc. and is intended for offchain consumption.
-    event OpMeta(address sender, bytes opMeta);
-
     /// Ensures the correct store bytecode and emits all opmeta.
     constructor(RainterpreterConfig memory config_) {
         // Guard against an store with unknown bytecode.
