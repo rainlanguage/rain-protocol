@@ -1,5 +1,5 @@
 {
-  "name": "scale18",
+  "name": "SCALE18",
   "desc": "Rescale a fixed point number of N decimals to 18 decimals where N is in the operand.",
   "operand": [
     {

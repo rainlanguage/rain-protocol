@@ -73,6 +73,7 @@ export const rainterpreterOpmeta = [
   contextRowMeta,
   debugMeta,
   doWhileMeta,
+  // extern
   foldContextMeta,
   getMeta,
   loopNMeta,
@@ -87,12 +88,14 @@ export const rainterpreterOpmeta = [
   erc721OwnerOfMeta,
   erc1155BalanceOfMeta,
   erc1155BalanceOfBatchMeta,
+  // erc5313 owner
   ensureMeta,
   blockNumberMeta,
   timestampMeta,
   explode32Meta,
   fixedPointScale18Meta,
   fixedPointScale18DivMeta,
+  // scale18 dynamic
   fixedPointScale18MulMeta,
   fixedPointScaleByMeta,
   fixedPointScaleNMeta,
@@ -127,6 +130,17 @@ export const rainterpreterOpmeta = [
   selectLteMeta,
   updateTimesForTierRangeMeta,
 ];
+
+export const getAllStandardOpsEnum = () => {
+  const allStandardOps = { length: 0 };
+
+  rainterpreterOpmeta.forEach((opmeta, i_) => {
+    allStandardOps[opmeta.name] = i_;
+    allStandardOps.length = i_ + 1;
+  });
+
+  return allStandardOps;
+};
 
 /**
  * @public
