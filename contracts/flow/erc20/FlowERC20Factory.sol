@@ -13,8 +13,8 @@ contract FlowERC20Factory is Factory {
     address public immutable implementation;
 
     /// Build the reference implementation to clone for each child.
-    constructor() {
-        address implementation_ = address(new FlowERC20());
+    constructor(bytes memory callerMeta_) {
+        address implementation_ = address(new FlowERC20(callerMeta_));
         emit Implementation(msg.sender, implementation_);
         implementation = implementation_;
     }

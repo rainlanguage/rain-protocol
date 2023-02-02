@@ -18,6 +18,8 @@ contract Flow is ReentrancyGuard, FlowCommon {
 
     event Initialize(address sender, EvaluableConfig[] config);
 
+    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+
     /// @param config_ allowed flows set at initialization.
     function initialize(FlowConfig memory config_) external initializer {
         __FlowCommon_init(config_.config, MIN_FLOW_SENTINELS);

@@ -9,6 +9,7 @@ import "../interpreter/caller/LibContext.sol";
 import "../interpreter/run/LibInterpreterState.sol";
 import "../interpreter/caller/IInterpreterCallerV1.sol";
 import "../interpreter/run/LibEvaluable.sol";
+import "../interpreter/caller/LibCallerMeta.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {MulticallUpgradeable as Multicall} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
@@ -18,6 +19,11 @@ import {ERC1155HolderUpgradeable as ERC1155Holder} from "@openzeppelin/contracts
 /// Thrown when the flow being evaluated is unregistered.
 /// @param unregisteredHash Hash of the unregistered flow.
 error UnregisteredFlow(bytes32 unregisteredHash);
+
+/// Thrown when the min outputs for a flow is fewer than the sentinels.
+error BadMinStackLength(uint256 flowMinOutputs_);
+
+bytes32 constant CALLER_META_HASH = bytes32(0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4);
 
 uint256 constant FLAG_COLUMN_FLOW_ID = 0;
 uint256 constant FLAG_ROW_FLOW_ID = 0;
@@ -47,8 +53,10 @@ contract FlowCommon is
 
     event FlowInitialized(address sender, Evaluable evaluable);
 
-    constructor() {
+    constructor(bytes memory callerMeta_) {
         _disableInitializers();
+        LibCallerMeta.checkCallerMeta(CALLER_META_HASH, callerMeta_);
+        emit InterpreterCallerMeta(msg.sender, callerMeta_);
     }
 
     // solhint-disable-next-line func-name-mixedcase
@@ -59,7 +67,9 @@ contract FlowCommon is
         __ERC721Holder_init();
         __ERC1155Holder_init();
         __Multicall_init();
-        require(flowMinOutputs_ >= MIN_FLOW_SENTINELS, "BAD MIN STACKS LENGTH");
+        if (flowMinOutputs_ < MIN_FLOW_SENTINELS) {
+            revert BadMinStackLength(flowMinOutputs_);
+        }
         for (uint256 i_ = 0; i_ < evaluableConfigs_.length; i_++) {
             address expression_ = evaluableConfigs_[i_]
                 .deployer

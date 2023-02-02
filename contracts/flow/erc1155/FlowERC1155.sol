@@ -50,6 +50,8 @@ contract FlowERC1155 is ReentrancyGuard, FlowCommon, ERC1155 {
 
     Evaluable internal evaluable;
 
+    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+
     function initialize(
         FlowERC1155Config calldata config_
     ) external initializer {

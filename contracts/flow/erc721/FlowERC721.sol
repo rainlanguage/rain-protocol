@@ -66,6 +66,8 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
 
     Evaluable internal evaluable;
 
+    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(
         FlowERC721Config calldata config_

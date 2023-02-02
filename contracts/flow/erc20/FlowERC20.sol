@@ -73,6 +73,8 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
 
     Evaluable internal evaluable;
 
+    constructor(bytes memory callerMeta_) FlowCommon(callerMeta_) {}
+
     /// @param config_ source and token config. Also controls delegated claims.
     function initialize(FlowERC20Config memory config_) external initializer {
         emit Initialize(msg.sender, config_);

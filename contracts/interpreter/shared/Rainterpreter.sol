@@ -80,7 +80,7 @@ contract Rainterpreter is IInterpreterV1 {
         if (opMetaHash_ != OP_META_HASH) {
             revert UnexpectedOpMetaHash(opMetaHash_);
         }
-        emit OpMeta(msg.sender, config_.opMeta);
+        emit InterpreterOpMeta(msg.sender, config_.opMeta);
     }
 
     /// @inheritdoc IInterpreterV1
