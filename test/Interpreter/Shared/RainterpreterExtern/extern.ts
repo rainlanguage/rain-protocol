@@ -7,6 +7,7 @@ import type {
   import {
     AllStandardOps,
     assertError,
+    Debug,
     eighteenZeros,
     externOperand,
     getBlockTimestamp,
@@ -240,17 +241,103 @@ import type {
       const feed = fakeChainlinkOracle2.address;
       const staleAfter = 10000;
   
-      const inputs = [feed , staleAfter ]; 
+      const inputs = [feed , staleAfter ];  
 
-      const priceData = await rainInterpreterExtern.extern(0, inputs);
-      assert(priceData[0].eq(123 + eighteenZeros));
+      let dispatch =  1 << 16  
+      console.log("dispatch : " , dispatch)
 
+      const priceData = await rainInterpreterExtern.extern(dispatch, inputs);
       
+    }); 
+
+    it.only("extern debug OP 1", async () => {
+      const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+  
+      const timestamp = (await getBlockTimestamp()) - 1;
+      const chainlinkPriceData = {
+        roundId: 4,
+        answer: "123" + eighteenZeros,
+        startedAt: timestamp,
+        updatedAt: timestamp,
+        answeredInRound: 4,
+      };
+  
+      fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
+      fakeChainlinkOracle2.decimals.returns(18);
+  
+      const feed = fakeChainlinkOracle2.address;
+      const staleAfter = 10000;
+  
+      const inputs = [feed , staleAfter];  
+
+      let dispatch =  1 << 16  
+      
+      const priceData = await rainInterpreterExtern.extern(dispatch, inputs);
+           
+    }); 
+
+    it.only("extern debug OP 2", async () => {
+      const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+  
+      const timestamp = await getBlockTimestamp();
+  
+      const chainlinkPriceData = {
+        roundId: 4,
+        answer: 123 + eighteenZeros,
+        startedAt: timestamp,
+        updatedAt: timestamp,
+        answeredInRound: 4,
+      };
+  
+      fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
+      fakeChainlinkOracle2.decimals.returns(18);
+  
+      const feed = fakeChainlinkOracle2.address;
+      const staleAfter = 10000;
+  
+      const constants = [rainInterpreterExtern.address,feed,staleAfter]
+  
+      const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+      const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)); 
+
+    
+      
+     // prettier-ignore
+      const source0 = concat([
+          v0,
+          v1,
+          op(1, externOperand(0, 2 ,1))
+        
+      ]);
+  
+      let expression0 = await expressionConsumerDeploy(
+        {
+          sources: [source0],
+          constants,
+        },
+        rainInterpreter,
+        1
+      );  
+       console.log("expression0.dispatch : " , expression0.dispatch )  
+       
+       let dis = ethers.BigNumber.from((1 << 32) | externOperand(0, 2 ,1) << 16)
+      await logic["eval(address,uint256,uint256[][])"](
+        rainInterpreter.address,
+        dis,
+        []
+      ); 
+      
+   
+      const result0 = await logic.stackTop();
+      console.log("result0 : " ,result0 )
+  
+      assert(result0.eq(123 + eighteenZeros));
+  
     });
    
   
   
-    
+   
   
   
   

@@ -49,11 +49,11 @@ export const expressionConsumerDeploy = async (
   );
   const libEncodedDispatch = await libEncodedDispatchDeploy();
 
-  const dispatch = await libEncodedDispatch.encode(
+  let dispatch = await libEncodedDispatch.encode(
     expressionDeployer,
     ENTRYPOINT,
     maxOutputs
   );
-
+  
   return { dispatch, expressionDeployer, libEncodedDispatch };
 };
