@@ -12,6 +12,7 @@ import setMeta from "../../../contracts/interpreter/ops/core/Set.opmeta.json";
 import hashMeta from "../../../contracts/interpreter/ops/crypto/Hash.opmeta.json";
 import erc1155BalanceOfMeta from "../../../contracts/interpreter/ops/erc1155/ERC1155BalanceOfBatch.opmeta.json";
 import erc1155BalanceOfBatchMeta from "../../../contracts/interpreter/ops/erc1155/ERC1155BalanceOf.opmeta.json";
+import erc5313OwnerMeta from "../../../contracts/interpreter/ops/erc5313/ERC5313Owner.opmeta.json";
 import erc20BalanceOfMeta from "../../../contracts/interpreter/ops/erc20/ERC20BalanceOf.opmeta.json";
 import erc20TotalSupplyMeta from "../../../contracts/interpreter/ops/erc20/ERC20TotalSupply.opmeta.json";
 import erc20SnapshotBalanceOfatMeta from "../../../contracts/interpreter/ops/erc20/snapshot/ERC20SnapshotBalanceOfAt.opmeta.json";
@@ -26,6 +27,7 @@ import addMeta from "../../../contracts/interpreter/ops/math/Add.opmeta.json";
 import divMeta from "../../../contracts/interpreter/ops/math/Div.opmeta.json";
 import expMeta from "../../../contracts/interpreter/ops/math/Exp.opmeta.json";
 import fixedPointScale18DivMeta from "../../../contracts/interpreter/ops/math/fixedPoint/FixedPointScale18Div.opmeta.json";
+import fixedPointScale18DynamicMeta from "../../../contracts/interpreter/ops/math/fixedPoint/FixedPointScale18Dynamic.opmeta.json";
 import fixedPointScale18Meta from "../../../contracts/interpreter/ops/math/fixedPoint/FixedPointScale18.opmeta.json";
 import fixedPointScale18MulMeta from "../../../contracts/interpreter/ops/math/fixedPoint/FixedPointScale18Mul.opmeta.json";
 import fixedPointScaleByMeta from "../../../contracts/interpreter/ops/math/fixedPoint/FixedPointScaleBy.opmeta.json";
@@ -88,14 +90,14 @@ export const rainterpreterOpmeta = [
   erc721OwnerOfMeta,
   erc1155BalanceOfMeta,
   erc1155BalanceOfBatchMeta,
-  // erc5313 owner
+  erc5313OwnerMeta,
   ensureMeta,
   blockNumberMeta,
   timestampMeta,
   explode32Meta,
   fixedPointScale18Meta,
   fixedPointScale18DivMeta,
-  // scale18 dynamic
+  fixedPointScale18DynamicMeta,
   fixedPointScale18MulMeta,
   fixedPointScaleByMeta,
   fixedPointScaleNMeta,

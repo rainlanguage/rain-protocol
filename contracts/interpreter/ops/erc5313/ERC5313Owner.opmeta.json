@@ -1,5 +1,5 @@
 {
-  "name": "erc5313-owner",
+  "name": "IERC5313_OWNER",
   "desc": "Stack the owner of an ERC5313 compliant contract.",
   "operand": 0,
   "inputs": {
