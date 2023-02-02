@@ -128,8 +128,7 @@ contract FlowERC721 is ReentrancyGuard, FlowCommon, ERC721 {
                             LibUint256Array.arrayFrom(
                                 uint256(uint160(from_)),
                                 uint256(uint160(to_)),
-                                tokenId_,
-                                batchSize_
+                                tokenId_
                             ),
                             new SignedContext[](0)
                         )
