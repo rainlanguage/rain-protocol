@@ -1,0 +1,161 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "commit": {
+      "type": "string"
+    },
+    "bytecodeHash": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "addresses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/EVMAddress"
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Input"
+      }
+    },
+    "expressions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Expression"
+      }
+    }
+  },
+  "required": [
+    "name",
+    "source",
+    "type",
+    "commit",
+    "bytecodeHash",
+    "description",
+    "addresses"
+  ],
+  "additionalProperties": false,
+  "title": "Rain Contract Metadata",
+  "description": "Schema for a contract",
+  "definitions": {
+    "EVMAddress": {
+      "type": "object",
+      "properties": {
+        "chainId": {
+          "type": "number"
+        },
+        "knownAddresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["chainId", "knownAddresses"],
+      "additionalProperties": false,
+      "description": "The address of the deployed contract for the specified chain."
+    },
+    "Input": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "path"],
+      "additionalProperties": false
+    },
+    "Expression": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "contextDescription": {
+          "type": "string"
+        },
+        "contextColumns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContextColumn"
+          }
+        },
+        "signedContext": {
+          "type": "boolean"
+        },
+        "callerContext": {
+          "type": "boolean"
+        }
+      },
+      "required": ["name", "description", "path", "examples"],
+      "additionalProperties": false
+    },
+    "ContextColumn": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContextCell"
+          }
+        }
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+    "ContextCell": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "alias": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "alias", "description"],
+      "additionalProperties": false
+    }
+  }
+}
