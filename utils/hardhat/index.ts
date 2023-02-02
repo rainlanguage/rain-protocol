@@ -2,6 +2,12 @@ import { Wallet } from "ethers";
 import { hexlify, randomBytes } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 
+/**
+ * @public
+ * Creates empty blocks on the blockchain
+ *
+ * @param count number of blocks to create
+ */
 export const createEmptyBlock = async (count?: number): Promise<void> => {
   const signers = await ethers.getSigners();
   const tx = { to: signers[1].address };
@@ -15,7 +21,9 @@ export const createEmptyBlock = async (count?: number): Promise<void> => {
 };
 
 /**
- * Forces hardhat network to time warp forward for the given duration of time
+ * @public
+ * Forces hardhat network to advance time for the given duration
+ *
  * @param duration - time to elapse in seconds
  */
 export const timewarp = async (duration: number): Promise<void> => {
@@ -24,7 +32,9 @@ export const timewarp = async (duration: number): Promise<void> => {
 };
 
 /**
+ * @public
  * Retrieve current block number from hardhat network.
+ *
  * @returns Current block number, according to hardhat network (i.e. `block.number`)
  */
 export const getBlockNumber = async (): Promise<number> => {
@@ -32,7 +42,9 @@ export const getBlockNumber = async (): Promise<number> => {
 };
 
 /**
+ * @public
  * Retrieve current timestamp from hardhat network.
+ *
  * @returns Current block timestamp, according to hardhat network (i.e. `block.timestamp`)
  */
 export const getBlockTimestamp = async (): Promise<number> => {
@@ -42,8 +54,10 @@ export const getBlockTimestamp = async (): Promise<number> => {
 };
 
 /**
- * Generate random wallet
- * @returns {Wallet} - a new instance of Wallet generated using a random privateKey
+ * @public
+ * Generate wallet with random key
+ *
+ * @returns {Wallet} - a new Wallet instance generated using a random privateKey
  */
 export const generateRandomWallet = (): Wallet => {
   const privateKey = hexlify(randomBytes(32)).toString();
