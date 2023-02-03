@@ -1,20 +1,20 @@
 {
-  "name": "ERC1155_BALANCE_OF",
+  "name": "erc1155-balance-of",
   "desc": "Get the balance of an ERC1155 token of an account and insert it into the stack",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-address"
       },
       {
-        "name": "Account"
+        "name": "account"
       },
       {
-        "name": "Token Id"
+        "name": "token-id"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["ERC1155BALANCEOF", "IERC1155BALANCEOF"]
+  "aliases": ["erc1155-balance"]
 }

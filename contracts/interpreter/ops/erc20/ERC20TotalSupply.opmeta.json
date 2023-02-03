@@ -1,14 +1,14 @@
 {
-  "name": "ERC20_TOTAL_SUPPLY",
+  "name": "erc20-total-supply",
   "desc": "Get the supply of an ERC20 token and insert it into the stack",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-sddress"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["ERC20TOTALSUPPLY", "IERC20TOTALSUPPLY"]
+  "aliases": ["erc20-supply"]
 }

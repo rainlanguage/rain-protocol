@@ -1,14 +1,14 @@
 {
-  "name": "EXPLODE32",
+  "name": "explode32",
   "desc": "Part an uint256 value into 8 seperate 1 byte size values.",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "Value"
+        "name": "value"
       }
     ]
   },
   "outputs": 8,
-  "aliases": ["EXPLODE"]
+  "aliases": ["explode"]
 }

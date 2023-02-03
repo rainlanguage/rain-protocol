@@ -1,23 +1,23 @@
 {
-  "name": "LOOP_N",
+  "name": "loop-n",
   "desc": "Loop a source n times by taking some items from stack and putting the results back into stack",
   "operand": [
     {
-      "name": "Loop Size",
+      "name": "loop-size",
       "desc": "number of loops",
       "bits": [12, 15]
     },
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 3]
     },
     {
-      "name": "Output Size",
+      "name": "output-size",
       "desc": "number of outputs",
       "bits": [4, 7]
     },
     {
-      "name": "Source Index",
+      "name": "source-index",
       "desc": "index of the source to run",
       "bits": [8, 11]
     }
@@ -26,7 +26,7 @@
     "bits": [0, 3],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       }
     ]
@@ -34,5 +34,5 @@
   "outputs": {
     "bits": [4, 7]
   },
-  "aliases": ["LOOP", "LOOPN", "FOR"]
+  "aliases": ["loop", "for"]
 }

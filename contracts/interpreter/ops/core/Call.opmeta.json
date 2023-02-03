@@ -1,18 +1,18 @@
 {
-  "name": "CALL",
+  "name": "call",
   "desc": "Takes some items from the stack and runs a source with sub-stack and puts the results back to the stack",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 3]
     },
     {
-      "name": "Output Size",
+      "name": "output-size",
       "desc": "number of outputs",
       "bits": [4, 7]
     },
     {
-      "name": "Source Index",
+      "name": "source-index",
       "desc": "index of the source to run",
       "bits": [8, 11]
     }
@@ -21,7 +21,7 @@
     "bits": [0, 3],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       }
     ]
@@ -29,5 +29,5 @@
   "outputs": {
     "bits": [4, 7]
   },
-  "aliases": ["FUNCTION", "FN"]
+  "aliases": ["function", "fn"]
 }

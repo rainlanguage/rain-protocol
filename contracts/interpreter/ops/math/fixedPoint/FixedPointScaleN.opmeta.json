@@ -1,9 +1,9 @@
 {
-  "name": "SCALEN",
+  "name": "scale-n",
   "desc": "Rescale an 18 OOMs fixed point number to scale N.",
   "operand": [
     {
-      "name": "Target Decimals",
+      "name": "target-decimals",
       "desc": "the target decimals to scale to",
       "bits": [0, 7],
       "validRange": [[1, 255]]
@@ -12,11 +12,10 @@
   "inputs": {
     "parameters": [
       {
-        "name": "Value",
+        "name": "value",
         "desc": "The value to scale to N"
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["SCALE_N"]
+  "outputs": 1
 }

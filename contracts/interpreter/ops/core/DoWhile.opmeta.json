@@ -1,14 +1,14 @@
 {
-  "name": "DO_WHILE",
+  "name": "do-while",
   "desc": "Runs a while loop on number of items taken from a stack until a conditions is met",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 3],
       "validRange": [[1, 15]]
     },
     {
-      "name": "Source Index",
+      "name": "source-index",
       "desc": "index of the source to run",
       "bits": [8, 11]
     }
@@ -17,11 +17,11 @@
     "bits": [0, 3],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       },
       {
-        "name": "Condition",
+        "name": "condition",
         "desc": "condition of while loop"
       }
     ]
@@ -29,5 +29,5 @@
   "outputs": {
     "bits": [0, 3]
   },
-  "aliases": ["WHILE", "DOWHILE"]
+  "aliases": ["while"]
 }

@@ -1,9 +1,9 @@
 {
-  "name": "ITIERV2_REPORT",
+  "name": "itier-v2-report",
   "desc": "Inserts the report of an account of a tier contract and optionally contexts which are taken from the stack into the stack",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[2], [3], [10]],
       "computation": "arg - 2"
@@ -13,25 +13,18 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "ITierV2 Address"
+        "name": "itier-address"
       },
       {
-        "name": "Account"
+        "name": "account"
       },
       {
-        "name": "Context",
+        "name": "context",
         "desc": "The contextual values",
         "spread": true
       }
     ]
   },
   "outputs": 1,
-  "aliases": [
-    "REPORT",
-    "ITIERV2REPORT",
-    "TIERREPORT",
-    "TIER_REPORT",
-    "ITIERREPORT",
-    "ITIER_REPORT"
-  ]
+  "aliases": ["report", "tier-report"]
 }

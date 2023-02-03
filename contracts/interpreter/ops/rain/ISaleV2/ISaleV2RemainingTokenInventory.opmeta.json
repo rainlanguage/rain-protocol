@@ -1,14 +1,14 @@
 {
-  "name": "ISALEV2_REMAINING_TOKEN_INVENTORY",
+  "name": "isale-v2-remaining-token-inventory",
   "desc": "The remaining rTKNs left to to be sold",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "ISale Address"
+        "name": "isale-address"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["REMAINING_UNITS"]
+  "aliases": ["remaining-units"]
 }

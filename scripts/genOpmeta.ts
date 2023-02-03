@@ -6,7 +6,7 @@ import * as path from "path";
 import { format } from "prettier";
 import { argv } from "process";
 import { deflateSync } from "zlib";
-import OpmetaSchema from "../opmeta_schema.json";
+import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
 
 const readFile = (_path: string) => {
   try {

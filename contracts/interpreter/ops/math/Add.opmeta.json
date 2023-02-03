@@ -1,9 +1,9 @@
 {
-  "name": "ADD",
+  "name": "add",
   "desc": "Inserts the result of sum of N values taken from the stack into the stack",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[2, 255]]
     }
@@ -12,11 +12,11 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["+", "SUM"]
+  "aliases": ["sum"]
 }

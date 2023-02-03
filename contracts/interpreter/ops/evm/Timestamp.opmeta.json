@@ -1,8 +1,8 @@
 {
-  "name": "BLOCK_TIMESTAMP",
+  "name": "block-timestamp",
   "desc": "Insert the current block timestamp into the stack",
   "operand": 0,
   "outputs": 1,
   "inputs": 0,
-  "aliases": ["NOW", "BLOCKTIMESTAMP", "CURRENTTIME", "CURRENT_TIME"]
+  "aliases": ["now", "current-time", "current-timestamp"]
 }

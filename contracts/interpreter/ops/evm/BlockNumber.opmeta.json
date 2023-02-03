@@ -1,8 +1,8 @@
 {
-  "name": "BLOCK_NUMBER",
+  "name": "block-number",
   "desc": "Inserts the current block number into the stack",
   "operand": 0,
   "inputs": 0,
   "outputs": 1,
-  "aliases": ["CURRENT_BLOCK", "CURRENTBLOCK", "BLOCKNUMBER"]
+  "aliases": ["current-block"]
 }

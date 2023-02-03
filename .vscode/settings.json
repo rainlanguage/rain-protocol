@@ -7,7 +7,11 @@
   "json.schemas": [
     {
       "fileMatch": ["*.opmeta.json"],
-      "url": "./opmeta_schema.json"
+      "url": "./schema/meta/v0/op.meta.schema.json"
+    },
+    {
+      "fileMatch": ["*.meta.json"],
+      "url": "./schema/meta/v0/contract.meta.schema.json"
     }
   ]
 }

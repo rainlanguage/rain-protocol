@@ -1,20 +1,20 @@
 {
-  "name": "SELECT_LTE",
+  "name": "select-lte",
   "desc": "Inserts the result of selecting the less than equal to specified value taken from stack among number of reports by a logic and mode into the stack",
   "operand": [
     {
-      "name": "Logic",
+      "name": "logic",
       "desc": "select lte logic: every or any logic",
       "bits": [13, 13]
     },
     {
-      "name": "Mode",
+      "name": "mode",
       "desc": "select lte mode: min, max or first",
       "bits": [8, 9],
       "validRange": [[0, 2]]
     },
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[1, 255]]
     }
@@ -23,16 +23,15 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "Referrence Timestamp",
+        "name": "referrence-timestamp",
         "desc": "The timestamp to check the tier reports against"
       },
       {
-        "name": "Report",
+        "name": "report",
         "desc": "The report to selectLte from",
         "spread": true
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["SELECTLTE", "SELECT"]
+  "outputs": 1
 }

@@ -1,9 +1,9 @@
 {
-  "name": "ANY",
+  "name": "any",
   "desc": "Inserts the first non-zero value of all the values it checks if there exists one, else inserts zero into the stack.",
   "operand": [
     {
-      "name": "Inputs",
+      "name": "inputs",
       "bits": [0, 7],
       "validRange": [[2, 255]]
     }
@@ -12,11 +12,11 @@
     "bits": [0, 7],
     "parameters": [
       {
-        "name": "Input",
+        "name": "input",
         "spread": true
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["OR", "|"]
+  "aliases": ["or"]
 }

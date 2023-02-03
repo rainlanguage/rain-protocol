@@ -3,7 +3,7 @@ import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
 import { deflateSync } from "zlib";
-import OpmetaSchema from "../../../../opmeta_schema.json";
+import OpmetaSchema from "../../../../schema/meta/v0/op.meta.schema.json";
 
 /**
  * @public

@@ -1,160 +1,251 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "name": {
-      "type": "string"
-    },
-    "source": {
-      "type": "string"
-    },
-    "type": {
-      "type": "string"
-    },
-    "commit": {
-      "type": "string"
-    },
-    "bytecodeHash": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "addresses": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/EVMAddress"
-      }
-    },
-    "inputs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Input"
-      }
-    },
-    "expressions": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Expression"
-      }
-    }
-  },
-  "required": [
-    "name",
-    "source",
-    "type",
-    "commit",
-    "bytecodeHash",
-    "description",
-    "addresses"
-  ],
-  "additionalProperties": false,
-  "title": "Rain Contract Metadata",
-  "description": "Schema for a contract",
+  "$ref": "#/definitions/ContractMetadata",
+  "$comment": "v0.0.1",
   "definitions": {
-    "EVMAddress": {
+    "ContractMetadata": {
       "type": "object",
       "properties": {
-        "chainId": {
-          "type": "number"
+        "name": {
+          "type": "string",
+          "title": "Contract Name"
         },
-        "knownAddresses": {
+        "desc": {
+          "type": "string",
+          "title": "Contract Description",
+          "description": "A brief description about the contract."
+        },
+        "alias": {
+          "type": "string",
+          "title": "Contract Alias",
+          "description": "Alias of the contract used by RainLang, follows RainLang word pattern.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "source": {
+          "type": "string",
+          "title": "Contract Source",
+          "description": "Github repository URL where this contract belongs to."
+        },
+        "commit": {
+          "type": "string",
+          "title": "Contract Git Commit",
+          "pattern": "[a-f0-9]{40}"
+        },
+        "methods": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "$ref": "#/definitions/Method"
+          },
+          "title": "Contract Methods",
+          "description": "Methods of the contract that receive at least one expression (EvaluableConfig) from arguments.",
+          "minItems": 1
         }
       },
-      "required": ["chainId", "knownAddresses"],
+      "required": [
+        "name",
+        "desc",
+        "alias",
+        "source",
+        "commit",
+        "methods"
+      ],
       "additionalProperties": false,
-      "description": "The address of the deployed contract for the specified chain."
+      "title": "Rain Contract Metadata",
+      "description": "Required info about a contract that receives expression in at least one of its methods."
+    },
+    "Method": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Method Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Method Description"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Input"
+          },
+          "title": "Method Inputs",
+          "minItems": 1
+        },
+        "expressions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Expression"
+          },
+          "title": "Method Expressions",
+          "minItems": 1
+        }
+      },
+      "required": [
+        "name",
+        "desc",
+        "expressions"
+      ],
+      "additionalProperties": false
     },
     "Input": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Input Name"
         },
-        "description": {
-          "type": "string"
+        "desc": {
+          "type": "string",
+          "title": "Input Description"
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "title": "Input Path",
+          "description": "Input's path in contract's ABI."
         }
       },
-      "required": ["name", "path"],
+      "required": [
+        "name",
+        "desc",
+        "path"
+      ],
       "additionalProperties": false
     },
     "Expression": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Expression Name"
         },
-        "description": {
-          "type": "string"
+        "desc": {
+          "type": "string",
+          "title": "Expression Description"
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "title": "Expression Path",
+          "description": "Expression's path in contract's ABI."
         },
-        "examples": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "signedContext": {
+          "type": "boolean",
+          "title": "Expression Signed Context",
+          "description": "Determines if this expression has signedContext."
         },
-        "contextDescription": {
-          "type": "string"
+        "callerContext": {
+          "type": "boolean",
+          "title": "Expression Signed Context",
+          "description": "Determines if this expression has callerContext."
         },
         "contextColumns": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/ContextColumn"
-          }
-        },
-        "signedContext": {
-          "type": "boolean"
-        },
-        "callerContext": {
-          "type": "boolean"
+          },
+          "title": "Expression Context Columns",
+          "description": "Specifies the reserved context columns of this expression."
         }
       },
-      "required": ["name", "description", "path", "examples"],
+      "required": [
+        "name",
+        "desc",
+        "path"
+      ],
       "additionalProperties": false
     },
     "ContextColumn": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Context Column Name"
         },
-        "description": {
-          "type": "string"
+        "desc": {
+          "type": "string",
+          "title": "Context Column Description"
+        },
+        "alias": {
+          "type": "string",
+          "title": "Context Column Alias",
+          "description": "Alias for the context column used in RainLang, follows rainlang valid word pattern.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "opcode": {
+          "type": "string",
+          "title": "Opcode",
+          "description": "Opcode to be assigned to.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "operand": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "title": "Operand",
+          "description": "Operand to be assigned to, values inside <>.",
+          "minItems": 1
         },
         "cells": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/ContextCell"
-          }
+          },
+          "title": "Context Column Cells",
+          "description": "Info about the cells in this context column."
         }
       },
-      "required": ["name"],
+      "required": [
+        "name",
+        "alias",
+        "opcode",
+        "operand"
+      ],
       "additionalProperties": false
     },
     "ContextCell": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "Context Cell Name"
+        },
+        "desc": {
+          "type": "string",
+          "title": "Context Cell Description"
         },
         "alias": {
-          "type": "string"
+          "type": "string",
+          "title": "Context Cell Alias",
+          "description": "Alias for the context cell used in RainLang, follows rainlang valid word pattern.",
+          "pattern": "^[a-z][a-z0-9-]*$"
         },
-        "description": {
-          "type": "string"
+        "opcode": {
+          "type": "string",
+          "title": "Opcode",
+          "description": "Opcode to be assigned to.",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "operand": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "title": "Operand",
+          "description": "Operand to be assigned to, values inside <>.",
+          "minItems": 1
         }
       },
-      "required": ["name", "alias", "description"],
+      "required": [
+        "name",
+        "alias",
+        "opcode",
+        "operand"
+      ],
       "additionalProperties": false
     }
   }

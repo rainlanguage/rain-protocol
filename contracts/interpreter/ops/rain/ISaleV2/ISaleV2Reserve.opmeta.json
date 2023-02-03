@@ -1,14 +1,14 @@
 {
-  "name": "ISALEV2_RESERVE",
+  "name": "isale-v2-reserve",
   "desc": "The reserve token address",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "ISale Address"
+        "name": "isale-address"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["RESERVE", "RESERVE_TOKEN", "RESERVETOKEN"]
+  "aliases": ["reserve", "reserve-token"]
 }

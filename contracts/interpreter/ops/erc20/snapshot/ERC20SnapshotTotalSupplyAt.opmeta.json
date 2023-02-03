@@ -1,17 +1,17 @@
 {
-  "name": "ERC20_SNAPSHOT_TOTAL_SUPPLY_AT",
+  "name": "erc20-snapshot-total-supply-at",
   "desc": "Get the snapshot supply of an ERC20 token and insert it into the stack",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-address"
       },
       {
-        "name": "Snapshot Id"
+        "name": "snapshot-id"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["ERC20SNAPSHOTTOTALSUPPLYAT", "IERC20SNAPSHOTTOTALSUPPLYAT"]
+  "aliases": ["erc20-snapshot-supply"]
 }

@@ -1,17 +1,17 @@
 {
-  "name": "ERC20_BALANCE_OF",
+  "name": "erc20-balance-of",
   "desc": "Get the balance of an ERC20 token of an account and insert it into the stack",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "Token Address"
+        "name": "token-address"
       },
       {
-        "name": "Account"
+        "name": "account"
       }
     ]
   },
   "outputs": 1,
-  "aliases": ["ERC20_BALANCE_OF", "ERC20BALANCEOF", "IERC20BALANCEOF"]
+  "aliases": ["erc20-balance"]
 }
