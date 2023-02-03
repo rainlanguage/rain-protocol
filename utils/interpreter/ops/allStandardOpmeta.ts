@@ -4,6 +4,9 @@ import fs from "fs";
 import { resolve } from "path";
 import { format } from "prettier";
 
+/**
+ * Generates list of file paths for all `.opmeta.json` files under `contracts/` directory.
+ */
 const getOpmetaFilePaths = () => {
   const opmetaFilePaths: string[] = [];
 
@@ -29,6 +32,10 @@ const getOpmetaFilePaths = () => {
   return opmetaFilePaths;
 };
 
+/**
+ * @public
+ * All Rainterpreter opmetas
+ */
 export const getOpmetaList = () => {
   const opmetaFilePaths = getOpmetaFilePaths();
 
@@ -49,6 +56,10 @@ export const getOpmetaList = () => {
  */
 export const rainterpreterOpmeta = getOpmetaList();
 
+/**
+ * @public
+ * Constructs an enum-like object of opmeta names, which can be checked against the TypeScript `AllStandardOps` enum to verify it.
+ */
 export const getAllStandardOpsEnum = () => {
   const allStandardOps = {};
 
