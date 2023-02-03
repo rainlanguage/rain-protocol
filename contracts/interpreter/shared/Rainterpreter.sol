@@ -17,12 +17,12 @@ error UnexpectedOpMetaHash(bytes32 actualOpMeta);
 
 /// @dev Hash of the known store bytecode.
 bytes32 constant STORE_BYTECODE_HASH = bytes32(
-    0x36775b1934a6fbe8e789160ac6e44537bb466f94b40353e7352f50e012f2c20b
+    0xbc52db76e944bf5245c516990668f268c9d2f24dc3aa1b06b4f9d128914df383
 );
 
 /// @dev Hash of the known op meta.
 bytes32 constant OP_META_HASH = bytes32(
-    0xb53ed363fea1eea22c8d7e46f061b4c4b1fa19101f89a8341871d15edd290c51
+    0x2f3696e3d54355f65c5e7be86bbb8ea37687eacb0c91add9670a9c2f8ae0c7e4
 );
 
 /// All config required to construct a `Rainterpreter`.
