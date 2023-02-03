@@ -1,5 +1,5 @@
 {
-  "name": "IVERFYV1_ACCOUNT_STATUS_AT_TIME",
+  "name": "IVERIFYV1_ACCOUNT_STATUS_AT_TIME",
   "desc": "Read and put the status of an account from the verify v1 contract into the stack",
   "operand": 0,
   "outputs": 1,

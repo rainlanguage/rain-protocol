@@ -50,14 +50,13 @@ export const getOpmetaList = () => {
 export const rainterpreterOpmeta = getOpmetaList();
 
 export const getAllStandardOpsEnum = () => {
-  const allStandardOps = { length: 0 };
+  const allStandardOps = {};
 
   rainterpreterOpmeta.forEach((opmeta, i_) => {
     allStandardOps[opmeta.name] = i_;
-    allStandardOps.length = i_ + 1;
   });
 
-  return allStandardOps;
+  return { ...allStandardOps, length: rainterpreterOpmeta.length };
 };
 
 /**
