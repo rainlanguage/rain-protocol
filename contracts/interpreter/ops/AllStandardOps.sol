@@ -29,7 +29,7 @@ import "./erc5313/OpERC5313Owner.sol";
 import "./error/OpEnsure.sol";
 import "./evm/OpBlockNumber.sol";
 import "./evm/OpTimestamp.sol";
-import "./list/OpExplode32.sol";
+import "./bytes32/OpExplode32.sol";
 import "./math/fixedPoint/OpFixedPointScale18.sol";
 import "./math/fixedPoint/OpFixedPointScale18Div.sol";
 import "./math/fixedPoint/OpFixedPointScale18Dynamic.sol";
