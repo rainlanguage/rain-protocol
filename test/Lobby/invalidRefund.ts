@@ -587,15 +587,15 @@ describe("Lobby Invalid Refund", async function () {
         }
       }
     }
-  });  
+  });
 
   it("should ensure refund is not reentrant", async function () {
     const timeoutDuration = 15000000;
     const signers = await ethers.getSigners();
-    const admin = signers[0];
+
     const alice = signers[1];
     const bob = signers[2];
-    const bot = signers[3]; 
+    const bot = signers[3];
 
     const maliciousReserveFactory = await ethers.getContractFactory(
       "LobbyReentrantSender"
@@ -611,8 +611,12 @@ describe("Lobby Invalid Refund", async function () {
     const claimAmount = ONE;
     const leaveAmount = ONE;
 
-    await maliciousReserve.connect(signers[0]).transfer(alice.address, depositAmount);
-    await maliciousReserve.connect(signers[0]).transfer(bob.address, depositAmount);
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(alice.address, depositAmount);
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(bob.address, depositAmount);
 
     const constants = [0, depositAmount, leaveAmount, claimAmount, bot.address];
 
@@ -669,10 +673,7 @@ describe("Lobby Invalid Refund", async function () {
       },
     ];
 
-    const aliceJoinTx = await Lobby.connect(alice).join(
-      [1234],
-      signedContexts0
-    );
+    await Lobby.connect(alice).join([1234], signedContexts0);
 
     const context1 = [4, 5, 6];
     const hash1 = solidityKeccak256(["uint256[]"], [context1]);
@@ -686,7 +687,7 @@ describe("Lobby Invalid Refund", async function () {
       },
     ];
 
-    const bobJoinTx = await Lobby.connect(bob).join([1234], signedContexts1);
+    await Lobby.connect(bob).join([1234], signedContexts1);
 
     const context2 = [1];
     const hash2 = solidityKeccak256(["uint256[]"], [context2]);
@@ -700,31 +701,26 @@ describe("Lobby Invalid Refund", async function () {
         signature: goodSignature2,
         context: context2,
       },
-    ];  
+    ];
 
-    const aliceInvalidTx = await Lobby.connect(bot).invalid(
-      claimContext,
+    await Lobby.connect(bot).invalid(claimContext, signedContexts2);
+
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [1234],
       signedContexts2
     );
-    
-    await maliciousReserve.addReentrantTarget(Lobby.address, [1234] , signedContexts2) 
 
     await assertError(
-      async () =>
-       await Lobby.connect(alice).refund(),
+      async () => await Lobby.connect(alice).refund(),
       "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
       "Alice Refund Reentrant"
-    ); 
+    );
 
     await assertError(
-      async () =>
-       await Lobby.connect(bob).refund(),
+      async () => await Lobby.connect(bob).refund(),
       "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
       "Bob Refund Reentrant"
     );
-
-
-
-  }); 
-
+  });
 });

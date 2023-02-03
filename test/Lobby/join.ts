@@ -482,7 +482,7 @@ describe("Lobby Tests join", async function () {
         }
       }
     }
-  });  
+  });
 
   it("should ensure that join isn't reentrant", async function () {
     const signers = await ethers.getSigners();
@@ -492,7 +492,7 @@ describe("Lobby Tests join", async function () {
     const depositAmount = ONE;
     const leaveAmount = ONE;
     const claimAmount = ONE;
-    const timeoutDuration = 15000000; 
+    const timeoutDuration = 15000000;
 
     const maliciousTokenFactory = await ethers.getContractFactory(
       "LobbyReentrantReceiver"
@@ -502,9 +502,9 @@ describe("Lobby Tests join", async function () {
     await maliciousToken.deployed();
     await maliciousToken.initialize();
 
-    await maliciousToken.connect(signers[0]).transfer(alice.address, depositAmount); 
-
-    
+    await maliciousToken
+      .connect(signers[0])
+      .transfer(alice.address, depositAmount);
 
     const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
 
@@ -567,21 +567,18 @@ describe("Lobby Tests join", async function () {
         signature: goodSignature1,
         context: context1,
       },
-    ]; 
+    ];
 
-    await maliciousToken.addReentrantTarget(Lobby.address, [1234] , signedContexts0)  
-
+    await maliciousToken.addReentrantTarget(
+      Lobby.address,
+      [1234],
+      signedContexts0
+    );
 
     await assertError(
-      async () =>
-       await Lobby.connect(alice).join([1234], signedContexts0),
+      async () => await Lobby.connect(alice).join([1234], signedContexts0),
       "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
       "Join Reentrant"
     );
-
-    
-    
   });
-
-
 });

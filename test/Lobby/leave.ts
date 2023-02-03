@@ -613,7 +613,7 @@ describe("Lobby Tests leave", async function () {
         }
       }
     }
-  });  
+  });
 
   it("should ensure leave isn't reentrant", async function () {
     const signers = await ethers.getSigners();
@@ -625,12 +625,12 @@ describe("Lobby Tests leave", async function () {
     const maliciousReserve =
       (await maliciousReserveFactory.deploy()) as LobbyReentrantSender;
     await maliciousReserve.deployed();
-    await maliciousReserve.initialize();  
+    await maliciousReserve.initialize();
 
-    await maliciousReserve.connect(signers[0]).transfer(alice.address, ONE.mul(100));
-    const Lobby = await basicDeploy("Lobby", {}, [15000000]); 
-
-
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(alice.address, ONE.mul(100));
+    const Lobby = await basicDeploy("Lobby", {}, [15000000]);
 
     const truthyValue = 0;
     const depositAmount = ONE;
@@ -688,25 +688,18 @@ describe("Lobby Tests leave", async function () {
       },
     ];
 
-    const joinTx = await Lobby.connect(alice).join([1234], signedContexts0);
+    await Lobby.connect(alice).join([1234], signedContexts0);
 
-    await maliciousReserve.addReentrantTarget(Lobby.address, [1234] , signedContexts0)  
-  
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [1234],
+      signedContexts0
+    );
+
     await assertError(
-      async () =>
-       await Lobby.connect(alice).leave([1234], signedContexts0),
+      async () => await Lobby.connect(alice).leave([1234], signedContexts0),
       "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
       "Leave Reentrant"
     );
-
-
-
-
-
-  }); 
-
-
-
-
-
+  });
 });

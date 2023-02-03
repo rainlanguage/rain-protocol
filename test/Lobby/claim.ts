@@ -1025,18 +1025,16 @@ describe("Lobby Tests claim", async function () {
         }
       }
     }
-  });  
+  });
 
   it("should prevent reentrant claim ", async function () {
     const signers = await ethers.getSigners();
     const timeoutDuration = 15000000;
-    const admin = signers[0];
     const alice = signers[1];
     const bob = signers[2];
     const bot = signers[3];
-    const ref = signers[4];
 
-    const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros); 
+    const botDespoitAmount = ethers.BigNumber.from(3 + eighteenZeros);
 
     const maliciousReserveFactory = await ethers.getContractFactory(
       "LobbyReentrantSender"
@@ -1048,7 +1046,9 @@ describe("Lobby Tests claim", async function () {
 
     await maliciousReserve.connect(signers[0]).transfer(alice.address, ONE);
     await maliciousReserve.connect(signers[0]).transfer(bob.address, ONE);
-    await maliciousReserve.connect(signers[0]).transfer(bot.address, botDespoitAmount);
+    await maliciousReserve
+      .connect(signers[0])
+      .transfer(bot.address, botDespoitAmount);
 
     const Lobby = await basicDeploy("Lobby", {}, [timeoutDuration]);
     const depositAmount = ONE;
@@ -1093,7 +1093,9 @@ describe("Lobby Tests claim", async function () {
 
     await maliciousReserve.connect(alice).approve(Lobby.address, ONE);
     await maliciousReserve.connect(bob).approve(Lobby.address, ONE);
-    await maliciousReserve.connect(bot).approve(Lobby.address, botDespoitAmount);
+    await maliciousReserve
+      .connect(bot)
+      .approve(Lobby.address, botDespoitAmount);
 
     //Alice joins Lobby
 
@@ -1168,37 +1170,29 @@ describe("Lobby Tests claim", async function () {
         context: context2,
       },
     ];
-    await maliciousReserve.addReentrantTarget(Lobby.address, [aliceShares] , signedContexts2)  
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [aliceShares],
+      signedContexts2
+    );
 
     await assertError(
       async () =>
-      await Lobby.connect(alice).claim(
-        [aliceShares],
-        signedContexts2
-      ),
+        await Lobby.connect(alice).claim([aliceShares], signedContexts2),
       "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
       "Alice Claim Reentrant"
-    );  
+    );
 
-    await maliciousReserve.addReentrantTarget(Lobby.address, [bobShares] , signedContexts2)  
+    await maliciousReserve.addReentrantTarget(
+      Lobby.address,
+      [bobShares],
+      signedContexts2
+    );
 
     await assertError(
-      async () =>
-      await Lobby.connect(bob).claim(
-        [bobShares],
-        signedContexts2
-      ),
+      async () => await Lobby.connect(bob).claim([bobShares], signedContexts2),
       "VM Exception while processing transaction: reverted with reason string 'ReentrancyGuard: reentrant call'",
       "Bob Claim Reentrant"
     );
-
-    
-
-  
-
-  
   });
-
-
-
 });
