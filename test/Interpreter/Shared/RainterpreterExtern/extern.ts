@@ -239,7 +239,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const dispatch = 1 << 16;
 
-    const priceData = await rainInterpreterExtern.extern(dispatch, inputs); 
+    const priceData = await rainInterpreterExtern.extern(dispatch, inputs);
 
     assert(priceData[0].eq(123 + eighteenZeros));
   });
@@ -264,9 +264,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const inputs = [feed, staleAfter];
 
-    const priceData = await rainInterpreterExtern.extern(0, inputs); 
+    const priceData = await rainInterpreterExtern.extern(0, inputs);
     assert(priceData[0].eq(123 + eighteenZeros));
-  }); 
+  });
 
   // DEBUG
   it("should return inputs back as outputs for opcode == 1 (DEBUG)", async () => {
@@ -291,11 +291,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const dispatch = 1 << 16;
 
-    const priceData = await rainInterpreterExtern.extern(dispatch, inputs);  
-    assert(priceData[0].eq(ethers.BigNumber.from(feed)))
-    assert(priceData[1].eq(ethers.BigNumber.from(staleAfter)))
-
-
+    const priceData = await rainInterpreterExtern.extern(dispatch, inputs);
+    assert(priceData[0].eq(ethers.BigNumber.from(feed)));
+    assert(priceData[1].eq(ethers.BigNumber.from(staleAfter)));
   });
 
   it("should return inputs for opcode == 1 (DEBUG)", async () => {
@@ -306,7 +304,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const constants = [num, 1337, 1339];
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    
+
     // prettier-ignore
     const source0 = concat([
           v0,
@@ -330,13 +328,6 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     );
 
     const result0 = await logic.stackTop();
-    assert(result0.eq(constants[2])); 
-
-  });   
-  
-
-
-  
-
-  
+    assert(result0.eq(constants[2]));
+  });
 });
