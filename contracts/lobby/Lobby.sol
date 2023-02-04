@@ -417,7 +417,7 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         if (shares[msg.sender] == 0) {
             uint256[][] memory context_ = LibContext.build(
                 new uint256[][](0),
-                callerContext_,
+                callerContext_.matrixFrom(),
                 signedContexts_
             );
             emit Context(msg.sender, context_);

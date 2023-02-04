@@ -135,7 +135,7 @@ library LibContext {
     /// in any particular structure/order.
     function build(
         uint256[][] memory baseContext_,
-        uint256[] memory callingContext_,
+        uint256[][] memory callingContext_,
         SignedContext[] memory signedContexts_
     ) internal view returns (uint256[][] memory) {
         unchecked {
@@ -162,8 +162,10 @@ library LibContext {
             // is simply an empty column. We don't want callers to be able to
             // manipulate the overall structure of context columns that the
             // expression indexes into.
-            offset_++;
-            context_[offset_] = callingContext_;
+            for (uint256 i_ = 0; i_ < callingContext_.length; i_++) {
+                offset_++;
+                context_[offset_] = callingContext_[i_];
+            }
 
             if (signedContexts_.length > 0) {
                 offset_++;

@@ -108,7 +108,7 @@ contract CombineTier is TierV2 {
                 ),
                 LibContext.build(
                     uint256(uint160(account_)).arrayFrom().matrixFrom(),
-                    callerContext_,
+                    callerContext_.matrixFrom(),
                     new SignedContext[](0)
                 )
             );
@@ -136,7 +136,7 @@ contract CombineTier is TierV2 {
                     LibUint256Array
                         .arrayFrom(uint256(uint160(account_)), tier_)
                         .matrixFrom(),
-                    callerContext_,
+                    callerContext_.matrixFrom(),
                     new SignedContext[](0)
                 )
             );

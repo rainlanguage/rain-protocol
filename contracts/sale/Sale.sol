@@ -397,7 +397,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
                         _dispatchCanLive(evaluable_.expression),
                         LibContext.build(
                             new uint256[][](0),
-                            new uint256[](0),
+                            new uint256[][](0),
                             new SignedContext[](0)
                         )
                     );
@@ -451,7 +451,7 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
     {
         uint256[][] memory context_ = LibContext.build(
             new uint256[][](CONTEXT_COLUMNS),
-            targetUnits_.arrayFrom(),
+            targetUnits_.arrayFrom().matrixFrom(),
             new SignedContext[](0)
         );
         Evaluable memory evaluable_ = evaluable;

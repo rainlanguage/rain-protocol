@@ -214,7 +214,7 @@ contract Stake is ERC4626, TierV2, ReentrancyGuard {
                     new uint256[][](0),
                     // We put the account being eval'd against as a single item
                     // in caller context and that's the best we can do.
-                    uint256(uint160(account_)).arrayFrom(),
+                    uint256(uint160(account_)).arrayFrom().matrixFrom(),
                     new SignedContext[](0)
                 )
             )

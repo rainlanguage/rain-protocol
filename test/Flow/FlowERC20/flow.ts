@@ -2353,7 +2353,7 @@ describe("FlowERC20 flow tests", async function () {
       flowTransfer.erc20[1].token,
       flowTransfer.erc20[1].amount, // Base Amount
       ethers.BigNumber.from(4 + eighteenZeros), // Bonus Amount
-      0
+      0,
     ];
 
     const SENTINEL = () =>
@@ -2413,14 +2413,16 @@ describe("FlowERC20 flow tests", async function () {
       MINT_AMOUNT(),
     ]);
 
-    const sources = [concat([
-      CAN_TRANSFER(),
-      // Setting a value for msg.sender.
-      // This will only be set _afterTokenTransfer
+    const sources = [
+      concat([
+        CAN_TRANSFER(),
+        // Setting a value for msg.sender.
+        // This will only be set _afterTokenTransfer
         YOU(), // setting blocknumber for msg.sender as the key
         op(Opcode.BLOCK_NUMBER),
-      op(Opcode.SET),
-    ])];
+        op(Opcode.SET),
+      ]),
+    ];
 
     const expressionConfigStruct: FlowERC20Config = {
       name: "FlowERC20",
@@ -2499,22 +2501,25 @@ describe("FlowERC20 flow tests", async function () {
 
     // Flowing for second time, this time a bonus amount should be transferred from contract to msg.sender
     await erc20In.transfer(you.address, flowTransfer.erc20[0].amount);
-    await erc20Out.transfer(me.address, ethers.BigNumber.from(4 + eighteenZeros));
+    await erc20Out.transfer(
+      me.address,
+      ethers.BigNumber.from(4 + eighteenZeros)
+    );
 
     await erc20In
       .connect(you)
       .approve(me.address, flowTransfer.erc20[0].amount);
 
-    await flow
-      .connect(you)
-      .flow(flowInitialized[0].evaluable, [1234], []);
+    await flow.connect(you).flow(flowInitialized[0].evaluable, [1234], []);
 
     const meBalanceIn1 = await erc20In.balanceOf(me.address);
     const meBalanceOut1 = await erc20Out.balanceOf(me.address);
     const youBalanceIn1 = await erc20In.balanceOf(you.address);
     const youBalanceOut1 = await erc20Out.balanceOf(you.address);
 
-    const expectedMeBalanceIn = (flowERC20IO.flow.erc20[0].amount as BigNumber).mul(2);
+    const expectedMeBalanceIn = (
+      flowERC20IO.flow.erc20[0].amount as BigNumber
+    ).mul(2);
     const expectedMeBalanceOut = meBalanceOut1.add(meBalanceOut0);
 
     assert(
@@ -2544,7 +2549,5 @@ describe("FlowERC20 flow tests", async function () {
       expected  ${ethers.BigNumber.from(4 + eighteenZeros)}
       got       ${youBalanceOut1}`
     );
-
   });
-
 });
