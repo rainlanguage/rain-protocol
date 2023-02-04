@@ -41,10 +41,7 @@ contract RainterpreterExtern is IInterpreterExternV1 {
                 .peek()
                 .arrayFrom();
         } else {
-            LibInterpreterState.debugStack(
-                inputs_.asStackPointer(),
-                stackTop_
-            );
+            LibInterpreterState.debugStack(inputs_.asStackPointer(), stackTop_);
             outputs_ = inputs_;
         }
         return outputs_;

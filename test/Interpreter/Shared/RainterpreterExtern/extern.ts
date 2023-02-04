@@ -1,5 +1,4 @@
 import type {
-  AggregatorV3Interface,
   RainterpreterExtern,
   Rainterpreter,
   IInterpreterV1Consumer,
@@ -7,7 +6,6 @@ import type {
 import {
   AllStandardOps,
   assertError,
-  Debug,
   eighteenZeros,
   externOperand,
   getBlockTimestamp,
@@ -15,15 +13,11 @@ import {
   MemoryType,
   op,
   sixZeros,
-  timewarp,
 } from "../../../../utils";
-import { FakeContract, smock } from "@defi-wonderland/smock";
+import { smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
-import {
-  expressionConsumerDeploy,
-  iinterpreterV1ConsumerDeploy,
-} from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import { smock } from "@defi-wonderland/smock";
 import { concat } from "ethers/lib/utils";
 import { assert } from "chai";
@@ -243,7 +237,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const inputs = [feed, staleAfter];
 
-    let dispatch = 1 << 16;
+    const dispatch = 1 << 16;
     console.log("dispatch : ", dispatch);
 
     const priceData = await rainInterpreterExtern.extern(dispatch, inputs);
@@ -269,7 +263,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const inputs = [feed, staleAfter];
 
-    let dispatch = 1 << 16;
+    const dispatch = 1 << 16;
 
     const priceData = await rainInterpreterExtern.extern(dispatch, inputs);
   });

@@ -48,7 +48,7 @@ contract CombineTier is TierV2 {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    Evaluable evaluable;
+    Evaluable internal evaluable;
 
     constructor() {
         _disableInitializers();

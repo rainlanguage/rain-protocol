@@ -49,7 +49,7 @@ export const expressionConsumerDeploy = async (
   );
   const libEncodedDispatch = await libEncodedDispatchDeploy();
 
-  let dispatch = await libEncodedDispatch.encode(
+  const dispatch = await libEncodedDispatch.encode(
     expressionDeployer,
     ENTRYPOINT,
     maxOutputs
