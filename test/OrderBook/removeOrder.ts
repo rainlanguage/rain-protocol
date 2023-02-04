@@ -50,71 +50,69 @@ describe("OrderBook remove order", async function () {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askRatio];
-    const vAskOutputMax = op(
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+    const constants_A = [max_uint256, ratio_A];
+    const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const aRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskRatio,
+    const source_A = concat([
+      aOpMax,
+      aRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const EvaluableConfig_A = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      evaluableConfig: askEvaluableConfig,
-      data: aliceAskOrder,
+      evaluableConfig: EvaluableConfig_A,
+      data: aliceOrder,
     };
 
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
-    const { sender: askLiveSender, order: askLiveOrder } = (await getEventArgs(
-      txAskAddOrder,
+    const { sender: liveSender_A, order: LiveOrder_A } = (await getEventArgs(
+      txOrder_A,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(askLiveSender === alice.address, "wrong sender");
-    compareStructs(askLiveOrder, askOrderConfig);
+    assert(liveSender_A === alice.address, "wrong sender");
+    compareStructs(LiveOrder_A, OrderConfig_A);
 
-    // REMOVE ASK ORDER
+    // REMOVE Order_A
 
     await assertError(
-      async () => await orderBook.connect(bob).removeOrder(askLiveOrder),
+      async () => await orderBook.connect(bob).removeOrder(LiveOrder_A),
       `NotOrderOwner("${bob.address}", "${alice.address}")`,
       "bob wrongly removed alice's order"
     );
 
-    const txAskRemoveOrder = await orderBook
+    const txRemoveOrder = await orderBook
       .connect(alice)
-      .removeOrder(askLiveOrder);
+      .removeOrder(LiveOrder_A);
 
-    const { sender: askDeadSender, order: askDeadOrder } = (await getEventArgs(
-      txAskRemoveOrder,
+    const { sender: deadSender_A, order: DeadOrder_A } = (await getEventArgs(
+      txRemoveOrder,
       "RemoveOrder",
       orderBook
     )) as RemoveOrderEvent["args"];
 
-    assert(askDeadSender === alice.address, "wrong sender");
-    compareStructs(askDeadOrder, askOrderConfig);
+    assert(deadSender_A === alice.address, "wrong sender");
+    compareStructs(DeadOrder_A, OrderConfig_A);
   });
 });

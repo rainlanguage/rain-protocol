@@ -79,19 +79,19 @@ describe("OrderBook expression checks", async () => {
     const orderBook = (await orderBookFactory.deploy()) as OrderBook;
     const aliceVault = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDERS
+    //  ORDERS
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
     const OWNER = () => op(Opcode.CONTEXT, 0x0001);
     const COUNTERPARTY = () => op(Opcode.CONTEXT, 0x0002);
 
-    const askConstants = [max_uint256, askRatio, alice.address, bob.address];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, alice.address, bob.address];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -106,7 +106,7 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
             OWNER()  ,
             vExpectedOwner ,
             op(Opcode.EQUAL_TO),
@@ -115,8 +115,8 @@ describe("OrderBook expression checks", async () => {
             vExpectedCounterpart ,
             op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1)  ,
-            vAskOutputMax,
-            vAskRatio,
+            vOutputMax,
+            vRatio,
         ]);
 
     // prettier-ignore
@@ -131,12 +131,12 @@ describe("OrderBook expression checks", async () => {
                 op(Opcode.ENSURE, 1)
         ]);
 
-    const askEvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [askSource, handleIOSource],
-      constants: askConstants,
+    const EvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleIOSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -161,16 +161,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      evaluableConfig: askEvaluableConfigAlice,
+      evaluableConfig: EvaluableConfigAlice,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -196,14 +196,14 @@ describe("OrderBook expression checks", async () => {
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
@@ -308,21 +308,16 @@ describe("OrderBook expression checks", async () => {
 
     await orderBook.connect(alice).deposit(depositConfigStructAliceTokenB06);
 
-    // ASK ORDERS
+    // ORDERS
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [
-      max_uint256,
-      askRatio,
-      depositAmountA,
-      depositAmountB,
-    ];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, depositAmountA, depositAmountB];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -339,7 +334,7 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_VAULT_BALANCE = () => op(Opcode.CONTEXT, 0x0303);
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
             INPUT_TOKEN_VAULT_BALANCE()  ,
             vExpectedInputTokenBalance ,
         op(Opcode.EQUAL_TO),
@@ -348,8 +343,8 @@ describe("OrderBook expression checks", async () => {
                 vExpectedOutputTokenBalance ,
             op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1) ,
-        vAskOutputMax,
-        vAskRatio,
+        vOutputMax,
+        vRatio,
     ]);
 
     // prettier-ignore
@@ -364,12 +359,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
-    const askEvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [askSource, handleIOSource],
-      constants: askConstants,
+    const EvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleIOSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -394,16 +389,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      evaluableConfig: askEvaluableConfigAlice,
+      evaluableConfig: EvaluableConfigAlice,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -413,14 +408,14 @@ describe("OrderBook expression checks", async () => {
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
@@ -511,16 +506,16 @@ describe("OrderBook expression checks", async () => {
 
     await orderBook.connect(alice).deposit(depositConfigStructAliceTokenB06);
 
-    // ASK ORDERS
+    // ORDERS
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [max_uint256, askRatio, aliceVault];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, aliceVault];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -533,7 +528,7 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_VAULT_ID = () => op(Opcode.CONTEXT, 0x0302);
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
             INPUT_TOKEN_VAULT_ID()  ,
             vExpectedVaultId ,
         op(Opcode.EQUAL_TO),
@@ -542,8 +537,8 @@ describe("OrderBook expression checks", async () => {
             vExpectedVaultId ,
             op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1) ,
-        vAskOutputMax,
-        vAskRatio,
+        vOutputMax,
+        vRatio,
     ]);
 
     // prettier-ignore
@@ -558,12 +553,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
-    const askEvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [askSource, handleIOSource],
-      constants: askConstants,
+    const EvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleIOSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -588,16 +583,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      evaluableConfig: askEvaluableConfigAlice,
+      evaluableConfig: EvaluableConfigAlice,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -607,14 +602,14 @@ describe("OrderBook expression checks", async () => {
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
@@ -705,21 +700,21 @@ describe("OrderBook expression checks", async () => {
 
     await orderBook.connect(alice).deposit(depositConfigStructAliceTokenB06);
 
-    // ASK ORDERS
+    // ORDERS
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [
+    const constants_A = [
       max_uint256,
-      askRatio,
+      ratio_A,
       tokenA18.address,
       tokenB06.address,
     ];
-    const vAskOutputMax = op(
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -736,7 +731,7 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN = () => op(Opcode.CONTEXT, 0x0300);
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
             INPUT_TOKEN()  ,
             vExpectedInputToken ,
         op(Opcode.EQUAL_TO),
@@ -745,8 +740,8 @@ describe("OrderBook expression checks", async () => {
             vExpectedOutputToken ,
             op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1) ,
-        vAskOutputMax,
-        vAskRatio,
+        vOutputMax,
+        vRatio,
     ]);
 
     // prettier-ignore
@@ -761,12 +756,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
-    const askEvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [askSource, handleIOSource],
-      constants: askConstants,
+    const EvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleIOSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -791,16 +786,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      evaluableConfig: askEvaluableConfigAlice,
+      evaluableConfig: EvaluableConfigAlice,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -810,14 +805,14 @@ describe("OrderBook expression checks", async () => {
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
@@ -908,21 +903,16 @@ describe("OrderBook expression checks", async () => {
 
     await orderBook.connect(alice).deposit(depositConfigStructAliceTokenB06);
 
-    // ASK ORDERS
+    // ORDERS
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
 
-    const askConstants = [
-      max_uint256,
-      askRatio,
-      tokenADecimals,
-      tokenBDecimals,
-    ];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, tokenADecimals, tokenBDecimals];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -939,7 +929,7 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
             INPUT_TOKEN_DECIMALS()  ,
             vExpectedInputTokenDecimals ,
         op(Opcode.EQUAL_TO),
@@ -948,8 +938,8 @@ describe("OrderBook expression checks", async () => {
             vExpectedOutputTokenDecimals ,
             op(Opcode.EQUAL_TO),
             op(Opcode.ENSURE, 1) ,
-        vAskOutputMax,
-        vAskRatio,
+        vOutputMax,
+        vRatio,
     ]);
 
     // prettier-ignore
@@ -964,12 +954,12 @@ describe("OrderBook expression checks", async () => {
             op(Opcode.ENSURE, 1)
     ]);
 
-    const askEvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [askSource, handleIOSource],
-      constants: askConstants,
+    const EvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleIOSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -994,16 +984,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      evaluableConfig: askEvaluableConfigAlice,
+      evaluableConfig: EvaluableConfigAlice,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -1013,14 +1003,14 @@ describe("OrderBook expression checks", async () => {
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
@@ -1111,27 +1101,27 @@ describe("OrderBook expression checks", async () => {
 
     await orderBook.connect(alice).deposit(depositConfigStructAliceTokenB06);
 
-    // ASK ORDERS
+    // ORDERS
 
-    const askRatio = ethers.BigNumber.from(1 + eighteenZeros);
+    const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
     const key1 = ethers.BigNumber.from(randomUint256());
     const key2 = ethers.BigNumber.from(randomUint256());
     const key3 = ethers.BigNumber.from(randomUint256());
 
-    const askConstants = [
+    const constants_A = [
       max_uint256,
-      askRatio,
+      ratio_A,
       key1,
       key2,
       key3,
       tokenADecimals,
       tokenBDecimals,
     ];
-    const vAskOutputMax = op(
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -1162,7 +1152,7 @@ describe("OrderBook expression checks", async () => {
     const OUTPUT_TOKEN_DECIMALS = () => op(Opcode.CONTEXT, 0x0301);
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce= concat([
         compareKey ,
            INPUT_TOKEN_DECIMALS() ,
            OUTPUT_TOKEN_DECIMALS() ,
@@ -1176,8 +1166,8 @@ describe("OrderBook expression checks", async () => {
         outputTokenKey ,
           OUTPUT_TOKEN_DECIMALS(),
         op(Opcode.SET),
-        vAskOutputMax,
-        vAskRatio,
+        vOutputMax,
+        vRatio,
     ]);
 
     // prettier-ignore
@@ -1200,12 +1190,12 @@ describe("OrderBook expression checks", async () => {
 
     ]);
 
-    const askEvaluableConfigAlice = await generateEvaluableConfig({
-      sources: [askSource, handleIOSource],
-      constants: askConstants,
+    const EvaluableConfigAlice = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleIOSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -1230,16 +1220,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceVault,
         },
       ],
-      evaluableConfig: askEvaluableConfigAlice,
+      evaluableConfig: EvaluableConfigAlice,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -1249,14 +1239,14 @@ describe("OrderBook expression checks", async () => {
     // TAKE ORDER BOB
 
     const takeOrderConfigStructBob: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 1,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 
@@ -1322,19 +1312,19 @@ describe("OrderBook expression checks", async () => {
     const INPUT_BALANCE_DIFF = () => op(Opcode.CONTEXT, 0x0204);
     const OUTPUT_BALANCE_DIFF = () => op(Opcode.CONTEXT, 0x0304);
 
-    // ASK ORDER
-    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    // ORDERS
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
     const aip = minBN(amountB, minBN(max_uint256, amountB)); // minimum of remainingInput and outputMax
-    const aop = fixedPointMul(aip, askRatio);
+    const aop = fixedPointMul(aip, ratio_A);
 
-    const askConstants = [max_uint256, askRatio, aip, aop];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, aip, aop];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
@@ -1348,13 +1338,13 @@ describe("OrderBook expression checks", async () => {
     );
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
        INPUT_BALANCE_DIFF()  ,
       op(Opcode.ENSURE, 0) ,
        OUTPUT_BALANCE_DIFF()  ,
       op(Opcode.ENSURE, 0) ,
-      vAskOutputMax,
-      vAskRatio,
+      vOutputMax,
+      vRatio,
 
     ]);
 
@@ -1370,30 +1360,28 @@ describe("OrderBook expression checks", async () => {
       op(Opcode.ENSURE, 1)
    ]);
 
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, handleSource],
-      constants: askConstants,
+    const EvaluableConfig = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleSource],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const OrderConfig: OrderConfigStruct = {
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      evaluableConfig: askEvaluableConfig,
-      data: aliceAskOrder,
+      evaluableConfig: EvaluableConfig,
+      data: aliceOrder,
     };
 
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig);
 
-    const { order: askOrder } = (await getEventArgs(
-      txAskAddOrder,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -1430,7 +1418,7 @@ describe("OrderBook expression checks", async () => {
 
     // Bob takes order with direct wallet transfer
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
-      order: askOrder,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };
@@ -1440,11 +1428,11 @@ describe("OrderBook expression checks", async () => {
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askRatio,
+      maximumIORatio: ratio_A,
       orders: [takeOrderConfigStruct],
     };
 
-    const amountA = amountB.mul(askRatio).div(ONE);
+    const amountA = amountB.mul(ratio_A).div(ONE);
     await tokenA.transfer(bob.address, amountA);
     await tokenA.connect(bob).approve(orderBook.address, amountA);
 
@@ -1495,54 +1483,52 @@ describe("OrderBook expression checks", async () => {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
-    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
+    // ORDERS
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
     const amountB = ethers.BigNumber.from("2" + eighteenZeros);
 
-    const askConstants = [max_uint256, askRatio, amountB];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, amountB];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
 
     const OUTPUT_MAX = () => op(Opcode.CONTEXT, 0x0100);
-    const ASK_RATIO = () => op(Opcode.CONTEXT, 0x0101);
+    const ORDER_RATIO = () => op(Opcode.CONTEXT, 0x0101);
 
     // prettier-ignore
-    const askSource = concat([
+    const calculateSoruce = concat([
       OUTPUT_MAX() ,
-      ASK_RATIO() ,
-      vAskOutputMax,
-      vAskRatio
+      ORDER_RATIO() ,
+      vOutputMax,
+      vRatio
     ]);
 
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const aliceOrder = ethers.utils.toUtf8Bytes("aliceOrder");
+    const EvaluableConfig = await generateEvaluableConfig({
+      sources: [calculateSoruce, []],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const OrderConfig: OrderConfigStruct = {
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      evaluableConfig: askEvaluableConfig,
-      data: aliceAskOrder,
+      evaluableConfig: EvaluableConfig,
+      data: aliceOrder,
     };
 
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
+    const txAddOrder = await orderBook.connect(alice).addOrder(OrderConfig);
 
-    const { order: askOrder } = (await getEventArgs(
-      txAskAddOrder,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrder,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -1579,7 +1565,7 @@ describe("OrderBook expression checks", async () => {
 
     // Bob takes order with direct wallet transfer
     const takeOrderConfigStruct: TakeOrderConfigStruct = {
-      order: askOrder,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };
@@ -1589,11 +1575,11 @@ describe("OrderBook expression checks", async () => {
       input: tokenB.address,
       minimumInput: amountB,
       maximumInput: amountB,
-      maximumIORatio: askRatio,
+      maximumIORatio: ratio_A,
       orders: [takeOrderConfigStruct],
     };
 
-    const amountA = amountB.mul(askRatio).div(ONE);
+    const amountA = amountB.mul(ratio_A).div(ONE);
     await tokenA.transfer(bob.address, amountA);
     await tokenA.connect(bob).approve(orderBook.address, amountA);
 
@@ -1628,49 +1614,49 @@ describe("OrderBook expression checks", async () => {
     const aliceInputVault = ethers.BigNumber.from(randomUint256());
     const aliceOutputVault = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDERS
+    // ORDERS
 
     // The ratio is 1:1 from the perspective of the expression.
     // This is a statement of economic equivalence in 18 decimal fixed point.
-    const askRatio = ethers.BigNumber.from(10).pow(18);
+    const ratio_A = ethers.BigNumber.from(10).pow(18);
 
     // Alice and Bob will each deposit 2 units of tokenB
     const depositAmountB = ethers.BigNumber.from(2 + sixZeros);
 
-    const askConstants = [max_uint256, askRatio, depositAmountB];
-    const vAskOutputMax = op(
+    const constants_A = [max_uint256, ratio_A, depositAmountB];
+    const vOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const vRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vExpectedAskOutputMax = op(
+    const vExpectedOutputMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 2)
     );
     // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskRatio,
+    const calculateSoruce = concat([
+      vOutputMax,
+      vRatio,
     ]);
 
     const OUTPUT_MAX = () => op(Opcode.CONTEXT, 0x0100);
     // prettier-ignore
     const handleSource = concat([
-        vExpectedAskOutputMax,
+        vExpectedOutputMax,
         OUTPUT_MAX(),
        op(Opcode.EQUAL_TO) ,
       op(Opcode.ENSURE,1)
     ]);
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, handleSource],
-      constants: askConstants,
+    const EvaluableConfig = await generateEvaluableConfig({
+      sources: [calculateSoruce, handleSource],
+      constants: constants_A,
     });
 
-    const askOrderConfigAlice: OrderConfigStruct = {
+    const OrderConfigAlice: OrderConfigStruct = {
       validInputs: [
         {
           token: tokenA18.address,
@@ -1685,16 +1671,16 @@ describe("OrderBook expression checks", async () => {
           vaultId: aliceOutputVault,
         },
       ],
-      evaluableConfig: askEvaluableConfig,
+      evaluableConfig: EvaluableConfig,
       data: [],
     };
 
-    const txAskAddOrderAlice = await orderBook
+    const txAddOrderAlice = await orderBook
       .connect(alice)
-      .addOrder(askOrderConfigAlice);
+      .addOrder(OrderConfigAlice);
 
-    const { order: askOrderAlice } = (await getEventArgs(
-      txAskAddOrderAlice,
+    const { order: Order_A } = (await getEventArgs(
+      txAddOrderAlice,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
@@ -1717,14 +1703,14 @@ describe("OrderBook expression checks", async () => {
 
     // Bob takes orders with direct wallet transfer
     const takeOrderConfigStructAlice: TakeOrderConfigStruct = {
-      order: askOrderAlice,
+      order: Order_A,
       inputIOIndex: 0,
       outputIOIndex: 0,
     };
 
     // We want the takeOrders max ratio to be exact, for the purposes of testing. We scale the original ratio 'up' by the difference between A decimals and B decimals.
     const maximumIORatio = fixedPointMul(
-      askRatio,
+      ratio_A,
       ethers.BigNumber.from(10).pow(18 + tokenADecimals - tokenBDecimals)
     );
 

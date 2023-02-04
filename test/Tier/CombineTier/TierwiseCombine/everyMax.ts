@@ -2,7 +2,7 @@ import { assert } from "chai";
 import { concat, hexlify } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import type { CombineTier } from "../../../../typechain";
-import { paddedUInt256, paddedUInt32 } from "../../../../utils/bytes";
+import { zeroPad32, paddedUInt32 } from "../../../../utils/bytes";
 import { max_uint256 } from "../../../../utils/constants";
 import { combineTierDeploy } from "../../../../utils/deploy/tier/combineTier/deploy";
 import { readWriteTierDeploy } from "../../../../utils/deploy/tier/readWriteTier/deploy";
@@ -13,8 +13,8 @@ import {
   MemoryType,
   op,
   selectLte,
-  selectLteLogic,
-  selectLteMode,
+  SelectLteLogic,
+  SelectLteMode,
 } from "../../../../utils/interpreter/interpreter";
 import { AllStandardOps } from "../../../../utils/interpreter/ops/allStandardOps";
 import { ALWAYS, NEVER } from "../../../../utils/tier";
@@ -76,7 +76,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
         op(Opcode.ITIERV2_REPORT, 0),
       op(
         Opcode.SELECT_LTE,
-        selectLte(selectLteLogic.every, selectLteMode.max, 2)
+        selectLte(SelectLteLogic.every, SelectLteMode.max, 2)
       ),
     ]);
 
@@ -125,7 +125,7 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
         op(Opcode.ITIERV2_REPORT),
       op(
         Opcode.SELECT_LTE,
-        selectLte(selectLteLogic.every, selectLteMode.max, 2)
+        selectLte(SelectLteLogic.every, SelectLteMode.max, 2)
       ),
     ]);
 
@@ -162,10 +162,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
     await readWriteTierRight.setTier(signers[0].address, Tier.SIX);
     await readWriteTierRight.setTier(signers[0].address, Tier.EIGHT);
 
-    const rightReport = paddedUInt256(
+    const rightReport = zeroPad32(
       await readWriteTierRight.report(signers[0].address, [])
     );
-    const expectedRightReport = paddedUInt256(
+    const expectedRightReport = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           paddedUInt32(startTimestamp + 13) +
@@ -186,10 +186,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       got       ${rightReport}`
     );
 
-    const leftReport = paddedUInt256(
+    const leftReport = zeroPad32(
       await readWriteTierLeft.report(signers[0].address, [])
     );
-    const expectedLeftReport = paddedUInt256(
+    const expectedLeftReport = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +
@@ -209,10 +209,10 @@ describe("CombineTier tierwise combine report with 'every' logic and 'max' mode"
       got       ${leftReport}`
     );
 
-    const resultAndNew = paddedUInt256(
+    const resultAndNew = zeroPad32(
       await combineTier.report(signers[0].address, [])
     );
-    const expectedAndNew = paddedUInt256(
+    const expectedAndNew = zeroPad32(
       ethers.BigNumber.from(
         "0x" +
           "ffffffff".repeat(2) +

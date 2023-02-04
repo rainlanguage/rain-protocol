@@ -135,8 +135,10 @@ contract Rainterpreter is IInterpreterV1 {
                 StackPointer
             ) view returns (StackPointer)[](0);
         return
-            LibConvert.unsafeTo16BitBytes(AllStandardOps
-                .opcodeFunctionPointers(localPtrs_)
-                .asUint256Array());
+            LibConvert.unsafeTo16BitBytes(
+                AllStandardOps
+                    .opcodeFunctionPointers(localPtrs_)
+                    .asUint256Array()
+            );
     }
 }

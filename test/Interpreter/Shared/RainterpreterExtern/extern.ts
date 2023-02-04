@@ -24,6 +24,10 @@ import {
   expressionConsumerDeploy,
   iinterpreterV1ConsumerDeploy,
 } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
+import { smock } from "@defi-wonderland/smock";
+import { concat } from "ethers/lib/utils";
+import { assert } from "chai";
+import { expressionConsumerDeploy } from "../../../../utils/deploy/test/iinterpreterV1Consumer/deploy";
 import {
   rainterpreterDeploy,
   rainterpreterExtern,
@@ -271,9 +275,10 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
   });
 
   it.only("extern debug OP 2", async () => {
-
-    const extr = ethers.BigNumber.from(rainInterpreterExtern.address)
-    const num = (ethers.BigNumber.from(1 << 16).shl(160)).add(extr)
+    const extr = ethers.BigNumber.from(rainInterpreterExtern.address);
+    const num = ethers.BigNumber.from(1 << 16)
+      .shl(160)
+      .add(extr);
     const constants = [num, 1338, 1338];
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
@@ -282,7 +287,7 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const source0 = concat([
           v0,
           v1,
-          op(Opcode.EXTERN, externOperand(0, 2 ,1))
+          op(Opcode.EXTERN, externOperand(2 ,2, 0))
       ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -303,7 +308,56 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
     const result0 = await logic.stackTop();
     console.log("result0 : ", result0);
 
-    assert(result0.eq(123 + eighteenZeros));
+    assert(result0.eq(constants[1]));
+  });
+
+  it("rainInterpreterExtern should revert with BadInputs", async () => {
+    const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+
+    const timestamp = (await getBlockTimestamp()) - 1;
+    const chainlinkPriceData = {
+      roundId: 4,
+      answer: "123" + eighteenZeros,
+      startedAt: timestamp,
+      updatedAt: timestamp,
+      answeredInRound: 4,
+    };
+
+    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
+    fakeChainlinkOracle2.decimals.returns(18);
+
+    const feed = fakeChainlinkOracle2.address;
+
+    const inputs = [feed];
+
+    await assertError(
+      async () => await rainInterpreterExtern.extern(0, inputs),
+      "BadInputs",
+      "did not revert when incorrect inputs"
+    );
+  });
+
+  it("rainInterpreterExtern should get price from oracle", async () => {
+    const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
+
+    const timestamp = (await getBlockTimestamp()) - 1;
+    const chainlinkPriceData = {
+      roundId: 4,
+      answer: "123" + eighteenZeros,
+      startedAt: timestamp,
+      updatedAt: timestamp,
+      answeredInRound: 4,
+    };
+
+    fakeChainlinkOracle2.latestRoundData.returns(chainlinkPriceData);
+    fakeChainlinkOracle2.decimals.returns(18);
+
+    const feed = fakeChainlinkOracle2.address;
+    const staleAfter = 10000;
+
+    const inputs = [feed, staleAfter];
+
+    const priceData = await rainInterpreterExtern.extern(0, inputs);
+    assert(priceData[0].eq(123 + eighteenZeros));
   });
 });
-

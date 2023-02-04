@@ -19,11 +19,13 @@ export const max_uint32 = ethers.BigNumber.from("0xffffffff");
 export const max_uint16 = ethers.BigNumber.from("0xffff");
 export const max_uint8 = ethers.BigNumber.from("0xff");
 
-export const getZeros = (zeros) => {
-  let returnString = "";
-  for (let i = 0; i < zeros; i++) {
-    returnString = returnString + "0";
-  }
-
-  return returnString;
+/**
+ * @public
+ * Constructs a string of `"0"` characters of the specified length
+ *
+ * @param length number of `"0"` characters
+ * @returns string of zeros
+ */
+export const getZeros = (length: number) => {
+  return "0".repeat(length);
 };

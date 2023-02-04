@@ -54,7 +54,7 @@ describe("OrderBook counterparty in context", async function () {
     orderBookFactory = await ethers.getContractFactory("OrderBook", {});
   });
 
-  it("should expose counterparty context to RainInterpreter calculations (e.g. ask order will noop if bid order counterparty does not match Carol's address)", async function () {
+  it("should expose counterparty context to RainInterpreter calculations (e.g. Order_A will noop if Order_B counterparty does not match Carol's address)", async function () {
     const signers = await ethers.getSigners();
 
     const alice = signers[1];
@@ -73,166 +73,161 @@ describe("OrderBook counterparty in context", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    // ASK ORDER
+    // Order_A
 
-    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
-    const askOutputMax = max_uint256;
-    const askOutputMaxIfNotMatchingCounterparty = 0;
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+    const outputMax_A = max_uint256;
+    const outputMaxIfNotMatchingCounterparty_A = 0;
 
-    const askConstants = [
-      askOutputMax,
-      askOutputMaxIfNotMatchingCounterparty,
-      askRatio,
+    const constants_A = [
+      outputMax_A,
+      outputMaxIfNotMatchingCounterparty_A,
+      ratio_A,
       carol.address,
     ];
-    const vAskOutputMax = op(
+    const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskOutputMaxIfNotMatch = op(
+    const aOpMaxIfNotMatch = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
-    const vAskRatio = op(
+    const aRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 2)
     );
-    const vExpectedCounterparty = op(
+    const expectedCounterparty = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 3)
     );
 
     // prettier-ignore
-    const askSource = concat([
+    const source_A = concat([
           cCounterparty,
-          vExpectedCounterparty,
+          expectedCounterparty,
         op(Opcode.EQUAL_TO),
-        vAskOutputMax,
-        vAskOutputMaxIfNotMatch,
+        aOpMax,
+        aOpMaxIfNotMatch,
       op(Opcode.EAGER_IF),
-      vAskRatio,
+      aRatio,
     ]);
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const EvaluableConfig_A = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const OrderConfig_A: OrderConfigStruct = {
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      evaluableConfig: askEvaluableConfig,
-      data: aliceAskOrder,
+      evaluableConfig: EvaluableConfig_A,
+      data: aliceOrder,
     };
 
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
+    const txOrder_A = await orderBook.connect(alice).addOrder(OrderConfig_A);
 
-    const { sender: askSender, order: askOrder } = (await getEventArgs(
-      txAskAddOrder,
+    const { sender: sender_A, order: Order_A } = (await getEventArgs(
+      txOrder_A,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(askSender === alice.address, "wrong sender");
-    compareStructs(askOrder, askOrderConfig);
+    assert(sender_A === alice.address, "wrong sender");
+    compareStructs(Order_A, OrderConfig_A);
 
-    // BID ORDER - BAD MATCH
+    // Order_B - BAD MATCH
 
-    const bidRatio = fixedPointDiv(ONE, askRatio);
-    const bidConstants = [max_uint256, bidRatio];
-    const vBidOutputMax = op(
+    const ratio_B = fixedPointDiv(ONE, ratio_A);
+    const constants_B = [max_uint256, ratio_B];
+    const bOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidRatio = op(
+    const bRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const bidSource = concat([
-      vBidOutputMax,
-      vBidRatio,
+    const source_B = concat([
+      bOpMax,
+      bRatio,
     ]);
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
-    const bidEvaluableConfig = await generateEvaluableConfig({
-      sources: [bidSource, []],
-      constants: bidConstants,
+    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
+    const EvaluableConfig_B = await generateEvaluableConfig({
+      sources: [source_B, []],
+      constants: constants_B,
     });
-    const bidOrderConfig: OrderConfigStruct = {
+    const OrderConfig_B: OrderConfigStruct = {
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      evaluableConfig: bidEvaluableConfig,
-      data: bobBidOrder,
+      evaluableConfig: EvaluableConfig_B,
+      data: bobOrder,
     };
 
-    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
+    const txOrder_B = await orderBook.connect(bob).addOrder(OrderConfig_B);
 
-    const { sender: bidSender, order: bidOrder } = (await getEventArgs(
-      txBidAddOrder,
+    const { sender: sender_B, order: Order_B } = (await getEventArgs(
+      txOrder_B,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(bidSender === bob.address, "wrong sender");
-    compareStructs(bidOrder, bidOrderConfig);
+    assert(sender_B === bob.address, "wrong sender");
+    compareStructs(Order_B, OrderConfig_B);
 
-    // BID ORDER - GOOD MATCH
+    // Order_B - GOOD MATCH
 
-    const bidRatioCarol = fixedPointDiv(ONE, askRatio);
-    const bidConstantsCarol = [max_uint256, bidRatioCarol];
-    const vBidOutputMaxCarol = op(
+    const ratio_C = fixedPointDiv(ONE, ratio_A);
+    const constants_C = [max_uint256, ratio_C];
+    const cOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidRatioCarol = op(
+    const cRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const bidSourceCarol = concat([
-      vBidOutputMaxCarol,
-      vBidRatioCarol,
+    const source_C = concat([
+      cOpMax,
+      cRatio,
     ]);
-    const carolBidOrder = ethers.utils.toUtf8Bytes("carolBidOrder");
-    const bidEvaluableConfigCarol = await generateEvaluableConfig({
-      sources: [bidSourceCarol, []],
-      constants: bidConstantsCarol,
+    const carolOrder = ethers.utils.toUtf8Bytes("Order_C");
+    const EvaluableConfig_C = await generateEvaluableConfig({
+      sources: [source_C, []],
+      constants: constants_C,
     });
-    const bidOrderConfigCarol: OrderConfigStruct = {
+    const OrderConfig_C: OrderConfigStruct = {
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: carolInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: carolOutputVault },
       ],
-      evaluableConfig: bidEvaluableConfigCarol,
-      data: carolBidOrder,
+      evaluableConfig: EvaluableConfig_C,
+      data: carolOrder,
     };
 
-    const txBidAddOrderCarol = await orderBook
-      .connect(carol)
-      .addOrder(bidOrderConfigCarol);
+    const txOrder_C = await orderBook.connect(carol).addOrder(OrderConfig_C);
 
-    const { sender: bidSenderCarol, order: bidOrderCarol } =
-      (await getEventArgs(
-        txBidAddOrderCarol,
-        "AddOrder",
-        orderBook
-      )) as AddOrderEvent["args"];
+    const { sender: sender_C, order: Order_C } = (await getEventArgs(
+      txOrder_C,
+      "AddOrder",
+      orderBook
+    )) as AddOrderEvent["args"];
 
-    assert(bidSenderCarol === carol.address, "wrong sender");
-    compareStructs(bidOrderCarol, bidOrderConfigCarol);
+    assert(sender_C === carol.address, "wrong sender");
+    compareStructs(Order_C, OrderConfig_C);
 
     // DEPOSITS
 
@@ -321,7 +316,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const badClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askOrder, bidOrder, clearConfig);
+      .clear(Order_A, Order_B, clearConfig);
 
     const {
       sender: badClearSender,
@@ -352,8 +347,8 @@ describe("OrderBook counterparty in context", async function () {
 
     assert(badAfterClearSender === bountyBot.address);
     assert(badClearSender === bountyBot.address);
-    compareSolStructs(badClearA_, askOrder);
-    compareSolStructs(badClearB_, bidOrder);
+    compareSolStructs(badClearA_, Order_A);
+    compareSolStructs(badClearB_, Order_B);
     compareStructs(badClearBountyConfig, clearConfig);
     compareStructs(badClearStateChange, expectedBadClearStateChange);
 
@@ -361,7 +356,7 @@ describe("OrderBook counterparty in context", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askOrder, bidOrderCarol, clearConfig);
+      .clear(Order_A, Order_C, clearConfig);
 
     const {
       sender: clearSender,
@@ -385,24 +380,24 @@ describe("OrderBook counterparty in context", async function () {
 
     const aOutputExpected = minBN(
       aOutputMaxExpected,
-      fixedPointMul(bidRatio, amountA)
+      fixedPointMul(ratio_B, amountA)
     );
     const bOutputExpected = minBN(
       bOutputMaxExpected,
-      fixedPointMul(askRatio, amountB)
+      fixedPointMul(ratio_A, amountB)
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
       aOutput: aOutputExpected,
       bOutput: bOutputExpected,
-      aInput: fixedPointMul(askRatio, aOutputExpected),
-      bInput: fixedPointMul(bidRatio, bOutputExpected),
+      aInput: fixedPointMul(ratio_A, aOutputExpected),
+      bInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(afterClearSender === bountyBot.address);
     assert(clearSender === bountyBot.address);
-    compareSolStructs(clearA_, askOrder);
-    compareSolStructs(clearB_, bidOrderCarol);
+    compareSolStructs(clearA_, Order_A);
+    compareSolStructs(clearB_, Order_C);
     compareStructs(clearBountyConfig, clearConfig);
     compareStructs(clearStateChange, expectedClearStateChange);
   });

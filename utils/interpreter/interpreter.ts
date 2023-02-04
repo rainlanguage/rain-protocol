@@ -23,12 +23,12 @@ export enum Debug {
   Stack,
 }
 
-export enum selectLteLogic {
+export enum SelectLteLogic {
   every,
   any,
 }
 
-export enum selectLteMode {
+export enum SelectLteMode {
   min,
   max,
   first,
@@ -43,6 +43,7 @@ export function DEBUG_STACK(items: ReadonlyArray<BytesLike>): BytesLike {
 }
 
 /**
+ * @public
  * Converts a value to raw bytes representation. Assumes `value` is less than or equal to 1 byte, unless a desired `bytesLength` is specified.
  *
  * @param value - value to convert to raw bytes format
@@ -57,9 +58,12 @@ export function bytify(
 }
 
 /**
+ * @public
  * Converts an opcode and operand to bytes, and returns their concatenation.
+ *
  * @param code - the opcode
  * @param erand - the operand, currently limited to 2 bytes (defaults to 0)
+ * @returns a complete op that can be used in an interpreter expression
  */
 export function op(
   code: number,
@@ -68,15 +72,25 @@ export function op(
   return concat([bytify(code, 2), bytify(erand, 2)]);
 }
 
-export function memoryOperand(type: number, offset: number): number {
+/**
+ * @public
+ * Builds the operand for RainInterpreter's `READ_MEMORY` opcode by packing 2 numbers into a single byte.
+ *
+ * @param type the kind of memory to read, the Stack or Constants array
+ * @param offset index to read
+ * @returns operand
+ */
+export function memoryOperand(type: MemoryType, offset: number): number {
   return (offset << 1) + type;
 }
 /**
+ * @public
  * Builds the operand for RainInterpreter's `CALL` opcode by packing 3 numbers into a single byte.
  *
  * @param inputSize - number of inputs being passed to the source
  * @param outputSize - number of outputs returned by the source
  * @param sourceIndex - index of function source
+ * @returns operand
  */
 export function callOperand(
   inputSize: number,
@@ -87,22 +101,34 @@ export function callOperand(
   return operand;
 }
 
+/**
+ * @public
+ * Builds the operand for RainInterpreter's `EXTERN` opcode by packing 3 numbers into a single byte.
+ *
+ * @param offset
+ * @param inputs
+ * @param outputs
+ * @returns
+ * @returns operand
+ */
 export function externOperand(
-  offset: number,
   inputs: number,
-  outputs: number
+  outputs: number,
+  offset: number
 ): number {
   const operand = (offset << 10) + (outputs << 5) + inputs;
   return operand;
 }
 
 /**
+ * @public
  * Builds the operand for RainInterpreter's `LOOP_N` opcode by packing 4 numbers into a single byte.
  *
  * @param n - loop the source for n times
  * @param inputSize - number of inputs being passed to the source
  * @param outputSize - number of outputs returned by the source
  * @param sourceIndex - index of function source
+ * @returns operand
  */
 export function loopNOperand(
   n: number,
@@ -115,11 +141,13 @@ export function loopNOperand(
 }
 
 /**
+ * @public
  * Builds the operand for RainInterpreter's `DO_WHILE` opcode by packing 3 numbers into two bytes.
  *
  * @param inputSize - number of inputs being passed to the source
  * @param reserved - reserved bytes
  * @param sourceIndex - index of function source
+ * @returns operand
  */
 export function doWhileOperand(
   inputSize: number,
@@ -131,10 +159,12 @@ export function doWhileOperand(
 }
 
 /**
+ * @public
  * Builds the operand for RainInterpreter's `SCALE18` opcode by packing 2 numbers into a single byte
  *
  * @param decimals - deciamls by which the value is to be scaled
  * @param rounding - rounding direction
+ * @returns operand
  */
 export function scale18Operand(decimals: number, rounding: number): number {
   const operand = (decimals << 1) + rounding;
@@ -142,11 +172,13 @@ export function scale18Operand(decimals: number, rounding: number): number {
 }
 
 /**
+ * @public
  * Builds the operand for RainInterpreter's `zipmap` opcode by packing 3 numbers into a single byte. All parameters use zero-based counting i.e. an `fnSize` of 0 means to allocate one element (32 bytes) on the stack to define your functions, while an `fnSize` of 3 means to allocate all four elements (4 * 32 bytes) on the stack.
  *
  * @param sourceIndex - index of function source in `immutableSourceConfig.sources`
  * @param loopSize - number of times to subdivide vals, reduces uint256 size but allows for more vals (range 0-7)
  * @param valSize - number of vals in outer stack (range 0-7)
+ * @returns operand
  */
 export function zipmapSize(
   sourceIndex: number,
@@ -166,9 +198,18 @@ export function zipmapSize(
   return operand;
 }
 
+/**
+ * @public
+ * Builds the operand for `TierwiseCombine.selectLte`, which specifies how to compare tier reports.
+ *
+ * @param logic can be "every" or "any", which means that the reports for a given tier must either all or any be less than or equal to the reference `blockNumber_`
+ * @param mode can be "min", "max", "first" which selects between all the block numbers for a given tier that meet the lte criteria.
+ * @param inputSize how many values to take from the stack as reports to compare against each other and the block number
+ * @returns operand
+ */
 export function selectLte(
-  logic: number,
-  mode: number,
+  logic: SelectLteLogic,
+  mode: SelectLteMode,
   inputSize: number
 ): number {
   const operand = (logic << 13) + (mode << 8) + inputSize;
@@ -176,12 +217,14 @@ export function selectLte(
 }
 
 /**
+ * @public
  * Builds the operand for RainInterpreter's `FOLD_CONTEXT` opcode by packing 4 numbers into 2 bytes.
  *
  * @param sourceIndex - index of function source
  * @param column - column to start from
  * @param width - width of the column
  * @param inputs - accumulator input count
+ * @returns operand
  */
 export function foldContextOperand(
   sourceIndex: number,
@@ -194,10 +237,12 @@ export function foldContextOperand(
 }
 
 /**
- * Builds the EvaluableConfig struct with expressionConfig and a store.
+ * @public
+ * Builds an EvaluableConfig struct with expressionConfig and a store.
  *
  * @param expressionConfig - index of function source
  * @param isStore - used to toggle NO_STORE
+ * @returns operand
  */
 export async function generateEvaluableConfig(
   expressionConfig: ExpressionConfigStruct,

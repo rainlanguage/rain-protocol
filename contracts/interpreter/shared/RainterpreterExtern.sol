@@ -30,18 +30,22 @@ contract RainterpreterExtern is IInterpreterExternV1 {
         }
         StackPointer stackTop_ = inputs_.asStackPointerAfter();
         uint256 opcode_ = (ExternDispatch.unwrap(dispatch_) >> 16) & MASK_16BIT;
+
         // Operand operand_ = Operand.wrap(ExternDispatch.unwrap(dispatch_) & MASK_16BIT);
         uint256[] memory outputs_;
         // This is an O(n) approach to dispatch so it doesn't scale. This should
         // be replaced with an O(1) dispatch.
         if (opcode_ == 0) {
-            outputs_ = stackTop_.applyFn(OpChainlinkOraclePrice.f).peek().arrayFrom();
-        }
-        else {
+            outputs_ = stackTop_
+                .applyFn(OpChainlinkOraclePrice.f)
+                .peek()
+                .arrayFrom();
+        } else {
             LibInterpreterState.debugStack(
-                inputs_.asStackPointerUp(),
+                inputs_.asStackPointer(),
                 stackTop_
             );
+            outputs_ = inputs_;
         }
         return outputs_;
     }

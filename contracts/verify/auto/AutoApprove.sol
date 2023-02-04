@@ -42,14 +42,13 @@ contract AutoApprove is VerifyCallback, IInterpreterCallerV1 {
         _transferOwnership(msg.sender);
         emit Initialize(msg.sender, config_);
 
-        address expression_ = config_.deployer.deployExpression(
-            config_.expressionConfig,
-            LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
-        );
         evaluable = Evaluable(
             IInterpreterV1(config_.interpreter),
             IInterpreterStoreV1(config_.store),
-            expression_
+            config_.deployer.deployExpression(
+                config_.expressionConfig,
+                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
+            )
         );
     }
 

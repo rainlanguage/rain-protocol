@@ -69,105 +69,103 @@ describe("OrderBook bounty", async function () {
     const bountyBotVaultA = ethers.BigNumber.from(randomUint256());
     const bountyBotVaultB = ethers.BigNumber.from(randomUint256());
 
-    const aliceAskOrder = ethers.utils.toUtf8Bytes("aliceAskOrder");
+    const aliceOrder = ethers.utils.toUtf8Bytes("Order_A");
 
-    // ASK ORDER
+    // Order_A
 
-    const askRatio = ethers.BigNumber.from("90" + eighteenZeros);
-    const askConstants = [max_uint256, askRatio];
-    const vAskOutputMax = op(
+    const ratio_A = ethers.BigNumber.from("90" + eighteenZeros);
+    const constants_A = [max_uint256, ratio_A];
+    const aOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vAskRatio = op(
+    const aRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
-    const askSource = concat([
-      vAskOutputMax,
-      vAskRatio,
+    const source_A = concat([
+      aOpMax,
+      aRatio,
     ]);
 
-    const askEvaluableConfig = await generateEvaluableConfig({
-      sources: [askSource, []],
-      constants: askConstants,
+    const EvaluableConfig_A = await generateEvaluableConfig({
+      sources: [source_A, []],
+      constants: constants_A,
     });
 
-    const askOrderConfig: OrderConfigStruct = {
+    const orderConfig_A: OrderConfigStruct = {
       validInputs: [
         { token: tokenA.address, decimals: 18, vaultId: aliceInputVault },
       ],
       validOutputs: [
         { token: tokenB.address, decimals: 18, vaultId: aliceOutputVault },
       ],
-      evaluableConfig: askEvaluableConfig,
-      data: aliceAskOrder,
+      evaluableConfig: EvaluableConfig_A,
+      data: aliceOrder,
     };
 
-    const txAskAddOrder = await orderBook
-      .connect(alice)
-      .addOrder(askOrderConfig);
+    const txOrder_A = await orderBook.connect(alice).addOrder(orderConfig_A);
 
-    const { sender: _askSender, order: askOrder } = (await getEventArgs(
-      txAskAddOrder,
+    const { sender: sender_A, order: Order_A } = (await getEventArgs(
+      txOrder_A,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(_askSender === alice.address, "wrong sender");
-    compareStructs(askOrder, askOrderConfig);
+    assert(sender_A === alice.address, "wrong sender");
+    compareStructs(Order_A, orderConfig_A);
 
-    // BID ORDER
+    // Order_B
 
     // bob undervalues his units, offering better value than alice expects
     // order clearer is ultimately rewarded with this difference as a bounty
     // i.e. an excess of tokenA which bob didn't need to give to alice to
     // fulfill her bid order
-    const bidRatio = fixedPointDiv(ONE, askRatio.add(10 + eighteenZeros));
-    const bidConstants = [max_uint256, bidRatio];
-    const vBidOutputMax = op(
+    const ratio_B = fixedPointDiv(ONE, ratio_A.add(10 + eighteenZeros));
+    const constants_B = [max_uint256, ratio_B];
+    const bOpMax = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vBidRatio = op(
+    const bRatio = op(
       Opcode.READ_MEMORY,
       memoryOperand(MemoryType.Constant, 1)
     );
     // prettier-ignore
     const bidSource = concat([
-      vBidOutputMax,
-      vBidRatio,
+      bOpMax,
+      bRatio,
     ]);
 
-    const bobBidOrder = ethers.utils.toUtf8Bytes("bobBidOrder");
+    const bobOrder = ethers.utils.toUtf8Bytes("Order_B");
 
-    const bidEvaluableConfig = await generateEvaluableConfig({
+    const EvaluableConfig_B = await generateEvaluableConfig({
       sources: [bidSource, []],
-      constants: bidConstants,
+      constants: constants_B,
     });
 
-    const bidOrderConfig: OrderConfigStruct = {
+    const orderConfig_B: OrderConfigStruct = {
       validInputs: [
         { token: tokenB.address, decimals: 18, vaultId: bobInputVault },
       ],
       validOutputs: [
         { token: tokenA.address, decimals: 18, vaultId: bobOutputVault },
       ],
-      evaluableConfig: bidEvaluableConfig,
-      data: bobBidOrder,
+      evaluableConfig: EvaluableConfig_B,
+      data: bobOrder,
     };
 
-    const txBidAddOrder = await orderBook.connect(bob).addOrder(bidOrderConfig);
+    const txOrder_B = await orderBook.connect(bob).addOrder(orderConfig_B);
 
-    const { sender: _bidSender, order: bidOrder } = (await getEventArgs(
-      txBidAddOrder,
+    const { sender: sender_B, order: Order_B } = (await getEventArgs(
+      txOrder_B,
       "AddOrder",
       orderBook
     )) as AddOrderEvent["args"];
 
-    assert(_bidSender === bob.address, "wrong sender");
-    compareStructs(bidOrder, bidOrderConfig);
+    assert(sender_B === bob.address, "wrong sender");
+    compareStructs(Order_B, orderConfig_B);
 
     // DEPOSITS
 
@@ -235,7 +233,7 @@ describe("OrderBook bounty", async function () {
 
     const txClearOrder = await orderBook
       .connect(bountyBot)
-      .clear(askOrder, bidOrder, clearConfig);
+      .clear(Order_A, Order_B, clearConfig);
 
     const {
       sender: _clearSender,
@@ -259,24 +257,24 @@ describe("OrderBook bounty", async function () {
 
     const aOutputExpected = minBN(
       aOutputMaxExpected,
-      fixedPointMul(bidRatio, amountA)
+      fixedPointMul(ratio_B, amountA)
     );
     const bOutputExpected = minBN(
       bOutputMaxExpected,
-      fixedPointMul(askRatio, amountB)
+      fixedPointMul(ratio_A, amountB)
     );
 
     const expectedClearStateChange: ClearStateChangeStruct = {
       aOutput: aOutputExpected,
       bOutput: bOutputExpected,
-      aInput: fixedPointMul(askRatio, aOutputExpected),
-      bInput: fixedPointMul(bidRatio, bOutputExpected),
+      aInput: fixedPointMul(ratio_A, aOutputExpected),
+      bInput: fixedPointMul(ratio_B, bOutputExpected),
     };
 
     assert(_afterClearSender === bountyBot.address);
     assert(_clearSender === bountyBot.address);
-    compareSolStructs(clearA_, askOrder);
-    compareSolStructs(clearB_, bidOrder);
+    compareSolStructs(clearA_, Order_A);
+    compareSolStructs(clearB_, Order_B);
     compareStructs(_clearBountyConfig, clearConfig);
     compareStructs(_clearStateChange, expectedClearStateChange);
 

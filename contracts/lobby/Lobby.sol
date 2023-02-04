@@ -336,8 +336,8 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 emit PlayersFinalised(msg.sender);
             }
 
-            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
             _deposit(amount_);
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
     }
 
@@ -506,7 +506,11 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
         // phase to the invalid phase, but this happens atomically within this
         // function call so there's no way that `claim` can be called before
         // `refund` is enabled.
-        (bool isInvalid_, uint256[] memory kvs_) = _isInvalid(evaluable_, callerContext_, signedContexts_);
+        (bool isInvalid_, uint256[] memory kvs_) = _isInvalid(
+            evaluable_,
+            callerContext_,
+            signedContexts_
+        );
         if (!isInvalid_) {
             revert NotInvalid();
         }

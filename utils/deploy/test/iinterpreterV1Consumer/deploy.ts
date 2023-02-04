@@ -54,6 +54,6 @@ export const expressionConsumerDeploy = async (
     ENTRYPOINT,
     maxOutputs
   );
-  
+
   return { dispatch, expressionDeployer, libEncodedDispatch };
 };
