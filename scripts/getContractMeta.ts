@@ -6,7 +6,7 @@ import * as path from "path";
 import { format } from "prettier";
 import { argv } from "process";
 import { deflateSync } from "zlib";
-import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
+import ContractMetaSchema from "../schema/meta/v0/contract.meta.schema.json";
 
 const readFile = (_path: string) => {
   try {
@@ -36,23 +36,25 @@ const main = async () => {
   ) {
     console.log(
       `
+      Get deployable bytes for a contract meta.
+
       usage:
-        gen-opmeta [--opmeta] <path/to/files.json> [option1] <arg1> [option2] <arg2>
+        contract-meta [--contract-meta] <path/to/contract-meta.json> [option1] <arg1> [option2] <arg2>
 
       example:
-        gen-opmeta --dest dest/path/name.json --schema path/to/schema.json --opmeta ./path/to/1st.opmeta.json ./path/to/2nd.opmeta.json
+        contract-meta --dest dest/path/name.json --schema path/to/schema.json --contract-meta ./path/to/contract.meta.json
 
 
       options:
 
-        --opmeta, -o, -O <path/to/1st.opmeta.json> <path/to/2nd.opmeta.json> ...
-          Path to individual opmeta files.
+        --contract-meta, -c, -C <path/to/contract.meta.json>
+          Path to a contract meta file.
 
         --dest, -d, -D <destination/path/name.json>
-          (optional) Destination of the output file. Writes to root of the current working directory if not provided.
+          (optional) Destination of the output file. Only loges the Deployable Bytes in the terminal if not provided.
 
         --schema, -s, -S <path/to/schema.json>
-          (optional) Path to the opmeta schema, uses the default schema if not provided.
+          (optional) Path to the contract meta schema, uses the default schema if not provided.
 
 
       *** Path can be relative or absolute ***
@@ -61,9 +63,11 @@ const main = async () => {
       `
     );
   } else {
+    let toWrite = false
     let dir = root;
     let schemaPath = "";
     if (args.includes("--dest") || args.includes("-d") || args.includes("-D")) {
+      toWrite = true
       const _i =
         args.indexOf("--dest") > -1
           ? args.indexOf("--dest")
@@ -95,41 +99,38 @@ const main = async () => {
 
     const schema = schemaPath.length
       ? JSON.parse(readFile(schemaPath))
-      : OpmetaSchema;
+      : ContractMetaSchema;
     const validate = new Ajv().compile(schema);
 
-    const opmetas = [];
+    let contractMeta;
     if (
-      args.includes("--opmeta") ||
-      args.includes("-o") ||
-      args.includes("-O")
+      args.includes("--contract-meta") ||
+      args.includes("-c") ||
+      args.includes("-C")
     ) {
       const _i =
-        args.indexOf("--opmeta") > -1
-          ? args.indexOf("--opmeta")
-          : args.indexOf("-o") > -1
-          ? args.indexOf("-o")
-          : args.indexOf("-O");
-      const _tmp = args.splice(_i + 1);
-      if (!_tmp.length) throw new Error("expected path to opmeta files");
-      for (let i = 0; i < _tmp.length; i++) {
-        if (_tmp[i].endsWith(".json")) {
-          const tmp = JSON.parse(readFile(path.resolve(root, _tmp[i])));
-          if (validate(tmp)) opmetas.push(tmp);
-          else throw new Error(`invalid opmeta content at index ${i}`);
-        } else
-          throw new Error(`invalid opmeta at index ${i}, must be a valid json`);
-      }
+        args.indexOf("--contract-meta") > -1
+          ? args.indexOf("--contract-meta")
+          : args.indexOf("-c") > -1
+          ? args.indexOf("-c")
+          : args.indexOf("-C");
+      const item = args.splice(_i + 1, _i + 2);
+      if (item.length !== 1) throw new Error("expected path to contract meta file");
+      if (item[0].endsWith(".json")) {
+        const tmp = JSON.parse(readFile(path.resolve(root, item[0])));
+        if (validate(tmp)) contractMeta = tmp;
+        else throw new Error(`${item[0]} has invalid content`);
+      } else throw new Error(`${item[0]} is not valid, must be a valid json`);
 
-      let opmetaHexString = "0x";
+      let contractMetaHexString = "0x";
       const opmetaBytes = Uint8Array.from(
         deflateSync(
-          format(JSON.stringify(opmetas, null, 4), { parser: "json" })
+          format(JSON.stringify(contractMeta, null, 4), { parser: "json" })
         )
       );
       for (let i = 0; i < opmetaBytes.length; i++) {
-        opmetaHexString =
-          opmetaHexString + opmetaBytes[i].toString(16).padStart(2, "0");
+        contractMetaHexString =
+          contractMetaHexString + opmetaBytes[i].toString(16).padStart(2, "0");
       }
 
       let schemaHexString = "0x";
@@ -142,21 +143,32 @@ const main = async () => {
       }
 
       const data = {
-        opmeta: opmetas,
-        deployableOpmetaBytes: opmetaHexString,
-        deployableSchemaBytes: schemaHexString,
+        deployableContractMetaBytes: contractMetaHexString,
+        deployableSchemaBytes: schemaHexString
       };
-      const fileData = format(JSON.stringify(data, null, 4), {
-        parser: "json",
-      });
+      if (toWrite) {
+        const fileData = format(JSON.stringify(data, null, 4), {
+          parser: "json",
+        });
 
-      if (!dir.endsWith(".json")) dir = dir + "/Opmeta.json";
+        if (!dir.endsWith(".json")) dir = dir + "/ContractMetaBytes.json";
 
-      writeFile(dir, fileData);
+        writeFile(dir, fileData);
+      }
+      console.log(`
+Deployable ContractMeta Bytes: 
+${contractMetaHexString}
+
+`)
+      console.log(`
+Deployable ContractMeta Schema Bytes: 
+${schemaHexString}
+
+`)
     } else
       console.log(
         `
-  Expected Opmeta Files!
+  Expected ContractMeta File!
   `
       );
   }

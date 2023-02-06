@@ -3,7 +3,7 @@ import {
   RainterpreterExtern,
   RainterpreterStore,
 } from "../../../../../typechain";
-import { getRainterpreterOpmetaBytes } from "../../../../interpreter/ops/allStandardOpmeta";
+import { getRainterpreterOpmetaBytes } from "../../../../meta/op/allStandardOpmeta";
 import { basicDeploy } from "../../../basicDeploy";
 
 export const rainterpreterDeploy = async () => {

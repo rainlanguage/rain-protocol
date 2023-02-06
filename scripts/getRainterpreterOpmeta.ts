@@ -6,7 +6,7 @@ import { argv } from "process";
 import { deflateSync } from "zlib";
 import { format } from "prettier";
 import OpmetaSchema from "../schema/meta/v0/op.meta.schema.json";
-import { rainterpreterOpmeta } from "../utils/interpreter/ops/allStandardOpmeta";
+import { rainterpreterOpmeta } from "../utils/meta/op/allStandardOpmeta";
 
 const writeFile = (_path: string, file: string) => {
   try {
@@ -23,10 +23,12 @@ const main = async () => {
   if (args.includes("--help") || args.includes("-h") || args.includes("-H")) {
     console.log(
       `
-      usage:
-        gen-rainterpreter-opmeta <destination/path/name.json>
+      Get deployable bytes for Rainterpreter opcodes.
 
-      ** Writes to root of the current workiing directory if no destination path provided.
+      usage:
+        rainterpreter-opmeta <destination/path/name.json>
+
+      ** Only logs the Deployable Bytes if no path was provided for the output file.
       `
     );
   } else {
@@ -53,18 +55,28 @@ const main = async () => {
     }
 
     const data = {
-      opmeta: rainterpreterOpmeta,
       deployableOpmetaBytes: opmetaHexString,
       deployableSchemaBytes: schemaHexString,
+      opmeta: rainterpreterOpmeta,
     };
     const fileData = format(JSON.stringify(data, null, 4), { parser: "json" });
 
     if (args.length === 1) {
       dir = path.resolve(root, args[0]);
+      if (!dir.endsWith(".json")) dir = dir + "/RainterpreterOpmeta.json";
+      writeFile(dir, fileData);
     } else if (args.length > 1) throw new Error("invalid arguments");
-    if (!dir.endsWith(".json")) dir = dir + "/RainterpreterOpmeta.json";
 
-    writeFile(dir, fileData);
+    console.log(`
+Deployable Opmeta Bytes: 
+${opmetaHexString}
+
+`)
+    console.log(`
+Deployable Opmeta Schema Bytes: 
+${schemaHexString}
+
+`)
   }
 };
 

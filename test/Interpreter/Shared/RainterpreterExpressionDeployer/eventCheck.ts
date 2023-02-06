@@ -23,7 +23,7 @@ import {
   rainterpreterStoreDeploy,
 } from "../../../../utils/deploy/interpreter/shared/rainterpreter/deploy";
 import { rainterpreterExpressionDeployerDeploy } from "../../../../utils/deploy/interpreter/shared/rainterpreterExpressionDeployer/deploy";
-import { getRainterpreterOpmetaBytes } from "../../../../utils/interpreter/ops/allStandardOpmeta";
+import { getRainterpreterOpmetaBytes } from "../../../../utils/meta/op/allStandardOpmeta";
 
 describe("Test Rainterpreter Expression Deployer event", async function () {
   it("DeployExpression event should emit original NewExpressionConfig", async () => {
