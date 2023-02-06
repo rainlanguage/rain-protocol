@@ -1,7 +1,8 @@
 import  { Chain, Common, Hardfork } from '@ethereumjs/common' ;
-import { getOpcodesForHF } from '@ethereumjs/evm/src/opcodes';  
+import { getOpcodesForHF } from '@ethereumjs/evm/dist/opcodes';  
 
-const data = require("../../artifacts/contracts/interpreter/shared/Rainterpreter.sol/Rainterpreter.json")  
+
+import data from "../../artifacts/contracts/interpreter/shared/Rainterpreter.sol/Rainterpreter.json";
 
 
 const common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.Istanbul })
