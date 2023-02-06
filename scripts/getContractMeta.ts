@@ -48,7 +48,7 @@ const main = async () => {
       options:
 
         --contract-meta, -c, -C <path/to/contract.meta.json>
-          Path to a contract meta file.
+          Path to a contract meta json file.
 
         --dest, -d, -D <destination/path/name.json>
           (optional) Destination of the output file. Only loges the Deployable Bytes in the terminal if not provided.

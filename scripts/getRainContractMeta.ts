@@ -39,16 +39,16 @@ const main = async () => {
       Get deployable bytes for a Rain contract meta.
 
       usage:
-        rain-contract-meta [--contract-name] <path/to/contract-meta.json> [option] <arg>
+        rain-contract-meta [--name] <Rain contract name> [option] <arg>
 
       example:
-        rain-contract-meta --contract-name sale --dest dest/path/name.json
+        rain-contract-meta --name sale --dest dest/path/name.json
 
 
       options:
 
-        --contract-name, -c, -C <rain contract name>
-          Name of a Rain contract, which are: flow20, flow721, flow1155, orderbook, lobby, sale, stake, combinetier or autoapprove
+        --name, -n, -N <Rain contract name>
+          Name of a Rain contract (case insensitive), which are: flow20, flow721, flow1155, orderbook, lobby, sale, stake, combinetier or autoapprove
 
         --dest, -d, -D <destination/path/name.json>
           (optional) Destination of the output file. Only loges the Deployable Bytes in the terminal if not provided.
@@ -79,27 +79,27 @@ const main = async () => {
 
     let contractMeta;
     if (
-      args.includes("--contract-name") ||
-      args.includes("-c") ||
-      args.includes("-C")
+      args.includes("--name") ||
+      args.includes("-n") ||
+      args.includes("-N")
     ) {
       const _i =
-        args.indexOf("--contract-name") > -1
-          ? args.indexOf("--contract-name")
-          : args.indexOf("-c") > -1
-          ? args.indexOf("-c")
-          : args.indexOf("-C");
+        args.indexOf("--name") > -1
+          ? args.indexOf("--name")
+          : args.indexOf("-n") > -1
+          ? args.indexOf("-n")
+          : args.indexOf("-N");
       const item = args.splice(_i + 1, _i + 2);
       if (item.length !== 1) throw new Error("expected Rain contract name");
-      if (item[0] === "sale") contractMeta = Sale
-      else if (item[0] === "stake") contractMeta = Stake
-      else if (item[0] === "orderbook") contractMeta = Orderbook
-      else if (item[0] === "flow20") contractMeta = FlowERC20
-      else if (item[0] === "flow721") contractMeta = FlowERC721
-      else if (item[0] === "flow1155") contractMeta = FlowERC1155
-      else if (item[0] === "lobby") contractMeta = Lobby
-      else if (item[0] === "autoapprove") contractMeta = AutoApprove
-      else if (item[0] === "combinetier") contractMeta = CombineTier
+      if (item[0].toLocaleLowerCase() === "sale") contractMeta = Sale
+      else if (item[0].toLocaleLowerCase() === "stake") contractMeta = Stake
+      else if (item[0].toLocaleLowerCase() === "orderbook") contractMeta = Orderbook
+      else if (item[0].toLocaleLowerCase() === "flow20") contractMeta = FlowERC20
+      else if (item[0].toLocaleLowerCase() === "flow721") contractMeta = FlowERC721
+      else if (item[0].toLocaleLowerCase() === "flow1155") contractMeta = FlowERC1155
+      else if (item[0].toLocaleLowerCase() === "lobby") contractMeta = Lobby
+      else if (item[0].toLocaleLowerCase() === "autoapprove") contractMeta = AutoApprove
+      else if (item[0].toLocaleLowerCase() === "combinetier") contractMeta = CombineTier
       else throw new Error(`${item[0]} is not a valid Rain contract with contract meta`)
 
       let contractMetaHexString = "0x";
