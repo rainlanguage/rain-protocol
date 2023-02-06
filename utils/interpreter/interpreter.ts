@@ -112,9 +112,9 @@ export function callOperand(
  * @returns operand
  */
 export function externOperand(
-  offset: number,
   inputs: number,
-  outputs: number
+  outputs: number,
+  offset: number
 ): number {
   const operand = (offset << 10) + (outputs << 5) + inputs;
   return operand;
