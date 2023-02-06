@@ -57,7 +57,7 @@ const main = async () => {
           (optional) Path to the contract meta schema, uses the default schema if not provided.
 
 
-      *** Path can be relative or absolute ***
+      *** Path can be relative(from the current working directory) or absolute:
           - relative path must start with letters or 1 or 2 dots ".", example: relative/path ./relative/path ../../relative/path
           - absolute path must start with slash "/", example: /absolute/path
       `
