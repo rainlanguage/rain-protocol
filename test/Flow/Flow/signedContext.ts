@@ -34,7 +34,7 @@ describe("Flow signed context tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP
@@ -114,7 +114,7 @@ describe("Flow signed context tests", async function () {
     const constants = [RAIN_FLOW_SENTINEL, 1];
 
     const SENTINEL = () =>
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
 
     const sourceFlowIO = concat([
       SENTINEL(), // ERC1155 SKIP

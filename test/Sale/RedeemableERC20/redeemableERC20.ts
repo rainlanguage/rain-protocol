@@ -62,17 +62,14 @@ describe("Sale redeemableERC20 token", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
     const minimumTier = Tier.FOUR;
@@ -182,17 +179,14 @@ describe("Sale redeemableERC20 token", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig({
@@ -288,17 +282,14 @@ describe("Sale redeemableERC20 token", async function () {
       startBlock + saleDuration - 1,
     ];
     const vBasePrice = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
-    const vStart = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
-    const vEnd = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const vStart = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const vEnd = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
     const sources = [
       betweenBlockNumbersSource(vStart, vEnd),
-      concat([op(Opcode.CONTEXT, 0x0000), vBasePrice]),
+      concat([op(Opcode.context, 0x0000), vBasePrice]),
       concat([]),
     ];
     const evaluableConfig = await generateEvaluableConfig({

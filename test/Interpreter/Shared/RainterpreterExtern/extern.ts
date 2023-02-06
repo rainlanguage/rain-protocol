@@ -60,14 +60,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([
           v0,
           v1,
-          op(Opcode.EXTERN, externOperand(0, 2 ,1)),
+          op(Opcode.extern, externOperand(0, 2 ,1)),
       ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -110,14 +110,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([
           v0,
           v1,
-          op(Opcode.EXTERN, externOperand(0, 2 ,1)),
+          op(Opcode.extern, externOperand(0, 2 ,1)),
       ]);
 
     const expression0 = await expressionConsumerDeploy(
@@ -159,14 +159,14 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const constants = [rainInterpreterExtern.address, feed, staleAfter];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
+    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
+    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
 
     // prettier-ignore
     const source0 = concat([
           v0,
           v1,
-          op(Opcode.EXTERN, externOperand(0, 2 ,1)),
+          op(Opcode.extern, externOperand(0, 2 ,1)),
       ]);
 
     const expression0 = await expressionConsumerDeploy(

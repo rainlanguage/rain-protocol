@@ -47,9 +47,9 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.EQUAL_TO),
+            op(Opcode.context, 0x0001),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equalTo),
         ]),
       ],
       constants: [correctID],
@@ -109,9 +109,9 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.EQUAL_TO),
+            op(Opcode.context, 0x0001),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equalTo),
         ]),
       ],
       constants: [correctID],
@@ -174,9 +174,9 @@ describe("AutoApprove afterAdd", async function () {
       // prettier-ignore
       sources: [
         concat([
-            op(Opcode.CONTEXT, 0x0001),
-            op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(Opcode.EQUAL_TO),
+            op(Opcode.context, 0x0001),
+            op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(Opcode.equalTo),
         ]),
       ],
       constants: [correctID],
@@ -231,7 +231,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
       constants: [0], // do not approve any evidence
     };
 
@@ -279,7 +279,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
@@ -341,7 +341,7 @@ describe("AutoApprove afterAdd", async function () {
     const aprAdmin = signers[4];
 
     const expressionConfig: ExpressionConfigStruct = {
-      sources: [op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0))],
+      sources: [op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0))],
       constants: [1], // approve any evidence
     };
 
