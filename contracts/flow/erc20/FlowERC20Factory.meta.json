@@ -31,43 +31,37 @@
               "name": "Base",
               "desc": "Base context column",
               "alias": "base",
-              "opcode": "context-row",
-              "operand": [0],
+              "columnIndex": 0,
               "cells": [
                 {
                   "name": "Caller",
                   "desc": "The contract or EOA that called transfer",
                   "alias": "caller",
-                  "opcode": "context",
-                  "operand": [0, 0]
+                  "cellIndex": 0
                 },
                 {
                   "name": "This Contract",
                   "desc": "The address of the FlowERC20 contract this expression is for",
                   "alias": "this-contract",
-                  "opcode": "context",
-                  "operand": [0, 1]
+                  "cellIndex": 1
                 },
                 {
                   "name": "From",
                   "desc": "The address this token is being transferred from",
                   "alias": "from-address",
-                  "opcode": "context",
-                  "operand": [0, 2]
+                  "cellIndex": 2
                 },
                 {
                   "name": "To",
                   "desc": "The address this token is being transferred from",
                   "alias": "to-address",
-                  "opcode": "context",
-                  "operand": [0, 3]
+                  "cellIndex": 3
                 },
                 {
                   "name": "Amount",
                   "desc": "The amount of this token being transferred",
                   "alias": "transfer-amount",
-                  "opcode": "context",
-                  "operand": [0, 4]
+                  "cellIndex": 4
                 }
               ]
             }
@@ -84,22 +78,19 @@
               "name": "Base",
               "desc": "Base context column",
               "alias": "base",
-              "opcode": "context-row",
-              "operand": [0],
+              "columnIndex": 0,
               "cells": [
                 {
                   "name": "Caller",
                   "desc": "The contract or EOA that called transfer",
                   "alias": "caller",
-                  "opcode": "context",
-                  "operand": [0, 0]
+                  "cellIndex": 0
                 },
                 {
                   "name": "This Contract",
                   "desc": "The address of the FlowERC20 contract this expression is for",
                   "alias": "this-contract",
-                  "opcode": "context",
-                  "operand": [0, 1]
+                  "cellIndex": 1
                 }
               ]
             }

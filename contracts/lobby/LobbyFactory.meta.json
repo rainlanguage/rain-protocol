@@ -1,4 +1,5 @@
 {
+  // TODO Completet descriptions
   "name": "Lobby Factory",
   "desc": "",
   "source": "https://github.com/rainprotocol/rain-protocol",
@@ -40,6 +41,7 @@
           "name": "Lobby expression",
           "desc": "The expression that defines the rules for this Lobby.",
           "path": "[6].inputs[0].components[3]",
+          // @ TODO callerContext and signedContext
           "signedContext": true,
           "callerContext": true
         }

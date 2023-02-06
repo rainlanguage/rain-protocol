@@ -25,35 +25,33 @@
           "name": "Order",
           "desc": "An expression for the order. Orderbook context is actually fairly complex. The calling context column is populated before calculate order, but the remaining columns are only available to handle IO as they depend on the full evaluation of calculuate order, and cross referencing against the same from the counterparty, as well as accounting limits such as current vault balances, etc. The token address and decimals for vault inputs and outputs IS available to the calculate order entrypoint, but not the final vault balances/diff.",
           "path": "[19].inputs[0].components[2]",
+          // @ TODO callerContext and SignedContext
           "signedContext": false,
+          "callerContext": false,
           "contextColumns": [
             {
               "name": "Calling Context",
               "desc": "Contextual data available to both calculate order and handle IO. The order hash, order owner and order counterparty. IMPORTANT NOTE that the typical base context of an order with the caller will often be an unrelated clearer of the order rather than the owner or counterparty.",
               "alias": "calling-context",
-              "opcode": "context-row",
-              "operand": [0],
+              "columnIndex": 0,
               "cells": [
                 {
                   "name": "Order hash",
                   "desc": "The hash of this order",
                   "alias": "order-hash",
-                  "opcode": "context",
-                  "operand": [0, 0]
+                  "cellIndex": 0
                 },
                 {
                   "name": "Order owner",
                   "desc": "The address of the owner of this order",
                   "alias": "order-owner",
-                  "opcode": "context",
-                  "operand": [0, 1]
+                  "cellIndex": 1
                 },
                 {
                   "name": "Counterparty",
                   "desc": "The address of the other party for this order when cleared",
                   "alias": "counterparty",
-                  "opcode": "context",
-                  "operand": [0, 2]
+                  "cellIndex": 2
                 }
               ]
             },
@@ -61,22 +59,19 @@
               "name": "Calculations",
               "desc": "Calculations column contains the DECIMAL RESCALED calculations but otherwise provided as-is according to calculate order entrypoint",
               "alias": "calculations",
-              "opcode": "context-row",
-              "operand": [1],
+              "columnIndex": 1,
               "cells": [
                 {
                   "name": "Order output max",
                   "desc": "The output max rescaled and vault capped",
                   "alias": "output-max",
-                  "opcode": "context",
-                  "operand": [1, 0]
+                  "cellIndex": 0
                 },
                 {
                   "name": "Order IO ratio",
                   "desc": "The rescaled ratio",
                   "alias": "io-ratio",
-                  "opcode": "context",
-                  "operand": [1, 1]
+                  "cellIndex": 1
                 }
               ]
             },
@@ -84,36 +79,31 @@
               "name": "Valid Inputs",
               "desc": "Vault inputs are the literal token amounts and vault balances before and after for the input token from the perspective of the order. MAY be significantly different to the calculated amount due to insufficient vault balances from either the owner or counterparty, etc.",
               "alias": "valid-inputs",
-              "opcode": "context-row",
-              "operand": [2],
+              "columnIndex": 2,
               "cells": [
                 {
                   "name": "Input token",
                   "desc": "The input token address",
                   "alias": "input-token",
-                  "opcode": "context",
-                  "operand": [2, 0]
+                  "cellIndex": 0
                 },
                 {
                   "name": "Input token decimals",
                   "desc": "The input token decimals",
                   "alias": "input-token-decimals",
-                  "opcode": "context",
-                  "operand": [2, 1]
+                  "cellIndex": 1
                 },
                 {
                   "name": "Input vault ID",
                   "desc": "The input vault ID",
                   "alias": "input-vault-id",
-                  "opcode": "context",
-                  "operand": [2, 2]
+                  "cellIndex": 2
                 },
                 {
                   "name": "Input vault balance before",
                   "desc": "The balance of the vault for this order's input token, before clearing",
                   "alias": "intput-vault-balance-before",
-                  "opcode": "context",
-                  "operand": [2, 3]
+                  "cellIndex": 3
                 }
               ]
             },
@@ -121,36 +111,31 @@
               "name": "Valid Outputs",
               "desc": "Vault outputs are the same as vault inputs but for the output token from the perspective of the order.",
               "alias": "valid-outputs",
-              "opcode": "context-row",
-              "operand": [3],
+              "columnIndex": 3,
               "cells": [
                 {
                   "name": "Output token",
                   "desc": "The output token address",
                   "alias": "output-token",
-                  "opcode": "context",
-                  "operand": [3, 0]
+                  "cellIndex": 0
                 },
                 {
                   "name": "Output token decimals",
                   "desc": "The output token decimals",
                   "alias": "output-token-decimals",
-                  "opcode": "context",
-                  "operand": [3, 1]
+                  "cellIndex": 1
                 },
                 {
                   "name": "Output vault ID",
                   "desc": "The output vault ID",
                   "alias": "output-vault-id",
-                  "opcode": "context",
-                  "operand": [3, 2]
+                  "cellIndex": 2
                 },
                 {
                   "name": "Output vault balance before",
                   "desc": "The balance of the vault for this order's output token, before clearing",
                   "alias": "output-vault-balance-before",
-                  "opcode": "context",
-                  "operand": [3, 3]
+                  "cellIndex": 3
                 }
               ]
             }

@@ -1,0 +1,51 @@
+{
+  "name": "CombineTier Factory",
+  "desc": "Factory for CombineTier which is a tier contract to combine reports of some other tier contracts based on an expression.",
+  "alias": "combine-tier-factory",
+  "source": "https://github.com/rainprotocol/rain-protocol",
+  "commit": "891b44d186e9c30d520b056314666b53c5d9ff64",
+  "methods": [
+    {
+      "name": "createChildTyped",
+      "desc": "Deploys a new CombineTier contract.",
+      "inputs": [
+        {
+          "name": "combinedTiersLength",
+          "desc": "The first N values in the constants array of the expressionConfig MUST be all the combined tiers that are known statically. Of course some tier addresses MAY only be known at runtime and so these cannotbe included.",
+          "path": "[6].inputs[0].components[0]"
+        }
+      ],
+      "expressions": [
+        {
+          "name": "CombineTier Report",
+          "desc": "An expression that determines Report of a CombineTier contract.",
+          "path": "[6].inputs[0].components[1]",
+          "signedContext": true,
+          "callerContext": true,
+          "contextColumns": [
+            {
+              "name": "Base",
+              "desc": "Base context column",
+              "alias": "base",
+              "columnIndex": 0,
+              "cells": [
+                {
+                  "name": "Caller",
+                  "desc": "The contract or EOA that called transfer",
+                  "alias": "caller",
+                  "cellIndex": 0
+                },
+                {
+                  "name": "This Contract",
+                  "desc": "The address of the CombineTier contract this expression is for",
+                  "alias": "this-contract",
+                  "cellIndex": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
