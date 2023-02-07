@@ -2,7 +2,6 @@ import { BigNumber } from "ethers";
 import { BytesLike, concat } from "ethers/lib/utils";
 import { PromiseOrValue } from "../../typechain/common";
 import { OrderConfigStruct } from "../../typechain/contracts/orderbook/IOrderBookV1";
-
 import {
   generateEvaluableConfig,
   memoryOperand,
@@ -30,11 +29,11 @@ export const getOrderConfig = async (
       vOpMax,
       vRatio,
     ]);
-  const EvaluableConfig = await generateEvaluableConfig({
+  const evaluableConfig = await generateEvaluableConfig({
     sources: [source, []],
     constants: constants,
   });
-  const OrderConfig: OrderConfigStruct = {
+  const orderConfig: OrderConfigStruct = {
     validInputs: [
       {
         token: inputTokenAddress,
@@ -49,9 +48,9 @@ export const getOrderConfig = async (
         vaultId: outputVault,
       },
     ],
-    evaluableConfig: EvaluableConfig,
-    data: orderData ? orderData : [],
+    evaluableConfig,
+    data: orderData || [],
   };
 
-  return OrderConfig;
+  return orderConfig;
 };

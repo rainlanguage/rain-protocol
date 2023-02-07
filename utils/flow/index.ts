@@ -6,6 +6,9 @@ import { FlowERC20IOStruct } from "../../typechain/contracts/flow/erc20/FlowERC2
 import { FlowERC721IOStruct } from "../../typechain/contracts/flow/erc721/FlowERC721";
 
 /**
+ * @public
+ * Fills empty address fields within FlowTransferStruct with the given address
+ *
  * @param flow FlowTransferStruct holding partially filled structs
  * @param address address to fill in FlowTransferStruct
  */
@@ -41,6 +44,9 @@ export const fillEmptyAddress = (
 };
 
 /**
+ * @public
+ * Fills empty address fields within FlowTransferStruct with the given address
+ *
  * @param flow FlowTransferStruct holding partially filled structs
  * @param address address to fill in FlowTransferStruct
  */
@@ -86,6 +92,9 @@ export const fillEmptyAddressERC20 = (
 };
 
 /**
+ * @public
+ * Fills empty address fields within FlowTransferStruct with the given address
+ *
  * @param flow FlowTransferStruct holding partially filled structs
  * @param address address to fill in FlowTransferStruct
  */
@@ -131,6 +140,9 @@ export const fillEmptyAddressERC721 = (
 };
 
 /**
+ * @public
+ * Fills empty address fields within FlowTransferStruct with the given address
+ *
  * @param flow FlowTransferStruct holding partially filled structs
  * @param address address to fill in FlowTransferStruct
  */

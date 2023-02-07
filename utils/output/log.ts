@@ -1,5 +1,7 @@
 /**
+ * @public
  * Pretty prints a 2D matrix (array of arrays) to the console.
+ *
  * @see https://gist.github.com/lbn/3d6963731261f76330af
  * @param mat - 2D matrix as an array of arrays
  */

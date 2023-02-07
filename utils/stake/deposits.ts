@@ -6,6 +6,14 @@ interface Deposit {
   amount: BigNumber;
 }
 
+/**
+ * @public
+ * Retrieves array of `Stake` deposit records for the given signer.
+ *
+ * @param stake `Stake` contract object
+ * @param signerAddress address of signer to retrieve deposit records
+ * @returns array of `Deposit` objects
+ */
 export const getDeposits = async (stake: Stake, signerAddress: string) => {
   const deposits: Deposit[] = [];
   let i = 0;
