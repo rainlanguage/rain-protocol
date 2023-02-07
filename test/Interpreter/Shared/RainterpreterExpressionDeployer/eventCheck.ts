@@ -118,7 +118,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     );
   });
 
-  it.only("should emit correct opMeta on interpreter construction", async () => {
+  it("should emit correct opMeta on interpreter construction", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
