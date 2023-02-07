@@ -33,7 +33,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"09d709e50a3b0a8d0b0b0b370bd00d5b0e
 
 /// @dev Hash of the known interpreter bytecode.
 bytes32 constant INTERPRETER_BYTECODE_HASH = bytes32(
-    0xbc52db76e944bf5245c516990668f268c9d2f24dc3aa1b06b4f9d128914df383
+    0xc33f43e95e32fff7adb2974535459424ffb09f9c6ee22112e5b238145935dd06
 );
 
 /// @title RainterpreterExpressionDeployer
