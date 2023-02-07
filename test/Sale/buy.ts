@@ -18,7 +18,6 @@ import { reserveDeploy } from "../../utils/deploy/test/reserve/deploy";
 import { getEventArgs } from "../../utils/events";
 import { createEmptyBlock } from "../../utils/hardhat";
 import {
-  Debug,
   generateEvaluableConfig,
   memoryOperand,
   MemoryType,
@@ -957,10 +956,10 @@ describe("Sale buy", async function () {
 
             // price will be dynamic based on the value set for  msg.sender
             // (getValue == 0) ? vBasePrice : vDiscountedPrice
-              key, 
+              key,
             op(Opcode.GET),
             zero,
-          op(Opcode.GREATER_THAN), 
+          op(Opcode.GREATER_THAN),
           vDiscountedPrice,
           vBasePrice,
         op(Opcode.EAGER_IF),
@@ -1073,6 +1072,5 @@ describe("Sale buy", async function () {
       expected  ${expectedPrice1}
       got       ${receipt1.price}`
     );
-    
   });
 });

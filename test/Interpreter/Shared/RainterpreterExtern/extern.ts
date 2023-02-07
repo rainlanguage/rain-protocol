@@ -214,7 +214,6 @@ describe("EXTERN Opcode tests", async function () {
     );
   });
 
-
   it("rainInterpreterExtern should get price from oracle", async () => {
     const fakeChainlinkOracle2 = await smock.fake("AggregatorV3Interface");
 
@@ -275,7 +274,7 @@ describe("EXTERN Opcode tests", async function () {
     const constants = [num, 1337, 1339];
     const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
     const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    
+
     // prettier-ignore
     const source0 = concat([
           v0,

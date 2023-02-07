@@ -2,7 +2,6 @@ import { Chain, Common, Hardfork } from "@ethereumjs/common";
 import { getOpcodesForHF } from "@ethereumjs/evm/dist/opcodes";
 import { assert } from "console";
 
-import rainInterpreter from "../../artifacts/contracts/interpreter/shared/Rainterpreter.sol/Rainterpreter.json";
 import { Rainterpreter, Extrospection } from "../../typechain";
 import { BytecodeHashEvent } from "../../typechain/contracts/extrospection/Extrospection";
 import { basicDeploy, getEventArgs } from "../../utils";
@@ -41,7 +40,7 @@ describe("Extrospection tests", async function () {
 
 function nameOpCodes(raw) {
   let pushData;
-  let opArray = [];
+  const opArray = [];
 
   for (let i = 0; i < raw.length; i++) {
     const pc = i;
@@ -89,8 +88,8 @@ function roundLog(num, base) {
 
 function checkIfIncludesOps(bytecode) {
   const data = bytecode.split("x")[1];
-  let ops = nameOpCodes(Buffer.from(data, "hex"));
-  let opArray = ["CREATE", "CREATE2", "SSTORE", "SELFDESTRUCT", "CALL"];
+  const ops = nameOpCodes(Buffer.from(data, "hex"));
+  const opArray = ["CREATE", "CREATE2", "SSTORE", "SELFDESTRUCT", "CALL"];
 
   for (let i = 0; i < ops.length; i++) {
     if (opArray.includes(ops[i].opcode)) {
