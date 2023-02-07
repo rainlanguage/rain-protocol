@@ -5,7 +5,8 @@
     {
       "name": "inputs",
       "bits": [0, 3],
-      "validRange": [[1, 15]]
+      "validRange": [[0, 15]],
+      "computation": "arg - 1"
     },
     {
       "name": "source-index",
@@ -15,6 +16,7 @@
   ],
   "inputs": {
     "bits": [0, 3],
+    "computation": "bits + 1",
     "parameters": [
       {
         "name": "input",

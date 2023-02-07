@@ -5,7 +5,7 @@
     {
       "name": "inputs",
       "bits": [0, 7],
-      "validRange": [[3, 255]],
+      "validRange": [[1, 255]],
       "computation": "(arg - 1) / 2"
     }
   ],

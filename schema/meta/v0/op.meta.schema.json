@@ -24,7 +24,7 @@
               "const": 0
             },
             {
-              "$ref": "#/definitions/OperandArg"
+              "$ref": "#/definitions/OperandArgs"
             }
           ],
           "title": "Opcode Operand",
@@ -33,12 +33,12 @@
         "inputs": {
           "$ref": "#/definitions/InputMeta",
           "title": "Opcode Inputs",
-          "description": "Data required to specify the inputs the opcode."
+          "description": "Data required to specify the inputs of the opcode. 0 for opcodes with no input, for opcodes with constant number of inputs, the length of \"parameters\" array defines the number of inputs and for opcodes with dynamic number of inputs, \"bits\" field must be specified which determines this opcode has dynamic inputs and number of inputs will be derived from the operand bits with \"computation\" field applied if specified."
         },
         "outputs": {
           "$ref": "#/definitions/OutputMeta",
           "title": "Opcode Outputs",
-          "description": "Data required to specify the outputs the opcode."
+          "description": "Data required to specify the outputs of the opcode. An integer specifies the number of outputs for opcodes with constants number of outputs and for opcodes with dynamic outputs the \"bits\" field will determine the number of outputs with \"computation\" field applied if specified."
         },
         "aliases": {
           "type": "array",
@@ -47,8 +47,7 @@
             "pattern": "^[a-z][0-9a-z-]*$"
           },
           "title": "Opcode Aliases",
-          "description": "Extra word used to identify the opcode.",
-          "pattern": "^[a-z][0-9a-z-]*$"
+          "description": "Extra word used to identify the opcode."
         }
       },
       "required": [
@@ -62,7 +61,7 @@
       "title": "Opcode Metadata",
       "description": "Schema for opcodes metadata used by RainLang."
     },
-    "OperandArg": {
+    "OperandArgs": {
       "type": "array",
       "items": {
         "type": "object",
@@ -93,7 +92,7 @@
           "computation": {
             "type": "string",
             "title": "Allocated Operand Bits Computation",
-            "description": "Specifies any arithmetical operation that needs to be applied to the value of this operand argument. The \"arg\" keyword is reserved for accessing the value of this operand argument, example: \"(arg + 1) * 2\"."
+            "description": "Specifies any arithmetical operation that needs to be applied to the value of this operand argument. It will apply to the value before it be validated by the provided range. The \"arg\" keyword is reserved for accessing the value of this operand argument, example: \"(arg + 1) * 2\"."
           },
           "validRange": {
             "type": "array",
@@ -122,7 +121,7 @@
               ]
             },
             "title": "Operand Argument Range",
-            "description": "Determines the valid range of the operand argument before any computation applied. For an Operand Argument named \"inputs\" it defines the valid length of items inside opcode's parens. For example an operand argument can be any range between 1 - 10: [[1, 10]] or an operand argument can only be certain exact number: [[2], [3], [9]], meaning it can only be 2 or 3 or 9."
+            "description": "Determines the valid range of the operand argument after computation applied. For example an operand argument can be any value between range of 1 - 10: [[1, 10]] or an operand argument can only be certain exact values: [[2], [3], [9]], meaning it can only be 2 or 3 or 9."
           }
         },
         "required": [
@@ -187,7 +186,7 @@
             "computation": {
               "type": "string",
               "title": "Inputs-Allocated Operand Bits Computation",
-              "description": "Specifies any arithmetical operation that needs to be applied to value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) inputs."
+              "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) inputs."
             }
           },
           "required": [
@@ -221,7 +220,7 @@
             "computation": {
               "type": "string",
               "title": "Outputs-Allocated Operand Bits Computation",
-              "description": "Specifies any arithmetical operation that needs to be applied to value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) outputs."
+              "description": "Specifies any arithmetical operation that will be applied to the value of the extracted operand bits. The \"bits\" keyword is reserved for accessing the exctraced value, example: \"(bits + 1) * 2\". Required only for computed (non-constant) outputs."
             }
           },
           "additionalProperties": false
