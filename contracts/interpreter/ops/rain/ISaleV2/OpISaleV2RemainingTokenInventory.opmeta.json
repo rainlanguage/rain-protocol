@@ -1,0 +1,18 @@
+{
+  "name": "isale-v2-remaining-token-inventory",
+  "desc": "The remaining rTKNs left to to be sold",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "isale-address"
+      }
+    ]
+  },
+  "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/rain/ISaleV2/ISaleV2RemainingTokenInventory.opmeta.json
+  "aliases": ["remaining-units"]
+=======
+  "aliases": ["sale-remaining-token-inventory"]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/ISaleV2/OpISaleV2RemainingTokenInventory.opmeta.json
+}

@@ -1,0 +1,22 @@
+{
+  "name": "isale-v2-token",
+  "desc": "The rTKN address",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+<<<<<<< HEAD:contracts/interpreter/ops/rain/ISaleV2/ISaleV2Token.opmeta.json
+        "name": "isale-address"
+=======
+        "name": "ISale Token Address"
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/ISaleV2/OpISaleV2Token.opmeta.json
+      }
+    ]
+  },
+  "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/rain/ISaleV2/ISaleV2Token.opmeta.json
+  "aliases": ["rtkn", "token"]
+=======
+  "aliases": ["sale-token"]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/ISaleV2/OpISaleV2Token.opmeta.json
+}

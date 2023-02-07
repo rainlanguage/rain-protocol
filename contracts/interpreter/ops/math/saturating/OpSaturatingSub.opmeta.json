@@ -18,5 +18,17 @@
     ]
   },
   "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/math/saturating/SaturatingSub.opmeta.json
   "aliases": ["sat-sub"]
+=======
+  "aliases": [
+    "saturatingsub",
+    "sat-sub",
+    "satsub",
+    "saturating-minus",
+    "saturating-minus",
+    "satminus",
+    "sat-minus"
+  ]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/saturating/OpSaturatingSub.opmeta.json
 }

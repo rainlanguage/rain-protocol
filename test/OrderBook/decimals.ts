@@ -65,14 +65,8 @@ describe("OrderBook decimals", async function () {
     const ratio_A = ethers.BigNumber.from(1 + eighteenZeros);
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
     const constants_A = [outputMax_A, ratio_A];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_A = concat([
       aOpMax,
@@ -173,33 +167,27 @@ describe("OrderBook decimals", async function () {
     const outputMax_A = ethers.BigNumber.from(3 + eighteenZeros);
 
     const constants_A = [outputMax_A, ratio_A, tokenADecimals, tokenBDecimals];
-    const aOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const aRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const aOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const aRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     const vTokenADecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 2)
     );
     const vTokenBDecimals = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 3)
     );
     // prettier-ignore
     const source_A = concat([
-      op(Opcode.CONTEXT, 0x0201), // input decimals
+      op(Opcode.context, 0x0201), // input decimals
       vTokenADecimals,
-      op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1),
+      op(Opcode.equalTo),
+      op(Opcode.ensure, 1),
 
-      op(Opcode.CONTEXT, 0x0301), // output decimals
+      op(Opcode.context, 0x0301), // output decimals
       vTokenBDecimals,
-      op(Opcode.EQUAL_TO),
-      op(Opcode.ENSURE, 1),
+      op(Opcode.equalTo),
+      op(Opcode.ensure, 1),
 
       aOpMax,
       aRatio,
@@ -242,14 +230,8 @@ describe("OrderBook decimals", async function () {
     const ratio_B = fixedPointDiv(ONE, ratio_A); // no need to account for decimals difference
 
     const constants_B = [max_uint256, ratio_B];
-    const bOpMax = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
-    const bRatio = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 1)
-    );
+    const bOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+    const bRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
     // prettier-ignore
     const source_B = concat([
       bOpMax,

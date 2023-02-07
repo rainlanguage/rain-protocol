@@ -10,5 +10,9 @@
     ]
   },
   "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/math/logic/IsZero.opmeta.json
   "aliases": ["iszero", "is-false", "isfalse"]
+=======
+  "aliases": ["iszero", "false", "is-false", "isfalse"]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/logic/OpIsZero.opmeta.json
 }

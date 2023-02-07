@@ -29,5 +29,7 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["single-report", "single-tier-report"]
+  "aliases": [
+    "tier-report-time-for-tier"
+  ]
 }

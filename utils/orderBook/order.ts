@@ -22,8 +22,8 @@ export const getOrderConfig = async (
   orderData: BytesLike
 ): Promise<OrderConfigStruct> => {
   const constants = [opMax, ratio];
-  const vOpMax = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0));
-  const vRatio = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1));
+  const vOpMax = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
+  const vRatio = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1));
   // prettier-ignore
   const source = concat([
       vOpMax,

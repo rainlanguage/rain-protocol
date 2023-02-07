@@ -58,6 +58,7 @@ import saturatingDiffMeta from "../../../contracts/interpreter/ops/tier/Saturati
 import selectLteMeta from "../../../contracts/interpreter/ops/tier/SelectLte.opmeta.json";
 import updateTimesForTierRangeMeta from "../../../contracts/interpreter/ops/tier/UpdateTimesForTierRange.opmeta.json";
 import OpMetaSchema from "../../../schema/meta/v0/op.meta.schema.json"
+import path from "path";
 import { deflateSync } from "zlib";
 import fs from "fs";
 import { resolve } from "path";
@@ -65,70 +66,70 @@ import { format } from "prettier";
 import { metaFromBytes } from "../general";
 
 /**
+ * Generates list of file paths for all `.opmeta.json` files under `contracts/` directory.
+ */
+const getOpmetaFilePaths = () => {
+  const opmetaFilePaths: string[] = [];
+
+  function fromDir(startPath: string, filter: string) {
+    if (!fs.existsSync(startPath)) {
+      throw new Error(`Could not find path ${startPath}`);
+    }
+
+    const files = fs.readdirSync(startPath);
+    for (let i = 0; i < files.length; i++) {
+      const filename = path.join(startPath, files[i]);
+      const stat = fs.lstatSync(filename);
+      if (stat.isDirectory()) {
+        fromDir(filename, filter);
+      } else if (filename.endsWith(filter)) {
+        opmetaFilePaths.push(filename);
+      }
+    }
+  }
+
+  fromDir("./contracts", ".opmeta.json");
+
+  return opmetaFilePaths;
+};
+
+/**
  * @public
  * All Rainterpreter opmetas
  */
-export const rainterpreterOpmeta = [
-  chainlinkOraclePriceMeta,
-  callMeta,
-  contextMeta,
-  contextRowMeta,
-  debugMeta,
-  doWhileMeta,
-  foldContextMeta,
-  getMeta,
-  loopNMeta,
-  readMemoryMeta,
-  setMeta,
-  hashMeta,
-  erc20BalanceOfMeta,
-  erc20TotalSupplyMeta,
-  erc20SnapshotBalanceOfatMeta,
-  erc20SnapshotTotalSupplyAtMeta,
-  erc721BalanceOfMeta,
-  erc721OwnerOfMeta,
-  erc1155BalanceOfMeta,
-  erc1155BalanceOfBatchMeta,
-  ensureMeta,
-  blockNumberMeta,
-  timestampMeta,
-  explode32Meta,
-  fixedPointScale18Meta,
-  fixedPointScale18DivMeta,
-  fixedPointScale18MulMeta,
-  fixedPointScaleByMeta,
-  fixedPointScaleNMeta,
-  anyMeta,
-  eagerIfMeta,
-  equalToMeta,
-  everyMeta,
-  greaterThanMeta,
-  isZeroMeta,
-  lessThanMeta,
-  saturatingAddMeta,
-  saturatingMulMeta,
-  saturatingSubMeta,
-  addMeta,
-  divMeta,
-  expMeta,
-  maxMeta,
-  minMeta,
-  modMeta,
-  mulMeta,
-  subMeta,
-  iOrderBookV1VaultBalanceMeta,
-  iSaleV2RemainingTokenInventoryMeta,
-  iSaleV2ReserveMeta,
-  iSaleV2SaleStatusMeta,
-  iSaleV2TokenMeta,
-  iSaleV2TotalReserveReceivedMeta,
-  iVerifyV1AccountStatusAtTimeMeta,
-  iTierV2ReportMeta,
-  iTierV2ReportTimeForTierMeta,
-  saturatingDiffMeta,
-  selectLteMeta,
-  updateTimesForTierRangeMeta,
-];
+export const getOpmetaList = () => {
+  const opmetaFilePaths = getOpmetaFilePaths();
+
+  const opmetaJson = [];
+
+  for (let i = 0; i < opmetaFilePaths.length; i++) {
+    const data = fs.readFileSync(opmetaFilePaths[i], { encoding: "utf8" });
+    const json = JSON.parse(data);
+    opmetaJson.push(json);
+  }
+
+  return opmetaJson;
+};
+
+/**
+ * @public
+ * All Rainterpreter opmetas
+ */
+export const rainterpreterOpmeta = getOpmetaList();
+
+/**
+ * @public
+ * Constructs an enum-like object of opmeta names, which can be checked against the TypeScript `AllStandardOps` enum to verify it.
+ */
+export const getAllStandardOpsEnum = () => {
+  const allStandardOps = {};
+
+  rainterpreterOpmeta.forEach((opmeta, i_) => {
+    allStandardOps[opmeta.name] = i_;
+  });
+
+  return { ...allStandardOps, length: rainterpreterOpmeta.length };
+};
 
 /**
  * @public
@@ -177,10 +178,10 @@ export const getRainterpreterOpMetaJson = (
 /**
  * @public
  * Decompress and convert bytes to Rainterpreter op metas
- * 
+ *
  * @param bytes - Bytes to decompress and convert back to json meta
  * @param path - Path to write the results to if having the output as a json file is desired
- * @returns 
+ * @returns
  */
 export const getRainterpreterOpMetaFromBytes = (
   bytes: string | Uint8Array,

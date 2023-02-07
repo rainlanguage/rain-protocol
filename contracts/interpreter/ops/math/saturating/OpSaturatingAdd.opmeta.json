@@ -18,5 +18,17 @@
     ]
   },
   "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/math/saturating/SaturatingAdd.opmeta.json
   "aliases": ["sat-add", "saturating-sum", "sat-sum"]
+=======
+  "aliases": [
+    "saturatingadd",
+    "sat-add",
+    "satadd",
+    "saturating-sum",
+    "saturatingsum",
+    "satsum",
+    "sat-sum"
+  ]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/saturating/OpSaturatingAdd.opmeta.json
 }

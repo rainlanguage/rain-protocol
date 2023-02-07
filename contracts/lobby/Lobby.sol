@@ -349,8 +349,8 @@ contract Lobby is Phased, ReentrancyGuard, IInterpreterCallerV1 {
                 emit PlayersFinalised(msg.sender);
             }
 
-            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
             _deposit(amount_);
+            evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
     }
 

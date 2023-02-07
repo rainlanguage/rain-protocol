@@ -52,7 +52,7 @@ contract CombineTier is TierV2, IInterpreterCallerV1 {
 
     event Initialize(address sender, CombineTierConfig config);
 
-    Evaluable evaluable;
+    Evaluable internal evaluable;
 
     constructor(bytes memory callerMeta_) {
         _disableInitializers();

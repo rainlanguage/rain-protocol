@@ -25,8 +25,8 @@ describe("EXPLODE32 Opcode test", async function () {
   it("should explode a single value into 8x 32 bit integers", async () => {
     // prettier-ignore
     const sourceMAIN = concat([
-        op(Opcode.CONTEXT, 0x0000), // Initial Value
-      op(Opcode.EXPLODE32),
+        op(Opcode.context, 0x0000), // Initial Value
+      op(Opcode.explode32),
     ]);
 
     const expression0 = await expressionConsumerDeploy(

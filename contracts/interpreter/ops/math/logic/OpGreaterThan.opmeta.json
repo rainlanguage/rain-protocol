@@ -13,5 +13,9 @@
     ]
   },
   "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/math/logic/GreaterThan.opmeta.json
   "aliases": ["gt", "bigger-than"]
+=======
+  "aliases": ["gt", "greaterthan", "biggerthan", "bigger-than"]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/math/logic/OpGreaterThan.opmeta.json
 }

@@ -17,6 +17,5 @@
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["encode", "encrypt"]
+  "outputs": 1
 }

@@ -1,5 +1,5 @@
 {
-  "name": "scale18-dynamic",
+  "name": "scale-18-dynamic",
   "desc": "Rescale a fixed point number of N decimals to 18 decimals where N is taken from the stack.",
   "operand": [
     {

@@ -74,11 +74,11 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const constants = [max_uint256, threshold];
 
     const vMaxAmount = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vThreshold = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -272,11 +272,11 @@ describe("OrderBook takeOrders sloshy tests", async function () {
     const constants = [max_uint256, threshold];
 
     const vMaxAmount = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const vThreshold = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 

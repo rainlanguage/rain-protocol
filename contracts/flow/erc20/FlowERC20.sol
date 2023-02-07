@@ -115,14 +115,17 @@ contract FlowERC20 is ReentrancyGuard, FlowCommon, ERC20 {
             // CAN_TRANSFER will only restrict subsequent transfers.
             if (!(from_ == address(0) || to_ == address(0))) {
                 Evaluable memory evaluable_ = evaluable;
-                uint256[][] memory context_ = LibUint256Array
-                    .arrayFrom(
-                        uint(uint160(msg.sender)),
+                uint256[][] memory context_ = LibContext.build(
+                    new uint256[][](0),
+                    // The transfer params are caller context because the caller
+                    // is triggering the transfer.
+                    LibUint256Array.arrayFrom(
                         uint256(uint160(from_)),
                         uint256(uint160(to_)),
                         amount_
-                    )
-                    .matrixFrom();
+                    ),
+                    new SignedContext[](0)
+                );
                 (uint256[] memory stack_, uint256[] memory kvs_) = evaluable_
                     .interpreter
                     .eval(

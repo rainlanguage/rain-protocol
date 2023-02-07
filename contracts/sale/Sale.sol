@@ -517,10 +517,10 @@ contract Sale is Cooldown, ISaleV2, ReentrancyGuard, IInterpreterCallerV1 {
             uint256[] memory kvs_
         ) = _previewCanLive();
         require(!canLive_, "LIVE");
+        _end();
         if (kvs_.length > 0) {
             store_.set(DEFAULT_STATE_NAMESPACE, kvs_);
         }
-        _end();
     }
 
     /// Timeout the sale (move from pending or active to fail).

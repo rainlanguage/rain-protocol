@@ -19,7 +19,7 @@ import { ethers } from "hardhat";
 
 const Opcode = AllStandardOps;
 
-describe("CHAINLINK_PRICE Opcode tests", async function () {
+describe("chainlink-price Opcode tests", async function () {
   let logic: IInterpreterV1Consumer;
 
   beforeEach(async () => {
@@ -48,9 +48,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlinkPrice),
       ]),
     ];
     const constants = [feed, staleAfter];
@@ -107,9 +107,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlinkPrice),
       ]),
     ];
     const constants = [feed, staleAfter];
@@ -154,9 +154,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlinkPrice),
       ]),
     ];
     const constants = [feed, staleAfter];
@@ -198,9 +198,9 @@ describe("CHAINLINK_PRICE Opcode tests", async function () {
 
     const sources = [
       concat([
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-        op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-        op(Opcode.CHAINLINK_PRICE),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
+        op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 1)),
+        op(Opcode.chainlinkPrice),
       ]),
     ];
     const constants = [feed, staleAfter];

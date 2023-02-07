@@ -36,9 +36,9 @@ describe("TierV2 report op", async function () {
 
     // prettier-ignore
     const source = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
-      op(Opcode.CONTEXT, 0x0000), // signer1 address
-      op(Opcode.ITIERV2_REPORT)
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)), // ITierV2 contract
+      op(Opcode.context, 0x0000), // signer1 address
+      op(Opcode.itierV2Report)
     ]);
 
     const expression0 = await expressionConsumerDeploy(

@@ -1,0 +1,18 @@
+{
+  "name": "isale-v2-total-reserve-received",
+  "desc": "The total amount of reserve tokens received by the sale",
+  "operand": 0,
+  "inputs": {
+    "parameters": [
+      {
+        "name": "isale-address"
+      }
+    ]
+  },
+  "outputs": 1,
+<<<<<<< HEAD:contracts/interpreter/ops/rain/ISaleV2/ISaleV2TotalReserveReceived.opmeta.json
+  "aliases": ["total-raised"]
+=======
+  "aliases": ["sale-total-reserve-received"]
+>>>>>>> 8763bee4542beef544a4a8229c68a9c8ef752c10:contracts/interpreter/ops/rain/ISaleV2/OpISaleV2TotalReserveReceived.opmeta.json
+}

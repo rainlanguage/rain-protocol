@@ -57,17 +57,17 @@ describe("Stake withdraw", async function () {
 
     const constants = [max_uint256, max_uint256, 0, 1, 2, 3];
 
-    const v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const _v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
-    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
-    const _v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const _v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+    const _v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -79,8 +79,8 @@ describe("Stake withdraw", async function () {
           v0,
           v2,
           v0,
-        op(Opcode.EAGER_IF),
-      op(Opcode.ENSURE, 1),
+        op(Opcode.eagerIf),
+      op(Opcode.ensure, 1),
       max_withdraw
     ])
 
@@ -119,17 +119,17 @@ describe("Stake withdraw", async function () {
 
     const constants = [max_uint256, TEN, 0, 1, 2, 3];
 
-    const _v0 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2));
-    const v1 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3));
-    const v2 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 4));
-    const v3 = op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 5));
+    const _v0 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2));
+    const v1 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3));
+    const v2 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 4));
+    const v3 = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 5));
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -141,8 +141,8 @@ describe("Stake withdraw", async function () {
                       v1,
                       v2,
                       v3,
-                  op(Opcode.EAGER_IF),
-                    op(Opcode.ENSURE, 1),
+                  op(Opcode.eagerIf),
+                    op(Opcode.ensure, 1),
                     max_withdraw
                   ])
 
@@ -199,11 +199,11 @@ describe("Stake withdraw", async function () {
     const constants = [max_uint256, TEN];
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -293,11 +293,11 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -345,11 +345,11 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -406,11 +406,11 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -472,11 +472,11 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -539,11 +539,11 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -636,11 +636,11 @@ describe("Stake withdraw", async function () {
     const stakeExpressionConfigConstants = [max_uint256, max_uint256]; // setting deposits and withdrawals to max
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -680,11 +680,11 @@ describe("Stake withdraw", async function () {
     const constants = [max_uint256, max_uint256];
 
     const max_deposit = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const max_withdraw = op(
-      Opcode.READ_MEMORY,
+      Opcode.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -795,10 +795,7 @@ describe("Stake withdraw", async function () {
     const alice = signers[2];
 
     const constants = [max_uint256];
-    const source = op(
-      Opcode.READ_MEMORY,
-      memoryOperand(MemoryType.Constant, 0)
-    );
+    const source = op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0));
     const evaluableConfig = await generateEvaluableConfig(
       {
         sources: [source, source],

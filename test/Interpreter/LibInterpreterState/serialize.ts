@@ -25,7 +25,7 @@ describe("LibInterpreterState serialize tests", async function () {
     const sources = [
       concat([
         // sourceIndex 0
-        op(Opcode.BLOCK_NUMBER),
+        op(Opcode.blockNumber),
       ]),
     ];
     const constants = [];

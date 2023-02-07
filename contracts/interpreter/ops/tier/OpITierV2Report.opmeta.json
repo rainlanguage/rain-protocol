@@ -26,5 +26,7 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["report", "tier-report"]
+  "aliases": [
+    "tier-report"
+  ]
 }
