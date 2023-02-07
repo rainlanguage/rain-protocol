@@ -69,7 +69,7 @@
         {
           "name": "Flows",
           "desc": "The available flows for this token.",
-          "path": "[5].inputs[0].components[3]",
+          "path": "[6].inputs[0].components[3]",
           "signedContext": true,
           "callerContext": true,
           "contextColumns": [
