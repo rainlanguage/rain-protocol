@@ -4,7 +4,6 @@
   "desc": "",
   "alias": "auto-approve-factory",
   "source": "https://github.com/rainprotocol/rain-protocol",
-  "commit": "891b44d186e9c30d520b056314666b53c5d9ff64",
   "methods": [
     {
       "name": "createChildTyped",

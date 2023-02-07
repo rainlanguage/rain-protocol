@@ -3,7 +3,6 @@
   "desc": "Factory for Sale contract which throws a sale for reserve token against a redeemable erc20 token which can be later redeemed.",
   "alias": "sale-factory",
   "source": "https://github.com/rainprotocol/rain-protocol",
-  "commit": "891b44d186e9c30d520b056314666b53c5d9ff64",
   "methods": [
     {
       "name": "createChildTyped",

@@ -3,7 +3,6 @@
   "desc": "An ERC1155 token that can be minted using any of the deployed Flow expressions. This token can be made conditionally soulbound by using the 'can transfer' expression.",
   "alias": "flow-erc1155-factory",
   "source": "https://github.com/rainprotocol/rain-protocol",
-  "commit": "891b44d186e9c30d520b056314666b53c5d9ff64",
   "methods": [
     {
       "name": "createChildTyped",

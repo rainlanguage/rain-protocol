@@ -3,7 +3,6 @@
   "desc": "Factory for CombineTier which is a tier contract to combine reports of some other tier contracts based on an expression.",
   "alias": "combine-tier-factory",
   "source": "https://github.com/rainprotocol/rain-protocol",
-  "commit": "891b44d186e9c30d520b056314666b53c5d9ff64",
   "methods": [
     {
       "name": "createChildTyped",
@@ -18,7 +17,7 @@
       "expressions": [
         {
           "name": "CombineTier Report",
-          "desc": "An expression that determines Report of a CombineTier contract.",
+          "desc": "An expression that determines the report of a CombineTier contract.",
           "path": "[6].inputs[0].components[1]",
           "signedContext": true,
           "callerContext": true,
