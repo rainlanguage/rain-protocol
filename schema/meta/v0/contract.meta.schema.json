@@ -26,11 +26,6 @@
           "title": "Contract Source",
           "description": "Github repository URL where this contract belongs to."
         },
-        "commit": {
-          "type": "string",
-          "title": "Contract Git Commit",
-          "pattern": "[a-f0-9]{40}"
-        },
         "methods": {
           "type": "array",
           "items": {
@@ -46,7 +41,6 @@
         "desc",
         "alias",
         "source",
-        "commit",
         "methods"
       ],
       "additionalProperties": false,
