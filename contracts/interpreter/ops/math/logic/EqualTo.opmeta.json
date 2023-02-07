@@ -1,11 +1,11 @@
 {
   "name": "equal-to",
-  "desc": "Comapres the last 2 items of the stack together and inserts true/1 into stack if they are euqal, else inserts false/0",
+  "desc": "Compares the last 2 items of the stack together and inserts true/1 into stack if they are euqal, else inserts false/0",
   "operand": 0,
   "inputs": {
     "parameters": [
       {
-        "name": "valu1"
+        "name": "value1"
       },
       {
         "name": "value2"
