@@ -641,18 +641,18 @@ describe("Lobby Tests leave", async function () {
 
     // prettier-ignore
     const joinSource = concat([
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 0)) ,
-            op(Opcode.READ_MEMORY,memoryOperand(MemoryType.Constant, 1))
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 0)) ,
+            op(Opcode.readMemory,memoryOperand(MemoryType.Constant, 1))
         ]);
 
     const leaveSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 2)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 2)),
     ]);
     const claimSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 3)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 3)),
     ]);
     const invalidSource = concat([
-      op(Opcode.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
+      op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 0)),
     ]);
 
     const lobbyExpressionConfig = {

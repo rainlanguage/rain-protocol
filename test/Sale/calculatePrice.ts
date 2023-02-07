@@ -236,12 +236,12 @@ describe("Sale calculate price", async function () {
           vBasePrice,
               vFractionMultiplier,
                   op(Opcode.context, 0x0001), // sale address
-                op(Opcode.isalev2Reserve),
+                op(Opcode.isaleV2Reserve),
                 op(Opcode.context, 0x0000), // sender
               op(Opcode.erc20BalanceOf),
             op(Opcode.mul, 2),
                   op(Opcode.context, 0x0001), // sale address
-              op(Opcode.isalev2Reserve),
+              op(Opcode.isaleV2Reserve),
             op(Opcode.erc20TotalSupply),
           op(Opcode.div, 2),
         op(Opcode.sub, 2),
