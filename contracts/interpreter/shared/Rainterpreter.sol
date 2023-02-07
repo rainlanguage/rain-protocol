@@ -8,6 +8,7 @@ import "../../kv/LibMemoryKV.sol";
 import "../../sstore2/SSTORE2.sol";
 import "../store/IInterpreterStoreV1.sol";
 import {MathUpgradeable as Math} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// Thrown when the `Rainterpreter` is constructed with unknown store bytecode.
 error UnexpectedStoreBytecodeHash(bytes32 actualBytecodeHash);
@@ -42,7 +43,7 @@ struct RainterpreterConfig {
 /// either be built by inheriting and overriding the functions on this contract,
 /// or using the relevant libraries to construct an alternative binding to the
 /// same interface.
-contract Rainterpreter is IInterpreterV1 {
+contract Rainterpreter is IInterpreterV1, ERC165 {
     using LibStackPointer for StackPointer;
     using LibInterpreterState for bytes;
     using LibInterpreterState for InterpreterState;
@@ -90,6 +91,15 @@ contract Rainterpreter is IInterpreterV1 {
             revert UnexpectedOpMetaHash(opMetaHash_);
         }
         emit OpMeta(msg.sender, config_.opMeta);
+    }
+
+    // @inheritdoc ERC165
+    function supportsInterface(
+        bytes4 interfaceId_
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId_ == type(IInterpreterV1).interfaceId ||
+            super.supportsInterface(interfaceId_);
     }
 
     /// @inheritdoc IInterpreterV1

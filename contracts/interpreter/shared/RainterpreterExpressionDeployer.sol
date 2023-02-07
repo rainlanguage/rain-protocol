@@ -5,6 +5,7 @@ import "../deploy/IExpressionDeployerV1.sol";
 import "../ops/AllStandardOps.sol";
 import "../ops/core/OpGet.sol";
 import "../../sstore2/SSTORE2.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// @dev Thrown when the pointers known to the expression deployer DO NOT match
 /// the interpreter it is constructed for. This WILL cause undefined expression
@@ -26,7 +27,7 @@ bytes constant OPCODE_FUNCTION_POINTERS = hex"09d709e50a3b0a8d0b0b0b370bd00d5b0e
 /// @title RainterpreterExpressionDeployer
 /// @notice Minimal binding of the `IExpressionDeployerV1` interface to the
 /// `LibIntegrityCheck.ensureIntegrity` loop and `AllStandardOps`.
-contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
+contract RainterpreterExpressionDeployer is IExpressionDeployerV1, ERC165 {
     using LibInterpreterState for ExpressionConfig;
     using LibStackPointer for StackPointer;
 
@@ -70,6 +71,15 @@ contract RainterpreterExpressionDeployer is IExpressionDeployerV1 {
         }
 
         emit ValidInterpreter(msg.sender, interpreter_);
+    }
+
+    // @inheritdoc ERC165
+    function supportsInterface(
+        bytes4 interfaceId_
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId_ == type(IExpressionDeployerV1).interfaceId ||
+            super.supportsInterface(interfaceId_);
     }
 
     /// Defines all the function pointers to integrity checks. This is the

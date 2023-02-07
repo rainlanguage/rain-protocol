@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "../store/IInterpreterStoreV1.sol";
 import "../run/LibInterpreterState.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// @title RainterpreterStore
 /// @notice Simplest possible `IInterpreterStoreV1` that could work.
@@ -10,7 +11,7 @@ import "../run/LibInterpreterState.sol";
 /// mapping. `StateNamespace` is fully qualified only by `msg.sender` on set and
 /// doesn't attempt to do any deduping etc. if the same key appears twice it will
 /// be set twice.
-contract RainterpreterStore is IInterpreterStoreV1 {
+contract RainterpreterStore is IInterpreterStoreV1, ERC165 {
     using LibInterpreterState for StateNamespace;
 
     /// Store is several tiers of sandbox.
@@ -25,6 +26,15 @@ contract RainterpreterStore is IInterpreterStoreV1 {
     /// tiers 0 and 1 are both embodied in the `FullyQualifiedNamespace`.
     mapping(FullyQualifiedNamespace => mapping(uint256 => uint256))
         internal store;
+
+    // @inheritdoc ERC165
+    function supportsInterface(
+        bytes4 interfaceId_
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId_ == type(IInterpreterStoreV1).interfaceId ||
+            super.supportsInterface(interfaceId_);
+    }
 
     /// @inheritdoc IInterpreterStoreV1
     function set(StateNamespace namespace_, uint256[] calldata kvs_) external {

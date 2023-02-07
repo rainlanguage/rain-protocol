@@ -6,6 +6,7 @@ import "../extern/IInterpreterExternV1.sol";
 import "../ops/chainlink/OpChainlinkOraclePrice.sol";
 import "../run/LibStackPointer.sol";
 import "../../array/LibUint256Array.sol";
+import {ERC165Upgradeable as ERC165} from "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /// Thrown when the inputs don't match the expected inputs.
 error BadInputs(uint256 expected, uint256 actual);
@@ -15,10 +16,19 @@ error BadInputs(uint256 expected, uint256 actual);
 /// point to test and flesh out externs generally.
 /// Hopefully one day the idea of there being only a single extern contract seems
 /// quaint.
-contract RainterpreterExtern is IInterpreterExternV1 {
+contract RainterpreterExtern is IInterpreterExternV1, ERC165 {
     using LibStackPointer for uint256[];
     using LibStackPointer for StackPointer;
     using LibUint256Array for uint256;
+
+    // @inheritdoc ERC165
+    function supportsInterface(
+        bytes4 interfaceId_
+    ) public view virtual override returns (bool) {
+        return
+            interfaceId_ == type(IInterpreterExternV1).interfaceId ||
+            super.supportsInterface(interfaceId_);
+    }
 
     /// @inheritdoc IInterpreterExternV1
     function extern(
