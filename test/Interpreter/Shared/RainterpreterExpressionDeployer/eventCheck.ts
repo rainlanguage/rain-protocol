@@ -138,7 +138,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     // Checking OpMeta Event
     const InterpreterOpMetaEvent = (await getEventArgs(
       interpreter.deployTransaction,
-      "OpMeta",
+      "InterpreterOpMeta",
       interpreter
     )) as InterpreterOpMetaEvent["args"];
 
