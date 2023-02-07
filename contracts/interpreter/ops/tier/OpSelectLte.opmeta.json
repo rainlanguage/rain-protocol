@@ -1,5 +1,5 @@
 {
-  "name": "SELECT_LTE",
+  "name": "select-lte",
   "desc": "Inserts the result of selecting the less than equal to specified value taken from stack among number of reports by a logic and mode into the stack",
   "operand": [
     {
@@ -34,5 +34,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["SELECTLTE", "SELECT"]
+  "aliases": ["selectlte", "select"]
 }

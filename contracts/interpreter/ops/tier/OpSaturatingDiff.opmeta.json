@@ -1,5 +1,5 @@
 {
-  "name": "SATURATING_DIFF",
+  "name": "saturating-diff",
   "desc": "Inserts the saturating difference of 2 reports taken from the stack into the stack and prevents reverts if the result below zero",
   "operand": 0,
   "inputs": {
@@ -13,5 +13,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["SAT_DIFF", "SATDIFF", "SATURATINGDIFF"]
+  "aliases": ["sat-diff", "satdiff", "saturatingdiff"]
 }

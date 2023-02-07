@@ -1,5 +1,5 @@
 {
-  "name": "SATURATING_SUB",
+  "name": "saturating-sub",
   "desc": "Inserts subtraction of the specified items from the stack and if prevernts reverts if the result goes blow zero",
   "operand": [
     {
@@ -19,12 +19,12 @@
   },
   "outputs": 1,
   "aliases": [
-    "SATURATINGSUB",
-    "SAT_SUB",
-    "SATSUB",
-    "SATURATING_MINUS",
-    "SATURATINGMINUS",
-    "SATMINUS",
-    "SAT_MINUS"
+    "saturatingsub",
+    "sat-sub",
+    "satsub",
+    "saturating-minus",
+    "saturating-minus",
+    "satminus",
+    "sat-minus"
   ]
 }

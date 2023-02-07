@@ -54,7 +54,7 @@ export enum AllStandardOps {
   saturatingSub,
   iorderbookV1VaultBalance,
   isaleV2RemainingTokenInventory,
-  isalev2Reserve,
+  isaleV2Reserve,
   isaleV2SaleStatus,
   isaleV2Token,
   isaleV2TotalReserveReceived,

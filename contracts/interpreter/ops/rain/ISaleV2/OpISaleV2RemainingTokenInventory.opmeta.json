@@ -1,5 +1,5 @@
 {
-  "name": "ISALEV2_REMAINING_TOKEN_INVENTORY",
+  "name": "isale-v2-remaining-token-inventory",
   "desc": "The remaining rTKNs left to to be sold",
   "operand": 0,
   "inputs": {
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["REMAINING_UNITS"]
+  "aliases": ["sale-remaining-token-inventory"]
 }

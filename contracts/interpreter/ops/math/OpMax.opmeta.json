@@ -1,6 +1,6 @@
 {
-  "name": "ADD",
-  "desc": "Inserts the result of sum of N values taken from the stack into the stack",
+  "name": "max",
+  "desc": "Inserts the maximum of N values taken from the stack into the stack",
   "operand": [
     {
       "name": "Inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["+", "SUM"]
+  "aliases": ["maximum", "max-of", "maxof"]
 }

@@ -1,6 +1,6 @@
 {
-  "name": "SATURATING_MUL",
-  "desc": "Inserts multiplied result of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size",
+  "name": "every",
+  "desc": "Inserts the first value of all the values it checks if all of them are non-zero, else inserts zero into the stack.",
   "operand": [
     {
       "name": "Inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["SATURATINGMUL", "SAT_MUL", "SATMUL"]
+  "aliases": ["and"]
 }

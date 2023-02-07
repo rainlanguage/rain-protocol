@@ -1,6 +1,6 @@
 {
-  "name": "MIN",
-  "desc": "Inserts the minimum of N values taken from the stack into the stack",
+  "name": "any",
+  "desc": "Inserts the first non-zero value of all the values it checks if there exists one, else inserts zero into the stack.",
   "operand": [
     {
       "name": "Inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["MINIMUM", "MIN_OF", "MINOF"]
+  "aliases": ["or"]
 }

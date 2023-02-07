@@ -278,7 +278,7 @@ describe("LOOP_N Opcode test", async function () {
           // Decrementing the LEVEL
           op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
           op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturatingSub], 2), // LEVEL - 1
+        op(Opcode.saturatingSub, 2), // LEVEL - 1
     ]);
 
     // prettier-ignore
@@ -391,7 +391,7 @@ describe("LOOP_N Opcode test", async function () {
           // Decrementing the LEVEL
           op(Opcode.readMemory, memoryOperand(MemoryType.Stack, 2)), // LEVEL
           op(Opcode.readMemory, memoryOperand(MemoryType.Constant, 6)), // LEVEL DECREMENT
-        op(Opcode.saturatingSub], 2), // LEVEL - 1
+        op(Opcode.saturatingSub, 2), // LEVEL - 1
     ]);
 
     // prettier-ignore

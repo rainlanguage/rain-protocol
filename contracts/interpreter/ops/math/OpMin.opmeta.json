@@ -1,6 +1,6 @@
 {
-  "name": "MOD",
-  "desc": "Inserts the mod of N values taken from the stack into the stack",
+  "name": "min",
+  "desc": "Inserts the minimum of N values taken from the stack into the stack",
   "operand": [
     {
       "name": "Inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["%"]
+  "aliases": ["minimum", "min-of", "minof"]
 }

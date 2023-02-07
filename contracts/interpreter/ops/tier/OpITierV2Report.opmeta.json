@@ -1,5 +1,5 @@
 {
-  "name": "ITIERV2_REPORT",
+  "name": "itier-v2-report",
   "desc": "Inserts the report of an account of a tier contract and optionally contexts which are taken from the stack into the stack",
   "operand": [
     {
@@ -27,11 +27,6 @@
   },
   "outputs": 1,
   "aliases": [
-    "REPORT",
-    "ITIERV2REPORT",
-    "TIERREPORT",
-    "TIER_REPORT",
-    "ITIERREPORT",
-    "ITIER_REPORT"
+    "tier-report"
   ]
 }

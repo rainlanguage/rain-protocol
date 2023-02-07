@@ -1,5 +1,5 @@
 {
-  "name": "UPDATE_TIMES_FOR_TIER_RANGE",
+  "name": "update-times-for-tier-range",
   "desc": "Inserts the result of updating the range of tiers of a report taken from stack by a value taken from the stack into the stack",
   "operand": [
     {
@@ -29,12 +29,12 @@
   },
   "outputs": 1,
   "aliases": [
-    "UPDATETIMESFORTIERRANGE",
-    "UPDATE_TIER_RANGE",
-    "UPDATETIERRANGE",
-    "UPDATE_TIERS",
-    "UPDATETIERS",
-    "UPDATE_REPORT",
-    "UPDATEREPORT"
+    "updatetimesfortierrange",
+    "update-tier-range",
+    "updatetierrange",
+    "update-tiers",
+    "updatetiers",
+    "update-report",
+    "updatereport"
   ]
 }

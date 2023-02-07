@@ -1,5 +1,5 @@
 {
-  "name": "ISALEV2_TOTAL_RESERVE_RECEIVED",
+  "name": "isale-v2-total-reserve-received",
   "desc": "The total amount of reserve tokens received by the sale",
   "operand": 0,
   "inputs": {
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["TOTAL_RAISED"]
+  "aliases": ["sale-total-reserve-received"]
 }

@@ -1,6 +1,6 @@
 {
-  "name": "ANY",
-  "desc": "Inserts the first non-zero value of all the values it checks if there exists one, else inserts zero into the stack.",
+  "name": "mul",
+  "desc": "Inserts the multiplication of N values taken from the stack into the stack",
   "operand": [
     {
       "name": "Inputs",
@@ -17,6 +17,5 @@
       }
     ]
   },
-  "outputs": 1,
-  "aliases": ["OR", "|"]
+  "outputs": 1
 }

@@ -1,6 +1,6 @@
 {
-  "name": "SUB",
-  "desc": "Inserts the subtraction of N values taken from the stack into the stack",
+  "name": "saturating-mul",
+  "desc": "Inserts multiplied result of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size",
   "operand": [
     {
       "name": "Inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["MINUS", "-"]
+  "aliases": ["saturatingmul", "sat-mul", "satmul"]
 }

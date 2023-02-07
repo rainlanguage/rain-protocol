@@ -1,5 +1,5 @@
 {
-  "name": "ITIERV2_REPORT_TIME_FOR_TIER",
+  "name": "itier-v2-report-time-for-tier",
   "desc": "Inserts the specified tier level report of an account of a tier contract and optionally contexts which are taken from the stack into the stack",
   "operand": [
     {
@@ -30,10 +30,6 @@
   },
   "outputs": 1,
   "aliases": [
-    "ITIERV2REPORTTIMEFORTIER",
-    "SINGLE_REPORT",
-    "SINGLEREPORT",
-    "SINGLE_TIER_REPORT",
-    "SINGLETIERREPORT"
+    "tier-report-time-for-tier"
   ]
 }

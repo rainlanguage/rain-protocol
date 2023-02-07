@@ -1,5 +1,5 @@
 {
-  "name": "SATURATING_ADD",
+  "name": "saturating-add",
   "desc": "Inserts sum of the specified items from the stack and if prevernts reverts if the result goes above max 256 bit size",
   "operand": [
     {
@@ -19,12 +19,12 @@
   },
   "outputs": 1,
   "aliases": [
-    "SATURATINGADD",
-    "SAT_ADD",
-    "SATADD",
-    "SATURATING_SUM",
-    "SATURATINGSUM",
-    "SATSUM",
-    "SAT_SUM"
+    "saturatingadd",
+    "sat-add",
+    "satadd",
+    "saturating-sum",
+    "saturatingsum",
+    "satsum",
+    "sat-sum"
   ]
 }

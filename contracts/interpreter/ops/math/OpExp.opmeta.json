@@ -1,6 +1,6 @@
 {
-  "name": "EVERY",
-  "desc": "Inserts the first value of all the values it checks if all of them are non-zero, else inserts zero into the stack.",
+  "name": "exp",
+  "desc": "Inserts the result of exponention of N values taken from the stack into the stack",
   "operand": [
     {
       "name": "Inputs",
@@ -18,5 +18,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["AND", "&"]
+  "aliases": ["pow", "power", "exponentiation"]
 }

@@ -143,7 +143,7 @@ describe("RainInterpreter MathOps saturating math", async () => {
         // (10 20 SAT_SUB)
           v10,
           v20,
-        op(Opcode.saturatingSub], 2),
+        op(Opcode.saturatingSub, 2),
       ]),
     ];
 

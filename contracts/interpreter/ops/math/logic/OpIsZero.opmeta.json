@@ -1,5 +1,5 @@
 {
-  "name": "ISZERO",
+  "name": "is-zero",
   "desc": "Checks if the value is zero and inserts true/1 into the stack if it is, else inserts false/0",
   "operand": 0,
   "inputs": {
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["IS_ZERO", "FALSE", "IS_FALSE", "ISFALSE"]
+  "aliases": ["iszero", "false", "is-false", "isfalse"]
 }

@@ -1,6 +1,6 @@
 {
-  "name": "ISALEV2_TOKEN",
-  "desc": "The rTKN address",
+  "name": "isale-v2-reserve",
+  "desc": "The reserve token address",
   "operand": 0,
   "inputs": {
     "parameters": [
@@ -10,5 +10,5 @@
     ]
   },
   "outputs": 1,
-  "aliases": ["RTKN", "TOKEN", "REDEEMABLE_TOKEN"]
+  "aliases": ["sale-reserve"]
 }
