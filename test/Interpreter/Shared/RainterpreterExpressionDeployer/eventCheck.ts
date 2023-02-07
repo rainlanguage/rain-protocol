@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { concat, keccak256 } from "ethers/lib/utils";
+import { concat } from "ethers/lib/utils";
 import { ethers } from "hardhat";
 import { RainterpreterStore } from "../../../../typechain";
 import {
@@ -36,9 +36,9 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
       constants: ["1", "2"],
       sources: [
         concat([
-          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 0)),
-          op(AllStandardOps.READ_MEMORY, memoryOperand(MemoryType.Constant, 1)),
-          op(AllStandardOps.ADD, 2),
+          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 0)),
+          op(AllStandardOps.readMemory, memoryOperand(MemoryType.Constant, 1)),
+          op(AllStandardOps.add, 2),
         ]),
       ],
     };
@@ -56,11 +56,11 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
 
     const mathExpressionConstants = [2, 3];
     const v2 = op(
-      AllStandardOps.READ_MEMORY,
+      AllStandardOps.readMemory,
       memoryOperand(MemoryType.Constant, 0)
     );
     const v3 = op(
-      AllStandardOps.READ_MEMORY,
+      AllStandardOps.readMemory,
       memoryOperand(MemoryType.Constant, 1)
     );
 
@@ -70,12 +70,12 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
               v2,
               v2,
               v2,
-            op(AllStandardOps.ADD, 3),
+            op(AllStandardOps.add, 3),
             v3,
-          op(AllStandardOps.MUL, 2),
+          op(AllStandardOps.mul, 2),
           v2,
           v3,
-        op(AllStandardOps.DIV, 3),
+        op(AllStandardOps.div, 3),
       ]),
     ];
 
@@ -118,7 +118,7 @@ describe("Test Rainterpreter Expression Deployer event", async function () {
     );
   });
 
-  it.only("should emit correct opMeta on interpreter construction", async () => {
+  it("should emit correct opMeta on interpreter construction", async () => {
     const signers = await ethers.getSigners();
     const deployer = signers[0];
 
